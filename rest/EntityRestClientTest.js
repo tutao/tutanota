@@ -1,0 +1,205 @@
+"use strict";
+
+goog.provide('EntityRestClientTest');
+
+// we do not need to use an AsyncTestCase because all EntityRest calls are synchronous because the RestClient is mocked.
+var EntityRestClientTest = TestCase("EntityRestClientTest");
+
+
+/**
+ * Tests the get functionality for element types.
+ */
+EntityRestClientTest.prototype.testGetElementWithoutListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	// mock RestClient.getElement()
+	RestClient.getElement = function(path, headers, callback) {
+		assertEquals("/rest/tutanota/mailbody/100", path);
+		callback({ _id: "100", text: "hello"});
+	};
+	EntityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "100", null, null, null, function(mailBody, exception) {
+		assertUndefined(exception);
+		assertEquals("hello", mailBody.getText());
+	});
+};
+
+/**
+ * Tests the get functionality for list element types.
+ */
+EntityRestClientTest.prototype.testGetElementWithListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	RestClient.getElement = function(path, headers, callback) {
+		assertEquals("/rest/tutanota/mail/300/100", path);
+		callback({ _id: ["300","100"], subject: "hello2", recipients: []});
+	};
+	EntityRestClient.getElement(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, "100", "300", null, null, function(mail, exception) {
+		assertUndefined(exception);
+		assertEquals("hello2", mail.getSubject());
+	});
+};
+
+/**
+ * Tests the post functionality for element types.
+ */
+EntityRestClientTest.prototype.testPostElementWithoutListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	var body = new tutao.entity.tutanota.MailBody();
+
+	RestClient.postElement = function(path, headers, json, callback) {
+		assertEquals("/rest/tutanota/mailbody", path);
+		assertEquals(body.toJsonData(), JSON.parse(json));
+		callback({_id: "400", _permissions: "564" });
+	};
+	EntityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body, null, null, null, function(exception) {
+		assertUndefined(exception);
+		assertEquals("400", body.getId());
+		assertEquals("564", body.getPermissions());
+	});
+};
+
+/**
+ * Tests the post functionality for list element types.
+ */
+EntityRestClientTest.prototype.testPostElementWithListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	var mail = new tutao.entity.tutanota.Mail();
+
+	RestClient.postElement = function(path, headers, json, callback) {
+		assertEquals("/rest/tutanota/mail/500", path);
+		assertEquals(mail.toJsonData(), JSON.parse(json));
+		callback({_id: ["500","400"], _permissions: "564"});
+	};
+	EntityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail, "500", null, null, function(exception) {
+		assertUndefined(exception);
+		assertEquals(['500', '400'], mail.getId());
+		assertEquals("564", mail.getPermissions());
+	});
+};
+
+/**
+ * Tests the post functionality on lists.
+ */
+EntityRestClientTest.prototype.testPostList = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	RestClient.postElement = function(path, headers, json, callback) {
+		assertEquals("/rest/tutanota/mail", path);
+		assertEquals("", json);
+		callback("600");
+	};
+	EntityRestClient.postList(tutao.entity.tutanota.Mail.PATH, null, null, function(listId, exception) {
+		assertUndefined(exception);
+		assertEquals("600", listId);
+	});
+};
+
+/**
+ * Tests the put functionality for element types.
+ */
+EntityRestClientTest.prototype.testPutElementWithoutListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	var body = new tutao.entity.tutanota.MailBody({_id: '600', _permissions: "564"});
+
+	RestClient.putElement = function(path, headers, json, callback) {
+		assertEquals("/rest/tutanota/mailbody/600", path);
+		assertEquals(JSON.stringify(body.toJsonData()), json);
+		callback();
+	};
+	EntityRestClient.putElement(tutao.entity.tutanota.MailBody.PATH, body, null, null, function(exception) {
+		assertUndefined(exception);
+	});
+};
+
+/**
+ * Tests the put functionality for list element types.
+ */
+EntityRestClientTest.prototype.testPutElementWithListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	var mail = new tutao.entity.tutanota.Mail({_id: ["600", "5"], _permissions: "564", recipients: []});
+
+	RestClient.putElement = function(path, headers, json, callback) {
+		assertEquals("/rest/tutanota/mail/600/5", path);
+		assertEquals(JSON.stringify(mail.toJsonData()), json);
+		callback();
+	};
+	EntityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, mail, null, null, function(exception) {
+		assertUndefined(exception);
+	});
+};
+
+
+/**
+ * Tests the get functionality a range of list elements.
+ */
+EntityRestClientTest.prototype.testGetElementRange = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	// mock RestClient.getElement()
+	RestClient.getElement = function(path, headers, callback) {
+		assertEquals("/rest/tutanota/mail/700?start=800&count=2&reverse=false", path);
+		callback([]); // just return an empty list for testing
+	};
+	EntityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, "700", "800", 2, false, null, null, function(dummies, exception) {
+		assertUndefined(exception);
+		assertEquals([], dummies);
+	});
+};
+
+/**
+ * Tests the delete functionality for a ETs.
+ */
+EntityRestClientTest.prototype.testDeleteElementsWithoutListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	// mock RestClient.deleteElements()
+	RestClient.deleteElements = function(path, headers, callback) {
+		assertEquals("/rest/tutanota/mailbody/1", path);
+		callback();
+	};
+	var ids = [1];
+	EntityRestClient.deleteElements(tutao.entity.tutanota.MailBody.PATH, ids, null, null, null, function(exception) {
+		assertUndefined(exception);
+	});
+};
+
+/**
+ * Tests the delete functionality for a LETs.
+ */
+EntityRestClientTest.prototype.testDeleteElementsWithListId = function() {
+	var RestClient = new tutao.rest.RestClient();
+	tutao.locator.replace('restClient', RestClient);
+	var EntityRestClient = new tutao.rest.EntityRestClient();
+
+	// mock RestClient.deleteElements()
+	RestClient.deleteElements = function(path, headers, callback) {
+		assertEquals("/rest/tutanota/mail/100/1", path);
+		callback();
+	};
+	var ids = [1];
+	EntityRestClient.deleteElements(tutao.entity.tutanota.Mail.PATH, ids, "100", null, null, function(exception) {
+		assertUndefined(exception);
+	});
+};
