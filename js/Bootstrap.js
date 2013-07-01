@@ -31,7 +31,7 @@ tutao.tutanota.Bootstrap.init = function() {
 		// only for testing
 //		tutao.locator.loginViewModel.passphrase("arm");
 //		tutao.locator.loginViewModel.login(function() {
-//			tutao.locator.navigator.logs();
+//			tutao.locator.navigator.config();
 //			tutao.locator.viewManager.select(tutao.locator.contactView);
 //			tutao.locator.contactListViewModel.contactsInitializedCallback.push(function() {
 //				tutao.locator.contactViewModel.showContact(tutao.locator.contactListViewModel.contacts()[2]());
@@ -92,6 +92,8 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 			dbViewModel: tutao.tutanota.ctrl.DbViewModel,
 			monitorView: tutao.tutanota.gui.MonitorView,
 			monitorViewModel: tutao.tutanota.ctrl.MonitorViewModel,
+			configView: tutao.tutanota.gui.ConfigView,
+			configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
 			entropyCollector: tutao.crypto.EntropyCollector,
 			htmlSanitizer: tutao.tutanota.security.CajaSanitizer,
 			languageViewModel: tutao.tutanota.ctrl.LanguageViewModel,
@@ -144,7 +146,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 	tutao.tutanota.gui.initEvents();
 
 	var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
-	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView], external);
+	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView], external);
 
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		// notify the active view and the swipe recognizer

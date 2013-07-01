@@ -254,3 +254,40 @@ div#monitorDiagramColumn {
 		}
 	}
 }
+
+div#configColumn {
+
+	> div#configInnerColumn {
+		position: relative;
+		height: 100%;
+		overflow-y: auto;
+		
+		> div#configData {
+
+			> div#configValues {
+				display: table;
+				margin: 10px;
+				border: 1px solid grey;
+
+				> div {
+					display: table-row;
+					
+					> span, > input {
+						display: table-cell;
+						border: 1px solid grey;
+						padding-left: 3px;
+						padding-right: 3px;
+					}
+					
+					input {
+						.inputField;
+					}
+				}
+			}
+			
+			> button {
+				margin-left: 10px;
+			}
+		}
+	}
+}
