@@ -1,0 +1,71 @@
+header#main, 
+div#tagListColumn, 
+div#searchAndMailListColumn,
+div.buttonBar,
+img#mailImage   {
+	display: none;
+}
+
+body {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	
+	font-family: "DejaVu Sans", sans-serif;
+	font-size: 12pt;
+	
+	
+	section.mail {
+		position: absolute;
+		padding: 5px;
+		border: 2px solid @grey;
+		width: 100%;
+		
+		> header {
+			width: 100%;
+			border: 1px solid @blue;
+			padding: 5px 10px 5px 10px;
+			
+			> div.headerTable {
+				display: table;
+				width: 100%;
+			
+				> div.headerLine {
+					display: table-row;
+					
+					> div.name {
+						display: table-cell;
+						vertical-align: middle;
+						width: 35px;
+					}
+					
+					> div.value.edit, div.name.edit {
+						padding-top: 5px;
+						padding-bottom: 5px;
+					}
+		
+					> .value {
+						display: table-cell;
+						vertical-align: middle;
+						padding-left: 5px;
+	
+						> .rightAligned {
+							float: right;
+						}
+					}
+				}
+			}
+		}
+		
+		> div.mailBody, div.mailBodyQuotation {
+			margin: 5px;
+			line-height: 1.5;
+			word-wrap: break-word;	
+		}
+	}
+	
+	a:after {
+  		content: " (" attr(href) ")";
+	}
+}
+

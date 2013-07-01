@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: IcoMoon.io -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 512 512"
+   fill="#515d6e"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="search.svg">
+  <metadata
+     id="metadata73">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs71" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="640"
+     inkscape:window-height="480"
+     id="namedview69"
+     showgrid="false"
+     inkscape:zoom="0.4609375"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <path
+     d="M 496.131,435.698L 374.855,332.551c-12.537-11.283-25.945-16.463-36.776-15.963C 366.707,283.054, 384.00,239.549, 384.00,192.00 C 384.00,85.961, 298.039,0.00, 192.00,0.00C 85.962,0.00,0.00,85.961,0.00,192.00c0.00,106.039, 85.961,192.00, 192.00,192.00c 47.549,0.00, 91.054-17.293, 124.588-45.922 c-0.50,10.831, 4.68,24.239, 15.963,36.776l 103.147,121.276c 17.661,19.623, 46.511,21.277, 64.11,3.678S 515.754,453.359, 496.131,435.698z M 192.00,320.00c-70.692,0.00-128.00-57.308-128.00-128.00S 121.308,64.00, 192.00,64.00s 128.00,57.308, 128.00,128.00S 262.693,320.00, 192.00,320.00z"
+     id="path67" />
+</svg>

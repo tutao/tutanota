@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: IcoMoon.io -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 512 512"
+   fill="#515d6e"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="bubble2.svg">
+  <metadata
+     id="metadata73">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs71" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="640"
+     inkscape:window-height="480"
+     id="namedview69"
+     showgrid="false"
+     inkscape:zoom="0.4609375"
+     inkscape:cx="256"
+     inkscape:cy="256"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <path
+     d="M 256.00,96.00 C 228.534,96.00 202.006,100.331 177.153,108.871 C 153.797,116.898 133.00,128.243 115.339,142.593 C 82.232,169.492 64.00,204.085 64.00,240.00 C 64.00,260.149 69.594,279.689 80.626,298.076 C 92.002,317.036 109.117,334.369 130.12,348.202 C 145.298,358.198 155.51,374.176 158.208,392.149 C 159.108,398.141 159.672,404.193 159.893,410.211 C 163.628,407.114 167.268,403.788 170.833,400.223 C 182.91,388.147 199.223,381.478 216.084,381.478 C 218.768,381.478 221.465,381.646 224.162,381.99 C 234.649,383.323 245.361,384.00 256.00,384.00 C 283.467,384.00 309.994,379.67 334.847,371.129 C 358.203,363.102 379.00,351.757 396.661,337.407 C 429.768,310.509 448.00,275.915 448.00,240.00 C 448.00,204.085 429.768,169.492 396.661,142.593 C 379.00,128.244 358.203,116.898 334.847,108.871 C 309.994,100.331 283.467,96.00 256.00,96.00 Z M 256.00,32.00 L 256.00,32.00 C 397.385,32.00 512.00,125.125 512.00,240.00 C 512.00,354.876 397.385,448.00 256.00,448.00 C 242.422,448.00 229.095,447.133 216.088,445.478 C 161.099,500.467 95.463,510.328 32.00,511.776 L 32.00,498.318 C 66.268,481.529 96.00,450.948 96.00,416.00 C 96.00,411.123 95.621,406.335 94.918,401.652 C 37.02,363.52 0.00,305.275 0.00,240.00 C 0.00,125.125 114.615,32.00 256.00,32.00 Z"
+     id="path67" />
+</svg>

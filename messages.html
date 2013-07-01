@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--[if IE 8]>     <html class="ie ie8 lte9 lte8"> <![endif]-->
+<!--[if IE 9]>     <html class="ie ie9 lte9"> <![endif]-->
+<!--[if gt IE 9]>  <html> <![endif]-->
+<!--[if !IE]><!--> <html> <!--<![endif]-->
+<!-- IE 10 can not only be recognized by js, so it is done in the following lines -->
+<head>
+	<script>
+	if(Function('/*@cc_on return document.documentMode===10@*/')()) {
+	    document.getElementsByTagName("html")[0].className = "ie ie10 lte10"
+	}
+	window.CLOSURE_NO_DEPS = true;
+	</script>
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Tutanota</title>
+	<link rel="icon" href="/graphics/favicon.png" type="image/png">
+	<link rel="apple-touch-icon-precomposed" href="/graphics/apple-touch-icon-57x57-precomposed.png"/>
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/graphics/apple-touch-icon-72x72-precomposed.png"/>
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/graphics/apple-touch-icon-114x114-precomposed.png" />
+	<style type="text/css">
+	div#fastMessage {
+		background-color: #F6F7F9;
+		position: absolute;
+		left: 0px;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+	}
+	div#fastMessageContainer > div.logo {
+		width: 179px;
+		height: 48px;
+		margin-bottom: 20px;
+		background-image: url("data:image/png;base64,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");
+	}
+	div#fastMessage > div#fastMessageContainer {
+		margin-top: 40px; 
+		margin-left: auto;
+		margin-right: auto;
+		padding: 0;
+		max-width: 300px;
+		font-size: 20px;
+		font-family: sans-serif;
+		line-height: 1.5;
+	}
+	div#fastMessageContainer > div.errorMessage, div#fastMessageContainer > div.jsErrorMessage {
+		display: none;
+	}
+	
+	div#fastMessageContainer > div > p {
+		font-size: 14px;
+		margin: 0;
+		margin-left: 25px;
+		padding: 0;
+	}
+	div#fastMessageSpinner {
+		width: 16px;
+		height: 16px;
+		display: inline-block;
+		background-image: url("data:image/png;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==");
+		margin-right: 9px;
+	}
+	</style>
+	<noscript>
+		<style type="text/css">
+			div#fastMessage > div.errorMessage, div#fastMessage > div.message {
+				display: none;
+			}
+			div#fastMessage > div.jsErrorMessage {	
+				display: block;
+			}
+		</style>
+	</noscript>
+</head>
+<body>
+<div id="fastMessage">
+	<div id="fastMessageContainer">
+		<div class="logo"></div>
+		<div class="message">
+				<div id="fastMessageSpinner"></div>Loading...
+				<p>
+					<br>please wait...<br> bitte warten...<br> espere por favor...<br> 
+				</p>
+		</div>
+		<div class="errorMessage">
+				Error...
+				<p>
+					<br>please check your internet connection and try again later...<br> bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut...<br> compruebe su conexión internet y vuelva a intentarlo más tarde por favor...<br>
+				</p>
+		</div>
+		<div class="jsErrorMessage">
+				Error...
+				<p>
+					<br>Tutanota needs Javascript. Please enable Javascript in your browser...<br><br> Tutanota benötigt Javascript. Bitte schalten Sie Javascript in Ihrem Browser ein...
+				</p>
+		</div>
+	</div>
+</div>
+
+	<script type="text/javascript">
+		LanguageViewModel = function() {
+			var lang = navigator.language || navigator.userLanguage;
+			if (lang && lang.toLowerCase() == "de-de") {
+				this._current = function() { return 'de'; };
+			} else {
+				this._current = function() { return 'en'; };
+			}
+		};
+		
+		LanguageViewModel.prototype.get = function(id, params) {
+			if (id == null) {
+				return "";
+			}
+			var text = LanguageViewModel[this._current()][id];
+			if (!text) {
+				throw new Error("no translation found for id " + id);
+			}
+			if (params instanceof Object) {
+				for (var param in params) {
+					text = text.replace(param, params[param]);
+				}
+			}
+			return text;
+		};
+		
+		LanguageViewModel.en = {
+			invalidLink_msg: "Sorry, this link is not valid.",
+			passwordTransmitted_msg: "Congratulations! Your message will be unlocked on the device that has been used to request the SMS.<br><br>Thank you for using Tutanota, a service provided by Tutao (<a href=\"http://www.tutao.de\">www.tutao.de</a>).",
+			passwordNotTransmitted_msg: "Could not transmit password, please enter manually...",
+		};
+		LanguageViewModel.de = {
+			invalidLink_msg: "Leider ist dieser Link ungültig.",
+			passwordTransmitted_msg: "Glückwunsch! Ihre Nachricht wird nun auf dem Gerät freigegeben, von dem aus Sie die SMS mit dem Passwort-Link angefordert haben.<br><br>Vielen Dank für die Nutzung von Tutanota, einem Service der Tutao GmbH (<a href=\"http://www.tutao.de\">www.tutao.de</a>).",
+			passwordNotTransmitted_msg: "Das Passwort konnte nicht übertragen werden, bitte geben Sie es manuell ein...",
+		};
+		
+		var languageViewModel = new LanguageViewModel();
+		var msg = "$$$messageId$$$"; // replaced by the rendering servlet (e.g. PasswordAutoAuthenticationService)
+		document.getElementById('fastMessageContainer').getElementsByClassName('message')[0].innerHTML = languageViewModel.get(msg)
+	</script>
+</body>
+</html>

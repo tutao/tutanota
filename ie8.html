@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Tutanota for IE8/9</title>
+<script type="text/javascript"
+	src="libs/external/closure-library-base-2012-01-19.js"></script>
+<script type="text/javascript" src="libs/internal/Base.js"></script>
+<script type="text/javascript" src="libs/external/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/CustomerService.js"></script>
+<script type="text/javascript" src="generated/entity/sys/Group.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/GroupMembership.js"></script>
+<script type="text/javascript" src="generated/entity/sys/KeyPair.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/MailAddressAvailabilityService.js"></script>
+<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/PublicKeyService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/RegistrationDataService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/RegistrationLinkService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/RootInstance.js"></script>
+<script type="text/javascript" src="generated/entity/sys/SaltService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/SendRegistrationCodeService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/SystemKeysService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/TestCustomerRegistrationService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/UpdatePermissionKeyService.js"></script>
+<script type="text/javascript" src="generated/entity/sys/User.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/UserIdService.js"></script>
+<script type="text/javascript" src="generated/entity/sys/UserService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/sys/VerifyRegistrationCodeService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/Contact.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactAddress.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactAddressEditable.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactEditable.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactList.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactMailAddress.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactMailAddressEditable.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactPhoneNumber.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactSocialId.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ContactSocialIdEditable.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/ConversationEntry.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/FeedbackService.js"></script>
+<script type="text/javascript" src="generated/entity/tutanota/File.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/FileService.js"></script>
+<script type="text/javascript" src="generated/entity/tutanota/Mail.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/MailAddress.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/MailBody.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/MailBox.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/MessageMapping.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/PasswordChannelService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/PasswordMessage.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/PasswordMessagingService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/Recipient.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/SendMailService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/SendUnsecureMailService.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/UnsecureRecipient.js"></script>
+<script type="text/javascript"
+	src="generated/entity/tutanota/WelcomeMailService.js"></script>
+<script type="text/javascript" src="js/ctrl/ComposingMail.js"></script>
+<script type="text/javascript" src="js/ctrl/ContactListViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/ContactViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/DisplayedMail.js"></script>
+<script type="text/javascript" src="js/ctrl/DropDownViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/ExternalLoginViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/FeedbackViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/FileFacade.js"></script>
+<script type="text/javascript" src="js/ctrl/FontViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/GroupData.js"></script>
+<script type="text/javascript" src="js/ctrl/LanguageViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/LoginViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/MailBoxController.js"></script>
+<script type="text/javascript" src="js/ctrl/MailListViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/MailViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/RecipientInfo.js"></script>
+<script type="text/javascript"
+	src="js/ctrl/RecipientsNotFoundException.js"></script>
+<script type="text/javascript" src="js/ctrl/RegistrationViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/SendMailFacade.js"></script>
+<script type="text/javascript" src="js/ctrl/SendUnsecureMailFacade.js"></script>
+<script type="text/javascript" src="js/ctrl/SwipeRecognizer.js"></script>
+<script type="text/javascript" src="js/ctrl/TagListViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/View.js"></script>
+<script type="text/javascript" src="js/ctrl/ViewManager.js"></script>
+<script type="text/javascript" src="js/ctrl/ViewSlider.js"></script>
+<script type="text/javascript" src="js/ctrl/bubbleinput/Bubble.js"></script>
+<script type="text/javascript"
+	src="js/ctrl/bubbleinput/BubbleHandler.js"></script>
+<script type="text/javascript"
+	src="js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
+<script type="text/javascript" src="js/ctrl/bubbleinput/Suggestion.js"></script>
+<script type="text/javascript" src="js/entity/ContactExtension.js"></script>
+<script type="text/javascript" src="js/entity/ContactWrapper.js"></script>
+<script type="text/javascript" src="js/entity/TutanotaConstants.js"></script>
+<script type="text/javascript" src="js/gui/BubbleInputGui.js"></script>
+<script type="text/javascript" src="js/gui/ContactView.js"></script>
+<script type="text/javascript" src="js/gui/ContextMenu.js"></script>
+<script type="text/javascript" src="js/gui/ExternalLoginView.js"></script>
+<script type="text/javascript" src="js/gui/LoginView.js"></script>
+<script type="text/javascript" src="js/gui/MailView.js"></script>
+<script type="text/javascript" src="js/gui/NotFoundView.js"></script>
+<script type="text/javascript" src="js/gui/NotSupportedView.js"></script>
+<script type="text/javascript" src="js/gui/RegistrationView.js"></script>
+<script type="text/javascript" src="js/gui/gui.js"></script>
+<script type="text/javascript" src="js/index/Indexer.js"></script>
+<script type="text/javascript" src="js/security/CajaSanitizer.js"></script>
+<script type="text/javascript" src="js/security/HtmlSanitizer.js"></script>
+<script type="text/javascript" src="js/util/ClientDetector.js"></script>
+<script type="text/javascript" src="js/util/DataFile.js"></script>
+<script type="text/javascript" src="js/util/FileUtils.js"></script>
+<script type="text/javascript" src="js/util/Formatter.js"></script>
+<script type="text/javascript" src="js/util/PasswordUtils.js"></script>
+<script type="text/javascript" src="libs/internal/Locator.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/AesInterface.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/AesWorkerProxy.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/ClientWorker.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/ClientWorkerProxy.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/CryptoException.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/EntropyCollector.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/JBCryptAdapter.js"></script>
+<script type="text/javascript" src="libs/internal/crypto/JsbnRsa.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/KdfInterface.js"></script>
+<script type="text/javascript" src="libs/internal/crypto/Oaep.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/RandomizerInterface.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/RsaInterface.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/RsaWorkerProxy.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/ShaInterface.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/SimpleRandomizer.js"></script>
+<script type="text/javascript" src="libs/internal/crypto/SjclAes.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/SjclRandomizer.js"></script>
+<script type="text/javascript" src="libs/internal/crypto/SjclSha256.js"></script>
+<script type="text/javascript"
+	src="libs/internal/crypto/WorkerRandomizer.js"></script>
+<script type="text/javascript" src="libs/internal/crypto/bCrypt.js"></script>
+<script type="text/javascript"
+	src="libs/internal/ctrl/UserController.js"></script>
+<script type="text/javascript" src="libs/internal/db/DbInterface.js"></script>
+<script type="text/javascript" src="libs/internal/db/DummyDb.js"></script>
+<script type="text/javascript" src="libs/internal/db/WebSqlDb.js"></script>
+<script type="text/javascript"
+	src="libs/internal/entity/EntityHelper.js"></script>
+<script type="text/javascript"
+	src="libs/internal/entity/InvalidDataException.js"></script>
+<script type="text/javascript"
+	src="libs/internal/entity/NotAuthorizedException.js"></script>
+<script type="text/javascript"
+	src="libs/internal/event/ListEventTracker.js"></script>
+<script type="text/javascript" src="libs/internal/event/Observer.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/EntityRestCache.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/EntityRestClient.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/EntityRestDummy.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/EntityRestException.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/EntityRestInterface.js"></script>
+<script type="text/javascript"
+	src="libs/internal/rest/ResourceConstants.js"></script>
+<script type="text/javascript" src="libs/external/crypto-sjcl-2012-08-09.js"></script>
+<script type="text/javascript" src="libs/internal/rest/RestClient.js"></script>
+<script type="text/javascript" src="libs/internal/rest/RestException.js"></script>
+<script type="text/javascript" src="libs/internal/util/ArrayUtils.js"></script>
+<script type="text/javascript" src="libs/internal/util/Assert.js"></script>
+<script type="text/javascript"
+	src="libs/internal/util/EncodingConverter.js"></script>
+<script type="text/javascript" src="libs/internal/util/FunctionUtils.js"></script>
+<script type="text/javascript" src="libs/internal/util/StringUtils.js"></script>
+<script type="text/javascript" src="libs/internal/util/bind.js"></script>
+
+<script type="text/javascript" src="libs/external/swfobject-2.2.min.js"></script>
+<script type="text/javascript" src="js/legacy/FlashFileSaver.js"></script>
+
+
+	<link href="css/reset.less" rel="stylesheet" type="text/less">
+	<link href="css/header.less" rel="stylesheet" type="text/less">
+	<link href="css/body.less" rel="stylesheet" type="text/less">
+	<link href="css/login.less" rel="stylesheet" type="text/less">
+	<link href="css/feedback.less" rel="stylesheet" type="text/less">
+	<script type="text/javascript" src="libs/external/less-1.3.0.js"></script>
+
+</head>
+<body onload="load();">
+	<h1>Downloadify Example</h1>
+	<p>
+		More info available at the <a
+			href="http://github.com/dcneiner/Downloadify">Github Project Page</a>
+	</p>
+	<form>
+		<p>
+			<label for="filename">Filename</label><br /> <input type="text"
+				name="filename" value="testfile.txt" id="filename" />
+		</p>
+		<p>
+			<label for="data">File Contents</label><br />
+			<textarea cols="60" rows="10" name="data" id="data">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</textarea>
+		</p>
+		<p id="downloadify">You must have Flash 10 installed to download
+			this file.</p>
+	</form>
+
+	<script type="text/javascript">
+		function load() {
+			var downloadedData = null;
+			new tutao.rest.RestClient().getBinary("downloads/1.pdf", {}, function(downloadedData, exception) {
+				var e = exception;
+				//if ($.browser.msie && $.browser.version == 8) {
+					var fileSaver = new tutao.tutanota.legacy.FlashFileSaver("downloadifyFlash", $("#downloadify"), 200, 100, downloadedData, "filename.txt", function() {
+						console.log("initialized flash file saver");
+					});
+				//}
+			});
+
+		}
+	</script>
+	<a id="button">Download</a>
+</body>
+</html>

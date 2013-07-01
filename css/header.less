@@ -1,0 +1,118 @@
+header#main {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	right: 0px;
+	height: 55px;
+	.background-gradient(left, @white, @blue);
+	.shadow(0px, 0px, 7px, 0px);
+	background-clip: padding-box;
+	
+	> img#logo {
+		position: absolute;
+		top: 4px;
+		left: 10px;
+		height: 24px;
+		cursor: pointer;
+	}
+	
+	> img#logo_path_only {
+		position: absolute;
+		top: 7px;
+		left: 10px;
+		height: 32px;
+		cursor: pointer;
+	}
+	
+	> select#fontSelector, select#themeSelector  {
+		position: absolute;
+		left: 130px;
+		top: 6px;
+	}
+	
+	span#user_welcome {
+		position: absolute;
+		bottom: 0px;
+		left: 10px;
+		font-size: 14px;
+	}
+	
+	div#log {
+		position: absolute;
+		left: 330px;
+		top: 0px;
+		bottom: 0px;
+		width: 300px;
+		font-size: 10px;
+	}
+	
+	menu {
+		ul#menu_list {
+			list-style-type: none;
+			position: absolute;
+			right: 0px;
+			
+			> li {
+				float:left;
+				.clearfix;
+				
+				> div.menu_link {
+					cursor: pointer;
+					// more properties below
+				}
+				
+				> img.languageIcon {
+					position: relative;
+					top: 10px;
+					margin-left: auto;
+				    margin-right: auto;
+				    text-align: center;
+					height: 26px;
+					opacity: 0.9;
+					cursor: pointer;
+					
+					&.disabled {
+						opacity: 0.2;
+						
+						html.ie.lte8 & {
+							-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// also used in mail and contact view if no entities is shown
+div.menu_link  {
+	
+	div.menu_image {
+		position: relative;
+		height: 30px;
+		margin-left: auto;
+	    margin-right: auto;
+	    text-align: center;
+	    
+		> div {
+		    width: 28px;
+		    height: 28px;
+		    top: 3px;
+		    position: relative;							
+		}
+		
+	}
+	
+	div.menu_text  {
+		font-size: 13px;
+		text-align: center;
+		overflow: hidden;
+		white-space: nowrap;
+		width: 60px; // defines the width of each menu item (+ margin)
+		margin-left: 2px;
+		margin-right: 2px;
+		.fadeTextOut;
+	}
+}
+
+

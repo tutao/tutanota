@@ -1,0 +1,301 @@
+/** 
+ * This file is refenrenced by the HTML code and imports all styles that are used on the page.
+ *
+ * ATTENTION: The reset style sheet must be the first css to be interpreted by the browser.
+ *           The file name has been prefixed with '_' to guarantee this.
+ */
+
+@theme: 'default';
+ 
+@import 'common.less';
+@import 'reset.less';
+
+@media screen {
+	@import 'header.less';
+	@import 'body.less';
+	@import 'login.less';
+	@import 'feedback.less';
+	@import 'dbadmin.less';
+}
+
+@media print {
+	@import 'print.less';
+}
+
+/******************** buttons.less ********************/
+/* 1. Prepare svg images (replace fill with variable):
+ *		 find . -type f -print0 | xargs -0 sed -i 's/fill="#000000"/fill="@{icon-color}"/g'
+ * 2. Remove all linebreaks and convert " to ' (for embedding as url parameter, see below) 
+ *		 cat mail3.svg | sed 's/"/'\''/g' | tr -d "\n"
+ *
+ * Setup replacement pngs:
+ * 1. find . -type f -print0 | xargs -0 sed -i 's/fill="@{icon-color}"/fill="#515d6e"/g'
+ * 2. for i in *; do inkscape $i --export-png=`echo $i | sed -e 's/svg$/png/'`; done
+ */
+@icon-color: darken(@dark-blue,15%);
+@menu-icon-color: darken(@dark-blue,15%);
+@star-color: @white;
+
+.imgButton {
+	display: inline-block;
+	background-size: 100% auto;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 100%;
+	height: 100%;
+
+	
+	object {
+		display: initial;
+	}
+	
+	&.cancel {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='close.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 507.331,411.33c-0.002-0.002-0.004-0.004-0.006-0.005L 352.003,256.00l 155.322-155.325c 0.002-0.002, 0.004-0.003, 0.006-0.005 c 1.672-1.673, 2.881-3.627, 3.656-5.708c 2.123-5.688, 0.912-12.341-3.662-16.915L 433.952,4.674c-4.574-4.573-11.225-5.783-16.914-3.66 c-2.08,0.775-4.035,1.984-5.709,3.655c0.00,0.002-0.002,0.003-0.004,0.005L 256.001,160.00L 100.677,4.675 c-0.002-0.002-0.003-0.003-0.005-0.005c-1.673-1.671-3.627-2.88-5.707-3.655c-5.69-2.124-12.341-0.913-16.915,3.66L 4.676,78.049 c-4.574,4.574-5.784,11.226-3.661,16.914c 0.776,2.08, 1.985,4.036, 3.656,5.708c 0.002,0.001, 0.003,0.003, 0.005,0.005L 160.001,256.00 L 4.676,411.326c-0.001,0.002-0.003,0.003-0.004,0.005c-1.671,1.673-2.88,3.627-3.657,5.707c-2.124,5.688-0.913,12.341, 3.661,16.915 l 73.374,73.373c 4.575,4.574, 11.226,5.784, 16.915,3.661c 2.08-0.776, 4.035-1.985, 5.708-3.656c 0.001-0.002, 0.003-0.003, 0.005-0.005 l 155.324-155.325l 155.324,155.325c 0.002,0.001, 0.004,0.003, 0.006,0.004c 1.674,1.672, 3.627,2.881, 5.707,3.657 c 5.689,2.123, 12.342,0.913, 16.914-3.661l 73.373-73.374c 4.574-4.574, 5.785-11.227, 3.662-16.915 C 510.212,414.957, 509.003,413.003, 507.331,411.33z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/close.png");
+		}
+	}
+	
+	&.search {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='search.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 496.131,435.698L 374.855,332.551c-12.537-11.283-25.945-16.463-36.776-15.963C 366.707,283.054, 384.00,239.549, 384.00,192.00 C 384.00,85.961, 298.039,0.00, 192.00,0.00C 85.962,0.00,0.00,85.961,0.00,192.00c0.00,106.039, 85.961,192.00, 192.00,192.00c 47.549,0.00, 91.054-17.293, 124.588-45.922 c-0.50,10.831, 4.68,24.239, 15.963,36.776l 103.147,121.276c 17.661,19.623, 46.511,21.277, 64.11,3.678S 515.754,453.359, 496.131,435.698z M 192.00,320.00c-70.692,0.00-128.00-57.308-128.00-128.00S 121.308,64.00, 192.00,64.00s 128.00,57.308, 128.00,128.00S 262.693,320.00, 192.00,320.00z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/search.png");
+		}
+	}
+	
+    &.mail-new {
+    	@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 674.71185 512' fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='mail3.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     fit-margin-top='0'     fit-margin-left='0'     fit-margin-right='0'     fit-margin-bottom='0'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 562.2656,0 112.46472,0 C 50.611297,0 0,38.405 0,85.345 L 0,426.656 C 0,473.625 50.611297,512 112.46472,512 l 449.80088,0 c 61.85473,0 112.44626,-38.375 112.44626,-85.345 l 0,-341.31 C 674.71186,38.405 624.12033,0 562.2656,0 z m -441.93232,443.313 -50.903848,-38.627 168.677968,-128 19.27673,14.627 -137.05085,152 z M 101.05655,99.314 120.33328,84.686 337.35593,217.373 554.3799,84.686 573.65531,99.314 337.35593,310.627 101.05655,99.314 z m 453.32335,343.999 -137.05084,-152 19.27541,-14.627 168.67796,128 -50.90253,38.627 z'     id='path67'     inkscape:connector-curvature='0' /></svg>");
+    	background-image: url("data:image/svg+xml;utf8,@{image}");
+    	
+		.new;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/mail3.png");
+		}
+    }
+    
+    &.mail {
+	    @image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 674.71185 512' fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='mail3.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     fit-margin-top='0'     fit-margin-left='0'     fit-margin-right='0'     fit-margin-bottom='0'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 562.2656,0 112.46472,0 C 50.611297,0 0,38.405 0,85.345 L 0,426.656 C 0,473.625 50.611297,512 112.46472,512 l 449.80088,0 c 61.85473,0 112.44626,-38.375 112.44626,-85.345 l 0,-341.31 C 674.71186,38.405 624.12033,0 562.2656,0 z m -441.93232,443.313 -50.903848,-38.627 168.677968,-128 19.27673,14.627 -137.05085,152 z M 101.05655,99.314 120.33328,84.686 337.35593,217.373 554.3799,84.686 573.65531,99.314 337.35593,310.627 101.05655,99.314 z m 453.32335,343.999 -137.05084,-152 19.27541,-14.627 168.67796,128 -50.90253,38.627 z'     id='path67'     inkscape:connector-curvature='0' /></svg>");
+	    background-image: url("data:image/svg+xml;utf8,@{image}");
+	    
+	    html.ie & {
+			background-image: url("../graphics/newicons/mail3.png");
+		}
+    }
+    
+    &.db {
+	    background-image: url("../graphics/newicons/search.png");
+    }
+   
+    &.monitor {
+	    background-image: url("../graphics/newicons/search.png");
+    }
+    
+    &.contact-new {
+    	@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='users.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 367.497,402.687c-9.476-1.494-9.692-27.327-9.692-27.327s 27.844-27.328, 33.912-64.076 c 16.326,0.00, 26.407-39.069, 10.082-52.814c 0.681-14.47, 20.984-113.588-81.799-113.588c-102.782,0.00-82.479,99.118-81.799,113.588 c-16.327,13.745-6.244,52.814, 10.081,52.814c 6.067,36.748, 33.913,64.076, 33.913,64.076s-0.216,25.833-9.692,27.327 C 241.979,407.503, 128.00,457.345, 128.00,512.00l 192.00,0.00 l 192.00,0.00 C 512.00,457.345, 398.021,407.503, 367.497,402.687zM 172.027,411.405c 22.047-13.575, 48.813-26.154, 70.769-33.712c-7.876-11.216-16.647-26.468-22.165-44.531 c-7.703-6.283-13.972-15.266-17.999-26.301c-4.033-11.052-5.561-23.426-4.304-34.842c 0.902-8.196, 3.239-15.833, 6.825-22.544 c-2.175-23.293-3.707-69.017, 26.224-102.366c 11.607-12.933, 26.278-22.23, 43.85-27.843C 272.09,86.886, 255.647,48.881, 192.00,48.881 c-102.782,0.00-82.479,99.118-81.799,113.588c-16.327,13.745-6.244,52.814, 10.081,52.814c 6.067,36.748, 33.913,64.076, 33.913,64.076 s-0.216,25.833-9.692,27.327C 113.979,311.503,0.00,361.345,0.00,416.00l 164.798,0.00 C 167.153,414.463, 169.551,412.93, 172.027,411.405z'     id='path67' /></svg>");
+    	background-image: url("data:image/svg+xml;utf8,@{image}");
+    	
+    	.new;
+    	
+    	html.ie & {
+			background-image: url("../graphics/newicons/users.png");
+		}
+	}
+	
+	&.contact {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='users.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 367.497,402.687c-9.476-1.494-9.692-27.327-9.692-27.327s 27.844-27.328, 33.912-64.076 c 16.326,0.00, 26.407-39.069, 10.082-52.814c 0.681-14.47, 20.984-113.588-81.799-113.588c-102.782,0.00-82.479,99.118-81.799,113.588 c-16.327,13.745-6.244,52.814, 10.081,52.814c 6.067,36.748, 33.913,64.076, 33.913,64.076s-0.216,25.833-9.692,27.327 C 241.979,407.503, 128.00,457.345, 128.00,512.00l 192.00,0.00 l 192.00,0.00 C 512.00,457.345, 398.021,407.503, 367.497,402.687zM 172.027,411.405c 22.047-13.575, 48.813-26.154, 70.769-33.712c-7.876-11.216-16.647-26.468-22.165-44.531 c-7.703-6.283-13.972-15.266-17.999-26.301c-4.033-11.052-5.561-23.426-4.304-34.842c 0.902-8.196, 3.239-15.833, 6.825-22.544 c-2.175-23.293-3.707-69.017, 26.224-102.366c 11.607-12.933, 26.278-22.23, 43.85-27.843C 272.09,86.886, 255.647,48.881, 192.00,48.881 c-102.782,0.00-82.479,99.118-81.799,113.588c-16.327,13.745-6.244,52.814, 10.081,52.814c 6.067,36.748, 33.913,64.076, 33.913,64.076 s-0.216,25.833-9.692,27.327C 113.979,311.503,0.00,361.345,0.00,416.00l 164.798,0.00 C 167.153,414.463, 169.551,412.93, 172.027,411.405z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/users.png");
+		}
+	}
+	
+	&.file-new {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='cabinet.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 352.00,0.00L 160.00,0.00 L 64.00,64.00l0.00,128.00 l 384.00,0.00 L 448.00,64.00 L 352.00,0.00z M 320.00,160.00l-32.00,0.00 l0.00-21.333 C 288.00,132.80, 283.20,128.00, 277.333,128.00l-42.666,0.00 c-5.866,0.00-10.667,4.80-10.667,10.667L 224.00,160.00 l-32.00,0.00 l0.00-53.333 C 192.00,100.80, 196.801,96.00, 202.667,96.00l 106.665,0.00 c 5.867,0.00, 10.668,4.80, 10.668,10.667 L 320.00,160.00 zM 64.00,352.001l 384.00,0.00 L 448.00,224.00 L 64.00,224.00 L 64.00,352.001 z M 192.00,266.666c0.00-5.867, 4.801-10.666, 10.667-10.666l 106.665,0.00 c 5.867,0.00, 10.668,4.799, 10.668,10.666L 320.00,320.00 l-32.00,0.00 l0.00-21.334 c0.00-5.867-4.80-10.666-10.667-10.666l-42.666,0.00 c-5.866,0.00-10.667,4.799-10.667,10.666L 224.00,320.00 l-32.00,0.00 L 192.00,266.666 zM 64.00,512.00l 384.00,0.00 L 448.00,384.001 L 64.00,384.001 L 64.00,512.00 z M 192.00,426.666c0.00-5.867, 4.801-10.666, 10.667-10.666l 106.665,0.00 c 5.867,0.00, 10.668,4.799, 10.668,10.666 L 320.00,480.00 l-32.00,0.00 l0.00-21.334 c0.00-5.867-4.80-10.666-10.667-10.666l-42.666,0.00 c-5.866,0.00-10.667,4.799-10.667,10.666L 224.00,480.00 l-32.00,0.00 L 192.00,426.666 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		.new;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/cabinet.png");
+		}
+	}
+	
+	&.file {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='cabinet.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 352.00,0.00L 160.00,0.00 L 64.00,64.00l0.00,128.00 l 384.00,0.00 L 448.00,64.00 L 352.00,0.00z M 320.00,160.00l-32.00,0.00 l0.00-21.333 C 288.00,132.80, 283.20,128.00, 277.333,128.00l-42.666,0.00 c-5.866,0.00-10.667,4.80-10.667,10.667L 224.00,160.00 l-32.00,0.00 l0.00-53.333 C 192.00,100.80, 196.801,96.00, 202.667,96.00l 106.665,0.00 c 5.867,0.00, 10.668,4.80, 10.668,10.667 L 320.00,160.00 zM 64.00,352.001l 384.00,0.00 L 448.00,224.00 L 64.00,224.00 L 64.00,352.001 z M 192.00,266.666c0.00-5.867, 4.801-10.666, 10.667-10.666l 106.665,0.00 c 5.867,0.00, 10.668,4.799, 10.668,10.666L 320.00,320.00 l-32.00,0.00 l0.00-21.334 c0.00-5.867-4.80-10.666-10.667-10.666l-42.666,0.00 c-5.866,0.00-10.667,4.799-10.667,10.666L 224.00,320.00 l-32.00,0.00 L 192.00,266.666 zM 64.00,512.00l 384.00,0.00 L 448.00,384.001 L 64.00,384.001 L 64.00,512.00 z M 192.00,426.666c0.00-5.867, 4.801-10.666, 10.667-10.666l 106.665,0.00 c 5.867,0.00, 10.668,4.799, 10.668,10.666 L 320.00,480.00 l-32.00,0.00 l0.00-21.334 c0.00-5.867-4.80-10.666-10.667-10.666l-42.666,0.00 c-5.866,0.00-10.667,4.799-10.667,10.666L 224.00,480.00 l-32.00,0.00 L 192.00,426.666 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/cabinet.png");
+		}
+	}
+
+	&.calendar {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='calendar2.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='1218'     inkscape:window-height='784'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='m 448,64 -48,0 0,16 c 0,17.645 -14.355,32 -32,32 -17.645,0 -32,-14.355 -32,-32 l 0,-16 -160,0 0,16 c 0,17.645 -14.355,32 -32,32 -17.645,0 -32,-14.355 -32,-32 l 0,-16 -48,0 C 46.4,64 32,78.4 32,96 l 0,352 c 0,17.6 14.4,32 32,32 l 384,0 c 17.6,0 32,-14.4 32,-32 L 480,96 C 480,78.4 465.6,64 448,64 z m 0,383.942 c -0.017,0.02 -0.038,0.041 -0.058,0.058 L 64.057,448 C 64.037,447.983 64.016,447.962 64,447.942 L 64,160 448,160 z M 144,96 c 8.836,0 16,-7.164 16,-16 l 0,-64 C 160,7.164 152.836,0 144,0 135.164,0 128,7.164 128,16 l 0,64 c 0,8.836 7.164,16 16,16 z m 224,0 c 8.836,0 16,-7.164 16,-16 l 0,-64 C 384,7.164 376.836,0 368,0 359.164,0 352,7.164 352,16 l 0,64 c 0,8.836 7.164,16 16,16 z m 68,396 -360,0 C 58.4,492 44,481.6 44,464 l 0,16 c 0,17.6 14.4,32 32,32 l 360,0 c 17.6,0 32,-14.4 32,-32 l 0,-16 c 0,17.6 -14.4,28 -32,28 z'     id='path67'     inkscape:connector-curvature='0'     sodipodi:nodetypes='scsssccssscsssssssscccccccsssssssssssssssscsssscs' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+
+		html.ie & {
+			background-image: url("../graphics/newicons/calendar2.png");
+		}
+    	
+    	> time#day {
+			position: absolute;
+			top: 11px;
+			left: 0px;
+			right: 0px;
+			text-align: center;
+			font-size: 10px;
+			font-weight: bold;
+			color: @icon-color;
+		}
+		
+	}
+	
+	&.tasks {
+	}
+	
+	&.feedback {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='bubble2.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 256.00,96.00 C 228.534,96.00 202.006,100.331 177.153,108.871 C 153.797,116.898 133.00,128.243 115.339,142.593 C 82.232,169.492 64.00,204.085 64.00,240.00 C 64.00,260.149 69.594,279.689 80.626,298.076 C 92.002,317.036 109.117,334.369 130.12,348.202 C 145.298,358.198 155.51,374.176 158.208,392.149 C 159.108,398.141 159.672,404.193 159.893,410.211 C 163.628,407.114 167.268,403.788 170.833,400.223 C 182.91,388.147 199.223,381.478 216.084,381.478 C 218.768,381.478 221.465,381.646 224.162,381.99 C 234.649,383.323 245.361,384.00 256.00,384.00 C 283.467,384.00 309.994,379.67 334.847,371.129 C 358.203,363.102 379.00,351.757 396.661,337.407 C 429.768,310.509 448.00,275.915 448.00,240.00 C 448.00,204.085 429.768,169.492 396.661,142.593 C 379.00,128.244 358.203,116.898 334.847,108.871 C 309.994,100.331 283.467,96.00 256.00,96.00 Z M 256.00,32.00 L 256.00,32.00 C 397.385,32.00 512.00,125.125 512.00,240.00 C 512.00,354.876 397.385,448.00 256.00,448.00 C 242.422,448.00 229.095,447.133 216.088,445.478 C 161.099,500.467 95.463,510.328 32.00,511.776 L 32.00,498.318 C 66.268,481.529 96.00,450.948 96.00,416.00 C 96.00,411.123 95.621,406.335 94.918,401.652 C 37.02,363.52 0.00,305.275 0.00,240.00 C 0.00,125.125 114.615,32.00 256.00,32.00 Z'     id='path67' /></svg>");
+		background-image: none, url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/bubble2.png");
+		}
+	}
+	
+	&.logout {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{menu-icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='enter.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 192.00,256.00 L 32.00,256.00 L 32.00,192.00 L 192.00,192.00 L 192.00,128.00 L 288.00,224.00 L 192.00,320.00 ZM 512.00,0.00 L 512.00,416.00 L 320.00,512.00 L 320.00,416.00 L 128.00,416.00 L 128.00,288.00 L 160.00,288.00 L 160.00,384.00 L 320.00,384.00 L 320.00,96.00 L 448.00,32.00 L 160.00,32.00 L 160.00,160.00 L 128.00,160.00 L 128.00,0.00 Z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/enter.png");
+		}
+	}
+	
+	&.left {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='arrow-left.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M0.00,256.00L 256.00,512.00L 256.00,352.00L 511.999,352.00L 512.00,160.00L 256.00,160.00L 256.00,0.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/arrow-left.png");
+		}
+	}
+	
+	&.right {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='arrow-right.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 512.00,256.00L 256.00,0.00L 256.00,160.00L 0.001,160.00L0.00,352.00L 256.00,352.00L 256.00,512.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/arrow-right.png");
+		}
+	}
+	
+	&.trash {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='remove.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 96.00,512.00L 416.00,512.00L 448.00,160.00L 64.00,160.00 zM 320.00,64.00L 320.00,0.00 L 192.00,0.00 l0.00,64.00 L 32.00,64.00 l0.00,96.00 l 32.00-32.00l 384.00,0.00 l 32.00,32.00L 480.00,64.00 L 320.00,64.00 z M 288.00,64.00l-64.00,0.00 L 224.00,32.00 l 64.00,0.00 L 288.00,64.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/remove.png");
+		}
+	}
+	
+	&.left-small {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='arrow-left.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M0.00,256.00L 256.00,512.00L 256.00,352.00L 511.999,352.00L 512.00,160.00L 256.00,160.00L 256.00,0.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		width: 15px;
+		height: 15px;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/arrow-left.png");
+		}
+	}
+	
+	&.right-small {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='arrow-right.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 512.00,256.00L 256.00,0.00L 256.00,160.00L 0.001,160.00L0.00,352.00L 256.00,352.00L 256.00,512.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		width: 15px;
+		height: 15px;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/arrow-right.png");
+		}
+	}
+	
+	&.attachment-small {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='attachment.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 348.916,163.524l-32.476-32.461L 154.035,293.434c-26.907,26.896-26.907,70.524,0.00,97.422 c 26.902,26.896, 70.53,26.896, 97.437,0.00l 194.886-194.854c 44.857-44.831, 44.857-117.531,0.00-162.363 c-44.833-44.852-117.556-44.852-162.391,0.00L 79.335,238.212l 0.017,0.016c-0.145,0.152-0.306,0.288-0.438,0.423 c-62.551,62.548-62.551,163.928,0.00,226.453c 62.527,62.528, 163.934,62.528, 226.494,0.00c 0.137-0.137, 0.258-0.284, 0.41-0.438l 0.016,0.017 l 139.666-139.646l-32.493-32.46L 273.35,432.208l-0.008,0.00 c-0.148,0.134-0.282,0.285-0.423,0.422 c-44.537,44.529-116.99,44.529-161.538,0.00c-44.531-44.521-44.531-116.961,0.00-161.489c 0.152-0.152, 0.302-0.291, 0.444-0.423l-0.023-0.03 l 204.64-204.583c 26.856-26.869, 70.572-26.869, 97.443,0.00c 26.856,26.867, 26.856,70.574,0.00,97.42L 218.999,358.375 c-8.968,8.961-23.527,8.961-32.486,0.00c-8.947-8.943-8.947-23.516,0.00-32.46L 348.916,163.524z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		width: 12px;
+		height: 12px;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/attachment.png");
+		}
+	}
+	
+	&.trash-small {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='remove.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 96.00,512.00L 416.00,512.00L 448.00,160.00L 64.00,160.00 zM 320.00,64.00L 320.00,0.00 L 192.00,0.00 l0.00,64.00 L 32.00,64.00 l0.00,96.00 l 32.00-32.00l 384.00,0.00 l 32.00,32.00L 480.00,64.00 L 320.00,64.00 z M 288.00,64.00l-64.00,0.00 L 224.00,32.00 l 64.00,0.00 L 288.00,64.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		width: 11px;
+		height: 12px;
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/remove.png");
+		}
+	}
+	
+	&.lock-closed {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='lock2.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 296.00,224.00l-8.00,0.00 l0.00-96.00 c0.00-52.935-43.065-96.00-96.00-96.00l-64.00,0.00 c-52.935,0.00-96.00,43.065-96.00,96.00l0.00,96.00 l-8.00,0.00 c-13.20,0.00-24.00,10.80-24.00,24.00l0.00,240.00 c0.00,13.20, 10.80,24.00, 24.00,24.00l 272.00,0.00 c 13.20,0.00, 24.00-10.80, 24.00-24.00L 320.00,248.00 C 320.00,234.80, 309.20,224.00, 296.00,224.00z M 192.00,448.00l-64.00,0.00 l 13.92-69.60 C 133.516,372.634, 128.00,362.963, 128.00,352.00c0.00-17.673, 14.327-32.00, 32.00-32.00c 17.673,0.00, 32.00,14.327, 32.00,32.00c0.00,10.963-5.516,20.634-13.92,26.40L 192.00,448.00 z M 224.00,224.00L 96.00,224.00 l0.00-96.00 c0.00-17.645, 14.355-32.00, 32.00-32.00l 64.00,0.00 c 17.645,0.00, 32.00,14.355, 32.00,32.00L 224.00,224.00 z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/lock2.png");
+		}
+	}
+	
+	&.lock-open {
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='unlocked.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 384.00,32.00l-64.00,0.00 c-52.935,0.00-96.00,43.065-96.00,96.00l0.00,96.00 L 24.00,224.00 c-13.20,0.00-24.00,10.80-24.00,24.00l0.00,240.00 c0.00,13.20, 10.80,24.00, 24.00,24.00l 272.00,0.00 c 13.20,0.00, 24.00-10.80, 24.00-24.00L 320.00,248.00 c0.00-13.20-10.80-24.00-24.00-24.00l-8.00,0.00 l0.00-96.00 c0.00-17.645, 14.355-32.00, 32.00-32.00l 64.00,0.00 c 17.645,0.00, 32.00,14.355, 32.00,32.00l0.00,96.00 l 64.00,0.00 l0.00-96.00 C 480.00,75.065, 436.935,32.00, 384.00,32.00z M 192.00,448.00l-64.00,0.00 l 13.92-69.60C 133.516,372.634, 128.00,362.963, 128.00,352.00c0.00-17.673, 14.327-32.00, 32.00-32.00c 17.673,0.00, 32.00,14.327, 32.00,32.00 c0.00,10.963-5.516,20.634-13.92,26.40L 192.00,448.00z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/unlocked.png");
+		}
+	}
+	
+	&.star {	
+		@image: escape("<?xml version='1.0' encoding='UTF-8' standalone='no'?><!-- Generator: IcoMoon.io --><svg   xmlns:dc='http://purl.org/dc/elements/1.1/'   xmlns:cc='http://creativecommons.org/ns#'   xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'   xmlns:svg='http://www.w3.org/2000/svg'   xmlns='http://www.w3.org/2000/svg'   xmlns:sodipodi='http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd'   xmlns:inkscape='http://www.inkscape.org/namespaces/inkscape'   viewBox='0 0 512 512'   fill='@{icon-color}'   id='svg2'   version='1.1'   inkscape:version='0.48.3.1 r9886'   sodipodi:docname='star.svg'>  <metadata     id='metadata73'>    <rdf:RDF>      <cc:Work         rdf:about=''>        <dc:format>image/svg+xml</dc:format>        <dc:type           rdf:resource='http://purl.org/dc/dcmitype/StillImage' />      </cc:Work>    </rdf:RDF>  </metadata>  <defs     id='defs71' />  <sodipodi:namedview     pagecolor='#ffffff'     bordercolor='#666666'     borderopacity='1'     objecttolerance='10'     gridtolerance='10'     guidetolerance='10'     inkscape:pageopacity='0'     inkscape:pageshadow='2'     inkscape:window-width='640'     inkscape:window-height='480'     id='namedview69'     showgrid='false'     inkscape:zoom='0.4609375'     inkscape:cx='256'     inkscape:cy='256'     inkscape:window-x='0'     inkscape:window-y='25'     inkscape:window-maximized='0'     inkscape:current-layer='svg2' />  <path     d='M 512.00,198.525l-176.89-25.704L 256.00,12.53l-79.108,160.291L0.00,198.525l 128.00,124.769L 97.784,499.47L 256.00,416.291l 158.216,83.179 l-30.217-176.176L 512.00,198.525z M 256.00,376.749l-111.731,58.74l 21.338-124.415l-90.393-88.111l 124.92-18.152L 256.00,91.613l 55.868,113.198 l 124.918,18.152l-90.394,88.111l 21.339,124.415L 256.00,376.749z'     id='path67' /></svg>");
+		background-image: url("data:image/svg+xml;utf8,@{image}");
+		
+		html.ie & {
+			background-image: url("../graphics/newicons/star.png");
+		}
+	}
+}
+
+.new {
+	&:before {
+   		position: absolute;
+   		right: -3px;
+   		bottom: -1px;
+   		width: 15px;
+   		height: 15px;
+   		
+   		background-size: 100% auto;
+		background-repeat: no-repeat;
+		background-position: center;
+		@star:  escape("<?xml version='1.0' encoding='utf-8'?> <!-- Generator: IcoMoon.io --> <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'> <svg width='512' height='512' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' fill='@{star-color}'><g class='svgGrid' id='svgGrid'><line stroke-width='1' stroke='#B35047' x1='32' x2='32' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='64' x2='64' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='96' x2='96' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='128' x2='128' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='160' x2='160' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='192' x2='192' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='224' x2='224' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='256' x2='256' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='288' x2='288' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='320' x2='320' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='352' x2='352' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='384' x2='384' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='416' x2='416' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='448' x2='448' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='480' x2='480' y1='0' y2='512'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='32' y2='32'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='64' y2='64'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='96' y2='96'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='128' y2='128'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='160' y2='160'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='192' y2='192'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='224' y2='224'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='256' y2='256'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='288' y2='288'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='320' y2='320'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='352' y2='352'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='384' y2='384'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='416' y2='416'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='448' y2='448'></line><line stroke-width='1' stroke='#B35047' x1='0' x2='512' y1='480' y2='480'></line><rect x='0' y='0' width='512' height='512' fill='none' stroke-width='1' stroke='#B35047'></rect></g><path d='M 512.00,198.525L 335.11,172.821L 256.00,12.53l-79.108,160.291L0.00,198.525l 128.00,124.769L 97.784,499.47L 256.00,416.291l 158.216,83.179 l-30.217-176.176L 512.00,198.525z' ></path></svg>");
+   		background-image: url("data:image/svg+xml;utf8,@{star}");
+   		
+   		content:"";
+   		
+   		html.ie & {
+			background-image: url("../graphics/newicons/star3.png");
+		}
+    }
+}
+/******************** buttons.less ********************/
+

@@ -1,0 +1,222 @@
+"use strict";
+
+goog.provide('tutao.tutanota.ctrl.ContactViewModel');
+
+/**
+ * The contact on the right.
+ * @constructor
+ */
+tutao.tutanota.ctrl.ContactViewModel = function() {
+	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
+	this.contactWrapper = ko.observable(null);
+	this.editableContact = null;
+
+	this.buttons = ko.observableArray();
+	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+	this.mode = ko.observable(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
+};
+
+tutao.tutanota.ctrl.ContactViewModel.MODE_NONE = 0;
+tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW = 1;
+tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT = 2;
+tutao.tutanota.ctrl.ContactViewModel.MODE_NEW = 3;
+
+/**
+ * Removes the currenlty visible contact. TODO make private if not used from outside.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.removeContact = function() {
+	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
+	this.contactWrapper(null);
+	this.buttons.removeAll();
+	this._refreshScroller();
+	tutao.locator.contactView.showContactListColumn();
+};
+
+/**
+ * Asks the user to cancel the current editing mode.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function() {
+	if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
+		if (!tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("discardContact_msg"))) {
+			return true;
+		}
+		this.contactWrapper().stopEditingContact(this);
+		tutao.locator.contactView.disableTouchComposingMode();
+	} else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
+		var text = tutao.locator.languageViewModel.get("discardContactChanges_msg");
+		if (this.contactWrapper().getFullName() != "") {
+			text = tutao.locator.languageViewModel.get("discardContactChangesFor_msg", {"$": this.contactWrapper().getFullName()});
+		}
+		if (!tutao.tutanota.gui.confirm(text)) {
+			return true;
+		}
+		this.contactWrapper().stopEditingContact(this);
+		tutao.locator.contactView.disableTouchComposingMode();
+	}
+	return false;
+};
+
+/**
+ * Set the contact that shall be shown. Asks the user to cancel any editing contact.
+ * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.showContact = function(contactWrapper) {
+	if (this._keepNewOrEditMode()) {
+		return;
+	}
+	this._showContact(contactWrapper);
+};
+
+/**
+ * Set the contact that shall be shown. Removes editing contacts if existing.
+ * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function(contactWrapper) {
+	var self = this;
+	this.contactWrapper(contactWrapper);
+	this.editableContact = null;
+
+	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW);
+	this.buttons([
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("edit_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self.editContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("delete_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._deleteContact)
+	]);
+	this._refreshScroller();
+	tutao.locator.contactView.showContactColumn();
+};
+
+/**
+ * Create a new contact.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function() {
+	if (this._keepNewOrEditMode()) {
+		return;
+	}
+
+	var self = this;
+	this.contactWrapper(tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper());
+	this.editableContact = this.contactWrapper().startEditingContact(this);
+	if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW || this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
+		// switch to MODE_NONE to make knockout recognize the new fields
+		this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
+	}
+	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW);
+	this.buttons([
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._saveContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("cancel_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() {
+	            	  self.contactWrapper().stopEditingContact(self);
+	            	  tutao.locator.contactView.disableTouchComposingMode();
+	            	  self.removeContact();
+	              })
+	]);
+	tutao.locator.contactView.showContactColumn();
+	tutao.locator.contactView.enableTouchComposingMode();
+};
+
+/**
+ * Edit the given contact. If any editing contact is already existing, the user is asked to cancel that contact.
+ * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact to edit.
+ * @return {Boolean} True if the contact can be edited, false otherwise.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.tryToShowAndEditContact = function(contactWrapper) {
+	if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT && this.contactWrapper().getContact() == contactWrapper.getContact()) {
+		// we are already editing the contact
+		return true;
+	}
+	if (this._keepNewOrEditMode()) {
+		return false;
+	}
+	this._showContact(contactWrapper);
+	this.editContact();
+	return true;
+};
+
+/**
+ * Edit a contact.
+ * @precondition A contact is currently visible.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.editContact = function() {
+	var self = this;
+	this.editableContact = this.contactWrapper().startEditingContact(this);
+	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT);
+	this.buttons([
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._saveContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("cancel_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() {
+	            	  self.contactWrapper().stopEditingContact(self);
+	            	  tutao.locator.contactView.disableTouchComposingMode();
+	            	  self._showContact(self.contactWrapper());
+	              })
+	]);
+	tutao.locator.contactView.showContactColumn();
+	tutao.locator.contactView.enableTouchComposingMode();
+};
+
+/**
+ * Updates the scroller. Must be called when the scrolled height changes.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype._refreshScroller = function() {
+	setTimeout(function() {
+		tutao.locator.contactView.contactUpdated();
+	}, 0);
+};
+
+/**
+ * Saves the currently edited contact.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function() {
+	this.editableContact.update();
+	if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
+		this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
+	} else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
+		this.contactWrapper().getContact().update(function() {});
+	}
+	this.contactWrapper().stopEditingContact(this);
+	tutao.locator.contactView.disableTouchComposingMode();
+	this._showContact(this.contactWrapper());
+};
+
+/**
+ * Deletes the currently shown contact.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function() {
+	if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteContact_msg"))) {
+		this.contactWrapper().getContact().erase(function() {});
+		this.removeContact();
+	}
+};
+
+/**
+ * Opens the mail view to send a mail to the given mail address. If a mail is already edited, the user is asked to cancel that mail.
+ * @param {tutao.entity.tutanota.ContactMailAddress} contactMailAddress The recipients mail address.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.sendMail = function(contactMailAddress) {
+	var recipient = new tutao.tutanota.ctrl.RecipientInfo(contactMailAddress.getAddress(), this.contactWrapper().getFullName(), this.contactWrapper());
+	tutao.locator.navigator.newMail(recipient);
+};
+
+/**
+ * Provides the URL to access the given social service.
+ * @param {tutao.entity.tutanota.ContactSocialId} contactSocialId The social id of the service.
+ * @return {string} The URL.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.getSocialIdUrl = function(contactSocialId) {
+	var url = tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_LINKS[contactSocialId.getType()];
+	if (url == null) {
+		return null;
+	} else {
+		return url + contactSocialId.getId();
+	}
+};
+
+/**
+ * Provides an URL pointing to the given address in google maps.
+ * @param {tutao.entity.tutanota.ContactAddress} contactAddress The address to point to.
+ * @return {string} The URL.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.getMapUrl = function(contactAddress) {
+	var url = "https://maps.google.com/?q=";
+	var query = contactAddress.getAddress();
+	query = query.replace(/\n/g, ", ");
+	return url + query;
+};

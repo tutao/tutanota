@@ -1,0 +1,123 @@
+"use strict";
+
+goog.provide('tutao.tutanota.ctrl.DisplayedMail');
+
+/**
+ * This class represents a mail that is currently displayed.
+ * @param {tutao.tutanot.entity.Mail} mail The mail.
+ * @constructor
+ */
+tutao.tutanota.ctrl.DisplayedMail = function(mail) {
+	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+	this.mail = mail;
+
+
+	this.bodyText = ko.observable("");
+	this.bodyTextWithoutQuotation = ko.observable("");
+	this.bodyTextQuotation = ko.observable("");
+	this.bodyTextQuotationVisible = ko.observable(false);
+	this.mailBodyLoaded = ko.observable(false);
+
+	this.attachments = ko.observableArray(); // contains Files
+	this.currentlyDownloadingAttachment = ko.observable(); // null or a File
+
+	this._loadBody();
+	this._loadAttachments();
+
+	var self = this;
+	this.buttons = ko.computed(function() {
+		if (tutao.locator.userController.isExternalUserLoggedIn()) {
+			if (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY) {
+				return [new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); })];
+			} else {
+				return [];
+			}
+		} else {
+			var trashText = (this.mail.getTrashed()) ? tutao.locator.languageViewModel.get("undelete_action") : tutao.locator.languageViewModel.get("delete_action");
+			return [
+			        new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); }),
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("reply_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); }),
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyAll_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.replyAllMail(self); }),
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("forward_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.forwardMail(self); })
+			        ];
+		}
+	}, this);
+	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+};
+
+tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function() {
+	this.bodyTextQuotationVisible(!this.bodyTextQuotationVisible());
+};
+
+/**
+ * Loads the mail body.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function() {
+	var self = this;
+//	setTimeout(function() {
+	self.mail.loadBody(function(body, exception) {
+		if (exception) {
+			self.bodyText("error while loading"); //TODO error handling
+		} else {
+			self.bodyText(tutao.locator.htmlSanitizer.sanitize(body.getText()));
+			var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
+			self.bodyTextWithoutQuotation(split.text);
+			self.mailBodyLoaded(true);
+			self.bodyTextQuotation(split.quotation);
+			tutao.locator.mailView.mailsUpdated();
+		}
+	});
+//	},1000);
+};
+
+/**
+ * Loads the attached files.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype._loadAttachments = function() {
+	var self = this;
+	//TODO implement loading of multiple LET instances
+	for (var i = 0; i < this.mail.getAttachments().length; i++) {
+		tutao.entity.tutanota.File.load(this.mail.getAttachments()[i], function(file, exception) {
+			if (!exception) {
+				self.attachments.push(file);
+			} else {
+				//TODO exception handling
+				console.log(exception);
+			}
+		});
+	}
+};
+
+/**
+ * Offers the user to download the given attachment.
+ * @param {tutao.entity.tutanota.File} file The file to download.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function(file) {
+	// do not allow a new download as long as another is running
+	if (this.currentlyDownloadingAttachment()) {
+		return;
+	}
+	var self = this;
+	this.currentlyDownloadingAttachment(file);
+	tutao.tutanota.ctrl.FileFacade.readFileData(file, function(dataFile, exception) {
+		if (exception) {
+			//TODO exception handling
+			console.log(exception);
+			self.currentlyDownloadingAttachment(null);
+			return;
+		}
+		tutao.tutanota.util.FileUtils.provideDownload(dataFile, function() {
+			self.currentlyDownloadingAttachment(null);
+		});
+	});
+};
+
+/**
+ * Provides the image that shall be shown in the attachment.
+ * @param {tutao.entity.tutanota.File} file The file.
+ * @return {String} The name of the image.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype.getAttachmentImage = function(file) {
+	var busy = (file == this.currentlyDownloadingAttachment());
+	return tutao.tutanota.util.FileUtils.getFileTypeImage(file.getName(), busy);
+};
