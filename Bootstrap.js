@@ -6,7 +6,7 @@ goog.provide("tutao.locator");
  * Executes all initializations needed for the unit tests to run.
  */
 $(document).ready(function() {
-	tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/main/html/js/', '/test/src/main/html/libs/');
+	tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/main/html/js/', '/test/src/main/html/libs/external/');
 
 	tutao.locator = new tutao.Locator({
 		randomizer: tutao.crypto.SjclRandomizer,
