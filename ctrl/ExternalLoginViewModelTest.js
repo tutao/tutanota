@@ -31,7 +31,7 @@ TestCase("ExternalLoginViewModel", {
 		
 		var phoneNumber = new tutao.entity.tutanota.PasswordChannelPhoneNumber();
 		var loader = spy(function(parameters, headers, callback) {
-			assertNull(parameters);
+			assertEquals({}, parameters);
 			// check only the headers that are send to the service
 			var p = {authToken: "a", mailList: "mL", mail: "m"};
 			assertEquals(p, headers);
