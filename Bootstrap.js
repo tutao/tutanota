@@ -4,7 +4,7 @@
  * Executes all initializations needed for the unit tests to run.
  */
 $(document).ready(function() {
-	tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/server/html/libs/internal/', '/test/src/server/html/libs/external/');
+	tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/main/html/libs/internal/', '/test/src/main/html/libs/external/');
 	tutao.locator = new tutao.Locator({
 		randomizer: tutao.crypto.SjclRandomizer,
 		entropyCollector: tutao.crypto.EntropyCollector,
