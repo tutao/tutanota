@@ -872,34 +872,49 @@ types: {
       { name: "user", since: "1", type: "ELEMENT_ASSOCIATION", cardinality: "One", refType: "User" },
     ]
   },
-  ConfigService: {
-    name: "ConfigService",
+  LongConfigValue: {
+    name: "LongConfigValue",
     since: "1",
-    type: "SERVICE_TYPE",
+    type: "AGGREGATED_TYPE",
     id: "360",
     rootId: "A3N5cwABaA",
     versioned: false,
     encrypted: false,
     values: [
-      { name: "_format", id: "361", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "debugServices", id: "378", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "debugUsers", id: "377", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "flushCounterInterval", id: "363", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "flushLogEventsInterval", id: "364", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "fraudAddrRequestLimit", id: "369", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "fraudRequestInterval", id: "368", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "fraudSentMailsInterval", id: "374", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "fraudUserRequestLimit", id: "370", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "fraudUserSentMailsLimit", id: "375", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "jmxMonitorInterval", id: "362", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "lockedIpAddresses", id: "372", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "lockedUsers", id: "373", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "logLevel", id: "376", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "maxSmsCount", id: "371", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "postfixQueueMonitorInverval", id: "367", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "serverMonitorInterval", id: "366", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
-      { name: "smsMonitorTimeout", id: "365", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
+      { name: "_id", id: "361", since: "1", type: "CustomId", cardinality: "One", final: "true", enrypted: "false", searchable: "false", sortable: "false"},
+      { name: "name", id: "362", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
+      { name: "value", id: "363", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
     ], associations: [
+    ]
+  },
+  StringConfigValue: {
+    name: "StringConfigValue",
+    since: "1",
+    type: "AGGREGATED_TYPE",
+    id: "364",
+    rootId: "A3N5cwABbA",
+    versioned: false,
+    encrypted: false,
+    values: [
+      { name: "_id", id: "365", since: "1", type: "CustomId", cardinality: "One", final: "true", enrypted: "false", searchable: "false", sortable: "false"},
+      { name: "name", id: "366", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
+      { name: "value", id: "367", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
+    ], associations: [
+    ]
+  },
+  ConfigService: {
+    name: "ConfigService",
+    since: "1",
+    type: "SERVICE_TYPE",
+    id: "368",
+    rootId: "A3N5cwABcA",
+    versioned: false,
+    encrypted: false,
+    values: [
+      { name: "_format", id: "369", since: "1", type: "Number", cardinality: "One", final: "false", enrypted: "false", searchable: "false", sortable: "false"},
+    ], associations: [
+      { name: "longValues", since: "1", type: "AGGREGATION", cardinality: "Any", refType: "LongConfigValue", final: "false" },
+      { name: "stringValues", since: "1", type: "AGGREGATION", cardinality: "Any", refType: "StringConfigValue", final: "false" },
     ]
   },
 } };

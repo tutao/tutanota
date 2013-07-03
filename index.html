@@ -143,6 +143,8 @@
 	<script type="text/javascript" src="generated/entity/sys/KeyPair.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ListVersionInfo.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Login.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/LongConfigValue.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/LongConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
@@ -155,6 +157,8 @@
 	<script type="text/javascript" src="generated/entity/sys/ShareService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Shares.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TestCustomerRegistrationService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyService.js"></script>
@@ -1438,76 +1442,20 @@ function touchOrClick(e) {
 			<div id="configColumn" class="viewColumn" data-bind="with: tutao.locator.configViewModel">
 				<div id="configInnerColumn">
 					<div id="configData">
-						<!-- ko if: $data -->
-							<div id="configValues" data-bind="with: config">
-								<div>
-									<span>flushCounterInterval</span>
-									<input type="text" data-bind="value: flushCounterInterval"></input>
-								</div>
-								<div>
-									<span>flushLogEventsInterval</span>
-									<input type="text" data-bind="value: flushLogEventsInterval"></input>
-								</div>
-								<div>
-									<span>postfixQueueMonitorInverval</span>
-									<input type="text" data-bind="value: postfixQueueMonitorInverval"></input>
-								</div>
-								<div>
-									<span>serverMonitorInterval</span>
-									<input type="text" data-bind="value: serverMonitorInterval"></input>
-								</div>
-								<div>
-									<span>jmxMonitorInterval</span>
-									<input type="text" data-bind="value: jmxMonitorInterval"></input>
-								</div>
-								<div>
-									<span>fraudRequestInterval</span>
-									<input type="text" data-bind="value: fraudRequestInterval"></input>
-								</div>
-								<div>
-									<span>fraudAddrRequestLimit</span>
-									<input type="text" data-bind="value: fraudAddrRequestLimit"></input>
-								</div>
-								<div>
-									<span>fraudUserRequestLimit</span>
-									<input type="text" data-bind="value: fraudUserRequestLimit"></input>
-								</div>
-								<div>
-									<span>fraudSentMailsInterval</span>
-									<input type="text" data-bind="value: fraudSentMailsInterval"></input>
-								</div>
-								<div>
-									<span>fraudUserSentMailsLimit</span>
-									<input type="text" data-bind="value: fraudUserSentMailsLimit"></input>
-								</div>
-								<div>
-									<span>smsMonitorTimeout</span>
-									<input type="text" data-bind="value: smsMonitorTimeout"></input>
-								</div>
-								<div>
-									<span>maxSmsCount</span>
-									<input type="text" data-bind="value: maxSmsCount"></input>
-								</div>
-								<div>
-									<span>lockedIpAddresses</span>
-									<input type="text" data-bind="value: lockedIpAddresses"></input>
-								</div>
-								<div>
-									<span>lockedUsers</span>
-									<input type="text" data-bind="value: lockedUsers"></input>
-								</div>
-								<div>
-									<span>logLevel</span>
-									<input type="text" data-bind="value: logLevel"></input>
-								</div>
-								<div>
-									<span>debugUsers</span>
-									<input type="text" data-bind="value: debugUsers"></input>
-								</div>
-								<div>
-									<span>debugServices</span>
-									<input type="text" data-bind="value: debugServices"></input>
-								</div>
+						<!-- ko if: config() -->
+							<div id="configValues">
+								<!-- ko foreach: getSortedLongValues() -->
+									<div>
+										<span data-bind="text: name"></span>
+										<input type="text" data-bind="value: value"></input>
+									</div>
+								<!-- /ko -->
+								<!-- ko foreach: getSortedStringValues() -->
+									<div>
+										<span data-bind="text: name"></span>
+										<input type="text" data-bind="value: value"></input>
+									</div>
+								<!-- /ko -->
 							</div>
 							<button data-bind="fastClick: loadConfig">load</button>
 							<button data-bind="fastClick: storeConfig">store</button>
