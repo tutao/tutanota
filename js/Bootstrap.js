@@ -8,6 +8,17 @@ goog.provide("tutao.tutanota.Bootstrap");
  * This binding is located in gui, so that it is not used for unit or integration tests.
  */
 tutao.tutanota.Bootstrap.init = function() {
+	if (window.applicationCache) {
+	    window.applicationCache.addEventListener('updateready', function(e) {
+		    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+		        // Browser downloaded a new app cache: We have to reload the page in order to get the new contents
+		        window.applicationCache.swapCache();
+		        window.location.reload();
+		        console.log("updated to current release");
+		    }
+	    }, false);
+	}
+	
 	// disable all registered event handlers on the document and the window
 	$(document).off();
 	$(window).off();
