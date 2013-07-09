@@ -52,8 +52,8 @@ TestCase("PasswordUtilsTest", {
 	},
 	
 	checkStrength : function(pw, min, max) {
-//		console.log(pw, min, max, tutao.tutanota.util.PasswordUtils.getPassphraseStrength(pw));
-		assertTrue("Passphrase " + pw + " strength: " + tutao.tutanota.util.PasswordUtils.getPassphraseStrength(pw) + " is smaller than expected " + min, min <= tutao.tutanota.util.PasswordUtils.getPassphraseStrength(pw));
-		assertTrue("Passphrase " + pw + " strength: " + tutao.tutanota.util.PasswordUtils.getPassphraseStrength(pw) + " is bigger than expected " + max, tutao.tutanota.util.PasswordUtils.getPassphraseStrength(pw) <= max);
+//		console.log(pw, min, max, tutao.tutanota.util.PasswordUtils.getPasswordStrength(pw));
+		assertTrue("Passphrase " + pw + " strength: " + tutao.tutanota.util.PasswordUtils.getPasswordStrength(pw) + " is smaller than expected " + min, min <= tutao.tutanota.util.PasswordUtils.getPasswordStrength(pw));
+		assertTrue("Passphrase " + pw + " strength: " + tutao.tutanota.util.PasswordUtils.getPasswordStrength(pw) + " is bigger than expected " + max, tutao.tutanota.util.PasswordUtils.getPasswordStrength(pw) <= max);
 	}
 });

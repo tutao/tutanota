@@ -18,7 +18,7 @@ TestCase("LanguageViewModelTest", {
 		assertEquals("for a@b.de", this.vm.get("forUser_label", {'$': 'a@b.de'}));
 	},
 	"test that all translation names have a valid suffix": function() {
-		var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder"];
+		var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
 		for (var translation in tutao.tutanota.ctrl.LanguageViewModel["en"]) {
 			assertTrue("translation name \"" + translation + "\" does not have a suffix", translation.indexOf("_") != -1);
 			assertTrue("translation name \"" + translation + "\" does not have a valid suffix", tutao.util.ArrayUtils.contains(validSuffixes, translation.substring(translation.indexOf("_") + 1)));
