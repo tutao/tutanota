@@ -262,7 +262,13 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		if (versionIndex != -1) {
 			versionIndex += 8;
 		}
-	} else if (ieIndex != -1) {
+	} else if (userAgent.match(/iPad.*AppleWebKit/) != null || userAgent.match(/iPhone.*AppleWebKit/)) {
+		// ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
+		alert("alert");
+		info._browser = info.BROWSER_TYPE_SAFARI;
+		info._browserVersion = 6;
+	}
+	else if (ieIndex != -1) {
 		info._browser = info.BROWSER_TYPE_IE;
 		versionIndex = ieIndex + 5;
 	}
