@@ -25,7 +25,7 @@ KdfTest.prototype.testCreateKeyFromPassphrase = function(queue) {
 		facade.generateKeyFromPassphrase("hello", salt1, callbacks.add(function(key1Hex) {
 			facade.generateKeyFromPassphrase("hello", salt1, callbacks.add(function(key2Hex) {
 				facade.generateKeyFromPassphrase("hello", salt2, callbacks.add(function(key3Hex) {
-					facade.generateKeyFromPassphrase("hello2", salt1, callbacks.add(function(key4Hex) {
+					facade.generateKeyFromPassphrase("hellohello", salt1, callbacks.add(function(key4Hex) {
 						// make sure the same password and salt result in the same key
 						assertEquals(key1Hex, key2Hex);
 						// make sure a different password or different key result in different keys
@@ -48,9 +48,9 @@ KdfTest.prototype.testPassphrases = function(queue) {
 		var salt = "01020304050607080900010203040506";
 		// this test data comes from BcryptTest.java
 		var pairs = [{pw: "?", hash: "1e7447ccd47774a9b9bfa13d307b5355"},
-		             {pw: "%", hash: "abbf0e47605555ab71808822b251fa69"},
-//		             {pw: "€uropa", hash: "41bda43b1f703db427e5f55db608fb89"}, // TODO enable as soon as the test framework supports utf8
-		             {pw: "?uropa", hash: "9322559c5ac2f7ae3981eb82fd86e25d"}];
+		{pw: "%", hash: "abbf0e47605555ab71808822b251fa69"},
+//		{pw: "€uropa", hash: "41bda43b1f703db427e5f55db608fb89"}, // TODO enable as soon as the test framework supports utf8
+		{pw: "?uropa", hash: "9322559c5ac2f7ae3981eb82fd86e25d"},
 		for ( var i = 0; i < pairs.length; i++) {
 			(function() {
 				var position = i;
