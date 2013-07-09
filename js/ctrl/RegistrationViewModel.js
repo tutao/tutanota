@@ -9,8 +9,6 @@ goog.provide('tutao.tutanota.ctrl.RegistrationViewModel');
 tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	var emptyString = "\u2008"; // an empty string or normal whitespace makes the label collapse, so enter this invisible character
-
 	this.authToken = "";
 	this.name = ko.observable("");
 	this.nameFieldFocused = ko.observable("");
@@ -139,7 +137,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isPassphrase1MissingOrValid 
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPassphraseStrength = function() {
-	return tutao.tutanota.util.PasswordUtils.getPassphraseStrength(this.passphrase1());
+	return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.passphrase1());
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isPassphrase2ProvidedAndValid = function() {

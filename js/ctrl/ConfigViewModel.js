@@ -41,6 +41,17 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedStringValues = function()
 };
 
 /**
+ * Provides the user list values sorted by value name.
+ * @return {Array.<tutao.entity.sys.StringConfigValueEditable>} The sorted values.
+ */
+tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedUserLists = function() {
+	this.config().userLists().sort(function(v1, v2) {
+		return (v1.name() < v2.name()) ? -1 : 1;
+	});
+	return this.config().userLists();
+};
+
+/**
  * Loads the config from the server.
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.loadConfig = function() {

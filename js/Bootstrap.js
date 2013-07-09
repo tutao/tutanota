@@ -29,9 +29,10 @@ tutao.tutanota.Bootstrap.init = function() {
 	tutao.locator.entropyCollector.start();
 
 		// only for testing
-//		tutao.locator.loginViewModel.passphrase("arm");
+//		tutao.locator.loginViewModel.mailAddress("a.bobcarol@mycompany.com");
+//		tutao.locator.loginViewModel.passphrase("nimda");
 //		tutao.locator.loginViewModel.login(function() {
-//			tutao.locator.navigator.config();
+//			tutao.locator.navigator.settings();
 //			tutao.locator.viewManager.select(tutao.locator.contactView);
 //			tutao.locator.contactListViewModel.contactsInitializedCallback.push(function() {
 //				tutao.locator.contactViewModel.showContact(tutao.locator.contactListViewModel.contacts()[2]());
@@ -94,6 +95,8 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 			monitorViewModel: tutao.tutanota.ctrl.MonitorViewModel,
 			configView: tutao.tutanota.gui.ConfigView,
 			configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
+			settingsView: tutao.tutanota.gui.SettingsView,
+			settingsViewModel: tutao.tutanota.ctrl.SettingsViewModel,
 			entropyCollector: tutao.crypto.EntropyCollector,
 			htmlSanitizer: tutao.tutanota.security.CajaSanitizer,
 			languageViewModel: tutao.tutanota.ctrl.LanguageViewModel,
@@ -146,7 +149,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 	tutao.tutanota.gui.initEvents();
 
 	var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
-	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView], external);
+	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView, tutao.locator.settingsView], external);
 
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		// notify the active view and the swipe recognizer

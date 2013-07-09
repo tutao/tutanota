@@ -43,7 +43,7 @@ tutao.tutanota.util.Formatter.formatDateTime = function(date) {
 /**
  * Provides the date as a string.
  * @param {Date} date The date to format.
- * @return {string} the formatted date in the form '[d]d. Month yyyy'.
+ * @return {string} the formatted date in the form '[d]d. Month yyyy hh:mm'.
  */
 tutao.tutanota.util.Formatter.formatFullDateTime = function(date) {
 	var monthNames = tutao.locator.languageViewModel.get("monthNames_label");

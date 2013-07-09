@@ -157,8 +157,53 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	noContacts_msg: "There are no contacts in this list.",
 	noContact_msg: "No contact selected.",
 	newContactInfo_msg: "Click on this icon in the menu bar above to create a new contact:",
+	
+	// settings
+	accountSettings_action: "account",
+	securitySettings_action: "security",
+	changePasswordSettings_action: "change password",
+	
+	// account settings
+	accountType_label: "account type",
+	mailAddress_label: "email address",
+	mailName_label: "email name",
+	mailNameInfo_msg: "This name is shown to recipients of your emails.",
+	
+	// security settings
+	lastSuccessfulLogin_label: "last successful login",
+	lastSuccessfulLoginInfo_msg: "The time of your last successful login before the current one.",
+	failedLogins_label: "failed logins",
+	failedLoginsInfo_msg: "The number of failed login attempts since your last successful login.",
+	
+	// change password
+	passwordValid_msg: "Password ok",
+	oldPassword_label: "old password",
+	oldPasswordNeutral_msg: "Please enter old password",
+	oldPasswordInvalid_msg: "Incorrect password",
+	newPassword_label: "new password",
+	securePasswords_link: "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
+	password1Neutral_msg: "Please enter new password",
+	password1InvalidSame_msg: "New password is same as old",
+	password1InvalidUnsecure_msg: "New password not secure enough",
+	password2Neutral_msg: "Please confirm your password here",
+	password2Invalid_msg: "Confirmed password is different",
+	verificationCode_msg: "You will receive the verification code via SMS.",
+	code_label: "verification code",
+	codeNeutralEnterCode_msg: "Please enter the verification code.",
+	codeValid_msg: "Code format ok",
+	codeInvalid_msg: "Incorrect code. Please check again.",
+	pwChangeNeutral_msg: "You will receive a verification code via SMS to $.",
+	pwChangeNeutralSendingCode_msg: "Code is sent...",
+	pwChangeValid_msg: "Password was changed.",
+	pwChangeInvalidServerNotAvailable_msg: "Could not reach server. Password has not been changed. Please try again later.",
+	pwChangeInvalidTooManyVerifyAttempts_msg: "Number of allowed attempts exceeded. Please try again later.",
+	pwChangeInvalidTooManyChangeAttempts_msg: "Your password was changed too often. Please try again later.",
+	pwChangeButtonSendCode_action: "Send code",
+	pwChangeButtonChangePw_action: "Change password",
+	serverNotReachable_msg: "Could not reach server. Please try again later.",
 
 	// general
+	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
 	save_action: "save",
 	cancel_action: "cancel",
 	edit_action: "edit",
@@ -171,6 +216,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	close_alt: "close",
 	german_alt: "deutsch",
 	english_alt: "english",
+	check_msg: "Checking...",
 
 	// external login
 	enterPW_msg: "Enter the received password below.",
@@ -215,6 +261,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	feedback_alt: "Feedback",
 	logout_label: "Logout",
 	logout_alt: "Logout",
+	settings_label: "Settings",
+	settings_alt: "Settings",
 
 	// not supported
 	for_label: "for",
@@ -360,8 +408,53 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	noContacts_msg: "Keine Kontakte in der Liste.",
 	noContact_msg: "Kein Kontakt ausgewählt.",
 	newContactInfo_msg: "Klicken Sie auf dieses Symbol in dem obigen Menü, um einen neuen Kontakt anzulegen:",
+	
+	// settings
+	accountSettings_action: "Account",
+	securitySettings_action: "Sicherheit",
+	changePasswordSettings_action: "Passwort ändern",
+	
+	// account settings
+	accountType_label: "Account-Typ",
+	mailAddress_label: "E-Mail-Adresse",
+	mailName_label: "E-Mail-Name",
+	mailNameInfo_msg: "Dieser Name wird Empfängern Ihrer E-Mails angezeigt.",
+	
+	// security settings
+	lastSuccessfulLogin_label: "Letzter erfolgreicher Login",
+	lastSuccessfulLoginInfo_msg: "Der Zeitpunkt des letzten erfolgreichen Logins vor dem aktuellen Login.",
+	failedLogins_label: "Fehlgeschlagene Logins",
+	failedLoginsInfo_msg: "Die Anzahl fehlgeschlagener Login-Versuche seit dem letzten erfolgreichen Login.",
+	
+	// change password
+	passwordValid_msg: "Passwort ok",
+	oldPassword_label: "Altes Passwort",
+	oldPasswordNeutral_msg: "Bitte altes Passwort eingeben",
+	oldPasswordInvalid_msg: "Passwort nicht korrekt",
+	newPassword_label: "Neues Passwort",
+	securePasswords_link: "http://de.wikipedia.org/wiki/Passwortsicherheit#Wahl_sicherer_Passw.C3.B6rter",
+	password1Neutral_msg: "Bitte neues Passwort eingeben",
+	password1InvalidSame_msg: "Neues und altes Passwort sind identisch",
+	password1InvalidUnsecure_msg: "Neues Passwort ist nicht sicher genug",
+	password2Neutral_msg: "Bitte neues Passwort wiederholen",
+	password2Invalid_msg: "Passwörter sind nicht identisch",
+	verificationCode_msg: "Der Bestätigungs-Code wird Ihnen per SMS zugesendet.",
+	code_label: "Bestätigungs-Code",
+	codeNeutralEnterCode_msg: "Bitte den Code eingeben.",
+	codeValid_msg: "Code-Format ok",
+	codeInvalid_msg: "Der Code ist nicht korrekt, bitte überprüfen Sie ihn erneut.",
+	pwChangeNeutral_msg: "Sie werden einen Bestätigungs-Code als SMS an $ erhalten.",
+	pwChangeNeutralSendingCode_msg: "Code wird gesendet...",
+	pwChangeValid_msg: "Passwort wurde geändert.",
+	pwChangeInvalidServerNotAvailable_msg: "Der Server ist nicht erreichbar. Das Passwort wurde nicht geändert. Bitte versuchen Sie es später erneut.",
+	pwChangeInvalidTooManyVerifyAttempts_msg: "Anzahl erlaubter Versuche überschritten. Bitte versuchen Sie es es später erneut.",
+	pwChangeInvalidTooManyChangeAttempts_msg: "Das Passwort wurde zu häufig geändert. Bitte versuchen Sie es es später erneut.",
+	pwChangeButtonSendCode_action: "Code senden",
+	pwChangeButtonChangePw_action: "Passwort ändern",
+	serverNotReachable_msg: "Der Server ist nicht erreichbar. Bitte versuchen Sie es es später erneut.",
 
 	// general
+	emptyString_msg: "\u2008",
 	save_action: "Speichern",
 	cancel_action: "Verwerfen",
 	edit_action: "Ändern",
@@ -374,6 +467,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	close_alt: "Schließen",
 	german_alt: "Deutsch",
 	english_alt: "English",
+	check_msg: "Überprüfe...",
 
 	// external login
 	enterPW_msg: "Bitte geben Sie das Passwort ein.",
@@ -418,6 +512,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	feedback_alt: "Feedback",
 	logout_label: "Abmelden",
 	logout_alt: "Abmelden",
+	settings_label: "Einstellungen",
+	settings_alt: "Einstellungen",
 
 	// not supported
 	for_label: "für",

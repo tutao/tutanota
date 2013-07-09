@@ -46,8 +46,11 @@
 @focus-blue: #9ecaed;
 @turquoise: #99ccff;
 @grey: #dadada;
+@dark-grey: #555555;
 @light-grey: #F6F7F9; // synchronize with index.html styling of boady (for loading screen)
 @red: #FFCCCC;
+@positive: #006400;
+@negative: #8B0000;
 @orange: #FFD3A0;
 @transparent-gray: rgba(0, 0, 0, 0.1);
 @transparent-light-gray: rgba(0, 0, 0, .03);
@@ -76,7 +79,7 @@ img.helpIcon {
 
 .inputArea {
 	border: 2px solid @grey;
-	
+
 	&:focus, &.focus {
 	    border-color: @focus-blue !important;
 	    box-shadow:0 0 10px @focus-blue !important;
@@ -85,6 +88,11 @@ img.helpIcon {
 	 	border-color:@red;
 		box-shadow:0 0 10px @red;
 	}
+}
+
+.heading {
+	font-size: 18px;
+	margin-bottom: 15px;
 }
 
 .defaultMargin {
@@ -252,6 +260,26 @@ button {
 	}
 }
 
+/**
+ * Default definition for all widgets 
+ */
+.mainWidget {
+	background: @light-blue;
+	.shadow(7px, 7px, 7px, 7px);
+
+	> div {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		border: 1px solid @blue;
+		padding: 5px;
+	}
+}
+
+/***************************************
+  * Switch
+  **************************************/
+
 div.switch {
 	display: inline-block;
 	height: 35px;
@@ -267,6 +295,7 @@ div.switch {
 	text-decoration: none;
 	cursor: pointer;
 	.nonSelectable;
+	.fadeTextOut;
 	
 	&:active {
 		.background-gradient(top,lighten(@blue, 5%),darken(@blue, 5%));
@@ -304,6 +333,71 @@ div.dropDownWrapper {
 	    
 	    &:active {
 			.background-gradient(top,lighten(@blue, 5%),darken(@blue, 5%));
+		}
+	}
+}
+
+/***************************************
+  * Record layout
+  **************************************/
+
+div.recordContainer {
+	display: table;
+	table-layout: fixed;
+	width: 100%;
+	
+	> div.record {
+		display: table-row;
+	
+		> div.recordName {
+			display: table-cell;
+			text-align: right;
+			padding-right: 15px;
+			padding-top: 5px;
+			width: 150px;
+			overflow: hidden;
+		}
+
+		> div.recordData {
+			display: table-cell;
+			text-align: left;
+			padding-top: 5px;
+			padding-bottom: 10px;
+			overflow: hidden;
+		}
+		
+		> div.recordAction {
+			display: table-cell;
+			text-align: left;
+			padding-top: 5px;
+		}
+		
+		// the next config is valid for recordData and recordAction 
+		div > div.recordValue {
+				
+		}
+
+		div > .recordStatus {
+			margin-top: 3px;
+			font-size: 12px;
+			color: @dark-grey;
+
+			&.neutral {
+			}
+
+			&.valid {
+				color: @positive;
+			}
+
+			&.invalid {
+				color: @negative;
+			}
+		}
+
+		div > .recordInfo {
+			margin-top: 3px;
+			font-size: 12px;
+			color: @dark-grey;
 		}
 	}
 }

@@ -25,36 +25,36 @@ tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_CHAR_SET = "ABCDEFGHJKLMNPQRS
 tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_LENGTH = 8;
 
 /**
- * Checks how secure the given passphrase is.
- * @param {string} passphrase The passphrase to check.
+ * Checks how secure the given password is.
+ * @param {string} password The password to check.
  * @return {number} A number from 0 to 100.
  */
-tutao.tutanota.util.PasswordUtils.getPassphraseStrength = function(passphrase) {
-	if (passphrase.length == 0) {
+tutao.tutanota.util.PasswordUtils.getPasswordStrength = function(password) {
+	if (password.length == 0) {
 		return 0;
 	}
-	// calculate the characteristics of the passphrase
-	var nbrOfDigits = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(passphrase, /[0-9]/g);
-	var nbrOfUpperChars = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(passphrase, /[A-Z]/g);
-	var nbrOfLowerCaseChars = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(passphrase, /[a-z]/g);
-	var nbrOfOtherChars = passphrase.length - nbrOfDigits - nbrOfLowerCaseChars - nbrOfUpperChars;
+	// calculate the characteristics of the password
+	var nbrOfDigits = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(password, /[0-9]/g);
+	var nbrOfUpperChars = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(password, /[A-Z]/g);
+	var nbrOfLowerCaseChars = tutao.tutanota.util.PasswordUtils._getNbrOfOccurrences(password, /[a-z]/g);
+	var nbrOfOtherChars = password.length - nbrOfDigits - nbrOfLowerCaseChars - nbrOfUpperChars;
 	var characterObject = {};
-	for (var i = 0; i < passphrase.length; i++) {
-		characterObject[passphrase[i]] = true;
+	for (var i = 0; i < password.length; i++) {
+		characterObject[password[i]] = true;
 	}
 	var nbrOfDifferentChars = Object.keys(characterObject).length;
 
 	// use a combination of nbr of characters and variation in the characters as basis
-	var strength = (nbrOfDifferentChars + passphrase.length) * 4;
-	// if over half of the characters are of one type reduce the nbr because the passphrase becomes more insecure
-	nbrOfOtherChars = (nbrOfOtherChars > passphrase.length / 2) ? (passphrase.length - nbrOfOtherChars) : nbrOfOtherChars;
-	nbrOfDigits = (nbrOfDigits > passphrase.length / 2) ? (passphrase.length - nbrOfDigits) : nbrOfDigits;
-	nbrOfUpperChars = (nbrOfUpperChars > passphrase.length / 2) ? (passphrase.length - nbrOfUpperChars) : nbrOfUpperChars;
+	var strength = (nbrOfDifferentChars + password.length) * 4;
+	// if over half of the characters are of one type reduce the nbr because the password becomes more insecure
+	nbrOfOtherChars = (nbrOfOtherChars > password.length / 2) ? (password.length - nbrOfOtherChars) : nbrOfOtherChars;
+	nbrOfDigits = (nbrOfDigits > password.length / 2) ? (password.length - nbrOfDigits) : nbrOfDigits;
+	nbrOfUpperChars = (nbrOfUpperChars > password.length / 2) ? (password.length - nbrOfUpperChars) : nbrOfUpperChars;
 	// add strength for special characters (much), digits (medium) and uppercase characters (less)
 	// do not add strength for lowercase characters because they are common
-	var otherBonus = strength / 100 * nbrOfOtherChars / passphrase.length * 60;
-	var digitBonus = strength / 100 * nbrOfDigits / passphrase.length * 40;
-	var upperBonus = strength / 100 * nbrOfUpperChars / passphrase.length * 20;
+	var otherBonus = strength / 100 * nbrOfOtherChars / password.length * 60;
+	var digitBonus = strength / 100 * nbrOfDigits / password.length * 40;
+	var upperBonus = strength / 100 * nbrOfUpperChars / password.length * 20;
 
 	strength += otherBonus + digitBonus + upperBonus;
 

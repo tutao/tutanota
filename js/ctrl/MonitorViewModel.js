@@ -60,7 +60,8 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	        this._addMonitorGroup(sentSmsGroup, "SentSms", "global", VALUE);
 	        this._addMonitorGroup(sentSmsGroup, "SentSms-smskaufen_quality", "global", VALUE); 
 	        this._addMonitorGroup(sentSmsGroup, "SentSms-tropo", "global", VALUE);
-	        this._addMonitorGroup(sentSmsGroup, "SentSmsRegistration", "global", VALUE); 
+	        this._addMonitorGroup(sentSmsGroup, "SentSmsRegistration", "global", VALUE);
+	        this._addMonitorGroup(sentSmsGroup, "SentSmsPasswordChange", "global", VALUE);
 	        this._addMonitorGroup(sentSmsGroup, "SentSmsMail", "global", VALUE);
 	    var arrivedSmsGroup = this._addGroupToView(globalView, "Arrived SMS");
 	    	this._addMonitorGroup(arrivedSmsGroup, "ArrivedSms-smskaufen_quality", "global", VALUE); 

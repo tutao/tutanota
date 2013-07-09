@@ -83,6 +83,10 @@ tutao.tutanota.ctrl.Navigator.prototype.config = function() {
 	window.location.hash = "#config";
 };
 
+tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
+	window.location.hash = "#settings";
+};
+
 /**
  * Switches to the provided view, if the user is authenticated. Otherwise, switches to the LoginView
  * @param {Object} view The view to switch to.
@@ -166,6 +170,10 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 		self.authenticateAndSwitchToView(tutao.locator.configView);
 	});
 
+	Path.map("#settings").to(function() {
+		self.authenticateAndSwitchToView(tutao.locator.settingsView);
+	});
+	
 	Path.rescue(function() {
 		tutao.locator.viewManager.select(tutao.locator.notFoundView);
 	});
