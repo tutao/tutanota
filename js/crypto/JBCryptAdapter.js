@@ -26,7 +26,8 @@ tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passp
 
 	// jbcrypt needs the salt and password as unsigned bytes
 	var saltBytes = this._unsignedToSignedBytes(tutao.util.EncodingConverter.hexToBytes(salt));
-	var passphraseBytes = this._unsignedToSignedBytes(tutao.util.EncodingConverter.hexToBytes(tutao.util.EncodingConverter.utf8ToHex(passphrase)));
+	// hash the password first to avoid login with multiples of a password, i.e. "hello" and "hellohello" produce the same key if the same salt is used 
+	var passphraseBytes = this._unsignedToSignedBytes(tutao.util.EncodingConverter.hexToBytes(tutao.util.EncodingConverter.base64ToHex(tutao.locator.shaCrypter.hashHex(tutao.util.EncodingConverter.utf8ToHex(passphrase)))));
 
 	// create a new instance for each call to make sure that no concurrency problems occur (the bcrypt library uses setTimeouts)
 	var b = new bCrypt();

@@ -126,6 +126,25 @@ tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
 };
 
 /**
+ * Converts a timestamp number to a GeneratedId (the counter is set to zero).
+ * 
+ * TODO story: become production ready: add server id to the generatedId
+ * @param {number}
+ *            timestamp The timestamp of the GeneratedId
+ * @return {string} The GeneratedId.
+ */
+tutao.util.EncodingConverter.timestampToGeneratedId = function(timestamp) {
+	var hex = timestamp.toString(16);
+	// add counter (short = 2 bytes = 4 hex)
+	hex = hex + "0000";
+	// add leading zeros to reach 10 bytes (GeneratedId length) = 20 hex
+	for (var length = hex.length; length < 20; length++) {
+		hex = "0" + hex;
+	}
+	return tutao.util.EncodingConverter.base64ToBase64Ext(tutao.util.EncodingConverter.hexToBase64(hex));
+};
+
+/**
  * Converts a base64 url string to a "normal" base64 string. This is used for
  * base64 coded url parameters.
  *

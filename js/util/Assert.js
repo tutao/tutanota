@@ -10,11 +10,11 @@ goog.provide('tutao.util.Assert');
 tutao.util.Assert.assertObject = function(object, text) {
 	if (object === null) {
 //		undefined['assertionFailedBecauseObjectIsNull'] = 0;
-		throw (text) ? text : "object is null";
+		throw new Error((text) ? text : "object is null");
 	}
 	if (object === undefined) {
 //		undefined['assertionFailedBecauseObjectIsUndefined'] = 0;
-		throw (text) ? text : "object is undefined";
+		throw new Error((text) ? text : "object is undefined");
 	}
 };
 
@@ -26,18 +26,18 @@ tutao.util.Assert.assertObject = function(object, text) {
 tutao.util.Assert.assertUndefined = function(object, text) {
 	if (object !== undefined) {
 //		undefined['assertionFailedBecauseObjectIsNotUndefined'] = 0;
-		throw (text) ? text : "object is not undefined";
+		throw new Error((text) ? text : "object is not undefined");
 	}
 };
 
 /**
- * Throws an exception if the expression evaluates not to true.
- * @param {boolean} exp The expresseion that is tested to be true.
+ * Throws an exception if the expression does not evaluate to true.
+ * @param {boolean} exp The expression that is tested to be true.
  * @param {string=} text An optional text that is thrown if the assertion fails.
  */
 tutao.util.Assert.assert = function(exp, text) {
-	if (exp !== true) {
-		throw (text) ? text : "Assertion failed";
+	if (!exp) {
+		throw new Error((text) ? text : "Assertion failed");
 	}
 };
 
@@ -47,5 +47,5 @@ tutao.util.Assert.assert = function(exp, text) {
  */
 tutao.util.Assert.fail = function(text) {
 //	undefined['assertionFailed'] = 0;
-	throw (text) ? text : "assertion fail";
+	throw new Error((text) ? text : "assertion fail");
 };

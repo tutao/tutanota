@@ -25,6 +25,7 @@ tutao.ctrl.UserController.prototype.reset = function() {
 	this._userPassphraseKey = null;
 	this._userClientKey = null;
 	this._mailAddress = null;
+	this._hexSalt = null;
 
 	// external user
 	this._authToken = null;
@@ -70,6 +71,16 @@ tutao.ctrl.UserController.prototype.getLoggedInUser = function() {
 	return this._user;
 };
 
+tutao.ctrl.UserController.prototype.isLoggedInUserAdmin = function() {
+	var memberships = this._user.getMemberships();
+	for (var i=0; i<memberships.length; i++) {
+		if (memberships[i].getAdmin()) {
+			return true;
+		}
+	}
+	return false;
+};
+
 // INTERNAL
 
 /**
@@ -86,6 +97,14 @@ tutao.ctrl.UserController.prototype.getMailAddress = function() {
  */
 tutao.ctrl.UserController.prototype.getUserClientKey = function() {
 	return this._userClientKey;
+};
+
+/**
+ * Provides the salt of the user verifier.
+ * @return {Object} The salt.
+ */
+tutao.ctrl.UserController.prototype.getHexSalt = function() {
+	return this._hexSalt;
 };
 
 /**
@@ -109,8 +128,8 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 			});
 			return;
 		}
-		var salt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
-		tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt, function(hexKey) {
+		self._hexSalt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
+		tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, self._hexSalt, function(hexKey) {
 			// the verifier is always sent as url parameter, so it must be url encoded
 			self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
 			var authHeaders = {};
@@ -141,6 +160,17 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 			});
 		});
 	});
+};
+
+/**
+ * Updates the user login data after a password change.
+ * @param {String} verifier The auth verifier.
+ * @param {String} hexPassphraseKey The key generated from the users passphrase as hex string.
+ */
+tutao.ctrl.UserController.prototype.passwordChanged = function(hexPassphraseKey, hexSalt) {
+	this._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexPassphraseKey));
+	this._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexPassphraseKey);
+	this._hexSalt = hexSalt;
 };
 
 /**
