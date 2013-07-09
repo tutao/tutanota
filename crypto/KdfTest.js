@@ -47,10 +47,11 @@ KdfTest.prototype.testPassphrases = function(queue) {
 		var facade = this._getFacade();
 		var salt = "01020304050607080900010203040506";
 		// this test data comes from BcryptTest.java
-		var pairs = [{pw: "?", hash: "1e7447ccd47774a9b9bfa13d307b5355"},
-		{pw: "%", hash: "abbf0e47605555ab71808822b251fa69"},
-//		{pw: "€uropa", hash: "41bda43b1f703db427e5f55db608fb89"}, // TODO enable as soon as the test framework supports utf8
-		{pw: "?uropa", hash: "9322559c5ac2f7ae3981eb82fd86e25d"},
+		var pairs = [{pw: "?", hash: "01d90c0c9e84adb4f0bda2e9c53b7701"},
+		{pw: "%", hash: "4b8f17228d100392676c09391ee9693c"},
+//		{pw: "€uropa", hash: "dccbc232baef846b05da3a2c63219540}, // TODO enable as soon as the test framework supports utf8
+		{pw: "?uropa", hash: "2b920848fd7db6a84893761e75025c02"}];
+
 		for ( var i = 0; i < pairs.length; i++) {
 			(function() {
 				var position = i;
