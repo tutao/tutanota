@@ -88,7 +88,7 @@ EntropyCollectorTest.prototype.testMousemove = function(queue) {
 	});
 };
 
-EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
+EntropyCollectorTest.prototype.testFetchMissingUrls1 = function(queue) {
 	this.collector._ping = JsMockito.mockFunction();
 	tutao.locator.randomizer.isReady = function() {
 		return true;
@@ -104,7 +104,7 @@ EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
 	});
 };
 
-EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
+EntropyCollectorTest.prototype.testFetchMissingUrls2 = function(queue) {
 	var alreadyInvoked = false; 
 	tutao.locator.randomizer.isReady = function() {
 		if (alreadyInvoked) {
