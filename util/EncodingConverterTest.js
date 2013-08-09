@@ -48,4 +48,5 @@ EncodingConverterTest.prototype.testBase64ToBase64Ext = function() {
 EncodingConverterTest.prototype.testTimestampToHexGeneratedId = function() {
 	var timestamp = 1370563200000
 	assertEquals("0000013f1beec4000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp));
+	assertEquals("0000013f1beec4000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp + ""));
 };
