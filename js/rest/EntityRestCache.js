@@ -89,29 +89,39 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
  * @inheritDoc
  */
 tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
-	// this implemention currently loads each element on its own.
-	//TODO performance optimization: change to call getElements() on _target for all elements that are not cached
+	// TODO does currently not work for listElements (add listId to signature)
 	var elements = [];
-	var nbrOfFinishedElements = 0;
-	for (var i=0; i<ids.length; i++) {
-		var listId;
-		var id;
-		if (ids[i] instanceof Array) {
-			listId = ids[i][0];
-			id = ids[i][1];
+	var fromDbIds = [];
+	var cacheListId = "0"; // currently only for ETs
+	for ( var i = 0; i < ids.length; i++) {
+		var id = ids[i];
+		if (!this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId][id]) {
+			// the element is not in the cache, so get it from target
+			fromDbIds.push(id);
 		} else {
-			listId = null;
-			id = ids[i];
+			// read from cache
+			elements.push(this._db[path][cacheListId][id]);
 		}
-		this.getElement(type, path, id, listId, parameters, headers, function(element, exception) {
-			if (!exception) { // if some of the elements could not be loaded, we do not throw an exception
-				elements.push(element);
+	}
+	if (fromDbIds.length > 0) {
+		var self = this;
+		this._target.getElements(type, path, fromDbIds, parameters, headers, function(serverElements, exception) {
+			if (exception) {
+				callback(null, exception);
+				return;
 			}
-			nbrOfFinishedElements++;
-			if (nbrOfFinishedElements == ids.length) {
-				callback(elements);
-			}
+			for ( var i = 0; i < serverElements.length; i++) {
+				// cache the received elements
+				self._addToCache(path, serverElements[i]);
+				self._tryAddToRange(path, serverElements[i]);
+				
+				// merge with cached elements
+				elements.push(serverElements[i]);
+			}			
+			callback(elements);		
 		});
+	} else {
+		callback(elements);
 	}
 };
 

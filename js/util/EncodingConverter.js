@@ -115,7 +115,7 @@ tutao.util.EncodingConverter.base64ToBase64Ext = function(base64) {
  * @return {string} The GeneratedId as hex string.
  */
 tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
-	var hex = timestamp.toString(16);
+	var hex = parseInt(timestamp).toString(16);
 	// add counter (short = 2 bytes = 4 hex)
 	hex = hex + "0000";
 	// add leading zeros to reach 10 bytes (GeneratedId length) = 20 hex
