@@ -88,23 +88,31 @@ EntropyCollectorTest.prototype.testMousemove = function(queue) {
 	});
 };
 
-EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
-	this.collector._ping = JsMockito.mockFunction();
-	tutao.locator.randomizer.isReady = function() {
-		return true;
-	};
-	tutao.locator.replaceStatic(Math, Math.random, function() {
-		return 0;
-	});
-	
-	var self = this;
-	queue.call('test', function(callbacks) {
-		self.collector.fetchMissingEntropy();
-		JsMockito.verify(self.collector._ping)("www.heise.de", JsHamcrest.Matchers.anything());
-	});
-};
+// TODO enable and fix
+//EntropyCollectorTest.prototype.testFetchMissingUrlsPing = function(queue) {
+//	var spy = JsMockito.spy(this.collector);
+//	var alreadyInvoked = false; 
+//	tutao.locator.randomizer.isReady = function() {
+//		if (alreadyInvoked) {
+//			return true;
+//		} else {
+//			alreadyInvoked = true;
+//			return false;
+//		}
+//	};
+//	tutao.locator.replaceStatic(tutao.crypto.EntropyCollector, tutao.crypto.EntropyCollector._getRandomNumber, function() {
+//		return 0; // corresponds to www.heise.de
+//	});
+//
+//	var self = this;
+//	queue.call('test', function(callbacks) {
+//		spy.fetchMissingEntropy(callbacks.add(function() {
+//			JsMockito.verify(spy._ping)("www.heise.de", JsHamcrest.Matchers.anything());
+//		}));
+//	});
+//};
 
-EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
+EntropyCollectorTest.prototype.testFetchMissingUrlsAddEntropy = function(queue) {
 	var alreadyInvoked = false; 
 	tutao.locator.randomizer.isReady = function() {
 		if (alreadyInvoked) {
@@ -123,7 +131,6 @@ EntropyCollectorTest.prototype.testFetchMissingUrls = function(queue) {
 			assertEquals("ping", source);
 		}, 1);
 		
-		self.collector.fetchMissingEntropy(callbacks.add(function() {
-		}));
+		self.collector.fetchMissingEntropy(callbacks.add(function() {}));
 	});
 };
