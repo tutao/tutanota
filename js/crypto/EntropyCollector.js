@@ -79,9 +79,16 @@ tutao.crypto.EntropyCollector.prototype._random = function() {
 	    window.crypto.getRandomValues(valueList);
 	    tutao.locator.randomizer.addEntropy(valueList[0], 32, tutao.crypto.RandomizerInterface.ENTROPY_SRC_RANDOM);
 	  } catch (e) {
-		 var value = Math.floor(Math.random() * 0x100000000);
+		 var value = Math.floor(tutao.crypto.EntropyCollector._getRandomNumber() * 0x100000000);
 		 tutao.locator.randomizer.addEntropy(value, 1, tutao.crypto.RandomizerInterface.ENTROPY_SRC_RANDOM);
 	  }
+};
+
+/**
+ * A wrapper for Math.random().
+ */
+tutao.crypto.EntropyCollector._getRandomNumber = function() {
+	return Math.random();
 };
 
 /**
@@ -94,7 +101,7 @@ tutao.crypto.EntropyCollector.prototype.fetchMissingEntropy = function(callback)
 		callback();
 		return;
 	}
-	var url = tutao.crypto.EntropyCollector.URLs[Math.floor(Math.random() * (tutao.crypto.EntropyCollector.URLs.length + 1))];
+	var url = tutao.crypto.EntropyCollector.URLs[Math.floor(tutao.crypto.EntropyCollector._getRandomNumber() * (tutao.crypto.EntropyCollector.URLs.length + 1))];
 
 	this._ping(url, function(diff) {
 		tutao.locator.randomizer.addEntropy(diff, 2, tutao.crypto.RandomizerInterface.ENTROPY_SRC_PING);
