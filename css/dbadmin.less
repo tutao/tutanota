@@ -35,8 +35,8 @@ div#logSelectionColumn {
 	}
 }
 
-div#logEventsColumn {
-	> div#logInnerEventsColumn {
+div#logEventsColumn, div#customerListColumn, div#registrationListDataColumn {
+	> div {
 		position: relative;
 		height: 100%;
 		overflow: auto;
@@ -88,6 +88,14 @@ div#logEventsColumn {
 					}
 					&.E {
 						background-color: @red;
+					}
+					
+					input {
+						width: 100%;
+					}
+					
+					a {
+						cursor: pointer;
 					}
 				}
 			}
@@ -287,6 +295,31 @@ div#configColumn {
 			
 			> button {
 				margin-left: 10px;
+			}
+		}
+	}
+}
+
+div#customerMenuColumn {
+
+	> div#customerMenuInnerColumn {
+		position: relative;
+		height: 100%;
+		overflow-y: auto;
+		
+		> div#customerMenuData {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			margin: 3px;
+			background-clip: padding-box;
+			.mainWidget;
+			
+			> div > div.menuAction {
+				width: 100%;
+				margin-bottom: 5px;
 			}
 		}
 	}

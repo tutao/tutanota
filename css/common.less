@@ -260,6 +260,12 @@ button {
 	}
 }
 
+div.simplebutton {
+	display: inline-block;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
 /**
  * Default definition for all widgets 
  */
@@ -308,6 +314,10 @@ div.switch {
 			.background-gradient(top,lighten(@blue, 15%),lighten(@blue, 5%));
 		}
 	}
+	
+	&.selected {
+		.background-gradient(top,lighten(@light-blue, 5%),darken(@light-blue, 5%));
+	}
 }
 
 /***************************************
@@ -341,7 +351,7 @@ div.dropDownWrapper {
   * Record layout
   **************************************/
 
-div.recordContainer {
+form.recordContainer, div.recordContainer { // div for read-only forms
 	display: table;
 	table-layout: fixed;
 	width: 100%;
@@ -349,59 +359,84 @@ div.recordContainer {
 	> div.record {
 		display: table-row;
 	
-		> div.recordName {
+		> label.recordName {
 			display: table-cell;
 			text-align: right;
 			padding-right: 15px;
 			padding-top: 5px;
 			width: 150px;
+			@media (max-width: 480px) {
+				width: 100px;
+			}
 			overflow: hidden;
 		}
-
+		
 		> div.recordData {
-			display: table-cell;
-			text-align: left;
-			padding-top: 5px;
 			padding-bottom: 10px;
 			overflow: hidden;
 		}
 		
-		> div.recordAction {
+		> div.recordAction, div.recordData {
 			display: table-cell;
 			text-align: left;
 			padding-top: 5px;
-		}
-		
-		// the next config is valid for recordData and recordAction 
-		div > div.recordValue {
-				
-		}
-
-		div > .recordStatus {
-			margin-top: 3px;
-			font-size: 12px;
-			color: @dark-grey;
-
-			&.neutral {
+			
+			> label.recordStatus, > label.recordStatus {
+				display: block;
+				margin-top: 3px;
+				font-size: 12px;
+				color: @dark-grey;
+	
+				&.neutral {
+				}
+	
+				&.valid {
+					color: @positive;
+				}
+	
+				&.invalid {
+					color: @negative;
+				}
 			}
-
-			&.valid {
-				color: @positive;
+			
+			> label.recordInfo {
+				margin-top: 3px;
+				font-size: 12px;
+				color: @dark-grey;
 			}
-
-			&.invalid {
-				color: @negative;
+			
+			> div.recordValue {
+				> input[type=text], > input[type=tel], input[type=email], input[type=password] {
+					width: 100%;
+				}
 			}
-		}
-
-		div > .recordInfo {
-			margin-top: 3px;
-			font-size: 12px;
-			color: @dark-grey;
 		}
 	}
 }
 
+div.pwStrengthBg {
+	display: inline-block;
+	position: relative;
+	width: 100px;
+	height: 12px;
+	background-image: linear-gradient(to right, red, yellow, green);
+	background-image: -webkit-linear-gradient(left, red, orange, yellow, green);
+	background-image: -moz-linear-gradient(left, red, yellow, green);
+	background-image: -ms-linear-gradient(left, red, yellow, green);
+	border: 1px solid @dark-grey;
+	border-radius: 3px;
+
+	> div.pwStrengthFg {
+		background: @light-blue;
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		width: 100%;
+		height: 100%;
+		border-top-right-radius: 3px;
+		border-bottom-right-radius: 3px;
+	}
+}
 
 /***************************************
   * Transitions

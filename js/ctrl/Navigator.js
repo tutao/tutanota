@@ -83,6 +83,10 @@ tutao.tutanota.ctrl.Navigator.prototype.config = function() {
 	window.location.hash = "#config";
 };
 
+tutao.tutanota.ctrl.Navigator.prototype.customer = function() {
+	window.location.hash = "#customer";
+};
+
 tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
 	window.location.hash = "#settings";
 };
@@ -168,6 +172,10 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 	
 	Path.map("#config").to(function() {
 		self.authenticateAndSwitchToView(tutao.locator.configView);
+	});
+	
+	Path.map("#customer").to(function() {
+		self.authenticateAndSwitchToView(tutao.locator.customerView);
 	});
 
 	Path.map("#settings").to(function() {

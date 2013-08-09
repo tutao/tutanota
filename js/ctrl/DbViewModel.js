@@ -49,7 +49,7 @@ tutao.tutanota.ctrl.DbViewModel = function() {
 	// there is only one System instance, so set the id for convenience when the type is selected
 	this.type.subscribe(function(newValue) {
 		if (newValue.name == "System") {
-			this.id(tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.bytesToBase64([1, 2, 3])));
+			this.id(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 		}
 	}, this);
 	this.listId = ko.observable("");

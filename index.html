@@ -134,6 +134,7 @@
 	<script type="text/javascript" src="generated/entity/sys/ConfigServiceEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Constants.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerReference.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Exception.js"></script>
@@ -150,8 +151,8 @@
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/RegistrationData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationDataService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/RegistrationLinkService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RootInstance.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SaltService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthAllowedService.js"></script>
@@ -162,8 +163,8 @@
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/TestCustomerRegistrationService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/User.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserIdService.js"></script>
@@ -228,6 +229,8 @@
 	<script type="text/javascript" src="js/ctrl/ConfigViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ContactListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ContactViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/CustomerListViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/CustomerViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/DbViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/DisplayedMail.js"></script>
 	<script type="text/javascript" src="js/ctrl/DropDownViewModel.js"></script>
@@ -248,6 +251,7 @@
 	<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientInfo.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientsNotFoundException.js"></script>
+	<script type="text/javascript" src="js/ctrl/RegistrationDataListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/SecuritySettingsViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/SendMailFacade.js"></script>
@@ -272,6 +276,7 @@
 	<script type="text/javascript" src="js/gui/ConfigView.js"></script>
 	<script type="text/javascript" src="js/gui/ContactView.js"></script>
 	<script type="text/javascript" src="js/gui/ContextMenu.js"></script>
+	<script type="text/javascript" src="js/gui/CustomerView.js"></script>
 	<script type="text/javascript" src="js/gui/DbView.js"></script>
 	<script type="text/javascript" src="js/gui/ExternalLoginView.js"></script>
 	<script type="text/javascript" src="js/gui/FileView.js"></script>
@@ -434,7 +439,7 @@ function touchOrClick(e) {
 		<menu>
 			<ul id="menu_list">
 				<!-- ko if: isInternalUserLoggedIn() -->
-					<!-- ko if: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView  || getActiveView() == tutao.locator.configView -->
+					<!-- ko if: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView  || getActiveView() == tutao.locator.configView  || getActiveView() == tutao.locator.customerView -->
 						<li>
 							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.logs(); }, 0); }">
 								<div class="menu_image"><div class="imgButton db"></div></div>
@@ -459,8 +464,14 @@ function touchOrClick(e) {
 								<div class="menu_text">config</div>
 							</div>
 						</li>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.customer(); }, 0); }">
+								<div class="menu_image"><div class="imgButton db"></div></div>
+								<div class="menu_text">customers</div>
+							</div>
+						</li>
 					<!-- /ko -->
-					<!-- ko ifnot: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView || getActiveView() == tutao.locator.configView -->
+					<!-- ko ifnot: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView || getActiveView() == tutao.locator.configView || getActiveView() == tutao.locator.customerView -->
 					<li>
 						<!-- ko if: getActiveView() == tutao.locator.mailView -->
 							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
@@ -1074,81 +1085,141 @@ function touchOrClick(e) {
 					<div>
 						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE && tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
 							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-								<div class="defaultMargin heading" data-bind="lang: 'welcome_msg'"></div>
-								<div class="defaultMargin" data-bind="lang: 'welcomeSubmsg_msg'"></div>
+								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration1Headline_msg')"></div>
 								
-								<!-- <div class="defaultMargin">
-									<span>*</span><select data-bind="enable: isFormEditable(), value: gender, options: genders, optionsCaption: 'Choose...'" ></select>
-								</div>	
-								<div class="defaultMargin">
-									<span>*</span><input type="text" title="Email recipients may identify you by this name." data-bind="enable: isFormEditable(), value: firstName, valueUpdate: 'input', attr: {placeholder: tutao.lang('firstName')}" />
-								</div>
-								<div class="defaultMargin">
-									<span>*</span><input type="text" title="Email recipients may identify you by this name." data-bind="enable: isFormEditable(), value: lastName, valueUpdate: 'input', attr: {title: tutao.lang('loginName_title'), placeholder: tutao.lang('lastName') }" />
-								</div>
-								<div class="defaultMargin">
-									<textarea class="dataField" rows="4" title="Your address is needed in case you do not have access to you phone number any more. It is recommended to provide it." data-bind="enable: isFormEditable(), value: address, valueUpdate: 'input'"></textarea>
-								</div> -->
-								
-								<div class="defaultMargin">
-									<span>*</span><input class="loginTextInput" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', attr: {title: tutao.lang('loginName_title'), placeholder: tutao.lang('name_placeholder') }, hasfocus: nameFieldFocused" />
-								</div>
-								<div class="defaultMargin">
-									<span>*</span><input class="loginTextInput" class="dataField" type="tel" data-bind="enable: isFormEditable(), value: phoneNumber, valueUpdate: 'input', css: { invalid: !isPhoneNumberValid() && phoneNumber() != '' }, attr: {title: tutao.lang('phoneNumber_title'), placeholder: tutao.lang('mobileNumber_placeholder') }"/>
-								</div>
-								<div class="defaultMargin">
-									<span>*</span>
-									<input class="loginTextInput" type="text" data-bind="enable: isFormEditable(), value: mailAddress, valueUpdate: 'input', css: { invalid: getCheckMailAddressState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED && mailAddress() != '' }, attr: {title: tutao.lang('mailAddress_title'), placeholder: tutao.lang('desiredAddress_placeholder') }" />
-									<span>@tutanota.com</span>
-									<img class="statusIcon" data-bind="attr: { src: getCheckMailAddressIcon(), alt: getCheckMailAddressText(), title: getCheckMailAddressText() }"/>
-								</div>
-								<div id="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-									<div class="barText" data-bind="lang: 'pwStrength_label'"></div>
-									<div id="pwStrengthFg" data-bind="style: { width: (100 - getPassphraseStrength()) + '%' }"></div>
-								</div>
-								<div class="defaultMargin">
-									<span>*</span>
-									<input class="loginTextInput" type="password" data-bind="enable: isFormEditable(), value: passphrase1, valueUpdate: 'input', css: { invalid: !isPassphrase1MissingOrValid() }, attr: { placeholder: tutao.lang('passphrase_placeholder') }"/>
-									<img class="statusIcon" data-bind="attr: { src: (isPassphrase1ProvidedAndValid()) ? 'graphics/ok.png' : 'graphics/not_ok.png', alt: (isPassphrase1ProvidedAndValid()) ? tutao.lang('pwFine_placeholder') : tutao.lang('pwNotStrongEnough_placeholder'), title: (isPassphrase1ProvidedAndValid()) ? tutao.lang('pwFine_placeholder') : tutao.lang('pwNotStrongEnough_placeholder') }"/>
-								</div>
-								<div class="defaultMargin">
-									<span>*</span>
-									<input class="loginTextInput" type="password" data-bind="enable: isFormEditable(), value: passphrase2, valueUpdate: 'input', css: { invalid: !isPassphrase2MissingOrValid() }, attr: { placeholder: tutao.lang('repeatedPassphrase_placeholder') }"/>
-									<img class="statusIcon" data-bind="attr: { src: (isPassphrase2ProvidedAndValid()) ? 'graphics/ok.png' : 'graphics/not_ok.png', alt: (isPassphrase2ProvidedAndValid()) ? tutao.lang('pwFine_placeholder') : tutao.lang('pwNotSame_placeholder'), title: (isPassphrase2ProvidedAndValid()) ? tutao.lang('pwFine_placeholder') : tutao.lang('pwNotSame_placeholder') }"/>
-								</div>
-								<div class="defaultMargin">
-									<a href="http://de.wikipedia.org/wiki/Passwortsicherheit#Wahl_sicherer_Passw.C3.B6rter" target="_blank" data-bind="lang: 'goodPassphrase_action'" tabindex="-1"></a>
-								</div>
-								<div class="defaultMargin">
-									<span>*</span>
-									<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-									<span data-bind="lang: 'acceptConditions_label'"></span> <a href="terms-conditions.html" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
-								</div>
-								<div class="sendSmsText defaultMargin" data-bind="text: sendSmsText, visible: isFormEditable()"></div>
-								<div class="defaultMargin" data-bind="visible: !isFormEditable()">
-									<img src="graphics/busy.gif" data-bind="attr: {alt: tutao.lang('sendingSms_alt') }"/>
-								</div>
-								<button class="defaultMargin" data-bind="enable: isSendSmsPossible(), css: { disabled: !isSendSmsPossible() }, fastClick: sendSms, lang: 'join_action'"></button>
+								<form class="recordContainer" data-bind="submit: sendSms">
+									<!-- ko if: getRegistrationType() != 'Free' -->
+									<div class="record">
+										<label class="recordName" data-bind="lang: 'company_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<div id="companyName" data-bind="text: companyName"></div>
+											</div>
+										</div>
+									</div>
+									<div class="record">
+										<label class="recordName" data-bind="lang: 'invoiceAddress_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<div id="invoiceAddress" data-bind="text: invoiceAddress"></div>
+											</div>
+										</div>
+									</div>
+									<div class="record">
+										<label class="recordName" data-bind="lang: 'domain_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<div data-bind="text: domain"></div>
+											</div>
+										</div>
+									</div>
+									<!-- /ko -->
+									<div class="record">
+										<label for="registrationMailName" class="recordName" data-bind="lang: 'name_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input class="inputField" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused"></input>
+											</div>
+											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
+										</div>
+									</div>
+									<div class="record">
+										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input class="inputField" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'"></input>
+											</div>
+											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
+											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
+										</div>
+									</div>
+									<div class="record">
+										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input class="inputField" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+											</div>
+											<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
+										</div>
+									</div>
+									<div class="record">
+										<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input id="newpassword" class="inputField" type="password" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+											</div>
+											<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
+												<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+													<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+												</div>
+												<div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
+											</label>
+											<div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+										</div>
+									</div>
+									<div class="record">
+										<label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input id="newpassword2" class="inputField" type="password" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+											</div>
+											<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+										</div>
+									</div>
+									<div class="record">
+										<label for="termsInput" class="recordName" data-bind="lang: 'terms_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
+												<label for="termsInput" data-bind="lang: 'acceptConditions_label'"></label> <a href="terms-conditions.html" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+											</div>
+											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
+										</div>
+									</div>
+
+									<div class="record">
+										<div class="recordName"></div>
+										<div class="recordAction">
+											<button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isSendSmsPossible() }, lang: 'join_action'"></button>
+											<label for="submitRegistration1" class="recordStatus" data-bind="css: joinStatus().type, lang: joinStatus().text"></label>
+										</div>
+									</div>
+								</form>
 							<!-- /ko -->
 								
 							<!-- ko if: (getSendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-								<div class="createAccountText defaultMargin" data-bind="text: createAccountText"></div>
-								<div class="defaultMargin">
-									<input class="codeField" type="text" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeVerificationFailed () }, value: code, valueUpdate: 'input',  attr: {placeholder: tutao.lang('verificationCode_placeholder')}" />
-								</div>
-								<div class="progressBg defaultMargin">
-									<div class="barText" data-bind="text: (getKeyGenerationProgress() == 0) ? tutao.lang('progress_msg') : getKeyGenerationProgress() + '%'"></div>
-									<div class="progressFg" data-bind="style: { width: (100 - getKeyGenerationProgress()) + '%' }"></div>
-								</div>
-								<div class="spinner" class="defaultMargin">
-									<img src="graphics/busy.gif" data-bind="attr: {alt: tutao.lang('creatingAccount_alt') }, visible: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING)"/>
-								</div>
-								<button class="defaultMargin" data-bind="enable: !isCreatingAccount(), css: { disabled: isCreatingAccount() }, fastClick: backToStartPage, lang: 'back_action'"></button>								
-								<button class="defaultMargin" data-bind="enable: isCreateAccountPossible(), css: { disabled: !isCreateAccountPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
+								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration2Headline_msg')"></div>
+								<form class="recordContainer" data-bind="submit: createAccount">
+									<div class="record">
+										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input id="registrationCodeInput" class="inputField" type="text" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
+											</div>
+											<label for="registrationCodeInput" class="recordStatus", data-bind="css: codeInputStatus().type, lang: codeInputStatus().text"></label>
+											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
+											<div class="simplebutton" data-bind="click: backToStartPage, text: '(' + tutao.lang('change_action') + ')'"></div>
+										</div>
+									</div>
+
+									<div class="record">
+										<div class="recordName"></div>
+										<div class="recordAction">
+											<button id="submitRegistration2" type="submit" data-bind="css: { disabled: !isCreateAccountPossible()}, lang: 'createAccount_action'"></button>
+											<label for="submitRegistration2" class="recordStatus" data-bind="css: createAccountStatus().type">
+												<div class="progressBg" class="defaultMargin dataField">
+													<div class="progressFg" data-bind="style: { width: (100 - getKeyGenerationProgress()) + '%' }"></div>
+												</div>
+												<div class="createAccountStatus" data-bind="lang: createAccountStatus().text"></div>
+											</label>
+											<label for="submitRegistration2" class="recordInfo" data-bind="lang: 'createAccountInfo_msg'"></label>
+										</div>
+									</div>
+								</form>						
 							<!-- /ko -->
 						<!-- /ko -->
 						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
-							<div class="defaultMargin" data-bind="lang: 'welcome_msg'"></div>
 							<span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
 							<ul>
 								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
@@ -1171,7 +1242,7 @@ function touchOrClick(e) {
 							<div class="defaultMargin"></div>
 							<input class="loginTextInput" type="email" data-bind="value: mailAddress, valueUpdate: 'input', css: { invalid: invalidMailAddressFormat }, attr: {placeholder: tutao.lang('emailAddress_placeholder')}, hasfocus: mailAddressFieldFocused" />
 							<div class="defaultMargin"></div>
-							<input class="loginTextInput" type="password" data-bind="value: passphrase, valueUpdate: 'input', css: { invalid: invalidPassphraseFormat }, attr: {placeholder: tutao.lang('passphrase_placeholder')}, hasfocus: passphraseFieldFocused" />
+							<input class="loginTextInput" type="password" data-bind="value: passphrase, valueUpdate: 'input', css: { invalid: invalidPassphraseFormat }, attr: {placeholder: tutao.lang('password_label')}, hasfocus: passphraseFieldFocused" />
 							<div class="defaultMargin"></div>
 							<div class="failedText" data-bind="text: failedLoginMessage, visible: !loginOngoing()"></div>
 							<div data-bind="visible: loginOngoing()">
@@ -1475,6 +1546,102 @@ function touchOrClick(e) {
 			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.configView }"></div>
 		</div>
 
+		<!-- ko if:  tutao.locator.viewManager.getActiveView() == tutao.locator.customerView -->
+		<div id="customerContent" class="content" data-bind="with: new tutao.tutanota.ctrl.CustomerViewModel()">
+			<div id="customerMenuColumn" class="viewColumn">
+				<div id="customerMenuInnerColumn">
+					<div id="customerMenuData">
+						<div>
+							<div class="menuAction switch" data-bind="fastClick: listFreeCustomers">list free customers</div>
+							<div class="menuAction switch" data-bind="fastClick: listStarterCustomers">list starter customers</div>
+							<div class="menuAction switch" data-bind="fastClick: listPremiumCustomers">list premium customers</div>
+							<div class="menuAction switch" data-bind="fastClick: listRegistrationData">list registrationData</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="customerListColumn" class="viewColumn">
+			<!-- ko if: displayed() == 'listCustomers' -->
+				<div id="customerListInnerColumn" data-bind="with: customerListViewModel">
+					<div id="customers">
+						<table>
+						   <thead>
+      							<tr>
+									<th class="small">ID</th>
+									<th class="medium">Name</th>
+									<th class="medium">Domain</th>
+									<th class="medium">Address</th>
+								</tr>
+   							</thead>
+   							<tbody data-bind="foreach: customers">
+      							<tr>
+								    <td class="small" data-bind="text: getId()"></td>
+									<td class="medium" data-bind="text: getCompany()"></td>
+									<td class="medium" data-bind="text: getDomain()"></td>
+									<td class="medium" data-bind="text: getInvoiceAddress()"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			<!-- /ko -->
+
+			<!-- ko if: displayed() == 'listRegistrationData' -->
+				<div id="registrationDataInnerColumn" data-bind="with: registrationDataListViewModel">
+					<div id="registrationData">
+						<table>
+						   <thead>
+      							<tr>
+									<th class="small">ID</th>
+									<th class="medium">company</th>
+									<th class="medium">type</th>
+									<th class="medium">state</th>
+									<th class="medium">email user name</th>
+									<th class="medium">mobile number</th>
+									<th class="medium">invoice address</th>
+									<th class="medium">domain</th>
+									<th class="medium">mail address</th>
+									<th class="mini" title="Action">A</th>
+								</tr>
+   							</thead>
+   							<tbody>
+								<!-- ko foreach: registrationDataList -->
+      							<tr>
+								    <td class="small"><a target="_blank" data-bind="attr: {href: $parent.getUrl(getId()[1])}">Link</a></td>
+									<td class="medium" data-bind="text: getCompany()"></td>
+									<td class="medium" data-bind="text: $parent.getAccountTypeName(getAccountType())"></td>
+									<td class="medium" data-bind="text: $parent.getStateName(getState())"></td>
+									<td class="medium" data-bind="text: getGroupName()"></td>
+									<td class="medium" data-bind="text: getMobilePhoneNumber()"></td>
+									<td class="medium" data-bind="text: getInvoiceAddress()"></td>
+									<td class="medium" data-bind="text: getDomain()"></td>
+									<td class="medium" data-bind="text: getMailAddress()"></td>
+									<td class="mini"><a data-bind="click: $parent.remove">D</a></td>
+								</tr>
+								<!-- /ko -->
+								<tr>
+								    <td class="small"></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: company"></input></td>
+									<td class="medium"><select class="inputField" data-bind="options: accountTypes, optionsText: 'name', optionsValue: 'id', value: selectedAccountType"></select></td>
+									<td class="medium">initial</td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName"></input></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: mobilePhoneNumber"></input></td>
+									<td class="medium"><textarea class="inputField" rows="4" data-bind="value: invoiceAddress"></textarea></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: domain"></input></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: mailAddress"></input></td>
+									<td class="mini"><a data-bind="click: add">A</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			<!-- /ko -->
+			</div>
+
+			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.customerView }"></div>
+		</div>
+		<!-- /ko -->
+
 		<div id="settingsContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
 				<div id="settingsInnerColumn">
@@ -1519,57 +1686,57 @@ function touchOrClick(e) {
 										<div data-bind="lang: 'serverNotReachable_msg'"></div>
 									</div>
 									
-									<div class="recordContainer" data-bind="if: overallState() == 'allowed'">
+									<form class="recordContainer" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }">
 										<div class="record">
-											<div class="recordName" data-bind="lang: 'oldPassword_label'"></div>
+											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="inputField" type="password" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
+													<input class="inputField" id="oldpassword" type="password" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
 												</div>
-												<div class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></div>
+												<label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
 											</div>
 										</div>
 										<div class="record">
-											<div class="recordName" data-bind="lang: 'newPassword_label'"></div>
+											<label for="newpassword" class="recordName" data-bind="lang: 'newPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="inputField" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+													<input id="newpassword" class="inputField" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 												</div>
-												<div class="recordStatus" data-bind="css: getPassword1Status().type">
+												<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
 													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 													</div>
 													<div class="password1Status" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
-												</div>
+												</label>
 												<div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
 											</div>
 										</div>
 										<div class="record">
-											<div class="recordName"></div>
+											<label for="newpassword2" class="recordName"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="passwordInput" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+													<input id="newpassword2" class="inputField" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
 												</div>
-												<div  class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></div>
+												<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
 											</div>
 										</div>
 										<div class="record" data-bind="visible: codeNeeded">
-											<div class="recordName" data-bind="lang: 'code_label'"></div>
+											<label for="passwordVerficationCode" class="recordName" data-bind="lang: 'code_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="codeInput" type="text" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
+													<input id="passwordVerficationCode" class="inputField" type="text" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
 												</div>
-												<div class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></div>
+												<label id="passwordVerficationCode" class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></label>
 											</div>
 										</div>
 										<div class="record">
 											<div class="recordName"></div>
 											<div class="recordAction">
-												<button data-bind="css: { disabled: !confirmPossible() }, click: function() { setTimeout(function() { confirm(); }, 0); }, lang: changePasswordButtonTextId()"></button>
-												<div class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text, params: changePasswordStatus().params"></div>
+												<button id="submitPasswordChange" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
+												<label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text, params: changePasswordStatus().params"></label>
 											</div>
 										</div>
-									</div>
+									</form>
 								</div>
 							<!-- /ko -->
 						</div>
@@ -1592,10 +1759,10 @@ function touchOrClick(e) {
 </script>
 
 	<script type="text/html" id="displayedRecord-template">
-		<div class="recordName" data-bind="lang: nameTextId"></div>
+		<label class="recordName" data-bind="lang: nameTextId"></label>
 		<div class="recordData">
 			<div class="recordValue" data-bind="text: valueObservable"></div>
-			<div class="recordInfo" data-bind="lang: infoTextId"></div>
+			<label class="recordInfo" data-bind="lang: infoTextId"></label>
 		</div>
 	</script>
 

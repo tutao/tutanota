@@ -40,10 +40,10 @@ tutao.tutanota.Bootstrap.init = function() {
 	tutao.locator.entropyCollector.start();
 
 		// only for testing
-//		tutao.locator.loginViewModel.mailAddress("a.bobcarol@mycompany.com");
-//		tutao.locator.loginViewModel.passphrase("nimda");
+//		tutao.locator.loginViewModel.mailAddress("map-system@tutanota.com");
+//		tutao.locator.loginViewModel.passphrase("map");
 //		tutao.locator.loginViewModel.login(function() {
-//			tutao.locator.navigator.settings();
+//			tutao.locator.navigator.customer();
 //			tutao.locator.viewManager.select(tutao.locator.contactView);
 //			tutao.locator.contactListViewModel.contactsInitializedCallback.push(function() {
 //				tutao.locator.contactViewModel.showContact(tutao.locator.contactListViewModel.contacts()[2]());
@@ -55,8 +55,8 @@ tutao.tutanota.Bootstrap.init = function() {
 //		tutao.locator.registrationViewModel.lastName("moehle");
 //		tutao.locator.registrationViewModel.mailAddress("arne.moehle");
 //		tutao.locator.registrationViewModel.phoneNumber("01739508502");
-//		tutao.locator.registrationViewModel.passphrase1("asdfasdfasdfasdf");
-//		tutao.locator.registrationViewModel.passphrase2("asdfasdfasdfasdf");
+//		tutao.locator.registrationViewModel.password1("asdfasdfasdfasdf");
+//		tutao.locator.registrationViewModel.password2("asdfasdfasdfasdf");
 //		tutao.locator.registrationViewModel.termsAccepted(true);
 };
 
@@ -106,6 +106,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 			monitorViewModel: tutao.tutanota.ctrl.MonitorViewModel,
 			configView: tutao.tutanota.gui.ConfigView,
 			configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
+			customerView: tutao.tutanota.gui.CustomerView,
 			settingsView: tutao.tutanota.gui.SettingsView,
 			settingsViewModel: tutao.tutanota.ctrl.SettingsViewModel,
 			entropyCollector: tutao.crypto.EntropyCollector,
@@ -160,7 +161,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 	tutao.tutanota.gui.initEvents();
 
 	var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
-	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView, tutao.locator.settingsView], external);
+	tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView, tutao.locator.settingsView, tutao.locator.customerView], external);
 
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		// notify the active view and the swipe recognizer

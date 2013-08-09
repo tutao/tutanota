@@ -28,22 +28,7 @@ tutao.tutanota.gui.RegistrationView.prototype.isForInternalUserOnly = function()
  * @inherit
  */
 tutao.tutanota.gui.RegistrationView.prototype.activate = function(parameters) {
-	if (parameters.authToken) {
-		var params = {};
-		params[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = parameters.authToken;
-		tutao.entity.sys.RegistrationDataService.load(params, null, function(data, exception) {
-			if (exception) {
-				return;
-			}
-			if (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL) {
-				tutao.locator.registrationViewModel.authToken = parameters.authToken;
-				tutao.locator.registrationViewModel.name(data.getGroupName());
-				tutao.locator.registrationViewModel.mailAddress(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
-				tutao.locator.registrationViewModel.phoneNumber(data.getMobilePhoneNumber());
-			}
-		});
-	}
-	tutao.locator.registrationViewModel.activate();
+	tutao.locator.registrationViewModel.activate(parameters.authToken);
 };
 
 /**
