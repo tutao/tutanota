@@ -98,7 +98,7 @@ tutao.util.EncodingConverter.base64ToBase64Ext = function(base64) {
 	var base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
 
 	var base64 = base64.replace(/\=/g, "");
-	var base64ext = new Array(base64.length)
+	var base64ext = new Array(base64.length);
 	for (var i = 0; i < base64.length; i++) {
 		var index = base64Alphabet.indexOf(base64.charAt(i));
 		base64ext[i] = base64extAlphabet[index];
