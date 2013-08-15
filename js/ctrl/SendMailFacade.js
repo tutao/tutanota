@@ -153,21 +153,17 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		recipient.setPubKeyVersion(null);
 
 		var password = recipientInfo.getContactWrapper().getContact().getCommunicationPassword();
-		var saltBase64 = recipientInfo.getContactWrapper().getContact().getCommunicationPasswordSalt();
-		var saltHex = "";
-		if (password == "" || saltBase64 == "") {
+		if (password == "") {
 			password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
-			saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
-			saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
 			if (recipientInfo.isExistingContact()) {
 				recipientInfo.getContactWrapper().getContact().setCommunicationPassword(password);
-				recipientInfo.getContactWrapper().getContact().setCommunicationPasswordSalt(saltBase64);
 				recipientInfo.getContactWrapper().getContact().update(function() {});
 			}
-		} else {
-			saltHex = tutao.util.EncodingConverter.base64ToHex(saltBase64);
 		}
 		console.log(password); //TODO just for testing, remove later
+
+		var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
+		var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
 		// TODO story performance: make kdf async in worker
 		tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
 			var key = tutao.locator.aesCrypter.hexToKey(hexKey);

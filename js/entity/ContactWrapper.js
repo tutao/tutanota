@@ -28,7 +28,6 @@ tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper = function() {
 	contact.setBirthday(null);
 	contact.setComment("");
 	contact.setCommunicationPassword("");
-	contact.setCommunicationPasswordSalt("");
 	return new tutao.entity.tutanota.ContactWrapper(contact);
 };
 
