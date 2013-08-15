@@ -3,7 +3,7 @@
 goog.provide('JavaCompatibilityTest');
 
 /**
- * Tests that the key and encrypted data from the JavaScriptCompatibilityTest creates the same results in JavaScript.
+ * Tests that the key and encrypted data from the CompatibilityTest creates the same results in JavaScript.
  * TODO add verification test for full coverage of the padding (one test for each possible clear text length in the last block; AES: tests for 0-255 bytes of cleartext data)
  */
 AsyncTestCase("JavaCompatibilityTest", {
@@ -13,7 +13,7 @@ AsyncTestCase("JavaCompatibilityTest", {
 			var aesFacade = tutao.locator.aesCrypter;
 			var rsaFacade = new tutao.crypto.RsaWorkerProxy();
 	
-			// this data is copied from the JavaScriptCompatibilityTest where it is generated
+			// this data is copied from the CompatibilityTest where it is generated
 			var aesHexKey = "73f626436ac9a3d96a1e579aa340521d";
 			var utf8Data = "what a wonderful encryption!";
 			var encryptedUtf8DataRandomIv = "IgIvX4ffXEDtv11wqrUXI6BfxGlQ1q3L45oj2u1R3GPvsBwTw5dV6mz9jiHO0Rmx";
