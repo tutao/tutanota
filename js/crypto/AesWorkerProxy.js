@@ -67,6 +67,20 @@ tutao.crypto.AesWorkerProxy.prototype.decryptUtf8 = function(key, base64, random
 /**
  * @inheritDoc
  */
+tutao.crypto.AesWorkerProxy.prototype.encryptBytes = function(key, base64, randomIv) {
+	return this._aes.encryptBytes(key, base64, randomIv);
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.AesWorkerProxy.prototype.decryptBytes = function(key, base64, randomIv) {
+	return this._aes.decryptBytes(key, base64, randomIv);
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.crypto.AesWorkerProxy.prototype.encryptKey = function(key, keyToEncrypt) {
 	return this._aes.encryptKey(key, keyToEncrypt);
 };

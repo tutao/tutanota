@@ -56,7 +56,7 @@ tutao.crypto.AesInterface.prototype.base64ToKey = function(base64) {};
 tutao.crypto.AesInterface.prototype.encryptUtf8 = function(key, utf8, randomIv) {};
 
 /**
- * Decrypts a base64 coded binary data with AES in CBC mode.
+ * Decrypts base64 coded binary data with AES in CBC mode to a utf8 string.
  * @param {Object} key The key to use for the decryption.
  * @param {String} base64 A base64 coded string that was encrypted with the same key before.
  * @param {boolean} randomIv If true, a random initialization vector is used (the same plaintext is not encrypted to the same chiffre text).
@@ -64,6 +64,26 @@ tutao.crypto.AesInterface.prototype.encryptUtf8 = function(key, utf8, randomIv) 
  * @throws {tutao.crypto.CryptoException} If the decryption fails.
  */
 tutao.crypto.AesInterface.prototype.decryptUtf8 = function(key, base64, randomIv) {};
+
+/**
+ * Encrypts bytes coded as base64 with AES in CBC mode.
+ * @param {Object} key The key to use for the encryption.
+ * @param {String} base64 Bas64 coded bytes.
+ * @param {boolean} randomIv If true, a random initialization vector is used (the same plaintext is not encrypted to the same chiffre text).
+ * @return {String} The encrypted bytes, base64 coded.
+ * @throws {tutao.crypto.CryptoException} If the encryption fails.
+ */
+tutao.crypto.AesInterface.prototype.encryptBytes = function(key, base64, randomIv) {};
+
+/**
+ * Decrypts base64 coded binary data with AES in CBC mode to bytes.
+ * @param {Object} key The key to use for the decryption.
+ * @param {String} base64 A base64 coded string that represents the encrypted bytes that weres encrypted with the same key before.
+ * @param {boolean} randomIv If true, a random initialization vector is used (the same plaintext is not encrypted to the same chiffre text).
+ * @return {String} The decrypted bytes, base64 coded.
+ * @throws {tutao.crypto.CryptoException} If the decryption fails.
+ */
+tutao.crypto.AesInterface.prototype.decryptBytes = function(key, base64, randomIv) {};
 
 /**
  * Encrypts a hex coded key with AES in CBC mode.

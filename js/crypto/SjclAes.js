@@ -80,6 +80,24 @@ tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64, randomIv) {
 /**
  * @inheritDoc
  */
+tutao.crypto.SjclAes.prototype.encryptBytes = function(key, base64, randomIv) {
+	return this._encrypt(key, sjcl.codec.base64.toBits(base64), randomIv, true);
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64, randomIv) {
+	try {
+		return sjcl.codec.base64.fromBits(this._decrypt(key, base64, randomIv, true));
+	} catch (e) {
+		throw new tutao.crypto.CryptoException("aes bytes decryption failed", e);
+	}
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.crypto.SjclAes.prototype.encryptKey = function(key, keyToEncrypt) {
 	try {
 		return this._encrypt(key, keyToEncrypt, false, false);
