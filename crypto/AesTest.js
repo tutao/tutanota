@@ -44,12 +44,21 @@ AesTest.prototype.testgenerateRandomKeyAndBase64Conversion = function() {
 	assertEquals(key3Base64, facade.keyToBase64(facade.base64ToKey(key3Base64)));
 };
 
-AesTest.prototype.testEncryptdecryptUtf8 = function() {
+AesTest.prototype.testEncryptDecryptUtf8 = function() {
 	var facade = this._getFacade();
 	var key = facade.generateRandomKey();
 	var plaintexts = ["", "a", "t?", "ret", "helloworld", "what a nice plaintext!", "€ %^-µ", "long Test that convers many of these nice encryption blocks, so we can check that the block mode works nicely after all"];
 	for (var i=0; i<plaintexts.length; i++) {
 		this._checkRoundtripUtf8(facade, key, plaintexts[i]);
+	}
+};
+
+AesTest.prototype.testEncryptDecryptBytes = function() {
+	var facade = this._getFacade();
+	var key = facade.generateRandomKey();
+	var plaintexts = ["", "aa", "5555", "12341234", "123412341234123412341234123412", "12341234123412341234123412341234", "1234123412341234123412341234123412"];
+	for (var i=0; i<plaintexts.length; i++) {
+		this._checkRoundtripHex(facade, key, plaintexts[i]);
 	}
 };
 
@@ -127,6 +136,34 @@ AesTest.prototype._checkRoundtripUtf8 = function(facade, key, plain) {
 	assertEquals(plain, plainAgain2);
 	assertEquals(plain, plainAgainRandomIv);
 	assertEquals(plain, plainAgain2RandomIv);
+	
+	// check that the ciphertexts are the same with static ivs
+	assertTrue(encrypted === encrypted2);
+	// check that the ciphertexts are different with random ivs
+	assertTrue(encryptedRandomIv !== encrypted2RandomIv);
+	// check that the ciphertexts have the same length with random ivs
+	assertTrue(encryptedRandomIv.length === encrypted2RandomIv.length);
+	// check that the ciphertext is longer with random ivs
+	assertTrue(encryptedRandomIv.length > encrypted.length);
+};
+
+AesTest.prototype._checkRoundtripHex = function(facade, key, plainHex) {
+	// with static iv
+	var encrypted = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), false);
+	var encrypted2 = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), false);
+	var plainAgain = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted, false));
+	var plainAgain2 = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted2, false));
+	// with random iv
+	var encryptedRandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), true);
+	var encrypted2RandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), true);
+	var plainAgainRandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encryptedRandomIv, true));
+	var plainAgain2RandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted2RandomIv, true));
+	
+	// check roundtrip results
+	assertEquals(plainHex, plainAgain);
+	assertEquals(plainHex, plainAgain2);
+	assertEquals(plainHex, plainAgainRandomIv);
+	assertEquals(plainHex, plainAgain2RandomIv);
 	
 	// check that the ciphertexts are the same with static ivs
 	assertTrue(encrypted === encrypted2);
