@@ -213,6 +213,7 @@
 	<script type="text/javascript" src="generated/entity/tutanota/SendMailFromExternalService.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/SendMailService.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/TutanotaProperties.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureAttachment.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureRecipient.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UpdateFileService.js"></script>
@@ -227,6 +228,8 @@
 	<script type="text/javascript" src="js/ctrl/ChangePasswordViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ComposingMail.js"></script>
 	<script type="text/javascript" src="js/ctrl/ConfigViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/ContactCsvConverter.js"></script>
+	<script type="text/javascript" src="js/ctrl/ContactCsvHandler.js"></script>
 	<script type="text/javascript" src="js/ctrl/ContactListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ContactViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/CustomerListViewModel.js"></script>
@@ -262,6 +265,7 @@
 	<script type="text/javascript" src="js/ctrl/SwipeRecognizer.js"></script>
 	<script type="text/javascript" src="js/ctrl/TagListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ThemeViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/ThunderbirdContactCsvConverter.js"></script>
 	<script type="text/javascript" src="js/ctrl/View.js"></script>
 	<script type="text/javascript" src="js/ctrl/ViewManager.js"></script>
 	<script type="text/javascript" src="js/ctrl/ViewSlider.js"></script>
@@ -295,12 +299,14 @@
 	<script type="text/javascript" src="js/security/CajaSanitizer.js"></script>
 	<script type="text/javascript" src="js/security/HtmlSanitizer.js"></script>
 	<script type="text/javascript" src="js/util/ClientDetector.js"></script>
+	<script type="text/javascript" src="js/util/CsvConverter.js"></script>
 	<script type="text/javascript" src="js/util/DataFile.js"></script>
 	<script type="text/javascript" src="js/util/FileUtils.js"></script>
 	<script type="text/javascript" src="js/util/Formatter.js"></script>
 	<script type="text/javascript" src="js/util/LocalStore.js"></script>
 	<script type="text/javascript" src="js/util/PasswordUtils.js"></script>
 	<script type="text/javascript" src="js/util/StateMachine.js"></script>
+	<script type="text/javascript" src="js/util/jquery.csv-0.71.js"></script>
 	<script type="text/javascript" src="libs/internal/Locator.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/AesInterface.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/AesWorkerProxy.js"></script>
@@ -832,6 +838,7 @@ function touchOrClick(e) {
 						<div id="emptyContactList" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
 					</section>
 				</div>
+				<!-- <button data-bind="click: function() { importThunderbirdContactsAsCsv(); }">import</button> -->
 			</div>
 
 			<div id="contactColumn" class="viewColumn" data-bind="with: tutao.locator.contactViewModel">

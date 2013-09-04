@@ -179,6 +179,29 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.unselectAll = function() {
 	// tutao.locator.contactViewModel.removeContact();
 };
 
+tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCsv = function() {
+	tutao.tutanota.util.FileUtils.showFileChooser(function(files) {
+		if (files && files.length == 1 && tutao.util.StringUtils.endsWith(files.item(0).name, ".csv")) {
+			tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8(files.item(0), function(csv, exception) {
+				if (exception) {
+					console.log(exception);
+					return;
+				}
+				var contacts = new tutao.tutanota.ctrl.ThunderbirdContactCsvConverter().csvToContacts(csv);
+				if (!contacts) {
+					console.log("import failed");
+					return;
+				}
+				for (var i=0; i<contacts.length; i++) {
+					contacts[i].setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
+				}
+			});
+		} else {
+			console.log("nothing imported");
+		}
+	});
+};
+
 /**
  * Performs a search according to the current search words and updates the contact list accordingly.
  * @param {function()|Object|undefined} callback Is called when finished. Maybe a the dom object that triggered the search. Attention, please!

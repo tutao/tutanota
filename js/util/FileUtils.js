@@ -45,6 +45,23 @@ tutao.tutanota.util.FileUtils.readLocalFile = function(file, callback) {
 };
 
 /**
+ * Reads the content of the given file as a UTF8 string.
+ * @param {File} file The file to load.
+ * @param {function(?string, Error=)} callback Called when finished receiving the string. Passes an error if the loading fails.
+ */
+tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8 = function(file, callback) {
+	var reader = new FileReader();
+	reader.onloadend = function(evt) {
+		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+			callback(evt.target.result);
+		} else {
+			callback(null, new Error("could not load file"));
+		}
+	};
+	reader.readAsText(file, "UTF-8");
+};
+
+/**
  * Provides a link for the user to download the given data file. Using the given file name only works on some browsers.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
  * @param {function(Error=)} callback Called when finished. Passes an error if the download fails.
