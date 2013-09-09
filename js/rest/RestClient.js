@@ -14,11 +14,13 @@ tutao.rest.RestClient = function() {};
  * @param {string} path path of the element(s), includes element type name, optionally a list id, an id and optionally parameters.
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
+ * @param {?string} json The payload. 
  * @param {function(?Object, tutao.rest.RestException=)} callback Provides the data of the element(s) or an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.getElement = function(path, headers, callback) {
+tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callback) {
+	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
 	// avoid caching (needed for IE) by setting cache: false
-	jQuery.ajax({ type: "GET", url: path, dataType: 'json', async: true, cache: false, headers: headers,
+	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, dataType: 'json', async: true, cache: false, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},
@@ -32,7 +34,7 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, callback) {
  * Stores an element on the server.
  * @param {string} path path of the element, includes element type name.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @param {string} json the json data to store.
+ * @param {string} json The json data to store.
  * @param {function(?string, tutao.rest.RestException=)} callback Provides the response from the server as a string or an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.postElement = function(path, headers, json, callback) {
@@ -51,7 +53,7 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json, call
  * @param {string} path path of the element, includes element type name, a list id (in case of LET) and an id.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
- * @param {string} json the json data to store.
+ * @param {string} json The json data to store.
  * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callback) {
@@ -69,10 +71,12 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callb
  * Deletes one or more elements.
  * @param {string} path Path of the element(s);.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
+ * @param {string} json The payload.
  * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.deleteElements = function(path, headers, callback) {
-	jQuery.ajax({ type: "DELETE", url: path, dataType: 'text', async: true, headers: headers,
+tutao.rest.RestClient.prototype.deleteElements = function(path, headers, json, callback) {
+	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
+	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, dataType: 'text', async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback();
 		},

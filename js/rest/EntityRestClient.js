@@ -20,13 +20,22 @@ tutao.rest.EntityRestClient.prototype.getElement = function(type, path, id, list
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			self._createElements(type, [data], function(elements, exception) {
-				if (exception) {
-					callback(null, exception);
-				} else {
-					callback(elements[0]);
-				}
-			});
+			callback(new type(data));
+		}
+	});
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.rest.EntityRestClient.prototype.getService = function(type, path, data, parameters, headers, callback) {
+	var self = this;
+	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
+	tutao.locator.restClient.getElement(url, headers, JSON.stringify(data.toJsonData()), function(returnData, exception) {
+		if (exception) {
+			callback(null, new tutao.rest.EntityRestException(exception));
+		} else {
+			callback(return new type(returnData));
 		}
 	});
 };
@@ -50,7 +59,7 @@ tutao.rest.EntityRestClient.prototype.getElements = function(type, path, ids, pa
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			self._createElements(type, data, callback);
+			callback(self._createElements(type, data));
 		}
 	});
 };
@@ -59,40 +68,27 @@ tutao.rest.EntityRestClient.prototype.getElements = function(type, path, ids, pa
  * Creates an array of elements from given data with a given type.
  * @param {function(new:Object, Object)} type Type of the elements to load, i.e. the constructor.
  * @param {Array.<Object>} data The data of the elements.
- * @param {function(Array.<Object>, tutao.rest.RestException)} callback Called when finished providing the elements.
+ * @return {Array.<Object>} The entities.
  */
-tutao.rest.EntityRestClient.prototype._createElements = function(type, data, callback) {
-	if (data.length == 0) {
-		callback([]);
-		return;
-	}
+tutao.rest.EntityRestClient.prototype._createElements = function(type, data) {
 	var elements = [];
-	tutao.util.FunctionUtils.executeSequentially(data, function(element, elementFinishedCallback) {
-		var entity = new type(element);
-		elements.push(entity);
-		entity._entityHelper.loadSessionKey(function(exception) {
-			elementFinishedCallback(exception);
-		});
-	}, function(exception) {
-		callback(elements, exception);
-	});
-};
+	for (var i=0; i<data.length; i++) {
+		elements.push(new type(data));
+	}
+	return elements;
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestClient.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
+tutao.rest.EntityRestClient.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, null, parameters);
 
 	// send the request
-	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(idAndPermissionsId, exception) {
+	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(returnData, exception) {
 		if (exception) {
-			callback(new tutao.rest.EntityRestException(exception));
+			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			// set the new id and the permissions id in the element
-			element.__id = idAndPermissionsId._id;
-			element.__permissions = idAndPermissionsId._permissions;
-			callback();
+			callback(new returnType(returnData));
 		}
 	});
 };
@@ -100,13 +96,17 @@ tutao.rest.EntityRestClient.prototype.postElement = function(path, element, list
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestClient.prototype.postService = function(path, element, parameters, headers, callback) {
+tutao.rest.EntityRestClient.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
 	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(resultString, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			callback(resultString);
+			if (returnType) {
+				callback(new returnType(returnData));
+			} else {
+				callback(null);
+			}
 		}
 	});
 };
@@ -163,13 +163,7 @@ tutao.rest.EntityRestClient.prototype.getElementRange = function(type, path, lis
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			self._createElements(type, data, function(elements, exception) {
-				if (exception) {
-					callback(null, exception);
-				} else {
-					callback(elements);
-				}
-			});
+			callback(self._createElements(type, data));
 		}
 	});
 };

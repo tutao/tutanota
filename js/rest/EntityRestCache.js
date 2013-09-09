@@ -88,6 +88,13 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 /**
  * @inheritDoc
  */
+tutao.rest.EntityRestCache.prototype.getService = function(type, path, data, parameters, headers, callback) {
+	return this._target.getService(type, path, data, parameters, headers, callback);
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
 	// TODO does currently not work for listElements (add listId to signature)
 	var elements = [];
@@ -147,9 +154,9 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) {
 	var self = this;
-	this._target.postElement(path, element, listId, parameters, headers, function(exception) {
+	this._target.postElement(path, element, listId, parameters, headers, returnType, function(returnEntity, exception) {
 		if (!exception) {
 			var cacheListId = undefined;
 			var id = undefined;
@@ -169,15 +176,15 @@ tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listI
 			self._addToCache(path, element);
 			self._tryAddToRange(path, element);
 		}
-		callback(exception);
+		callback(returnEntity, exception);
 	});
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postService = function(path, element, parameters, headers, callback) {
-	this._target.postService(path, element, parameters, headers, callback);
+tutao.rest.EntityRestCache.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
+	this._target.postService(path, element, parameters, headers, returnType, callback);
 };
 
 /**

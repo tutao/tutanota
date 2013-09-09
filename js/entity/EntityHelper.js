@@ -502,3 +502,22 @@ tutao.entity.EntityHelper.aggregatesToJsonData = function(aggregates) {
 tutao.entity.EntityHelper.generateAggregateId = function() {
 	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(4)));
 };
+
+/**
+ * Loads the session keys for the given entities.
+ * @param {Array.<Object>} entities. The entities to prepare.
+ * @param {function(Array.<Object>}, tutao.rest.EntityRestException=)} callback. Called when finished with the same entities as entered. Gets passed an exception if something went wrong.
+ */
+tutao.entity.EntityHelper.loadSessionKeys = function(entities, callback) {
+	tutao.util.FunctionUtils.executeSequentially(entities, function(entity, elementFinishedCallback) {
+		entity._entityHelper.loadSessionKey(function(exception) {
+			elementFinishedCallback(exception);
+		});
+	}, function(exception) {
+		if (exception) {
+			callback(null, exception);
+		} else {
+			callback(entities);
+		}
+	});
+};

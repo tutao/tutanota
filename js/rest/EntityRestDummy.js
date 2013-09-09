@@ -36,6 +36,13 @@ tutao.rest.EntityRestDummy.prototype.getElement = function(type, path, id, listI
 /**
  * @inheritDoc
  */
+tutao.rest.EntityRestDummy.prototype.getService = function(type, path, data, parameters, headers, callback) {
+	callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.rest.EntityRestDummy.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
 	callback([]);
 };
@@ -43,20 +50,20 @@ tutao.rest.EntityRestDummy.prototype.getElements = function(type, path, ids, par
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
-	if (listId) {
-		element.__id = [listId, this._getNextId()];
-	} else {
-		element.__id = this._getNextId();
+tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) {
+	var returnData = new returnType(); // this isPersistenceResourcePostReturn
+	// only generated ids must be set, so check if it is missing (custom ids are set by client before the post call)
+	if (!element.__id) {			
+		returnData.setGeneratedId(this._getNextId());  
 	}
-	element.__permissions = this._getNextId();
-	callback();
+	returnData.setPermissionListId(this._getNextId());
+	callback(returnData);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.postService = function(path, element, parameters, headers, callback) {
+tutao.rest.EntityRestDummy.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
 	callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };
 
