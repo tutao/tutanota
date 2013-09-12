@@ -73,10 +73,9 @@ tutao.rest.EntityRestInterface.prototype.getElements = function(type, path, ids,
  * @param {?string} listId The id of the list that shall contain the element.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @param {Object} returnType Type of the data that is returned.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called with the return entity when finished, with an exception if the rest call failed.
+ * @param {function(tutao.entity.base.PersistenceResourcePostReturn, tutao.rest.EntityRestException=)} callback Called with the return entity when finished, with an exception if the rest call failed.
  */
-tutao.rest.EntityRestInterface.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) { };
+tutao.rest.EntityRestInterface.prototype.postElement = function(path, element, listId, parameters, headers, callback) { };
 
 /**
  * Posts to a service. The difference to postElement is that the given element is not regarded as entity.

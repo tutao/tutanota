@@ -119,7 +119,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 	self._mailAddress = mailAddress;
 	var params = [];
 	params[tutao.rest.ResourceConstants.MAIL_ADDRESS] = mailAddress;
-	tutao.entity.sys.SaltService.load(params, null, function(saltData, exception) {
+	tutao.entity.sys.SaltReturn.load(params, null, function(saltData, exception) {
 		if (exception) {
 			// execute kdf anyway to avoid that the user easily recognises that the mail address is existing
 			var salt = "1234567890123456789012346789012";
@@ -134,12 +134,12 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 			self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
 			var authHeaders = {};
 			authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
-			tutao.entity.sys.UserIdService.load(params, authHeaders, function(userIdData, e1) {
+			tutao.entity.sys.UserIdReturn.load(params, authHeaders, function(userIdReturn, e1) {
 				if (e1) {
 					callback(e1);
 					return;
 				}
-				self._userId = userIdData.getUserId();
+				self._userId = userIdReturn.getUserId();
 				self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
 				tutao.entity.sys.User.load(self._userId, function(user, e2) {
 					if (e2) {

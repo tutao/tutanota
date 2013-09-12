@@ -34,7 +34,7 @@ tutao.crypto.RsaInterface.prototype.hexToKey = function(hex) {};
  * Encrypts a hex coded AES key with RSA to a base64 coded string.
  * @param {Object} publicKey The key to use for the encryption.
  * @param {string} hexAesKey Hex coded AES key, max 256 bytes = 512 characters.
- * @param {function(string=, tutao.crypto.CryptoException=} callback This callback is called providing the encrypted string, base64 coded, max 344 characters or an exception if the enryption fails.
+ * @param {function(string=, tutao.crypto.CryptoException=)} callback This callback is called providing the encrypted string, base64 coded, max 344 characters or an exception if the enryption fails.
  */
 tutao.crypto.RsaInterface.prototype.encryptAesKey = function(publicKey, hexAesKey, callback) {};
 
@@ -42,6 +42,6 @@ tutao.crypto.RsaInterface.prototype.encryptAesKey = function(publicKey, hexAesKe
  * Decrypts a base64 coded string with RSA to a hex coded string.
  * @param {Object} privateKey The key to use for the decryption.
  * @param {string} base64 The data to decrypt, max 344 characters.
- * @param {function(string=, tutao.crypto.CryptoException=} callback This callback is called providing the decrypted string, hex coded, max 256 bytes = 512 characters or an exception if the decryption fails.
+ * @param {function(string=, tutao.crypto.CryptoException=)} callback This callback is called providing the decrypted string, hex coded, max 256 bytes = 512 characters or an exception if the decryption fails.
  */
 tutao.crypto.RsaInterface.prototype.decryptAesKey = function(privateKey, base64, callback) {};

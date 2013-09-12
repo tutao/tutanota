@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Overrides the bind method if it does not exist (which is currently only the case for safari.
+ * Overrides the bind method if it does not exist (which is currently only the case for safari).
  */
 if (!Function.prototype.bind) {
 
@@ -9,6 +9,7 @@ if (!Function.prototype.bind) {
  * Implements bind on the function prototype.
  * @param {Object} oThis The object to bind.
  * @return {function()} The bound function.
+ * @suppress {duplicate}
  */
   Function.prototype.bind = function(oThis) {
     if (typeof this !== "function") {

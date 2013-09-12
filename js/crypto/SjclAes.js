@@ -397,7 +397,7 @@ tutao.crypto.SjclAes.prototype.decryptBase64 = function(key, srcBase64, decrypte
 
 /**
  * Decrypts the remaining base64 data.
- * @param {} Object The key to use for the decryption.
+ * @param {Object} key The key to use for the decryption.
  * @param {String} srcBase64 The encrypted base64 data.
  * @param {Number} srcByteLen The original encrypted byte length.
  * @param {Array.<String>} dstArray Contains the already decrypted base64 parts. Is merged later.

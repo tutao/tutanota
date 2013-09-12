@@ -93,7 +93,7 @@ tutao.crypto.EntropyCollector._getRandomNumber = function() {
 
 /**
  * Fetches the missing entropy by pinging URLs from tutao.crypto.EntropyCollector.URLs and measuring the response times.
- * @param {function} callback Called when the randomizer has been initialized.
+ * @param {function()} callback Called when the randomizer has been initialized.
  */
 tutao.crypto.EntropyCollector.prototype.fetchMissingEntropy = function(callback) {
 	var self = this;

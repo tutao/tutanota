@@ -154,9 +154,9 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) {
+tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
 	var self = this;
-	this._target.postElement(path, element, listId, parameters, headers, returnType, function(returnEntity, exception) {
+	this._target.postElement(path, element, listId, parameters, headers, function(returnEntity, exception) {
 		if (!exception) {
 			var cacheListId = undefined;
 			var id = undefined;

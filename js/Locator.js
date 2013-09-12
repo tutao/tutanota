@@ -38,8 +38,8 @@ tutao.Locator.prototype.replace = function(serviceName, instance) {
 /**
  * Only for Testing: overrides a static method and saves it's original behavior.
  * @param {Object} clazz The class where the function should be replaced.
- * @param {function} original The original function defined on class.
- * @param {function} replacement The replacement function to define on class.
+ * @param {function(...[Object])} original The original function defined on class.
+ * @param {function(...[Object])} replacement The replacement function to define on class.
  */
 tutao.Locator.prototype.replaceStatic = function(clazz, original, replacement) {
 	for (var attributeName in clazz) {

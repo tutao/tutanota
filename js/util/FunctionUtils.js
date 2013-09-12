@@ -54,17 +54,14 @@ tutao.util.FunctionUtils.executeSequentially = function(array, executor, callbac
  * The given callback is called when either all elements are executed or an
  * exception occurs.
  *
- * @param {Array}
- *            array An array of any type of elements.
- * @param {function(*,function(Object, Error=))}
- *            executor A function receiving the element from the array to
+ * @param {Array} array An array of any type of elements.
+ * @param {function(*,function(Object, Error=))} executor A function receiving the element from the array to
  *            execute as well as a finish function. The finish function must be
  *            called with the return value when executing the element was finished. 
  *            If an error occurred an exception can be passed to the finish function. In
  *            this case the overall execution is stopped and the callback is
  *            called passing the exception.
- * @param {Array<Object>, function(Error=)}
- *            callback Called when either an error occurred or all elements from
+ * @param {function(Array.<Object>, Error=)} callback Called when either an error occurred or all elements from
  *            the array are executed. The first parameter are the return values.
  */
 tutao.util.FunctionUtils.executeSequentiallyAndReturn = function(array, executor, callback) {

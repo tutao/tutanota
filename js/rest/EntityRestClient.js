@@ -16,7 +16,7 @@ tutao.rest.EntityRestClient = function() {};
 tutao.rest.EntityRestClient.prototype.getElement = function(type, path, id, listId, parameters, headers, callback) {
 	var self = this;
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, id, parameters);
-	tutao.locator.restClient.getElement(url, headers, function(data, exception) {
+	tutao.locator.restClient.getElement(url, headers, null, function(data, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
@@ -35,7 +35,7 @@ tutao.rest.EntityRestClient.prototype.getService = function(type, path, data, pa
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			callback(return new type(returnData));
+			callback(new type(returnData));
 		}
 	});
 };
@@ -55,7 +55,7 @@ tutao.rest.EntityRestClient.prototype.getElements = function(type, path, ids, pa
 	}
 	allParameters[tutao.rest.ResourceConstants.IDS_PARAMETER_NAME] = idParameter;
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, allParameters);
-	tutao.locator.restClient.getElement(url, headers, function(data, exception) {
+	tutao.locator.restClient.getElement(url, headers, null, function(data, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
@@ -73,22 +73,32 @@ tutao.rest.EntityRestClient.prototype.getElements = function(type, path, ids, pa
 tutao.rest.EntityRestClient.prototype._createElements = function(type, data) {
 	var elements = [];
 	for (var i=0; i<data.length; i++) {
-		elements.push(new type(data));
+		elements.push(new type(data[i]));
 	}
 	return elements;
+};
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestClient.prototype.postElement = function(path, element, listId, parameters, headers, returnType, callback) {
+tutao.rest.EntityRestClient.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, null, parameters);
 
 	// send the request
-	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(returnData, exception) {
+	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(returnString, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			callback(new returnType(returnData));
+			var returnEntity = new tutao.entity.base.PersistenceResourcePostReturn(returnString);
+			if (!element.__id) {		
+				if (listId) {
+					element.__id = [listId, returnEntity.getGeneratedId()];
+				} else {
+					element.__id = returnEntity.getGeneratedId();
+				}
+			}
+			element.__permissions = returnEntity.getPermissionListId();
+			callback(returnEntity);
 		}
 	});
 };
@@ -98,7 +108,7 @@ tutao.rest.EntityRestClient.prototype.postElement = function(path, element, list
  */
 tutao.rest.EntityRestClient.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
-	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(resultString, exception) {
+	tutao.locator.restClient.postElement(url, headers, JSON.stringify(element.toJsonData()), function(returnData, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
@@ -140,11 +150,11 @@ tutao.rest.EntityRestClient.prototype.putElement = function(path, element, param
  */
 tutao.rest.EntityRestClient.prototype.postList = function(path, parameters, headers, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
-	tutao.locator.restClient.postElement(url, headers, "", function(listId, exception) {
+	tutao.locator.restClient.postElement(url, headers, "", function(returnEntity, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
-			callback(listId);
+			callback(new tutao.entity.base.PersistenceResourcePostReturn(returnEntity));
 		}
 	});
 };
@@ -159,7 +169,7 @@ tutao.rest.EntityRestClient.prototype.getElementRange = function(type, path, lis
 	allParameters[tutao.rest.ResourceConstants.ELEMENT_COUNT_PARAMETER] = count;
 	allParameters[tutao.rest.ResourceConstants.REVERSE_PARAMETER] = reverse;
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, null, allParameters);
-	tutao.locator.restClient.getElement(url, headers, function(data, exception) {
+	tutao.locator.restClient.getElement(url, headers, null, function(data, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 		} else {
@@ -190,7 +200,7 @@ tutao.rest.EntityRestClient.prototype.deleteElements = function(path, ids, listI
 	//TODO define exception handling if some elements failed (return successful ids?)
 	var nbrOfFinishedElements = 0;
 	for (var i = 0; i < ids.length; i++) {
-		tutao.locator.restClient.deleteElements(tutao.rest.EntityRestClient.createUrl(path, listId, ids[i], parameters), headers, function(exception) {
+		tutao.locator.restClient.deleteElements(tutao.rest.EntityRestClient.createUrl(path, listId, ids[i], parameters), headers, null, function(exception) {
 			nbrOfFinishedElements++;
 			if (nbrOfFinishedElements == ids.length) {
 				callback();

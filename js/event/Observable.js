@@ -4,7 +4,6 @@ goog.provide('tutao.event.Observable');
 
 /**
  * The subject of the Observable pattern
- * @interface
  * @constructor
  */
 tutao.event.Observable = function() {

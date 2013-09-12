@@ -19,6 +19,7 @@ tutao.rest.RestClient = function() {};
  */
 tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callback) {
 	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
+	json = json ? json : "";
 	// avoid caching (needed for IE) by setting cache: false
 	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, dataType: 'json', async: true, cache: false, headers: headers,
 		success: function(data, textStatus, jqXHR) {
@@ -76,6 +77,7 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callb
  */
 tutao.rest.RestClient.prototype.deleteElements = function(path, headers, json, callback) {
 	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
+	json = json ? json : "";
 	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, dataType: 'text', async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback();
@@ -109,7 +111,7 @@ tutao.rest.RestClient.prototype.putBinary = function(path, headers, data, callba
  * Downloads binary data.
  * @param {string} path Path of the service which provides the binary data.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @param {function(?ArrayBuffer|String, tutao.rest.RestException=)} callback Provides the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Provides an exception if the rest call failed.
+ * @param {function((ArrayBuffer|String|null), tutao.rest.RestException=)} callback Provides the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Provides an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.getBinary = function(path, headers, callback) {
 	var xhr = new XMLHttpRequest();

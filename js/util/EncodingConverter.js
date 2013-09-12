@@ -61,8 +61,7 @@ tutao.util.EncodingConverter.hexToBytes = function(hex) {
 /**
  * Converts an array of byte values into a hex coded string.
  *
- * @param {Array.
- *            <number>} bytes An array of byte values. A byte can have the value
+ * @param {Array.<number>} bytes An array of byte values. A byte can have the value
  *            0 to 255.
  * @return {String} A hex encoded string.
  */
