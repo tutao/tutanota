@@ -20,7 +20,7 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, callback) {
 				return;
 			}
 			// create file
-			var fileService = new tutao.entity.tutanota.CreateDataFileService();
+			var fileService = new tutao.entity.tutanota.CreateFileData();
 			fileService._entityHelper.setSessionKey(fileData._entityHelper.getSessionKey());
 			fileService.setFileName(dataFile.getName());
 			fileService.setMimeType(dataFile.getMimeType());
@@ -36,8 +36,9 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, callback) {
 				var headers = tutao.entity.EntityHelper.createAuthHeaders();
 				var fileParams = fileService._entityHelper.createPostPermissionMap(tutao.locator.mailBoxController.getUserFileSystemBucketData());
 				fileParams[tutao.rest.ResourceConstants.LIST_ENC_SESSION_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(listEncSessionKey);
-				fileParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.Constants.Version;
-				fileService.setup(fileParams, headers, function(fileId, exception) {
+				fileParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
+				fileService.setup(fileParams, headers, function(createFileReturn, exception) {
+					var fileId = createFileReturn.getFile();
 					if (exception) {
 						callback(null, new tutao.rest.EntityRestException(exception));
 						return;
@@ -55,30 +56,31 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, callback) {
  * @param {function(?String,tutao.rest.EntityRestException=)} callback Is called when finished with the id of the created FileData. Passes an exception if creating the file fails.
  */
 tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, callback) {
-	var fileDataService = new tutao.entity.tutanota.FileDataService();
-	tutao.locator.aesCrypter.encryptArrayBuffer(fileDataService._entityHelper.getSessionKey(), dataFile.getData(), function(encryptedData, exception) {
+	var fileDataReturn = new tutao.entity.tutanota.FileDataDataReturn();
+	tutao.locator.aesCrypter.encryptArrayBuffer(fileDataReturn._entityHelper.getSessionKey(), dataFile.getData(), function(encryptedData, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 			return;
 		}
 		var headers = tutao.entity.EntityHelper.createAuthHeaders();
 		// create file data
-		fileDataService.setSize(dataFile.getSize().toString());
+		fileDataReturn.setSize(dataFile.getSize().toString());
 		var postParams = {};
 		postParams[tutao.rest.ResourceConstants.GROUP_ID] = tutao.locator.userController.getUserGroupId();
-		var symEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), fileDataService._entityHelper.getSessionKey());
+		var symEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), fileDataReturn._entityHelper.getSessionKey());
 		postParams[tutao.rest.ResourceConstants.SYM_ENC_SESSION_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(symEncSessionKey);
-		postParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.Constants.Version;
+		postParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
 		
-		fileDataService.setup(postParams, headers, function(fileDataId, exception) {
+		fileDataReturn.setup(postParams, headers, function(fileDataPostReturn, exception) {
 			if (exception) {
 				callback(null, new tutao.rest.EntityRestException(exception));
 				return;
 			}
 			// upload file data
+			var fileDataId = fileDataPostReturn.getFileData();
 			var putParams = { fileDataId: fileDataId };
-			putParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.Constants.Version;
-			tutao.locator.restClient.putBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataService.PATH, null, null, putParams), headers, encryptedData, function(exception) {
+			putParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
+			tutao.locator.restClient.putBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, putParams), headers, encryptedData, function(exception) {
 				if (exception) {
 					callback(null, new tutao.rest.EntityRestException(exception));
 					return;
@@ -101,9 +103,9 @@ tutao.tutanota.ctrl.FileFacade.readFileData = function(file, callback) {
 	if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY) {
 		params["base64"] = "true";
 	}
-	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.Constants.Version;
+	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();
-	tutao.locator.restClient.getBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataService.PATH, null, null, params), headers, function(data, exception) {
+	tutao.locator.restClient.getBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, params), headers, function(data, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 			return;

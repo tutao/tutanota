@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, c
 	var self = this;
 	var params = {};
 	params[tutao.rest.ResourceConstants.ID_PARAMETER_NAME] = mailRef;
-	tutao.entity.tutanota.ExternalMailReferenceService.load(params, null, function(refData, exception) {
+	tutao.entity.tutanota.ExternalMailReferenceReturn.load(params, null, function(refData, exception) {
 		if (exception) {
 			self.errorMessageId("invalidLink_msg"); //TODO error handling
 			return;
@@ -164,7 +164,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(ca
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection = function(callback) {
 	var self = this;
 	// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
-	tutao.entity.tutanota.PasswordChannelService.load({}, self._getAuthHeaders(), function(pwChannelService, exception) {
+	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(pwChannelService, exception) {
 		if (exception) {
 			self.errorMessageId("invalidLink_msg");
 			callback();

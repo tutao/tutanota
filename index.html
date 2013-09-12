@@ -117,25 +117,26 @@
 	<script type="text/javascript" src="libs/internal/Base.js"></script> <!-- Base.js must be included statically -->
 
 <!-- begin js section -->
-	<script type="text/javascript" src="generated/entity/monitor/Constants.js"></script>
+	<script type="text/javascript" src="generated/entity/Constants.js"></script>
+	<script type="text/javascript" src="generated/entity/base/PersistenceResourcePostReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/CounterSnapshot.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/CounterSnapshotSeries.js"></script>
-	<script type="text/javascript" src="generated/entity/monitor/CreateCounterSnapshotService.js"></script>
+	<script type="text/javascript" src="generated/entity/monitor/CreateCounterSnapshotData.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/LogEntry.js"></script>
-	<script type="text/javascript" src="generated/entity/monitor/ReadCounterService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/AddUserToGroupService.js"></script>
+	<script type="text/javascript" src="generated/entity/monitor/ReadCounterReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AddUserToGroupData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AuthenticatedDevice.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Authentication.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/AutoLoginService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataDelete.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/BucketPermission.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ChangePasswordService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/ChangePasswordData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Chat.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ConfigService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ConfigServiceEditable.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/Constants.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturnEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReference.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/CustomerService.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Exception.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Group.js"></script>
@@ -147,35 +148,36 @@
 	<script type="text/javascript" src="generated/entity/sys/Login.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/LongConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/LongConfigValueEditable.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/PublicKeyService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationData.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/RegistrationDataService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/RegistrationReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/RegistrationServiceData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RootInstance.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SaltService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthAllowedService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SendRegistrationCodeService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ShareService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SaltReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthAllowedReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SendRegistrationCodeData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/ShareData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Shares.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/SystemKeysService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SystemKeysReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/User.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/UserIdService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/UserService.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/VerifyRegistrationCodeService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UserData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UserIdReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UserReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/VerifyRegistrationCodeData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Version.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/VersionService.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/VersionReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/WebsocketWrapper.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/Attachment.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/AttachmentFromExternal.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/Constants.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/Contact.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ContactAddress.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ContactAddressEditable.js"></script>
@@ -188,38 +190,45 @@
 	<script type="text/javascript" src="generated/entity/tutanota/ContactSocialId.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ContactSocialIdEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ConversationEntry.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/CreateDataFileService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/CreateFolderService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/CreateFileData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/CreateFileReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/CreateFolderData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/CreateFolderReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/DataBlock.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/DeleteFileService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/ExternalMailReferenceService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/FeedbackService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/DeleteFileData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/ExternalMailReferenceReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/FeedbackData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/File.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/FileData.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/FileDataService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/FileDataDataReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/FileDataPostReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/FileSystem.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ImapFolder.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ImapSyncConfiguration.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/InitGroupService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/InitGroupData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/Mail.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/MailAddress.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/MailBody.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/MailBox.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/PasswordAutoAuthenticationService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/PasswordChannelService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/PasswordChannelReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessage.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessagingService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/PasswordRetrievalService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessagingData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessagingReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/Recipient.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/SendMailFromExternalService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/SendMailService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendMailData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendMailFromExternalData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendMailReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/TutanotaProperties.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureAttachment.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureRecipient.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/UpdateFileService.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/WelcomeMailService.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/UpdateFileData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/WelcomeMailData.js"></script>
 	<script type="text/javascript" src="generated/model/MonitorModel.js"></script>
 	<script type="text/javascript" src="generated/model/SysModel.js"></script>
 	<script type="text/javascript" src="generated/model/TutanotaModel.js"></script>

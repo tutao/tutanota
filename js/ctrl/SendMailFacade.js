@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 		var bucketKey = aes.generateRandomKey();
 		var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 
-		var service = new tutao.entity.tutanota.SendMailService();
+		var service = new tutao.entity.tutanota.SendMailData();
 		service.setSubject(subject);
 		service.setBodyText(bodyText);
 		service.setSenderName(senderName);
@@ -91,7 +91,7 @@ tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(dataFiles, ca
 
 /**
  * Handles all recipients.
- * @param {tutao.entity.tutanota.SendMailService} service The service data.
+ * @param {tutao.entity.tutanota.SendMailData} service The service data.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} toRecipients The recipients the mail shall be sent to.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
@@ -123,7 +123,8 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
 		} else {
 			var map = {};
 			map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-			service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(mailElementId, ex) {
+			service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailReturn, ex) {
+				var mailElementId = sendMailReturn.getSenderMail()[1]; 
 				if (ex) {
 					callback(null, ex);
 				} else {
@@ -204,7 +205,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		// load recipient key information
 		var parameters = {};
 		parameters[tutao.rest.ResourceConstants.MAIL_ADDRESS] = recipientInfo.getMailAddress();
-		tutao.entity.sys.PublicKeyService.load(parameters, null, function(publicKeyData, exception) {
+		tutao.entity.sys.PublicKeyReturn.load(parameters, null, function(publicKeyData, exception) {
 			if (exception) {
 				if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
 					notFoundRecipients.push(recipient.getMailAddress());

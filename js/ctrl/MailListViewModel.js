@@ -101,7 +101,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 					self._updateMailList(function() {
 						// get the highest indexed mail id for the event tracker
 						tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
-							var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail", tutao.entity.tutanota.Constants.Version);
+							var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail", tutao.entity.Constants.Version);
 							eventTracker.addObserver(self.updateOnNewMails);
 							eventTracker.observeList(lastIndexedId);
 							if (callback) {

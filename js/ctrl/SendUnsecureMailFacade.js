@@ -24,7 +24,7 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 	var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
-	var service = new tutao.entity.tutanota.SendUnsecureMailService();
+	var service = new tutao.entity.tutanota.SendUnsecureMailData();
 	service.setSubject(subject);
 	service.setBodyText(bodyText);
 	service.setSenderName(senderName);
@@ -73,7 +73,8 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 		}
 		var map = {};
 		map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-		service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(mailElementId, ex) {
+		service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendUnsecureMailReturn, ex) {
+			var mailElementId = sendUnsecureMailReturn.getSenderMail()[1];
 			if (ex) {
 				callback(null, ex);
 			} else {
