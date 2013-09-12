@@ -6,7 +6,7 @@ JsMockito.Integration.JsTestDriver();
 TestCase("ExternalLoginViewModel", {
 
 	setUp: function() {
-		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelService, tutao.entity.tutanota.PasswordChannelService.load, mockFunction());
+		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelReturn, tutao.entity.tutanota.PasswordChannelReturn.load, mockFunction());
 		this.vm = new tutao.tutanota.ctrl.ExternalLoginViewModel();
 		this.vm.storePassword(false);
 	},
@@ -20,14 +20,14 @@ TestCase("ExternalLoginViewModel", {
 		var refLoader = spy(function(parameters, headers, callback) {
 			assertEquals({"id": mailRef}, parameters);
 			assertNull(headers);
-			var ref = new tutao.entity.tutanota.ExternalMailReferenceService();
+			var ref = new tutao.entity.tutanota.ExternalMailReferenceReturn();
 			ref.setUserId("u");
 			ref.setAuthToken("a");
 			ref.setSalt("s");
 			ref.setMail(["mL", "m"]);
 			callback(ref, null);
 		});
-		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceService, tutao.entity.tutanota.ExternalMailReferenceService.load, refLoader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceReturn, tutao.entity.tutanota.ExternalMailReferenceReturn.load, refLoader);
 		
 		var phoneNumber = new tutao.entity.tutanota.PasswordChannelPhoneNumber();
 		var loader = spy(function(parameters, headers, callback) {
@@ -35,11 +35,11 @@ TestCase("ExternalLoginViewModel", {
 			// check only the headers that are send to the service
 			var p = {authToken: "a", mailList: "mL", mail: "m"};
 			assertEquals(p, headers);
-			var ret = new tutao.entity.tutanota.PasswordChannelService();
+			var ret = new tutao.entity.tutanota.PasswordChannelReturn();
 			ret.getPhoneNumberChannels().push(phoneNumber);
 			callback(ret, null);
 		});
-		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelService, tutao.entity.tutanota.PasswordChannelService.load, loader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelReturn, tutao.entity.tutanota.PasswordChannelReturn.load, loader);
 		
 		this.vm.setup(mailRef, function() {});
 		assertEquals([phoneNumber], this.vm.phoneNumbers());
@@ -53,7 +53,7 @@ TestCase("ExternalLoginViewModel", {
 		var refLoader = spy(function(parameters, headers, callback) {
 			callback(null, "exception");
 		});
-		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceService, tutao.entity.tutanota.ExternalMailReferenceService.load, refLoader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceReturn, tutao.entity.tutanota.ExternalMailReferenceReturn.load, refLoader);
 
 		this.vm.setup(mailRef, function() {});
 		assertEquals([], this.vm.phoneNumbers());
@@ -66,19 +66,19 @@ TestCase("ExternalLoginViewModel", {
 		var refLoader = spy(function(parameters, headers, callback) {
 			assertEquals({"id": mailRef}, parameters);
 			assertNull(headers);
-			var ref = new tutao.entity.tutanota.ExternalMailReferenceService();
+			var ref = new tutao.entity.tutanota.ExternalMailReferenceReturn();
 			ref.setUserId("u");
 			ref.setAuthToken("a");
 			ref.setSalt("s");
 			ref.setMail(["mL", "m"]);
 			callback(ref, null);
 		});
-		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceService, tutao.entity.tutanota.ExternalMailReferenceService.load, refLoader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceReturn, tutao.entity.tutanota.ExternalMailReferenceReturn.load, refLoader);
 
 		var loader = function(parameters, headers, callback) {
 			callback(null, "exception");
 		};
-		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelService, tutao.entity.tutanota.PasswordChannelService.load, loader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.PasswordChannelReturn, tutao.entity.tutanota.PasswordChannelReturn.load, loader);
 		
 		this.vm.setup(mailRef, function() {});
 		assertEquals([], this.vm.phoneNumbers());
@@ -95,14 +95,14 @@ TestCase("ExternalLoginViewModel", {
 		var refLoader = spy(function(parameters, headers, callback) {
 			assertEquals({"id": mailRef}, parameters);
 			assertNull(headers);
-			var ref = new tutao.entity.tutanota.ExternalMailReferenceService();
+			var ref = new tutao.entity.tutanota.ExternalMailReferenceReturn();
 			ref.setUserId("u");
 			ref.setAuthToken("a");
 			ref.setSalt("s");
 			ref.setMail(["mL", "m"]);
 			callback(ref, null);
 		});
-		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceService, tutao.entity.tutanota.ExternalMailReferenceService.load, refLoader);
+		tutao.locator.replaceStatic(tutao.entity.tutanota.ExternalMailReferenceReturn, tutao.entity.tutanota.ExternalMailReferenceReturn.load, refLoader);
 		this.vm.setup(mailRef, function() {});
 		this.vm.password("12345678");
 		tutao.locator.replace("mailViewModel", mock(tutao.tutanota.ctrl.MailViewModel));

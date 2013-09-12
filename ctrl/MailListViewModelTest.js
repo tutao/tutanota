@@ -113,7 +113,7 @@ AsyncTestCase("MailListViewModelTest", {
 			var body1 = new tutao.entity.tutanota.MailBody();
 			body1.setText("hello all");
 			// call the entity rest client directly because MailBody does not have the setup function
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body1, null, null, null, callbacks.add(function(ex1) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body1, null, null, null, callbacks.add(function(returnEntity, ex1) {
 				assertUndefined(ex1);
 				mail1 = new tutao.entity.tutanota.Mail();
 				mail1.setBody(body1.getId());
@@ -125,7 +125,7 @@ AsyncTestCase("MailListViewModelTest", {
 				mail1.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail1.setUnread(true);
 				mail1.setTrashed(false);
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail1, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(ex2) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail1, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex2) {
 					assertUndefined(ex2);
 					tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.Mail.prototype.TYPE_ID, [mail1.getId()], callbacks.add(function(mailIndexedId) {
 						assertEquals(mail1.getId(), mailIndexedId);
@@ -147,7 +147,7 @@ AsyncTestCase("MailListViewModelTest", {
 			var finalCallback = callbacks.add(function() {});
 			var body2 = new tutao.entity.tutanota.MailBody();
 			body2.setText("all the birds");
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body2, null, null, null, callbacks.add(function(ex1) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body2, null, null, null, callbacks.add(function(returnEntity, ex1) {
 				assertUndefined(ex1);
 				mail2 = new tutao.entity.tutanota.Mail();
 				mail2.setBody(body2.getId());
@@ -159,11 +159,11 @@ AsyncTestCase("MailListViewModelTest", {
 				mail2.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail2.setUnread(true);
 				mail2.setTrashed(false);
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail2, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(ex2) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail2, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex2) {
 					assertUndefined(ex2);
 					var body3 = new tutao.entity.tutanota.MailBody();
 					body3.setText("hello all");
-					tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body3, null, null, null, callbacks.add(function(ex3) {
+					tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body3, null, null, null, callbacks.add(function(returnEntity, ex3) {
 						assertUndefined(ex3);
 						mail3 = new tutao.entity.tutanota.Mail();
 						mail3.setBody(body3.getId());
@@ -175,7 +175,7 @@ AsyncTestCase("MailListViewModelTest", {
 						mail3.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 						mail3.setUnread(true);
 						mail3.setTrashed(false);
-						tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail3, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(ex4) {
+						tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail3, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex4) {
 							assertUndefined(ex4);
 							self.vm.updateOnNewMails([mail2, mail3], callbacks.add(function() {
 								assertEquals([mail3, mail2, mail1], self.vm.mails());
