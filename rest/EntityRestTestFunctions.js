@@ -22,7 +22,7 @@ EntityRestTestFunctions.getVersionParams =  function(params) {
 	if (!params) {
 		params = {};
 	}
-	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.Constants.Version;
+	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
 	return params;
 };
 
@@ -32,8 +32,6 @@ EntityRestTestFunctions.getVersionParams =  function(params) {
 EntityRestTestFunctions.functions = {
 		//FIXME
 		//element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData())
-		
-
 		
 	"test an empty db should throw an error on requests for an element": function(queue) {
 		queue.call('test', function(callbacks) {
@@ -56,8 +54,9 @@ EntityRestTestFunctions.functions = {
 	"test an empty db should return an empty list on requests for list elements": function(queue) {
 		queue.call('test', function(callbacks) {
 			var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
-			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(listId, exception1) {
+			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
+				var listId = returnEntity.getGeneratedId();
 				tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, listId,	tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 10, false, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(elements, exception2) {
 					assertUndefined(exception2);
 					assertEquals([], elements);
@@ -71,7 +70,7 @@ EntityRestTestFunctions.functions = {
 			var element = new tutao.entity.tutanota.MailBody();
 			element.setText("hello together!");
 			var params = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception1) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
 				assertTrue(element.getId() !== undefined);
 				assertTrue(element.getId() !== null);
@@ -92,12 +91,12 @@ EntityRestTestFunctions.functions = {
 			var element1 = new tutao.entity.tutanota.MailBody();
 			element1.setText("hello together!");
 			var params = EntityRestTestFunctions.getVersionParams(element1._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element1, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception1) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element1, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
 				var element2 = new tutao.entity.tutanota.MailBody();
 				element2.setText("hello together now!");
 				var params = EntityRestTestFunctions.getVersionParams(element2._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element2, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception2) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element2, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception2) {
 					assertUndefined(exception2);
 					tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, [element1.getId(), element2.getId()], EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(elements, exception3) {
 						assertUndefined(exception3);
@@ -118,8 +117,9 @@ EntityRestTestFunctions.functions = {
 	"test that a list is created with the first listId": function(queue) {
 		queue.call('test', function(callbacks) {
 			var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
-			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(listId, exception1) {
+			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
+				var listId = returnEntity.getGeneratedId();
 				assertTrue(listId !== undefined);
 				assertTrue(listId !== null);
 				assertTrue(listId !== "");
@@ -139,10 +139,11 @@ EntityRestTestFunctions.functions = {
 			element.setRead(false);
 			
 			var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
-			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(listId, exception1) {
+			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
+				var listId = returnEntity.getGeneratedId();
 				var elementParams = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, element, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception2) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, element, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception2) {
 					assertUndefined(exception2);
 					assertEquals(listId, element.getId()[0]);
 					assertTrue(element.getId()[1] !== undefined);
@@ -222,12 +223,13 @@ EntityRestTestFunctions.functions = {
 		e2.setRead(false);
 
 		var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
-		tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(listId, exception1) {
+		tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception1) {
+			var listId = returnEntity.getGeneratedId();
 			assertUndefined(exception1);
 			var elementParams = EntityRestTestFunctions.getVersionParams(e1._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, e1, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(exception2) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, e1, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception2) {
 				assertUndefined(exception2);
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, e2, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(exception3) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, e2, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception3) {
 					assertUndefined(exception3);
 					callback(listId, e1, e2);
 				}));
@@ -320,7 +322,7 @@ EntityRestTestFunctions.functions = {
 			var element = new tutao.entity.tutanota.MailBody();
 			element.setText("hello together!");
 			var elementParams = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));			
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception1) {
+			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
 				element.setText("hello all together!");
 				var params = EntityRestTestFunctions.getVersionParams();
@@ -343,10 +345,11 @@ EntityRestTestFunctions.functions = {
 			element.setDate(new Date());
 			element.setRead(false);
 			var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
-			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(listId, exception1) {
+			tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
+				var listId = returnEntity.getGeneratedId();
 				assertUndefined(exception1);
 				var elementParams = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, element, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception2) {
+				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, element, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception2) {
 					assertUndefined(exception2);
 					element.setSubject("hello all together!");
 					tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, element, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception3) {
