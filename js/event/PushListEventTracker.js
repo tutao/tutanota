@@ -53,7 +53,13 @@ tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
 		if (exception) {
 			console.log(exception);
 		} else if (newElements.length > 0) {
-			self.notifyObservers(newElements);
+			tutao.entity.EntityHelper.loadSessionKeys(newElements, function(newElements, exception) {
+				if (exception) {
+					console.log(exception);	
+				} else {
+					self.notifyObservers(newElements);
+				}
+			});
 		}
 		tutao.locator.eventBus.addObserver(self._handleEventBusNotification);
 	});
@@ -69,7 +75,13 @@ tutao.event.PushListEventTracker.prototype._handleEventBusNotification = functio
 			if (exception) {
 				console.log(exception);
 			} else {
-				self.notifyObservers([instance]);
+				instance._entityHelper.loadSessionKey(function(instance, exception) {
+					if (exception) {
+						console.log(exception);
+					} else {
+						self.notifyObservers([instance]);
+					}
+				});
 			}
 		});
 	}

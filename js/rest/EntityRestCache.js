@@ -256,7 +256,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 	this._db[path] = this._db[path] || {};
 	this._db[path][listId] = this._db[path][listId] || {};
 
-	if (path.indexOf("/rest/monitor/") != -1) {
+	if (path.indexOf("/rest/monitor/") != -1 || !type.GENERATED_ID) { // customIds shall not be cached because new instances might be inserted into already retrieved ranges
 		this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);
@@ -271,7 +271,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		// already in the cache
 		// load all elements (i.e. up to 1000000)
 		// TODO only up to 1000 allowed. how to load all?
-		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers, function(elements, exception) {
+		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, reverse, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);
 				return;
@@ -299,20 +299,23 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			callback(self._provideFromCache(path, listId, start, count, reverse));
 		});
 	} else {
-		// only request a range from target if the start id is not bigger than the last id in allRange
-		if (this._db[path][listId].allRange.length == 0 ||
-		!tutao.rest.EntityRestInterface.firstBiggerThanSecond(tutao.util.ArrayUtils.last(this._db[path][listId].allRange), start)) {
-			this._target.getElementRange(type, path, listId, start, count, false, parameters, headers, function(elements, exception) {
-				if (exception) {
-					callback(null, exception);
-					return;
-				}
-				for (var i = 0; i < elements.length; i++) {
-					self._addToCache(path, elements[i]);
-					self._db[path][listId].allRange.push(elements[i].__id[1]);
-				}
+		if (reverse) {
+			// only request a range from target if the start id is bigger than the last id in allRange
+			if (this._db[path][listId].allRange.length == 0 ||	tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, tutao.util.ArrayUtils.last(this._db[path][listId].allRange))) {
+				this._target.getElementRange(type, path, listId, start, count, true, parameters, headers, function(elements, exception) {
+					if (exception) {
+						callback(null, exception);
+						return;
+					}
+					for (var i = 0; i < elements.length; i++) {
+						self._addToCache(path, elements[i]);
+						self._tryAddToRange(path, elements[i].__id[1]);
+					}
+					callback(self._provideFromCache(path, listId, start, count, reverse));
+				});
+			} else {
 				callback(self._provideFromCache(path, listId, start, count, reverse));
-			});
+			}			
 		} else {
 			callback(self._provideFromCache(path, listId, start, count, reverse));
 		}

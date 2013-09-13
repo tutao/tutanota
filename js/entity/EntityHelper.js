@@ -168,7 +168,7 @@ tutao.entity.EntityHelper.prototype.getSessionKey = function() {
 		this._sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 	} else {
 		// the session key is loaded when loadSessionKey is called directly after the entity was received from the server.
-		console.log("invoked getSessionKey on non-encrypted entity");
+		console.log("session key is missing");
 		this._sessionKey = null;
 	}
 	return this._sessionKey;
@@ -314,7 +314,7 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
 			}
 		});
 	} else {
-		var updateService = new tutao.entity.sys.UpdatePermissionKeyService();
+		var updateService = new tutao.entity.sys.UpdatePermissionKeyData();
 		updateService.setPermission(permission.getId());
 		updateService.setBucketPermission(bucketPermission.getId());
 		updateService.setSymEncSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, sessionKey));
