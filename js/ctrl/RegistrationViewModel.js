@@ -439,7 +439,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 							customerService.setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex));
 							customerService.setSymEncAccountGroupKey(symEncAccountGroupKey);
 
-							customerService.setup({}, null, function(userId, exception) {
+							customerService.setup({}, null, function(adminUserData, exception) {
 								if (exception) {
 									callback(exception);
 									return;
