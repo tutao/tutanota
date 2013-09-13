@@ -101,11 +101,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(c
 	var params = {};
 	params[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = this.userId;
 	params[tutao.rest.ResourceConstants.DEVICE_TOKEN_PARAMETER_NAME] = this.deviceToken;
-	tutao.entity.sys.AutoLoginService.load(params, null, function(deviceData, exception) {
+	tutao.entity.sys.AutoLoginDataReturn.load(params, null, function(autoLoginDataReturn, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
-			var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(deviceData.getDeviceKey()));
+			var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(autoLoginDataReturn.getDeviceKey()));
 			callback(deviceKey);
 		}
 	});
@@ -164,13 +164,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(ca
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection = function(callback) {
 	var self = this;
 	// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
-	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(pwChannelService, exception) {
+	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(passwordChannelReturn, exception) {
 		if (exception) {
 			self.errorMessageId("invalidLink_msg");
 			callback();
 			return;
 		}
-		self.phoneNumbers(pwChannelService.getPhoneNumberChannels());
+		self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
 		// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
 		callback();
 	});
@@ -187,13 +187,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
 	
 	var self = this;
-	var service = new tutao.entity.tutanota.PasswordMessagingService();
+	var service = new tutao.entity.tutanota.PasswordMessagingData();
 	service.setNumber(phoneNumber.getNumber());
 	service.setSymKeyForPasswordTransmission(tutao.locator.aesCrypter.keyToBase64(this.symKeyForPasswordTransmission));
 	self.smsBusy(true);
 	var map = {};
 	map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-	service.setup(map, this._getAuthHeaders(), function(result, exception) {
+	service.setup(map, this._getAuthHeaders(), function(passwordMessagingReturn, exception) {
 		if (exception) {
 			if ((exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) {
 				self.userMessageId("smsSentOften_msg");
@@ -201,7 +201,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 				self.userMessageId("smsError_msg");
 			}
 		} else {
-			self.autoAuthenticationId(result[0]);
+			self.autoAuthenticationId(passwordMessagingReturn.getAutoAuthenticationId());
 			self.userMessageId("smsSent_msg");
 			self.passphraseFieldFocused(true);
 			self.smsLocked(true);
@@ -255,15 +255,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 	if (self.storePassword()) {
 		if (!self.deviceToken) {
 			// register the device and store the encrypted password
-			var deviceService = new tutao.entity.sys.AutoLoginService();
+			var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
 			var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
 			deviceService.setDeviceKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.aesCrypter.keyToHex(deviceKey)));
-			deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(deviceToken, exception) {
+			deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(autoLoginPostReturn, exception) {
 				if (exception) {
 					callback();
 					return;
 				}
-				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, deviceToken)) {
+				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, autoLoginPostReturn.getDeviceToken())) {
 					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.password());
 					tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.authToken, deviceEncPassword);
 				}
@@ -310,13 +310,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 	var params = {};
 	params[tutao.rest.ResourceConstants.ID_PARAMETER_NAME] = this.autoAuthenticationId();
 	var self = this;
-	tutao.entity.tutanota.PasswordRetrievalService.load(params, null, function(result, exception) {
+	tutao.entity.tutanota.PasswordRetrievalReturn.load(params, null, function(passwordRetrievalReturn, exception) {
 		if (exception) {
 			self.userMessageId("smsError_msg");
-		} else if (result.getTransmissionKeyEncryptedPassword() == "") {
+		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
 			self.retrievePassword(); // timeout, retry to get the password immediately
 		} else if (!self._showingMail){
-			self.password(tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, result.getTransmissionKeyEncryptedPassword()));
+			self.password(tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword()));
 			self.showMail();
 		}
 	});

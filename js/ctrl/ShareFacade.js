@@ -10,7 +10,7 @@ goog.provide('tutao.tutanota.ctrl.ShareFacade');
  * @param {function(tutao.rest.EntityRestException=)} callback Called when finished, receives an exception if an error occurred.
  */
 tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddress, writePermission, callback) {
-	var shareService = new tutao.entity.sys.ShareService();
+	var shareService = new tutao.entity.sys.ShareData();
 	shareService.setApp("tutanota");
 	shareService.setShareType(shareType);
 	shareService.setShareholderMailAddress(shareholderMailAddress);
@@ -50,7 +50,7 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 		var headers = tutao.entity.EntityHelper.createAuthHeaders();
 		var postParams = {};
 		postParams[tutao.rest.ResourceConstants.GROUP_ID] = tutao.locator.userController.getUserGroupId();
-		shareService.setup(postParams, headers, function(fileDataId, exception) {
+		shareService.setup(postParams, headers, function(voidReturn, exception) {
 			if (exception) {
 				callback(new tutao.rest.EntityRestException(exception));
 				return;
@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup = function(mailAddress, keyTo
 	//load recipient key information
 	var parameters = {};
 	parameters[tutao.rest.ResourceConstants.MAIL_ADDRESS] = mailAddress;
-	tutao.entity.sys.PublicKeyService.load(parameters, null, function(publicKeyData, exception) {
+	tutao.entity.sys.PublicKeyReturn.load(parameters, null, function(publicKeyData, exception) {
 		if (exception) {
 			if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
 				callback(null, tutao.tutanota.ctrl.RecipientsNotFoundException([mailAddress]));

@@ -54,11 +54,11 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 			if (self.mailAddressPrefix() == newValue) {
 				var params = [];
 				params[tutao.rest.ResourceConstants.MAIL_ADDRESS] = cleanedValue + "@" + self.domain();
-				tutao.entity.sys.MailAddressAvailabilityService.load(params, [], function(data, exception) {
+				tutao.entity.sys.MailAddressAvailabilityReturn.load(params, [], function(mailAddressAvailabilityReturn, exception) {
 					if (self.mailAddressPrefix() == newValue) {
 						if (exception) {
 							// TODO exception handling
-						} else if (data.getAvailable()) {
+						} else if (mailAddressAvailabilityReturn.getAvailable()) {
 							self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
 						} else {
 							self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
@@ -120,7 +120,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 		this.authToken(authToken);
 		var params = {};
 		params[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = authToken;
-		tutao.entity.sys.RegistrationDataService.load(params, null, function(data, exception) {
+		tutao.entity.sys.RegistrationServiceData.load(params, null, function(data, exception) {
 			if (!exception && (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL || 
 					data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT)) {
 			    self.accountType(data.getAccountType());
@@ -259,19 +259,19 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
 	}
 	this._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
 	self.joinStatus({ type: "neutral", text: "joinRunning_msg" });
-	var service = new tutao.entity.sys.SendRegistrationCodeService();
+	var service = new tutao.entity.sys.SendRegistrationCodeData();
 	service.setAccountType(this.accountType());
 	service.setAuthToken(this.authToken());
 	service.setMobilePhoneNumber(tutao.tutanota.util.Formatter.getCleanedPhoneNumber(this.mobileNumber()));
 	var map = {};
 	map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 	// if no registration link was used, the authToken is not set yet, but returned by the send registration code service
-	service.setup(map, null, function(authToken, exception) {
+	service.setup(map, null, function(sendRegistrationCodeReturn, exception) {
 		if (exception) {
 			self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
 			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 		} else {
-			self.authToken(authToken);
+			self.authToken(sendRegistrationCodeReturn.getAuthToken());
 			self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
 			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
 		}
@@ -285,10 +285,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 	}
 	self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
 	self.createAccountStatus({ type: "neutral", text: "createAccountRunning_msg" });
-	var service = new tutao.entity.sys.VerifyRegistrationCodeService();
+	var service = new tutao.entity.sys.VerifyRegistrationCodeData();
 	service.setAuthToken(this.authToken());
 	service.setCode(this.code());
-	service.setup({}, null, function(authToken, exception) {
+	service.setup({}, null, function(voidReturn, exception) {
 		if (exception) {
 			self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 			if (exception.getOriginal() instanceof tutao.rest.RestException) {
@@ -340,7 +340,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(callback) {
 	var self = this;
-	tutao.entity.sys.SystemKeysService.load({}, null, function(keyData, exception) {
+	tutao.entity.sys.SystemKeysReturn.load({}, null, function(keyData, exception) {
 		if (exception) {
 			callback(exception);
 			return;
@@ -349,7 +349,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 		var systemAdminPubKeyBase64 = keyData.getSystemAdminPubKey();
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
-		var customerService = new tutao.entity.sys.CustomerService();
+		var customerService = new tutao.entity.sys.CustomerData();
 
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
 		tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, function(userPassphraseKeyHex) {
@@ -450,7 +450,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 										return;
 									}
 									//TODO create root instances and welcome mail before login
-									var s = new tutao.entity.tutanota.InitGroupService();
+									var s = new tutao.entity.tutanota.InitGroupData();
 
 									var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 									var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();
@@ -478,7 +478,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 										}
 										var map = {};
 										map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-										new tutao.entity.tutanota.WelcomeMailService().setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+										new tutao.entity.tutanota.WelcomeMailData().setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
 										self._keyGenProgress(100);
 										callback();
 									});

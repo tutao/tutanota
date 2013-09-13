@@ -54,7 +54,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel = function() {
 		this.changePasswordButtonTextId("pwChangeButtonSendCode_action");
 		this.overallState("checking");
 		var self = this;
-		tutao.entity.sys.SecondFactorAuthAllowedService.load({}, null, function(data, exception) {
+		tutao.entity.sys.SecondFactorAuthAllowedReturn.load({}, null, function(data, exception) {
 			if (exception) {
 				self.overallState("serverNotReachable");
 			} else if (data.getAllowed()) {
@@ -177,7 +177,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._sendCode = function() {
 	var self = this;
 	var params = {};
 	params[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-	var service = new tutao.entity.sys.SecondFactorAuthService();
+	var service = new tutao.entity.sys.SecondFactorAuthData();
 	service.setService("ChangePasswordService");
 	service.setup(params, null, function(dummy, exception) {
 		if (exception) {
@@ -210,7 +210,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
 		var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.userController.getUserGroupKey());
 		var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
 		
-		var service = new tutao.entity.sys.ChangePasswordService();
+		var service = new tutao.entity.sys.ChangePasswordData();
 		service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
 		service.setVerifier(verifier);
 		service.setPwEncClientKey(pwEncClientKey);

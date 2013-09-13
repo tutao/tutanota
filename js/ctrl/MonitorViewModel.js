@@ -499,11 +499,11 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._readCounter = function(monitor, 
 	var params = {};
 	params["monitor"] = monitor;
 	params["owner"] = ownerId;
-	tutao.entity.monitor.ReadCounterService.load(params, null, function(data, exception) {
+	tutao.entity.monitor.ReadCounterReturn.load(params, null, function(readCounterReturn, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
-			callback(data.getValue());
+			callback(readCounterReturn.getValue());
 		}
 	});
 };

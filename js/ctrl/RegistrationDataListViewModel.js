@@ -74,7 +74,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getStateName = funct
  * Adds a new registration data entry
  */
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
-	var regData = new tutao.entity.sys.RegistrationDataService()
+	var regData = new tutao.entity.sys.RegistrationServiceData()
 		.setAccountType(this.selectedAccountType())
 		.setCompany(this.company())
 		.setDomain(this.domain())
@@ -84,12 +84,12 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
 		.setMailAddress(this.mailAddress())
 		.setState(tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL);
 	var self = this;
-	var authToken = regData.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(authToken, exception) {
+	var authToken = regData.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(registrationReturn, exception) {
 		if (exception) {
 			console.log(exception);
 		} else {
 			// Workaround as re-loading a range does not work under all circumstances if the id is custom
-			tutao.entity.sys.RegistrationData.load([self._listId(),authToken], function(element, exception) {
+			tutao.entity.sys.RegistrationData.load([self._listId(),registrationReturn.getAuthToken()], function(element, exception) {
 				self.registrationDataList.push(element);
 			});
 			self.reset();

@@ -129,6 +129,7 @@
 	<script type="text/javascript" src="generated/entity/sys/Authentication.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataDelete.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AutoLoginPostReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/BucketPermission.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ChangePasswordData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Chat.js"></script>
@@ -160,6 +161,7 @@
 	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthAllowedReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SendRegistrationCodeData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SendRegistrationCodeReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ShareData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Shares.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerReturn.js"></script>
@@ -350,7 +352,6 @@
 	<script type="text/javascript" src="libs/internal/event/EventBusClient.js"></script>
 	<script type="text/javascript" src="libs/internal/event/ListEventTracker.js"></script>
 	<script type="text/javascript" src="libs/internal/event/Observable.js"></script>
-	<script type="text/javascript" src="libs/internal/event/PollingListEventTracker.js"></script>
 	<script type="text/javascript" src="libs/internal/event/PushListEventTracker.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/EntityRestCache.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/EntityRestClient.js"></script>
@@ -933,7 +934,7 @@ function touchOrClick(e) {
 														</a>
 													<!-- /ko -->
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
-													<div class="contactDataText" data-bind="text: getId()"></div>
+													<div class="contactDataText" data-bind="text: getSocialId()"></div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
@@ -1026,7 +1027,7 @@ function touchOrClick(e) {
 											<div class="editContactData">
 												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, customTypeName) }'></div>
 												<div class="editContactDataText" >
-													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: id"/>
+													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: socialId"/>
 												</div>
 												<div class="editContactDataCancel" >
 													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
@@ -1036,7 +1037,7 @@ function touchOrClick(e) {
 										<div class="editContactData">
 											<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, editableContact.newContactSocialId().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, editableContact.newContactSocialId().customTypeName) }'></div>
 											<div class="editContactDataText">
-												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactSocialId().id, event: { blur: editableContact.newContactSocialIdUpdated }"/>
+												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactSocialId().socialId, event: { blur: editableContact.newContactSocialIdUpdated }"/>
 											</div>
 											<div class="editContactDataCancel"></div>
 										</div>

@@ -56,12 +56,12 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedUserLists = function() {
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.loadConfig = function() {
 	var self = this;
-	tutao.entity.sys.ConfigService.load({}, null, function(c, exception) {
+	tutao.entity.sys.ConfigDataReturn.load({}, null, function(c, exception) {
 		if (exception) {
 			console.log(exception);
 			return;
 		}
-		self.config(new tutao.entity.sys.ConfigServiceEditable(c));
+		self.config(new tutao.entity.sys.ConfigDataReturnEditable(c));
 	});
 };
 
@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.loadConfig = function() {
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.storeConfig = function() {
 	this.config().update();
-	this.config().getConfigService().update({}, null, function(exception) {
+	this.config().getConfigDataReturn().update({}, null, function(exception) {
 		if (exception) {
 			console.log(exception);
 			return;

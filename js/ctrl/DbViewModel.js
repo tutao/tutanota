@@ -240,7 +240,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId,
 	if (version) {
 		path += "&version=" + version;
 	}
-	this._restClient.getElement(path, tutao.entity.EntityHelper.createAuthHeaders(), function(instance, exception) {
+	this._restClient.getElement(path, tutao.entity.EntityHelper.createAuthHeaders(), null, function(instance, exception) {
 		callback(instance, exception);
 	});
 };

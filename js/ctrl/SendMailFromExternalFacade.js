@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
 		var senderBucketKey = aes.generateRandomKey();
 		var recipientBucketKey = aes.generateRandomKey();
 
-		var service = new tutao.entity.tutanota.SendMailFromExternalService();
+		var service = new tutao.entity.tutanota.SendMailFromExternalData();
 		service.setSubject(subject);
 		service.setBodyText(bodyText);
 		service.setSenderName(senderName);
@@ -59,11 +59,11 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
 			} else {
 				var map = {};
 				map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-				service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(mailElementId, ex) {
+				service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailFromExternalReturn, ex) {
 					if (ex) {
 						callback(null, ex);
 					} else {
-						callback(mailElementId);
+						callback(sendMailFromExternalReturn.getSenderMail()[1]);
 					}
 				});
 			}

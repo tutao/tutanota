@@ -77,7 +77,7 @@ tutao.entity.tutanota.ContactExtension = function(editableContact) {
 			tutao.entity.tutanota.ContactExtension.createEmptyContactSocialIdEditable,
 			"newContactSocialId",
 			"newContactSocialIdUpdated",
-			"id",
+			"socialId",
 			"socialIds"
 	);
 };
@@ -159,9 +159,8 @@ tutao.entity.tutanota.ContactExtension.createEmptyContactAddressEditable = funct
  */
 tutao.entity.tutanota.ContactExtension.createEmptyContactSocialIdEditable = function(contact) {
 	var newma = new tutao.entity.tutanota.ContactSocialId(contact);
-	newma.setId("");
+	newma.setSocialId("");
 	newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_OTHER);
 	newma.setCustomTypeName("");
-	newma.setSocialId("");
 	return new tutao.entity.tutanota.ContactSocialIdEditable(newma);
 };

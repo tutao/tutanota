@@ -36,7 +36,7 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.close = function() {
 
 tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
 	var self = this;
-	var feedback = new tutao.entity.tutanota.FeedbackService();
+	var feedback = new tutao.entity.tutanota.FeedbackData();
 	feedback.setMsg(this.message());
 	feedback.setUseragent(navigator.userAgent);
 	feedback.setImage(this.image);
