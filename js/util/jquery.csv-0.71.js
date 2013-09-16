@@ -789,7 +789,7 @@ RegExp.escape= function(s) {
       }
 
       var output = [];
-      for(i in arrays) {
+      for(var i in arrays) {
         output.push(arrays[i]);
       }
 
@@ -826,7 +826,9 @@ RegExp.escape= function(s) {
       }
 
       var output = [];
-      for(i in objects) {
+      var arrays = [];
+      arrays.length = objects.length;
+      for(var i in objects) {
         output.push(arrays[i]);
       }
 
