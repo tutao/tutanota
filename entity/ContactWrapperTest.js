@@ -79,16 +79,12 @@ TestCase("ContactWrapperTest", {
 		c.getPhoneNumbers().push(m);
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE);
 		assertEquals("private", w.getPhoneNumberTypeName(m));
-		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE);
-		assertEquals("private mobile", w.getPhoneNumberTypeName(m));
-		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_FAX);
-		assertEquals("private fax", w.getPhoneNumberTypeName(m));
+		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE);
+		assertEquals("mobile", w.getPhoneNumberTypeName(m));
+		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX);
+		assertEquals("fax", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK);
 		assertEquals("work", w.getPhoneNumberTypeName(m));
-		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_MOBILE);
-		assertEquals("work mobile", w.getPhoneNumberTypeName(m));
-		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_FAX);
-		assertEquals("work fax", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_OTHER);
 		assertEquals("other", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM);
@@ -96,7 +92,7 @@ TestCase("ContactWrapperTest", {
 		assertEquals("something", w.getPhoneNumberTypeName(m));
 		
 		// check that no type is missing
-		assertEquals(8, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES().length);
+		assertEquals(6, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES().length);
 	},
 	
 	"testGetSocialIdTypeName": function() {
