@@ -124,11 +124,10 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
 			var map = {};
 			map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 			service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailReturn, ex) {
-				var mailElementId = sendMailReturn.getSenderMail()[1]; 
 				if (ex) {
 					callback(null, ex);
 				} else {
-					callback(mailElementId);
+					callback(sendMailReturn.getSenderMail()[1]);
 				}
 			});
 		}
@@ -153,11 +152,17 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		recipient.setPubEncBucketKey(null);
 		recipient.setPubKeyVersion(null);
 
-		var password = recipientInfo.getContactWrapper().getContact().getCommunicationPassword();
+		// pre-shared password has prio
+		var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
+		var preshared = true;
+		if (!password) {
+			password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
+			preshared = false;
+		}
 		if (password == "") {
 			password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
 			if (recipientInfo.isExistingContact()) {
-				recipientInfo.getContactWrapper().getContact().setCommunicationPassword(password);
+				recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
 				recipientInfo.getContactWrapper().getContact().update(function() {});
 			}
 		}
@@ -177,20 +182,24 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 			recipient.setPubEncBucketKey(null);
 			recipient.setPubKeyVersion(null);
 
-			var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
-			var nbrOfValidNumbers = 0;
-			for (var a = 0; a < numbers.length; a++) {
-				var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
-				if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
-					var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient);
-					number.setNumber(recipientNumber);
-					number.setMaskedNumber(tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber(recipientNumber));
-					recipient.getPasswordChannelPhoneNumbers().push(number);
-					nbrOfValidNumbers++;
+			if (!preshared) {
+				var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
+				var nbrOfValidNumbers = 0;
+				for (var a = 0; a < numbers.length; a++) {
+					var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
+					if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
+						var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient);
+						number.setNumber(recipientNumber);
+						number.setMaskedNumber(tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber(recipientNumber));
+						recipient.getPasswordChannelPhoneNumbers().push(number);
+						nbrOfValidNumbers++;
+					}
 				}
-			}
-			if (nbrOfValidNumbers == 0) {
-				callback(new tutao.rest.EntityRestException(new Error("no valid password channels for recipient")));
+				if (nbrOfValidNumbers == 0) {
+					callback(new tutao.rest.EntityRestException(new Error("no valid password channels for recipient")));
+				} else {
+					callback();
+				}
 			} else {
 				callback();
 			}

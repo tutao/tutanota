@@ -27,7 +27,7 @@ tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper = function() {
 	contact.setTitle("");
 	contact.setBirthday(null);
 	contact.setComment("");
-	contact.setCommunicationPassword("");
+	contact.setAutoTransmitPassword("");
 	return new tutao.entity.tutanota.ContactWrapper(contact);
 };
 

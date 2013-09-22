@@ -57,13 +57,13 @@ tutao.tutanota.ctrl.ThunderbirdContactCsvConverter.prototype.addField = function
 		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE, "", value);
 		return true;
 	case "Fax Number":
-		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_FAX, "", value);
+		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX, "", value);
 		return true;
 	case "Pager Number": 
 		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, "Pager", value);
 		return true;
 	case "Mobile Number":
-		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE, "", value);
+		this.addPhoneNumber(contact, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE, "", value);
 		return true;
 	case "Job Title": 
 		contact.setTitle(value);

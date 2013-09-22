@@ -115,13 +115,24 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.editRecipient = function(
 	}, 0);
 };
 
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.defineManualPassword = function(recipientInfo) {
+	recipientInfo.getEditableContact().presharedPassword(""); // makes the text field appear for the sender to enter the password
+};
+
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.removePresharedPassword = function(recipientInfo) {
+	recipientInfo.getEditableContact().presharedPassword(null);
+};
+
 /**
- * Provides an array containing a mapping of phone number types that can be selected for new mobile numbers, wrapped in a function
- * to allow dynamic language changes.
- * This array is a subset of tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES.
- * @return {function(): Array.<Object>}
+ * Provides the pre-shared password strength in %. If no pre-shared password is set, 0 is returned. 
+ * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The contact of which the preshared password shall be checked.
+ * @return {Number} The strength of the password.
  */
-tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getValidMobileTypes = function() {
-	return function() { return [{ id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE, name: tutao.locator.languageViewModel.get("privateMobile_label") },
-             { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_MOBILE, name: tutao.locator.languageViewModel.get("workMobile_label") }]; };
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordStrength = function(recipientInfo) {
+	var password = recipientInfo.getEditableContact().presharedPassword();
+	if (password) {		
+		return tutao.tutanota.util.PasswordUtils.getPasswordStrength(password);
+	} else {
+		return 0;
+	}
 };

@@ -772,13 +772,13 @@ function touchOrClick(e) {
 				<div id="innerPasswordChannelColumn">
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
-							<span class="emphasizedText" data-bind="lang: 'contactDataForSms_label'"></span><br>
-							<span data-bind="lang: 'atLeastOneMobileNumber_label'"></span><br>
+							<div class="emphasizedText" data-bind="lang: 'contactDataForSms_label'"></div>
+							<div id="passwordChannelDescription" data-bind="lang: 'atLeastOneMobileNumber_label'"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
 								<div>
 									<hr />
 									<br>
-									<button class="editContactButton" data-bind="visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }">edit</button>
+									<button class="editContactButton" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
 									<div class="recipientNameAndAddress">
 										<!-- ko if: getName() != "" -->
 											<span class="emphasizedText" data-bind="text: getName()"></span><br>
@@ -788,33 +788,52 @@ function touchOrClick(e) {
 											<span class="emphasizedText" data-bind="text: getMailAddress()"></span><br>
 										<!-- /ko -->
 									</div>
-									<!-- ko foreach: getEditableContact().phoneNumbers -->
-										<!-- ko if: tutao.locator.passwordChannelViewModel.isSavedMobileNumber($data, $parent) -->
-											<div class="contactData">
-												<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data.getContactPhoneNumber())"></div>
-												<div class="contactDataText" data-bind="text: number"></div>
-											</div>
-										<!-- /ko -->
-									<!-- /ko -->
-									<!-- ko foreach: getEditableContact().phoneNumbers -->
-										<!-- ko if: tutao.locator.passwordChannelViewModel.isNotSavedNumber($data, $parent) -->
-											<div class="editContactData">
-												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, customTypeName) }'></div>
-												<div class="editContactDataText">
-													<input type="tel" data-bind="value: number, css: { invalid: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number()) }"/>
+									<div class="recordContainer" data-bind="visible: getEditableContact().presharedPassword() === null">
+										<!-- ko foreach: getEditableContact().phoneNumbers -->
+											<!-- ko if: tutao.locator.passwordChannelViewModel.isSavedMobileNumber($data, $parent) -->
+												<div class="record">
+													<div class="recordData" data-bind="text: tutao.lang('fromAddressBook_label') + number()"></div>
+													<div class="recordAction"></div>
 												</div>
-												<div class="editContactDataCancel" data-bind="fastClick: function() { $parent.getEditableContact().phoneNumbers.remove($data) }">
-													<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
-												</div>
-											</div>
+											<!-- /ko -->
 										<!-- /ko -->
-									<!-- /ko -->
-									<div class="editContactData">
-										<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel($parent.getValidMobileTypes(), getEditableContact().newMobileContactPhoneNumber().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, getEditableContact().newContactPhoneNumber().customTypeName) }'></div>
-										<div class="editContactDataText">
-											<input type="tel" data-bind="value: getEditableContact().newMobileContactPhoneNumber().number, event: { blur: getEditableContact().newMobileContactPhoneNumberUpdated }, css: { invalid: !isSecure() }"/>
+										<!-- ko foreach: getEditableContact().phoneNumbers -->
+											<!-- ko if: tutao.locator.passwordChannelViewModel.isNotSavedNumber($data, $parent) -->
+												<div class="record">
+													<div class="recordData">
+														<input type="tel" class="recordValue inputField wide" data-bind="value: number, css: { invalid: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number()) }"/>
+														<label class="recordStatus invalid" data-bind="lang: 'mobileNumberNotValid_msg', visible: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number())"></label>
+													</div>
+													<div class="recordAction" data-bind="fastClick: function() { $parent.getEditableContact().phoneNumbers.remove($data) }">
+														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
+													</div>
+												</div>
+											<!-- /ko -->
+										<!-- /ko -->
+										<div class="record">
+											<div class="recordData">
+												<input type="tel" class="recordValue inputField wide" data-bind="value: getEditableContact().newMobileContactPhoneNumber().number, event: { blur: getEditableContact().newMobileContactPhoneNumberUpdated }, css: { invalid: !isSecure() }"/>
+												<label class="recordInfo" data-bind="lang: 'addMobileNumber_msg'"></label>
+											</div>
+											<div class="recordAction"></div>
 										</div>
-										<div class="editContactDataCancel"></div>
+										<button class="setPresharedPasswordButton" data-bind="lang: 'setPresharedPassword_action', fastClick: function() { setTimeout(function() { $parent.defineManualPassword($data); }, 0); }"></button>
+									</div>
+									<div class="recordContainer" data-bind="visible: getEditableContact().presharedPassword() !== null">
+										<div class="record">
+											<div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
+											<div class="recordData">
+												<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+												<div class="recordStatus">
+													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, $parent.getPasswordStrength($data))) + '%' }"></div>
+													</div>
+												</div>
+											</div>
+											<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }">
+												<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
+											</div>
+										</div>
 									</div>
 									<br>
 								</div>
@@ -903,7 +922,7 @@ function touchOrClick(e) {
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="contactData">
-													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_FAX) && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_FAX) -->
+													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
 															<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
@@ -948,6 +967,20 @@ function touchOrClick(e) {
 												<div class="contactDataAreaText" data-bind="text: contactWrapper().getContact().getComment()"></div>
 											</div>
 										<!-- /ko -->
+										<!-- ko if: contactWrapper().getContact().getPresharedPassword() != null || contactWrapper().getContact().getAutoTransmitPassword() != "" -->
+											<div class="contactHeading" data-bind="lang: 'passwordsHeading_label'"></div>
+											<hr />
+											<div class="contactData" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
+												<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
+												<div class="contactDataType" data-bind="lang: 'presharedPasswordHeading_label'"></div>
+												<div class="contactDataText" data-bind="text: getPresharedPasswordText()"></div>
+											</div>
+											<div class="contactData" data-bind="visible: contactWrapper().getContact().getAutoTransmitPassword() != ''">
+												<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
+												<div class="contactDataType" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
+												<div class="contactDataText" data-bind="text: getAutoTransmitPasswordText()"></div>
+											</div>
+										<!-- /ko -->
 									<!-- /ko -->
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT || mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW -->
 										<div id="editContactNameTitleAndImage">
@@ -969,7 +1002,7 @@ function touchOrClick(e) {
 												<div class="editContactDataText">
 													<input class="editContactMailInput" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: address"/>
 												</div>
-												<div class="editContactDataCancel">
+												<div class="recordAction">
 													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.mailAddresses.remove($data) }, attr: {title: tutao.lang('removeMailAddress_alt')}"></div>
 												</div>
 											</div>
@@ -979,7 +1012,7 @@ function touchOrClick(e) {
 											<div class="editContactDataText" >
 												<input class="editContactMailInput" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactMailAddress().address, event: { blur: editableContact.newContactMailAddressUpdated }"/>
 											</div>
-											<div class="editContactDataCancel"></div>
+											<div class="recordAction"></div>
 										</div>
 										
 										<div class="contactHeading" data-bind="lang: 'phone_label'"></div>
@@ -990,7 +1023,7 @@ function touchOrClick(e) {
 												<div class="editContactDataText" >
 													<input type="tel" data-bind="value: number"/>
 												</div>
-												<div class="editContactDataCancel">
+												<div class="recordAction">
 													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.phoneNumbers.remove($data) }, attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 												</div>
 											</div>
@@ -1000,7 +1033,7 @@ function touchOrClick(e) {
 											<div class="editContactDataText" >
 												<input type="tel" data-bind="value: editableContact.newContactPhoneNumber().number, event: { blur: editableContact.newContactPhoneNumberUpdated }"/>
 											</div>
-											<div class="editContactDataCancel"></div>
+											<div class="recordAction"></div>
 										</div>
 										
 										<div class="contactHeading" data-bind="lang: 'address_label'"></div>
@@ -1011,7 +1044,7 @@ function touchOrClick(e) {
 												<div class="editContactDataArea" >
 													<textarea rows="2" data-bind="value: address" oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 												</div>
-												<div class="editContactDataCancel">
+												<div class="recordAction">
 													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.addresses.remove($data) }, attr: {title: tutao.lang('removeAddress_alt') }"></div>
 												</div>
 											</div>
@@ -1021,7 +1054,7 @@ function touchOrClick(e) {
 											<div class="editContactDataArea" >
 												<textarea rows="2" data-bind="value: editableContact.newContactAddress().address, event: { blur: editableContact.newContactAddressUpdated }"  oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 											</div>
-											<div class="editContactDataCancel"></div>
+											<div class="recordAction"></div>
 										</div>
 										
 										<div class="contactHeading" data-bind="lang: 'social_label'"></div>
@@ -1032,7 +1065,7 @@ function touchOrClick(e) {
 												<div class="editContactDataText" >
 													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: socialId"/>
 												</div>
-												<div class="editContactDataCancel" >
+												<div class="recordAction" >
 													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
 												</div>
 											</div>
@@ -1042,12 +1075,21 @@ function touchOrClick(e) {
 											<div class="editContactDataText">
 												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactSocialId().socialId, event: { blur: editableContact.newContactSocialIdUpdated }"/>
 											</div>
-											<div class="editContactDataCancel"></div>
+											<div class="recordAction"></div>
 										</div>
 										
 										<div class="contactHeading" data-bind="lang: 'comment_label'"></div>
 										<hr />
 										<textarea id="editContactComment" rows="3" data-bind="value: editableContact.comment" oninput='this.rows = Math.max(this.value.split("\n").length, 3);'></textarea>
+
+										<div class="contactHeading" data-bind="lang: 'passwordsHeading_label'"></div>
+										<hr />
+										<div class="editContactData">
+											<div class="editContactDataType" data-bind='lang: "presharedPassword_label"'></div>
+											<div class="editContactDataText" >
+												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.presharedPassword"/>
+											</div>
+										</div>
 									<!-- /ko -->
 								</div>
 							</section>
@@ -1140,7 +1182,7 @@ function touchOrClick(e) {
 										<label for="registrationMailName" class="recordName" data-bind="lang: 'name_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused"></input>
+												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused"></input>
 											</div>
 											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
 										</div>
@@ -1149,7 +1191,7 @@ function touchOrClick(e) {
 										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'"></input>
+												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'"></input>
 											</div>
 											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
 											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
@@ -1159,7 +1201,7 @@ function touchOrClick(e) {
 										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+												<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
 											</div>
 											<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
 											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
@@ -1169,7 +1211,7 @@ function touchOrClick(e) {
 										<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="newpassword" class="inputField" type="password" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+												<input id="newpassword" class="inputField wide" type="password" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 											</div>
 											<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
 												<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1184,7 +1226,7 @@ function touchOrClick(e) {
 										<label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="newpassword2" class="inputField" type="password" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+												<input id="newpassword2" class="inputField wide" type="password" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
 											</div>
 											<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
 										</div>
@@ -1202,7 +1244,7 @@ function touchOrClick(e) {
 
 									<div class="record">
 										<div class="recordName"></div>
-										<div class="recordAction">
+										<div class="formAction">
 											<button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isSendSmsPossible() }, lang: 'join_action'"></button>
 											<label for="submitRegistration1" class="recordStatus" data-bind="css: joinStatus().type, lang: joinStatus().text"></label>
 										</div>
@@ -1217,7 +1259,7 @@ function touchOrClick(e) {
 										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="registrationCodeInput" class="inputField" type="text" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
+												<input id="registrationCodeInput" class="inputField wide" type="text" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
 											</div>
 											<label for="registrationCodeInput" class="recordStatus", data-bind="css: codeInputStatus().type, lang: codeInputStatus().text"></label>
 											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
@@ -1227,7 +1269,7 @@ function touchOrClick(e) {
 
 									<div class="record">
 										<div class="recordName"></div>
-										<div class="recordAction">
+										<div class="formAction">
 											<button id="submitRegistration2" type="submit" data-bind="css: { disabled: !isCreateAccountPossible()}, lang: 'createAccount_action'"></button>
 											<label for="submitRegistration2" class="recordStatus" data-bind="css: createAccountStatus().type">
 												<div class="progressBg" class="defaultMargin dataField">
@@ -1292,25 +1334,37 @@ function touchOrClick(e) {
 				<div class="loginArea">
 					<div data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 					<div data-bind="visible: !errorMessageId()">
-						<label data-bind="lang: 'chooseNumber_msg'"></label>
-						<div class="defaultMargin"></div>
-						<div data-bind="foreach: phoneNumbers">
-							<button class="defaultMargin" data-bind="text: tutao.lang('sendPasswordTo_action') + getMaskedNumber(), css: { disabled: $parent.smsBusy() || $parent.smsLocked() }, fastClick: $parent.sendSms"></button>
-						</div>
-						
-						<div class="defaultMargin message">
-							<div data-bind="fadeLang: userMessageId(), visible: (!smsBusy() && !loginBusy())"></div>
-							<div data-bind="visible: (smsBusy() || loginBusy())">
-								<img src="graphics/busy.gif" data-bind="attr: {alt: tutao.lang('busy_alt') }"/>
+						<label data-bind="lang: userMessageId()"></label>
+						<div class="recordContainer" data-bind="foreach: phoneNumbers">
+							<div class="record">
+								<div class="recordData">
+									<button class="recordValue" data-bind="text: tutao.lang('sendPasswordTo_action') + getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+									<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
+								</div>
 							</div>
 						</div>
-						<form data-bind="submit: showMail">
-							<input class="loginTextInput defaultMargin" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/><br>
-							<div class="defaultMargin">
-								<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
-								<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label><br>
+						<form class="recordContainer" data-bind="submit: showMail">
+							<div class="record">								
+								<div class="recordData">
+									<input id="externalMailPasswordInput" class="loginTextInput recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
+									<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+								</div>
 							</div>
-							<button class="defaultMargin" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !isPasswordLengthValid() || loginBusy() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
+							<div class="record">								
+								<div class="recordData">
+									<div class="recordValue">
+										<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
+										<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
+									</div>
+									<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+								</div>
+							</div>
+							<div class="record">								
+								<div class="formAction">
+									<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
+									<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+								</div>
+							</div>
 						</form>
 					</div>
 				</div>
@@ -1713,7 +1767,7 @@ function touchOrClick(e) {
 											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="inputField" id="oldpassword" type="password" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
+													<input class="inputField wide" id="oldpassword" type="password" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
 												</div>
 												<label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
 											</div>
@@ -1722,7 +1776,7 @@ function touchOrClick(e) {
 											<label for="newpassword" class="recordName" data-bind="lang: 'newPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input id="newpassword" class="inputField" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+													<input id="newpassword" class="inputField wide" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 												</div>
 												<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
 													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1737,7 +1791,7 @@ function touchOrClick(e) {
 											<label for="newpassword2" class="recordName"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input id="newpassword2" class="inputField" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+													<input id="newpassword2" class="inputField wide" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
 												</div>
 												<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
 											</div>
@@ -1746,14 +1800,14 @@ function touchOrClick(e) {
 											<label for="passwordVerficationCode" class="recordName" data-bind="lang: 'code_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input id="passwordVerficationCode" class="inputField" type="text" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
+													<input id="passwordVerficationCode" class="inputField wide" type="text" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
 												</div>
 												<label id="passwordVerficationCode" class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></label>
 											</div>
 										</div>
 										<div class="record">
 											<div class="recordName"></div>
-											<div class="recordAction">
+											<div class="formAction">
 												<button id="submitPasswordChange" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
 												<label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text, params: changePasswordStatus().params"></label>
 											</div>

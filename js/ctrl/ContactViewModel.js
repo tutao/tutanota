@@ -15,6 +15,8 @@ tutao.tutanota.ctrl.ContactViewModel = function() {
 	this.buttons = ko.observableArray();
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 	this.mode = ko.observable(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
+	this.showPresharedPassword = ko.observable(false);
+	this.showAutoTransmitPassword = ko.observable(false);
 };
 
 tutao.tutanota.ctrl.ContactViewModel.MODE_NONE = 0;
@@ -165,6 +167,10 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._refreshScroller = function() {
  * Saves the currently edited contact.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function() {
+	// we have to reset the pre-shared password to null if none is set
+	if (this.editableContact.presharedPassword() == "") {
+		this.editableContact.presharedPassword(null);
+	}
 	this.editableContact.update();
 	if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
 		this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
@@ -219,4 +225,20 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.getMapUrl = function(contactAddre
 	var query = contactAddress.getAddress();
 	query = query.replace(/\n/g, ", ");
 	return url + query;
+};
+
+/**
+ * Returns the text to display for the pre-shared password.
+ * @return {string} The text to display.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.getPresharedPasswordText = function() {
+	return (this.showPresharedPassword()) ? this.contactWrapper().getContact().getPresharedPassword() : "*****"; 
+};
+
+/**
+ * Returns the text to display for the SMS password.
+ * @return {string} The text to display.
+ */
+tutao.tutanota.ctrl.ContactViewModel.prototype.getAutoTransmitPasswordText = function() {
+	return (this.showAutoTransmitPassword()) ? this.contactWrapper().getContact().getAutoTransmitPassword() : "*****"; 
 };

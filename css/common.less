@@ -88,6 +88,10 @@ img.helpIcon {
 	 	border-color:@red;
 		box-shadow:0 0 10px @red;
 	}
+	
+	&.wide {
+		width: 100%;
+	}
 }
 
 .heading {
@@ -359,7 +363,7 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 	> div.record {
 		display: table-row;
 	
-		> label.recordName {
+		> .recordName {
 			display: table-cell;
 			text-align: right;
 			padding-right: 15px;
@@ -376,7 +380,7 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 			overflow: hidden;
 		}
 		
-		> div.recordAction, div.recordData {
+		> div.formAction, div.recordData {
 			display: table-cell;
 			text-align: left;
 			padding-top: 5px;
@@ -405,11 +409,17 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 				color: @dark-grey;
 			}
 			
-			> div.recordValue {
-				> input[type=text], > input[type=tel], input[type=email], input[type=password] {
-					width: 100%;
-				}
+			> div.recordValue, input.recordValue {
 			}
+		}
+		
+		> div.recordAction {
+			display: table-cell;
+			width: 37px;
+			padding-top: 5px;
+			padding-bottom: 10px;
+			cursor: pointer;
+			text-align: center;
 		}
 	}
 }

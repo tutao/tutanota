@@ -134,77 +134,91 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	}
 
 	var secureExternalRecipients = tutao.locator.passwordChannelViewModel.getSecureExternalRecipients();
+
+	// check if a pre-shared password is not strong enough
+	var onePresharedPasswordNotStrongEnough = false;
 	for (var i = 0; i < secureExternalRecipients.length; i++) {
-		//TODO only update if attributes have changed
-		secureExternalRecipients[i].getEditableContact().update();
-		if (secureExternalRecipients[i].isExistingContact()) {
-			//TODO handle exception
-			secureExternalRecipients[i].getEditableContact().getContact().update(function() {});
-		} else {
-			//TODO handle exception
-			secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
+		var presharedPassword = secureExternalRecipients[i].getEditableContact().presharedPassword();
+		if (presharedPassword && tutao.tutanota.util.PasswordUtils.getPasswordStrength(presharedPassword) < 80) {
+			onePresharedPasswordNotStrongEnough = true;
+			break;
 		}
 	}
+	
+	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
 
-	this._freeBubbles();
-
-	var senderName = "";
-	if (tutao.locator.userController.isInternalUserLoggedIn()) {
-		// the group should be loaded from cache here
-		tutao.entity.sys.Group.load(tutao.locator.userController.getUserGroupId(), function(group, exception) {
-			if (!exception) {
-				senderName = group.getName();
+		for (var i = 0; i < secureExternalRecipients.length; i++) {
+			//TODO only update if attributes have changed
+			secureExternalRecipients[i].getEditableContact().update();
+			if (secureExternalRecipients[i].isExistingContact()) {
+				//TODO handle exception
+				secureExternalRecipients[i].getEditableContact().getContact().update(function() {});
+			} else {
+				//TODO handle exception
+				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
 			}
-		});
-	}
-
-	var facade = null;
-	if (tutao.locator.userController.isExternalUserLoggedIn()) {
-		facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
-	} else if (unsecureRecipients) {
-		facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
-	} else {
-		facade = tutao.tutanota.ctrl.SendMailFacade;
-	}
-
-	this.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody())); //
-
-	// the mail is sent in the background
-	this.busy(true);
-	this.directSwitchActive = false;
-	tutao.locator.mailView.disableTouchComposingMode();
-	tutao.locator.mailView.fadeFirstMailOut();
-	setTimeout(function() {
-		tutao.locator.mailViewModel.removeFirstMailFromConversation();
-		self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
-		facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
-				self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-				self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
-			if (exception) {
-				console.log("could not send mail", exception);
-				// TODO handle technical failures
-				return;
-			}
-			if (tutao.locator.userController.isExternalUserLoggedIn()) {
-				tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
-					if (exception) {
-						// TODO handle technical failures
-						return;
-					}
-					// load the mail body to make sure it is available when the DisplayeMail is created
-					tutao.entity.tutanota.MailBody.load(mail.getBody(), function(body, exception) {
+		}
+	
+		this._freeBubbles();
+	
+		var senderName = "";
+		if (tutao.locator.userController.isInternalUserLoggedIn()) {
+			// the group should be loaded from cache here
+			tutao.entity.sys.Group.load(tutao.locator.userController.getUserGroupId(), function(group, exception) {
+				if (!exception) {
+					senderName = group.getName();
+				}
+			});
+		}
+	
+		var facade = null;
+		if (tutao.locator.userController.isExternalUserLoggedIn()) {
+			facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
+		} else if (unsecureRecipients) {
+			facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
+		} else {
+			facade = tutao.tutanota.ctrl.SendMailFacade;
+		}
+	
+		this.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody())); //
+	
+		// the mail is sent in the background
+		this.busy(true);
+		this.directSwitchActive = false;
+		tutao.locator.mailView.disableTouchComposingMode();
+		tutao.locator.mailView.fadeFirstMailOut();
+		setTimeout(function() {
+			tutao.locator.mailViewModel.removeFirstMailFromConversation();
+			self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
+			facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
+					self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+					self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
+				if (exception) {
+					console.log("could not send mail", exception);
+					// TODO handle technical failures
+					return;
+				}
+				if (tutao.locator.userController.isExternalUserLoggedIn()) {
+					tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
 						if (exception) {
 							// TODO handle technical failures
 							return;
 						}
-						tutao.locator.mailViewModel.addFirstMailToConversation(new tutao.tutanota.ctrl.DisplayedMail(mail));
-						tutao.locator.mailView.mailsUpdated();
+						// load the mail body to make sure it is available when the DisplayeMail is created
+						tutao.entity.tutanota.MailBody.load(mail.getBody(), function(body, exception) {
+							if (exception) {
+								// TODO handle technical failures
+								return;
+							}
+							tutao.locator.mailViewModel.addFirstMailToConversation(new tutao.tutanota.ctrl.DisplayedMail(mail));
+							tutao.locator.mailView.mailsUpdated();
+						});
 					});
-				});
-			}
-			self.busy(false);
-		});
-	}, 500);
+				}
+				self.busy(false);
+			});
+		}, 500);
+	}
 };
 
 /**

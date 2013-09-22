@@ -130,13 +130,13 @@ tutao.entity.tutanota.ContactExtension.createEmptyContactPhoneNumberEditable = f
 };
 
 /**
- * Creates a new editable empty phone number for the given contact with the default type CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE.
+ * Creates a new editable empty phone number for the given contact with the default type CONTACT_PHONE_NUMBER_TYPE_MOBILE.
  * @param {tutao.entity.tutanota.Contact} The contact.
  */
 tutao.entity.tutanota.ContactExtension.createEmptyMobileContactPhoneNumberEditable = function(contact) {
 	var newma = new tutao.entity.tutanota.ContactPhoneNumber(contact);
 	newma.setNumber("");
-	newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE);
+	newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE);
 	newma.setCustomTypeName("");
 	return new tutao.entity.tutanota.ContactPhoneNumberEditable(newma);
 };

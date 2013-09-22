@@ -121,50 +121,38 @@ tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES = functi
 tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE = "0";
 
 /**
- * Id for a private mobile phone number in tutao.entity.tutanota.PhoneNumber.
- */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE = "1";
-
-/**
- * Id for a private fax number in tutao.entity.tutanota.PhoneNumber.
- */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_FAX = "2";
-
-/**
  * Id for a business phone number in tutao.entity.tutanota.PhoneNumber.
  */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK = "3";
+tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK = "1";
 
 /**
- * Id for a business mobile phone number in tutao.entity.tutanota.PhoneNumber.
+ * Id for a mobile phone number in tutao.entity.tutanota.PhoneNumber.
  */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_MOBILE = "4";
+tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE = "2";
 
 /**
- * Id for a business fax number in tutao.entity.tutanota.PhoneNumber.
+ * Id for a fax number in tutao.entity.tutanota.PhoneNumber.
  */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_FAX = "5";
+tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX = "3";
 
 /**
  * Id for an other phone number in tutao.entity.tutanota.PhoneNumber.
  */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_OTHER = "6";
+tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_OTHER = "4";
 
 /**
  * Id for a custom phone number in tutao.entity.tutanota.PhoneNumber. The custom name can be specified by the user.
  */
-tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM = "7";
+tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM = "5";
 
 /**
  * The names for the phone number types.
  */
 tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES = function() {
 	return [{ id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE, name: tutao.locator.languageViewModel.get("private_label") },
-	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_MOBILE, name: tutao.locator.languageViewModel.get("privateMobile_label") },
-	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE_FAX, name: tutao.locator.languageViewModel.get("privateFax_label") },
-	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK, name: tutao.locator.languageViewModel.get("work_label") },
-	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_MOBILE, name: tutao.locator.languageViewModel.get("workMobile_label") },
-	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK_FAX, name: tutao.locator.languageViewModel.get("workFax_label") },
+     { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK, name: tutao.locator.languageViewModel.get("work_label") },
+	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE, name: tutao.locator.languageViewModel.get("mobile_label") },
+	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX, name: tutao.locator.languageViewModel.get("fax_label") },
 	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_OTHER, name: tutao.locator.languageViewModel.get("other_label") },
 	 { id: tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, name: tutao.locator.languageViewModel.get("custom_label") }];
 

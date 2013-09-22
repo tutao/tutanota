@@ -18,29 +18,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 
 	this.phoneNumbers = ko.observableArray();
 
-	this.userMessageId = ko.observable(null);
-	this.smsBusy = ko.observable(false);
-	this.loginBusy = ko.observable(false);
-	var resetUserMsgId = function(busy) {
-		if (busy) {
-			self.userMessageId(null);
-		}
-	};
-	this.loginBusy.subscribe(resetUserMsgId); // if we do not hide the msg immediately, the old message will fade in (and then be replaced) after the busy state is over.
-	this.smsBusy.subscribe(resetUserMsgId);
-	this.smsLocked = ko.observable(false); // disables the send sms button for 60s
-	this.smsLocked.subscribe(function(locked) {
-		if (locked) {
-			setTimeout(function() {
-				self.smsLocked(false);
-				self.userMessageId("smsResent_msg");
-			}, 60000);
-		}
-	});
+	this.userMessageId = ko.observable("emptyString_msg");
+	this.smsLocked = ko.observable(false);
 
 	this.errorMessageId = ko.observable(null);
 
 	this.password = ko.observable("");
+	this.password.subscribe(function() {
+		this.passwordStatus({ type: "neutral", text: "enterPassword_msg" });
+	}, this);
 	this.passphraseFieldFocused = ko.observable(false);
 	this.symKeyForPasswordTransmission = null;
 	this.autoAuthenticationId = ko.observable(null);
@@ -59,6 +45,26 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 	// the device token is removed locally if it is not stored on the server (any more), see setup()
 	this.deviceToken = null;
 	this.storePassword = ko.observable(true);
+	
+	var s = new tutao.tutanota.util.StateMachine();
+	this.state = s;
+	s.addState("EnterPassword",         {});
+	s.addState("SendingSms",            {});
+	s.addState("CheckingPassword",       {});
+	s.addState("FinishTooManyAttempts", {});
+	s.addState("FinishShowMail",        {});
+
+	s.addTransition("EnterPassword", "sendSms", "SendingSms");
+	s.addTransition("SendingSms", "sendSmsFinished", "EnterPassword");
+	s.addTransition("EnterPassword", "checkPassword", "CheckingPassword");
+	s.addTransition("CheckingPassword", "passwordInvalid", "EnterPassword");
+	s.addTransition("CheckingPassword", "passwordValid", "FinishShowMail");
+	s.addTransition("CheckingPassword", "passwordTooManyAttempts", "FinishTooManyAttempts");
+
+	this.sendSmsStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
+	this.sentSmsNumber = ko.observable(null); // the number to which the last SMS was sent
+	this.passwordStatus = ko.observable({ type: "neutral", text: "enterPassword_msg" });
+	this.showMailStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
 };
 
 /**
@@ -89,8 +95,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, c
 			}
 		});
 	});
-
-	this.userMessageId("enterPW_msg");
 };
 
 /**
@@ -158,6 +162,18 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(ca
 };
 
 /**
+ * Unlocks the send SMS button after 60s.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._allowSmsAfterDelay = function() {
+	var self = this;
+	setTimeout(function() {
+		self.smsLocked(false);
+		self.sendSmsStatus({ type: "neutral", text: "emptyString_msg" });
+		self.userMessageId("smsResent_msg");
+	}, 60000);
+};
+	
+/**
  * Shows the available phone numbers.
  * @param {function} callback Called when finished.
  */
@@ -171,9 +187,35 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection =
 			return;
 		}
 		self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+		if (self.phoneNumbers().length == 0) {
+			self.userMessageId("enterPresharedPassword_msg");
+		} else {
+			self.userMessageId("chooseNumber_msg");
+		}
 		// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
 		callback();
 	});
+};
+
+/**
+ * Provides the status for sending an SMS for a given mobile phone number.
+ * @param {string} The number.
+ * @return {Object} Status object with type and text.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.getSendSmsStatus = function(number) {
+	if (this.sentSmsNumber() == number) {
+		return this.sendSmsStatus();
+	} else {
+		return { type: "neutral", text: "emptyString_msg" };
+	}
+};
+
+/**
+ * Provides the information if sending an SMS is allowed (button is enabled).
+ * @return {boolean} True if allowed, false otherweise.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSmsAllowed = function() {
+	return (!this.smsLocked() && this.state.getState() == "EnterPassword");
 };
 
 /**
@@ -181,7 +223,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection =
  * @param phoneNumber
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNumber) {
-	if (this.smsBusy() || this.smsLocked()) {
+	if (!this.sendSmsAllowed()) {
 		return;
 	}
 	this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
@@ -190,23 +232,27 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	var service = new tutao.entity.tutanota.PasswordMessagingData();
 	service.setNumber(phoneNumber.getNumber());
 	service.setSymKeyForPasswordTransmission(tutao.locator.aesCrypter.keyToBase64(this.symKeyForPasswordTransmission));
-	self.smsBusy(true);
 	var map = {};
 	map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
+	this.sentSmsNumber(phoneNumber.getNumber());
+	this.state.event("sendSms");
+	this.sendSmsStatus({ type: "neutral", text: "sendingSms_msg" });
 	service.setup(map, this._getAuthHeaders(), function(passwordMessagingReturn, exception) {
 		if (exception) {
 			if ((exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) {
-				self.userMessageId("smsSentOften_msg");
+				self.sendSmsStatus({ type: "invalid", text: "smsSentOften_msg" });
+				self.smsLocked(true);
 			} else {
-				self.userMessageId("smsError_msg");
+				self.sendSmsStatus({ type: "invalid", text: "smsError_msg" });
 			}
 		} else {
 			self.autoAuthenticationId(passwordMessagingReturn.getAutoAuthenticationId());
-			self.userMessageId("smsSent_msg");
+			self.sendSmsStatus({ type: "valid", text: "smsSent_msg" });
 			self.passphraseFieldFocused(true);
 			self.smsLocked(true);
+			self._allowSmsAfterDelay();
 		}
-		self.smsBusy(false);
+		self.state.event("sendSmsFinished");
 	});
 };
 
@@ -215,7 +261,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
  * @return {boolean} true, if the password is valid.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.isPasswordLengthValid = function() {
-	return this.password().length === tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_LENGTH;
+	return this.phoneNumbers().length == 0 || this.password().length === tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_LENGTH;
+};
+
+/**
+ * Provides the information if showing the email is allowed (button is enabled).
+ * @return {boolean} True if allowed, false otherweise.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMailAllowed = function() {
+	return (this.isPasswordLengthValid() && this.state.getState() == "EnterPassword");
 };
 
 /**
@@ -223,23 +277,31 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.isPasswordLengthValid = fun
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMail = function() {
 	var self = this;
-	if (!this.isPasswordLengthValid() || this.loginBusy()) {
+	if (!this.showMailAllowed()) {
 		return;
 	}
 	var saltHex = tutao.util.EncodingConverter.base64ToHex(this.salt);
-	this.loginBusy(true);
+	this.state.event("checkPassword");
+	self.passwordStatus({ type: "neutral", text: "emptyString_msg" });
+	self.showMailStatus({ type: "neutral", text: "loadingMail_msg" });
 	tutao.locator.userController.loginExternalUser(this.userId, this.password(), saltHex, this.authToken, function(exception) {
 		if (exception) {
-			self.loginBusy(false);
-			self.userMessageId("invalidPassword_msg"); //TODO handle technical exceptions (depending on HTTP response code)
+			self.state.event("passwordInvalid");
+			self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+			self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+			//TODO handle technical exceptions (depending on HTTP response code)
 			return;
 		}
 		
 		self._storePasswordIfPossible(function() {
 			self._showMail(function(exception) {
-				self.loginBusy(false);
 				if (exception) {
-					self.userMessageId("invalidPassword_msg"); //TODO handle technical exceptions (depending on HTTP response code)
+					self.state.event("passwordInvalid");
+					self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+					self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+					//TODO handle technical exceptions (depending on HTTP response code)
+				} else {
+					self.state.event("passwordValid");
 				}
 			});
 		});
@@ -303,6 +365,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showMail = function(callba
 	});
 };
 
+/**
+ * TODO
+ */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function() {
     if (this._showingMail) {
 		return;
