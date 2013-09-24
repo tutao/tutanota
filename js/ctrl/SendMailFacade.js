@@ -156,6 +156,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
 		var preshared = true;
 		if (!password) {
+			//TODO check for mobile numbers here and throw exception?
 			password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
 			preshared = false;
 		}
