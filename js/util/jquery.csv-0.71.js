@@ -29,7 +29,7 @@
 
 // shall not be loaded in worker
 
-if (jQuery) {
+if (window.jQuery) {
 
 RegExp.escape= function(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
