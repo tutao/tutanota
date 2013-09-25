@@ -27,6 +27,10 @@
  * Copyrighted 2012 by Evan Plaice.
  */
 
+// shall not be loaded in worker
+
+if (jQuery) {
+
 RegExp.escape= function(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
@@ -848,3 +852,5 @@ RegExp.escape= function(s) {
   $.csv2Dictionary = $.csv.toObjects;
 
 })( jQuery );
+
+}
