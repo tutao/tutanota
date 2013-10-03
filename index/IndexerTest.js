@@ -112,15 +112,15 @@ TestCase("IndexerTest", {
 		mail.setSubject("These 5 words ARE great words! love them.");
 		var sender = new tutao.entity.tutanota.MailAddress(mail);
 		sender.setName("Bob");
-		sender.setAddress("bob@tutanota.com");
+		sender.setAddress("bob@tutanota.de");
 		mail.setSender(sender);
 		var mailAddress1 = new tutao.entity.tutanota.MailAddress(mail);
 		mailAddress1.setName("Alice");
-		mailAddress1.setAddress("alice@tutanota.com");
+		mailAddress1.setAddress("alice@tutanota.de");
 		mail.getToRecipients().push(mailAddress1);
 		var mailAddress2 = new tutao.entity.tutanota.MailAddress(mail);
 		mailAddress2.setName("Carol");
-		mailAddress2.setAddress("carol@tutanota.com");
+		mailAddress2.setAddress("carol@tutanota.de");
 		mail.getCcRecipients().push(mailAddress2);
 		mail.setBody("12345");
 		mail.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);

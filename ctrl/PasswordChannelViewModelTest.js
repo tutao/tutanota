@@ -48,7 +48,7 @@ TestCase("PasswordChannelViewModelTest", {
 		assertEquals([r1, r2], result);
 	},
 	"test that secureExternalRecipients does not include internal recipients": function() {
-		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@tutanota.com", "a b", null);
+		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@tutanota.de", "a b", null);
 		assertFalse(r1.isExternal());
 		assertTrue(r1.isSecure());
 		this.composerRecipients = [r1];

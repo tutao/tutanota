@@ -120,7 +120,7 @@ AsyncTestCase("MailListViewModelTest", {
 				mail1.setSubject("test where");
 				var sender1 = new tutao.entity.tutanota.MailAddress(mail1);
 				sender1.setName("arm");
-				sender1.setAddress("bein@tutanota.com");
+				sender1.setAddress("bein@tutanota.de");
 				mail1.setSender(sender1);
 				mail1.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail1.setUnread(true);
@@ -154,7 +154,7 @@ AsyncTestCase("MailListViewModelTest", {
 				mail2.setSubject("hello test where");
 				var sender2 = new tutao.entity.tutanota.MailAddress(mail2);
 				sender2.setName("arm");
-				sender2.setAddress("bein@tutanota.com");
+				sender2.setAddress("bein@tutanota.de");
 				mail2.setSender(sender2);
 				mail2.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail2.setUnread(true);
@@ -170,7 +170,7 @@ AsyncTestCase("MailListViewModelTest", {
 						mail3.setSubject("testing where");
 						var sender3 = new tutao.entity.tutanota.MailAddress(mail3);
 						sender3.setName("arm");
-						sender3.setAddress("bein@tutanota.com");
+						sender3.setAddress("bein@tutanota.de");
 						mail3.setSender(sender3);
 						mail3.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 						mail3.setUnread(true);
