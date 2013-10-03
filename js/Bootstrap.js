@@ -40,7 +40,7 @@ tutao.tutanota.Bootstrap.init = function() {
 	tutao.locator.entropyCollector.start();
 
 		// only for testing
-//		tutao.locator.loginViewModel.mailAddress("map-system@tutanota.com");
+//		tutao.locator.loginViewModel.mailAddress("map-system@tutanota.de");
 //		tutao.locator.loginViewModel.passphrase("map");
 //		tutao.locator.loginViewModel.login(function() {
 //			tutao.locator.navigator.customer();
