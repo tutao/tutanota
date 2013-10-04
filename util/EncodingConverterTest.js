@@ -41,12 +41,12 @@ EncodingConverterTest.prototype.testBytesToBase64 = function() {
 };
 
 EncodingConverterTest.prototype.testBase64ToBase64Ext = function() {
-	var hexPaddedGeneratedId = "0000013f1beec4000000";
-	assertEquals("---0Eljil-----", tutao.util.EncodingConverter.base64ToBase64Ext(tutao.util.EncodingConverter.hexToBase64(hexPaddedGeneratedId)));
+	var hexPaddedGeneratedId = "4fc6fbb10000000000";
+	assertEquals("IwQvgF------", tutao.util.EncodingConverter.base64ToBase64Ext(tutao.util.EncodingConverter.hexToBase64(hexPaddedGeneratedId)));
 };
 
 EncodingConverterTest.prototype.testTimestampToHexGeneratedId = function() {
-	var timestamp = 1370563200000
-	assertEquals("0000013f1beec4000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp));
-	assertEquals("0000013f1beec4000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp + ""));
+	var timestamp = 1370563200000;
+	assertEquals("4fc6fbb10000000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp));
+	assertEquals("4fc6fbb10000000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp + ""));
 };

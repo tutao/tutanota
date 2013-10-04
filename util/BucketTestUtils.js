@@ -3,5 +3,5 @@
 goog.provide('BucketTestUtils');
 
 BucketTestUtils.createDummyBucketData = function() {
-	return new tutao.entity.BucketData("--------------", tutao.locator.aesCrypter.generateRandomKey());
+	return new tutao.entity.BucketData(tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.locator.aesCrypter.generateRandomKey());
 };

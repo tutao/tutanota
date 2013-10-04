@@ -35,7 +35,7 @@ EntityRestTestFunctions.functions = {
 		
 	"test an empty db should throw an error on requests for an element": function(queue) {
 		queue.call('test', function(callbacks) {
-			tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "---0DGl4rds--F", null, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(element, exception) {
+			tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "-0DGl4rds--F", null, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(element, exception) {
 				assertInstanceOf(tutao.rest.EntityRestException, exception);
 				assertEquals("RestException(404)", exception.getOriginal().name);
 			}));
@@ -44,7 +44,7 @@ EntityRestTestFunctions.functions = {
 
 	"test an empty db should return an empty list on requests for elements": function(queue) {
 		queue.call('test', function(callbacks) {
-			tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ["---0DGl4rds--E", "---0DGl4rds--F"], EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(elements, exception) {
+			tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ["-0DGl4rds--E", "-0DGl4rds--F"], EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(elements, exception) {
 				assertUndefined(exception);
 				assertEquals([], elements);
 			}));

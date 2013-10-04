@@ -14,5 +14,5 @@ StaticEntityRestFunctionsTest.prototype.testIdComparison = function() {
 	assertTrue(EntityRestInterface.firstBiggerThanSecond("1000", "200"));
 	assertFalse(EntityRestInterface.firstBiggerThanSecond("666666666666666666666666666666", "777777777777777777777777777777"));
 	assertTrue(EntityRestInterface.firstBiggerThanSecond("1666666666666666666666666666666", "777777777777777777777777777777"));
-	assertTrue(EntityRestInterface.firstBiggerThanSecond("--------200000", "--------100000"));
+	assertTrue(EntityRestInterface.firstBiggerThanSecond("------200000", "------100000"));
 };

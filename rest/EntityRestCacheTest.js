@@ -14,8 +14,8 @@ EntityRestCacheTest.prototype.setUp = function(queue) {
 	tutao.locator.userController.getUserId = JsMockito.mockFunction();
 	tutao.locator.userController.getUserGroupId = JsMockito.mockFunction();
 	tutao.locator.userController.getUserGroupKey = JsMockito.mockFunction();
-	JsMockito.when(tutao.locator.userController.getUserId)().thenReturn("---34---------");
-	JsMockito.when(tutao.locator.userController.getUserGroupId)().thenReturn("---35---------");
+	JsMockito.when(tutao.locator.userController.getUserId)().thenReturn("-34---------");
+	JsMockito.when(tutao.locator.userController.getUserGroupId)().thenReturn("-35---------");
 	JsMockito.when(tutao.locator.userController.getUserGroupKey)().thenReturn(key);
 };
 
