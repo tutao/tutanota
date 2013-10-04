@@ -10,8 +10,8 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	var self = this;
 	
-	this._serverIds = ["-------------V"]; // add server ids to show monitoring data for more servers
-	// first five server ids are: -------------V -------------k ------------0- ------------0F ------------0V
+	this._serverIds = ["-----------1"]; // add server ids to show monitoring data for more servers
+	// first five server ids are: -----------1 -----------2 -----------3 -----------4 -----------5
 	
 	var VALUE = tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_VALUE;
 	var DIFF = tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF;
@@ -216,7 +216,7 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._addMonitorGroup = function(group
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._getOwnerId = function(owner) {
 	if (owner == "global") {
-		return "-------------F";
+		return "-----------0";
 	} else if (tutao.util.StringUtils.startsWith(owner, "server_")) {
 		return this._serverIds[Number(owner.substring(7))];
 	} else {
