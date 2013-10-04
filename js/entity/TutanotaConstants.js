@@ -20,6 +20,11 @@ tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM = "3";
 /**
  * todo story value validation: remove and generated it
  */
+tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_EXTERNAL = "5";
+
+/**
+ * todo story value validation: remove and generated it
+ */
 tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL = "0";
 
 /**

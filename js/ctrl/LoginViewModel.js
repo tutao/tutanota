@@ -112,7 +112,12 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function(callback) {
 			// this should be the user id instead of the name later
 			tutao.locator.dao.init("Tutanota_" + self.mailAddress(), function() {
 				tutao.locator.eventBus.connect();
-				tutao.locator.navigator.mail();
+				if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+					// Starter users may only use settings
+					tutao.locator.navigator.settings();
+				} else {
+					tutao.locator.navigator.mail();
+				}
 				self.loginOngoing(false);
 				// load all contacts to have them available in cache, e.g. for RecipientInfos
 				tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(loadedContacts, exception) {});

@@ -493,46 +493,48 @@ function touchOrClick(e) {
 						</li>
 					<!-- /ko -->
 					<!-- ko ifnot: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView || getActiveView() == tutao.locator.configView || getActiveView() == tutao.locator.customerView -->
-					<li>
-						<!-- ko if: getActiveView() == tutao.locator.mailView -->
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
-								<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
-								<div class="menu_text" data-bind="lang: 'new_label'"></div>
-							</div>
+						<!-- ko if: (tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) -->
+							<li>
+								<!-- ko if: getActiveView() == tutao.locator.mailView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
+										<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'new_label'"></div>
+									</div>
+								<!-- /ko -->
+								<!-- ko ifnot: getActiveView() == tutao.locator.mailView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
+										<div class="menu_image"><div class="imgButton mail" data-bind="attr: {title: tutao.lang('emails_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'emails_label'"></div>
+									</div>
+								<!-- /ko -->
+							</li>
+							<li>
+								<!-- ko if: getActiveView() == tutao.locator.contactView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
+										<div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'new_label'"></div>
+									</div>
+								<!-- /ko -->
+								<!-- ko ifnot: getActiveView() == tutao.locator.contactView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
+										<div class="menu_image"><div class="imgButton contact" data-bind="attr: {title: tutao.lang('contacts_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'contacts_label'"></div>
+									</div>
+								<!-- /ko -->
+							</li>
+							<li>
+								<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.tutanota.gui.alert(tutao.lang('featureNotAvailable_msg')); }, 0); }">
+									<div class="menu_image"><div class="imgButton calendar" data-bind="attr: {title: tutao.lang('calendar_alt')}"><time id="day" data-bind="text: new Date().getDate(), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString(new Date()) }"></time></div></div>
+									<div class="menu_text" data-bind="lang: 'calendar_label'"></div>
+								</div>
+							</li>
 						<!-- /ko -->
-						<!-- ko ifnot: getActiveView() == tutao.locator.mailView -->
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
-								<div class="menu_image"><div class="imgButton mail" data-bind="attr: {title: tutao.lang('emails_alt')}"></div></div>
-								<div class="menu_text" data-bind="lang: 'emails_label'"></div>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
+								<div class="menu_image"><div class="imgButton settings" data-bind="attr: {title: tutao.lang('settings_alt')}"></div></div>
+								<div class="menu_text" data-bind="lang: 'settings_label'"></div>
 							</div>
-						<!-- /ko -->
-					</li>
-					<li>
-						<!-- ko if: getActiveView() == tutao.locator.contactView -->
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
-								<div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
-								<div class="menu_text" data-bind="lang: 'new_label'"></div>
-							</div>
-						<!-- /ko -->
-						<!-- ko ifnot: getActiveView() == tutao.locator.contactView -->
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
-								<div class="menu_image"><div class="imgButton contact" data-bind="attr: {title: tutao.lang('contacts_alt')}"></div></div>
-								<div class="menu_text" data-bind="lang: 'contacts_label'"></div>
-							</div>
-						<!-- /ko -->
-					</li>
-					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.tutanota.gui.alert(tutao.lang('featureNotAvailable_msg')); }, 0); }">
-							<div class="menu_image"><div class="imgButton calendar" data-bind="attr: {title: tutao.lang('calendar_alt')}"><time id="day" data-bind="text: new Date().getDate(), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString(new Date()) }"></time></div></div>
-							<div class="menu_text" data-bind="lang: 'calendar_label'"></div>
-						</div>
-					</li>
-					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
-							<div class="menu_image"><div class="imgButton settings" data-bind="attr: {title: tutao.lang('settings_alt')}"></div></div>
-							<div class="menu_text" data-bind="lang: 'settings_label'"></div>
-						</div>
-					</li>
+						</li>
 					<!-- /ko -->
 				<!-- /ko -->
 				<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED -->
