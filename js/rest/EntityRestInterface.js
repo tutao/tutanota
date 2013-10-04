@@ -12,12 +12,12 @@ tutao.rest.EntityRestInterface = function() {};
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
  * @const
  */
-tutao.rest.EntityRestInterface.GENERATED_MAX_ID = "Uzzzzzzzzzzzzk";
+tutao.rest.EntityRestInterface.GENERATED_MAX_ID = "Uzzzzzzzzzzz";
 /**
  * The minimum ID for elements with generated id stored on the server
  * @const
  */
-tutao.rest.EntityRestInterface.GENERATED_MIN_ID = "--------------";
+tutao.rest.EntityRestInterface.GENERATED_MIN_ID = "------------";
 
 /**
  * The minimum ID for elements with custom id stored on the server

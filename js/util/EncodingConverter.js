@@ -108,17 +108,15 @@ tutao.util.EncodingConverter.base64ToBase64Ext = function(base64) {
 /**
  * Converts a timestamp number to a GeneratedId (the counter is set to zero) in hex format. 
  * 
- * TODO story: become production ready: add server id to the generatedId
  * @param {number}
  *            timestamp The timestamp of the GeneratedId
  * @return {string} The GeneratedId as hex string.
  */
 tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
-	var hex = parseInt(timestamp).toString(16);
-	// add counter (short = 2 bytes = 4 hex)
-	hex = hex + "0000";
-	// add leading zeros to reach 10 bytes (GeneratedId length) = 20 hex
-	for (var length = hex.length; length < 20; length++) {
+	var id = timestamp * 4; // shifted 2 bits left, so the value covers 44 bits overall (42 timestamp + 2 shifted)
+	var hex = parseInt(id).toString(16) + "0000000"; // add one zero for the missing 4 bits plus 6 more (3 bytes) to get 9 bytes 
+	// add leading zeros to reach 9 bytes (GeneratedId length) = 18 hex
+	for (var length = hex.length; length < 18; length++) {
 		hex = "0" + hex;
 	}
 	return hex;
@@ -127,19 +125,12 @@ tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
 /**
  * Converts a timestamp number to a GeneratedId (the counter is set to zero).
  * 
- * TODO story: become production ready: add server id to the generatedId
  * @param {number}
  *            timestamp The timestamp of the GeneratedId
  * @return {string} The GeneratedId.
  */
 tutao.util.EncodingConverter.timestampToGeneratedId = function(timestamp) {
-	var hex = timestamp.toString(16);
-	// add counter (short = 2 bytes = 4 hex)
-	hex = hex + "0000";
-	// add leading zeros to reach 10 bytes (GeneratedId length) = 20 hex
-	for (var length = hex.length; length < 20; length++) {
-		hex = "0" + hex;
-	}
+	var hex = tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp);
 	return tutao.util.EncodingConverter.base64ToBase64Ext(tutao.util.EncodingConverter.hexToBase64(hex));
 };
 

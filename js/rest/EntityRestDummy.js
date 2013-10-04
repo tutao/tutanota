@@ -1,7 +1,6 @@
 "use strict";
 
 goog.provide('tutao.rest.EntityRestDummy');
-//import('tutao.rest.EntityRestInterface');
 
 /**
  * The EntityRestDummy is an implementation of the EntityRestInterface that does nothing. It does neither return
@@ -12,7 +11,7 @@ goog.provide('tutao.rest.EntityRestDummy');
 tutao.rest.EntityRestDummy = function() {
 	// start with a 14 digit number to make it fit to the base64ext format
 	this._nextId = 10000000;
-	this._prefix = "------";
+	this._prefix = "----";
 };
 
 /**
