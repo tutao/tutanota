@@ -30,8 +30,6 @@ EntityRestTestFunctions.getVersionParams =  function(params) {
  * An object containing functions to test the EntityRest* classes or chains of them.
  */
 EntityRestTestFunctions.functions = {
-		//FIXME
-		//element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData())
 		
 	"test an empty db should throw an error on requests for an element": function(queue) {
 		queue.call('test', function(callbacks) {
