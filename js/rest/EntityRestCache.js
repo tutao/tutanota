@@ -271,7 +271,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		// already in the cache
 		// load all elements (i.e. up to 1000000)
 		// TODO only up to 1000 allowed. how to load all?
-		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, reverse, parameters, headers, function(elements, exception) {
+		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);
 				return;
@@ -279,7 +279,6 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			self._db[path][listId].allRange = [];
 			for (var i = 0; i < elements.length; i++) {
 				self._addToCache(path, elements[i]);
-				self._db[path][listId].allRange.push(elements[i].__id[1]);
 			}
 			// add all elements to the range that were posted already. they need to be added inascending order
 			var elementsToAdd = [];
