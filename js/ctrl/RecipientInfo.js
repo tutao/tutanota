@@ -124,6 +124,9 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
 	if (!this.isExternal()) {
 		return true;
 	}
+	if (this._editableContact.presharedPassword()) {
+		return true;
+	}
 	for (var i = 0; i < this._editableContact.phoneNumbers().length; i++) {
 		if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(this._editableContact.phoneNumbers()[i].number())) {
 			return true;
