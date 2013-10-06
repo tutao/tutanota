@@ -317,7 +317,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	joinRunning_msg: "An SMS is sent...",
 	joinFailure_msg: "Sorry, we could not send the SMS. Please try again later.",
 	codeInputInfo_msg: "The code was sent to $",
-	change_action: "ändern",
+	change_action: "change",
 	createAccount_action: "create account",
 	createAccountRunning_msg: "Account is being created...",
 	createAccountTooManyAttempts_msg: "Too many wrong attemptCodeIns. Please try again later.",
