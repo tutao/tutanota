@@ -177,7 +177,10 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 			var symEncBucketKey = tutao.locator.aesCrypter.encryptKey(key, bucketKey);
 			recipient.setSymEncBucketKey(symEncBucketKey);
 			var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
-			recipient.setPassword(password);
+			// the password is not sent to the server if it is pre-shared
+			if (!preshared) {
+				recipient.setPassword(password);
+			}
 			recipient.setPasswordVerifier(passwordVerifier);
 			recipient.setSalt(saltBase64);
 			recipient.setPubEncBucketKey(null);
