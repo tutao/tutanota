@@ -13,4 +13,4 @@ tutao.entity.NotAuthorizedException = function(message) {
 	this.name = "NotAuthorizedException";
 };
 
-tutao.inherit(tutao.entity.NotAuthorizedException, Error);
+goog.inherits(tutao.entity.NotAuthorizedException, Error);

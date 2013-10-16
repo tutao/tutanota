@@ -40,7 +40,7 @@ tutao.crypto.ClientWorkerProxy = function() {
 };
 
 tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath) {
-/* begin dev section */
+/* begin dev ClientWorkerProxy section */
 	//everything inside the dev section is replaced by the correct import for the production version
 	tutao.crypto.ClientWorkerProxy.WORKER_FILE = srcPath + 'crypto/ClientWorker.js';
 	tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [
@@ -51,7 +51,6 @@ tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath)
 		srcPath + 'crypto/SjclAes.js',
 		srcPath + 'crypto/RsaInterface.js',
 		srcPath + 'crypto/JsbnRsa.js',
-		srcPath + 'Base.js',
 		srcPath + 'crypto/CryptoException.js',
 		srcPath + 'crypto/RandomizerInterface.js',
 		srcPath + 'crypto/SimpleRandomizer.js',
@@ -59,7 +58,7 @@ tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath)
 		srcPath + 'crypto/Oaep.js',
 		srcPath + 'util/EncodingConverter.js'
 	];
-/* end dev section */
+/* end dev ClientWorkerProxy section */
 };
 
 /**

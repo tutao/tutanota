@@ -13,4 +13,4 @@ tutao.entity.InvalidDataException = function(message) {
 	this.name = "InvalidDataException";
 };
 
-tutao.inherit(tutao.entity.InvalidDataException, Error);
+goog.inherits(tutao.entity.InvalidDataException, Error);

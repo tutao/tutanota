@@ -15,7 +15,7 @@ tutao.rest.EntityRestException = function(originalException) {
 	this.name = "EntityRestException";
 };
 
-tutao.inherit(tutao.rest.EntityRestException, Error);
+goog.inherits(tutao.rest.EntityRestException, Error);
 
 tutao.rest.EntityRestException.prototype.getOriginal = function() {
 	  return this._original;

@@ -15,7 +15,7 @@ tutao.rest.RestException = function(responseCode) {
 	this.name = "RestException(" + responseCode + ")";
 };
 
-tutao.inherit(tutao.rest.RestException, Error);
+goog.inherits(tutao.rest.RestException, Error);
 
 tutao.rest.RestException.prototype.getResponseCode = function() {
 	  return this._responseCode;

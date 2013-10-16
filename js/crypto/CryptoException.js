@@ -19,4 +19,4 @@ tutao.crypto.CryptoException = function(message, error) {
 	this.error = error;
 };
 
-tutao.inherit(tutao.crypto.CryptoException, Error);
+goog.inherits(tutao.crypto.CryptoException, Error);
