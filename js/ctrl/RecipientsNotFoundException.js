@@ -21,7 +21,7 @@ tutao.tutanota.ctrl.RecipientsNotFoundException = function(recipients) {
 	this.name = "RecipientsNotFoundException";
 };
 
-tutao.inherit(tutao.tutanota.ctrl.RecipientsNotFoundException, Error);
+goog.inherits(tutao.tutanota.ctrl.RecipientsNotFoundException, Error);
 
 /**
  * Provides the email addresses of the recipients that could not be found.
