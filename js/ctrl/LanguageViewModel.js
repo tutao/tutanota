@@ -320,7 +320,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	change_action: "change",
 	createAccount_action: "create account",
 	createAccountRunning_msg: "Account is being created...",
-	createAccountTooManyAttempts_msg: "Too many wrong attemptCodeIns. Please try again later.",
+	createAccountTooManyAttempts_msg: "Too many wrong attempts. Please try again later.",
 	createAccountError_msg: "Sorry, but there was an error. Please try again later.",
 	createAccountInfo_msg: "Depending on your computer's individual performance it may take some minutes to generate your secure keys.",
 	acceptConditions_label: "Accept",

@@ -273,6 +273,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
 		} else {
 			self.authToken(sendRegistrationCodeReturn.getAuthToken());
 			self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
+			self.code(""); // reset the code input field because it might be filled if the user changed back to the first view
 			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
 		}
 	});
@@ -297,6 +298,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 					self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
 					self._wrongCodes.push(self.code());
 				} else if (exception.getOriginal().getResponseCode() == 403) {
+					self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
 					self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
 				} else {
 					self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
