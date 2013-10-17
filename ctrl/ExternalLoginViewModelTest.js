@@ -85,10 +85,6 @@ TestCase("ExternalLoginViewModel", {
 		assertNotNull(this.vm.errorMessageId());
 	},
 	
-	"test sending of sms" : function() {
-		// TODO currently not testable as we create a new instance of PasswordMessagingService. Maybe a single generic DAO would fit better? 
-	},
-	
 	"test displaying the mail": function() {
 		var mailRef = "abcde";
 		

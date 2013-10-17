@@ -32,5 +32,4 @@ TestCase("MailViewModelTest", {
 //		verify(refresh)();
 //	}
 	
-	//TODO implement tests
 });
