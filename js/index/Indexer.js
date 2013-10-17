@@ -283,7 +283,7 @@ tutao.tutanota.index.Indexer.prototype.getLastIndexedId = function(typeId, callb
 				callback(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 			}
 		} else {
-			//TODO story "refactoring search": what to do?
+			// what to do here?
 			callback("0");
 		}
 	});

@@ -46,7 +46,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 	var mails = [];
 	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
 		if (exception) {
-			//TODO show user that the conversation could not be loaded
+			console.log("conversation could not be loaded");
 			self._setConversation([mail]);
 		} else {
 			mail.loadConversationEntry(function(ce, exception) {
@@ -293,7 +293,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 	tutao.locator.mailView.enableTouchComposingMode();
 
 	// uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
-////TODO story send html email: test on mobiles and move to view
+////TODO (story send html email): test on mobiles and move to view
 //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
 //		toolbar:      null, // id of toolbar element
 //		parserRules:  wysihtml5ParserRules // defined in parser rules set

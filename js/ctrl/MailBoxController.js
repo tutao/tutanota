@@ -70,8 +70,6 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback
 };
 
 /**
- * TODO remove: this is just for testing Deletes the mails in the mail box for
- * the logged in user.
  *
  * @param {function(tutao.rest.EntityRestException=)}
  *            callback Called when finished.

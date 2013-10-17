@@ -159,7 +159,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.showContact = function(contac
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype._selectContact = function(contact, domElement) {
 	if (this._multiSelect) {
-		//TODO implement multi selection
+		// implement multi selection
 	} else {
 		tutao.tutanota.gui.unselect(this._selectedDomElements);
 		this._selectedDomElements = [domElement];

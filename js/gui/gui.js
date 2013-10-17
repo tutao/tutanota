@@ -429,7 +429,7 @@ tutao.tutanota.gui.unselect = function(elements) {
 //			}, 1);
 //		}, 1);
 //	});*/
-//	//old todo: once, add listener when the browser height changes
+//	//old to do: once, add listener when the browser height changes
 //};
 
 /* Gui part for the view slider */
@@ -446,14 +446,6 @@ tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, widt
 		$(domElement).css("left", left + "px");
 		$(domElement).css("width", width + "px");
 	} else {
-
-    	// TODO workaround for parallel vertical/horizontal scrolling: do not scroll horizontally as long as the we scroll vertically (Already tried: disable touch composing mode during the changes)
-//    	var enableTouchComposingMode = false;
-//		if (tutao.tutanota.gui.TouchComposingMode.isEnabled()) {
-//			tutao.tutanota.gui.TouchComposingMode.disable();
-//			enableTouchComposingMode = true;
-//		}
-
 		$(domElement).addClass("enableTransition");
 
 		var disableTransition = null;

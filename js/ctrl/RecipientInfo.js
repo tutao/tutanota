@@ -140,7 +140,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
  * @return {boolean} If the recipient is external.
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.isExternal = function() {
-	//TODO check for public key instead of the domain name
+	//TODO (before beta) check for public key instead of the domain name
 	return !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de");
 };
 

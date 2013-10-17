@@ -27,7 +27,6 @@ tutao.tutanota.gui.ContactView.prototype.init = function() {
 	// configure view slider
 	this._viewSlider = new tutao.tutanota.ctrl.ViewSlider();
 
-	//TODO read from css
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
 		self._leftmostVisibleColumn(self._viewSlider.getLeftmostVisibleColumnId());

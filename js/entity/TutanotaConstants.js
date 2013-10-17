@@ -2,39 +2,18 @@
 
 goog.provide('tutao.entity.tutanota.TutanotaConstants');
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE = "1";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER = "2";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM = "3";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_EXTERNAL = "5";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL = "0";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT = "1";
 
-/**
- * todo story value validation: remove and generated it
- */
 tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_VERIFIED = "2";
 
 /**

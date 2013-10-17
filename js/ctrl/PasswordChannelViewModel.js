@@ -18,7 +18,6 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getSecureExternalRecipien
 	var missingChannelRecipients = [];
 	var existingChannelRecipients = [];
 	if (tutao.locator.mailViewModel.isComposingMailToSecureExternals()) {
-		//TODO remove duplicates
 		var allRecipients = tutao.locator.mailViewModel.getComposingMail().getAllComposerRecipients();
 		for (var i = 0; i < allRecipients.length; i++) {
 			if (allRecipients[i].isExternal()) {
@@ -96,8 +95,7 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.containsInvalidNotSavedNu
 };
 
 /**
- * Edit the given recipient contact. If a different contact is already edited, the user us asked to cancel that one.
- * TODO move to Navigator.js
+ * Edit the given recipient contact. If a different contact is already edited, the user is asked to cancel that one.
  * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The contact from this recipient info shall be edited.
  */
 tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.editRecipient = function(recipientInfo) {

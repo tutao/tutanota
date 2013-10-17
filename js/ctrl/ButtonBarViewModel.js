@@ -2,9 +2,10 @@
 
 goog.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
 
-// TODO move gui part to custom binding
-// TODO width adaption when scrollbar appears/disappears
-// TODO width adaption when window width changes
+// TODO (before beta) button bar
+// - move gui part to custom binding
+// - width adaption when scrollbar appears/disappears
+// - width adaption when window width changes
 
 /**
  * Defines a button bar.

@@ -4,7 +4,7 @@ goog.provide('tutao.tutanota.ctrl.RegistrationViewModel');
 
 /**
  * The ViewModel for the registration template.
- * TODO only load and render the DOM when #registration is active, unload from DOM afterwards
+ * TODO (before beta) only load and render the DOM when #registration is active, unload from DOM afterwards
  * @constructor
  */
 tutao.tutanota.ctrl.RegistrationViewModel = function() {
@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 				tutao.entity.sys.MailAddressAvailabilityReturn.load(params, [], function(mailAddressAvailabilityReturn, exception) {
 					if (self.mailAddressPrefix() == newValue) {
 						if (exception) {
-							// TODO exception handling
+							console.log(exception);
 						} else if (mailAddressAvailabilityReturn.getAvailable()) {
 							self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
 						} else {
@@ -449,7 +449,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 										callback(exception);
 										return;
 									}
-									//TODO create root instances and welcome mail before login
+									//TODO (before beta) create root instances and welcome mail before login
 									var s = new tutao.entity.tutanota.InitGroupData();
 
 									var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();

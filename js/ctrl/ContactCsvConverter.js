@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.ContactCsvConverter.contactsToCsv = function(contacts, handl
 				// collect the names
 				names.push(name);
 			} else {
-				// TODO make sure the name is correct
+				// to do make sure the name is correct
 			}
 			line.push(value);
 			

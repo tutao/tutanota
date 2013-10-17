@@ -81,7 +81,7 @@ tutao.tutanota.gui.BubbleInputGui._measureTextWidth = function(text, font) {
     var id = 'text-width-tester';
     var tag = $('#' + id);
     if (!tag.length) {
-        tag = $('<span id="' + id + '" style="display:none;font:' + font + ';">' + text + '</span>');
+        tag = $('<span id="' + id + '" style="display:none;font:' + font + ';">' + text + '</span>'); //FIXME html sanitize
         $('body').append(tag);
     } else {
         tag.css({font: font}).html(text);

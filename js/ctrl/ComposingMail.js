@@ -148,14 +148,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
 
 		for (var i = 0; i < secureExternalRecipients.length; i++) {
-			//TODO only update if attributes have changed
+			//TODO (before beta) only update if attributes have changed
 			secureExternalRecipients[i].getEditableContact().update();
 			if (secureExternalRecipients[i].isExistingContact()) {
-				//TODO handle exception
-				secureExternalRecipients[i].getEditableContact().getContact().update(function() {});
+				secureExternalRecipients[i].getEditableContact().getContact().update(function() {
+					console.log("error");
+				});
 			} else {
-				//TODO handle exception
-				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {});
+				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {
+					console.log("error");
+				});
 			}
 		}
 	
@@ -195,19 +197,18 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 					self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
 				if (exception) {
 					console.log("could not send mail", exception);
-					// TODO handle technical failures
 					return;
 				}
 				if (tutao.locator.userController.isExternalUserLoggedIn()) {
 					tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
 						if (exception) {
-							// TODO handle technical failures
+							console.log("error");
 							return;
 						}
 						// load the mail body to make sure it is available when the DisplayeMail is created
 						tutao.entity.tutanota.MailBody.load(mail.getBody(), function(body, exception) {
 							if (exception) {
-								// TODO handle technical failures
+								console.log("error");
 								return;
 							}
 							tutao.locator.mailViewModel.addFirstMailToConversation(new tutao.tutanota.ctrl.DisplayedMail(mail));
@@ -227,7 +228,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
  * @return {boolean} True if the mail was cancelled, false otherwise.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) {
-	//TODO check changes, not content
 	this.composerBody(tutao.locator.mailView.getComposingBody());
 	var confirm = (this.composerSubject() !== "" ||
 			this.composerBody() !== "" ||
@@ -452,7 +452,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 		} else {
 			tutao.tutanota.util.FileUtils.readLocalFile(fileList[i], function(dataFile, exception) {
 				if (exception) {
-					//TODO exception handling
 					console.log(exception);
 					return;
 				}
@@ -559,7 +558,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getRecipientInfoFromText = function(
 };
 
 /**
- * TODO allow async loading.
+ * TODO (before beta) allow async loading.
  * Provides all contacts of the logged in user. We assume that the contacts are cached because
  * they where loaded during log in.
  * @return {Array.<tutao.entity.tutanota.ContactWrapper>} All contacts of the logged in user.

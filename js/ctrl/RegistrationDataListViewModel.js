@@ -68,8 +68,6 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getStateName = funct
 };
 
 
-// TODO add link: TutaDb.getProperty("TUTADB_SERVER") + "/#register/" + ResourceConstants.AUTH_TOKEN_PARAMETER_NAME + "=" + registrationToken;
-
 /**
  * Adds a new registration data entry
  */

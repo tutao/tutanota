@@ -2,7 +2,7 @@
 
 goog.provide('tutao.tutanota.ctrl.Navigator');
 
-// TODO check if switching to http://oscar.finnsson.nu/pagerjs/ is an alternative:
+// TODO (before beta) check if switching to http://oscar.finnsson.nu/pagerjs/ is an alternative:
 // written for knockout and more active. Page bindings and params come into index.html
 tutao.tutanota.ctrl.Navigator = function() {
 	// just for testing: tutao.tutanota.util.ClientDetector._supported = tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN;

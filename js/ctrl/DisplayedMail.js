@@ -57,7 +57,8 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function() {
 //	setTimeout(function() {
 	self.mail.loadBody(function(body, exception) {
 		if (exception) {
-			self.bodyText("error while loading"); //TODO error handling
+			self.bodyText("error while loading");
+			console.log("error");
 		} else {
 			self.bodyText(tutao.locator.htmlSanitizer.sanitize(body.getText()));
 			var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
@@ -75,13 +76,12 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function() {
  */
 tutao.tutanota.ctrl.DisplayedMail.prototype._loadAttachments = function() {
 	var self = this;
-	//TODO implement loading of multiple LET instances
+	//TODO (timely) implement loading of multiple LET instances
 	for (var i = 0; i < this.mail.getAttachments().length; i++) {
 		tutao.entity.tutanota.File.load(this.mail.getAttachments()[i], function(file, exception) {
 			if (!exception) {
 				self.attachments.push(file);
 			} else {
-				//TODO exception handling
 				console.log(exception);
 			}
 		});
@@ -101,7 +101,6 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function(file) 
 	this.currentlyDownloadingAttachment(file);
 	tutao.tutanota.ctrl.FileFacade.readFileData(file, function(dataFile, exception) {
 		if (exception) {
-			//TODO exception handling
 			console.log(exception);
 			self.currentlyDownloadingAttachment(null);
 			return;

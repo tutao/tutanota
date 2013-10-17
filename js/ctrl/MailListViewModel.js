@@ -324,7 +324,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mail
 			if (this.tagToMailAttributeValueMapping[tagId] == mailTagValue) {
 				this.currentTagFilterResult[tagId].unshift(mails[i].getId()[1]);
 				if (this._currentActiveSystemTag == tagId) {
-					// TODO story "Add new mails to mail list according to search query": only add the mail if it passes the search query
+					// TODO (story search mails): only add the mail if it passes the search query
 					this.mails.unshift(mails[i]);
 				}
 				// the mail must only go into the first tag list that fits, so break now (the tag ids are sorted by priority)
@@ -391,7 +391,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, dom
 	}
 
 	if (this._multiSelect) {
-		//TODO implement multi selection
 	} else {
 		if (this._selectedMails.length > 0 && mail == this._selectedMails[0]) {
 			tutao.locator.mailView.fadeConversation();
@@ -431,7 +430,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.unselectAll = function() {
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [];
 	this._selectedMails = [];
-	// TODO remove the next lines if it is fine not to hide the conversation if the mail list changes, also delete MailViewModel.hideConversation
+	// TODO (before beta) remove the next lines if it is fine not to hide the conversation if the mail list changes, also delete MailViewModel.hideConversation
 //	if (!tutao.locator.mailViewModel.isComposingState()) {
 //		tutao.locator.mailViewModel.hideConversation();
 //	}

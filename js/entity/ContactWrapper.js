@@ -140,7 +140,7 @@ tutao.entity.tutanota.ContactWrapper.prototype.startEditingContact = function(ed
 		}
 	}
 	if (entry && entry.editingInstances.indexOf(editingInstance) != -1) {
-		console.log("start editing without stop", editingInstance); //TODO remove
+		console.log("start editing without stop", editingInstance); //TODO (before beta) remove, just for debugging
 	} else if (!entry) {
 		entry = { "editable": new tutao.entity.tutanota.ContactEditable(this._contact), "editingInstances": [editingInstance] };
 		cache.push(entry);
@@ -166,7 +166,7 @@ tutao.entity.tutanota.ContactWrapper.prototype.stopEditingContact = function(edi
 		}
 	}
 	if (!entry || !entry.editingInstances.indexOf(editingInstance) == -1) {
-		console.log("stop editing without start", editingInstance); //TODO remove
+		console.log("stop editing without start", editingInstance); //TODO (before beta) remove, just for debugging
 		return;
 	}
 	entry.editingInstances.splice(entry.editingInstances.indexOf(editingInstance), 1);

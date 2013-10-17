@@ -156,7 +156,6 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
 		var preshared = true;
 		if (!password) {
-			//TODO check for mobile numbers here and throw exception?
 			password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
 			preshared = false;
 		}
@@ -167,11 +166,11 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 				recipientInfo.getContactWrapper().getContact().update(function() {});
 			}
 		}
-		console.log(password); //TODO just for testing, remove later
+		console.log(password); //TODO (before beta) just for testing, remove later or dev mode
 
 		var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
 		var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
-		// TODO story performance: make kdf async in worker
+		// TODO (story performance): make kdf async in worker
 		tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
 			var key = tutao.locator.aesCrypter.hexToKey(hexKey);
 			var symEncBucketKey = tutao.locator.aesCrypter.encryptKey(key, bucketKey);

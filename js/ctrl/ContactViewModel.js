@@ -25,7 +25,7 @@ tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT = 2;
 tutao.tutanota.ctrl.ContactViewModel.MODE_NEW = 3;
 
 /**
- * Removes the currenlty visible contact. TODO make private if not used from outside.
+ * Removes the currenlty visible contact. TODO (before beta) make private if not used from outside.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.removeContact = function() {
 	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);

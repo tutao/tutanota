@@ -51,7 +51,6 @@ tutao.tutanota.ctrl.FileViewModel.prototype.downloadFile = function(file) {
 	this.currentlyDownloadingFile(file);
 	tutao.tutanota.ctrl.FileFacade.readFileData(file, function(dataFile, exception) {
 		if (exception) {
-			//TODO exception handling
 			console.log(exception);
 			self.currentlyDownloadingFile(null);
 			return;

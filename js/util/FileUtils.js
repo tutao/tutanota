@@ -67,7 +67,7 @@ tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8 = function(file, callba
  * @param {function(Error=)} callback Called when finished. Passes an error if the download fails.
  */
 tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
-	// TODO check encoding: open text file in browser, encoding is wrong
+	// TODO (before release) check encoding: open text file in browser, encoding is wrong
 	navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
 	window.saveAs = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs;
 	var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;

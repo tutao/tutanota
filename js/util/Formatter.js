@@ -30,8 +30,6 @@ tutao.tutanota.util.Formatter.formatTimeMillis = function(date) {
 };
 
 /**
- * TODO switch to google Date tools?
- *
  * @see http://www.elated.com/articles/working-with-dates/
  * @param {Date} date The date to format.
  * @return {string} the formatted date in the form 'dd. Month [yyyy] hh:mm'.
@@ -52,7 +50,7 @@ tutao.tutanota.util.Formatter.formatFullDateTime = function(date) {
 
 /**
  * Provides the date as a string with the year skipped if it is the current year.
- * TODO switch to google Date tools?
+ * TODO (before beta) switch to google Date tools for all date formattings, esp. for different locales?
  *
  * @see http://www.elated.com/articles/working-with-dates/
  * @param {Date} date The date to format.

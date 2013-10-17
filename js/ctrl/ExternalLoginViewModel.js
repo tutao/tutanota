@@ -78,7 +78,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, c
 	params[tutao.rest.ResourceConstants.ID_PARAMETER_NAME] = mailRef;
 	tutao.entity.tutanota.ExternalMailReferenceReturn.load(params, null, function(refData, exception) {
 		if (exception) {
-			self.errorMessageId("invalidLink_msg"); //TODO error handling
+			self.errorMessageId("invalidLink_msg");
+			console.log("error");
 			return;
 		}
 		self.userId = refData.getUserId();
@@ -179,7 +180,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._allowSmsAfterDelay = funct
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection = function(callback) {
 	var self = this;
-	// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
+	// TODO (before beta) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
 	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(passwordChannelReturn, exception) {
 		if (exception) {
 			self.errorMessageId("invalidLink_msg");
@@ -192,7 +193,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection =
 		} else {
 			self.userMessageId("chooseNumber_msg");
 		}
-		// TODO extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
 		callback();
 	});
 };
@@ -289,7 +289,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMail = function() {
 			self.state.event("passwordInvalid");
 			self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
 			self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-			//TODO handle technical exceptions (depending on HTTP response code)
+			console.log("handle technical exceptions (depending on HTTP response code)");
 			return;
 		}
 		
@@ -299,7 +299,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMail = function() {
 					self.state.event("passwordInvalid");
 					self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
 					self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-					//TODO handle technical exceptions (depending on HTTP response code)
+					console.log("handle technical exceptions (depending on HTTP response code)");
 				} else {
 					self.state.event("passwordValid");
 				}
@@ -365,9 +365,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showMail = function(callba
 	});
 };
 
-/**
- * TODO
- */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function() {
     if (this._showingMail) {
 		return;
