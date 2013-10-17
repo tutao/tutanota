@@ -109,7 +109,7 @@ AesTest.prototype.testCiphertextLengths = function() {
 	assertEquals(48, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdef", true)));
 
 	// check that that a non-ascii-character needs two bytes
-	// TODO enable as soon as jstestdriver supports utf8. currently the 'ä' consumes 4 characters which is not utf8 compatible.
+	// TODO (jstestdriver utf8) enable as soon as jstestdriver supports utf8. currently the 'ä' consumes 4 characters which is not utf8 compatible.
 	// http://code.google.com/p/js-test-driver/issues/detail?id=85
 	// assertEquals(16, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcä", false)));
 	// assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdä", false)));

@@ -88,7 +88,7 @@ EntropyCollectorTest.prototype.testMousemove = function(queue) {
 	});
 };
 
-// TODO enable and fix
+// TODO (before beta) enable and fix
 //EntropyCollectorTest.prototype.testFetchMissingUrlsPing = function(queue) {
 //	var spy = JsMockito.spy(this.collector);
 //	var alreadyInvoked = false; 

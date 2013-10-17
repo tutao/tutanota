@@ -2,7 +2,7 @@
 
 goog.provide('EntitySessionKeyHandlingTest');
 
-// TODO map: go on with client unit and integration tests!
+// TODO (before beta) go on with client unit and integration tests!
 
 TestCase("EntitySessionKeyHandlingTest", {
 	

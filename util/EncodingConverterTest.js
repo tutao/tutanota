@@ -26,7 +26,7 @@ EncodingConverterTest.prototype.testBase64Base64UrlRoundtrip = function() {
 EncodingConverterTest.prototype.testStringToUtf8Bytes = function() {
 	assertEquals("", tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.utf8ToHex("")));
 	assertEquals("€", tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.utf8ToHex("€")));
-	//TODO enable as soon as jstestdriver supports utf8 or is not used any more: assertEquals([226, 130, 172], tutao.util.EncodingConverter.stringToUtf8Bytes("€"));
+	//TODO (jstestdriver utf8) enable as soon as jstestdriver supports utf8 or is not used any more: assertEquals([226, 130, 172], tutao.util.EncodingConverter.stringToUtf8Bytes("€"));
 	assertEquals("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf", tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.utf8ToHex("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")));
 };
 

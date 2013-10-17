@@ -49,7 +49,7 @@ KdfTest.prototype.testPassphrases = function(queue) {
 		// this test data comes from BcryptTest.java
 		var pairs = [{pw: "?", hash: "01d90c0c9e84adb4f0bda2e9c53b7701"},
 		{pw: "%", hash: "4b8f17228d100392676c09391ee9693c"},
-//		{pw: "€uropa", hash: "dccbc232baef846b05da3a2c63219540}, // TODO enable as soon as the test framework supports utf8
+//		{pw: "€uropa", hash: "dccbc232baef846b05da3a2c63219540}, // TODO (jstestdriver utf8) enable as soon as the test framework supports utf8
 		{pw: "?uropa", hash: "2b920848fd7db6a84893761e75025c02"}];
 
 		for ( var i = 0; i < pairs.length; i++) {

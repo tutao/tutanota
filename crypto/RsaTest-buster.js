@@ -1,4 +1,4 @@
-// TODO sequentielles Ausführen, Code Coverage, Gradle beendet sich nicht, Lösung für Requires (nur Node-Unit-Tests)
+// to do sequentielles Ausführen, Code Coverage, Gradle beendet sich nicht, Lösung für Requires (nur Node-Unit-Tests)
 
 //"use strict";
 //

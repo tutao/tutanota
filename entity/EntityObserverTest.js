@@ -32,7 +32,7 @@ TestCase("EntityObserverTest", {
 		// check unregister wrong callback
 		helper.unregisterObserver(function() {})
 		helper.notifyObservers(false);
-		//TODO check why there are two invocations. debugging shows it is only one
+		//TODO (before beta) check why there are two invocations. debugging shows it is only one
 		JsMockito.verify(callback, JsMockito.Verifiers.times(2))(false, entityDummy, id);
 		
 		// check unregister
@@ -60,7 +60,7 @@ TestCase("EntityObserverTest", {
 		// remove one
 		helper.unregisterObserver(callback1);
 		helper.notifyObservers(false);
-		//TODO check why there are two invocations. debugging shows it is only one
+		//TODO (before beta) check why there are two invocations. debugging shows it is only one
 		JsMockito.verify(callback2, JsMockito.Verifiers.times(2))(false, entityDummy, id);
 		JsMockito.verifyNoMoreInteractions(callback1);
 		JsMockito.verifyNoMoreInteractions(callback2);
