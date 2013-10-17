@@ -12,6 +12,6 @@ tutao.tutanota.security.HtmlSanitizer = function() {};
 /**
  * Sanitizes the given html.
  * @param {string} html The html content to sanitize.
- * @return {string} The save html.
+ * @return {string} The safe html.
  */
 tutao.tutanota.security.HtmlSanitizer.prototype.sanitize = function(html) {};

@@ -78,13 +78,14 @@ tutao.tutanota.gui.BubbleInputGui.setSelectionRange = function(input, selectionS
  * @return {number} the width of the text in px.
  */
 tutao.tutanota.gui.BubbleInputGui._measureTextWidth = function(text, font) {
+	var sanitizedText = tutao.locator.htmlSanitizer.sanitize(text);
     var id = 'text-width-tester';
     var tag = $('#' + id);
     if (!tag.length) {
-        tag = $('<span id="' + id + '" style="display:none;font:' + font + ';">' + text + '</span>'); //FIXME html sanitize
+        tag = $('<span id="' + id + '" style="display:none;font:' + font + ';">' + sanitizedText + '</span>');
         $('body').append(tag);
     } else {
-        tag.css({font: font}).html(text);
+        tag.css({font: font}).html(sanitizedText);
     }
     return tag.width();
 };
