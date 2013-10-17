@@ -7,7 +7,7 @@ goog.provide('tutao.event.EventBusClient');
  * The EventBus encapsulates the WebSocket connection to the server. It currently only forwards messages to observers.
  * @implements {tutao.event.Observable}
  */
-// TODO test disconnects, re-connect etc.
+// TODO (before beta) test disconnects, re-connect etc.
 tutao.event.EventBusClient = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this); // listener methods are invoked from the Websocket
 	this._observable = new tutao.event.Observable();

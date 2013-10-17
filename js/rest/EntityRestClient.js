@@ -197,7 +197,7 @@ tutao.rest.EntityRestClient.prototype._cloneParameters = function(parameters) {
  * @inheritDoc
  */
 tutao.rest.EntityRestClient.prototype.deleteElements = function(path, ids, listId, parameters, headers, callback) {
-	//TODO define exception handling if some elements failed (return successful ids?)
+	//TODO (before beta) define exception handling if some elements failed (return successful ids?)
 	var nbrOfFinishedElements = 0;
 	for (var i = 0; i < ids.length; i++) {
 		tutao.locator.restClient.deleteElements(tutao.rest.EntityRestClient.createUrl(path, listId, ids[i], parameters), headers, null, function(exception) {

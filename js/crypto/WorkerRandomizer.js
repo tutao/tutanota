@@ -28,7 +28,7 @@ tutao.crypto.WorkerRandomizer.prototype.isReady = function() {
  */
 tutao.crypto.WorkerRandomizer.prototype.generateRandomData = function(nbrOfBytes) {
 	if (this._nextBytes.length / 2 < nbrOfBytes) {
-		// TODO how to handle this case, especially for key pair generation?
+		// TODO (story review RSA lib) how to handle this case, especially for key pair generation?
 		return new tutao.crypto.SimpleRandomizer().generateRandomData(nbrOfBytes);
 	}
 	var bytes = this._nextBytes.substring(0, nbrOfBytes * 2);

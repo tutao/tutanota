@@ -204,7 +204,6 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function(userId, passwor
 	this.reset();
 	this._userId = userId;
 	this._authToken = authToken;
-	// TODO story: Show all emails of conversation for external users: use hash of key as verifier
 	tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
 		self._userGroupKey = tutao.locator.aesCrypter.hexToKey(hexKey);
 		// the verifier is always sent as url parameter, so it must be url encoded

@@ -67,7 +67,6 @@ tutao.entity.EntityHelper.prototype._isNewObject = function() {
  */
 tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 	var self = this;
-	//TODO decide on if to add a session key for the user. would need an encrypted permission in UserService.createUser()
 	if (!this._entity.ENCRYPTED || this._sessionKey != null) {
 		callback(this._entity);
 		return;
@@ -236,7 +235,6 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 tutao.entity.EntityHelper.prototype._tryGetSymEncSessionKey = function(permissions) {
 	var user = tutao.locator.userController.getLoggedInUser();
 	for (var i = 0; i < permissions.length; i++) {
-		//TODO value validation use generated permission type id for public and public_symmetric, same like below and in _tryGetPubEncSessionKey
 		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && (permissions[i].getType() == "1" || permissions[i].getType() == "2")) {
 			return tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), permissions[i].getSymEncSessionKey());
 		}

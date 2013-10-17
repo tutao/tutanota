@@ -22,5 +22,5 @@ tutao.rest.EntityRestException.prototype.getOriginal = function() {
 };
 
 tutao.rest.EntityRestException.prototype.isConnectionDown = function() {
-	  return typeof (this._original == tutao.rest.RestException && this._original.getResponseCode() == 0); //TODO verify that this is working
+	  return typeof (this._original == tutao.rest.RestException && this._original.getResponseCode() == 0); //TODO (before beta) verify that this is working
 };

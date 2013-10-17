@@ -96,7 +96,6 @@ tutao.rest.EntityRestCache.prototype.getService = function(type, path, data, par
  * @inheritDoc
  */
 tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
-	// TODO does currently not work for listElements (add listId to signature)
 	var elements = [];
 	var fromDbIds = [];
 	var cacheListId = "0"; // currently only for ETs
@@ -169,7 +168,6 @@ tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listI
 			}
 			if (self._db[path] && self._db[path][cacheListId] && self._db[path][cacheListId][id]) {
 				// this should not happen
-				//TODO implement
 				console.log("cache out of sync for post: " + path);
 			}
 			
@@ -231,7 +229,6 @@ tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parame
 				// put on the target worked fine, so the element was existing on the target.
 				// it must habe been received from the target or posted first, otherwise it would not have been possible to put it.
 				// we somehow must have missed receiving the element and putting it into the cache.
-				//TODO implement
 				console.log("cache out of sync for " + path);
 			}
 			
@@ -270,7 +267,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		// cache because the target does not return them if it is a dummy. So add all elements to the range that are
 		// already in the cache
 		// load all elements (i.e. up to 1000000)
-		// TODO only up to 1000 allowed. how to load all?
+		// TODO (before beta) only cache what is requested.
 		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);

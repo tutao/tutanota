@@ -86,7 +86,6 @@ tutao.rest.RestClient.prototype.deleteElements = function(path, headers, json, c
 			callback(new tutao.rest.RestException(jqXHR.status));
 		}
 	});
-	//TODO return nbr of deleted elements when this is provided by the server
 };
 
 /**

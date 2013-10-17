@@ -121,7 +121,7 @@ tutao.rest.EntityRestInterface.prototype.postList = function(path, parameters, h
  */
 tutao.rest.EntityRestInterface.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers, callback) { };
 
-//TODO delete a single element
+//TODO (before beta) delete a single element
 
 /**
  * Deletes elements by id.

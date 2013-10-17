@@ -226,7 +226,6 @@ tutao.db.WebSqlDb.prototype._makeSureIndexTableExists = function(name, callback)
 		this._db.transaction(function(tx) {
 			tx.executeSql('CREATE TABLE IF NOT EXISTS ' + name + '(word, elementId)', []);
 		}, function() {
-			//todo error handling everywhere
 			console.log("failed to create index table");
 		}, function() {
 			self._availableTables[name] = true;

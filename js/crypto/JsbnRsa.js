@@ -30,7 +30,7 @@ tutao.crypto.JsbnRsa = function() {
  * @inheritDoc
  */
 tutao.crypto.JsbnRsa.prototype.generateKeyPair = function(callback) {
-	// TODO story rsa review: the minimal modulus length. 2047 bit?
+	// TODO (story rsa review): the minimal modulus length. 2047 bit?
 	var rsa = new RSAKey();
 	try {
 		rsa.generate(this.keyLengthInBits, this.publicExponentAsHex);
