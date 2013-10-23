@@ -222,6 +222,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	german_alt: "deutsch",
 	english_alt: "english",
 	check_msg: "Checking...",
+	add_action: "add", // also used by outlook addin
+	remove_action: "remove", // also used by outlook addin
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -499,6 +501,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	german_alt: "Deutsch",
 	english_alt: "English",
 	check_msg: "Überprüfe...",
+	add_action: "hinzufügen",
+	remove_action: "entfernen",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Code eingeben.",
