@@ -58,9 +58,9 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
 };
 
 /**
- * Returns all Translations in pretty-printed form.
+ * Returns all translations in pretty-printed form.
  */
-tutao.tutanota.ctrl.LanguageViewModel.allTranslationsAsJson = function() {
+tutao.tutanota.ctrl.LanguageViewModel.prototype.allTranslationsAsJson = function() {
 	return JSON.stringify({de: tutao.tutanota.ctrl.LanguageViewModel.de, en: tutao.tutanota.ctrl.LanguageViewModel.en}, null, 2)
 };
 
@@ -217,6 +217,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// general
 	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
 	save_action: "save",
+	dismiss_action: "cancel",
 	cancel_action: "cancel",
 	edit_action: "edit",
 	delete_action: "delete",
@@ -232,6 +233,12 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	check_msg: "Checking...",
 	add_action: "add", // also used by outlook addin
 	remove_action: "remove", // also used by outlook addin
+	tutanotaStarter_label: "Tutanota Outlook Addin (Tutanota Starter)",
+	version_label: "version:",
+	tutanotaWebClient_label: "Tutanota web client:",
+	help_label: "Get help:",
+	sendLogFile_action: "Send log file via email",
+	info_label: "Info",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -350,11 +357,11 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	
 	// outlook
 	account_label: "user",
-	passwordNeutral_msg: "Your Tutanota Password",
+	passwordNeutral_msg: "Your Tutanota password",
 	savePassword_label: "remember",
 	savePassword_msg: "Store the password and do not ask me again for it",
 	confidentialDefault_label: "confidential default",
-	confidentialDefault_Info: "Set to send new messages confidential as default",
+	confidentialDefault_msg: "Set to send new messages confidential as default",
 	noConnection_msg: "You are offline: Could not connect to Tutanota",
 	loginAction_msg: "You will only receive secure Tutanota emails after logging in",
 	alternative_label: "alternative:",
@@ -510,7 +517,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// general
 	emptyString_msg: "\u2008",
 	save_action: "Speichern",
-	cancel_action: "Verwerfen",
+	dismiss_action: "Verwerfen",
+	cancel_action: "Abbrechen",
 	edit_action: "Ändern",
 	delete_action: "Löschen",
 	undelete_action: "Wiederherstellen",
@@ -525,6 +533,12 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	check_msg: "Überprüfe...",
 	add_action: "hinzufügen",
 	remove_action: "entfernen",
+	tutanotaStarter_label: "Tutanota-Outlook-Addin (Tutanota Starter)",
+	version_label: "Version:",
+	tutanotaWebClient_label: "Tutanota-Web-Client:",
+	help_label: "Hilfe:",
+	sendLogFile_action: "Log-Datei per E-Mail senden",
+	info_label: "Info",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Code eingeben.",
@@ -643,11 +657,11 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	
 	// outlook
 	account_label: "Benutzer",
-	passwordNeutral_msg: "Ihr Tutanota Passwort",
+	passwordNeutral_msg: "Ihr Tutanota-Passwort",
 	savePassword_label: "Speichern",
 	savePassword_msg: "Das Passwort dauerhaft speichern und nicht erneut nachfragen",
 	confidentialDefault_label: "Vertraulich als Standard",
-	confidentialDefault_Info: "Auswählen, um neue Nachrichten automatisch vertraulich zu versenden",
+	confidentialDefault_msg: "Auswählen, um neue Nachrichten automatisch vertraulich zu versenden",
 	noConnection_msg: "Sie sind offline: Es konnte keine Verbindung zu Tutanota hergestellt werden",
 	loginAction_msg: "Nach dem Login können Sie sichere Nachrichten versenden und empfangen",
 	alternative_label: "alternativ",
