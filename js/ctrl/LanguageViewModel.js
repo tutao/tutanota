@@ -58,6 +58,13 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
 };
 
 /**
+ * Returns all Translations in pretty-printed form.
+ */
+tutao.tutanota.ctrl.LanguageViewModel.allTranslationsAsJson = function() {
+	return JSON.stringify({de: tutao.tutanota.ctrl.LanguageViewModel.de, en: tutao.tutanota.ctrl.LanguageViewModel.en}, null, 2)
+};
+
+/**
  * Defines the english translations of all texts in Tutanota.
  * The actual identifier is in camel case and the type is appended by an underscore.
  * Types: label, action, msg, title, alt, placeholder
@@ -89,7 +96,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	attachFiles_action: "attach files",
 	removeAttachment_alt: "Remove attachment",
 	contactDataForSms_label: "Password transmission to external recipients",
-	atLeastOneMobileNumber_label: "At least one german mobile number or a pre-shared password per recipient is needed",
+	atLeastOneMobileNumber_label: "At least one german mobile number or a pre-shared password per external recipient is needed",
 	secureMail_title: 'Email is encrypted for external recipients.',
 	unsecureMail_title: 'Email is not encrypted for external recipients.',
 	noRecipients_msg: 'Please provide recipients for your email.',
@@ -216,6 +223,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	undelete_action: "undelete",
 	print_action: "print",
 	back_action: "back",
+	ok_action: "ok",
 	monthNames_label: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 	busy_alt: "Busy",
 	close_alt: "close",
@@ -339,6 +347,19 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// feedback
 	screenshot_msg: "A screenshot will be sent along with your message to us!",
 	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
+	
+	// outlook
+	account_label: "user",
+	passwordNeutral_msg: "Your Tutanota Password",
+	savePassword_label: "remember",
+	savePassword_msg: "Store the password and do not ask me again for it",
+	confidentialDefault_label: "confidential default",
+	confidentialDefault_Info: "Set to send new messages confidential as default",
+	noConnection_msg: "You are offline: Could not connect to Tutanota",
+	loginAction_msg: "You will only receive secure Tutanota emails after logging in",
+	alternative_label: "alternative:",
+	presharedPasswordAndStrength_msg: "Your pre-shared password. Strength:",
+	passwordTransmission_label: "Password transmission",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -368,7 +389,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	attachFiles_action: "Dateien anhängen",
 	removeAttachment_alt: "Anhang entfernen",
 	contactDataForSms_label: "Passwortübertragung an externe Empfänger",
-	atLeastOneMobileNumber_label: "Mindestens eine deutsche Mobilfunknummer oder ein zuvor vereinbartes Passwort wird pro Empfänger benötigt",
+	atLeastOneMobileNumber_label: "Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig",
 	secureMail_title: 'Die E-Mail wird für alle externen Empfänger verschlüsselt.',
 	unsecureMail_title: 'Die E-Mail wird unverschlüsselt an externe Empfänger gesendet.',
 	noRecipients_msg: 'Sie müssen mindestens einen Empfänger angeben.',
@@ -495,6 +516,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	undelete_action: "Wiederherstellen",
 	print_action: "Drucken",
 	back_action: "Zurück",
+	ok_action: "OK",
 	monthNames_label: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
 	busy_alt: "Bitte warten...",
 	close_alt: "Schließen",
@@ -590,7 +612,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mailAddressAvailable_msg: "E-Mail-Adresse ist verfügbar",
 	mailAddressNA_msg: "E-Mail-Adresse ist bereits vergeben",
 	mailAddressBusy_msg: "E-Mail-Adresse wird überprüft...",
-		pwStrength_title: "Zeigt den Sicherheitsgrad des verwendeten Passworts an",
+	pwStrength_title: "Zeigt den Sicherheitsgrad des verwendeten Passworts an",
 	goodPassphrase_action: "Wie finde ich ein gutes Passwort?",
 	termsAndConditions_action: "Nutzungsbedingungen",
 	join_action: "Fortfahren",
@@ -618,4 +640,17 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// feedback
 	screenshot_msg: "Ein Screenshot wird mit der Nachricht an uns versendet!",
 	sendFeedbackFailed_msg: "Leider konnte das Feedback nicht gesendet werden. Bitte versuchen Sie es später erneut.",
+	
+	// outlook
+	account_label: "Benutzer",
+	passwordNeutral_msg: "Ihr Tutanota Passwort",
+	savePassword_label: "Speichern",
+	savePassword_msg: "Das Passwort dauerhaft speichern und nicht erneut nachfragen",
+	confidentialDefault_label: "Vertraulich als Standard",
+	confidentialDefault_Info: "Auswählen, um neue Nachrichten automatisch vertraulich zu versenden",
+	noConnection_msg: "Sie sind offline: Es konnte keine Verbindung zu Tutanota hergestellt werden",
+	loginAction_msg: "Nach dem Login können Sie sichere Nachrichten versenden und empfangen",
+	alternative_label: "alternativ",
+	presharedPasswordAndStrength_msg: "Vereinbartes Passwort. Stärke:",
+	passwordTransmission_label: "Passwort-Übertragung",
 };
