@@ -9,6 +9,7 @@ goog.provide('tutao.crypto.WorkerRandomizer');
  */
 tutao.crypto.WorkerRandomizer = function() {
 	this._nextBytes = "";
+	this.requestedBytes = 0;
 };
 
 /**
