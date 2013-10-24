@@ -367,6 +367,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	alternative_label: "alternative:",
 	presharedPasswordAndStrength_msg: "Your pre-shared password. Strength:",
 	passwordTransmission_label: "Password transmission",
+	contactNotUpdated_msg: "The new mobile number has not been copied into the contact because a mobile number for the contact is already stored",
+	confidentiality_label: "Confidentiality",
+	confidentiality_msg: "Choose if you want to send a confidential Tutanota message",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -667,4 +670,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	alternative_label: "alternativ",
 	presharedPasswordAndStrength_msg: "Vereinbartes Passwort. Stärke:",
 	passwordTransmission_label: "Passwort-Übertragung",
+	contactNotUpdated_msg: "Die neue Mobilnummber wurde nicht in den Kontakt übernommen, da für diesen bereits eine Mobilnummer hinterlegt ist",
+	confidentiality_label: "Vertraulichkeit",
+	confidentiality_msg: "Wählen Sie, ob die Nachricht vertraulich über Tutanota versendet werden soll",
 };
