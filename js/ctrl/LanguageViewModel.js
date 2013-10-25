@@ -370,6 +370,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	contactNotUpdated_msg: "The new mobile number has not been copied into the contact because a mobile number for the contact is already stored",
 	confidentiality_label: "Confidentiality",
 	confidentiality_msg: "Choose if you want to send a confidential Tutanota message",
+	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -673,4 +674,5 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	contactNotUpdated_msg: "Die neue Mobilnummber wurde nicht in den Kontakt übernommen, da für diesen bereits eine Mobilnummer hinterlegt ist",
 	confidentiality_label: "Vertraulichkeit",
 	confidentiality_msg: "Wählen Sie, ob die Nachricht vertraulich über Tutanota versendet werden soll",
+	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 };
