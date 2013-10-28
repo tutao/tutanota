@@ -141,7 +141,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.isExternal = function() {
 	//TODO (before beta) check for public key instead of the domain name
-	return !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de");
+	return !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.de");
 };
 
 /**
