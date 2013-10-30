@@ -262,6 +262,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	loginFailedOften_msg: "Too many failed login attempts. Please try again later.",
 	loginFailed_msg: "Invalid login credentials. Please try again.",
 	login_action: "log in",
+	login_msg: 'Logging in',
 	emailAddress_placeholder: "email address",
 
 	// header
@@ -372,6 +373,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	confidentiality_label: "Confidentiality",
 	confidentiality_msg: "Choose if you want to send a confidential Tutanota message",
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
+	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -567,6 +569,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	loginFailedOften_msg: "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuchen Sie es später erneut.",
 	loginFailed_msg: "Ungültige E-Mail-Adresse oder Passwort. Bitte versuchen Sie es erneut.",
 	login_action: "Anmelden",
+	login_msg: 'Sie werden eingeloggt',
 	emailAddress_placeholder: "E-Mail-Addresse",
 
 	// header
@@ -677,4 +680,5 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	confidentiality_label: "Vertraulichkeit",
 	confidentiality_msg: "Wählen Sie, ob die Nachricht vertraulich über Tutanota versendet werden soll.",
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
+	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
 };
