@@ -371,7 +371,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	passwordTransmission_label: "Password transmission",
 	contactNotUpdated_msg: "The new mobile number has not been copied into the contact because a mobile number for the contact is already stored",
 	confidentiality_label: "Confidentiality",
-	confidentiality_msg: "Choose if you want to send a confidential Tutanota message",
+	confidentialityOffline_msg: "You are offline and this message will not be sent confidential. Click to send a confidential message.",
+	confidentialityDisabled_msg: "This message will not be sent confidential. Click to send a confidential message.",
+	confidentialityEnabled_msg: "This message will be sent confidential.",
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
 };
@@ -678,7 +680,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	passwordTransmission_label: "Passwort-Übertragung",
 	contactNotUpdated_msg: "Die neue Mobilnummber wurde nicht in den Kontakt übernommen, da für diesen bereits eine Mobilnummer hinterlegt ist.",
 	confidentiality_label: "Vertraulichkeit",
-	confidentiality_msg: "Wählen Sie, ob die Nachricht vertraulich über Tutanota versendet werden soll.",
+	confidentialityOffline_msg: "Sie sind offline und diese Nachricht wird nicht vertraulich versendet. Klicken Sie, um die Nachricht vertraulich zu senden.",
+	confidentialityDisabled_msg: "Diese Nachricht wird nicht vertraulich versendet. Klicken Sie, um die Nachricht vertraulich zu senden.",
+	confidentialityEnabled_msg: "Diese Nachricht wird vertraulich versendet.",
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
 };
