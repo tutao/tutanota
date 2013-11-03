@@ -376,6 +376,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	confidentialityEnabled_msg: "This message will be sent confidential.",
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
+	sending_msg: 'encrypting and sending message',
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -685,4 +686,5 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	confidentialityEnabled_msg: "Diese Nachricht wird vertraulich versendet.",
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
+	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet',
 };
