@@ -377,6 +377,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
 	sending_msg: 'encrypting and sending message',
+	sendingFailed_msg: 'Could not send the message. Please try again later.',
+	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -687,4 +689,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
 	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet',
+	sendingFailed_msg: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.',
+	savingFailed_msg: 'Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.',
 };
+
