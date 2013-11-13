@@ -379,6 +379,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	sending_msg: 'encrypting and sending message',
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
+	outlookVersionNotSupported_msg: 'Unfortunately, this version of Outlook is not supported for Tutanota. Please use Oulook 2010 or Outlook 2013.',
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -691,5 +692,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet',
 	sendingFailed_msg: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.',
 	savingFailed_msg: 'Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.',
+	outlookVersionNotSupported_msg: 'Diese Outlook-Version wird leider nicht von Tutanota unterstützt. Bitte verwenden Sie Outlook 2010 oder Outlook 2013.',
 };
 
