@@ -353,7 +353,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
 	version_label: "version:",
-	tutanotaWebClient_label: "Tutanota web client:",
+	tutanotaWebClientColon_label: "Tutanota Client:",
+	tutanotaWebClient_label: "Tutanota Client",
 	help_label: "Get help:",
 	sendLogFile_action: "Send log file via email",
 	info_label: "Info",
@@ -380,6 +381,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
 	outlookVersionNotSupported_msg: 'Unfortunately, this version of Outlook is not supported for Tutanota. Please use Oulook 2010 or Outlook 2013.',
+	invalidAttachment_msg: "This email can not be sent via Tutanota because it contains an unsupported attachment.",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -666,7 +668,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter für Microsoft Outlook",
 	version_label: "Version:",
-	tutanotaWebClient_label: "Tutanota im Web:",
+	tutanotaWebClientColon_label: "Tutanota Client:",
+	tutanotaWebClient_label: "Tutanota Client",
 	help_label: "Hilfe erhalten Sie unter:",
 	sendLogFile_action: "Log-Datei per E-Mail senden",
 	info_label: "Info",
@@ -693,5 +696,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	sendingFailed_msg: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.',
 	savingFailed_msg: 'Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.',
 	outlookVersionNotSupported_msg: 'Diese Outlook-Version wird leider nicht von Tutanota unterstützt. Bitte verwenden Sie Outlook 2010 oder Outlook 2013.',
+	invalidAttachment_msg: "Diese E-Mail kann leider nicht mit Tutanota gesendet werden, da sie einen nicht unterstützten Anhang enthält.",
 };
 
