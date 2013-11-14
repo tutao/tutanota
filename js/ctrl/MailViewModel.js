@@ -185,7 +185,13 @@ tutao.tutanota.ctrl.MailViewModel.prototype.newMail = function(recipientInfo) {
 tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) {
 	var infoLine = tutao.tutanota.util.Formatter.formatFullDateTime(displayedMail.mail.getSentDate()) + " " + tutao.lang("by_label") + " " + displayedMail.mail.getSender().getAddress() + ":";
 	var body = "<br><br>" + infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + displayedMail.bodyText() + "</blockquote>";
-	var recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()));
+	var recipient;
+	if (tutao.locator.userController.isExternalUserLoggedIn()) {
+		// TODO iss446 (Internal/external recipients are not correctly resolved): check that the recipient is actually internal (i.e. not unregistered)
+		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress(), false));
+	} else {
+		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()));
+	}
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [recipient], [], displayedMail, body);
 };
 

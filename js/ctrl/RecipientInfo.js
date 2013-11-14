@@ -7,12 +7,19 @@ goog.provide('tutao.tutanota.ctrl.RecipientInfo');
  * @param {string} mailAddress The email address to use as recipient.
  * @param {string} name The name that shall be used for the recipient.
  * @param {tutao.entity.tutanota.ContactWrapper=} contactWrapper The contact to use for recipient info.
+ * @param {tutao.entity.tutanota.ContactWrapper=} contactWrapper Optional. True if the recipient is external, false otherwise.
  * @constructor
  */
-tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper) {
+tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, external) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._mailAddress = mailAddress;
 	this._name = name;
+	if (external == undefined) {
+		//TODO (before beta, iss446 (Internal/external recipients are not correctly resolved)) check for public key instead of the domain name
+		this._external = !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.onmicrosoft.com");
+	} else {
+		this.external = external;
+	}
 	if (!contactWrapper) {
 		this._contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
 		this._existingContact = false;
@@ -140,8 +147,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
  * @return {boolean} If the recipient is external.
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.isExternal = function() {
-	//TODO (before beta) check for public key instead of the domain name
-	return !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.onmicrosoft.com");
+	return this._external;
 };
 
 /**
