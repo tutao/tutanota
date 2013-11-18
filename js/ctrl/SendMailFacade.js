@@ -168,7 +168,8 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		}
 		console.log(password); //TODO (before beta) just for testing, remove later or dev mode
 
-		var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
+		var saltHex = "01010203040506070809010203040506";
+		//var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
 		var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
 		// TODO (story performance): make kdf async in worker
 		tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {

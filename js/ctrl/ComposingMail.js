@@ -151,12 +151,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 			//TODO (before beta) only update if attributes have changed
 			secureExternalRecipients[i].getEditableContact().update();
 			if (secureExternalRecipients[i].isExistingContact()) {
-				secureExternalRecipients[i].getEditableContact().getContact().update(function() {
-					console.log("error");
+				secureExternalRecipients[i].getEditableContact().getContact().update(function(e) {
+					if (e) {
+						console.log("error", e);
+					}
 				});
 			} else {
-				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function() {
-					console.log("error");
+				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function(e) {
+					if (e) {
+						console.log("error", e);
+					}
 				});
 			}
 		}
