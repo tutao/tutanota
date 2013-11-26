@@ -16,7 +16,7 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 	this._name = name;
 	if (external == undefined) {
 		//TODO (before beta, iss446 (Internal/external recipients are not correctly resolved)) check for public key instead of the domain name
-		this._external = !tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.onmicrosoft.com");
+		this._external = (!tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.de") && !tutao.util.StringUtils.endsWith(this._mailAddress, "tutao.onmicrosoft.com")) || (this._mailAddress == "hello@tutao.de");
 	} else {
 		this.external = external;
 	}
