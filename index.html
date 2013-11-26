@@ -13,7 +13,7 @@
 	</script>
 	<meta charset="utf-8" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Tutanota</title>
 	<!-- removed because could not be loaded <link href='https://fonts.googleapis.com/css?family=Droid+Sans|News+Cycle|Ubuntu+Condensed|Open+Sans|Yanone+Kaffeesatz:400,300|Oswald:400,300|Source+Sans+Pro' rel='stylesheet' type='text/css'> -->
 	<link rel="icon" href="graphics/favicon.png" type="image/png">
@@ -21,19 +21,50 @@
 	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="graphics/apple-touch-icon-72x72-precomposed.png"/>
 	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="graphics/apple-touch-icon-114x114-precomposed.png" />
 	<style type="text/css">
-	div#fastMessage {
-		background-color: #F6F7F9;
-		position: absolute;
-		left: 0px;
-		top: 0px;
-		right: 0px;
-		bottom: 0px;
+	* {
+		margin: 0;
+		padding: 0;
 	}
-	div#fastMessageContainer > div.logo {
-		width: 179px;
-		height: 48px;
-		margin-bottom: 20px;
-		background-image: url("data:image/png;base64,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");
+	div#logo {
+		position: absolute;
+		margin-top: 8px;
+		margin-left: 8px;
+		position: absolute;
+	}
+	div#logo > div.path {
+		position: absolute;
+		width: 41px;
+		height: 37px;
+		background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADEAAAAtCAYAAAAHiIP8AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAGSFAABkhQHSy/TLAAAAB3RJTUUH3QsQDRIK1UTJQQAAAzZJREFUaN7t2U2IlVUcx/HPmZkye1EksMBnMYuHxBZBVhS9Ca0MggIhiKSJTDGNGVAJi0xKadMiooVUGGT5niFGhEVtIqRIN9bCOtEUJ9MWkTBSofc5Le4dmDRjxvviveEPDlwe7vmf53vO8395/k+Ag0U5K/AEhnBd0L3KHMOHmRdvSjFC+KoO8Dnm6S39lVlwc4pfDGSGc+8BwDR88GVRXjtQsULv6krcOJCZ3cMQ/ZkZA5Xe10WIroHIF0+iK5LfRZ/oCoX/g09UGKhdmHXHUMOsVhjsyw3n6ODoy8zInMi82QqbHYWo/jkGKw5UHG3WXqcd+1scxad4PXNbYHazftkqnzgZ+BgHEfEDRium49JMDvVAcnVgDuZiT+COVmxiK6LTASzE2AMpVvBeUa7HSOByhEDfeETM9d9hPFFd8LIjM7ooxdsnXttTlINYpe68HcnYfbVGrDufUTG4uyhvmWh0UYqjmdkV82tsqnG8mTUmcQ/CrqLMLdiNbZnXpguf3Z++O8vezqKcGbgbd+IGlI3RrE5jYdjRAoiGTuFY5vmHUtx8rj/tKMr+wGWYlrkLj+O+piC2tQ5ion7PbMS7D6f442QmbC/Ke7AYt2aunxLEO+2BGNcfeGNxiiOTnbC1KK/ANZm1WDopiLfbCzHuM19n7h1KMU1l3paivCrwEh48R51Vh3irAxANkBOBYijFsanO3VKURWarenA4C6KvOrumacvAzIoN57MBj6SYhlJckHn1TLs1dAyiEdPnbZ5T9p/vaT6a4nDFhol2O17FZn5d8nNsqlxbkuJzmV0T7Xa6in2lRW9VSzAfg7mTj1PFumUpHmwFxLIUxxqP1UAnIV5YnuLGVh7p8hS3VByp6G93o+Aklq5McXubwvYaXNJOn9gdWPNkij+1a4Ean2BuqyEq9c9Rj42kuL8DCfRPfBNebl3GPhJ4psa+1Sme7mgHsEmC0/gNw6tS3NmLbcy9gU2rU/yo13qxp/A+VjyV4vFuaWVOFuJQqPeJ9q1N8Zdu68f+l0+cUv++Pfx0iod1sf6teXYo1F/89z6b4vd6QBNPYj9WruuRGz8TYiSzc30XOepU9TdChDYkBkgB6gAAAABJRU5ErkJggg==");
+		background-size: contain;
+		background-repeat: no-repeat;
+		z-index:3;
+	}
+	div#logo > div.tutanota {
+		position: absolute;
+		left: 42px;
+		width: 102px;
+		height: 37px;
+		background-image: url("data:image/png;base64,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");
+		background-size: contain;
+		background-repeat: no-repeat;
+		z-index:1;
+	}
+	div#logo > div.claim {
+		position: absolute;
+		top: 37px;
+		width: 172px;
+		height: 15px;
+		background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKwAAAAPCAYAAAB5uSSYAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAGSFAABkhQHSy/TLAAAAB3RJTUUH3QsQDRQemcS6ugAABbtJREFUaN7tmWlsVFUUx3/TTkvpwq6QAmKCGxFQ0cQoiwqChrgkWIOgH9QgYDEEiKIhGpeISxOJS1QggBE0xCUiQgVk1RAX4kZpBUMRERFFULEUawMdP/h/5njy3kynHQpKTzKZd9+7992z3XP+5zxopVZqpVZqpf8u5QGXAtkZfGdfIP8ElTcL6P8/t2ks5F6/DNu4WTQbGNqEdcOB74BZQJsM8rMSOKeFZB8ClKZ5QDecBIFoKdDWjNcB7U4U5roBBU1YN/8YCbEUOLuFZM8HOqbpsKtOAoft4SLtCqCoJdKXvS4CckPm7QMOR6xro3VZLmVk6T8RkSrygcIkvMWT8GMpV/Oym6mHogiY8QfwWzP4y9O8WJI5hZoXxlfMXOeneI+lbGejQmejwAbJAlGO1rUNefaDbJuKCpLskeXmpYR5cf1fBJQB1YqmL+rEBHQPUA5UShEzgfuA+4E+QD3QG7gV+AY4F3gCOA94E9gLTAD+BC4AHgX2a/8OwCg9C+hi4EFgN3AWsBB4yTxPALXAdPFeA/QCbgF+TNNZewNzBF3ayAFvAw7p+flAseQP6EZgIrAT6Ak8HgEDntTao8BpwFjHXy9gHrAL6AKsBp53+3wiHZUBO4C7JXsqmic5ZsgOteJlrK7nAke07/fAJLd+OnAZsEe8LwNeME46Uzaqj8C4cWXY4PowMF66CLL2MGAN8Czwu/j7Sv4WSacDnzlv/9Kl3AXAQOPkbwGLgOvMnO4SykaAOW6vkcBGlzomAEvMuI8OTtzcKwcGm/FyGXKUc/LdTYiuK4D2ZjxIhgnoCmCcGV8iOW0kq5LjBxH1XeANx3N/6dFGr48c3FikAjWgqcAYYG1IdExFm4BngBJzbwCwWPYtNveXANe4GmG6e98GB++WuazgIcFC4CozHgM87A7rcmC9q2/KgRHJBJupKGLpTGBbEod9T5HF0+vOYee7dBKFBbfKgDGdsC7ueUfgaifUwIj0nS7WXpfiuXfYNUBXN6cPcLNx2I1A55D0utiMZwC3uzldFdECukv7NYW+AC5099rJQTyNAKaZ8Rkhcya7A5jMYYcAb4dE3UrjnL2AV0L2uTIk2v8LQwwGftJmwW870CmJg9WHRLOYUkwy+tXgzg7AaKWuOq0vBr4VXPDrVprxkZA5gcOmi2U3i4eeOlyxFHi5t/TlD9yrZlwLHAjRT4MZlwLvO70HduhusOeUJjpsHNgSwsOuCHvmmHG15hboMN4rfhvb6RkvZywwsuVJTyMNL9Uha+uS2TAuA9zhlJkQljp6DAq9O4WptujETQI+lgB5wM8tXO1OFZaaKHiUKyfZE1EZZ4q/7sKTCaf32U7vWbQ8ZQNPS9btymixNNZ3Ay4XrLTrdqhYazLFVTg81Ugg31waB5wi5/AnHxVenY+DgdbqF2DNKmWAsG5JpwztuU/F7f4TsGW1U5Gw0twblsb6X4B3BB0z3tbaFIFHS8j8l4thqpyjuhV71BVo75w5H7i+hYxVIVgyIOTZIXU8uoRgz9I091kQUVzcxPH9YnStisZKdz+dDz/zBQs8DQzRXdoOO0dtBRvpJqilkmlIkGN6kllKHR8aDJuQoCtNEZYAHlLrKhXFXF9vmnP+MPk/Nf3NmOb3AD6PWPOICqZgvxx1BNanqYsHVFTlmr2HqxBLpfcpHLtP0zX8/enb6vMGyV3YyHeskp37GdlOFcxMN6MMErz4J7J9DTynoiEGHFRBNdos2qb7Ac6qCHlxQhU+bp3Fxo8JG9XrfTVipsxE2Q3q4c4Vpq2XU69zUfBwCA8fGGPn6dC9Znj31CAMPUtRLVdRdKgr+Paa8WpV0QsVdWrUadlq3rk5Qj9VrnCcLDlz9J4DrhW0OwKqlQAvR+jAtrV8Y/+I4dMXtbuM/teraKoTXxXiq5uzQYMrXu1BGy29tFcxXKfobYurnSG8HFRfOKC+mM/dfwG7ojeUbKkhIwAAAABJRU5ErkJggg==");
+		z-index:3;
+		background-size: contain;
+		background-repeat: no-repeat;
+		width: 144px;
+		height: 13px;
+	}
+	div#fastMessage {
+		background-color: #fff;
+		padding-top: 100px;
 	}
 	div#fastMessage > div#fastMessageContainer {
 		margin-top: 40px; 
@@ -75,9 +106,14 @@
 	</noscript>
 </head>
 <body>
-<div id="fastMessage">
+<!-- if the window width is small, just show the logo without "Tutanota" to save space -->
+<div id="logo" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
+	<div class="path"></div>
+	<div class="tutanota" data-bind="slideHideLeft: showFullLogo()"></div>
+	<div class="claim" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn()"></div>
+</div>
+<div id="fastMessage" class="view" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.fastMessageView">
 	<div id="fastMessageContainer">
-		<div class="logo"></div>
 		<div class="message">
 				<div id="fastMessageSpinner"></div>Loading...
 				<p>
@@ -99,11 +135,12 @@
 	</div>
 </div>
 
-	<link href="css/new.css" id="theme" rel="stylesheet" type="text/css">
+	<link href="css/main.css" id="theme" rel="stylesheet" type="text/css">
 <!-- begin dev section -->
-	<link href="css/new.less" id="theme" rel="stylesheet" type="text/less">
+	<link href="css/main.less" id="theme" rel="stylesheet" type="text/less">
 	<script type="text/javascript" src="libs/external/less-1.3.3.min.js"></script>
 	<script type="text/javascript" src="libs/external/jquery-1.9.1.js"></script>
+	<script type="text/javascript" src="libs/external/jquery-transit-0.9.9.js"></script>
 	<script type="text/javascript" src="libs/external/iscroll-4.2.5.js"></script>
 	<script type="text/javascript" src="libs/external/knockout-2.2.1.js"></script>
 	<script type="text/javascript" src="libs/external/path-2012-10-03.js"></script>
@@ -299,6 +336,7 @@
 	<script type="text/javascript" src="js/gui/CustomerView.js"></script>
 	<script type="text/javascript" src="js/gui/DbView.js"></script>
 	<script type="text/javascript" src="js/gui/ExternalLoginView.js"></script>
+	<script type="text/javascript" src="js/gui/FastMessageView.js"></script>
 	<script type="text/javascript" src="js/gui/FileView.js"></script>
 	<script type="text/javascript" src="js/gui/LogView.js"></script>
 	<script type="text/javascript" src="js/gui/LoginView.js"></script>
@@ -390,7 +428,6 @@
 </script>
 <![endif]-->
 
-
 <script type="text/javascript">
 	// show an error message if the application code has not been loaded correctly 
 	if ("undefined" == typeof libsLoaded || "undefined" == typeof tutanotaLoaded) {
@@ -400,7 +437,6 @@
 		$(document).ready(function() {
 			tutao.tutanota.Bootstrap.init();
 			tutao.tutanota.gui.initKnockout();
-			$("div#fastMessage").css("display", "none");
 		});
 	}
 	
@@ -437,148 +473,29 @@ function touchOrClick(e) {
 }
 */
 </script>
-
 <div id="tutanota" data-bind='template: { name: "tutanota-template",  data: tutao.tutanota.app }'></div>
+
 <script type="text/html"  id="tutanota-template">
 	<input type="text" id="hiddenInput"/>
 	<button id="measureButton"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
-	<header id="main" data-bind="with: tutao.locator.viewManager">
-		<!-- if the window width is small, just show the logo without "Tutanota" to save space -->
-		<!-- ko if: showFullLogo() -->
-			<img id="logo" src="/graphics/logo.png" data-bind="attr: {alt: tutao.lang('logo_alt') }, fastClick: function(data, event) { setTimeout(function() { showHomeView(); }, 0); }">
-			<!-- ko if: isUserLoggedIn() && tutao.locator.userController.getMailAddress() -->
-				<span id="user_welcome" data-bind="lang: 'forUser_label', params: {'$': tutao.locator.userController.getMailAddress() }"></span>
-			<!-- /ko -->
-		<!-- /ko -->
-		<!-- ko ifnot: showFullLogo() -->
-			<img id="logo_path_only" src="/graphics/logo_path_only.png" data-bind="attr: {alt: tutao.lang('logo_alt') }, fastClick: function(data, event) { setTimeout(function() { showHomeView(); }, 0); }">
-		<!-- /ko -->
-		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select> -->		
-		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
-		<menu>
-			<ul id="menu_list">
-				<!-- ko if: isInternalUserLoggedIn() -->
-					<!-- ko if: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView  || getActiveView() == tutao.locator.configView  || getActiveView() == tutao.locator.customerView -->
-						<li>
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.logs(); }, 0); }">
-								<div class="menu_image"><div class="imgButton db"></div></div>
-								<div class="menu_text">logs</div>
-							</div>
-						</li>
-						<li>
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.db(); }, 0); }">
-								<div class="menu_image"><div class="imgButton db"></div></div>
-								<div class="menu_text">db</div>
-							</div>
-						</li>
-						<li>
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.monitor(); }, 0); }">
-								<div class="menu_image"><div class="imgButton db"></div></div>
-								<div class="menu_text">monitor</div>
-							</div>
-						</li>
-						<li>
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.config(); }, 0); }">
-								<div class="menu_image"><div class="imgButton db"></div></div>
-								<div class="menu_text">config</div>
-							</div>
-						</li>
-						<li>
-							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.customer(); }, 0); }">
-								<div class="menu_image"><div class="imgButton db"></div></div>
-								<div class="menu_text">customers</div>
-							</div>
-						</li>
-					<!-- /ko -->
-					<!-- ko ifnot: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView || getActiveView() == tutao.locator.configView || getActiveView() == tutao.locator.customerView -->
-						<!-- ko if: (tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) -->
-							<li>
-								<!-- ko if: getActiveView() == tutao.locator.mailView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
-										<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
-										<div class="menu_text" data-bind="lang: 'new_label'"></div>
-									</div>
-								<!-- /ko -->
-								<!-- ko ifnot: getActiveView() == tutao.locator.mailView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
-										<div class="menu_image"><div class="imgButton mail" data-bind="attr: {title: tutao.lang('emails_alt')}"></div></div>
-										<div class="menu_text" data-bind="lang: 'emails_label'"></div>
-									</div>
-								<!-- /ko -->
-							</li>
-							<li>
-								<!-- ko if: getActiveView() == tutao.locator.contactView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
-										<div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
-										<div class="menu_text" data-bind="lang: 'new_label'"></div>
-									</div>
-								<!-- /ko -->
-								<!-- ko ifnot: getActiveView() == tutao.locator.contactView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
-										<div class="menu_image"><div class="imgButton contact" data-bind="attr: {title: tutao.lang('contacts_alt')}"></div></div>
-										<div class="menu_text" data-bind="lang: 'contacts_label'"></div>
-									</div>
-								<!-- /ko -->
-							</li>
-							<li>
-								<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.tutanota.gui.alert(tutao.lang('featureNotAvailable_msg')); }, 0); }">
-									<div class="menu_image"><div class="imgButton calendar" data-bind="attr: {title: tutao.lang('calendar_alt')}"><time id="day" data-bind="text: new Date().getDate(), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString(new Date()) }"></time></div></div>
-									<div class="menu_text" data-bind="lang: 'calendar_label'"></div>
-								</div>
-							</li>
-						<!-- /ko -->
-						<li>
-							<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
-								<div class="menu_image"><div class="imgButton settings" data-bind="attr: {title: tutao.lang('settings_alt')}"></div></div>
-								<div class="menu_text" data-bind="lang: 'settings_label'"></div>
-							</div>
-						</li>
-					<!-- /ko -->
-				<!-- /ko -->
-				<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED -->
-					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.feedbackViewModel.open(); }, 0); }">
-							<div class="menu_image"><div class="imgButton feedback" data-bind="attr: {title: tutao.lang('feedback_alt')}"></div></div>
-							<div class="menu_text" data-bind="lang: 'feedback_label'"></div>
-						</div>
-					</li>
-				<!-- /ko -->
-				<!-- ko if: isUserLoggedIn() -->
-					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(); }, 0); }">
-							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
-							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
-						</div>
-					</li>
-				<!-- /ko -->
-			</ul>
-		</menu>
-	</header>
-
 	<div id="viewContainer">
-		<div id="mailContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
+		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
 			<div id="tagListColumn" class="viewColumn">
 				<section id="tagList" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList">
-						<div class="tagItem switch" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
-							<img class="activeIcon" src="graphics/ok.png" data-bind="visible: (activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></img>
-							<div class="activeIcon" data-bind="visible: (activeSystemTag() != tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
-							<div class="tagText" data-bind="lang: 'received_action'"></div>
-							<div class="tagIcon imgButton left"></div>
+						<div class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
+							<div class="icon imgButton left"></div>
+							<div class="text" data-bind="lang: 'received_action'"></div>
 						</div>
-						<div class="tagItem switch" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
-							<img class="activeIcon" src="graphics/ok.png" data-bind="visible: (activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></img>
-							<div class="activeIcon" data-bind="visible: (activeSystemTag() != tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
-							<div class="tagText" data-bind="lang: 'sent_action'"></div>
-							<div class="tagIcon imgButton  right"></div>
+						<div class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
+							<div class="icon imgButton  right"></div>
+							<div class="text" data-bind="lang: 'sent_action'"></div>
 						</div>
-						<div class="tagItem switch" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
-							<img class="activeIcon" src="graphics/ok.png" data-bind="visible: (activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></img>
-							<div class="activeIcon" data-bind="visible: (activeSystemTag() != tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
-							<div class="tagText" data-bind="lang: 'trash_action'"></div>
-							<div class="tagIcon imgButton  trash"></div>
+						<div class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
+							<div class="icon imgButton  trash"></div>
+							<div class="text" data-bind="lang: 'trash_action'"></div>
 						</div>
 					</div>
 				</section>
@@ -586,35 +503,32 @@ function touchOrClick(e) {
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
 				<div id="searchAndMailList">
 					<!-- ko if: tutao.locator.dao.isSupported() -->
-						<section class="search">
-							<div class="innerSearch">
-								<div class="searchForm">
-									<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-								</div>
-							</div>
-						</section>
-					<!-- /ko -->
-					<section id="mailList" data-bind="style: { top: (tutao.locator.dao.isSupported()) ? '60px' : '0px' }">
-						<div id="innerMailList" data-bind="foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
-							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
-								<div class="senderAndDate">
-									<!-- ko if: getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT -->
-										<div class="mailHeaderImage imgButton right-small" data-bind="attr: {title: tutao.lang('sentMail_alt')}"></div>
-									<!-- /ko -->
-									<!-- ko if: getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED -->
-										<div class="mailHeaderImage imgButton left-small" data-bind="attr: {title: tutao.lang('receivedMail_alt')}"></div>
-									<!-- /ko -->
-									<span data-bind="text: tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString($data)"></span>
-									<br>
-									<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->
-									<div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
-									<div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-									<time data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(getSentDate()), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString($data.getSentDate()) }"></time>
-								</div>
-								<div class="subject" data-bind="text: getSubject()"></div>
+						<div class="search">
+							<div class="searchForm">
+								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
 							</div>
 						</div>
-						<div id="emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)"></div>
+					<!-- /ko -->
+					<section id="mailList" class="list" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() }">
+						<div id="innerMailList" data-bind="foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
+							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
+								<div class="icons">
+									<div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
+									<div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
+								</div>
+								<div class="subject" data-bind="text: getSubject()"></div>
+								<div class="mailInfo">
+									<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->
+									<div class="date">
+										<time data-bind="text: tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(getSentDate()), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString($data.getSentDate()) }"></time>
+									</div>
+									<div class="senderOrRecipient">
+										<span data-bind="text: tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString($data)"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="emptyMailList" class="infoMessage" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)"></div>
 					</section>
 				</div>
 			</div>
@@ -623,18 +537,14 @@ function touchOrClick(e) {
 				<div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
 					<img src="graphics/busy.gif" />
 				</div>
-				<div id="noMail" data-bind="visible: (conversation().length == 0 && !tutao.locator.mailListViewModel.isMailSelected())">
+				<div id="noMail" class="infoMessage" data-bind="visible: (conversation().length == 0 && !tutao.locator.mailListViewModel.isMailSelected())">
 					<div data-bind="lang: 'noMail_msg'"></div><br>
-					<div data-bind="lang: 'newMailInfo_msg'"></div>
-					<div class="menu_link">
-						<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
-						<div class="menu_text" data-bind="lang: 'new_label'"></div>
-					</div>
 				</div>
 				<div id="innerConversationColumn">
-					<section class="conversation" data-bind="foreach: { data: conversation, afterAdd: tutao.locator.mailView.addMail, beforeRemove: tutao.locator.mailView.removeMail }">
-						<div class="mailWrapper">
-							<!-- ko if: $data.composerSubject == undefined -->
+					<section class="conversation" data-bind="foreach: { data: conversation }">
+						<!-- ko if: !$parent.isComposingState() -->
+							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }, visible: !$parent.isComposingState()'></div>
+							<div class="mailWrapper">
 								<section class="mail" data-bind="click: $parent.selectMail">
 									<header>
 										<div class="headerTable">
@@ -692,16 +602,31 @@ function touchOrClick(e) {
 												<span class="legacyDownloadText" data-bind="lang: 'clickToSave_label'"></span>
 											</div>
 										</div>
-										<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }, visible: !$parent.isComposingState()'></div>
 									</header>
 									<div class="mailBody" data-bind="html: bodyTextWithoutQuotation"></div>
+									<div class="mailBodyQuotation" data-bind="html: bodyTextQuotation"></div>
+									<!--
 									<div class="mailBodyQuotation" data-bind="html: bodyTextQuotation, slideVisible: bodyTextQuotationVisible"></div>
 									<div>
 										<div class="switch toggleQuotation" data-bind="lang: (bodyTextQuotationVisible() ? 'hideQuotation_action' : 'showQuotation_action'), visible: bodyTextQuotation() != '', fastClick: toggleQuotationVisible"></div>
 									</div>
+									-->
 								</section>
-							<!-- /ko -->
-							<!-- ko if: $data.composerSubject != undefined -->
+							</div>
+						<!-- /ko -->
+						<!-- ko if: $parent.isComposingState() -->
+							<div class="actions">
+								<div class="confidentialAction">
+									<div class="switch" data-bind="fadeVisible: containsExternalRecipients(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
+										<span data-bind="text: (secure() ? tutao.lang('confidential_action') : tutao.lang('nonConfidential_action'))"></span>
+									</div>
+								</div>
+								<div class="otherActions">
+									<div data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
+								</div>
+							</div>
+							<div class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
 										<div class="headerTable">
@@ -735,8 +660,13 @@ function touchOrClick(e) {
 													</div>
 												</div>
 											<!-- /ko -->
+											<div class="headerLine">
+												<div class="name edit" data-bind="lang: 'subject_label'"></div>
+												<div class="value edit">
+													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused" tabindex="20"></input>
+												</div>
+											</div>
 										</div>
-										<input class="composeSubjectInput headerElement" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, attr: {placeholder: tutao.lang('subject_placeholder')} " tabindex="20"/>
 										<div class="attachments">
 											<!-- ko foreach: { data: _attachments } -->
 												<div class="download" data-bind="fastClick: $parent.downloadNewAttachment, attr: { title: getName() }">
@@ -751,21 +681,13 @@ function touchOrClick(e) {
 												</div>
 											<!-- /ko -->
 										</div>
-										<div class="actions">
-											<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-											<div class="switch" data-bind="fadeVisible: containsExternalRecipients(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-												<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
-												<span data-bind="text: (secure() ? tutao.lang('confidential_action') : tutao.lang('nonConfidential_action'))"></span>
-											</div>
-											<div style="clear: right;"></div>
-										</div>
 									</header>
 									<div class="composeBody" contenteditable="true" onFocus="window.scrollTo(0, 0);" data-bind="event: {keydown: tutao.tutanota.gui.MailView.handleMailComposerReturnKey}" tabindex="21"><br></div>
 									<!-- for test sending html emails. also uncomment wysihtml5 initialization in MailViewModel._createMail() -->
 									<!-- <form><textarea id="composeBodyTextArea" class="inputArea" data-bind="value: composerBody, valueUpdate: 'change'" autofocus></textarea></form> -->
 								</section>
-							<!-- /ko -->
-						</div>
+							</div>
+						<!-- /ko -->
 					</section>
 				</div>
 			</div>
@@ -774,7 +696,7 @@ function touchOrClick(e) {
 				<div id="innerPasswordChannelColumn">
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
-							<div class="emphasizedText" data-bind="lang: 'contactDataForSms_label'"></div>
+							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
 							<div id="passwordChannelDescription" data-bind="lang: 'atLeastOneMobileNumber_label'"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
 								<div>
@@ -790,7 +712,7 @@ function touchOrClick(e) {
 											<span class="emphasizedText" data-bind="text: getMailAddress()"></span><br>
 										<!-- /ko -->
 									</div>
-									<div class="recordContainer" data-bind="visible: getEditableContact().presharedPassword() === null">
+									<div class="recordContainer wide" data-bind="visible: getEditableContact().presharedPassword() === null, form: true">
 										<!-- ko foreach: getEditableContact().phoneNumbers -->
 											<!-- ko if: tutao.locator.passwordChannelViewModel.isSavedMobileNumber($data, $parent) -->
 												<div class="record">
@@ -803,37 +725,43 @@ function touchOrClick(e) {
 											<!-- ko if: tutao.locator.passwordChannelViewModel.isNotSavedNumber($data, $parent) -->
 												<div class="record">
 													<div class="recordData">
-														<input type="tel" class="recordValue inputField wide" data-bind="value: number, css: { invalid: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number()) }"/>
+														<div class="row">
+															<input type="tel" class="recordValue inputField wide" data-bind="value: number, css: { invalid: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number()) }"/>
+															<div class="recordAction" data-bind="fastClick: function() { $parent.getEditableContact().phoneNumbers.remove($data) }">
+																<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
+															</div>
+														</div>
 														<label class="recordStatus invalid" data-bind="lang: 'mobileNumberNotValid_msg', visible: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number())"></label>
-													</div>
-													<div class="recordAction" data-bind="fastClick: function() { $parent.getEditableContact().phoneNumbers.remove($data) }">
-														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 													</div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
 										<div class="record">
 											<div class="recordData">
-												<input type="tel" class="recordValue inputField wide" data-bind="value: getEditableContact().newMobileContactPhoneNumber().number, event: { blur: getEditableContact().newMobileContactPhoneNumberUpdated }, css: { invalid: !isSecure() }"/>
+												<div class="row">
+													<input type="tel" class="recordValue inputField wide" data-bind="value: getEditableContact().newMobileContactPhoneNumber().number, event: { blur: getEditableContact().newMobileContactPhoneNumberUpdated }, css: { invalid: !isSecure() }"/>
+													<div class="recordAction"></div>
+												</div>
 												<label class="recordInfo" data-bind="lang: 'addMobileNumber_msg'"></label>
 											</div>
-											<div class="recordAction"></div>
 										</div>
 										<button class="setPresharedPasswordButton" data-bind="lang: 'setPresharedPassword_action', fastClick: function() { setTimeout(function() { $parent.defineManualPassword($data); }, 0); }"></button>
 									</div>
-									<div class="recordContainer" data-bind="visible: getEditableContact().presharedPassword() !== null">
+									<div class="recordContainer wide" data-bind="visible: getEditableContact().presharedPassword() !== null, form: getEditableContact().presharedPassword() !== null">
 										<div class="record">
 											<div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
 											<div class="recordData">
-												<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+												<div class="row">
+													<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+													<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }">
+														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
+													</div>
+												</div>
 												<div class="recordStatus">
 													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, $parent.getPasswordStrength($data))) + '%' }"></div>
 													</div>
 												</div>
-											</div>
-											<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }">
-												<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 											</div>
 										</div>
 									</div>
@@ -844,21 +772,17 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.mailView }"></div>
 		</div>
 
-		<div id="contactContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.contactView">
+		<div id="contactContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.contactView">
 			<div id="searchAndContactListColumn" class="viewColumn" data-bind="with: tutao.locator.contactListViewModel">
 				<div id="searchAndContactList">
 					<!-- 
-						<section class="search">
-							<div class="innerSearch">
-								<div class="searchForm">
-									<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-								</div>
+						<div class="search">
+							<div class="searchForm">
+								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
 							</div>
-						</section>
+						</div>
 					-->
 					<section id="contactList">
 						<div id="innerContactList" data-bind="foreach: {data: contacts}, style: { borderTopWidth: (contacts().length > 0) ? '7px' : '0px', borderBottomWidth: (contacts().length > 0) ? '7px' : '0px' }">
@@ -871,20 +795,15 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
-						<div id="emptyContactList" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
+						<div id="emptyContactList" class="infoMessage" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
 					</section>
 				</div>
 				<!-- <button data-bind="click: function() { importThunderbirdContactsAsCsv(); }">import</button> -->
 			</div>
 
 			<div id="contactColumn" class="viewColumn" data-bind="with: tutao.locator.contactViewModel">
-				<div id="noContact" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
+				<div id="noContact" class="infoMessage" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
 					<div data-bind="lang: 'noContact_msg'"></div><br>
-					<div data-bind="lang: 'newContactInfo_msg'"></div>
-					<div class="menu_link">
-						<div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
-						<div class="menu_text" data-bind="lang: 'new_label'"></div>
-					</div>
 				</div>
 				<div id="innerContactColumn">
 					<div id="contactWrapper">
@@ -898,18 +817,17 @@ function touchOrClick(e) {
 										<div id="contactNameTitleAndImage">
 											<img id="contactImage" data-bind="attr: { src: 'graphics/' + contactWrapper().getContact().getFirstName().toLowerCase() + '.jpg', alt: tutao.lang('contactImage_alt')}"/>
 											<div id="contactNameAndTitle">
-												<span class="emphasizedText"  data-bind="text: contactWrapper().getFullName()"></span><br>
+												<h1 data-bind="text: contactWrapper().getFullName()"></h1>
 												<!-- ko if: contactWrapper().getContact().getBirthday() -->
 													<div id="birthdayImage" class="imgButton star" data-bind="attr: {title: tutao.lang('birthday_alt') }"></div>
 													<span data-bind="text: '&nbsp;' + tutao.tutanota.util.Formatter.dateToSimpleString(contactWrapper().getContact().getBirthday()) + ' (' + contactWrapper().getAge() + ')'"></span>
 												<!-- /ko -->
-												<br>
 												<span data-bind="text: contactWrapper().getContact().getCompany()"></span><br>
 												<span data-bind="text: contactWrapper().getContact().getTitle()"></span><br>
 											</div>
 										</div>
 										<!-- ko if: contactWrapper().getContact().getMailAddresses().length > 0 -->
-											<div class="contactHeading" data-bind="lang: 'email_label'"></div>
+											<h2 data-bind="lang: 'email_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getMailAddresses() -->
 												<div class="contactData">
@@ -920,7 +838,7 @@ function touchOrClick(e) {
 											<!-- /ko -->
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getPhoneNumbers().length > 0 -->
-											<div class="contactHeading" data-bind="lang: 'phone_label'"></div>
+											<h2 data-bind="lang: 'phone_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="contactData">
@@ -935,7 +853,7 @@ function touchOrClick(e) {
 											<!-- /ko -->
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getAddresses().length > 0 -->
-											<div class="contactHeading" data-bind="lang: 'address_label'"></div>
+											<h2 data-bind="lang: 'address_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getAddresses() -->
 												<div class="contactData">
@@ -948,7 +866,7 @@ function touchOrClick(e) {
 											<!-- /ko -->
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getSocialIds().length > 0 -->
-											<div class="contactHeading" data-bind="lang: 'social_label'"></div>
+											<h2 data-bind="lang: 'social_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getSocialIds() -->
 												<div class="contactData">
@@ -963,14 +881,14 @@ function touchOrClick(e) {
 											<!-- /ko -->
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getComment() != "" -->
-											<div class="contactHeading" data-bind="lang: 'comment_label'"></div>
+											<h2 data-bind="lang: 'comment_label'"></h2>
 											<hr />
 											<div class="contactData">
 												<div class="contactDataAreaText" data-bind="text: contactWrapper().getContact().getComment()"></div>
 											</div>
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getPresharedPassword() != null || contactWrapper().getContact().getAutoTransmitPassword() != "" -->
-											<div class="contactHeading" data-bind="lang: 'passwordsHeading_label'"></div>
+											<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 											<hr />
 											<div class="contactData" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
 												<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
@@ -996,7 +914,7 @@ function touchOrClick(e) {
 											</div>
 										</div>
 			
-										<div class="contactHeading" data-bind="lang: 'email_label'"></div>
+										<h2 data-bind="lang: 'email_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.mailAddresses -->
 											<div class="editContactData">
@@ -1017,7 +935,7 @@ function touchOrClick(e) {
 											<div class="recordAction"></div>
 										</div>
 										
-										<div class="contactHeading" data-bind="lang: 'phone_label'"></div>
+										<h2 data-bind="lang: 'phone_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.phoneNumbers -->
 											<div class="editContactData">
@@ -1038,7 +956,7 @@ function touchOrClick(e) {
 											<div class="recordAction"></div>
 										</div>
 										
-										<div class="contactHeading" data-bind="lang: 'address_label'"></div>
+										<h2 data-bind="lang: 'address_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.addresses -->
 											<div class="editContactData">
@@ -1059,7 +977,7 @@ function touchOrClick(e) {
 											<div class="recordAction"></div>
 										</div>
 										
-										<div class="contactHeading" data-bind="lang: 'social_label'"></div>
+										<h2 data-bind="lang: 'social_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.socialIds -->
 											<div class="editContactData">
@@ -1080,11 +998,11 @@ function touchOrClick(e) {
 											<div class="recordAction"></div>
 										</div>
 										
-										<div class="contactHeading" data-bind="lang: 'comment_label'"></div>
+										<h2 data-bind="lang: 'comment_label'"></h2>
 										<hr />
 										<textarea id="editContactComment" rows="3" data-bind="value: editableContact.comment" oninput='this.rows = Math.max(this.value.split("\n").length, 3);'></textarea>
 
-										<div class="contactHeading" data-bind="lang: 'passwordsHeading_label'"></div>
+										<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 										<hr />
 										<div class="editContactData">
 											<div class="editContactDataType" data-bind='lang: "presharedPassword_label"'></div>
@@ -1099,11 +1017,9 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.contactView }"></div>
 		</div>
 
-		<div id="fileContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.fileView">
+		<div id="fileContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.fileView">
 			<div id="fileColumn" class="viewColumn" data-bind="with: tutao.locator.fileViewModel">
 				<div id="innerFileColumn">
 					<div>Received attachments</div>
@@ -1114,46 +1030,145 @@ function touchOrClick(e) {
 			</div>
 		</div>
 
-		<div id="notSupported" class="login" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
-			<div class="loginContent">
-				<div class="loginArea">
-					<div>
-						<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY -->
-							<div data-bind="lang: 'oldBrowser_msg'"></div>
-						<!-- /ko -->
-						<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED -->
-							<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
-						<!-- /ko -->
-						<ul>
-							<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-							<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-							<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
-							<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
-						</ul>
-						<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
-					</div>
+		<div id="notSupported" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
+			<div class="messageWrapper">
+				<div class="infoMessage">
+					<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY -->
+						<div data-bind="lang: 'oldBrowser_msg'"></div>
+					<!-- /ko -->
+					<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED -->
+						<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
+					<!-- /ko -->
+					<ul>
+						<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
+						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+						<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
+					</ul>
+					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
+					<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
+						'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
+						'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
+						'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
+						'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
+						'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
+						'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
+						'user agent: ' + navigator.userAgent">
+					</div> -->
 				</div>
 			</div>
-				<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
-					'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
-					'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
-					'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-					'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
-					'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
-					'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
-					'user agent: ' + navigator.userAgent">
-				</div> -->
+		</div>
+
+		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
+			<div class="welcomeContainer">
+				<div class="panel">
+					<div class="content">
+						<h1 data-bind="text: welcomeText"></h1>
+			
+						<form class="recordContainer wide" data-bind="submit: login, form: true, form: true">
+							<div class="record">
+								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
+								<div class="recordData">
+									<div class="recordValue">
+										<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused"></input>
+									</div>
+								</div>
+							</div>
+							<div class="record">
+								<label for="loginPassphrase" class="recordName" data-bind="lang: 'password_label'"></label>
+								<div class="recordData">
+									<div class="recordValue">
+										<input class="inputField wide" id="loginPassphrase" type="password" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused"></input>
+									</div>
+								</div>
+							</div>
+			
+							<div class="record">
+								<div class="recordName"></div>
+								<div class="formAction">
+									<button id="submitLogin" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+									<label for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+				<div id="welcomePicture"><div></div></div>
+			</div>
+		</div>
+
+		<div id="externalLogin" class="login" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
+			<div class="welcomeContainer">
+				<div class="panel">
+					<div class="content">
+						<div data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
+						<div data-bind="visible: !errorMessageId()">
+							<label data-bind="lang: userMessageId()"></label>
+							<div class="recordContainer wide" data-bind="foreach: phoneNumbers, form: true">
+								<div class="record">
+									<div class="recordData">
+										<button class="recordValue" data-bind="text: tutao.lang('sendPasswordTo_action') + getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
+									</div>
+								</div>
+							</div>
+							<form class="recordContainer wide" data-bind="submit: showMail, form: true">
+								<div class="record">								
+									<div class="recordData">
+										<input id="externalMailPasswordInput" class="loginTextInput recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
+										<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+									</div>
+								</div>
+								<div class="record">								
+									<div class="recordData">
+										<div class="recordValue">
+											<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
+											<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
+										</div>
+										<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+									</div>
+								</div>
+								<div class="record">								
+									<div class="formAction">
+										<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
+										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+				<!-- TODO switch all labels to use label! -->
+			</div>
+			<div class="infoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY)">
+				<label data-bind="lang: 'legacyNoReply_msg'"></label>
+				<ul>
+					<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
+					<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+					<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+					<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
+				</ul>
+			</div>
+			<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
+				'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
+				'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
+				'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
+				'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
+				'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
+				'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
+				'user agent: ' + navigator.userAgent">
+			</div> -->
 		</div>
 		
-		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, visible: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
-			<div class="loginContent">
-				<div class="loginArea">
-					<div>
+		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
+			<div class="welcomeContainer">
+				<div class="panel">
+					<div class="content">
 						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE && tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
 							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
 								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration1Headline_msg')"></div>
 								
-								<form class="recordContainer" data-bind="submit: sendSms">
+								<form class="recordContainer wide" data-bind="submit: sendSms, form: true">
 									<!-- ko if: getRegistrationType() != 'Free' -->
 									<div class="record">
 										<label class="recordName" data-bind="lang: 'company_label'"></label>
@@ -1243,7 +1258,7 @@ function touchOrClick(e) {
 											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
 										</div>
 									</div>
-
+	
 									<div class="record">
 										<div class="recordName"></div>
 										<div class="formAction">
@@ -1256,7 +1271,7 @@ function touchOrClick(e) {
 								
 							<!-- ko if: (getSendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
 								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration2Headline_msg')"></div>
-								<form class="recordContainer" data-bind="submit: createAccount">
+								<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
 									<div class="record">
 										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>
 										<div class="recordData">
@@ -1268,7 +1283,7 @@ function touchOrClick(e) {
 											<div class="simplebutton" data-bind="click: backToStartPage, text: '(' + tutao.lang('change_action') + ')'"></div>
 										</div>
 									</div>
-
+	
 									<div class="record">
 										<div class="recordName"></div>
 										<div class="formAction">
@@ -1296,103 +1311,20 @@ function touchOrClick(e) {
 						<!-- /ko -->
 					</div>
 				</div>
-			</div>
-		</div>
-
-		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, visible: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
-			<div class="loginContent">
-				<div class="loginArea">
-					<div>
-						<form data-bind="submit: login">
-							<div data-bind="text: welcomeText"></div>
-							<div class="defaultMargin"></div>
-							<input class="loginTextInput" type="email" data-bind="value: mailAddress, valueUpdate: 'input', css: { invalid: invalidMailAddressFormat }, attr: {placeholder: tutao.lang('emailAddress_placeholder')}, hasfocus: mailAddressFieldFocused" />
-							<div class="defaultMargin"></div>
-							<input class="loginTextInput" type="password" data-bind="value: passphrase, valueUpdate: 'input', css: { invalid: invalidPassphraseFormat }, attr: {placeholder: tutao.lang('password_label')}, hasfocus: passphraseFieldFocused" />
-							<div class="defaultMargin"></div>
-							<div class="failedText" data-bind="text: failedLoginMessage, visible: !loginOngoing()"></div>
-							<div data-bind="visible: loginOngoing()">
-								<img src="graphics/busy.gif" data-bind="attr: {alt: tutao.lang('busy_alt') }"/>
-							</div>
-							<div class="defaultMargin"></div>
-							<button data-bind="css: { disabled: !loginPossible() }, fastClick: login, lang: 'login_action'"></button>
-						</form>
-					</div>
-				</div>
-			</div>
-			<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
-				'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
-				'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
-				'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-				'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
-				'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
-				'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
-				'user agent: ' + navigator.userAgent">
-			</div> -->
-		</div>
-		
-		<div id="externalLogin" class="login" data-bind="with: tutao.locator.externalLoginViewModel, visible: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
-			<div class="loginContent">
-				<div class="loginArea">
-					<div data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
-					<div data-bind="visible: !errorMessageId()">
-						<label data-bind="lang: userMessageId()"></label>
-						<div class="recordContainer" data-bind="foreach: phoneNumbers">
-							<div class="record">
-								<div class="recordData">
-									<button class="recordValue" data-bind="text: tutao.lang('sendPasswordTo_action') + getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
-									<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
-								</div>
-							</div>
-						</div>
-						<form class="recordContainer" data-bind="submit: showMail">
-							<div class="record">								
-								<div class="recordData">
-									<input id="externalMailPasswordInput" class="loginTextInput recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
-									<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
-								</div>
-							</div>
-							<div class="record">								
-								<div class="recordData">
-									<div class="recordValue">
-										<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
-										<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
-									</div>
-									<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
-								</div>
-							</div>
-							<div class="record">								
-								<div class="formAction">
-									<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
-									<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
-								</div>
-							</div>
-						</form>
-					</div>
-				</div>
-				<!-- TODO switch all labels to use label! -->
-			</div>
-			<div class="loginContent legacy" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY)">
-				<br>
-				<div class="loginArea">
-					<div>
-						<label data-bind="lang: 'legacyNoReply_msg'"></label>
-						<ul>
-							<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-							<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-							<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
-							<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
-						</ul>
-					</div>
-				</div>
+				<div id="welcomePicture"><div></div></div>
 			</div>
 		</div>
 		
-		<div id="notFound" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
-			404
+		<div id="notFound" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
+			<div class="messageWrapper">
+				<div class="infoMessage">
+					<h1>404</h1>
+					<div data-bind="lang: 'notFound404_msg'"></div>
+				</div>
+			</div>
 		</div>
 
-		<div id="dbContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.dbView">
+		<div id="dbContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.dbView">
 			<div id="dbSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.dbViewModel">
 				<div id="dbSelectors">
 					<form data-bind="submit: function() { showSelected(); }">
@@ -1432,10 +1364,9 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.dbView }"></div>
 		</div>
 
-		<div id="logContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.logView">
+		<div id="logContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.logView">
 			<div id="logSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.logViewModel">
 				<div id="logSelectors">
 					<fieldset>
@@ -1499,10 +1430,9 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.logView }"></div>
 		</div>
 
-		<div id="monitorContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.monitorView">
+		<div id="monitorContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.monitorView">
 			<div id="monitorSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.monitorViewModel">
 				<div id="monitorSelectors">
 					<form data-bind="submit: refreshVisibleCounters">
@@ -1587,10 +1517,9 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.monitorView }"></div>
 		</div>
 
-		<div id="configContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.configView">
+		<div id="configContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.configView">
 			<div id="configColumn" class="viewColumn" data-bind="with: tutao.locator.configViewModel">
 				<div id="configInnerColumn">
 					<div id="configData">
@@ -1621,7 +1550,6 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.configView }"></div>
 		</div>
 
 		<!-- ko if:  tutao.locator.viewManager.getActiveView() == tutao.locator.customerView -->
@@ -1715,19 +1643,16 @@ function touchOrClick(e) {
 				</div>
 			<!-- /ko -->
 			</div>
-
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.customerView }"></div>
 		</div>
 		<!-- /ko -->
 
-		<div id="settingsContent" class="content" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
+		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
 				<div id="settingsInnerColumn">
 					<div id="settingsData">
 						<div data-bind="foreach: getSettings()">
-							<div class="settingsAction switch" data-bind="css: { active: ($data == $parent.displayed) }, fastClick: function() { $parent.show($data); }">
-								<div data-bind="lang: $parent.getSettingsTextId($data)"></div>
-								<br>
+							<div class="menuItem" data-bind="css: { active: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
+								<div class="text" data-bind="lang: $parent.getSettingsTextId($data)"></div>
 							</div>
 						</div>
 					</div>
@@ -1740,14 +1665,14 @@ function touchOrClick(e) {
 							<div class="heading" data-bind="lang: getSettingsTextId(displayed())"></div>
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS -->
 								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.AccountSettingsViewModel()">
-									<div class="recordContainer" data-bind="foreach: records">
+									<div class="recordContainer wide" data-bind="foreach: records, form: true">
 										<div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
 									</div>
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS -->
 								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.SecuritySettingsViewModel()">
-									<div class="recordContainer" data-bind="foreach: records">
+									<div class="recordContainer wide" data-bind="foreach: records, form: true">
 										<div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
 									</div>
 								</div>
@@ -1764,7 +1689,7 @@ function touchOrClick(e) {
 										<div data-bind="lang: 'serverNotReachable_msg'"></div>
 									</div>
 									
-									<form class="recordContainer" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }">
+									<form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
 										<div class="record">
 											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
 											<div class="recordData">
@@ -1821,9 +1746,10 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.settingsView }"></div>
 		</div>
-	</div>
+		
+	</div><!-- end of viewContainer -->
+	<div data-bind="template: { name: 'viewButtonBar-template',  data: tutao.locator.viewManager.getActiveView() }"></div>
 	
 	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div>
@@ -1834,6 +1760,110 @@ function touchOrClick(e) {
 			<button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>
+
+	<header id="main" data-bind="with: tutao.locator.viewManager, visible: tutao.locator.viewManager.isUserLoggedIn()">
+		<div class="logoPathBackground"></div>
+		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->		
+		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
+		<menu>
+			<ul id="menu_list">
+				<!-- ko if: isInternalUserLoggedIn() -->
+					<!-- ko if: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView  || getActiveView() == tutao.locator.configView  || getActiveView() == tutao.locator.customerView -->
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.logs(); }, 0); }">
+								<div class="menu_image"><div class="imgButton search"></div></div>
+								<div class="menu_text">logs</div>
+							</div>
+						</li>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.db(); }, 0); }">
+								<div class="menu_image"><div class="imgButton search"></div></div>
+								<div class="menu_text">db</div>
+							</div>
+						</li>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.monitor(); }, 0); }">
+								<div class="menu_image"><div class="imgButton search"></div></div>
+								<div class="menu_text">monitor</div>
+							</div>
+						</li>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.config(); }, 0); }">
+								<div class="menu_image"><div class="imgButton search"></div></div>
+								<div class="menu_text">config</div>
+							</div>
+						</li>
+						<li>
+							<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.customer(); }, 0); }">
+								<div class="menu_image"><div class="imgButton search"></div></div>
+								<div class="menu_text">customers</div>
+							</div>
+						</li>
+					<!-- /ko -->
+					<!-- ko ifnot: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView || getActiveView() == tutao.locator.configView || getActiveView() == tutao.locator.customerView -->
+						<!-- ko if: (tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) -->
+							<li>
+								<!-- ko if: getActiveView() == tutao.locator.mailView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
+										<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'new_label'"></div>
+									</div>
+								<!-- /ko -->
+								<!-- ko ifnot: getActiveView() == tutao.locator.mailView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
+										<div class="menu_image"><div class="imgButton mail" data-bind="attr: {title: tutao.lang('emails_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'emails_label'"></div>
+									</div>
+								<!-- /ko -->
+							</li>
+							<li>
+								<!-- ko if: getActiveView() == tutao.locator.contactView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
+										<div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'new_label'"></div>
+									</div>
+								<!-- /ko -->
+								<!-- ko ifnot: getActiveView() == tutao.locator.contactView -->
+									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
+										<div class="menu_image"><div class="imgButton contact" data-bind="attr: {title: tutao.lang('contacts_alt')}"></div></div>
+										<div class="menu_text" data-bind="lang: 'contacts_label'"></div>
+									</div>
+								<!-- /ko -->
+							</li>
+							<li>
+								<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.tutanota.gui.alert(tutao.lang('featureNotAvailable_msg')); }, 0); }">
+									<div class="menu_image"><div class="imgButton calendar" data-bind="attr: {title: tutao.lang('calendar_alt')}"><time id="day" data-bind="text: new Date().getDate(), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString(new Date()) }"></time></div></div>
+									<div class="menu_text" data-bind="lang: 'calendar_label'"></div>
+								</div>
+							</li>
+						<!-- /ko -->
+						<li>
+							<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
+								<div class="menu_image"><div class="imgButton settings" data-bind="attr: {title: tutao.lang('settings_alt')}"></div></div>
+								<div class="menu_text" data-bind="lang: 'settings_label'"></div>
+							</div>
+						</li>
+					<!-- /ko -->
+				<!-- /ko -->
+				<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED -->
+					<li>
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.feedbackViewModel.open(); }, 0); }">
+							<div class="menu_image"><div class="imgButton feedback" data-bind="attr: {title: tutao.lang('feedback_alt')}"></div></div>
+							<div class="menu_text" data-bind="lang: 'feedback_label'"></div>
+						</div>
+					</li>
+				<!-- /ko -->
+				<!-- ko if: isUserLoggedIn() -->
+					<li>
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(); }, 0); }">
+							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
+							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
+						</div>
+					</li>
+				<!-- /ko -->
+			</ul>
+		</menu>
+	</header>
 </script>
 
 	<script type="text/html" id="displayedRecord-template">
@@ -1858,8 +1888,10 @@ function touchOrClick(e) {
 	</script>
 	
 	<script type="text/html" id="viewButtonBar-template">
-		<div class="leftViewButton imgButton left" data-bind="fadeVisible: isShowNeighbourColumnPossible(true), fastClick: function() { showNeighbourColumn(true); }"></div>
-		<div class="rightViewButton imgButton right" data-bind="fadeVisible: isShowNeighbourColumnPossible(false), fastClick: function() { showNeighbourColumn(false); }"></div>
+		<!-- ko if: $data != null -->
+			<div class="leftViewButton imgButton leftIndicator" data-bind="fadeVisible: isShowNeighbourColumnPossible(true), fastClick: function() { showNeighbourColumn(true); }"></div>
+			<div class="rightViewButton imgButton rightIndicator" data-bind="fadeVisible: isShowNeighbourColumnPossible(false), fastClick: function() { showNeighbourColumn(false); }"></div>
+		<!-- /ko -->
 	</script>
 
 	<!-- use only with the DropdownViewModel -->

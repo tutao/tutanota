@@ -322,38 +322,6 @@ tutao.tutanota.gui.MailView.prototype.disableTouchComposingMode = function() {
 };
 
 /**
- * Animates adding a mail if necessary. If a composing mail is added it is animated, displayed mails are not animated.
- * @param {Object} domElement The mail dom element.
- * @param {number} position The position in the conversation.
- * @param {tutao.tutanota.ctrl.ComposingMail|tutao.tutanota.ctrl.DisplayedMail} mail The mail.
- */
-tutao.tutanota.gui.MailView.prototype.addMail = function(domElement, position, mail) {
-	if (mail instanceof tutao.tutanota.ctrl.ComposingMail) {
-		var self = this;
-		self.showFirstMail();
-		tutao.tutanota.gui.slideDown(domElement, function() {
-			if (self._touchComposingModeActive) {
-				self._updateBodyHeight($(".conversation").width(), $(".conversation").height());
-			}
-		});
-	}
-};
-
-/**
- * Animates removing a mail if necessary. See tutao.tutanota.ctrl.ComposingMail.isDirectSwitchActivated for more information.
- * @param {Object} domElement The mail dom element.
- * @param {number} position The position in the conversation.
- * @param {tutao.tutanota.ctrl.ComposingMail|tutao.tutanota.ctrl.DisplayedMail} mail The mail.
- */
-tutao.tutanota.gui.MailView.prototype.removeMail = function(domElement, position, mail) {
-	if (mail instanceof tutao.tutanota.ctrl.ComposingMail && !mail.isDirectSwitchActive()) {
-		tutao.tutanota.gui.slideBeforeRemove(domElement);
-	} else {
-		$(domElement).remove();
-	}
-};
-
-/**
  * Scrolls the mails up to the first mail.
  */
 tutao.tutanota.gui.MailView.prototype.showFirstMail = function() {

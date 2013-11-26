@@ -1,40 +1,57 @@
+@media @mobile {
+	div#logo.loggedIn {
+	    margin-top: 6px;
+	    
+		> div.path {
+			width: 30px;
+			height: 27px;
+		}
+		
+		> div.tutanota {
+			left: 31px;
+			width: 74px;
+			height: 27px;
+		}
+		> div.claim {
+			display: none;
+		}
+	}
+}
+
 header#main {
 	position: absolute;
 	left: 0px;
 	top: 0px;
 	right: 0px;
 	height: 55px;
-	.background-gradient(left, @white, @blue);
-	.shadow(0px, 0px, 7px, 0px);
+	@media @mobile {
+		height: 40px;
+	}
+	background-color: @background-dark;
+	.shadow(0px, 0px, 5px, 0px);
 	background-clip: padding-box;
 	
-	> img#logo {
+	> div.logoPathBackground {
 		position: absolute;
-		top: 4px;
-		left: 10px;
-		height: 24px;
-		cursor: pointer;
+		width: 10px;
+		height: 39px;
+		background-color: @background-dark;
+		z-index:2;
+		//display: none;
 	}
 	
-	> img#logo_path_only {
-		position: absolute;
-		top: 7px;
-		left: 10px;
-		height: 32px;
-		cursor: pointer;
+	> img {
+		display:none;
+		position:absolute;
+		height: 37px;
+		margin: 7px;
+		// small: height: 27px; margin-top: 4px;
 	}
 	
 	> select#fontSelector, select#themeSelector  {
 		position: absolute;
 		left: 130px;
 		top: 6px;
-	}
-	
-	span#user_welcome {
-		position: absolute;
-		bottom: 0px;
-		left: 10px;
-		font-size: 14px;
 	}
 	
 	div#log {
@@ -86,6 +103,11 @@ header#main {
 
 // also used in mail and contact view if no entities is shown
 div.menu_link  {
+	width: 80px; // defines the width of each menu item (+ margin)
+	
+	@media @mobile {
+		width: 50px;
+	}
 	
 	div.menu_image {
 		position: relative;
@@ -104,14 +126,18 @@ div.menu_link  {
 	}
 	
 	div.menu_text  {
-		font-size: 13px;
+		.light;
+		.small;
 		text-align: center;
 		overflow: hidden;
 		white-space: nowrap;
-		width: 60px; // defines the width of each menu item (+ margin)
 		margin-left: 2px;
 		margin-right: 2px;
 		.fadeTextOut;
+		
+		@media @mobile {
+			display: none;
+		}
 	}
 }
 

@@ -24,26 +24,22 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	this.passphraseFieldFocused = ko.observable(false);
 
 	var emptyString = "\u2008"; // an empty string or normal whitespace makes the label collapse, so enter this invisible character
-	this.failedLoginMessage = ko.observable(emptyString);
+	this.loginStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
 	this.loginOngoing = ko.observable(false);
 
 	this.mailAddress.subscribe(function(newValue) {
-	    this.failedLoginMessage(emptyString);
+	    this.loginStatus({ type: "neutral", text: "emptyString_msg" });
 	}, this);
 	this.passphrase.subscribe(function(newValue) {
-	    this.failedLoginMessage(emptyString);
+	    this.loginStatus({ type: "neutral", text: "emptyString_msg" });
 	}, this);
-
+	
 	this.loginPossible = ko.computed(function() {
-		return (!this.loginOngoing() && tutao.tutanota.util.Formatter.isMailAddress(this.mailAddress()));
-	}, this);
-
-	this.invalidMailAddressFormat = ko.computed(function() {
-		return (this.mailAddress() && !tutao.tutanota.util.Formatter.isMailAddress(this.mailAddress()));
+		return (!this.loginOngoing());
 	}, this);
 
 	this.invalidPassphraseFormat = ko.computed(function() {
-		return (this.passphrase().length > 0 && this.passphrase().length < 3);
+		return ;
 	}, this);
 };
 
@@ -98,9 +94,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function(callback) {
 	tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase(), function(exception) {
 		if (exception) {
 			if ((exception instanceof tutao.rest.EntityRestException) && (exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) {
-				self.failedLoginMessage(tutao.locator.languageViewModel.get("loginFailedOften_msg"));
+				self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
 			} else {
-				self.failedLoginMessage(tutao.locator.languageViewModel.get("loginFailed_msg"));
+				self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
 			}
 			self.loginOngoing(false);
 			if (callback && callback instanceof Function) {

@@ -16,6 +16,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
 	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 640);
+	// if the window width is small, just show the logo without "Tutanota" to save space
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 640);
 	});
@@ -38,10 +39,6 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
  * @param {Object=} params The parameters to provide to the view.
  */
 tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
-	if (view.isForInternalUserOnly() && !tutao.locator.userController.isInternalUserLoggedIn()) {
-		return;
-	}
-	if (this._activeView() !== view) { // only switch, if another view should be shown
 		if (this._activeView() != null) {
 			this._activeView().deactivate();
 		}
@@ -52,7 +49,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		}
 		this._activeView(view);
 		this._activeView().activate(params);
-	}
+	
 };
 
 /**

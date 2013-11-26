@@ -1,18 +1,19 @@
-body, input, button, select, textarea { // all other types should inherit from body
-	font-family: "DejaVu Sans", sans-serif;
-	font-size: 15px;
-}
+
+@button-bar-height: 45px;
 
 body {
 	position: absolute; // needed to allow increasing the body height in touch composing mode
 	left: 0px;
 	right: 0px;
 	height: 100%; // this is overwritten in touch composing mode
-	background-color: @light-grey;
+	overflow:hidden;
+	background: @background;
 	
 	> div#tutanota {
 		-webkit-touch-callout: none;
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+		overflow: hidden;
+		.fill;
 		
 		a {
 			color: black;
@@ -44,19 +45,25 @@ body {
 			position: absolute;
 			left: 0px;
 			right: 0px;
-			top: 49px;
+			top: 0px;
 			bottom: 0px;
 			overflow: hidden;
 			
+			/*
 			html.ie.lte9 & {
 				margin-top: 14px;
 			}
+			*/
 			
 			> div.content {
 				position: absolute;
+				.fill;
+				margin-top: 54px;
+				border-top: 1px solid @border-dark;
+				@media @mobile {
+					margin-top: 39px;
+				}
 				left: -150px;
-				top: 0px;
-				bottom: 0px;
 				
 				// see below for the columns
 				> div.viewColumn {
@@ -64,6 +71,7 @@ body {
 					height: 100%;
 					float: left;
 					overflow: hidden; // avoids that parts of unused columns are visible, e.g. for external mail view
+					border-right: 1px solid @border-dark;
 					
 					// here the button bar is used
 				}
@@ -74,7 +82,7 @@ body {
 	div.leftViewButton {
 		position: fixed;
 		z-index: 1;
-		left: 3px;
+		left: 15px;
 		bottom: 3px;
 		width: 35px;
 		height: 35px;
@@ -84,7 +92,7 @@ body {
 	div.rightViewButton {
 		position: fixed;
 		z-index: 1;
-		right: 3px;
+		right: 15px;
 		bottom: 3px;
 		width: 35px;
 		height: 35px;
@@ -99,14 +107,14 @@ body {
 
 	div.buttonBar {
 		position: relative;
+		background: @background-buttonBar;
+		height: @button-bar-height;
+		line-height: @button-bar-height;
 
 		> div.outerButtons {
-			position: absolute;
-			top: 0px;
-			left: 0px;
-			right: 0px;
-			height: 45px;
 			overflow: hidden;
+			.fill;
+
 			
 			> div.innerButtons {
 				position: absolute;
@@ -116,8 +124,6 @@ body {
 				overflow: hidden;
 
 				> button {
-					margin-top: 5px;
-					margin-bottom: 5px;
 					margin-right: 5px;
 				}
 			}
@@ -142,71 +148,45 @@ body {
 			top: 0px;
 			right: 0px;
 			bottom: 0px;
-			margin: 3px;
-			background-clip: padding-box;
-			.mainWidget;
-			
+			background-color: @background-buttonBar;
+
 			> div#innerTagList {
 				
-				
-				> div.tagItem {
-					width: 100%;
-					margin-bottom: 5px;
-
-					> .activeIcon {
-						display: inline-block;
-						height: 15px;
-						width: 19px;
-						vertical-align: middle;
-					}
-					> div.tagText {
-						display: inline-block;
-						left: 20px;
-					}
-					> div.tagIcon {
-						height: 17px;
-						width: 17px;
-						vertical-align: middle;
-					}
-				}
 			}
 		}
 	}
 	
 	.searchAndList {
-		position: absolute;
-		left: 3px;
-		top: 3px;
-		right: 3px;
-		bottom: 3px;
-		margin-right: 7px;
-	
-		section.search {
-			position: absolute;
-			left: 0px;
-			top: 0px;
-			right: 0px;
-			.shadow(7px, 0px, 0px, 7px);
-			
-			> div.innerSearch {
-				background: @light-blue;
-				border: 1px solid @blue;
-				padding: 4px;
-				height: 53px;
-				width: 100%;
+		.fill;
+		
+		> div.search {
+			.fill;
+			padding: @padding;
+			background: @background-buttonBar;
+			height: @button-bar-height;
+			width: 100%;
 				
-				> .searchForm {
-					margin-left: 8px;
-					margin-right: 8px;
-					
-					div.bubbleInput {
-						span.bubble.default {
-							background: @light-blue;
-						}
+			> .searchForm {
+				margin-left: 8px;
+				margin-right: 8px;
+				
+				div.bubbleInput {
+					span.bubble.default {
+						background: @button-background;
+						border: 1px solid @button-background;
 					}
 				}
 			}
 		}
+		
+		> section.list {
+			.fill;
+			
+			&.belowSearch {
+				top: @button-bar-height;
+			}
+		}
+		
 	}
 	
 	div#searchAndContactListColumn {
@@ -233,20 +213,19 @@ body {
 					overflow-x: hidden;*/
 					background: @white;
 					background-clip: padding-box;
-					.shadow(0px, 0px, 7px, 7px); // top and bottom are overwritten by binding in index.html as long as the search field is not available
 					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
 	
 					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 					> div.contactInList {
 						width: 100%;
-						height: 50px;
-						border-bottom: 1px solid @blue;
-						padding-left: 10px;
-						padding-right: 10px;
+						height: 49px;
+						border-bottom: 1px solid @border-dark;
+						padding-left: @padding;
+						padding-right: @padding;
 						cursor: pointer;
 						
 						&.selected {
-							background-color: @light-blue;
+							background-color: @highlight-color;
 						}
 	
 						> div.contactNameAndMailAddressInList {
@@ -255,6 +234,8 @@ body {
 						    
 						    > span.contactMailAddressInList {
 						    	float: right;
+						    	.light;
+						    	.small;
 						    }
 						}
 					}
@@ -266,7 +247,6 @@ body {
 	div#contactColumn {
 
 		> div#noContact {
-			margin-top: 20px;
 			text-align: center;
 			> div {
 				display: inline-block;
@@ -288,29 +268,19 @@ body {
 				> section#contact {
 					position: relative;
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
-					padding: 5px; /* distance between paper border and header box */
-					margin-top: 3px;
-					margin-bottom: 7px; //TODO not used
-					margin-right: 3px;
-					background-color: @white;
-				    .shadow(7px, 7px, 7px, 7px);
-					background-clip: padding-box;
 					
 					> header {
 						width: 100%;
-						background: @light-blue;
-						border: 1px solid @blue;
-						padding: 5px 10px 5px 10px;
+						border-bottom: 1px solid @blue;
 					}
 					
 					> div.contactBody {
 						position: relative;
-						padding: 10px;
+						padding: @padding;
 
 						// show mode
 						> div#contactNameTitleAndImage {
 							width: 100%;
-							height: 100px;
 										
 							> div#contactNameAndTitle {
 								height: 100%;
@@ -329,27 +299,22 @@ body {
 							}	
 						}
 						
-						> div.contactHeading {
-							.emphasizedText;
+						> h2 {
 							padding-top: 10px;
-						}
-						
-						> hr {
-							border: 0px;
-							color: @blue;
-							background-color: @blue;
-							height: 1px;
+							margin-bottom: 0px;
 						}
 						
 						div.contactData {
 							width: 100%;
+							.clearfix;
 							
 							> div {
-								padding-top: 5px;
-								padding-bottom: 5px;
+								padding-top: @padding;
+								padding-bottom: @padding;
 							}
 						
 							> div.contactDataType {
+								.light;
 								height: 100%;
 								width: 100px;
 								float: left;
@@ -448,8 +413,8 @@ body {
 		display: table;
 		
 		> input, select {
-			padding-top: 5px;
-			padding-bottom: 5px;
+			padding-top: @padding;
+			padding-bottom: @padding;
 		}
 		
 		> div {
@@ -459,7 +424,7 @@ body {
 	
 		> div.editContactDataType {
 			width: 130px;
-			padding-right: 10px;
+			padding-right: @padding;
 			
 			> input {
 				height: 30px;
@@ -526,7 +491,7 @@ body {
 						}
 						> div.fileName {
 							display: inline-block;
-							padding-right: 5px;
+							padding-right: @padding;
 							.fadeTextOut;
 							html.ie.lte8 & {
 								width: 150px;
@@ -536,7 +501,7 @@ body {
 						> div.fileSize {
 							display: inline-block;
 							vertical-align: top;
-							padding-right: 5px;
+							padding-right: @padding;
 						}
 					}
 				}
@@ -551,14 +516,9 @@ body {
 			
 			section#mailList {	
 				position: absolute;
-				left: 0px;
-				top: 60px;
-				right: 0px;
-				bottom: 0px;
 				overflow-y: auto; // allow scrolling in the mail list in desktop browsers
 				
 				> div#emptyMailList {
-					margin-top: 10px;
 					text-align: center;
 				}
 				
@@ -569,16 +529,15 @@ body {
 					overflow-x: hidden;*/
 					background: @white;
 					background-clip: padding-box;
-					.shadow(0px, 0px, 7px, 7px); // top and bottom are overwritten by binding in index.html as long as the search field is not available
 					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
 					
 					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 					> div.mailInList {
 						width: 100%;
-						height: 50px;
-						border-bottom: 1px solid @blue;
-						padding-left: 10px;
-						padding-right: 10px;
+						height: 49px;
+						border-bottom: 1px solid @border-dark;
+						padding-left: @padding;
+						padding-right: @padding;
 						cursor: pointer;
 						
 						&.unreadFont {
@@ -586,15 +545,14 @@ body {
 						}
 					
 						&.selected {
-							background-color: @light-blue;
+							background-color: @highlight-color;
 						}
 						
 						
-						> div.senderAndDate {
+						> div.mailInfo {
 							.fadeTextOut;
-							text-align: right;
-							width: 120px;
-							float: right;
+							.light;
+							.small;
 							
 							> div.mailHeaderImage {
 								height: 15px;
@@ -611,12 +569,25 @@ body {
 								margin-right: 3px;
 								border: 1px solid black;
 							}
+							
+							> div.date {
+								width: 120px;
+								float: right;
+								.fadeTextOut;
+								text-align: right;
+							}
+							> div.senderOrRecipient {
+								//float: right;
+								//width: 120px;
+							}
 						}
 						
 						> div.subject {
-							height: 100%;
-							
 						    .fadeTextOut;
+						}
+						> div.icons {
+							//width: 40px; // might be used if the fadeTextOut does not work on all devices
+							float: right;
 						}
 					}
 				}
@@ -630,7 +601,6 @@ body {
 		}
 
 		> div#noMail {
-			margin-top: 20px;
 			text-align: center;
 			> div {
 				display: inline-block;
@@ -650,18 +620,29 @@ body {
 			}
 
 			> section.conversation {
-				position: absolute;
-				left: 0px;
-				top: 0px;
-				right: 0px;
-				margin: 3px;
-				padding-right: 3px;  /* the mail shadow is 7px, so overall it is 10px */
-				padding-bottom: 45px; // enough space for the button bar
+				.fill;
 	
 				/* the js part needs to be enabled and the following lines disabled to enable touch scrolling */
 				/*bottom: 0px;
 				overflow-y: auto;
 				overflow-x: hidden;*/
+				
+				> div.actions {
+					display: table;
+					width: 100%;
+					> div.confidentialAction {
+						display: table-cell;
+						width: 180px;
+						vertical-align: top;
+						padding-top: 5px;
+						padding-left: @padding;
+						background: @background-buttonBar;
+					}
+					
+					> div.otherActions {
+						display: table-cell;
+					}
+				}
 	
 				// mail is used here
 			}
@@ -673,10 +654,7 @@ body {
 		-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
 		width: 100%;
 		height: 100%;
-		padding: 5px; /* distance between paper border and header box */
-		margin-bottom: 7px;
-		background-color: @white;
-	    .shadow(7px, 7px, 7px, 7px);
+		padding: @padding;
 	    
 	    html.ie.lte9 & {
 			border: 1px solid @dark-blue !important;
@@ -685,9 +663,8 @@ body {
 
 		> header {
 			width: 100%;
-			background: @light-blue;
-			border: 1px solid @blue;
-			padding: 5px 10px 5px 10px;
+			border-bottom: 1px solid @border-dark;
+			padding-bottom: @padding;
 			
 			> div.headerTable {
 				display: table;
@@ -697,6 +674,7 @@ body {
 					display: table-row;
 					
 					> div.name {
+						.light;
 						display: table-cell;
 						vertical-align: middle;
 						width: 35px;
@@ -715,13 +693,14 @@ body {
 						> .rightAligned {
 							float: right;
 						}
+						
+						> input.composeSubjectInput {
+							.inputField;
+							width: 100%;
+							max-width: 100%;
+						}
 					}
 				}
-			}
-			
-			.headerElement {
-				margin-top: 5px;
-				margin-bottom: 5px;
 			}
 			
 			> div.actions {
@@ -729,7 +708,6 @@ body {
 				> button {
 					margin-top: 5px;
 					margin-bottom: 5px;
-					margin-right: 5px;
 					float: right;
 				}
 	
@@ -758,37 +736,30 @@ body {
 				}
 			}
 			
-			> input.composeSubjectInput {
-				width: 100%;
-				.inputField;
-			}
-			
 			> div.attachments {
 				> div.download {			
 					display: inline-block;
 					position: relative; // this child 'object' (flash) must be positioned absolute
-					height: 35px;
+					height: 28px;
 				    border-radius: 5px;
 					-moz-border-radius: 5px;
 					-webkit-border-radius: 5px;
-					border: 1px solid @dark-blue;
-					line-height: 33px;
+					line-height: 28px;
 					text-decoration: none;
 					cursor: pointer;
+					background-color: @button-background;
 				
 					margin-top: 5px;
 					margin-bottom: 5px;
 				
 					> div.mimeImage {
 						display: inline-block;
-						vertical-align: top;
 						margin-left: 10px;
 						
 						> img {
 							width: 16px;
 							height: 16px;
 							margin-right: 2px;
-							vertical-align: middle;
 						}
 					}
 					> div.fileName {
@@ -821,7 +792,7 @@ body {
 						width: 35px;
 						height: 100%;
 						vertical-align: top;
-						border-left: 1px solid @dark-blue;
+						border-left: 2px solid @white;
 					
 						> div {
 							display: block;
@@ -845,18 +816,30 @@ body {
 			span.bubble {
 			
 				&.secureRecipient {
-					background: @light-blue;
+					background: @button-background;
+					&.selected {
+						background: darken(@button-background, 20%);
+					}
 				}
 				&.unsecureRecipient {
 					background: @red;
+					&.selected {
+						background: darken(@red, 20%);
+					}
 				}
 			}
 		}
 		
 		> div.mailBody, div.mailBodyQuotation {
-			margin: 5px;
 			line-height: 1.3;
-			word-wrap: break-word;	
+			word-wrap: break-word;
+			
+			&.mailBody {
+				padding-bottom: 0px;
+			}
+			&.mailBodyQuotation {
+				padding-top: 0px;
+			}
 		}
 		
 		blockquote, ul, ol {
@@ -908,13 +891,7 @@ body {
 				
 				> section#passwordChannelList {
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
-					padding: 15px; /* distance between paper border and header box */
-					padding-top: 10px;
-					margin-top: 3px;
-					margin-bottom: 7px; //TODO not used
-					margin-right: 3px;
-					background-color: @white;
-				    .shadow(7px, 7px, 7px, 7px);
+					padding: @padding; /* distance between paper border and header box */
 				    position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
 					background-clip: padding-box;
 					
@@ -970,9 +947,7 @@ body {
 				top: 0px;
 				right: 0px;
 				bottom: 0px;
-				margin: 3px;
 				background-clip: padding-box;
-				.mainWidget;
 
 				> div {
 							
@@ -993,9 +968,7 @@ body {
 			overflow-y: auto;
 			
 			> div#changeSettingsData {
-				margin: 3px;
-				.mainWidget;
-				
+				margin: 10px;				
 				> div {
 
 					> div#changePasswordData {

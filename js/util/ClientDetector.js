@@ -166,7 +166,7 @@ tutao.tutanota.util.ClientDetector._setClientInfo = function(userAgent) {
 tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	var info = tutao.tutanota.util.ClientDetector;
 	var minVersionNeeded = {};
-	minVersionNeeded[info.BROWSER_TYPE_CHROME] = 18;
+	minVersionNeeded[info.BROWSER_TYPE_CHROME] = 30; // we need at least version 30 as swiping is used for tab switching in earlier releases (see https://code.google.com/p/chromium/issues/detail?id=117657)
 	minVersionNeeded[info.BROWSER_TYPE_FIREFOX] = 16;
 	minVersionNeeded[info.BROWSER_TYPE_IE] = 8;
 	minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;

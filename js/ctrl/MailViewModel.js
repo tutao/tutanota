@@ -44,6 +44,14 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 	var self = this;
 	var mails = [];
+	this._setConversation([mail]);
+	// we just load the conversation because we need it later (to get it synchronous)
+	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
+		if (exception) {
+			console.log("conversation could not be loaded");
+		}
+	});
+	/* We currently don't display the whole conversation but will do this later
 	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
 		if (exception) {
 			console.log("conversation could not be loaded");
@@ -59,7 +67,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 				}
 			});
 		}
-	});
+	});*/
 };
 
 /**
@@ -274,12 +282,11 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 				previousMessageId = ce.getMessageId();
 			}
 		});
-		this.addFirstMailToConversation(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
+		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
 		this.getComposingMail().composerBody(bodyText);
 		tutao.locator.mailView.setComposingBody(bodyText);
 	} else {
-		this.conversation([]);
-		this.addFirstMailToConversation(new tutao.tutanota.ctrl.ComposingMail(conversationType, null));
+		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null)]);
 	}
 
 

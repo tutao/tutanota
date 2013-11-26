@@ -38,15 +38,15 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.login = function() {
-	window.location.hash = "login";
+	location.replace("#login");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.notSupported = function() {
-	window.location.hash = "#notSupported";
+	location.replace("#notSupported");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.mail = function(mail) {
-	window.location.hash = "#box";
+	location.replace("#box");
 	if (mail) {
 		tutao.locator.mailViewModel.showMail(mail);
 	}
@@ -59,7 +59,7 @@ tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.contact = function() {
-	window.location.hash = "#contact";
+	location.replace("#contact");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
@@ -68,27 +68,27 @@ tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.logs = function() {
-	window.location.hash = "#logs";
+	location.replace("#logs");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.db = function() {
-	window.location.hash = "#db";
+	location.replace("#db");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.monitor = function() {
-	window.location.hash = "#monitor";
+	location.replace("#monitor");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.config = function() {
-	window.location.hash = "#config";
+	location.replace("#config");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.customer = function() {
-	window.location.hash = "#customer";
+	location.replace("#customer");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
-	window.location.hash = "#settings";
+	location.replace("#settings");
 };
 
 /**
@@ -96,6 +96,12 @@ tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
  * @param {Object} view The view to switch to.
  */
 tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(view) {
+	/* TODO for ios 7: to make sliding work, we need to open a new window on login and close the current.
+	var type = tutao.tutanota.util.ClientDetector.getDeviceType();
+	if (window.history.length > 1 && (type == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || type == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD)) {
+		alert("open");
+		window.open(window.location.href, "_blank")
+	}*/
 	if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 		tutao.locator.viewManager.select(view);
 	} else {
@@ -124,6 +130,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 	Path.map("#login").to(function() {
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
+			tutao.tutanota.gui.resetLogoBindings();
 		}
 		if (self.verifyClientSupported()) {
 			tutao.locator.viewManager.select(tutao.locator.loginView);
