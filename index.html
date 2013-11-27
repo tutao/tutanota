@@ -716,8 +716,10 @@ function touchOrClick(e) {
 										<!-- ko foreach: getEditableContact().phoneNumbers -->
 											<!-- ko if: tutao.locator.passwordChannelViewModel.isSavedMobileNumber($data, $parent) -->
 												<div class="record">
-													<div class="recordData" data-bind="text: tutao.lang('fromAddressBook_label') + number()"></div>
-													<div class="recordAction"></div>
+													<div class="row">
+														<div class="recordData" data-bind="text: tutao.lang('fromAddressBook_label') + number()"></div>
+														<div class="recordAction"></div>
+													</div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
@@ -1101,25 +1103,31 @@ function touchOrClick(e) {
 			<div class="welcomeContainer">
 				<div class="panel">
 					<div class="content">
+						<h1 data-bind="lang: 'receiveMsg_msg'"></h1>
 						<div data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 						<div data-bind="visible: !errorMessageId()">
-							<label data-bind="lang: userMessageId()"></label>
-							<div class="recordContainer wide" data-bind="foreach: phoneNumbers, form: true">
+							<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
 								<div class="record">
+									<label class="recordName" data-bind="lang: 'phone_label'"></label>
 									<div class="recordData">
-										<button class="recordValue" data-bind="text: tutao.lang('sendPasswordTo_action') + getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+										<label class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
+										<!-- ko foreach: phoneNumbers -->
+										<button class="recordValue" data-bind="text: getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
 										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
+										<!-- /ko -->
 									</div>
 								</div>
 							</div>
 							<form class="recordContainer wide" data-bind="submit: showMail, form: true">
 								<div class="record">								
+									<label for="externalMailPasswordInput" class="recordName" data-bind="lang: 'password_label'"></label>
 									<div class="recordData">
-										<input id="externalMailPasswordInput" class="loginTextInput recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
+										<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
 										<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
 									</div>
 								</div>
 								<div class="record">								
+									<div class="recordName"></div>
 									<div class="recordData">
 										<div class="recordValue">
 											<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
@@ -1128,7 +1136,8 @@ function touchOrClick(e) {
 										<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
 									</div>
 								</div>
-								<div class="record">								
+								<div class="record">	
+									<div class="recordName"></div>							
 									<div class="formAction">
 										<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
 										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
@@ -1138,7 +1147,7 @@ function touchOrClick(e) {
 						</div>
 					</div>
 				</div>
-				<!-- TODO switch all labels to use label! -->
+				<div id="welcomePicture"><div></div></div>
 			</div>
 			<div class="infoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY)">
 				<label data-bind="lang: 'legacyNoReply_msg'"></label>

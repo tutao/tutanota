@@ -96,38 +96,35 @@ tutao.tutanota.gui.initKnockout = function() {
 	    }
 	};
 	
-	// sets a wide class on all forms that are wider than 400px
-	// TODO enable, after coupling with viewSlider. Current Problem: the initial switch from "small" to "wide" is visible on slow devices 
-	var updateForm = function(element) {
-		/*
+	// sets a wide class on all forms that are wider than 350px
+	var updateForm = function(element, container) {
 		var e = $(element);
-		e.toggleClass("wide", e.width() >= 350);
-		*/
+		e.toggleClass("wide", container.width() >= 350);
 	};
-	var currentForms = [];
+	var currentForms = []; 
 	ko.bindingHandlers.form = {
 		init: function(element, valueAccessor) {
+			var container = $(element).closest(".viewColumn, .panel");
 			setTimeout(function() {
-				updateForm(element);
+				updateForm(element, container);
 			},1);
-			currentForms.push(element);
+			var formMapping = {formElement: element, container: container}
+			currentForms.push(formMapping);
 			
 			ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
-				currentForms.splice(currentForms.indexOf(element),1);
+				currentForms.splice(formMapping,1);
 		    });
 		},
 		update: function(element, valueAccessor) {
-			setTimeout(function() {
-				updateForm(element);
-			},1);
+			var container = $(element).closest(".viewColumn, .panel");
+			updateForm(element, container);
 		}
 	};
-	/*
 	$(window).resize(function() {
 		for (var i = 0; i < currentForms.length; i++) {
-			updateForm(currentForms[i]);
+			updateForm(currentForms[i].formElement, currentForms[i].container);
 		}
-	});*/
+	});
 	
 	ko.bindingHandlers.fadeText = {
 	    init: function(element, valueAccessor) { 
@@ -199,15 +196,15 @@ tutao.tutanota.gui.initKnockout = function() {
 						slideViewQueue[0]();
 					}
 				};
-				//if (newView == $("div#login")[0]) { // just a workaround as long as sliding in the loginview does not work on all devices
+				if (newView == $("div#login")[0]) { // just a workaround as long as sliding in the loginview does not work on all devices
 					$(previousView).hide();
 					$(newView).show();
 					finishedHandler();
-					/*
+					
 				} else {
 					$(previousView).transition({ y: '-100%' }).transition({display: "none"}, 0);
 					$(newView).transition({ y: '100%' },0).transition({display: ""}, 0).transition({ y: '0%' }, finishedHandler);
-				}*/
+				}
 			} else {
 				slideViewQueue.shift();
 				if (slideViewQueue.length > 0) {

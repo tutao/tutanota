@@ -386,14 +386,14 @@ button {
 	.light;
 	
 	&:active {
-		.background-gradient(top,lighten(@blue, 5%),darken(@blue, 5%));
+		background-color:@background-dark; 
 	}
 	
 	&.disabled {
-		opacity: 0.5;
+		opacity: 0.2;
 		
 		&:active {
-			.background-gradient(top,lighten(@blue, 15%),lighten(@blue, 5%));
+			background-color:@background-dark; 
 		}
 	}
 	
@@ -497,24 +497,25 @@ div.switch {
   **************************************/
   
 div.dropDownWrapper {
-   	border: 1px solid darken(@dark-blue, 20%);
-    border-radius: 3px;
+	border: 1px solid @button-border;
+    border-radius: 0px;
 
 	&.selected {
 	    border-color: @focus-blue;
 	   	box-shadow:0 0 10px @focus-blue;
 	}
 	> select {
+		//height: 35px;
 		// use the background color as workaround for chrome. selects seem not to use the gradient
-	    background: lighten(@blue, 5%);
-	    .background-gradient(top,lighten(@blue, 15%),lighten(@blue, 5%));
-    	box-shadow: inset 0 0 3px 0px #F6F6F6;
-		text-shadow: 0 1px 0 darken(@white, 10%);
+	    background: @button-background;
 	    border: 0px;
+	    padding-top: 3px;
+	    padding-bottom: 3px;
 	    width: 100%;
+	    .light;
 	    
 	    &:active {
-			.background-gradient(top,lighten(@blue, 5%),darken(@blue, 5%));
+			background-color:@background-dark;
 		}
 	}
 }
@@ -554,6 +555,7 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 			padding-right: 15px;
 			width: 100%;
 			overflow: hidden;
+			vertical-align: top;
 		}
 		
 		> div.recordData {

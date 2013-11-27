@@ -239,6 +239,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	codeInvalid_msg: "Incorrect code. Please check again.",
 
 	// external login
+	receiveMsg_msg: "Receive message",
 	invalidLink_msg: "Sorry, this link is not valid.",
 	smsError_msg: "Could not send SMS.",
 	smsSent_msg: "The SMS should arrive in not more than 60s.",
@@ -246,14 +247,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	smsSentOften_msg: "Too many sent SMS. Please ask the sender of the message to resend it.",
 	invalidPassword_msg: "Invalid password. Please check it again.",
 	showMail_action: "show email",
-	chooseNumber_msg: "Please choose a phone number. The password for the email will be sent to that number (maximum of three SMS):",
-	sendPasswordTo_action: "Send password to: ",
+	chooseNumber_msg: "Please choose a phone number. The password for the email will be sent to that number (maximum of three SMS).",
 	storePassword_action: "Store password in browser",
 	enterPresharedPassword_msg: "Please enter the password which you have agreed upon with the sender.",
 	sendingSms_msg: "Sending SMS...",
 	onlyPrivateComputer_msg: "Only choose this option if you are using a private computer.",
 	loadingMail_msg: "Loading email...",
-	enterPassword_msg: "Please enter the password here.",
+	enterSmsPassword_msg: "Please enter the password that has been transmitted via SMS here.",
 
 	// login
 	welcome_msg: "Login",
@@ -552,6 +552,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	codeInvalid_msg: "Der Code ist nicht korrekt, bitte überprüfen Sie ihn erneut.",
 
 	// external login
+	receiveMsg_msg: "Nachricht empfangen",
 	invalidLink_msg: "Leider ist dieser Link ungültig.",
 	smsError_msg: "Die SMS konnte nicht gesendet werden",
 	smsSent_msg: "Die SMS sollte innerhalb von 60s ankommen.",
@@ -559,14 +560,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	smsSentOften_msg: "Es wurden zu viele SMS versendet. Fragen Sie den Sender der Nachricht, ob er Ihnen diese erneut zukommen lassen kann.",
 	invalidPassword_msg: "Das Passwort ist leider ungültig.",
 	showMail_action: "E-Mail anzeigen",
-	chooseNumber_msg: "Bitte wählen Sie eine Telefonnummer. Das Passwort für die E-Mail wird an diese Nummer versendet (maximal drei SMS):",
-	sendPasswordTo_action: "Passwort senden an: ",
-	storePassword_action: "Passwort in Browser speichern",
+	chooseNumber_msg: "Bitte wählen Sie eine Telefonnummer. Das Passwort für die E-Mail wird an diese Nummer versendet (maximal drei SMS).",
+	storePassword_action: "Passwort im Browser speichern",
 	enterPresharedPassword_msg: "Bitte geben Sie das mit dem Absender vereinbarte Passwort ein.",
 	sendingSms_msg: "SMS wird gesendet...",
 	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie einen privaten Computer verwenden.",
 	loadingMail_msg: "Lade E-Mail...",
-	enterPassword_msg: "Bitte geben Sie hier das Passwort ein.",
+	enterSmsPassword_msg: "Bitte geben Sie hier das per SMS übertragene Passwort ein.",
 
 	// login
 	welcome_msg: "Login",
