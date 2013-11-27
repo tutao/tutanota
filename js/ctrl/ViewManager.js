@@ -39,6 +39,10 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
  * @param {Object=} params The parameters to provide to the view.
  */
 tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
+	if (view.isForInternalUserOnly() && !tutao.locator.userController.isInternalUserLoggedIn()) {
+		return;
+	}
+	if (this._activeView() !== view) { // only switch, if another view should be shown
 		if (this._activeView() != null) {
 			this._activeView().deactivate();
 		}
@@ -49,7 +53,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		}
 		this._activeView(view);
 		this._activeView().activate(params);
-	
+	}
 };
 
 /**

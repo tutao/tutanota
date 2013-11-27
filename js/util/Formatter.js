@@ -54,7 +54,7 @@ tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn = function(date) {
 	} else {
 		dateString = tutao.tutanota.util.Formatter.formatDateWithWeekday(date);
 	}
-	return dateString + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2);
+	return (dateString + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2)).trim();
 };
 
 /**
