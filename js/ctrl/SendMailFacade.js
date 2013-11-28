@@ -18,6 +18,11 @@ goog.provide('tutao.tutanota.ctrl.SendMailFacade');
  * if another error occurred.
  */
 tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, callback) {
+	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();
+	if ((accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM)) {
+		callback(null, new Error("invalid account type"));
+		return;
+	}
 	tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(attachments, function(fileDatas, exception) {
 		if (exception) {
 			callback(null, exception);
@@ -151,69 +156,71 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
 		recipient.setPubEncBucketKey(null);
 		recipient.setPubKeyVersion(null);
-
-		// pre-shared password has prio
-		var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
-		var preshared = true;
-		if (!password) {
-			password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
-			preshared = false;
-		}
-		if (password == "") {
-			password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
-			if (recipientInfo.isExistingContact()) {
-				recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
-				recipientInfo.getContactWrapper().getContact().update(function() {});
+		
+		tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey(recipientInfo.getMailAddress(), function(communicationKey, exception) {
+			if (exception) {
+				callback(exception);
+				return;
 			}
-		}
-		console.log(password); //TODO (before beta) just for testing, remove later or dev mode
 
-		var saltHex = "01010203040506070809010203040506";
-		//var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
-		var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
-		// TODO (story performance): make kdf async in worker
-		tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
-			var key = tutao.locator.aesCrypter.hexToKey(hexKey);
-			var symEncBucketKey = tutao.locator.aesCrypter.encryptKey(key, bucketKey);
-			recipient.setSymEncBucketKey(symEncBucketKey);
-			var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
-			// the password is not sent to the server if it is pre-shared
-			if (!preshared) {
-				recipient.setPassword(password);
+			// pre-shared password has prio
+			var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
+			var preshared = true;
+			if (!password) {
+				password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
+				preshared = false;
 			}
-			recipient.setPasswordVerifier(passwordVerifier);
-			recipient.setSalt(saltBase64);
-			recipient.setPubEncBucketKey(null);
-			recipient.setPubKeyVersion(null);
-
-			if (!preshared) {
-				var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
-				var nbrOfValidNumbers = 0;
-				for (var a = 0; a < numbers.length; a++) {
-					var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
-					if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
-						var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient);
-						number.setNumber(recipientNumber);
-						number.setMaskedNumber(tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber(recipientNumber));
-						recipient.getPasswordChannelPhoneNumbers().push(number);
-						nbrOfValidNumbers++;
-					}
+			if (password == "") {
+				password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
+				if (recipientInfo.isExistingContact()) {
+					recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
+					recipientInfo.getContactWrapper().getContact().update(function() {});
 				}
-				if (nbrOfValidNumbers == 0) {
-					callback(new tutao.rest.EntityRestException(new Error("no valid password channels for recipient")));
+			}
+			console.log(password); //TODO (before beta) just for testing, remove later or dev mode
+	
+			var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
+			var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
+			// TODO (story performance): make kdf async in worker
+			tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
+				var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+				var symEncBucketKey = tutao.locator.aesCrypter.encryptKey(communicationKey, bucketKey);
+				recipient.setSymEncBucketKey(symEncBucketKey);
+				var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
+				// the password is not sent to the server if it is pre-shared
+				if (!preshared) {
+					recipient.setAutoTransmitPassword(password);
+				}
+				recipient.setPasswordVerifier(passwordVerifier);
+				recipient.setSalt(saltBase64);  // starter accounts may not call this facade, so the salt is always sent to the server
+				recipient.setSaltHash(tutao.locator.shaCrypter.hashHex(saltHex));
+				recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, communicationKey));
+	
+				if (!preshared) {
+					var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
+					var nbrOfValidNumbers = 0;
+					for (var a = 0; a < numbers.length; a++) {
+						var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
+						if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
+							var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient);
+							number.setNumber(recipientNumber);
+							number.setMaskedNumber(tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber(recipientNumber));
+							recipient.getPasswordChannelPhoneNumbers().push(number);
+							nbrOfValidNumbers++;
+						}
+					}
+					if (nbrOfValidNumbers == 0) {
+						callback(new tutao.rest.EntityRestException(new Error("no valid password channels for recipient")));
+					} else {
+						callback();
+					}
 				} else {
 					callback();
 				}
-			} else {
-				callback();
-			}
+			});
 		});
 	} else if (!recipientInfo.isExternal()) {
 		recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_INTERNAL);
-		recipient.setSymEncBucketKey(null);
-		recipient.setPassword(null);
-		recipient.setPasswordVerifier(null);
-		recipient.setSalt(null);
 
 		// load recipient key information
 		var parameters = {};
@@ -247,6 +254,53 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		// it is an external recipient, but there are already not found recipients, so just skip this one
 		callback();
 	}
+};
+
+/**
+ * Checks that an ExternalRecipient instance with a mail box exists for the given mail address. If it does not exist, it is created. Returns the communication key of the external recipient.
+ * @param {String} externalMailAddress The mail address of the external recipient.
+ * @param {function(?Object communicationKey, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
+ */
+tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAddress, callback) {
+	var self = this;
+	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.ExternalRecipient.ROOT_INSTANCE_ID];
+	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
+		if (exception) {
+			callback(null, exception);
+			return;
+		}
+		var mailAddressId = tutao.rest.EntityRestInterface.stringToCustomId(externalMailAddress);
+		tutao.entity.tutanota.ExternalRecipient.load([root.getReference(), mailAddressId], function(externalRecipient, exception) {
+			if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
+				// it does not exist, so create it
+				var data = new tutao.entity.tutanota.ExternalRecipientData();
+				// load the list key of the ExternalRecipients list
+				data._entityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
+					if (exception) {
+						callback(null, exception);
+						return;
+					}
+					var extRecipientCommunicationKey = tutao.locator.aesCrypter.generateRandomKey();
+					var extRecipientMailListKey = tutao.locator.aesCrypter.generateRandomKey();
+					data.setMailAddress(externalMailAddress);
+					data.setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)); // encrypted attribute
+					data.setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey));
+					data.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()));
+					data.setup([], null, function(nothing, exception) {
+						if (exception) {
+							callback(null, exception);
+						} else {
+							callback(extRecipientCommunicationKey);
+						}
+					});
+				});
+			} else if (exception) {
+				callback(null, exception);
+			} else {
+				callback(tutao.locator.aesCrypter.base64ToKey(externalRecipient.getCommunicationKey()));
+			}
+		});
+	});
 };
 
 tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber = function(number) {

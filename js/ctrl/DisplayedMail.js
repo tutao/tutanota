@@ -26,14 +26,16 @@ tutao.tutanota.ctrl.DisplayedMail = function(mail) {
 
 	var self = this;
 	this.buttons = ko.computed(function() {
+		var trashText = (this.mail.getTrashed()) ? tutao.locator.languageViewModel.get("undelete_action") : tutao.locator.languageViewModel.get("delete_action");
 		if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			if (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY) {
-				return [new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); })];
+				return [new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); }),
+				        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); })
+						];
 			} else {
-				return [];
+				return [new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); })];
 			}
 		} else {
-			var trashText = (this.mail.getTrashed()) ? tutao.locator.languageViewModel.get("undelete_action") : tutao.locator.languageViewModel.get("delete_action");
 			return [
 			        new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); }),
 			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("reply_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); }),

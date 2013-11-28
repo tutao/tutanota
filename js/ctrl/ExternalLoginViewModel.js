@@ -11,10 +11,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.userId = null;
-	this.authToken = null;
 	this.mailListId = null;
 	this.mailId = null;
-	this.salt = null;
+	this.saltHex = null;
+
+	// for authentication as long as verifier is not available
+	this.saltHash = null;
+	this.externalMailReference = null;
 
 	this.phoneNumbers = ko.observableArray();
 
@@ -44,13 +47,14 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 
 	// the device token is removed locally if it is not stored on the server (any more), see setup()
 	this.deviceToken = null;
-	this.storePassword = ko.observable(true);
+	this.storePassword = ko.observable(false);
+	this.autoLoginActive = false;
 	
 	var s = new tutao.tutanota.util.StateMachine();
 	this.state = s;
 	s.addState("EnterPassword",         {});
 	s.addState("SendingSms",            {});
-	s.addState("CheckingPassword",       {});
+	s.addState("CheckingPassword",      {});
 	s.addState("FinishTooManyAttempts", {});
 	s.addState("FinishShowMail",        {});
 
@@ -69,33 +73,48 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 
 /**
  * Initializes the view model with a set of provided parameters and retrieves the phone numbers from the server.
- * @param {String} mailRef The id of the external mail reference instance
+ * @param {String} mailRef The id of the external mail reference instance and the salt as base64Url concatenated.
  * @param {function} callback Called when finished.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, callback) {
 	var self = this;
-	var params = {};
-	params[tutao.rest.ResourceConstants.ID_PARAMETER_NAME] = mailRef;
-	tutao.entity.tutanota.ExternalMailReferenceReturn.load(params, null, function(refData, exception) {
+	// split mailRef to get externalMailReferenceId and salt
+	self.saltHex = tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(mailRef.substring(mailRef.length / 2)));
+	self.saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(self.saltHex));
+	self.externalMailReference = mailRef.substring(0, mailRef.length / 2);
+	
+	var self = this;
+	// TODO (before beta) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
+	// call PassworChannelService to get the user id and password channels
+	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(passwordChannelReturn, exception) {
 		if (exception) {
-			self.errorMessageId("invalidLink_msg");
-			console.log("error");
+			self._handleException(exception);
+			callback();
 			return;
 		}
-		self.userId = refData.getUserId();
-		self.mailListId = refData.getMail()[0];
-		self.mailId = refData.getMail()[1];
-		self.authToken = refData.getAuthToken();
-		self.salt = refData.getSalt();
-		
+		self.userId = passwordChannelReturn.getUserId();
+		self.autoLoginActive = true;
 		self._tryAutoLogin(function(exception) {
+			self.autoLoginActive = false;
 			if (exception) {
-				self._showPhoneNumberSelection(callback);
-			} else {
-				callback();
+				self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+				if (self.phoneNumbers().length == 0) {
+					self.userMessageId("enterPresharedPassword_msg");
+				} else {
+					self.userMessageId("chooseNumber_msg");
+				}
 			}
+			callback();
 		});
 	});
+};
+
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function(exception) {
+	if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 409) { // conflict
+		this.errorMessageId("expiredLink_msg");
+	} else {
+		this.errorMessageId("invalidLink_msg");
+	}
 };
 
 /**
@@ -123,7 +142,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(c
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(callback) {
 	var self = this;
 	this.deviceToken = tutao.tutanota.util.LocalStore.load('deviceToken_' + this.userId);
-	var deviceEncPassword = tutao.tutanota.util.LocalStore.load('deviceEncPassword_' + this.authToken);
+	var deviceEncPassword = tutao.tutanota.util.LocalStore.load('deviceEncPassword_' + this.userId);
 	if (this.deviceToken == null || deviceEncPassword == null) {
 		callback(new tutao.rest.EntityRestException(new Error("no device token or password available")));
 		return;
@@ -145,19 +164,16 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(ca
 			callback(new tutao.rest.EntityRestException(e));
 			return;
 		}
-		var saltHex = tutao.util.EncodingConverter.base64ToHex(self.salt);
-		tutao.locator.userController.loginExternalUser(self.userId, password, saltHex, self.authToken, function(exception) {
+		self.state.event("checkPassword");
+		tutao.locator.userController.loginExternalUser(self.externalMailReference, self.userId, password, self.saltHex, function(passwordKey, exception) {
 			if (exception) {
+				self.state.event("passwordInvalid");
 				callback(exception);
 				return;
 			}
-			self._showMail(function(exception) {
-				if (exception) {
-					callback(exception);
-				} else {
-					callback();
-				}
-			});
+			self.state.event("passwordValid");
+			callback();
+			self._showMail(passwordKey);
 		});
 	});
 };
@@ -172,29 +188,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._allowSmsAfterDelay = funct
 		self.sendSmsStatus({ type: "neutral", text: "emptyString_msg" });
 		self.userMessageId("smsResent_msg");
 	}, 60000);
-};
-	
-/**
- * Shows the available phone numbers.
- * @param {function} callback Called when finished.
- */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showPhoneNumberSelection = function(callback) {
-	var self = this;
-	// TODO (before beta) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
-	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(passwordChannelReturn, exception) {
-		if (exception) {
-			self.errorMessageId("invalidLink_msg");
-			callback();
-			return;
-		}
-		self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-		if (self.phoneNumbers().length == 0) {
-			self.userMessageId("enterPresharedPassword_msg");
-		} else {
-			self.userMessageId("chooseNumber_msg");
-		}
-		callback();
-	});
 };
 
 /**
@@ -226,7 +219,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	if (!this.sendSmsAllowed()) {
 		return;
 	}
-	this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
+	// reuse the transmission password to allow receiving the key if the SMS was requested a second time, but the SMS link of the first SMS was clicked
+	if (this.symKeyForPasswordTransmission == null) {
+		this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
+	}
 	
 	var self = this;
 	var service = new tutao.entity.tutanota.PasswordMessagingData();
@@ -275,34 +271,52 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMailAllowed = function(
 /**
  * Switches to the mailView and displays the mail if the provided password is correct.
  */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMail = function() {
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.checkEnteredPassword = function() {
 	var self = this;
 	if (!this.showMailAllowed()) {
 		return;
 	}
-	var saltHex = tutao.util.EncodingConverter.base64ToHex(this.salt);
 	this.state.event("checkPassword");
 	self.passwordStatus({ type: "neutral", text: "emptyString_msg" });
 	self.showMailStatus({ type: "neutral", text: "loadingMail_msg" });
-	tutao.locator.userController.loginExternalUser(this.userId, this.password(), saltHex, this.authToken, function(exception) {
+	tutao.locator.userController.loginExternalUser(this.externalMailReference, this.userId, this.password(), this.saltHex, function(passwordKey, exception) {
 		if (exception) {
 			self.state.event("passwordInvalid");
 			self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
 			self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-			console.log("handle technical exceptions (depending on HTTP response code)");
 			return;
 		}
+		self.state.event("passwordValid");
+		self._showMail(passwordKey);
+	});
+};
+
+/**
+ * Must be called after successful login. Loads the communication key via ExternalMailReference, initializes the users mailbox and shows the mails.
+ * @param {Object} passwordKey The passwordKey that will be used to decrypt the communication key.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showMail = function(passwordKey) {
+	var self = this;
+	tutao.entity.tutanota.ExternalMailReference.load(self.externalMailReference, function(info, exception) {
+		if (exception) {
+			self._handleException(exception);
+			return;
+		}
+		var communicationKey = tutao.locator.aesCrypter.decryptKey(passwordKey, info.getPwEncCommunicationKey());
+		tutao.locator.userController.setExternalUserGroupKey(communicationKey);
+		self.mailListId = info.getMail()[0];
+		self.mailId = info.getMail()[1];
 		
-		self._storePasswordIfPossible(function() {
-			self._showMail(function(exception) {
-				if (exception) {
-					self.state.event("passwordInvalid");
-					self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
-					self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-					console.log("handle technical exceptions (depending on HTTP response code)");
-				} else {
-					self.state.event("passwordValid");
-				}
+		tutao.locator.mailBoxController.initForUser(function(exception) {
+			if (exception) {
+				self._handleException(exception);
+				return;
+			}
+			self._storePasswordIfPossible(function() {
+				// no indexing for external users
+				tutao.locator.replace('dao', new tutao.db.DummyDb);
+				self._showingMail = true;
+				tutao.locator.navigator.mail();
 			});
 		});
 	});
@@ -314,7 +328,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.showMail = function() {
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = function(callback) {
 	var self = this;
-	if (self.storePassword()) {
+	// if auto login is active, the password is already stored and valid
+	if (!self.autoLoginActive && self.storePassword()) {
 		if (!self.deviceToken) {
 			// register the device and store the encrypted password
 			var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
@@ -327,7 +342,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 				}
 				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, autoLoginPostReturn.getDeviceToken())) {
 					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.password());
-					tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.authToken, deviceEncPassword);
+					tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
 				}
 				callback();
 			});
@@ -339,30 +354,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 					return;
 				}
 				var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.password());
-				tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.authToken, deviceEncPassword);
+				tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
 				callback();
 			});
 		}
 	} else {
 		callback();
 	}
-};
-
-
-/**
- * Switches to the mailView and displays the mail if the provided password is correct.
- */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showMail = function(callback) {
-	var self = this;
-	tutao.entity.tutanota.Mail.load([self.mailListId, self.mailId], function(mail, exception) {
-		if (exception) {
-			callback(exception);
-		} else {
-			self._showingMail = true;
-			tutao.locator.navigator.mail(mail);
-			callback();
-		}
-	});
 };
 
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function() {
@@ -378,8 +376,26 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
 			self.retrievePassword(); // timeout, retry to get the password immediately
 		} else if (!self._showingMail){
-			self.password(tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword()));
-			self.showMail();
+			self.state.event("checkPassword");
+			var password;
+			try {
+				password = tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword());
+			} catch (e) {
+				self.state.event("passwordInvalid");
+				self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+				self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+				return;
+			}
+			tutao.locator.userController.loginExternalUser(self.externalMailReference, self.userId, password, self.saltHex, function(passwordKey, exception) {
+				if (exception) {
+					self.state.event("passwordInvalid");
+					self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+					self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+					return;
+				}
+				self.state.event("passwordValid");
+				self._showMail(passwordKey);
+			});
 		}
 	});
 };
@@ -389,9 +405,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
  * @return {Object.<String, String>} the parameters.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._getAuthHeaders = function() {
-	var params = {};
-	params[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = this.authToken;
-	params[tutao.rest.ResourceConstants.MAIL_LIST_ID_PARAMETER_NAME] = this.mailListId;
-	params[tutao.rest.ResourceConstants.MAIL_ELEMENT_ID_PARAMETER_NAME] = this.mailId;
-	return params;
+	var headers = {};
+	headers[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = this.externalMailReference;
+	headers[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = this.saltHash;
+	return headers;
 };

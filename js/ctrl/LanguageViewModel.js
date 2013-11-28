@@ -241,6 +241,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// external login
 	invalidLink_msg: "Sorry, this link is not valid.",
+	expiredLink_msg: "Sorry, this link is not valid any more. You should have received a new notification email with the currently valid link.",
 	smsError_msg: "Could not send SMS.",
 	smsSent_msg: "The SMS should arrive in not more than 60s.",
 	smsResent_msg: "If no SMS has been arrived you may resend it now.",
@@ -556,6 +557,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
 	// external login
 	invalidLink_msg: "Leider ist dieser Link ungültig.",
+	expiredLink_msg: "Leider ist dieser Link nicht mehr gültig. Sie sollten eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link von diesem Absender bekommen haben.",
 	smsError_msg: "Die SMS konnte nicht gesendet werden",
 	smsSent_msg: "Die SMS sollte innerhalb von 60s ankommen.",
 	smsResent_msg: "Wenn die SMS nicht angekommen ist, dann können Sie diese nun erneut senden.",

@@ -194,13 +194,17 @@
 	<script type="text/javascript" src="generated/entity/tutanota/ContactSocialId.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ContactSocialIdEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/ConversationEntry.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/ConversationKeyInfo.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/CreateExternalRecipientData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/CreateFileData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/CreateFileReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/CreateFolderData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/CreateFolderReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/DataBlock.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/DeleteFileData.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/ExternalMailReferenceReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/ExternalMailReference.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/ExternalRecipient.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/ExternalRecipientData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/FeedbackData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/File.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/FileData.js"></script>
@@ -218,7 +222,6 @@
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordChannelReturn.js"></script>
-	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessage.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessagingData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordMessagingReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
@@ -1345,7 +1348,7 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
-						<form class="recordContainer" data-bind="submit: showMail">
+						<form class="recordContainer" data-bind="submit: checkEnteredPassword">
 							<div class="record">								
 								<div class="recordData">
 									<input id="externalMailPasswordInput" class="loginTextInput recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
@@ -1363,7 +1366,7 @@ function touchOrClick(e) {
 							</div>
 							<div class="record">								
 								<div class="formAction">
-									<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: showMail, attr: { alt: tutao.lang('showMail_action')}"></button>
+									<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
 									<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
 								</div>
 							</div>

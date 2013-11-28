@@ -274,6 +274,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 				previousMessageId = ce.getMessageId();
 			}
 		});
+		// the conversation key may be null if the mail was e.g. received from an external via smtp
 		this.addFirstMailToConversation(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
 		this.getComposingMail().composerBody(bodyText);
 		tutao.locator.mailView.setComposingBody(bodyText);

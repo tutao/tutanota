@@ -99,15 +99,20 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 			self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID, function() {
 				self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID, function() {
 					self._updateMailList(function() {
-						// get the highest indexed mail id for the event tracker
-						tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
-							var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail", tutao.entity.Constants.Version);
-							eventTracker.addObserver(self.updateOnNewMails);
-							eventTracker.observeList(lastIndexedId);
-							if (callback) {
-								callback();
-							}
-						});
+						if (tutao.locator.userController.isExternalUserLoggedIn()) {
+							// no notifications for external users. instead add all loaded mails
+							self.updateOnNewMails(mails, callback);
+						} else {
+							// get the highest indexed mail id for the event tracker
+							tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
+								var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail", tutao.entity.Constants.Version);
+								eventTracker.addObserver(self.updateOnNewMails);
+								eventTracker.observeList(lastIndexedId);
+								if (callback) {
+									callback();
+								}
+							});
+						}
 					});
 				});
 			});

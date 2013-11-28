@@ -21,7 +21,6 @@ tutao.tutanota.ctrl.MailBoxController = function() {
  * Initializes the MailBoxController for the logged in user. This must be called
  * whenever another user logs in. Loads the user's mail list id, contact list id
  * and file list id.
- *
  * @param {function(tutao.rest.EntityRestException=)}
  *            callback Called when finished.
  */
@@ -30,21 +29,26 @@ tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback)
 	this._loadMailBox(function(exception) {
 		if (exception) {
 			callback(exception);
-		} else {
-			self._loadFileSystem(function(exception) {
+			return;
+		}
+		// external users only have a mailbox
+		if (tutao.locator.userController.isExternalUserLoggedIn()) {
+			callback();
+			return;
+		}
+		self._loadFileSystem(function(exception) {
+			if (exception) {
+				callback(exception);
+				return;
+			}
+			self._loadContactList(function(exception) {
 				if (exception) {
 					callback(exception);
-				} else {
-					self._loadContactList(function(exception) {
-						if (exception) {
-							callback(exception);
-						} else {
-							self._loadShares(callback);
-						}
-					});
+					return;
 				}
+				self._loadShares(callback);
 			});
-		}
+		});
 	});
 };
 

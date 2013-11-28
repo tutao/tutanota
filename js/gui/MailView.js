@@ -36,20 +36,16 @@ tutao.tutanota.gui.MailView.prototype.init = function(external) {
 		self._rightmostVisibleColumn(self._viewSlider.getRightmostVisibleColumnId());
 		tutao.tutanota.gui.viewPositionAndSizeReceiver("#mailContent", x, y, initial);
 	});
-	if (external) {
-		this._viewSlider.addViewColumn(1, 600, 1024, function(x, width) {
-			$('#conversationColumn').css("width", width + "px");
-		});
-	} else {
-		this._viewSlider.addViewColumn(2, 190, 190, function(x, width) {
-			$('#tagListColumn').css("width", width + "px");
-		});
-		this._viewSlider.addViewColumn(0, 300, 800, function(x, width) {
-			$('#searchAndMailListColumn').css("width", width + "px");
-		});
-		this._viewSlider.addViewColumn(1, 600, 1024, function(x, width) {
-			$('#conversationColumn').css("width", width + "px");
-		});
+	this._viewSlider.addViewColumn(2, 190, 190, function(x, width) {
+		$('#tagListColumn').css("width", width + "px");
+	});
+	this._viewSlider.addViewColumn(0, 300, 800, function(x, width) {
+		$('#searchAndMailListColumn').css("width", width + "px");
+	});
+	this._viewSlider.addViewColumn(1, 600, 1024, function(x, width) {
+		$('#conversationColumn').css("width", width + "px");
+	});
+	if (!external) {
 		this._viewSlider.addViewColumn(3, 300, 800, function(x, width) {
 			$('#passwordChannelColumn').css("width", width + "px");
 		});
@@ -92,9 +88,7 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
 		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
-		if (tutao.locator.userController.isInternalUserLoggedIn()) {
-			tutao.locator.mailListViewModel.init();
-		}
+		tutao.locator.mailListViewModel.init();
 	} else {
 		this.mailListUpdated();
 		this.mailsUpdated();
@@ -158,7 +152,7 @@ tutao.tutanota.gui.MailView.prototype.showNeighbourColumn = function(left) {
  * @inherit
  */
 tutao.tutanota.gui.MailView.prototype.isShowNeighbourColumnPossible = function(left) {
-	if (tutao.locator.userController.isExternalUserLoggedIn() || this._leftmostVisibleColumn() == -1) {
+	if (this._leftmostVisibleColumn() == -1) {
 		return false;
 	}
 	if (left) {
@@ -175,9 +169,7 @@ tutao.tutanota.gui.MailView.prototype.isShowNeighbourColumnPossible = function(l
  * Makes sure that the default columns are visible (at least including the mail list column).
  */
 tutao.tutanota.gui.MailView.prototype.showDefaultColumns = function() {
-	if (tutao.locator.userController.isInternalUserLoggedIn()) {
-		this._viewSlider.showDefault();
-	}
+	this._viewSlider.showDefault();
 };
 
 /**
@@ -193,7 +185,7 @@ tutao.tutanota.gui.MailView.prototype.isMailListColumnVisible = function() {
  * @param {function()=} callback The callback to invoke after the conversation column is visible.
  */
 tutao.tutanota.gui.MailView.prototype.showConversationColumn = function(callback) {
-	if (tutao.locator.userController.isInternalUserLoggedIn() && !this.isConversationColumnVisible()) {
+	if (!this.isConversationColumnVisible()) {
 		this._viewSlider.showViewColumn(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION);
 		if (callback) {
 			setTimeout(function() {
@@ -219,9 +211,7 @@ tutao.tutanota.gui.MailView.prototype.isConversationColumnVisible = function() {
  * Makes sure that the password channel column is visible.
  */
 tutao.tutanota.gui.MailView.prototype.showPasswordChannelColumn = function() {
-	if (tutao.locator.userController.isInternalUserLoggedIn()) {
-		this._viewSlider.showViewColumn(tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS);
-	}
+	this._viewSlider.showViewColumn(tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS);
 };
 
 /**

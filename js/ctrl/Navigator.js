@@ -45,11 +45,8 @@ tutao.tutanota.ctrl.Navigator.prototype.notSupported = function() {
 	window.location.hash = "#notSupported";
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.mail = function(mail) {
+tutao.tutanota.ctrl.Navigator.prototype.mail = function() {
 	window.location.hash = "#box";
-	if (mail) {
-		tutao.locator.mailViewModel.showMail(mail);
-	}
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
