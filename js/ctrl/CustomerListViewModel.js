@@ -6,31 +6,28 @@ goog.provide('tutao.tutanota.ctrl.CustomerListViewModel');
  * Handles the customer list in Tutanota.
  * @constructor
  */
-tutao.tutanota.ctrl.CustomerListViewModel = function() {
+tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+	
 	this.customers = ko.observableArray();
 	this.upperBoundId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
 	this.type = ko.observable('starter');
 	this._customerListId = null;
 	this.type.subscribe(function(value) {
-		if (!this._systemInstance()) {
+		var self = this;
+		if (tutao.locator.viewManager.getActiveView() != tutao.locator.customerView) {
 			return;
 		}
 		if (value == 'free') {
-			this._customerListId = this._systemInstance().getFreeCustomers();
+			self._customerListId = systemInstance.getFreeCustomers();
 		} else if (value == 'premium') {
-			this._customerListId = this._systemInstance().getPremiumCustomers();
+			self._customerListId = systemInstance.getPremiumCustomers();
 		} else if (value == 'starter') {
-			this._customerListId = this._systemInstance().getStarterCustomers();
+			self._customerListId = systemInstance.getStarterCustomers();
 		}
-		this.showSelected();
+		self.showSelected();
 	}, this);
 	
-	this._systemInstance = ko.observable(null);
-	var self = this;
-	tutao.entity.sys.System.load(tutao.rest.EntityRestInterface.GENERATED_MIN_ID, function(systemInstance) {
-		self._systemInstance(systemInstance);
-	});
 };
 
 /**

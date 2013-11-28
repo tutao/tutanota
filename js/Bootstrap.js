@@ -23,9 +23,12 @@ tutao.tutanota.Bootstrap.init = function() {
 	$(document).off();
 	$(window).off();
 
-	$(window).unload(function() {
-		tutao.locator.eventBus.close();
-	});
+	if (tutao.tutanota.util.ClientDetector.isSupported()) {
+		$(window).unload(function() {
+			tutao.locator.eventBus.close(); // close the socket in non legacy-mode
+		});
+	}
+	
 	if (tutao.locator && tutao.locator.eventBus) {
 		tutao.locator.eventBus.close();
 	}
@@ -112,6 +115,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 			configView: tutao.tutanota.gui.ConfigView,
 			configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
 			customerView: tutao.tutanota.gui.CustomerView,
+			customerViewModel: tutao.tutanota.ctrl.CustomerViewModel,
 			settingsView: tutao.tutanota.gui.SettingsView,
 			settingsViewModel: tutao.tutanota.ctrl.SettingsViewModel,
 			entropyCollector: tutao.crypto.EntropyCollector,

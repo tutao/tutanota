@@ -73,7 +73,7 @@ body, input, button, select, textarea { // all other types should inherit from b
 	font-size: 18px;
 }
 
-.small {
+.smallFont {
 	font-size: 14px;
 }
 
@@ -204,26 +204,6 @@ h2 {
 	background-image: -ms-linear-gradient(@start, @colorStop, @colorStart);
 	
 }
-.background-gradient(@start, @colorStop, @colorStart) when(@start = left) {
-	html.ie.lte9 & {
-		-ms-filter: ~'"progid:DXImageTransform.Microsoft.gradient(startColorstr=@{colorStop}, endColorstr=@{colorStart}, GradientType=1)"';
-	}
-}
-.background-gradient(@start, @colorStop, @colorStart) when(@start = right) {
-	html.ie.lte9 & {
-		-ms-filter: ~'"progid:DXImageTransform.Microsoft.gradient(startColorstr=@{colorStart}, endColorstr=@{colorStop}, GradientType=1)"';
-	}
-}
-.background-gradient(@start, @colorStop, @colorStart) when(@start = top) {
-	html.ie.lte9 & {
-		-ms-filter: ~'"progid:DXImageTransform.Microsoft.gradient(startColorstr=@{colorStart}, endColorstr=@{colorStop}, GradientType=0)"';
-	}
-}
-.background-gradient(@start, @colorStop, @colorStart) when(@start = bottom) {
-	html.ie.lte9 & {
-		-ms-filter: ~'"progid:DXImageTransform.Microsoft.gradient(startColorstr=@{colorStop}, endColorstr=@{colorStart}, GradientType=0)"';
-	}
-}
 
 .layoutTable {
 	display: table;
@@ -245,6 +225,11 @@ hr {
 	.light;
 	margin: 80px;
 	padding: @padding;
+}
+
+.smallInfoMessage {
+	.infoMessage;
+	margin: 10px;
 }
 
 /**
@@ -277,55 +262,6 @@ hr {
 	user-select: none;
 }
 
-.borderBottomToZero (@width) when (@width = 0) {
-	border-bottom: 0;
-}
-
-.borderTopToZero (@width) when (@width = 0) {
-	border-top: 0;
-}
-.borderLeftToZero (@width) when (@width = 0) {
-	border-left: 0;
-}
-.borderRightToZero (@width) when (@width = 0) {
-	border-right: 0;
-}
-/**
- * Attention: The dom element with the .shadow class must be position: absolute or relative in order to show a correct shadow in ie10
- */
-.shadow(@top: 7px, @right: 7px, @bottom: 7px, @left: 7px) {
-	border: 1px solid @border-dark;
-	.borderBottomToZero (@bottom);
-	.borderTopToZero (@top);
-	.borderLeftToZero (@left);
-	.borderRightToZero (@right);
-	
-	/*
-    border-image: url(../graphics/shadow.png) 7 7 7 7 stretch stretch;
-	-moz-border-image: url(../graphics/shadow.png) 7 7 7 7 stretch stretch;
-	-webkit-border-image: url(../graphics/shadow.png) 7 7 7 7 stretch stretch;
-	border-width: @arguments;
-	border-style: solid; // needs to be set, otherwise the border image is not visible in firefox
-	background-clip: padding-box;
-	border-color: @transparent; // make the border transparent for IE 10 which does not support border image 
-
-	html.ie10 &:before {
-		content: '';
-		position: absolute;
-		left: 0px;
-		top: 0px;
-		width: 100%;
-		height: 100%;
-		box-shadow: 0px 0px 17px #bbb;
-		z-index: -1;
-	}
-
-	html.ie.lte9 & {
-		border-width: 0px;
-		border-style: none;
-		border-image: none;
-	}*/
-}
 
 /***************************************
   * View
@@ -409,23 +345,6 @@ div.simplebutton {
 	cursor: pointer;
 }
 
-/**
- * Default definition for all widgets 
- */
-.mainWidget {
-	background: @background-dark;
-	.shadow(5px, 5px, 5px, 5px);
-	
-
-	> div {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		//border: 1px solid @blue;
-		padding: 5px;
-	}
-}
-
 /***************************************
   * Menu
   **************************************/
@@ -436,6 +355,8 @@ div.menuItem {
 	width: 100%;
 	margin-bottom: 5px;
 	padding-left: @padding;
+	.heading;
+	font-size: 20px;
 
 	> div.icon {
 		height: 15px;
@@ -444,8 +365,6 @@ div.menuItem {
 	
 	> div.text {
 		display: inline-block;
-		.heading;
-		font-size: 20px;
 		padding-left: 1px;
 	}
 	

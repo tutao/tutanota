@@ -67,7 +67,6 @@ tutao.tutanota.gui.SettingsView.prototype.activate = function() {
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 	}
-	tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS);
 };
 
 /**

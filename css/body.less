@@ -49,11 +49,6 @@ body {
 			bottom: 0px;
 			overflow: hidden;
 			
-			/*
-			html.ie.lte9 & {
-				margin-top: 14px;
-			}
-			*/
 			
 			> div.content {
 				position: absolute;
@@ -235,7 +230,7 @@ body {
 						    > span.contactMailAddressInList {
 						    	float: right;
 						    	.light;
-						    	.small;
+						    	.smallFont;
 						    }
 						}
 					}
@@ -547,7 +542,7 @@ body {
 						> div.mailInfo {
 							.fadeTextOut;
 							.light;
-							.small;
+							.smallFont;
 							
 							> div.mailHeaderImage {
 								height: 15px;
@@ -651,9 +646,6 @@ body {
 		height: 100%;
 		padding: @padding;
 	    
-	    html.ie.lte9 & {
-			border: 1px solid @dark-blue !important;
-		}
 		background-clip: padding-box;
 
 		> header {

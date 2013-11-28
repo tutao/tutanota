@@ -6,7 +6,7 @@ goog.provide('tutao.tutanota.ctrl.RegistrationDataListViewModel');
  * Handles the registration data in Tutanota.
  * @constructor
  */
-tutao.tutanota.ctrl.RegistrationDataListViewModel = function() {
+tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.registrationDataList = ko.observableArray();
 	this.upperBoundId = ko.observable(tutao.rest.EntityRestInterface.CUSTOM_MIN_ID);
@@ -21,11 +21,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function() {
 	this.invoiceAddress = ko.observable("");
 	this.mailAddress = ko.observable("");
 	
-	this._listId = ko.observable(null);
-	var self = this;
-	tutao.entity.sys.System.load(tutao.rest.EntityRestInterface.GENERATED_MIN_ID, function(systemInstance) {
-		self._listId(systemInstance.getRegistrationDataList());
-	});
+	this._listId = ko.observable(systemInstance.getRegistrationDataList());
 };
 
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.reset = function() {

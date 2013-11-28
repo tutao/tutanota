@@ -189,6 +189,10 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	}
 };
 
+tutao.tutanota.util.ClientDetector.isSupported = function() {
+	return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED;
+};
+
 /**
  * Sets the device info.
  * @param {string} userAgent The user agent string.
@@ -246,6 +250,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	var chromeIndex = userAgent.indexOf("Chrome/");
 	var safariIndex = userAgent.indexOf("Safari/");
 	var ieIndex = userAgent.indexOf("MSIE");
+	var ie11Index = userAgent.indexOf("Trident");
 	var versionIndex = -1;
 	if ((firefoxIndex != -1) && (userAgent.indexOf("Opera") == -1)) {
 		// Opera may pretend to be Firefox, so it is skipped
@@ -267,11 +272,13 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		alert("alert");
 		info._browser = info.BROWSER_TYPE_SAFARI;
 		info._browserVersion = 6;
-	}
-	else if (ieIndex != -1) {
+	} else if (ieIndex != -1) {
 		info._browser = info.BROWSER_TYPE_IE;
 		versionIndex = ieIndex + 5;
-	}
+	} else if (ie11Index != -1) {
+		info._browser = info.BROWSER_TYPE_IE;
+		info._browserVersion = 11;
+	}	
 	if (versionIndex != -1) {
 		var versionEndIndex = userAgent.indexOf(".", versionIndex);
 		if (versionEndIndex != -1) {

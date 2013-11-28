@@ -302,25 +302,13 @@ div#configColumn {
 
 div#customerMenuColumn {
 
-	> div#customerMenuInnerColumn {
-		position: relative;
-		height: 100%;
-		overflow-y: auto;
+	> div#customerMenuData {
+		position: absolute;
+		left: 0px;
+		top: 0px;
+		right: 0px;
+		bottom: 0px;
+		background-clip: padding-box;
 		
-		> div#customerMenuData {
-			position: absolute;
-			left: 0px;
-			top: 0px;
-			right: 0px;
-			bottom: 0px;
-			margin: 3px;
-			background-clip: padding-box;
-			.mainWidget;
-			
-			> div > div.menuAction {
-				width: 100%;
-				margin-bottom: 5px;
-			}
-		}
 	}
 }

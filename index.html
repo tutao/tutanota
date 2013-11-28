@@ -277,6 +277,7 @@
 	<script type="text/javascript" src="generated/model/TutanotaModel.js"></script>
 	<script type="text/javascript" src="js/Bootstrap.js"></script>
 	<script type="text/javascript" src="js/ctrl/AccountSettingsViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/AdminUserListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Button.js"></script>
 	<script type="text/javascript" src="js/ctrl/ButtonBarViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ChangePasswordViewModel.js"></script>
@@ -1105,7 +1106,7 @@ function touchOrClick(e) {
 				<div class="panel">
 					<div class="content">
 						<h1 data-bind="lang: 'receiveMsg_msg'"></h1>
-						<div data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
+						<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 						<div data-bind="visible: !errorMessageId()">
 							<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
 								<div class="record">
@@ -1146,18 +1147,18 @@ function touchOrClick(e) {
 								</div>
 							</form>
 						</div>
+						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY)">
+							<label data-bind="lang: 'legacyNoReply_msg'"></label>
+							<ul>
+								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
+								<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+								<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+								<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
+							</ul>
+						</div>
 					</div>
 				</div>
 				<div id="welcomePicture"><div></div></div>
-			</div>
-			<div class="infoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY)">
-				<label data-bind="lang: 'legacyNoReply_msg'"></label>
-				<ul>
-					<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-					<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-					<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
-					<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>
-				</ul>
 			</div>
 			<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
 				'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
@@ -1562,17 +1563,14 @@ function touchOrClick(e) {
 			</div>
 		</div>
 
-		<!-- ko if:  tutao.locator.viewManager.getActiveView() == tutao.locator.customerView -->
-		<div id="customerContent" class="content" data-bind="with: new tutao.tutanota.ctrl.CustomerViewModel()">
+		<div id="customerContent" class="content" data-bind="slideView: tutao.locator.customerViewModel.visible, with: tutao.locator.customerViewModel">
 			<div id="customerMenuColumn" class="viewColumn">
-				<div id="customerMenuInnerColumn">
-					<div id="customerMenuData">
-						<div>
-							<div class="menuAction switch" data-bind="fastClick: listFreeCustomers">list free customers</div>
-							<div class="menuAction switch" data-bind="fastClick: listStarterCustomers">list starter customers</div>
-							<div class="menuAction switch" data-bind="fastClick: listPremiumCustomers">list premium customers</div>
-							<div class="menuAction switch" data-bind="fastClick: listRegistrationData">list registrationData</div>
-						</div>
+				<div id="customerMenuData">
+					<div>
+						<div class="menuItem" data-bind="css: {active: displayed() == 'listFreeCustomers' }, fastClick: listFreeCustomers">list free customers</div>
+						<div class="menuItem" data-bind="css: {active: displayed() == 'listStarterCustomers' }, fastClick: listStarterCustomers">list starter customers</div>
+						<div class="menuItem" data-bind="css: {active: displayed() == 'listPremiumCustomers' },fastClick: listPremiumCustomers">list premium customers</div>
+						<div class="menuItem" data-bind="css: {active: displayed() == 'listRegistrationData' },fastClick: listRegistrationData">list registrationData</div>
 					</div>
 				</div>
 			</div>
@@ -1654,9 +1652,8 @@ function touchOrClick(e) {
 			<!-- /ko -->
 			</div>
 		</div>
-		<!-- /ko -->
 
-		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
+		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView, if: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
 				<div id="settingsInnerColumn">
 					<div id="settingsData">
@@ -1751,6 +1748,9 @@ function touchOrClick(e) {
 										</div>
 									</form>
 								</div>
+							<!-- /ko -->
+							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
+								<div id="adminUserList" data-bind="with: new tutao.tutanota.ctrl.AdminUserListViewModel()">
 							<!-- /ko -->
 						</div>
 					</div>

@@ -6,7 +6,7 @@ goog.provide('tutao.tutanota.legacy.Legacy');
  * @param {Object.<string, Object>} singletons
  */
 tutao.tutanota.legacy.Legacy.setup = function(singletons) {
-	if (!window.Worker) {
+	if (!tutao.tutanota.util.ClientDetector.isSupported()) {
 		delete singletons.clientWorkerProxy;
 		delete singletons.rsaCrypter;
 		delete singletons.eventBus;

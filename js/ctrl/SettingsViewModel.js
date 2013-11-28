@@ -9,12 +9,13 @@ goog.provide('tutao.tutanota.ctrl.SettingsViewModel');
 tutao.tutanota.ctrl.SettingsViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING);
+	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS);
 };
 
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS = 0;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS = 1;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD = 2;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST = 3;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 
 /**
@@ -23,7 +24,11 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
 	var s = tutao.tutanota.ctrl.SettingsViewModel;
-	return [s.DISPLAY_ACCOUNT_SETTINGS, s.DISPLAY_SECURITY_SETTINGS, s.DISPLAY_CHANGE_PASSWORD];
+	var settings = [s.DISPLAY_ACCOUNT_SETTINGS, s.DISPLAY_SECURITY_SETTINGS, s.DISPLAY_CHANGE_PASSWORD];
+	if (tutao.locator.userController.isLoggedInUserAdmin()) {
+		settings.push(s.DISPLAY_ADMIN_USER_LIST)
+	}
+	return settings;
 };
 
 /**
@@ -31,7 +36,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
  * @param {Number} settings One of tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_*.
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
-	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action"][settings];
+	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action"][settings];
 };
 
 /**

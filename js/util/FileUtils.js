@@ -76,7 +76,7 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 		// LEGACY mode
 		var downloadButton = $("#downloadButton_" + dataFile.getId()[1]);
 		new tutao.tutanota.legacy.FlashFileSaver("flashDownloader_" + dataFile.getId()[1], downloadButton, downloadButton.outerWidth() + 2, downloadButton.outerHeight() + 2, dataFile.getData(), dataFile.getName(), function() {
-			downloadButton.find("> span.legacyDownloadText").css("visibility", "visible");
+			downloadButton.find("> span.legacyDownloadText").show().css("visibility", "visible");
 			callback();
 		});
 	} else if (window.saveAs || navigator.saveBlob) {

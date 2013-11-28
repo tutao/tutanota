@@ -174,6 +174,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	accountSettings_action: "account",
 	securitySettings_action: "security",
 	changePasswordSettings_action: "change password",
+	adminUserList_action: "user management",
 	
 	// account settings
 	accountType_label: "account type",
@@ -488,6 +489,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	accountSettings_action: "Account",
 	securitySettings_action: "Sicherheit",
 	changePasswordSettings_action: "Passwort ändern",
+	adminUserList_action: "Benutzerverwaltung",
 	
 	// account settings
 	accountType_label: "Account-Typ",
