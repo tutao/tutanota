@@ -49,7 +49,18 @@ TestCase("ClientDetectorTest", {
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
-	"test detect ie windows": function() {
+	"test detect ie11 windows": function() {
+		var info = tutao.tutanota.util.ClientDetector;
+		info._setClientInfo("Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko");
+		assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+		assertEquals(11, info.getBrowserVersion());
+		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
+		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
+		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isPhoneSupported());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+	},
+	"test detect ie 10windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
 		info._setClientInfo("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C)");
 		assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
