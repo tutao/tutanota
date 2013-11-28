@@ -25,6 +25,11 @@ tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME = "userId";
 /**
  * @const
  */
+tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME = "authId";
+
+/**
+ * @const
+ */
 tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME = "authToken";
 
 /**

@@ -28,7 +28,8 @@ tutao.ctrl.UserController.prototype.reset = function() {
 	this._hexSalt = null;
 
 	// external user
-	this._authToken = null;
+	this._authId = null;
+	this._authToken = null; // the hash of the salt
 };
 
 /**
@@ -184,6 +185,14 @@ tutao.ctrl.UserController.prototype.isInternalUserLoggedIn = function() {
 // EXTERNAL
 
 /**
+ * Provides the authentication id that was used to log in the external user.
+ * @return {string} The authentication id.
+ */
+tutao.ctrl.UserController.prototype.getAuthId = function() {
+	return this._authId;
+};
+
+/**
  * Provides the authentication token that was used to log in the external user.
  * @return {string} The authentication token.
  */
@@ -192,32 +201,43 @@ tutao.ctrl.UserController.prototype.getAuthToken = function() {
 };
 
 /**
- * Logs in an external user.
+ * Logs in an external user. Attention: the external user's user group key is not set here. Set it when the key is loaded via setExternalUserGroupKey().
+ * @param {string} authId The authentication id that shall be used to log in the user.
  * @param {string} userId The user id of the user.
  * @param {string} password The password matching the authentication token.
  * @param {string} saltHex The salt that was used to salt the password, as hex string.
- * @param {string} authToken The authentication token that shall be used to log in the user.
  * @param {function(tutao.rest.EntityRestException=)} callback Called when login is finished. Provides an exception if the login failed.
  */
-tutao.ctrl.UserController.prototype.loginExternalUser = function(userId, password, saltHex, authToken, callback) {
+tutao.ctrl.UserController.prototype.loginExternalUser = function(authId, userId, password, saltHex, callback) {
 	var self = this;
 	this.reset();
-	this._userId = userId;
-	this._authToken = authToken;
 	tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
-		self._userGroupKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+		var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+		// the next three attributes must be set here because they are needed when loading the user
+		self._authId = authId;
+		self._userId = userId;
 		// the verifier is always sent as url parameter, so it must be url encoded
 		self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
-		tutao.entity.sys.User.load(self._userId, function(user, e2) {
+		self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(saltHex));
+		tutao.entity.sys.User.load(userId, function(user, e2) {
 			if (e2) {
-				callback(e2);
+				callback(null, e2);
 				return;
 			}
 			self._user = user;
 			self._userGroupId = user.getUserGroup().getGroup();
-			callback();
+			self._userClientKey = tutao.locator.aesCrypter.generateRandomKey(); // dummy key is needed in Indexer
+			callback(passwordKey);
 		});
 	});
+};
+
+/**
+ * Sets the user group key of an external user.
+ * @param {Object} userGroupKey The user group's key. Call this after the login was successful.
+ */
+tutao.ctrl.UserController.prototype.setExternalUserGroupKey = function(userGroupKey) {
+	this._userGroupKey = userGroupKey;
 };
 
 /**
@@ -225,5 +245,5 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function(userId, passwor
  * @return {boolean} True if an external user is logged in, false if no user or an internal user is logged in.
  */
 tutao.ctrl.UserController.prototype.isExternalUserLoggedIn = function() {
-	return (this._authToken != null);
+	return (this._authId != null);
 };

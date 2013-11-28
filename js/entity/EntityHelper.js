@@ -72,7 +72,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 		return;
 	}
 	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey().length != 0) {
-		this._getListKey(this._entity.getId()[0], function(listKey, exception) {
+		this.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (exception) {
 				callback(null, exception);
 			} else {				
@@ -138,7 +138,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
  * @param {string} listId The id of the list.
  * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished.
  */
-tutao.entity.EntityHelper.prototype._getListKey = function(listId, callback) {
+tutao.entity.EntityHelper.prototype.getListKey = function(listId, callback) {
 	var self = this;
 	tutao.entity.sys.Permission.loadRange(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
 		if (exception) {
@@ -295,7 +295,7 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
 tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, groupKey, sessionKey) {
 	var self = this;
 	if (this._entity.getListEncSessionKey) {
-		this._getListKey(this._entity.getId()[0], function(listKey, exception) {
+		this.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (!exception) {
 				self._entity.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
 				try {
@@ -329,7 +329,7 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
  */
 tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId, callback) {
 	var self = this;
-	this._getListKey(listId, function(listKey, exception) {
+	this.getListKey(listId, function(listKey, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
@@ -471,10 +471,12 @@ tutao.entity.EntityHelper.createPostListPermissionMap = function(bucketData, enc
  */
 tutao.entity.EntityHelper.createAuthHeaders = function() {
 	var map = {};
-	map[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = tutao.locator.userController.getUserId();
 	map[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = tutao.locator.userController.getAuthVerifier();
 	if (tutao.locator.userController.isExternalUserLoggedIn()) {
+		map[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = tutao.locator.userController.getAuthId();
 		map[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = tutao.locator.userController.getAuthToken();
+	} else {
+		map[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = tutao.locator.userController.getUserId();		
 	}
 	return map;
 };
