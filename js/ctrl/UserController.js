@@ -73,10 +73,12 @@ tutao.ctrl.UserController.prototype.getLoggedInUser = function() {
 };
 
 tutao.ctrl.UserController.prototype.isLoggedInUserAdmin = function() {
-	var memberships = this._user.getMemberships();
-	for (var i=0; i<memberships.length; i++) {
-		if (memberships[i].getAdmin()) {
-			return true;
+	if (this._user) {
+		var memberships = this._user.getMemberships();
+		for (var i=0; i<memberships.length; i++) {
+			if (memberships[i].getAdmin()) {
+				return true;
+			}
 		}
 	}
 	return false;
