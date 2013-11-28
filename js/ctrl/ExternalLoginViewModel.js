@@ -20,15 +20,18 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 	this.externalMailReference = null;
 
 	this.phoneNumbers = ko.observableArray();
+	this.phoneNumbers.subscribe(function() {
+		this.resetPasswordStatus();
+	}, this);
 
-	this.userMessageId = ko.observable("emptyString_msg");
+	this.sendPasswordStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
 	this.smsLocked = ko.observable(false);
 
 	this.errorMessageId = ko.observable(null);
 
 	this.password = ko.observable("");
 	this.password.subscribe(function() {
-		this.passwordStatus({ type: "neutral", text: "enterPassword_msg" });
+		this.resetPasswordStatus();
 	}, this);
 	this.passphraseFieldFocused = ko.observable(false);
 	this.symKeyForPasswordTransmission = null;
@@ -67,8 +70,17 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 
 	this.sendSmsStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
 	this.sentSmsNumber = ko.observable(null); // the number to which the last SMS was sent
-	this.passwordStatus = ko.observable({ type: "neutral", text: "enterPassword_msg" });
 	this.showMailStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
+	this.passwordStatus = ko.observable();
+	this.resetPasswordStatus();
+};
+
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.resetPasswordStatus = function() {
+	if (this.phoneNumbers().length == 0) {
+		this.passwordStatus({ type: "neutral", text: "enterPresharedPassword_msg" });
+	} else {
+		this.passwordStatus({ type: "neutral", text: "enterSmsPassword_msg" });
+	}
 };
 
 /**
@@ -98,11 +110,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, c
 			self.autoLoginActive = false;
 			if (exception) {
 				self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-				if (self.phoneNumbers().length == 0) {
-					self.userMessageId("enterPresharedPassword_msg");
-				} else {
-					self.userMessageId("chooseNumber_msg");
-				}
+				self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
 			}
 			callback();
 		});
@@ -186,7 +194,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._allowSmsAfterDelay = funct
 	setTimeout(function() {
 		self.smsLocked(false);
 		self.sendSmsStatus({ type: "neutral", text: "emptyString_msg" });
-		self.userMessageId("smsResent_msg");
+		self.sendPasswordStatus({ type: "neutral", text: "smsResent_msg" });
 	}, 60000);
 };
 
@@ -372,7 +380,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 	var self = this;
 	tutao.entity.tutanota.PasswordRetrievalReturn.load(params, null, function(passwordRetrievalReturn, exception) {
 		if (exception) {
-			self.userMessageId("smsError_msg");
+			self.sendPasswordStatus({ type: "invalid", text: "smsError_msg" });
 		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
 			self.retrievePassword(); // timeout, retry to get the password immediately
 		} else if (!self._showingMail){

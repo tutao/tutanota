@@ -36,11 +36,15 @@ tutao.tutanota.Bootstrap.init = function() {
 	} else {
 		tutao.tutanota.app(!tutao.tutanota.app());
 	}
-	tutao.locator.navigator.setup();
-	tutao.locator.entropyCollector.start();
+	tutao.locator.viewManager.select(tutao.locator.fastMessageView);
+	setTimeout(function() {
+		tutao.locator.navigator.setup();
+		tutao.locator.entropyCollector.start();
+		
+	});
 
 		// only for testing
-//		tutao.locator.loginViewModel.mailAddress("map-system@tutanota.de");
+//		tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
 //		tutao.locator.loginViewModel.passphrase("map");
 //		tutao.locator.loginViewModel.login(function() {
 //			tutao.locator.navigator.customer();
@@ -95,6 +99,7 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 			notFoundView: tutao.tutanota.gui.LoginView,
 			mailView: tutao.tutanota.gui.MailView,
 			contactView: tutao.tutanota.gui.ContactView,
+			fastMessageView: tutao.tutanota.gui.FastMessageView,
 			notSupportedView: tutao.tutanota.gui.NotSupportedView,
 			registrationView: tutao.tutanota.gui.RegistrationView,
 			registrationViewModel: tutao.tutanota.ctrl.RegistrationViewModel,
@@ -165,7 +170,9 @@ tutao.tutanota.Bootstrap.initControllers = function() {
 
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		// notify the active view and the swipe recognizer
-		tutao.locator.viewManager.getActiveView().windowSizeChanged(width, height);
+		if (tutao.locator.viewManager.getActiveView() != null) {
+			tutao.locator.viewManager.getActiveView().windowSizeChanged(width, height);
+		}
 		if (tutao.locator.swipeRecognizer) {
 			tutao.locator.swipeRecognizer.setScreenSize(width, height);
 		}

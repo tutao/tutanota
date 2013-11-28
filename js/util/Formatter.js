@@ -32,10 +32,29 @@ tutao.tutanota.util.Formatter.formatTimeMillis = function(date) {
 /**
  * @see http://www.elated.com/articles/working-with-dates/
  * @param {Date} date The date to format.
- * @return {string} the formatted date in the form 'dd. Month [yyyy] hh:mm'.
+ * @return {string} the formatted date in the form 'EE dd. Month [yyyy] hh:mm'.
  */
 tutao.tutanota.util.Formatter.formatDateTime = function(date) {
-	return tutao.tutanota.util.Formatter.formatDate(date) + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2);
+	return tutao.tutanota.util.Formatter.formatDateWithWeekday(date) + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2);
+};
+
+/**
+ * @see http://www.elated.com/articles/working-with-dates/
+ * @param {Date} date The date to format.
+ * @return {string} the formatted date in the form 'EE dd. Month [yyyy] hh:mm'.
+ */
+tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn = function(date) {
+	var dateString = null;
+	var startOfToday = new Date().setHours(0,0,0,0);
+	var startOfYesterday = startOfToday - 1000*60*60*24;
+	if (date.getTime() >= startOfToday) {
+		dateString = "";
+	} else if (startOfToday > date.getTime() && date.getTime() >= startOfYesterday) {
+		dateString = tutao.locator.languageViewModel.get("yesterday_label");
+	} else {
+		dateString = tutao.tutanota.util.Formatter.formatDateWithWeekday(date);
+	}
+	return (dateString + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2)).trim();
 };
 
 /**
@@ -61,6 +80,19 @@ tutao.tutanota.util.Formatter.formatDate = function(date) {
 	var currentYear = new Date().getYear();
 	var yearString = (date.getYear() == currentYear) ? "" : " " + (1900 + date.getYear());
 	return date.getDate() + ". " + monthNames[date.getMonth()] + yearString;
+};
+
+/**
+ * @see http://www.elated.com/articles/working-with-dates/
+ * @param {Date} date The date to format.
+ * @return {string} the formatted date in the form 'EE [d]d. Month [yyyy]'.
+ */
+tutao.tutanota.util.Formatter.formatDateWithWeekday = function(date) {
+	var dayNames = tutao.locator.languageViewModel.get("weekDays_label");
+	var monthNames = tutao.locator.languageViewModel.get("monthNames_label");
+	var currentYear = new Date().getYear();
+	var yearString = (date.getYear() == currentYear) ? "" : " " + (1900 + date.getYear());
+	return dayNames[date.getDay()] + " " + date.getDate() + ". " + monthNames[date.getMonth()] + yearString;
 };
 
 /**

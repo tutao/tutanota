@@ -96,6 +96,36 @@ tutao.tutanota.gui.initKnockout = function() {
 	    }
 	};
 	
+	// sets a wide class on all forms that are wider than 350px
+	var updateForm = function(element, container) {
+		var e = $(element);
+		e.toggleClass("wide", container.width() >= 350);
+	};
+	var currentForms = []; 
+	ko.bindingHandlers.form = {
+		init: function(element, valueAccessor) {
+			var container = $(element).closest(".viewColumn, .panel");
+			setTimeout(function() {
+				updateForm(element, container);
+			},1);
+			var formMapping = {formElement: element, container: container}
+			currentForms.push(formMapping);
+			
+			ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
+				currentForms.splice(formMapping,1);
+		    });
+		},
+		update: function(element, valueAccessor) {
+			var container = $(element).closest(".viewColumn, .panel");
+			updateForm(element, container);
+		}
+	};
+	$(window).resize(function() {
+		for (var i = 0; i < currentForms.length; i++) {
+			updateForm(currentForms[i].formElement, currentForms[i].container);
+		}
+	});
+	
 	ko.bindingHandlers.fadeText = {
 	    init: function(element, valueAccessor) { 
 	        // initially don't show the element        
@@ -110,6 +140,102 @@ tutao.tutanota.gui.initKnockout = function() {
 	            $(element).fadeIn(500);
 	        });
 	    }
+	};
+	
+	ko.bindingHandlers.slideHideTop = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			// Initially set the element to be instantly visible/hidden depending on the value
+			bindingContext.oldValue = ko.utils.unwrapObservable(valueAccessor());
+			$(element).toggle(Boolean(bindingContext.oldValue)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+		},
+		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			var value = ko.utils.unwrapObservable(valueAccessor());
+			if (value === bindingContext.oldValue) {
+				return;
+			}
+			bindingContext.oldValue = value;
+			if (value) {
+				$(element).css({ y: '-100%' });
+				$(element).show().transition({ y: '0%' }, function () {});
+			} else {
+				$(element).transition({ y: '-100%' }, function () { $(this).hide(); });
+			}
+			
+		}
+	};
+	$.fx.speeds._default = 600;
+	var slideViewQueue = [];
+	ko.bindingHandlers.slideView = {
+		previousView: null,
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			// Initially set the element to be instantly visible/hidden depending on the value
+			bindingContext.oldValue = ko.utils.unwrapObservable(valueAccessor());
+			$(element).toggle(Boolean(bindingContext.oldValue)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+		},
+		update: function(newView, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			var value = ko.utils.unwrapObservable(valueAccessor());
+			if (value) {
+				slideViewQueue.push(function() {
+					ko.bindingHandlers.slideView.runTransition(newView);
+				});
+				if (slideViewQueue.length == 1) {
+					slideViewQueue[0]();
+				}
+			}
+		},
+		runTransition: function(newView) {
+			var previousView = ko.bindingHandlers.slideView.previousView;
+			if (previousView != newView) {
+				var finishedHandler = function () {
+					// TODO remove, after https://github.com/rstacruz/jquery.transit/issues/158 has been fixed
+					$(newView).css({'-webkit-transform': ''}, {'-ms-transform': ''}, {'-moz-transform': ''}, {'transform': ''});
+					
+					ko.bindingHandlers.slideView.previousView = newView;
+					slideViewQueue.shift();
+					if (slideViewQueue.length > 0) {
+						slideViewQueue[0]();
+					}
+				};
+				if (newView == $("div#login")[0]) { // just a workaround as long as sliding in the loginview does not work on all devices
+					$(previousView).hide();
+					$(newView).show();
+					finishedHandler();
+					
+				} else {
+					$(previousView).transition({ y: '-100%' }).transition({display: "none"}, 0);
+					$(newView).transition({ y: '100%' },0).transition({display: ""}, 0).transition({ y: '0%' }, finishedHandler);
+				}
+			} else {
+				slideViewQueue.shift();
+				if (slideViewQueue.length > 0) {
+					slideViewQueue[0]();
+				}
+			}
+		}
+	};	
+	
+	// slides the dom-element to the left to hide it and to the right to make it visible
+	ko.bindingHandlers.slideHideLeft = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			// Initially set the element to be instantly visible/hidden depending on the value
+			bindingContext.oldValue = ko.utils.unwrapObservable(valueAccessor());
+			$(element).toggle(Boolean(bindingContext.oldValue)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+		},
+		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			var value = ko.utils.unwrapObservable(valueAccessor());
+			if (value === bindingContext.oldValue) {
+				return;
+			}
+			bindingContext.oldValue = value;
+			//setTimeout(function() {
+				if (value) {
+					//$(element).css({ x: '-1%' });
+					$(element).show().transition({ x: '0%' }, function () {});
+				} else {
+					$(element).transition({ x: '-100%' }, function () { $(this).hide(); });
+				}
+			//}, 0);
+		}
 	};
 
 	ko.bindingHandlers.slideVisible = {
@@ -186,6 +312,18 @@ tutao.tutanota.gui.initKnockout = function() {
 
 	// must be invoked because knockout won't render anything otherwise
 	ko.applyBindings({});
+};
+
+/**
+ * Cleans and re-applies all bindings to the logo-node which is only partially managed by knockout (because it is shown .
+ */
+tutao.tutanota.gui.resetLogoBindings = function() {
+	var logo = $('div#logo');
+	ko.cleanNode(logo[0]);
+	logo.children().each(function() {
+		ko.cleanNode(this);
+	});
+	ko.applyBindings(logo);
 };
 
 /**
@@ -446,25 +584,7 @@ tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, widt
 		$(domElement).css("left", left + "px");
 		$(domElement).css("width", width + "px");
 	} else {
-		$(domElement).addClass("enableTransition");
-
-		var disableTransition = null;
-		var f = function(event) {
-			$(domElement).removeClass("enableTransition");
-			$(domElement).unbind('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', disableTransition);
-		};
-		disableTransition = f;
-		$(domElement).bind('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', disableTransition);
-
-		$(domElement).css("left", left + "px");
-		$(domElement).css("width", width + "px");
-
-//		setTimeout(function() {
-//			if (enableTouchComposingMode) {
-//				tutao.tutanota.gui.TouchComposingMode.enable();
-//			}
-//
-//		},3000);
+		$(domElement).transition({left: left + "px", width: width + "px"}, 300, 'easeInOutCubic');
 	}
 };
 
@@ -492,9 +612,8 @@ tutao.tutanota.gui.slideDown = function(domElement, callback) {
  */
 tutao.tutanota.gui.slideBeforeRemove = function(domElement) {
 	if (domElement.nodeType !== tutao.tutanota.gui.TEXT_NODE) {
-		/* ATTENTION: The animation time must match the timeout in:
-		 * * tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail
-		 */
+		// ATTENTION: The animation time must match the timeout in:
+		//   tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail
 		$(domElement).slideUp(function() {
 			$(domElement).remove();
 		});
