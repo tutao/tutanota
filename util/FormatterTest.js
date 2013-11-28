@@ -23,10 +23,37 @@ TestCase("FormatterTest", {
 	
 	"test formatDateTime": function() {
 		tutao.locator.languageViewModel.setCurrentLanguage("de");
-		assertEquals("7. Dez 2011 04:03", tutao.tutanota.util.Formatter.formatDateTime(new Date(2011, 11, 7, 4, 3, 2)));
+		assertEquals("Mi 7. Dez 2011 04:03", tutao.tutanota.util.Formatter.formatDateTime(new Date(2011, 11, 7, 4, 3, 2)));
 		tutao.locator.languageViewModel.setCurrentLanguage("en");
-		assertEquals("7. Dec 2011 04:03", tutao.tutanota.util.Formatter.formatDateTime(new Date(2011, 11, 7, 4, 3, 2)));
-		assertTrue(tutao.tutanota.util.Formatter.formatDateTime(new Date()).length <= 14); // no year
+		assertEquals("We 7. Dec 2011 04:03", tutao.tutanota.util.Formatter.formatDateTime(new Date(2011, 11, 7, 4, 3, 2)));
+		assertTrue(tutao.tutanota.util.Formatter.formatDateTime(new Date()).length <= 16); // no year
+	},
+	"test formatDateTimeFromYesterdayOn": function() {
+		// the day before yesterday
+		var today = new Date();
+		today.setHours(5);
+		today.setMinutes(30);
+		
+		var day = 1000*60*60*24;
+		var yesterday = new Date(today.getTime() - day);
+		var theDayBeforeYesterday = new Date(today.getTime() - day * 2);
+		
+		tutao.locator.languageViewModel.setCurrentLanguage("de");
+		assertEquals(tutao.tutanota.util.Formatter.formatDateTime(theDayBeforeYesterday), tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(theDayBeforeYesterday));
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
+		assertEquals(tutao.tutanota.util.Formatter.formatDateTime(theDayBeforeYesterday), tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(theDayBeforeYesterday));
+		
+		// yesterday
+		tutao.locator.languageViewModel.setCurrentLanguage("de");
+		assertEquals("gestern 05:30", tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(yesterday));
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
+		assertEquals("yesterday 05:30", tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(yesterday));
+		
+		// today
+		tutao.locator.languageViewModel.setCurrentLanguage("de");
+		assertEquals("05:30", tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(today));
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
+		assertEquals("05:30", tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(today));
 	},
 	
 	"test dateToSimpleString": function() {

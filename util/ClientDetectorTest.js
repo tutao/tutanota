@@ -15,9 +15,11 @@ TestCase("ClientDetectorTest", {
 	
 	"test detect chrome windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
-		info._setClientInfo("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 Safari/537.15");
+		info._setClientInfo("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/29.0.1295.0 Safari/537.15");
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+		info._setClientInfo("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/30.0.1295.0 Safari/537.15");
 		assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_CHROME, info.getBrowserType());
-		assertEquals(24, info.getBrowserVersion());
+		assertEquals(30, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
 		assertEquals(false, info.isTouchSupported());
