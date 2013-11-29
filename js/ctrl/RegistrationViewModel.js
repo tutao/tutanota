@@ -330,7 +330,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 				self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
 			} else {
-				tutao.locator.navigator.login(); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
+				tutao.locator.navigator.login(false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
 				setTimeout(function() {					
 					tutao.locator.loginViewModel.setMailAddress(self.mailAddressPrefix() + "@" + self.domain());
 					tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");

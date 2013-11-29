@@ -24,7 +24,11 @@ tutao.tutanota.util.LocalStore.store = function(id, data) {
  * @return {boolean} True if the data exists in the local store, false otherwise.
  */
 tutao.tutanota.util.LocalStore.contains = function(id) {
-	return (localStorage.getItem(id) != null);
+	try {
+		return (localStorage.getItem(id) != null);
+	} catch (e) {
+		return false;
+	}
 };
 
 /**
@@ -33,14 +37,20 @@ tutao.tutanota.util.LocalStore.contains = function(id) {
  * @return {String} The loaded data or null if none was found.
  */
 tutao.tutanota.util.LocalStore.load = function(id) {
-	return localStorage.getItem(id);
+	try {
+		return localStorage.getItem(id);
+	} catch (e) {
+		return null;
+	}
 };
 
 /**
- * Removes some data from the local storage.
+ * Removes some data from the local storage if it exists.
  * @param {String} id The id of the data.
  */
 tutao.tutanota.util.LocalStore.remove = function(id) {
-	localStorage.removeItem(id);
+	try {
+		localStorage.removeItem(id);
+	} catch (e) {}
 };
 

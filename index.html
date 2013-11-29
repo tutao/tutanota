@@ -1750,7 +1750,7 @@ function touchOrClick(e) {
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
-								<div id="adminUserList" data-bind="with: new tutao.tutanota.ctrl.AdminUserListViewModel()">
+								<div id="adminUserList" data-bind="with: new tutao.tutanota.ctrl.AdminUserListViewModel()"></div>
 							<!-- /ko -->
 						</div>
 					</div>
@@ -1865,7 +1865,7 @@ function touchOrClick(e) {
 				<!-- /ko -->
 				<!-- ko if: isUserLoggedIn() -->
 					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(); }, 0); }">
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(false); }, 0); }">
 							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
 							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
 						</div>
