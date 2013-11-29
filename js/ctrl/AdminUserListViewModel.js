@@ -25,14 +25,14 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 					console.log(exception);
 				} else {
 					var ids = [];
-					for ( var i = 0; i < customerReferenceList.length; i++) {
-						ids.push(customerReferenceList[i].getCustomer());
+					for ( var i = 0; i < userReferenceList.length; i++) {
+						ids.push(userReferenceList[i].getCustomer());
 					}
-					if (ids.length == 0) {
-						callback([]);
-					} else {
-						tutao.entity.sys.Customer.loadMultiple(ids, callback);
-					}
+//					if (ids.length == 0) {
+//						callback([]);
+//					} else {
+//						tutao.entity.sys.Customer.loadMultiple(ids, callback);
+//					}
 				}
 			});
 		});
