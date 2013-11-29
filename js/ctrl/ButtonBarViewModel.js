@@ -21,7 +21,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons) {
 	this.buttons = buttons;
 	this.nextButtons = ko.observableArray(); // the buttons that will be shown next (after the visibleButtons have moved away)
 	this.visibleButtons = ko.observableArray(); // the buttons that are currently visible
-	this.domButtons = ko.observable();
+	this.domButtons = ko.observable(); // is set via domInit binding to the inner buttons div
 	this.maxWidth = ko.observable(0);
 	var self = this;
 	this.domButtons.subscribe(function(value) {
@@ -59,7 +59,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype._init = function() {
 		myWidth += this.nextButtons()[i].width();
 	}
 	$(this.domButtons()).css('right', '0px');
-	$(this.domButtons()).width(myWidth);
+	$(this.domButtons()).width(myWidth + 5); // +5 for IE10 because otherwise the rightmost button is not visible
 	this.visibleButtons(this.nextButtons());
 };
 
