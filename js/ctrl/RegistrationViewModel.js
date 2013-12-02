@@ -472,6 +472,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 									s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileSystemSessionkey));
 									s.setSymEncFileShareBucketKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileShareBucketKey));
 									s.setFileShareBucketEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileShareBucketKey, fileSystemSessionkey));
+									
+									var externalRecipientListKey = tutao.locator.aesCrypter.generateRandomKey();
+									s.setSymEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, externalRecipientListKey));
+									s.setMailShareBucketEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, externalRecipientListKey));
 
 									s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
 										if (exception) {
