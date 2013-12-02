@@ -621,7 +621,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// registration
 	claim_label: "Tutanota - einfach. sicher. mailen.",
 	registration1Headline_msg: "Registrierung (Schritt 1 von 2)",
-	registration2Headline_msg: "Registration (step 2 of 2)",
+	registration2Headline_msg: "Registrierung (Schritt 2 von 2)",
 	company_label: "Firma",
 	invoiceAddress_label: "Rechnungsadresse",
 	domain_label: "Domain",
