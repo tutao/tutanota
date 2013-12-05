@@ -89,6 +89,17 @@ tutao.tutanota.gui.initKnockout = function() {
 	    }
 	};
 	
+	ko.bindingHandlers.simpleDate = {
+		update: function(element, valueAccessor, allBindingsAccessor) {
+			var defaultText = allBindingsAccessor()["default"];
+			if (valueAccessor() == null) {
+				ko.bindingHandlers.text.update(element, function() { return defaultText; });
+			} else {
+				ko.bindingHandlers.text.update(element, function() { return tutao.tutanota.util.Formatter.dateToSimpleString(valueAccessor()); });
+			}
+	    }
+	};
+	
 	ko.bindingHandlers.fadeLang = {
 		update: function(element, valueAccessor, allBindingsAccessor) {
 			var params = allBindingsAccessor()["params"];

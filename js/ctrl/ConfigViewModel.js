@@ -8,7 +8,13 @@ goog.provide('tutao.tutanota.ctrl.ConfigViewModel');
  */
 tutao.tutanota.ctrl.ConfigViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	this.config = ko.observable(null);
+	this.config = ko.observable(null); // contains a ConfigDataReturn
+	this.configName = ko.observable("");
+	this.configValue = ko.observable("");
+	this.configStart = ko.observable("");
+	this.configEnd = ko.observable("");
+	
+	this.submitStatus = ko.observable("");
 };
 
 /**
@@ -23,10 +29,10 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.init = function() {
  * @return {Array.<tutao.entity.sys.LongConfigValueEditable>} The sorted values.
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedLongValues = function() {
-	this.config().longValues().sort(function(v1, v2) {
-		return (v1.name() < v2.name()) ? -1 : 1;
+	this.config().getLongValues().sort(function(v1, v2) {
+		return (v1.getName() < v2.getName()) ? -1 : 1;
 	});
-	return this.config().longValues();
+	return this.config().getLongValues();
 };
 
 /**
@@ -34,21 +40,21 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedLongValues = function() {
  * @return {Array.<tutao.entity.sys.StringConfigValueEditable>} The sorted values.
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedStringValues = function() {
-	this.config().stringValues().sort(function(v1, v2) {
-		return (v1.name() < v2.name()) ? -1 : 1;
+	this.config().getStringValues().sort(function(v1, v2) {
+		return (v1.getName() < v2.getName()) ? -1 : 1;
 	});
-	return this.config().stringValues();
+	return this.config().getStringValues();
 };
 
 /**
- * Provides the user list values sorted by value name.
+ * Provides the time range list values sorted by value name.
  * @return {Array.<tutao.entity.sys.StringConfigValueEditable>} The sorted values.
  */
-tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedUserLists = function() {
-	this.config().userLists().sort(function(v1, v2) {
-		return (v1.name() < v2.name()) ? -1 : 1;
+tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedTimeRangeLists = function() {
+	this.config().getTimeRangeLists().sort(function(v1, v2) {
+		return (v1.getName() < v2.getName()) ? -1 : 1;
 	});
-	return this.config().userLists();
+	return this.config().getTimeRangeLists();
 };
 
 /**
@@ -61,19 +67,93 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.loadConfig = function() {
 			console.log(exception);
 			return;
 		}
-		self.config(new tutao.entity.sys.ConfigDataReturnEditable(c));
+		self.config(c);
 	});
 };
+
+tutao.tutanota.ctrl.ConfigViewModel.prototype.editValue = function(name, value, start, end) {
+	this.configName(name);
+	this.configValue(value);
+	this.configStart((start) ? tutao.tutanota.util.Formatter.dateToDashString(start) : "");
+	this.configEnd((end) ? tutao.tutanota.util.Formatter.dateToDashString(end) : "");
+};
+
 
 /**
  * Stores the config on the server.
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.storeConfig = function() {
-	this.config().update();
-	this.config().getConfigDataReturn().update({}, null, function(exception) {
-		if (exception) {
-			console.log(exception);
+	var data = new tutao.entity.sys.ConfigDataReturn();
+	if (this.isLongConfigName()) {
+		if (this.configValue() == "" || isNaN(this.configValue())) {
+			this.submitStatus("error: not a value");
 			return;
 		}
+		var v = new tutao.entity.sys.LongConfigValue(data);
+		v.setName(this.configName());
+		v.setValue(this.configValue());
+		data.getLongValues().push(v);
+	} else  if (this.isStringConfigName()) {
+		var v = new tutao.entity.sys.StringConfigValue(data);
+		v.setName(this.configName());
+		v.setValue(this.configValue());
+		data.getStringValues().push(v);
+	} else  if (this.isTimeRangeConfigName()) {
+		var list = new tutao.entity.sys.TimeRangeListConfigValue(data);
+		list.setName(this.configName());
+		var v = new tutao.entity.sys.TimeRangeConfigValue(list);
+		v.setIdentifier(this.configValue());
+		if (this.configStart() != "") {
+			v.setStart(new Date(this.configStart()));
+		}
+		if (this.configEnd() != "") {
+			v.setEnd(new Date(this.configEnd()));
+		}
+		list.getTimeRanges().push(v);
+		data.getTimeRangeLists().push(list);
+	} else {
+		this.submitStatus("error: unknown config name");
+		return;
+	}
+	var self = this;
+	data.update({}, null, function(exception) {
+		if (exception) {
+			self.submitStatus("error: " + exception.message);
+			return;
+		}
+		self.submitStatus("success");
+		self.configValue("");
+		self.loadConfig();
 	});
+};
+
+tutao.tutanota.ctrl.ConfigViewModel.prototype.isLongConfigName = function() {
+	for (var i=0; i<this.config().getLongValues().length; i++) {
+		if (this.config().getLongValues()[i].getName() == this.configName()) {
+			return true;
+		}
+	}
+	return false;	
+};
+
+tutao.tutanota.ctrl.ConfigViewModel.prototype.isStringConfigName = function() {
+	for (var i=0; i<this.config().getStringValues().length; i++) {
+		if (this.config().getStringValues()[i].getName() == this.configName()) {
+			return true;
+		}
+	}
+	return false;	
+};
+
+tutao.tutanota.ctrl.ConfigViewModel.prototype.isTimeRangeConfigName = function() {
+	for (var i=0; i<this.config().getTimeRangeLists().length; i++) {
+		if (this.config().getTimeRangeLists()[i].getName() == this.configName()) {
+			return true;
+		}
+	}
+	return false;	
+};
+
+tutao.tutanota.ctrl.ConfigViewModel.prototype.isConfigName = function() {
+	return this.isLongConfigName() || this.isStringConfigName() || this.isTimeRangeConfigName();
 };

@@ -207,6 +207,8 @@
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TimeRangeConfigValue.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TimeRangeListConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/User.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserData.js"></script>
@@ -1535,28 +1537,85 @@ function touchOrClick(e) {
 				<div id="configInnerColumn">
 					<div id="configData">
 						<!-- ko if: config() -->
+							<h1>Config</h1>
 							<div id="configValues">
 								<!-- ko foreach: getSortedLongValues() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<span data-bind="text: getValue()"></span>
+										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
 									</div>
 								<!-- /ko -->
 								<!-- ko foreach: getSortedStringValues() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<span data-bind="text: getValue()"></span>
+										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
 									</div>
 								<!-- /ko -->
-								<!-- ko foreach: getSortedUserLists() -->
+								<!-- ko foreach: getSortedTimeRangeLists() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<div>
+											<div class="innerTable">
+												<!-- ko foreach: getTimeRanges() -->
+													<div>
+														<span data-bind="text: getIdentifier()"></span>
+														<span data-bind="simpleDate: getStart(), default: '\u221E'"></span>
+														<span data-bind="simpleDate: getEnd(), default: '\u221E'"></span>
+														<div class="simplebutton" data-bind="click: function() { tutao.locator.configViewModel.editValue($parent.getName(), getIdentifier(), getStart(), getEnd()); }">edit</div>
+													</div>
+												<!-- /ko -->
+											</div>
+										</div>
 									</div>
 								<!-- /ko -->
 							</div>
-							<button data-bind="fastClick: loadConfig">load</button>
-							<button data-bind="fastClick: storeConfig">store</button>
+							<button data-bind="fastClick: loadConfig">reload</button>
+							<h1 class="marginTop">set/add/delete value</h1>
+							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { storeConfig(); }, 0); }, form: true">
+								<div class="record">
+									<label for="configName" class="recordName">name</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configName" type="text" data-bind="value: configName"></input>
+										</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configValue" class="recordName">value</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configValue" type="text" data-bind="enable: (isConfigName()), value: configValue"></input>
+										</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configStart" class="recordName">start date</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configStart" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configStart"></input>
+										</div>
+										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configEnd" class="recordName">end date</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configEnd" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configEnd"></input>
+										</div>
+										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button id="submitConfig" type="submit">store</button>
+										<label for="submitConfig" class="recordStatus" data-bind="text: submitStatus"></label>
+									</div>
+								</div>
+							</form>
 						<!-- /ko -->
 					</div>
 				</div>
