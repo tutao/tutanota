@@ -1650,9 +1650,9 @@ function touchOrClick(e) {
    							<tbody data-bind="foreach: customers">
       							<tr>
 								    <td class="small" data-bind="text: getCustomer().getId()"></td>
-									<td class="medium" data-bind="text: company"></td>
-									<td class="small" data-bind="text: domain"></td>
-									<td class="medium" data-bind="text: invoiceAddress"></td>
+									<td class="medium" data-bind="text: company, attr: {title: company}"></td>
+									<td class="small" data-bind="text: domain, attr: {title: domain}"></td>
+									<td class="medium" data-bind="text: invoiceAddress, attr: {title: invoiceAddress}"></td>
 									<td class="small" data-bind="simpleDate: creationTime"></td>
 									<td class="medium">
 										<input type="date" data-bind="dateInput: testEndTime"></input>

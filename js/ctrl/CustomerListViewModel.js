@@ -73,11 +73,11 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype._loadCustomersEntries = func
  * @param {tutao.entity.sys.CustomerEditable} editableCustomer The customer to update.
  */
 tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function(editableCustomer) {
+	var self = this;
 	if (editableCustomer.testEndTime() == null) {
 		console.log("invalid date: null");
 		return;
 	}
-	// load the customer again to make sure we do not overwrite changed data
 	//FIXME disable cache, reload customer?
 	editableCustomer.update();
 	editableCustomer.getCustomer().update(function(exception) {
@@ -85,5 +85,20 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function
 			console.log(exception);
 			return;
 		}
+		var data = new tutao.entity.sys.ConfigDataReturn();
+		var list = new tutao.entity.sys.TimeRangeListConfigValue(data);
+		list.setName("frozenCustomers");
+		var v = new tutao.entity.sys.TimeRangeConfigValue(list);
+		v.setIdentifier(editableCustomer.getCustomer().getId());
+		v.setStart(editableCustomer.testEndTime());
+		v.setEnd(null);
+		list.getTimeRanges().push(v);
+		data.getTimeRangeLists().push(list);
+		data.update({}, null, function(exception) {
+			if (exception) {
+				console.log(exception);
+				return;
+			}
+		});
 	});
 };
