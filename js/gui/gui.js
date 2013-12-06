@@ -90,12 +90,31 @@ tutao.tutanota.gui.initKnockout = function() {
 	};
 	
 	ko.bindingHandlers.simpleDate = {
+		// one-way
 		update: function(element, valueAccessor, allBindingsAccessor) {
 			var defaultText = allBindingsAccessor()["default"];
-			if (valueAccessor() == null) {
+			var unwrappedDate = ko.utils.unwrapObservable(valueAccessor());
+			if (unwrappedDate == null) {
 				ko.bindingHandlers.text.update(element, function() { return defaultText; });
 			} else {
-				ko.bindingHandlers.text.update(element, function() { return tutao.tutanota.util.Formatter.dateToSimpleString(valueAccessor()); });
+				ko.bindingHandlers.text.update(element, function() { return tutao.tutanota.util.Formatter.dateToSimpleString(unwrappedDate); });
+			}
+	    }
+	};
+	
+	ko.bindingHandlers.dateInput = {
+		// two-way
+		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+	        ko.utils.registerEventHandler(element, 'change', function (event) {
+        		valueAccessor()(tutao.tutanota.util.Formatter.dashStringToDate($(element).val()));
+	        });
+	    },
+	    update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+	    	var unwrappedDate = ko.utils.unwrapObservable(valueAccessor());
+	    	if (unwrappedDate == null) {
+	    		$(element).val(null);
+			} else {
+				$(element).val(tutao.tutanota.util.Formatter.dateToDashString(unwrappedDate));
 			}
 	    }
 	};

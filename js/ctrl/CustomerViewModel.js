@@ -29,7 +29,7 @@ tutao.tutanota.ctrl.CustomerViewModel = function() {
 			tutao.entity.sys.System.load(tutao.rest.EntityRestInterface.GENERATED_MIN_ID, function(systemInstance) {
 				self.customerListViewModel = new tutao.tutanota.ctrl.CustomerListViewModel(systemInstance);
 				self.registrationDataListViewModel = new tutao.tutanota.ctrl.RegistrationDataListViewModel(systemInstance);
-				self.displayed("listCustomers"); // list free, list starter, single
+				self.displayed("listCustomers"); // list free, list starter
 			});
 		}
 	}, this);

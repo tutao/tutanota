@@ -9,7 +9,7 @@ goog.provide('tutao.tutanota.ctrl.CustomerListViewModel');
 tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	
-	this.customers = ko.observableArray();
+	this.customers = ko.observableArray(); // contains CustomerEditables
 	this.upperBoundId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
 	this.type = ko.observable('starter');
 	this._customerListId = null;
@@ -36,7 +36,11 @@ tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
 tutao.tutanota.ctrl.CustomerListViewModel.prototype.showSelected = function() {
 	var self = this;
 	this._loadCustomersEntries(this.upperBoundId(), true, function(customerList) {
-		self.customers(customerList);
+		var editableCustomers = [];
+		for (var i=0; i<customerList.length; i++) {
+			editableCustomers.push(new tutao.entity.sys.CustomerEditable(customerList[i]));
+		}
+		self.customers(editableCustomers);
 	});
 };
 
@@ -60,6 +64,26 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype._loadCustomersEntries = func
 			} else {
 				tutao.entity.sys.Customer.loadMultiple(ids, callback);
 			}
+		}
+	});
+};
+
+/**
+ * Updates the given CustomerEditable on the server. Only the test end time should have been changed.
+ * @param {tutao.entity.sys.CustomerEditable} editableCustomer The customer to update.
+ */
+tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function(editableCustomer) {
+	if (editableCustomer.testEndTime() == null) {
+		console.log("invalid date: null");
+		return;
+	}
+	// load the customer again to make sure we do not overwrite changed data
+	//FIXME disable cache, reload customer?
+	editableCustomer.update();
+	editableCustomer.getCustomer().update(function(exception) {
+		if (exception) {
+			console.log(exception);
+			return;
 		}
 	});
 };

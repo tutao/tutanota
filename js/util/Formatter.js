@@ -116,10 +116,15 @@ tutao.tutanota.util.Formatter.dateToDashString = function(date) {
 /**
  * Converts a string to a date.
  * @param {string} string the formatted date in the form 'yyyy-mm-dd'.
- * @return {Date} The date.
+ * @return {Date} The date or null if the dash string has no valid format.
  */
 tutao.tutanota.util.Formatter.dashStringToDate = function(string) {
-	return new Date(string);
+	var date = new Date(string);
+	if (isNaN(date.getTime())) {
+		return null;
+	} else {
+		return date;
+	}
 };
 
 /**

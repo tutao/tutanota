@@ -170,9 +170,9 @@
 	<script type="text/javascript" src="generated/entity/sys/ChangePasswordData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Chat.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturn.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturnEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReference.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
@@ -185,7 +185,6 @@
 	<script type="text/javascript" src="generated/entity/sys/ListVersionInfo.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Login.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/LongConfigValue.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/LongConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
@@ -204,7 +203,6 @@
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorReceiverData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TimeRangeConfigValue.js"></script>
@@ -1642,16 +1640,25 @@ function touchOrClick(e) {
       							<tr>
 									<th class="small">ID</th>
 									<th class="medium">Name</th>
-									<th class="medium">Domain</th>
+									<th class="small">Domain</th>
 									<th class="medium">Address</th>
+									<th class="small">Creation time</th>
+									<th class="medium">Test end time</th>
+									<th class="small">Activation time</th>
 								</tr>
    							</thead>
    							<tbody data-bind="foreach: customers">
       							<tr>
-								    <td class="small" data-bind="text: getId()"></td>
-									<td class="medium" data-bind="text: getCompany()"></td>
-									<td class="medium" data-bind="text: getDomain()"></td>
-									<td class="medium" data-bind="text: getInvoiceAddress()"></td>
+								    <td class="small" data-bind="text: getCustomer().getId()"></td>
+									<td class="medium" data-bind="text: company"></td>
+									<td class="small" data-bind="text: domain"></td>
+									<td class="medium" data-bind="text: invoiceAddress"></td>
+									<td class="small" data-bind="simpleDate: creationTime"></td>
+									<td class="medium">
+										<input type="date" data-bind="dateInput: testEndTime"></input>
+										<div class="simplebutton" data-bind="click: function() { $parent.updateTestEndTime($data); }">update</div>
+									</td>
+									<td class="small" data-bind="simpleDate: activationTime"></td>
 								</tr>
 							</tbody>
 						</table>
