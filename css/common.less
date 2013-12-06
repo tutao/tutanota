@@ -218,6 +218,7 @@ hr {
 	color: @border;
 	background-color: @border;
 	height: 1px;
+	margin-bottom: 15px;
 }
 
 .infoMessage {
@@ -320,6 +321,16 @@ button {
 	cursor: pointer;
 	.nonSelectable;
 	.light;
+	
+	&.minimal {
+		border: 1px solid transparent;
+		background-color: transparent;
+		text-decoration: underline;
+		
+		&:active {
+			border: 1px solid @button-border;
+		}
+	}
 	
 	&:active {
 		background-color:@background-dark; 
@@ -482,6 +493,12 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 			overflow: hidden;
 		}
 		
+		> div.formAction {
+			> button {
+				margin-right: 5px;
+			}
+		}
+		
 		> div.formAction, div.recordData {
 			text-align: left;
 			
@@ -557,6 +574,70 @@ div.pwStrengthBg {
 		height: 100%;
 		border-top-right-radius: 3px;
 		border-bottom-right-radius: 3px;
+	}
+}
+
+/***************************************
+  * Table
+  **************************************/
+
+.table {
+	width: 100%;
+	table-layout:fixed;
+	margin-bottom: 20px;
+	
+	tr {
+		&:nth-child(even) {
+			background-color: @background-buttonBar;
+		}
+		&:nth-child(odd) {
+			background-color: darken(@background-buttonBar, 10%);
+		}
+		
+		> th {
+			background-color: @background-buttonBar;
+		}
+		
+		> td,th {
+			padding: 2px 5px 2px 5px;
+			&.center {
+				text-align: center;
+			}
+			&.mini {
+				width: 20px;
+			}
+			&.small {
+				width: 60px;
+				overflow: hidden;
+				white-space:nowrap;
+			}
+			&.medium {
+				width: 110px;
+				overflow: hidden;
+				white-space:nowrap;
+			}
+			&.message {
+				word-wrap: break-word;
+				min-width: 100px;
+			}
+			&.cutLeft {
+				direction: rtl;
+			}
+			&.W {
+				background-color: @orange;
+			}
+			&.E {
+				background-color: @red;
+			}
+			
+			input {
+				width: 100%;
+			}
+			
+			a {
+				cursor: pointer;
+			}
+		}
 	}
 }
 

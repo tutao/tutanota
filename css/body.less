@@ -1,4 +1,3 @@
-
 @button-bar-height: 45px;
 
 body {
@@ -921,53 +920,116 @@ body {
 		}
 	}
 	
-	div#settingsColumn {
-
-		> div#settingsInnerColumn {
-			position: relative;
-			height: 100%;
-			overflow-y: auto;
-			
-			> div#settingsData {
-				position: absolute;
-				left: 0px;
-				top: 0px;
-				right: 0px;
-				bottom: 0px;
-				background-clip: padding-box;
-
-				> div {
-							
-					> div.settingsAction {
-						width: 100%;
-						margin-bottom: 5px;
+	div#settingsContent {
+		div#settingsColumn {
+	
+			> div#settingsInnerColumn {
+				position: relative;
+				height: 100%;
+				overflow-y: auto;
+				
+				> div#settingsData {
+					position: absolute;
+					left: 0px;
+					top: 0px;
+					right: 0px;
+					bottom: 0px;
+					background-clip: padding-box;
+	
+					> div {
+								
+						> div.settingsAction {
+							width: 100%;
+							margin-bottom: 5px;
+						}
 					}
 				}
 			}
-		}
-	}
-	
-	div#changeSettingsColumn {
-
-		> div#changeSettingsInnerColumn {
-			position: relative;
-			height: 100%;
-			overflow-y: auto;
 			
-			> div#changeSettingsData {
-				margin: 10px;				
-				> div {
-
-					> div#changePasswordData {
-					
-						> div.infoText {
-						
+		}
+		
+		div#changeSettingsColumn {
+	
+			> div#changeSettingsInnerColumn {
+				position: relative;
+				height: 100%;
+				overflow-y: auto;
+				
+				> div#changeSettingsData {
+				
+					> div {
+						> div {
+							padding: @padding;
 						}
-					
-						div.password1Status {
-							display: inline-block;
+	
+						> div#changePasswordData {
+						
+							> div.infoText {
+							
+							}
+						
+							div.password1Status {
+								display: inline-block;
+							}
+						}
+						
+						
+						> div#adminUserList {
+                            > div.buttonBar {
+                              div.innerButtons {
+                                right: 0px;
+                              }
+                            }
+							padding: 0;
+							> div.userList {
+								background: @white;
+								background-clip: padding-box;
+								position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
+				
+								// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
+								> div.user {
+									width: 100%;
+									height: 49px;
+									border-bottom: 1px solid @border-dark;
+									padding-left: @padding;
+									padding-right: @padding;
+									cursor: pointer;
+								    .fadeTextOut;
+									
+									&.selected {
+										background-color: @highlight-color;
+									}
+									    
+								}
+							}
 						}
 					}
+				}
+				
+				
+			}
+			
+		}
+		
+		div#changeSettingsDetailsColumn.viewColumn {
+			position: absolute;
+			
+			> div {
+				.fill;
+				padding: @padding;
+				overflow-y: auto;
+			}
+			
+			> div#newUsers {
+				
+				> div#importUsersFromCsv {
+					textarea {
+						height: 150px;
+					}
+				}
+			
+				input.mailAddress {
+					width: 60%;
 				}
 			}
 		}

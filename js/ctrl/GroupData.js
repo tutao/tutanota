@@ -11,9 +11,8 @@ goog.provide('tutao.tutanota.ctrl.GroupData');
  *            the public key of the group.
  * @param {string} symEncPrivKey
  *            the private key of the group encrypted with the symmetric group key.
- * @param {string} pubEncGKey
- *            the symmetric group key encrypted with the public key of the admin group, used in
- *            GroupAdminship.
+ * @param {string} adminEncGKey
+ *            the symmetric group key encrypted with the key of the admin group.
  * @param {string} symEncGKey
  *            the symmetric group key encrypted with the symmetric user key, used in
  *            GroupMembership.
@@ -24,12 +23,12 @@ goog.provide('tutao.tutanota.ctrl.GroupData');
  *            the group key.
  * @param {Object} sessionKey The session key.
  */
-tutao.tutanota.ctrl.GroupData = function(encryptedName, mailAddr, pubKey, symEncPrivKey, pubEncGKey, symEncGKey, symEncSessionKey, groupKey, sessionKey) {
+tutao.tutanota.ctrl.GroupData = function(encryptedName, mailAddr, pubKey, symEncPrivKey, adminEncGKey, symEncGKey, symEncSessionKey, groupKey, sessionKey) {
 	this._encryptedName = encryptedName;
 	this._mailAddr = mailAddr;
 	this._pubKey = pubKey;
 	this._symEncPrivKey = symEncPrivKey;
-	this._pubEncGKey = pubEncGKey;
+	this._adminEncGKey = adminEncGKey;
 	this._symEncGKey = symEncGKey;
 	this._symEncSessionKey = symEncSessionKey;
 	this._groupKey = groupKey;
@@ -43,12 +42,11 @@ tutao.tutanota.ctrl.GroupData = function(encryptedName, mailAddr, pubKey, symEnc
  * @param {Object} userKey
  *            the symmetric user key used for encrypting the symmetric group key for group
  *            memberships.
- * @param {Object} pubAdminKey
- *            the public key of the admin group, used to encrypte the symmetric group key for
- *            group adminships.
+ * @param {Object} adminKey
+ *            the key of the admin group, used to encrypt the symmetric group key for.
  * @param {function(?tutao.tutanota.ctrl.GroupData, exception=)} callback Called when finished. Receives the group data object.
  */
-tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userKey, pubAdminKey, callback) {
+tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userKey, adminKey, callback) {
 	var symKey = tutao.locator.aesCrypter.generateRandomKey();
 	tutao.locator.rsaCrypter.generateKeyPair(function(keyPair, exception) {
 		if (exception) {
@@ -60,23 +58,17 @@ tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userK
 		var encryptedName = tutao.locator.aesCrypter.encryptUtf8(sessionKey, name, true);
 		var pubKey = tutao.locator.rsaCrypter.keyToHex(keyPair.publicKey);
 		var symEncPrivKey = tutao.locator.aesCrypter.encryptPrivateRsaKey(symKey, tutao.locator.rsaCrypter.keyToHex(keyPair.privateKey));
-		var pubEncGKey = null;
+		var adminEncGKey = null;
 		var symEncGKey = null;
 		if (userKey != null) {
 			symEncGKey = tutao.locator.aesCrypter.encryptKey(userKey, symKey);
 		}
 		var symEncSessionKey = tutao.locator.aesCrypter.encryptKey(symKey, sessionKey);
-		if (pubAdminKey != null) {
-			tutao.locator.rsaCrypter.encryptAesKey(pubAdminKey, tutao.locator.aesCrypter.keyToHex(symKey), function(pubEncGKey, exception) {
-				if (exception) {
-					callback(null, exception);
-					return;
-				}
-				callback(new tutao.tutanota.ctrl.GroupData(encryptedName, mailAddr, pubKey, symEncPrivKey, pubEncGKey, symEncGKey, symEncSessionKey, symKey, sessionKey));
-			});
-		} else {
-			callback(new tutao.tutanota.ctrl.GroupData(encryptedName, mailAddr, pubKey, symEncPrivKey, pubEncGKey, symEncGKey, symEncSessionKey, symKey, sessionKey));
+		var adminEncGKey = null;
+		if (adminKey) {
+			adminEncGKey = tutao.locator.aesCrypter.encryptKey(adminKey, symKey);
 		}
+		callback(new tutao.tutanota.ctrl.GroupData(encryptedName, mailAddr, pubKey, symEncPrivKey, adminEncGKey, symEncGKey, symEncSessionKey, symKey, sessionKey));
 	});
 };
 
@@ -96,8 +88,8 @@ tutao.tutanota.ctrl.GroupData.prototype.getSymEncPrivKey = function() {
 	return this._symEncPrivKey;
 };
 
-tutao.tutanota.ctrl.GroupData.prototype.getPubEncGKey = function() {
-	return this._pubEncGKey;
+tutao.tutanota.ctrl.GroupData.prototype.getAdminEncGKey = function() {
+	return this._adminEncGKey;
 };
 
 tutao.tutanota.ctrl.GroupData.prototype.getSymEncGKey = function() {

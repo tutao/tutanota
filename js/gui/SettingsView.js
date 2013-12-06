@@ -32,6 +32,9 @@ tutao.tutanota.gui.SettingsView.prototype.init = function(external) {
 	this._viewSlider.addViewColumn(1, 400, 600	, function(x, width) {
 		$('#changeSettingsColumn').css("width", width + "px");
 	});
+	this._viewSlider.addViewColumn(1, 400, 600	, function(x, width) {
+		$('#changeSettingsDetailsColumn').css("width", width + "px");
+	});
 
 	this._firstActivation = true;
 };

@@ -7,8 +7,17 @@ goog.provide('tutao.tutanota.util.PasswordUtils');
  * @return {string} The password.
  */
 tutao.tutanota.util.PasswordUtils.generateMessagePassword = function() {
+	return tutao.tutanota.util.PasswordUtils.generatePassword(tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_LENGTH);
+};
+
+/**
+ * Generates a password that can be used for a newly created account.
+ * @param {number} length The length of the new password
+ * @return {string} The password.
+ */
+tutao.tutanota.util.PasswordUtils.generatePassword = function(length) {
 	var password = "";
-	for (var i = 0; i < tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_LENGTH; i++) {
+	for (var i = 0; i < length; i++) {
 		while (true) {
 			var index = tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(1))[0];
 			// the random value must be within the character set range, otherwise try the next one

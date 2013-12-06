@@ -12,14 +12,19 @@
 }
 
 .modalDialog > div {
-	width: 20%;
-	min-width: 300px;
 	position: absolute;
-	bottom: 50px;
-	right: 20px;
 	padding: 5px 20px 13px 20px;
-	border-radius: 5px;
-	background: @light-blue;
+	background: @background;
+	top: 50px;
+	left: 50px;
+	right: 50px;
+	
+	&.feedback {
+		width: 20%;
+		min-width: 300px;
+		right: 20px;
+		bottom: 50px;
+	}
 	
 	> span.close {
 		background: @blue;

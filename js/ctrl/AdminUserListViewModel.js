@@ -7,9 +7,74 @@ goog.provide('tutao.tutanota.ctrl.AdminUserListViewModel');
  * @constructor
  */
 tutao.tutanota.ctrl.AdminUserListViewModel = function() {
-	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
-	this.reverse = ko.observable(false)
-	this._interval = 1000;
+	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
+	this.userGroups = ko.observableArray([]);
+	this.editing = ko.observable(null);
+	this._selectedDomElements = [];
+	this.newViewModel = ko.observable(null);
+	
+    this.update();
+	
+};
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.showSelected = function() {
+	var self = this;
+	this._loadUserGroupEntries(this.upperBoundId(), true, function(userGroupList) {
+		self.userGroups(userGroupList);
+	});
+};
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.editUser = function(userGroup, event) {
+	this.newViewModel(null);
+	this.editing(new tutao.tutanota.ctrl.AdminEditUserViewModel(userGroup));
+	tutao.tutanota.gui.unselect(this._selectedDomElements);
+	this._selectedDomElements = [event.currentTarget];
+	tutao.tutanota.gui.select(this._selectedDomElements);
+};
+
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.cancelEdit = function() {
+	this.editing(null);
+	tutao.tutanota.gui.unselect(this._selectedDomElements);
+	this._selectedDomElements = [];
+};
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.saveEdit = function() {
+	var self = this;
+	this.editing().save(function() {
+		// update the saved instance in our list
+		var savedIndex = self.userGroups.indexOf(self.editing().userGroup)
+		self.userGroups.splice(savedIndex, 1);
+		self.userGroups.splice(savedIndex, 0, self.editing().userGroup);
+		self.editing(null);
+	});
+};
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccounts = function() {
+	this.editing(null);
+	this.newViewModel(new tutao.tutanota.ctrl.AdminUserAddViewModel(this));
+};
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
+    var self = this;
+    this._loadUserGroupEntries(this.startId(), true, function(groups, exception) {
+        if (exception) {
+            console.log(exception);
+        } else {
+            self.userGroups([]);
+            self.userGroups(groups);
+        }
+    });
+};
+
+/**
+ * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
+ * @param {string} boundId The boundary id (base64 encoded)
+ * @param {boolean} reverse If the entries shall be loaded reverse.
+ * @param {function(Array.<tutao.entity.sys.UserGroup>)} callback Will be called with the list of userGroups. 
+ */
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function(boundId, reverse, callback) {
 	tutao.locator.userController.getLoggedInUser().loadCustomer(function(customer, exception) {
 		if (exception) {
 			console.log(exception);
@@ -20,18 +85,18 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 				console.log(exception);
 				return;
 			}
-			tutao.entity.sys.UserReference.loadRange(customerGroup.getMembers(), this.startId(), this._interval, this.reverse(), function(userReferenceList, exception) {
+			tutao.entity.sys.UserReference.loadRange(customerGroup.getMembers(), boundId, 1000, reverse, function(userReferences, exception) {
 				if (exception) {
 					console.log(exception);
 				} else {
-					var ids = [];
-					for ( var i = 0; i < customerReferenceList.length; i++) {
-						ids.push(customerReferenceList[i].getCustomer());
+					var userGroupIds = [];
+					for ( var i = 0; i < userReferences.length; i++) {
+						userGroupIds.push(userReferences[i].getUserGroupId());
 					}
-					if (ids.length == 0) {
+					if (userGroupIds.length == 0) {
 						callback([]);
 					} else {
-						tutao.entity.sys.Customer.loadMultiple(ids, callback);
+						tutao.entity.sys.Group.loadMultiple(userGroupIds, callback);
 					}
 				}
 			});
