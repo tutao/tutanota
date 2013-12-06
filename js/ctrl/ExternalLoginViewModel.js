@@ -85,10 +85,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.resetPasswordStatus = funct
 
 /**
  * Initializes the view model with a set of provided parameters and retrieves the phone numbers from the server.
+ * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
  * @param {String} mailRef The id of the external mail reference instance and the salt as base64Url concatenated.
  * @param {function} callback Called when finished.
  */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, callback) {
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoLogin, mailRef, callback) {
 	var self = this;
 	// split mailRef to get externalMailReferenceId and salt
 	self.saltHex = tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(mailRef.substring(mailRef.length / 2)));
@@ -105,15 +106,21 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(mailRef, c
 			return;
 		}
 		self.userId = passwordChannelReturn.getUserId();
-		self.autoLoginActive = true;
-		self._tryAutoLogin(function(exception) {
-			self.autoLoginActive = false;
-			if (exception) {
-				self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-				self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
-			}
+		if (allowAutoLogin) {			
+			self.autoLoginActive = true;
+			self._tryAutoLogin(function(exception) {
+				self.autoLoginActive = false;
+				if (exception) {
+					self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+					self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+				}
+				callback();
+			});
+		} else {
+			self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+			self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
 			callback();
-		});
+		}
 	});
 };
 
@@ -366,6 +373,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 				callback();
 			});
 		}
+	} else if (!self.storePassword()) {
+		// delete any stored password
+		if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {			
+			tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
+			tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
+		}
+		callback();
 	} else {
 		callback();
 	}

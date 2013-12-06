@@ -170,9 +170,9 @@
 	<script type="text/javascript" src="generated/entity/sys/ChangePasswordData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Chat.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturn.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/ConfigDataReturnEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReference.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
@@ -185,7 +185,6 @@
 	<script type="text/javascript" src="generated/entity/sys/ListVersionInfo.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Login.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/LongConfigValue.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/LongConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
@@ -204,9 +203,10 @@
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorReceiverData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SmsMonitorTriggerData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/StringConfigValueEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TimeRangeConfigValue.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TimeRangeListConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/User.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserData.js"></script>
@@ -1233,7 +1233,7 @@ function touchOrClick(e) {
 										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-											<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+												<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
 											</div>
 											<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
 											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
@@ -1539,28 +1539,85 @@ function touchOrClick(e) {
 				<div id="configInnerColumn">
 					<div id="configData">
 						<!-- ko if: config() -->
+							<h1>Config</h1>
 							<div id="configValues">
 								<!-- ko foreach: getSortedLongValues() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<span data-bind="text: getValue()"></span>
+										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
 									</div>
 								<!-- /ko -->
 								<!-- ko foreach: getSortedStringValues() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<span data-bind="text: getValue()"></span>
+										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
 									</div>
 								<!-- /ko -->
-								<!-- ko foreach: getSortedUserLists() -->
+								<!-- ko foreach: getSortedTimeRangeLists() -->
 									<div>
-										<span data-bind="text: name"></span>
-										<input type="text" data-bind="value: value"></input>
+										<span data-bind="text: getName()"></span>
+										<div>
+											<div class="innerTable">
+												<!-- ko foreach: getTimeRanges() -->
+													<div>
+														<span data-bind="text: getIdentifier()"></span>
+														<span data-bind="simpleDate: getStart(), default: '\u221E'"></span>
+														<span data-bind="simpleDate: getEnd(), default: '\u221E'"></span>
+														<div class="simplebutton" data-bind="click: function() { tutao.locator.configViewModel.editValue($parent.getName(), getIdentifier(), getStart(), getEnd()); }">edit</div>
 									</div>
 								<!-- /ko -->
 							</div>
-							<button data-bind="fastClick: loadConfig">load</button>
-							<button data-bind="fastClick: storeConfig">store</button>
+										</div>
+									</div>
+								<!-- /ko -->
+							</div>
+							<button data-bind="fastClick: loadConfig">reload</button>
+							<h1 class="marginTop">set/add/delete value</h1>
+							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { storeConfig(); }, 0); }, form: true">
+								<div class="record">
+									<label for="configName" class="recordName">name</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configName" type="text" data-bind="value: configName"></input>
+										</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configValue" class="recordName">value</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configValue" type="text" data-bind="enable: (isConfigName()), value: configValue"></input>
+										</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configStart" class="recordName">start date</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configStart" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configStart"></input>
+										</div>
+										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
+									</div>
+								</div>
+								<div class="record">
+									<label for="configEnd" class="recordName">end date</label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide" id="configEnd" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configEnd"></input>
+										</div>
+										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button id="submitConfig" type="submit">store</button>
+										<label for="submitConfig" class="recordStatus" data-bind="text: submitStatus"></label>
+									</div>
+								</div>
+							</form>
 						<!-- /ko -->
 					</div>
 				</div>
@@ -1587,16 +1644,25 @@ function touchOrClick(e) {
       							<tr>
 									<th class="small">ID</th>
 									<th class="medium">Name</th>
-									<th class="medium">Domain</th>
+									<th class="small">Domain</th>
 									<th class="medium">Address</th>
+									<th class="small">Creation time</th>
+									<th class="medium">Test end time</th>
+									<th class="small">Activation time</th>
 								</tr>
    							</thead>
    							<tbody data-bind="foreach: customers">
       							<tr>
-								    <td class="small" data-bind="text: getId()"></td>
-									<td class="medium" data-bind="text: getCompany()"></td>
-									<td class="medium" data-bind="text: getDomain()"></td>
-									<td class="medium" data-bind="text: getInvoiceAddress()"></td>
+								    <td class="small" data-bind="text: getCustomer().getId()"></td>
+									<td class="medium" data-bind="text: company"></td>
+									<td class="small" data-bind="text: domain"></td>
+									<td class="medium" data-bind="text: invoiceAddress"></td>
+									<td class="small" data-bind="simpleDate: creationTime"></td>
+									<td class="medium">
+										<input type="date" data-bind="dateInput: testEndTime"></input>
+										<div class="simplebutton" data-bind="click: function() { $parent.updateTestEndTime($data); }">update</div>
+									</td>
+									<td class="small" data-bind="simpleDate: activationTime"></td>
 								</tr>
 							</tbody>
 						</table>
@@ -1774,118 +1840,6 @@ function touchOrClick(e) {
 					</div>
 				</div>
 			</div>
-			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
-                <!-- ko if: editing() -->
-                    <div data-bind="with: editing()">
-                        <h1 data-bind="lang: 'editUser_label'"></h1>
-                        <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { $parent.	saveEdit(); }, 0); }, form: true">
-                            <div class="record">
-                                <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
-                                <div class="recordData">
-                                    <div class="recordValue">
-                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: isEditable(), value: name, valueUpdate: 'input'"></input>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="record">
-                                <label class="recordName" data-bind="lang: 'mailAddress_label'"></label>
-                                <div class="recordData">
-                                    <div class="recordValue" data-bind="text: userGroup.getMailAddress()">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="record">
-                                <div class="recordName"></div>
-                                <div class="formAction">
-                                    <button id="submitUserChange" type="submit" data-bind="lang: 'save_action'"></button>
-                                    <button id="cancelUserChange" class="minimal" data-bind="lang: 'cancel_action', fastClick: $parent.cancelEdit"></button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                <!-- /ko -->
-                <!-- ko if: newViewModel() -->
-                    <div id="newUsers" data-bind="with: newViewModel()">
-
-                        <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
-                            <div>
-                                <span class="close" data-bind="click: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
-                                <h2 data-bind="lang: 'importCsv_label'"></h2>
-                                <form class="recordContainer wide" data-bind="submit: importCsv, form: true">
-                                    <div class="record">
-                                        <div class="recordName">CSV</div>
-                                        <div class="recordValue">
-                                            <textarea class="inputArea wide" data-bind="value: csvData"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="record">
-                                        <div class="recordName"></div>
-                                        <div class="formAction">
-                                            <button type="submit" data-bind="lang: 'import_action'"></button>
-                                            <label class="recordStatus" data-bind="css: csvImportStatus().type, lang: csvImportStatus().text, params: csvImportStatus().params"></label>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-
-                        <h1 data-bind="lang: 'adminUserAdd_action'"></h1>
-                        <!-- ko foreach: newUsers -->
-                            <!-- ko if: ($index() > 0) --><hr><!-- /ko -->
-                        <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
-                            <div class="record">
-                                <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
-                                <div class="recordData">
-                                    <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}""></input>
-                                    </div>
-                                    <label class="recordInfo" data-bind="lang: 'loginNameInfo_msg', attr: {for: 'userName' + $index()}"></label>
-                                </div>
-                            </div>
-                            <div class="record">
-                                <label class="recordName" data-bind="lang: 'desiredAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
-                                <div class="recordData">
-                                    <div class="recordValue">
-                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}"></input><span data-bind="text: '@' + domain()"></span>
-                                    </div>
-                                    <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
-                                    <label class="recordInfo" data-bind="lang: 'mailAddressInfo_msg', attr: {for: 'userMailAddress' + $index()}"></label>
-                                </div>
-                            </div>
-                            <div class="record">
-                                <label class="recordName" data-bind="lang: 'password_label', attr: {for: 'password' + $index()}"></label>
-                                <div class="recordData">
-                                    <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
-                                    </div>
-                                    <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
-                                        <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-                                            <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
-                                        </div>
-                                        <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
-                                    </label>
-                                    <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
-                                </div>
-                            </div>
-                        </form>
-                        <!-- /ko -->
-                        <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
-                            <div class="record">
-                                <div class="recordName"></div>
-                                <div class="formAction">
-                                    <button type="submit" data-bind="enable: isEditable, lang: 'create_action'"></button><button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button>
-                                    <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
-                                </div>
-                            </div>
-                        </form>
-                        <!-- ko if: (createdUsers().length > 0) --><h2 data-bind="lang: 'successfullyCreatedUsers_msg'"></h2><!-- /ko -->
-                            <ul data-bind="foreach: createdUsers">
-                                <li data-bind="text: name() + ': ' + mailAddressPrefix() + '@' + domain()"></li>
-                            </ul>
-                        <!-- /ko -->
-                    </div>
-				<!-- /ko -->
-			</div>
 		</div>
 		
 	</div><!-- end of viewContainer -->
@@ -1995,7 +1949,7 @@ function touchOrClick(e) {
 				<!-- /ko -->
 				<!-- ko if: isUserLoggedIn() -->
 					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(); }, 0); }">
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.login(false); }, 0); }">
 							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
 							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
 						</div>

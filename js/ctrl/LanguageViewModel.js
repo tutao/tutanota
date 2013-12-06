@@ -256,7 +256,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// external login
 	receiveMsg_msg: "Receive message",
 	invalidLink_msg: "Sorry, this link is not valid.",
-	expiredLink_msg: "Sorry, this link is not valid any more. You should have received a new notification email with the currently valid link.",
+	expiredLink_msg: "Sorry, this link is not valid any more. You should have received a new notification email with the currently valid link. Old links are deactivated for security reasons.",
 	smsError_msg: "Could not send SMS.",
 	smsSent_msg: "The SMS should arrive in not more than 60s.",
 	smsResent_msg: "If no SMS has been arrived you may resend it now.",
@@ -368,8 +368,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
 	version_label: "version:",
-	tutanotaWebClientColon_label: "Tutanota Client:",
-	tutanotaWebClient_label: "Tutanota Client",
+	tutanotaWebClientColon_label: "Tutanota Webapp:",
+	tutanotaWebClient_label: "Tutanota Webapp",
 	help_label: "Get help:",
 	sendLogFile_action: "Send log file via email",
 	info_label: "Info",
@@ -391,11 +391,14 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	confidentialityEnabled_msg: "This message will be sent confidential.",
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
-	sending_msg: 'encrypting and sending message',
+	sending_msg: 'Your message is encrypted and sent.',
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
 	outlookVersionNotSupported_msg: 'Unfortunately, this version of Outlook is not supported for Tutanota. Please use Oulook 2010 or Outlook 2013.',
 	invalidAttachment_msg: "This email can not be sent via Tutanota because it contains an unsupported attachment.",
+	showInAddressBook_alt: "Edit contact",
+	addPhoneNumber_alt: "Add this mobile phone number",
+	removePresharedPassword_alt: "Remove agreed password",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -445,9 +448,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	showQuotation_action: "+ Details",
 	hideQuotation_action: "- Details",
 	legacyNoReply_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf Ihre empfangene E-Mail. Bitte aktualisieren Sie den Browser oder verwenden einen der folgenden:",
-	clickToSave_label: "klicken zum speichern",
-	confidential_action: "vertraulich",
-	nonConfidential_action: "nicht vertraulich",
+	clickToSave_label: "Klicken zum speichern",
+	confidential_action: "Vertraulich",
+	nonConfidential_action: "Nicht vertraulich",
 	noMails_msg: "Keine E-Mails in dieser Liste.",
 	noMail_msg: "Keine E-Mail ausgewählt.",
 	addMobileNumber_msg: "Zusätzliche Mobilfunknummer eingeben",
@@ -585,7 +588,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// external login
 	receiveMsg_msg: "Nachricht empfangen",
 	invalidLink_msg: "Leider ist dieser Link ungültig.",
-	expiredLink_msg: "Leider ist dieser Link nicht mehr gültig. Sie sollten eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link von diesem Absender bekommen haben.",
+	expiredLink_msg: "Leider ist dieser Link nicht mehr gültig. Sie sollten eine neue Benachrichtigungs-E-Mail mit einem aktuellen Link von diesem Absender bekommen haben. Alte Links werden aus Sicherheitsgründen deaktiviert.",
 	smsError_msg: "Die SMS konnte nicht gesendet werden",
 	smsSent_msg: "Die SMS sollte innerhalb von 60s ankommen.",
 	smsResent_msg: "Wenn die SMS nicht angekommen ist, dann können Sie diese nun erneut senden.",
@@ -646,7 +649,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// registration
 	claim_label: "Tutanota - einfach. sicher. mailen.",
 	registration1Headline_msg: "Registrierung (Schritt 1 von 2)",
-	registration2Headline_msg: "Registration (step 2 of 2)",
+	registration2Headline_msg: "Registrierung (Schritt 2 von 2)",
 	company_label: "Firma",
 	invoiceAddress_label: "Rechnungsadresse",
 	domain_label: "Domain",
@@ -698,8 +701,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter für Microsoft Outlook",
 	version_label: "Version:",
-	tutanotaWebClientColon_label: "Tutanota Client:",
-	tutanotaWebClient_label: "Tutanota Client",
+	tutanotaWebClientColon_label: "Tutanota Webapp:",
+	tutanotaWebClient_label: "Tutanota Webapp",
 	help_label: "Hilfe erhalten Sie unter:",
 	sendLogFile_action: "Log-Datei per E-Mail senden",
 	info_label: "Info",
@@ -721,10 +724,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	confidentialityEnabled_msg: "Diese Nachricht wird vertraulich versendet.",
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
-	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet',
+	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet.',
 	sendingFailed_msg: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.',
 	savingFailed_msg: 'Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.',
 	outlookVersionNotSupported_msg: 'Diese Outlook-Version wird leider nicht von Tutanota unterstützt. Bitte verwenden Sie Outlook 2010 oder Outlook 2013.',
 	invalidAttachment_msg: "Diese E-Mail kann leider nicht mit Tutanota gesendet werden, da sie einen nicht unterstützten Anhang enthält.",
+	showInAddressBook_alt: "Kontakt bearbeiten",
+	addPhoneNumber_alt: "Diese Mobilfunknummer hinzufügen",
+	removePresharedPassword_alt: "Vereinbartes Passwort löschen",
 };
 

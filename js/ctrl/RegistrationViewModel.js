@@ -299,7 +299,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 				self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
 			} else {
-				tutao.locator.navigator.login(); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
+				tutao.locator.navigator.login(false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
 				setTimeout(function() {					
 					tutao.locator.loginViewModel.setMailAddress(self.mailAddressPrefix() + "@" + self.domain());
 					tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
@@ -441,6 +441,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 									s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileSystemSessionkey));
 									s.setSymEncFileShareBucketKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileShareBucketKey));
 									s.setFileShareBucketEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileShareBucketKey, fileSystemSessionkey));
+									
+									var externalRecipientListKey = tutao.locator.aesCrypter.generateRandomKey();
+									s.setSymEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, externalRecipientListKey));
+									s.setMailShareBucketEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, externalRecipientListKey));
 
 									s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
 										if (exception) {

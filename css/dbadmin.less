@@ -214,7 +214,11 @@ div#configColumn {
 		height: 100%;
 		overflow-y: auto;
 		
+		
 		> div#configData {
+			> h1.marginTop {
+				margin-top: 20px;
+			}
 
 			> div#configValues {
 				display: table;
@@ -224,11 +228,27 @@ div#configColumn {
 				> div {
 					display: table-row;
 					
-					> span, > input {
+					> span, > div {
 						display: table-cell;
 						border: 1px solid grey;
 						padding-left: 3px;
 						padding-right: 3px;
+					}
+					
+					> div > div.innerTable {
+						display: table;
+						border: 1px solid grey;
+						
+						> div {
+							display: table-row;
+							
+							> span, div {
+								display: table-cell;
+								border: 1px solid grey;
+								padding-left: 3px;
+								padding-right: 3px;
+							}
+						}
 					}
 					
 					input {

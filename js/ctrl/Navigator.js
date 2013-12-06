@@ -8,7 +8,8 @@ tutao.tutanota.ctrl.Navigator = function() {
 	// just for testing: tutao.tutanota.util.ClientDetector._supported = tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN;
 	this.clientSupported = (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED);
 	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY);
-	this.mailRef = null;
+	this.mailRef = null; // the mail reference for an external user
+	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked 
 };
 
 /**
@@ -37,7 +38,8 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function
 	}
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.login = function() {
+tutao.tutanota.ctrl.Navigator.prototype.login = function(autoLoginAllowed) {
+	this._allowAutoLogin = autoLoginAllowed;
 	if (this.mailRef == null) {
 		location.replace("#login");
 	} else {
@@ -107,7 +109,7 @@ tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(v
 		tutao.locator.viewManager.select(view);
 	} else {
 		console.log("User not authenticated, switching to login view.");
-		this.login();
+		this.login(true);
 	}
 };
 
@@ -134,6 +136,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 			tutao.tutanota.gui.resetLogoBindings();
 		}
 		if (self.verifyClientSupported()) {
+			// provide allowAutoLogin to loginViewModel here as soon as device management is running
 			tutao.locator.viewManager.select(tutao.locator.loginView);
 		}
 	});
@@ -147,8 +150,9 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 			tutao.tutanota.Bootstrap.init();
 		}
 		if (self.verifyExternalClientSupported()) {
-			self.mailRef = this.params["mailRef"];
-			tutao.locator.externalLoginViewModel.setup(self.mailRef, function() {
+			// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
+			tutao.locator.navigator.mailRef = this.params["mailRef"];
+			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, self.mailRef, function() {
 				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
 			});
 		}

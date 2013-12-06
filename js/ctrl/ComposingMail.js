@@ -203,21 +203,14 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 					console.log("could not send mail", exception);
 					return;
 				}
+				// external users do not download mails automatically, so download the sent email now
 				if (tutao.locator.userController.isExternalUserLoggedIn()) {
 					tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
 						if (exception) {
 							console.log("error");
 							return;
 						}
-						// load the mail body to make sure it is available when the DisplayeMail is created
-						tutao.entity.tutanota.MailBody.load(mail.getBody(), function(body, exception) {
-							if (exception) {
-								console.log("error");
-								return;
-							}
-							tutao.locator.mailViewModel.addFirstMailToConversation(new tutao.tutanota.ctrl.DisplayedMail(mail));
-							tutao.locator.mailView.mailsUpdated();
-						});
+						tutao.locator.mailListViewModel.updateOnNewMails([mail], function() {});
 					});
 				}
 				self.busy(false);
