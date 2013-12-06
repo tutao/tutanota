@@ -88,7 +88,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 	if (authToken) {
 		this.authToken(authToken);
 		var params = {};
-		params[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = authToken;
+		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
 		tutao.entity.sys.RegistrationServiceData.load(params, null, function(data, exception) {
 			if (!exception && (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL || 
 					data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT)) {
