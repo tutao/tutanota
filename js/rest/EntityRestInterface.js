@@ -1,6 +1,7 @@
 "use strict";
 
 goog.provide('tutao.rest.EntityRestInterface');
+//TODO (before release) add putService or use only one function for both
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
