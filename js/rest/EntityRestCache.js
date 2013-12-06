@@ -305,7 +305,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 					}
 					for (var i = 0; i < elements.length; i++) {
 						self._addToCache(path, elements[i]);
-						self._tryAddToRange(path, elements[i].__id[1]);
+						self._tryAddToRange(path, elements[i]);
 					}
 					callback(self._provideFromCache(path, listId, start, count, reverse));
 				});

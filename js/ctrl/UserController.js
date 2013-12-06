@@ -95,6 +95,14 @@ tutao.ctrl.UserController.prototype.getMailAddress = function() {
 };
 
 /**
+ * Provides the domain of the logged in internal user.
+ * @return {string} The user's domain.
+ */
+tutao.ctrl.UserController.prototype.getDomain = function() {
+	return this._mailAddress.split("@")[1];
+};
+
+/**
  * Provides the client key of the logged in internal user.
  * @return {Object} The user's client key.
  */
