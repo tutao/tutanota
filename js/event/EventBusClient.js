@@ -77,7 +77,7 @@ tutao.event.EventBusClient.prototype._error = function(error) {
 };
 
 tutao.event.EventBusClient.prototype._message = function(message) {
-	console.log("ws message: ", message);
+	console.log("ws message: ", message.data);
 	var wrapper = new tutao.entity.sys.WebsocketWrapper(JSON.parse(message.data));
 	if (wrapper.getType() === 'chat') {
 		console.log(wrapper.getChat().getSender() + " > " + wrapper.getChat().getText());
