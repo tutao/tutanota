@@ -29,45 +29,14 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	}, this); 
 	
 	this.mailAddressPrefix = ko.observable("");
-	this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"})
+	this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
 	
 	this.code = ko.observable("");
 	this.password1 = ko.observable("");
 	this.password2 = ko.observable("");
 	this.termsAccepted = ko.observable(false);
 
-	this.mailAddressPrefix.subscribe(function(newValue) {
-		var self = this;
-
-		var cleanedValue = newValue.toLowerCase();
-		if (this.mailAddressPrefix().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
-			this.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
-			return;
-		} else if (!this.isValidMailAddress()) {
-			this.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
-			return;
-		}
-		
-		this.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
-
-		setTimeout(function() {
-			if (self.mailAddressPrefix() == newValue) {
-				var params = [];
-				params[tutao.rest.ResourceConstants.MAIL_ADDRESS] = cleanedValue + "@" + self.domain();
-				tutao.entity.sys.MailAddressAvailabilityReturn.load(params, [], function(mailAddressAvailabilityReturn, exception) {
-					if (self.mailAddressPrefix() == newValue) {
-						if (exception) {
-							console.log(exception);
-						} else if (mailAddressAvailabilityReturn.getAvailable()) {
-							self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
-						} else {
-							self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
-						}
-					}
-				});
-			}
-		}, 500);
-	}, this);
+	this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH));
 
 	this.oldName = "";
 	this.name.subscribe(function(newValue) {
@@ -119,7 +88,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 	if (authToken) {
 		this.authToken(authToken);
 		var params = {};
-		params[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = authToken;
+		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
 		tutao.entity.sys.RegistrationServiceData.load(params, null, function(data, exception) {
 			if (!exception && (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL || 
 					data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT)) {
@@ -366,8 +335,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 					callback(exception);
 					return;
 				}
-				var adminPubKey = tutao.locator.rsaCrypter.hexToKey(adminGroupData.getPubKey());
-				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminPubKey, function(userGroupData, exception) {
+				var adminKey = adminGroupData.getSymGroupKey();
+				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminKey, function(userGroupData, exception) {
 					self._keyGenProgress(65);
 					if (exception) {
 						callback(exception);
@@ -377,7 +346,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 					// reencrypt the admin key with the user key, because the user key was not available before
 					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupData.getSymGroupKey(), adminGroupData.getSymGroupKey()));
 
-					tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupData.getSymGroupKey(), adminPubKey, function(customerGroupData, exception) {
+					tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupData.getSymGroupKey(), adminKey, function(customerGroupData, exception) {
 						self._keyGenProgress(95);
 						if (exception) {
 							callback(exception);
@@ -416,8 +385,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 							customerService.setAdminEncPrivKey(adminGroupData.getSymEncPrivKey());
 							customerService.setAdminEncUserSessionKey(adminEncUserSessionKey);
 							customerService.setAdminGroupName(adminGroupData.getEncryptedName());
-							customerService.setAdminPubEncCustomerKey(customerGroupData.getPubEncGKey());
-							customerService.setAdminPubEncUserKey(userGroupData.getPubEncGKey());
+							customerService.setAdminEncCustomerKey(customerGroupData.getAdminEncGKey());
+							customerService.setAdminEncUserKey(userGroupData.getAdminEncGKey());
 							customerService.setAdminPubKey(adminGroupData.getPubKey());
 							customerService.setCustomerEncAdminSessionKey(customerEncAdminGroupSessionKey);
 							customerService.setCustomerEncCustomerSessionKey(customerGroupData.getSymEncSessionKey());
@@ -496,4 +465,39 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 			});
 		});
 	});
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier = function(scope, minLength) {
+	var self = scope;
+	return function(newValue) {
+
+		var cleanedValue = newValue.toLowerCase();
+		if (self.mailAddressPrefix().length < minLength) {
+			self.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
+			return;
+		} else if (!self.isValidMailAddress()) {
+			self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+			return;
+		}
+		
+		self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
+
+		setTimeout(function() {
+			if (self.mailAddressPrefix() == newValue) {
+				var params = [];
+				params[tutao.rest.ResourceConstants.MAIL_ADDRESS] = cleanedValue + "@" + self.domain();
+				tutao.entity.sys.MailAddressAvailabilityReturn.load(params, [], function(mailAddressAvailabilityReturn, exception) {
+					if (self.mailAddressPrefix() == newValue) {
+						if (exception) {
+							console.log(exception);
+						} else if (mailAddressAvailabilityReturn.getAvailable()) {
+							self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
+						} else {
+							self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
+						}
+					}
+				});
+			}
+		}, 500);
+	};
 };

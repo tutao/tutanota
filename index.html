@@ -178,8 +178,8 @@
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Exception.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Group.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/GroupAdminship.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/GroupMembership.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/GroupReference.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/IncomingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/KeyPair.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/ListVersionInfo.js"></script>
@@ -277,6 +277,9 @@
 	<script type="text/javascript" src="generated/model/TutanotaModel.js"></script>
 	<script type="text/javascript" src="js/Bootstrap.js"></script>
 	<script type="text/javascript" src="js/ctrl/AccountSettingsViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/AdminEditUserViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/AdminNewUser.js"></script>
+	<script type="text/javascript" src="js/ctrl/AdminUserAddViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AdminUserListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Button.js"></script>
 	<script type="text/javascript" src="js/ctrl/ButtonBarViewModel.js"></script>
@@ -359,6 +362,7 @@
 	<script type="text/javascript" src="js/util/DataFile.js"></script>
 	<script type="text/javascript" src="js/util/FileUtils.js"></script>
 	<script type="text/javascript" src="js/util/Formatter.js"></script>
+	<script type="text/javascript" src="js/util/KnockoutObservableAdapter.js"></script>
 	<script type="text/javascript" src="js/util/LocalStore.js"></script>
 	<script type="text/javascript" src="js/util/PasswordUtils.js"></script>
 	<script type="text/javascript" src="js/util/StateMachine.js"></script>
@@ -1291,7 +1295,6 @@ function touchOrClick(e) {
 											</div>
 											<label for="registrationCodeInput" class="recordStatus", data-bind="css: codeInputStatus().type, lang: codeInputStatus().text"></label>
 											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
-											<div class="simplebutton" data-bind="click: backToStartPage, text: '(' + tutao.lang('change_action') + ')'"></div>
 										</div>
 									</div>
 	
@@ -1299,6 +1302,7 @@ function touchOrClick(e) {
 										<div class="recordName"></div>
 										<div class="formAction">
 											<button id="submitRegistration2" type="submit" data-bind="css: { disabled: !isCreateAccountPossible()}, lang: 'createAccount_action'"></button>
+                                            <button class="minimal" data-bind="click: backToStartPage, lang: 'back_action'"></button>
 											<label for="submitRegistration2" class="recordStatus" data-bind="css: createAccountStatus().type">
 												<div class="progressBg" class="defaultMargin dataField">
 													<div class="progressFg" data-bind="style: { width: (100 - getKeyGenerationProgress()) + '%' }"></div>
@@ -1562,9 +1566,9 @@ function touchOrClick(e) {
 														<span data-bind="simpleDate: getStart(), default: '\u221E'"></span>
 														<span data-bind="simpleDate: getEnd(), default: '\u221E'"></span>
 														<div class="simplebutton" data-bind="click: function() { tutao.locator.configViewModel.editValue($parent.getName(), getIdentifier(), getStart(), getEnd()); }">edit</div>
-													</div>
-												<!-- /ko -->
-											</div>
+									</div>
+								<!-- /ko -->
+							</div>
 										</div>
 									</div>
 								<!-- /ko -->
@@ -1816,11 +1820,137 @@ function touchOrClick(e) {
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
-								<div id="adminUserList" data-bind="with: new tutao.tutanota.ctrl.AdminUserListViewModel()"></div>
+								<div id="adminUserList" data-bind="with: adminUserListViewModel">
+									<div class="buttonBar">
+                                        <div class="outerButtons">
+                                            <div class="innerButtons">
+                                                <button type="submit" data-bind="lang: 'create_action', click: createAccounts"></button>
+                                            </div>
+                                        </div>
+                                    </div>
+									<div class="userList" data-bind="foreach: {data: userGroups}">
+										<div class="user" data-bind="click: $parent.editUser">
+											<div class="emphasizedText"  data-bind="text: getName()"></div>
+											<div class="smallFont light" data-bind="text: getMailAddress()"></div>
+										</div>
+									</div>
+								</div>
 							<!-- /ko -->
 						</div>
 					</div>
 				</div>
+			</div>
+			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
+                <!-- ko if: editing() -->
+                    <div data-bind="with: editing()">
+                        <h1 data-bind="lang: 'editUser_label'"></h1>
+                        <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { $parent.	saveEdit(); }, 0); }, form: true">
+                            <div class="record">
+                                <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: isEditable(), value: name, valueUpdate: 'input'"></input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'mailAddress_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: userGroup.getMailAddress()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button id="submitUserChange" type="submit" data-bind="lang: 'save_action'"></button>
+                                    <button id="cancelUserChange" class="minimal" data-bind="lang: 'cancel_action', fastClick: $parent.cancelEdit"></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                <!-- /ko -->
+                <!-- ko if: newViewModel() -->
+                    <div id="newUsers" data-bind="with: newViewModel()">
+
+                        <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
+                            <div>
+                                <span class="close" data-bind="click: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
+                                <h2 data-bind="lang: 'importCsv_label'"></h2>
+                                <form class="recordContainer wide" data-bind="submit: importCsv, form: true">
+                                    <div class="record">
+                                        <div class="recordName">CSV</div>
+                                        <div class="recordValue">
+                                            <textarea class="inputArea wide" data-bind="value: csvData"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button type="submit" data-bind="lang: 'import_action'"></button>
+                                            <label class="recordStatus" data-bind="css: csvImportStatus().type, lang: csvImportStatus().text, params: csvImportStatus().params"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <h1 data-bind="lang: 'adminUserAdd_action'"></h1>
+                        <!-- ko foreach: newUsers -->
+                            <!-- ko if: ($index() > 0) --><hr><!-- /ko -->
+                        <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}""></input>
+                                    </div>
+                                    <label class="recordInfo" data-bind="lang: 'loginNameInfo_msg', attr: {for: 'userName' + $index()}"></label>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'desiredAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}"></input><span data-bind="text: '@' + domain()"></span>
+                                    </div>
+                                    <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
+                                    <label class="recordInfo" data-bind="lang: 'mailAddressInfo_msg', attr: {for: 'userMailAddress' + $index()}"></label>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'password_label', attr: {for: 'password' + $index()}"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
+                                    </div>
+                                    <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
+                                        <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                            <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+                                        </div>
+                                        <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
+                                    </label>
+                                    <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- /ko -->
+                        <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button type="submit" data-bind="enable: isEditable, lang: 'create_action'"></button><button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button>
+                                    <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- ko if: (createdUsers().length > 0) --><h2 data-bind="lang: 'successfullyCreatedUsers_msg'"></h2><!-- /ko -->
+                            <ul data-bind="foreach: createdUsers">
+                                <li data-bind="text: name() + ': ' + mailAddressPrefix() + '@' + domain()"></li>
+                            </ul>
+                        <!-- /ko -->
+                    </div>
+				<!-- /ko -->
 			</div>
 		</div>
 		

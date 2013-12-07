@@ -44,18 +44,18 @@ div#logEventsColumn, div#customerListColumn, div#registrationListDataColumn {
 		table {
 			width: 100%;
 			table-layout:fixed;
-			
+			margin-bottom: 20px;
 			
 			tr {
 				&:nth-child(even) {
-					background-color: @light-blue;
+					background-color: @background-buttonBar;
 				}
 				&:nth-child(odd) {
-					background-color: darken(@light-blue, 10%);
+					background-color: darken(@background-buttonBar, 10%);
 				}
 				
 				> th {
-					background-color: @dark-blue;
+					background-color: @background-buttonBar;
 				}
 				
 				> td,th {
@@ -90,7 +90,7 @@ div#logEventsColumn, div#customerListColumn, div#registrationListDataColumn {
 						background-color: @red;
 					}
 					
-					input[type="text"] {
+					> input[type=text], textarea {
 						width: 100%;
 					}
 					

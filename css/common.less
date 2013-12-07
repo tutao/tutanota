@@ -218,6 +218,7 @@ hr {
 	color: @border;
 	background-color: @border;
 	height: 1px;
+	margin-bottom: 15px;
 }
 
 .infoMessage {
@@ -320,6 +321,16 @@ button {
 	cursor: pointer;
 	.nonSelectable;
 	.light;
+	
+	&.minimal {
+		border: 1px solid transparent;
+		background-color: transparent;
+		text-decoration: underline;
+		
+		&:active {
+			border: 1px solid @button-border;
+		}
+	}
 	
 	&:active {
 		background-color:@background-dark; 
@@ -480,6 +491,12 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 		> div.recordData {
 			padding-bottom: 15px;
 			overflow: hidden;
+		}
+		
+		> div.formAction {
+			> button {
+				margin-right: 5px;
+			}
 		}
 		
 		> div.formAction, div.recordData {
