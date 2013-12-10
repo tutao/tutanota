@@ -125,7 +125,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 };
 
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function(exception) {
-	if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 409) { // conflict
+	if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
 		this.errorMessageId("expiredLink_msg");
 	} else {
 		this.errorMessageId("invalidLink_msg");
@@ -250,9 +250,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	this.sendSmsStatus({ type: "neutral", text: "sendingSms_msg" });
 	service.setup(map, this._getAuthHeaders(), function(passwordMessagingReturn, exception) {
 		if (exception) {
-			if ((exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) {
+			if ((exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) { // TooManyRequestsException
 				self.sendSmsStatus({ type: "invalid", text: "smsSentOften_msg" });
 				self.smsLocked(true);
+			} else if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
+				self.errorMessageId("expiredLink_msg");
 			} else {
 				self.sendSmsStatus({ type: "invalid", text: "smsError_msg" });
 			}
@@ -296,10 +298,14 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.checkEnteredPassword = func
 	self.showMailStatus({ type: "neutral", text: "loadingMail_msg" });
 	tutao.locator.userController.loginExternalUser(this.externalMailReference, this.userId, this.password(), this.saltHex, function(passwordKey, exception) {
 		if (exception) {
-			self.state.event("passwordInvalid");
-			self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
-			self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-			return;
+			if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
+				self.errorMessageId("expiredLink_msg");
+			} else {
+				self.state.event("passwordInvalid");
+				self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+				self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+				return;
+			}
 		}
 		self.state.event("passwordValid");
 		self._showMail(passwordKey);

@@ -93,7 +93,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function(callback) {
 	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
 	tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase(), function(exception) {
 		if (exception) {
-			if ((exception instanceof tutao.rest.EntityRestException) && (exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) {
+			if ((exception instanceof tutao.rest.EntityRestException) && (exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 472)) { // AccessBlockedException
 				self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
 			} else {
 				self.loginStatus({ type: "invalid", text: "loginFailed_msg" });

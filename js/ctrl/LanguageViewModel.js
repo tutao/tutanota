@@ -390,6 +390,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	confidentialityEnabled_msg: "This message will be sent confidential.",
 	localMailBegin_msg: "This message hast been sent securely with <a href=\"http://tutanota.de\">Tutanota</a> to the following recipients:",
 	technicalError_msg: "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
+	invalidSwVersion_msg: "Your Tutanota addin has to be updated. When you restart Outlook the new version will automatically be downloaded and installed.",
+	accountDeactivated_msg: "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
 	sending_msg: 'Your message is encrypted and sent.',
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
@@ -398,6 +400,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	showInAddressBook_alt: "Edit contact",
 	addPhoneNumber_alt: "Add this mobile phone number",
 	removePresharedPassword_alt: "Remove agreed password",
+	testPhaseExpired_msg: "The test phase has expired, so sending of confidential emails has been deactivated.",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -722,6 +725,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	confidentialityEnabled_msg: "Diese Nachricht wird vertraulich versendet.",
 	localMailBegin_msg: "Diese Nachricht wurde mit <a href=\"http://tutanota.de\">Tutanota</a> sicher an folgende Empfänger übertragen:",
 	technicalError_msg: "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
+	invalidSwVersion_msg: "Ihr Tutanota-Addin muss aktualisiert werden. Wenn Sie Outlook neu starten wird die neue Version automatisch heruntergeladen und installiert.",
+	accountDeactivated_msg: "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
 	sending_msg: 'Ihre Nachricht wird verschlüsselt und gesendet.',
 	sendingFailed_msg: 'Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.',
 	savingFailed_msg: 'Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.',
@@ -730,5 +735,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	showInAddressBook_alt: "Kontakt bearbeiten",
 	addPhoneNumber_alt: "Diese Mobilfunknummer hinzufügen",
 	removePresharedPassword_alt: "Vereinbartes Passwort löschen",
+	testPhaseExpired_msg: "Die kostenlose Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden.",
 };
 

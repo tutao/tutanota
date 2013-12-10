@@ -78,27 +78,16 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function
 		console.log("invalid date: null");
 		return;
 	}
-	//FIXME disable cache, reload customer?
+	//TODO disable cache, reload customer?
+	var oldDate = editableCustomer.getCustomer().getTestEndTime();
 	editableCustomer.update();
 	editableCustomer.getCustomer().update(function(exception) {
 		if (exception) {
+			// reset the date to indicate that the update failed
+			editableCustomer.testEndTime(oldDate);
+			editableCustomer.update();
 			console.log(exception);
 			return;
 		}
-		var data = new tutao.entity.sys.ConfigDataReturn();
-		var list = new tutao.entity.sys.TimeRangeListConfigValue(data);
-		list.setName("frozenCustomers");
-		var v = new tutao.entity.sys.TimeRangeConfigValue(list);
-		v.setIdentifier(editableCustomer.getCustomer().getId());
-		v.setStart(editableCustomer.testEndTime());
-		v.setEnd(null);
-		list.getTimeRanges().push(v);
-		data.getTimeRangeLists().push(list);
-		data.update({}, null, function(exception) {
-			if (exception) {
-				console.log(exception);
-				return;
-			}
-		});
 	});
 };
