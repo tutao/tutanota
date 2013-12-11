@@ -21,7 +21,7 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callb
 	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
 	json = json ? json : "";
 	// avoid caching (needed for IE) by setting cache: false
-;	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, dataType: 'json', async: true, cache: false, headers: headers,
+	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, dataType: 'json', async: true, cache: false, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},
@@ -101,7 +101,7 @@ tutao.rest.RestClient.prototype.putBinary = function(path, headers, data, callba
 			callback(data);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			callback(null, new tutao.rest.RestException(jqXHR.status));
+			callback(new tutao.rest.RestException(jqXHR.status));
 		}
 	});
 };

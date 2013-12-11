@@ -5,8 +5,7 @@ goog.provide('tutao.util.EncodingConverter');
 /**
  * Converts a hex coded string into a base64 coded string.
  *
- * @param {String}
- *            hex A hex encoded string.
+ * @param {String} hex A hex encoded string.
  * @return {String} A base64 encoded string.
  */
 tutao.util.EncodingConverter.hexToBase64 = function(hex) {
@@ -16,8 +15,7 @@ tutao.util.EncodingConverter.hexToBase64 = function(hex) {
 /**
  * Converts a base64 coded string into a hex coded string.
  *
- * @param {String}
- *            base64 A base64 encoded string.
+ * @param {String} base64 A base64 encoded string.
  * @return {String} A hex encoded string.
  */
 tutao.util.EncodingConverter.base64ToHex = function(base64) {
@@ -27,8 +25,7 @@ tutao.util.EncodingConverter.base64ToHex = function(base64) {
 /**
  * Converts a utf8 bytes hex coded string into a string.
  *
- * @param {String}
- *            hex A hex encoded string.
+ * @param {String} hex A hex encoded string.
  * @return {String} A utf8 encoded string.
  */
 tutao.util.EncodingConverter.hexToUtf8 = function(hex) {
@@ -38,8 +35,7 @@ tutao.util.EncodingConverter.hexToUtf8 = function(hex) {
 /**
  * Converts a string into a hex coded string containing utf8 bytes.
  *
- * @param {String}
- *            utf8 A utf8 encoded string.
+ * @param {String} utf8 A utf8 encoded string.
  * @return {String} A hex encoded string.
  */
 tutao.util.EncodingConverter.utf8ToHex = function(utf8) {
@@ -49,8 +45,7 @@ tutao.util.EncodingConverter.utf8ToHex = function(utf8) {
 /**
  * Converts a hex coded string into an array of byte values.
  *
- * @param {String}
- *            hex A hex encoded string.
+ * @param {String} hex A hex encoded string.
  * @return {Array.<number>} An array of byte values. A byte can have the value
  *         0 to 255.
  */
@@ -73,14 +68,13 @@ tutao.util.EncodingConverter.bytesToHex = function(bytes) {
  * Converts a base64 string to a url-conform base64 string. This is used for
  * base64 coded url parameters.
  *
- * @param {string}
- *            base64 The base64 string.
+ * @param {string} base64 The base64 string.
  * @return {string} The base64url string.
  */
 tutao.util.EncodingConverter.base64ToBase64Url = function(base64) {
 	var base64url = base64.replace(/\+/g, "-");
 	base64url = base64url.replace(/\//g, "_");
-	base64url = base64url.replace(/\=/g, "");
+	base64url = base64url.replace(/=/g, "");
 	return base64url;
 };
 
@@ -88,15 +82,14 @@ tutao.util.EncodingConverter.base64ToBase64Url = function(base64) {
  * Converts a base64 string to a base64ext string. Base64ext uses another character set than base64 in order to make it sortable.
  * 
  *
- * @param {string}
- *            base64 The base64 string.
+ * @param {string} base64 The base64 string.
  * @return {string} The base64url string.
  */
 tutao.util.EncodingConverter.base64ToBase64Ext = function(base64) {
 	var base64Alphabet =  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	var base64extAlphabet = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
 
-	var base64 = base64.replace(/\=/g, "");
+	base64 = base64.replace(/=/g, "");
 	var base64ext = new Array(base64.length);
 	for (var i = 0; i < base64.length; i++) {
 		var index = base64Alphabet.indexOf(base64.charAt(i));
@@ -108,8 +101,7 @@ tutao.util.EncodingConverter.base64ToBase64Ext = function(base64) {
 /**
  * Converts a timestamp number to a GeneratedId (the counter is set to zero) in hex format. 
  * 
- * @param {number}
- *            timestamp The timestamp of the GeneratedId
+ * @param {number} timestamp The timestamp of the GeneratedId
  * @return {string} The GeneratedId as hex string.
  */
 tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
@@ -125,8 +117,7 @@ tutao.util.EncodingConverter.timestampToHexGeneratedId = function(timestamp) {
 /**
  * Converts a timestamp number to a GeneratedId (the counter is set to zero).
  * 
- * @param {number}
- *            timestamp The timestamp of the GeneratedId
+ * @param {number} timestamp The timestamp of the GeneratedId
  * @return {string} The GeneratedId.
  */
 tutao.util.EncodingConverter.timestampToGeneratedId = function(timestamp) {
@@ -138,13 +129,12 @@ tutao.util.EncodingConverter.timestampToGeneratedId = function(timestamp) {
  * Converts a base64 url string to a "normal" base64 string. This is used for
  * base64 coded url parameters.
  *
- * @param {string}
- *            base64url The base64 url string.
+ * @param {string} base64url The base64 url string.
  * @return {string} The base64 string.
  */
 tutao.util.EncodingConverter.base64UrlToBase64 = function(base64url) {
 	var base64 = base64url.replace(/\-/g, "+");
-	base64 = base64.replace(/\_/g, "/");
+	base64 = base64.replace(/_/g, "/");
 	var nbrOfRemainingChars = base64.length % 4;
 	if (nbrOfRemainingChars === 0) {
 		return base64;
@@ -160,8 +150,7 @@ tutao.util.EncodingConverter.base64UrlToBase64 = function(base64url) {
  * Converts the content of an array to a base64 string. For comparison
  * see http://jsperf.com/encoding-xhr-image-data/5
  *
- * @param {Array.<number>}
- *            array The Array of bytes.
+ * @param {Array.<number>} byteArray The Array of bytes.
  * @return {string} The base64 string.
  */
 tutao.util.EncodingConverter.bytesToBase64 = function(byteArray) {
@@ -209,7 +198,8 @@ tutao.util.EncodingConverter.bytesToBase64 = function(byteArray) {
 		base64Array[index++] = encodings[a];
 		base64Array[index++] = encodings[b];
 		base64Array[index++] = '=';
-		base64Array[index++] = '=';
+		//noinspection JSUnusedAssignment
+        base64Array[index++] = '=';
 	} else if (byteRemainder == 2) {
 		chunk = (byteArray[mainLength] << 8) | byteArray[mainLength + 1];
 
@@ -222,7 +212,8 @@ tutao.util.EncodingConverter.bytesToBase64 = function(byteArray) {
 		base64Array[index++] = encodings[a];
 		base64Array[index++] = encodings[b];
 		base64Array[index++] = encodings[c];
-		base64Array[index++] = '=';
+		//noinspection JSUnusedAssignment
+        base64Array[index++] = '=';
 	}
 
 	return base64Array.join('');

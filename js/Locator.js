@@ -5,9 +5,10 @@ goog.provide('tutao.Locator');
 /**
  * The Locator is our central instance cache. It is a "singleton store"
  * that is used to retrieve instances.
- * The Locatoris used as an alternative to dependency injection.
+ * The Locator is used instead of dependency injection.
  * @constructor
  * @param {Object.<string, Object>} services A map of service names and constructors or constructor/argument pairs.
+ * @param {function()} initializer The initializer sets up the locator and is used on each reset
  * The constructors are used to create the services. Getters are defined for every service.
  */
 tutao.Locator = function(services, initializer) {

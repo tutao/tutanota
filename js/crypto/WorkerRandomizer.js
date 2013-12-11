@@ -21,7 +21,7 @@ tutao.crypto.WorkerRandomizer.prototype.addEntropy = function(number, entropy, s
  * @inheritDoc
  */
 tutao.crypto.WorkerRandomizer.prototype.isReady = function() {
-	true;
+	return true;
 };
 
 /**

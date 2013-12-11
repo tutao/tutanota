@@ -5,13 +5,13 @@ goog.provide('tutao.event.EventBusClient');
 
 /**
  * The EventBus encapsulates the WebSocket connection to the server. It currently only forwards messages to observers.
- * @implements {tutao.event.Observable}
+ * @implements {tutao.event.ObservableInterface}
  */
 // TODO (before beta) test disconnects, re-connect etc.
 tutao.event.EventBusClient = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this); // listener methods are invoked from the Websocket
 	this._observable = new tutao.event.Observable();
-	this._socket;
+	this._socket = null;
 	this._failedConnects = 0;
 	this._lastConnectionAttempt = null;
 };
@@ -123,7 +123,6 @@ tutao.event.EventBusClient.prototype._checkSocket = function(callback) {
 		callback();
 	} else {
 		// socket is closing or already closed, create a new one
-		var self = this;
 		this.connect(callback);
 	}
 	callback();

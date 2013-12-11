@@ -72,7 +72,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 		return;
 	}
 	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey().length != 0) {
-		this.getListKey(this._entity.getId()[0], function(listKey, exception) {
+		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (exception) {
 				callback(null, exception);
 			} else {				
@@ -88,7 +88,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 			}
 			if (tutao.locator.userController.isInternalUserLoggedIn()) {
 				try {
-					self.setSessionKey(self._tryGetSymEncSessionKey(permissions));
+					self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
 				} catch (e) {
 					callback(null, new tutao.rest.EntityRestException(e));
 					return;
@@ -111,7 +111,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 				});
 			} else {
 				try {
-					self.setSessionKey(self._tryGetSymEncSessionKey(permissions));
+					self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
 				} catch (e) {
 					callback(null, new tutao.rest.EntityRestException(e));
 					return;
@@ -138,7 +138,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
  * @param {string} listId The id of the list.
  * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished.
  */
-tutao.entity.EntityHelper.prototype.getListKey = function(listId, callback) {
+tutao.entity.EntityHelper.getListKey = function(listId, callback) {
 	var self = this;
 	tutao.entity.sys.Permission.loadRange(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
 		if (exception) {
@@ -146,7 +146,7 @@ tutao.entity.EntityHelper.prototype.getListKey = function(listId, callback) {
 			return;
 		}
 		try {
-			var listKey = self._tryGetSymEncSessionKey(permissions);
+			var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
 		} catch (e) {
 			callback(null, new tutao.rest.EntityRestException(e));
 			return;
@@ -184,7 +184,7 @@ tutao.entity.EntityHelper.prototype.setSessionKey = function(sessionKey) {
 /**
  * Provides the session key via an externally encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
- * @param function(?Object, tutao.rest.EntityRestException=) Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
  */
 tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permissions, callback) {
 	if (permissions.length == 0) {
@@ -232,7 +232,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
  * @return {Object} Returns null if no permission was found and the session key otherwise.
  * @throw {tutao.crypto.CryptoException} If an error occurs during session key decryption.
  */
-tutao.entity.EntityHelper.prototype._tryGetSymEncSessionKey = function(permissions) {
+tutao.entity.EntityHelper._tryGetSymEncSessionKey = function(permissions) {
 	var user = tutao.locator.userController.getLoggedInUser();
 	for (var i = 0; i < permissions.length; i++) {
 		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && (permissions[i].getType() == "1" || permissions[i].getType() == "2")) {
@@ -254,14 +254,15 @@ tutao.entity.EntityHelper.prototype._tryGetSymEncSessionKey = function(permissio
 /**
  * Provides the session key via an asymmetric encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
- * @param function(?Object, tutao.rest.EntityRestException=) Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
  */
 tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissions, callback) {
 	var self = this;
 	var user = tutao.locator.userController.getLoggedInUser();
+    var groupKey;
 	for (var i = 0; i < permissions.length; i++) {
 		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && permissions[i].getType() == "0") {
-			var groupKey = tutao.locator.userController.getUserGroupKey();
+			groupKey = tutao.locator.userController.getUserGroupKey();
 			self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey, callback);
 			return;
 		}
@@ -270,7 +271,6 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
 	for (var i = 0; i < permissions.length; i++) {
 		for (var a = 0; a < memberships.length; a++) {
 			if (permissions[i].getGroup() == memberships[a].getGroup() && permissions[i].getType() == "0") {
-				var groupKey;
 				try {
 					groupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[a].getSymEncGKey());
 				} catch (e) {
@@ -287,15 +287,15 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
 
 /**
  * Updates the given public permission with the given symmetric key for faster access.
- * @param {tutao.entity.tutadb.Permission} permission The permission.
- * @param {tutao.entity.tutadb.BucketPermission} bucketPermission The bucket permission.
+ * @param {tutao.entity.sys.Permission} permission The permission.
+ * @param {tutao.entity.sys.BucketPermission} bucketPermission The bucket permission.
  * @param {Object} groupKey The symmetric group key.
  * @param {Object} sessionKey The symmetric session key.
  */
 tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, groupKey, sessionKey) {
 	var self = this;
 	if (this._entity.getListEncSessionKey) {
-		this.getListKey(this._entity.getId()[0], function(listKey, exception) {
+		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (!exception) {
 				self._entity.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
 				try {
@@ -329,7 +329,7 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
  */
 tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId, callback) {
 	var self = this;
-	this.getListKey(listId, function(listKey, exception) {
+	tutao.entity.EntityHelper.getListKey(listId, function(listKey, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
@@ -352,7 +352,7 @@ tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId, 
  * symmetric encrypted session key.
  * @param {tutao.entity.sys.Permission} permission The permission that contains the bucket encrypted session key.
  * @param {Object} groupKey The symmetric group key of the owner group of the permission.
- * @param function(Object, tutao.rest.EntityRestException=) Returns the session key or an exception if decrypting the session key failed or the group could not be loaded.
+ * @param {function(Object, tutao.rest.EntityRestException=)} callback Returns the session key or an exception if decrypting the session key failed or the group could not be loaded.
  */
 tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, groupKey, callback) {
 	var self = this;
@@ -430,7 +430,7 @@ tutao.entity.EntityHelper.prototype._getPrivateKey = function(group, version, sy
 
 /**
  * Returns a map which contains the encrypted session key for post requests.
- * @param {tutao.entity.BucketData} The bucket for which the shared permission shall be created
+ * @param {tutao.entity.BucketData} bucketData The bucket for which the shared permission shall be created
  * @return {Object.<string, string>} The post permission map.
  */
 tutao.entity.EntityHelper.prototype.createPostPermissionMap = function(bucketData) {
@@ -448,7 +448,7 @@ tutao.entity.EntityHelper.prototype.createPostPermissionMap = function(bucketDat
 
 /**
  * Returns a map which contains the permission data for creating a list.
- * @param {tutao.entity.BucketData} The bucket for which the shared permission shall be created
+ * @param {tutao.entity.BucketData} bucketData The bucket for which the shared permission shall be created
  * @param {boolean} encrypted True if the type for which the list shall be created is encrypted, false otherwise.
  * @return {Object.<string, string>} The map.
  */
@@ -501,7 +501,7 @@ tutao.entity.EntityHelper.aggregatesToJsonData = function(aggregates) {
 
 /**
  * Generates a random id for an aggregate.
- * @return The id.
+ * @return {string} The id.
  */
 tutao.entity.EntityHelper.generateAggregateId = function() {
 	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(4)));
