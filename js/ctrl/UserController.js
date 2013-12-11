@@ -178,7 +178,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
                     tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo(), function(groupInfo, exception) {
                         if (exception) {
                             console.log(exception);
-                            callback(e);
+                            callback(exception);
                         } else {
                             self._userGroupInfo = groupInfo;
 					        callback();
