@@ -780,7 +780,7 @@ RegExp.escape= function(s) {
      * This method generates a CSV file from an array of arrays (representing entries).
      */
     fromArrays: function(arrays, options, callback) {
-      var options = (options !== undefined ? options : {});
+      options = (options !== undefined ? options : {});
       var config = {};
       config.callback = ((callback !== undefined && typeof(callback) === 'function') ? callback : false);
       config.separator = 'separator' in options ? options.separator : $.csv.defaults.separator;
@@ -818,7 +818,7 @@ RegExp.escape= function(s) {
      * the CSV file, followed by a structured dump of the data.
      */
     fromObjects2CSV: function(objects, options, callback) {
-      var options = (options !== undefined ? options : {});
+      options = (options !== undefined ? options : {});
       var config = {};
       config.callback = ((callback !== undefined && typeof(callback) === 'function') ? callback : false);
       config.separator = 'separator' in options ? options.separator : $.csv.defaults.separator;

@@ -275,7 +275,7 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 				// it does not exist, so create it
 				var data = new tutao.entity.tutanota.ExternalRecipientData();
 				// load the list key of the ExternalRecipients list
-				data._entityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
+                tutao.entity.EntityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
 					if (exception) {
 						callback(null, exception);
 						return;

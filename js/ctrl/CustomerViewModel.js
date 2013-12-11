@@ -9,7 +9,7 @@ goog.provide('tutao.tutanota.ctrl.CustomerViewModel');
 tutao.tutanota.ctrl.CustomerViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.customerListViewModel = null
+	this.customerListViewModel = null;
 	this.registrationDataListViewModel = null;
 	this.displayed = ko.observable(null);
 	

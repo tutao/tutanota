@@ -54,8 +54,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
 	// The dom element representing the input field. This is used for gui actions like resizing the input field to the correct size (see tutao.tutanota.gui.BubbleInputGui)
 	this.inputDomField = null;
 	this.suggestions = ko.computed(function() {
-		var suggestions = this.bubbleHandler.getSuggestions(this.inputValue());
-		return suggestions;
+		return this.bubbleHandler.getSuggestions(this.inputValue());
 	}, this);
 	this.selectedSuggestion = ko.observable(null);
 	this.suggestions.subscribe(function(newSuggestions) {

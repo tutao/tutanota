@@ -9,6 +9,7 @@ goog.provide('tutao.tutanota.ctrl.AdminUserListViewModel');
 tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
+    // @type {}
 	this.userGroups = ko.observableArray([]);
 	this.editing = ko.observable(null);
 	this._selectedDomElements = [];
@@ -44,7 +45,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.saveEdit = function() {
 	var self = this;
 	this.editing().save(function() {
 		// update the saved instance in our list
-		var savedIndex = self.userGroups.indexOf(self.editing().userGroup)
+		var savedIndex = self.userGroups.indexOf(self.editing().userGroup);
 		self.userGroups.splice(savedIndex, 1);
 		self.userGroups.splice(savedIndex, 0, self.editing().userGroup);
 		self.editing(null);
@@ -72,7 +73,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
  * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
  * @param {string} boundId The boundary id (base64 encoded)
  * @param {boolean} reverse If the entries shall be loaded reverse.
- * @param {function(Array.<tutao.entity.sys.UserGroup>)} callback Will be called with the list of userGroups. 
+ * @param {function(Array.<tutao.entity.sys.GroupInfo>)} callback Will be called with the list of user group infos.
  */
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function(boundId, reverse, callback) {
 	tutao.locator.userController.getLoggedInUser().loadCustomer(function(customer, exception) {
@@ -80,26 +81,16 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = fun
 			console.log(exception);
 			return;
 		}
-		customer.loadCustomerGroup(function(customerGroup, exception) {
-			if (exception) {
-				console.log(exception);
-				return;
-			}
-			tutao.entity.sys.UserReference.loadRange(customerGroup.getMembers(), boundId, 1000, reverse, function(userReferences, exception) {
-				if (exception) {
-					console.log(exception);
-				} else {
-					var userGroupIds = [];
-					for ( var i = 0; i < userReferences.length; i++) {
-						userGroupIds.push(userReferences[i].getUserGroupId());
-					}
-					if (userGroupIds.length == 0) {
-						callback([]);
-					} else {
-						tutao.entity.sys.Group.loadMultiple(userGroupIds, callback);
-					}
-				}
-			});
-		});
+        tutao.entity.sys.GroupInfo.loadRange(customer.getUserGroups(), boundId, 1000, reverse, function(groupInfos, exception) {
+            if (exception) {
+                console.log(exception);
+            } else {
+                if (groupInfos.length == 0) {
+                    callback([]);
+                } else {
+                    callback(groupInfos);
+                }
+            }
+        });
 	});
 };

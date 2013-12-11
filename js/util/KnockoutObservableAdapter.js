@@ -16,8 +16,8 @@ tutao.util.KnockoutObservableAdapter = function(entity) {
 
     ko.subscribable.call(observable);
     observable.peek = function() { return entity };
-    observable.valueHasMutated = function () { observable["notifySubscribers"](entity); }
-    observable.valueWillMutate = function () { observable["notifySubscribers"](entity, "beforeChange"); }
+    observable.valueHasMutated = function () { observable["notifySubscribers"](entity); };
+    observable.valueWillMutate = function () { observable["notifySubscribers"](entity, "beforeChange"); };
     ko.utils.extend(observable, ko.observable['fn']);
 
     ko.exportProperty(observable, 'peek', observable.peek);

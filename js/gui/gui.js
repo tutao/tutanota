@@ -138,7 +138,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			setTimeout(function() {
 				updateForm(element, container);
 			},1);
-			var formMapping = {formElement: element, container: container}
+			var formMapping = {formElement: element, container: container};
 			currentForms.push(formMapping);
 			
 			ko.utils.domNodeDisposal.addDisposeCallback(element, function() {
