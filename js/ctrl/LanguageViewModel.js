@@ -400,7 +400,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	showInAddressBook_alt: "Edit contact",
 	addPhoneNumber_alt: "Add this mobile phone number",
 	removePresharedPassword_alt: "Remove agreed password",
-	testPhaseExpired_msg: "The test phase has expired, so sending of confidential emails has been deactivated.",
+	testPhaseExpired_msg: "The free of cost test phase has expired, so sending of confidential emails has been deactivated. Please contact your administrator.",
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -735,6 +735,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	showInAddressBook_alt: "Kontakt bearbeiten",
 	addPhoneNumber_alt: "Diese Mobilfunknummer hinzufügen",
 	removePresharedPassword_alt: "Vereinbartes Passwort löschen",
-	testPhaseExpired_msg: "Die kostenlose Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden.",
+	testPhaseExpired_msg: "Die kostenfreie Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden. Bitte wenden Sie sich an Ihren Administrator.",
 };
 
