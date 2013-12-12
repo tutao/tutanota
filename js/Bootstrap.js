@@ -47,18 +47,18 @@ tutao.tutanota.Bootstrap.init = function () {
     });
 
     // only for testing
-		tutao.locator.loginViewModel.mailAddress("premium-admin@tutanota.de");
-		tutao.locator.loginViewModel.passphrase("premiumAdminPw");
-		tutao.locator.loginViewModel.login(function() {
-			tutao.locator.navigator.settings();
-			tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST);
+//		tutao.locator.loginViewModel.mailAddress("premium-admin@tutanota.de");
+//		tutao.locator.loginViewModel.passphrase("premiumAdminPw");
+//		tutao.locator.loginViewModel.login(function() {
+//			tutao.locator.navigator.settings();
+//			tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST);
 //			tutao.locator.navigator.customer();
 //			tutao.locator.viewManager.select(tutao.locator.contactView);
 //			tutao.locator.contactListViewModel.contactsInitializedCallback.push(function() {
 //				tutao.locator.contactViewModel.showContact(tutao.locator.contactListViewModel.contacts()[2]());
 //				tutao.locator.contactViewModel.editContact();
 //			});
-		});
+//		});
 //		tutao.locator.registrationViewModel.gender("Mr");
 //		tutao.locator.registrationViewModel.firstName("arne");
 //		tutao.locator.registrationViewModel.lastName("moehle");
