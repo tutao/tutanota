@@ -87,7 +87,6 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function
 			editableCustomer.testEndTime(oldDate);
 			editableCustomer.update();
 			console.log(exception);
-			return;
 		}
 	});
 };

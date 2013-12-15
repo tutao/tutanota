@@ -89,43 +89,34 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
             tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt, function (userPassphraseKeyHex) {
                 var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
-                tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminGroupKey, function (userGroupData, exception) {
-                    if (exception != null) {
+                var userGroupsListKey = null;
+                tutao.entity.EntityHelper.getListKey(customer.getUserGroups(), function(userGroupsListKey, exception) {
+                    if (exception) {
                         callback(exception);
                     } else {
+                        tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminGroupKey, userGroupsListKey, function (userGroupData, userGroupKey, exception) {
+                            if (exception != null) {
+                                callback(exception);
+                            } else {
+                                var userService = new tutao.entity.sys.UserData()
+                                    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.aesCrypter.generateRandomKey()))
+                                    .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
+                                    .setUserGroupData(userGroupData)
+                                    .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))
+                                    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                                    .setMobilePhoneNumber("");
 
-                        var pwEncClientKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.aesCrypter.generateRandomKey());
-
-                        // encrypt the session keys for the permissions
-                        var customerEncUserGroupSessionKey = tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupData.getSessionKey());
-                        var adminEncUserSessionKey = tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupData.getSessionKey());
-                        var userEncCustomerKey = tutao.locator.aesCrypter.encryptKey(userGroupData.getSymGroupKey(), customerGroupKey);
-
-                        var userService = new tutao.entity.sys.UserData();
-                        userService.setAdminEncUserSessionKey(adminEncUserSessionKey);
-                        userService.setAdminEncUserKey(userGroupData.getAdminEncGKey());
-                        userService.setCustomerEncUserSessionKey(customerEncUserGroupSessionKey);
-                        userService.setPwEncClientKey(pwEncClientKey);
-                        userService.setPwEncUserKey(userGroupData.getSymEncGKey());
-                        userService.setUserEncCustomerKey(userEncCustomerKey);
-                        userService.setUserEncPrivKey(userGroupData.getSymEncPrivKey());
-                        userService.setUserEncUserSessionKey(userGroupData.getSymEncSessionKey());
-                        userService.setUserGroupMailAddress(userGroupData.getMailAddr());
-                        userService.setUserGroupName(userGroupData.getEncryptedName());
-                        userService.setUserPubKey(userGroupData.getPubKey());
-                        userService.setMobilePhoneNumber("");
-
-                        userService.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
-                        userService.setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex));
+                                return userService.setup({}, null, function(userReturn, exception) {
+                                    callback(exception);
+                                });
 
 
-                        return userService.setup({}, null, function(userReturn, exception) {
-                            callback(exception);
+                            }
                         });
-
 
                     }
                 });
+
 
             });
 

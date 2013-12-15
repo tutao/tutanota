@@ -49,7 +49,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	        this._addMonitorGroup(registrationGroup, "StreamCustomerCount", "global", VALUE);
 	        this._addMonitorGroup(registrationGroup, "InternalUserCount", "global", VALUE); 
 	        this._addMonitorGroup(registrationGroup, "ExternalUserCount", "global", VALUE);
-	        this._addMonitorGroup(registrationGroup, "MultiGroupCount", "global", VALUE); 
+	        this._addMonitorGroup(registrationGroup, "TeamGroupCount", "global", VALUE); 
 	    var loginGroup = this._addGroupToView(globalView, "Login");
 	        this._addMonitorGroup(loginGroup, "LoginCount", "global", DIFF); 
 	        this._addMonitorGroup(loginGroup, "UsersPerDayCount", "global", DIFF); 
@@ -132,7 +132,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	var customerView = this._addCounterView("customer");
 	    var registrationGroup = this._addGroupToView(customerView, "Registration");
 	    	this._addMonitorGroup(registrationGroup, "InternalUserCount", "customer", VALUE);
-	        this._addMonitorGroup(registrationGroup, "MultiGroupCount", "customer", VALUE);
+	        this._addMonitorGroup(registrationGroup, "TeamGroupCount", "customer", VALUE);
         var emailsGroup = this._addGroupToView(customerView, "Emails");
             this._addMonitorGroup(emailsGroup, "SentInternalMails", "customer", VALUE); 
             this._addMonitorGroup(emailsGroup, "SentSecureExternalMails", "customer", VALUE); 

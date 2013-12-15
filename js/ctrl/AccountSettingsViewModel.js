@@ -18,8 +18,9 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
 	var user = tutao.locator.userController.getLoggedInUser();
 	var accountTypeNames = ["System", "Free", "Starter", "Premium", "Stream"];
 	self.records[0].valueObservable("Tutanota " + accountTypeNames[Number(user.getAccountType())]);
-	user.getUserGroup().loadGroup(function(userGroup, exception) {
+	user.getUserGroup().loadGroupInfo(function(userGroup, exception) {
 		if (exception) {
+            console.log(exception);
 			self.records[1].valueObservable("?");
 			self.records[2].valueObservable("?");
 		} else {

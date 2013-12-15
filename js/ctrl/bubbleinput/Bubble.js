@@ -7,7 +7,7 @@ goog.provide('tutao.tutanota.ctrl.bubbleinput.Bubble');
  * @param {*} entity The backing entity.
  * @param {ko.observable} text The text displayed by the bubble.
  * @param {ko.observable} state The state of the bubble (must be mapped to a css class).
- * @return {tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.Bubble}
+ * @constructor
  */
 tutao.tutanota.ctrl.bubbleinput.Bubble = function(entity, text, state) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);

@@ -169,12 +169,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	
 		var senderName = "";
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
-			// the group should be loaded from cache here
-			tutao.entity.sys.Group.load(tutao.locator.userController.getUserGroupId(), function(group, exception) {
-				if (!exception) {
-					senderName = group.getName();
-				}
-			});
+		    senderName = tutao.locator.userController.getUserGroupInfo().getName();
 		}
 	
 		var facade = null;
@@ -186,7 +181,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 			facade = tutao.tutanota.ctrl.SendMailFacade;
 		}
 	
-		this.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody())); //
+		this.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody()));
 	
 		// the mail is sent in the background
 		this.busy(true);

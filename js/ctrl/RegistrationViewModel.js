@@ -105,7 +105,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = function() {
-	if (this.authToken()) return 'Starter'
+	if (this.authToken()) return 'Starter';
 	return 'Free';
 };
 
@@ -326,33 +326,31 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 		var systemAdminPubKeyBase64 = keyData.getSystemAdminPubKey();
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
-		var customerService = new tutao.entity.sys.CustomerData();
-
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
 		tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, function(userPassphraseKeyHex) {
 			self._keyGenProgress(5);
 			var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
-			// use a temporary key as user key and reencrypt it afterwards
-			var tmpKey = tutao.locator.aesCrypter.generateRandomKey();
-			tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", tmpKey, null, function(adminGroupData, exception) {
+            var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+			tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, adminGroupsListKey, function(adminGroupData, adminGroupKey, exception) {
 				self._keyGenProgress(35);
 				if (exception) {
 					callback(exception);
 					return;
 				}
-				var adminKey = adminGroupData.getSymGroupKey();
-				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminKey, function(userGroupData, exception) {
+                var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminGroupKey, userGroupsListKey, function(userGroupData, userGroupKey, exception) {
 					self._keyGenProgress(65);
 					if (exception) {
 						callback(exception);
 						return;
 					}
 
-					// reencrypt the admin key with the user key, because the user key was not available before
-					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupData.getSymGroupKey(), adminGroupData.getSymGroupKey()));
+					// encrypt the admin key with the user key, because the user key was not available before
+					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey));
 
-					tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupData.getSymGroupKey(), adminKey, function(customerGroupData, exception) {
+                    var customerGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+					tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, customerGroupsListKey, function(customerGroupData, customerGroupKey, exception) {
 						self._keyGenProgress(95);
 						if (exception) {
 							callback(exception);
@@ -362,18 +360,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 						var customerBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 
 						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
-						var pwEncClientKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, clientKey);
-						// encrypt the session keys for the permissions
-						var adminEncCustomerSessionKey = tutao.locator.aesCrypter.encryptKey(adminGroupData.getSymGroupKey(), customerSessionKey);
-						var customerEncUserGroupSessionKey = tutao.locator.aesCrypter.encryptKey(customerGroupData.getSymGroupKey(), userGroupData.getSessionKey());
-						var customerEncAdminGroupSessionKey = tutao.locator.aesCrypter.encryptKey(customerGroupData.getSymGroupKey(), adminGroupData.getSessionKey());
-						var adminEncUserSessionKey = tutao.locator.aesCrypter.encryptKey(adminGroupData.getSymGroupKey(), userGroupData.getSessionKey());
 
-						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupData.getSymGroupKey(), tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(keyData.getFreeGroupKey())));
+						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(keyData.getFreeGroupKey())));
 
 						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
-
-						var customerBucketEncCustomerSessionKey = tutao.locator.aesCrypter.encryptKey(customerBucketKey, customerSessionKey);
 
 						tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(customerBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
 							self._keyGenProgress(97);
@@ -382,39 +372,37 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 								return;
 							}
 
-							customerService.setAuthToken(self.authToken());
-							customerService.setCompany(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.companyName(), true));
-							customerService.setInvoiceAddress(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.invoiceAddress(), true));
-							customerService.setDomain(self.domain());
-							customerService.setAdminEncAdminSessionKey(adminGroupData.getSymEncSessionKey());
-							customerService.setAdminEncCustomerSessionKey(adminEncCustomerSessionKey);
-							customerService.setAdminEncPrivKey(adminGroupData.getSymEncPrivKey());
-							customerService.setAdminEncUserSessionKey(adminEncUserSessionKey);
-							customerService.setAdminGroupName(adminGroupData.getEncryptedName());
-							customerService.setAdminEncCustomerKey(customerGroupData.getAdminEncGKey());
-							customerService.setAdminEncUserKey(userGroupData.getAdminEncGKey());
-							customerService.setAdminPubKey(adminGroupData.getPubKey());
-							customerService.setCustomerEncAdminSessionKey(customerEncAdminGroupSessionKey);
-							customerService.setCustomerEncCustomerSessionKey(customerGroupData.getSymEncSessionKey());
-							customerService.setCustomerEncPrivKey(customerGroupData.getSymEncPrivKey());
-							customerService.setCustomerEncUserSessionKey(customerEncUserGroupSessionKey);
-							customerService.setCustomerGroupName(customerGroupData.getEncryptedName());
-							customerService.setCustomerPubKey(customerGroupData.getPubKey());
-							customerService.setPwEncClientKey(pwEncClientKey);
-							customerService.setPwEncUserKey(userGroupData.getSymEncGKey());
-							customerService.setCustomerBucketEncCustomerSessionKey(customerBucketEncCustomerSessionKey);
-							customerService.setSystemAdminPubEncCustomerBucketKey(systemAdminPubEncCustomerBucketKey);
-							customerService.setSystemAdminPubKeyVersion(systemAdminPubKeyVersion);
-							customerService.setUserEncAdminKey(adminGroupData.getSymEncGKey());
-							customerService.setUserEncCustomerKey(customerGroupData.getSymEncGKey());
-							customerService.setUserEncPrivKey(userGroupData.getSymEncPrivKey());
-							customerService.setUserEncUserSessionKey(userGroupData.getSymEncSessionKey());
-							customerService.setUserGroupMailAddress(userGroupData.getMailAddr());
-							customerService.setUserGroupName(userGroupData.getEncryptedName());
-							customerService.setUserPubKey(tutao.util.EncodingConverter.hexToBase64(userGroupData.getPubKey()));
-							customerService.setSalt(tutao.util.EncodingConverter.hexToBase64(salt));
-							customerService.setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex));
-							customerService.setSymEncAccountGroupKey(symEncAccountGroupKey);
+                            var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+
+                            var customerService = new tutao.entity.sys.CustomerData()
+							    .setAuthToken(self.authToken())
+							    .setCompany(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.companyName(), true))
+							    .setInvoiceAddress(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.invoiceAddress(), true))
+							    .setDomain(self.domain())
+                                .setAdminGroupList(new tutao.entity.sys.CreateGroupListData()
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
+                                    .setCreateGroupData(adminGroupData))
+                                .setUserGroupList(new tutao.entity.sys.CreateGroupListData()
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
+                                    .setCreateGroupData(userGroupData))
+                                .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData()
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
+                                    .setCreateGroupData(customerGroupData))
+                                .setTeamGroupList(new tutao.entity.sys.CreateGroupListData()
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
+
+							    .setAdminEncCustomerSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerSessionKey))
+							    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, clientKey))
+							    .setCustomerBucketEncCustomerSessionKey(tutao.locator.aesCrypter.encryptKey(customerBucketKey, customerSessionKey))
+							    .setSystemAdminPubEncCustomerBucketKey(systemAdminPubEncCustomerBucketKey)
+							    .setSystemAdminPubKeyVersion(systemAdminPubKeyVersion)
+							    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
+							    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+							    .setSymEncAccountGroupKey(symEncAccountGroupKey);
 
 							customerService.setup({}, null, function(adminUserData, exception) {
 								if (exception) {

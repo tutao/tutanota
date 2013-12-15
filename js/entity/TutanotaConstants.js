@@ -230,6 +230,6 @@ tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_LINKS = ["https:/
 tutao.entity.tutanota.TutanotaConstants.MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25;
 
 tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_MAIL_BOX = "0";
-tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_CONTACT_LIST = "1",
-tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_FILE_SYSTEM = "2",
+tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_CONTACT_LIST = "1";
+tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_FILE_SYSTEM = "2";
 tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_FILE = "3";
