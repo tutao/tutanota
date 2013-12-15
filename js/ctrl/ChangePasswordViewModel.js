@@ -221,11 +221,11 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
 		service.setup({}, null, function(dummy, exception) {
 			if (exception) {
 				if (exception.getOriginal() instanceof tutao.rest.RestException) {
-					if (exception.getOriginal().getResponseCode() == 403) {
+					if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
 						self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyVerifyAttempts_msg" });
 						self.state.event("activationTooManyAttempts");
 						return;
-					} else if (exception.getOriginal().getResponseCode() == 409) {
+					} else if (exception.getOriginal().getResponseCode() == 473) { // InvalidDataException
 						self.codeStatus({ type: "invalid", text: "codeInvalid_msg" });
 						self.state.event("activationCodeNotOk");
 						return;

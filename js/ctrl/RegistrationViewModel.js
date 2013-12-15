@@ -213,6 +213,12 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCreateAccountPossible = fu
 			!this.codeVerificationFailed());
 };
 
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.isBackPossible = function() {
+	return (this._sendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED &&
+			(this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING) &&
+			!this.codeVerificationFailed());
+};
+
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCreatingAccount = function() {
 	return this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING;
 };
@@ -262,11 +268,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 		if (exception) {
 			self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 			if (exception.getOriginal() instanceof tutao.rest.RestException) {
-				if (exception.getOriginal().getResponseCode() == 409) {
+				if (exception.getOriginal().getResponseCode() == 473) { // InvalidDataException
 					self.codeInputStatus({ type: "invalid", text: "codeInvalid_msg" });
 					self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
 					self._wrongCodes.push(self.code());
-				} else if (exception.getOriginal().getResponseCode() == 403) {
+				} else if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
 					self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
 					self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
 				} else {
