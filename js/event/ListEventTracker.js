@@ -10,7 +10,7 @@ goog.provide('tutao.event.ListEventTracker');
  * @param {Object} listType The list type that shall be tracked.
  * @param {string} listId The list id of the type.
  * @interface
- * @implements {tutao.event.Observable}
+ * @implements {tutao.event.ObservableInterface}
  * @protected
  */
 tutao.event.ListEventTracker = function(listType, listId) {};

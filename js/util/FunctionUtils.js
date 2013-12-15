@@ -10,7 +10,7 @@ goog.provide('tutao.util.FunctionUtils');
  */
 tutao.util.FunctionUtils.bindPrototypeMethodsToThis = function(instance) {
 	for (var method in Object.getPrototypeOf(instance)) {
-		instance[method] = instance[method].bind(instance);
+	    instance[method] = instance[method].bind(instance);
 	}
 };
 
@@ -19,17 +19,14 @@ tutao.util.FunctionUtils.bindPrototypeMethodsToThis = function(instance) {
  * The given callback is called when either all elements are executed or an
  * exception occurs.
  *
- * @param {Array}
- *            array An array of any type of elements.
- * @param {function(*,function(Error=))}
- *            executor A function receiving the element from the array to
+ * @param {Array} array An array of any type of elements.
+ * @param {function(*,function(Error=))} executor A function receiving the element from the array to
  *            execute as well as a finish function. The finish function must be
  *            called when executing the element was finished. If an error
  *            occurred an exception can be passed to the finish function. In
  *            this case the overall execution is stopped and the callback is
  *            called passing the exception.
- * @param {function(Error=)}
- *            callback Called when either an error occurred or all elements from
+ * @param {function(Error=)} callback Called when either an error occurred or all elements from
  *            the array are executed.
  */
 tutao.util.FunctionUtils.executeSequentially = function(array, executor, callback) {

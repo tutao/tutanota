@@ -72,7 +72,7 @@ tutao.crypto.JsbnRsa.prototype.keyToHex = function(key) {
  * @inheritDoc
  */
 tutao.crypto.JsbnRsa.prototype.hexToKey = function(hex) {
-	try {
+    try {
 		var key = [];
 		var pos = 0;
 		while (pos < hex.length) {
@@ -81,16 +81,24 @@ tutao.crypto.JsbnRsa.prototype.hexToKey = function(hex) {
 			key.push(parseBigInt(hex.substring(pos, pos + nextParamLen), 16));
 			pos += nextParamLen;
 		}
-		if (key.length != 1 && key.length != 7) {
-			throw new Error("invalid key params");
-		}
-		if (key[0].bitLength() < this.keyLengthInBits - 1 || key[0].bitLength() > this.keyLengthInBits) {
-			throw new Error("invalid key length, expected: around " + this.keyLengthInBits + ", but was: " + key[0].bitLength());
-		}
-		return key;
+        this._validateKeyLength(key);
+        return key;
 	} catch (e) {
 		throw new tutao.crypto.CryptoException("hex to rsa key failed", e);
 	}
+};
+
+/**
+ * @param {Array} key
+ * @private
+ */
+tutao.crypto.JsbnRsa.prototype._validateKeyLength = function(key) {
+    if (key.length != 1 && key.length != 7) {
+        throw new Error("invalid key params");
+    }
+    if (key[0].bitLength() < this.keyLengthInBits - 1 || key[0].bitLength() > this.keyLengthInBits) {
+        throw new Error("invalid key length, expected: around " + this.keyLengthInBits + ", but was: " + key[0].bitLength());
+    }
 };
 
 /**

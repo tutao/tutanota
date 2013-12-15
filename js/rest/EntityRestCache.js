@@ -25,6 +25,7 @@ tutao.rest.EntityRestCache = function() {
 	 * stores all contents that would be stored on the server, otherwise
 	 * @protected
 	 */
+    // @type {Object.<string,Object.<string, Array.<string>>>}
 	this._db = {};
 //	var dbstructure = {         // only for documentation
 //		'path': { 		// element type
@@ -141,10 +142,10 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
 	if (element.__id instanceof Array) {
 		var listId = element.__id[0];
 		var id = element.__id[1];
-		if (this._db[path][listId].allRange) {
-			if (this._db[path][listId].allRange.length == 0 ||
-			tutao.rest.EntityRestInterface.firstBiggerThanSecond(id, tutao.util.ArrayUtils.last(this._db[path][listId].allRange))) {
-				this._db[path][listId].allRange.push(id);
+		if (this._db[path][listId]['allRange']) {
+			if (this._db[path][listId]['allRange'].length == 0 ||
+			tutao.rest.EntityRestInterface.firstBiggerThanSecond(id, tutao.util.ArrayUtils.last(this._db[path][listId]['allRange']))) {
+				this._db[path][listId]['allRange'].push(id);
 			}
 		}
 	}
@@ -261,7 +262,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			}
 			callback(elements);
 		});
-	} else if (!this._db[path][listId].allRange) {
+	} else if (!this._db[path][listId]['allRange']) {
 		// there was no range loaded up to now. we can not load the range earlier than now (or in getElement) because
 		// we need the type argument to create the elements. Any posts that my have come earlier still need to go into the
 		// cache because the target does not return them if it is a dummy. So add all elements to the range that are
@@ -284,10 +285,6 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 					elementsToAdd.push(self._db[path][listId][member]);
 				}
 			}
-			// sort the array to make it ascending
-			elementsToAdd.sort(function(a, b) {
-				return (tutao.rest.EntityRestInterface.firstBiggerThanSecond(a.getId()[1], b.getId()[1])) ? 1 : -1;
-			});
 			// add the elements to the range
 			for (var b = 0; b < elementsToAdd.length; b++) {
 				self._tryAddToRange(path, elementsToAdd[b]);
@@ -297,13 +294,13 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 	} else {
 		if (reverse) {
 			// only request a range from target if the start id is bigger than the last id in allRange
-			if (this._db[path][listId].allRange.length == 0 ||	tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, tutao.util.ArrayUtils.last(this._db[path][listId].allRange))) {
+			if (this._db[path][listId]['allRange'].length == 0 || tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, tutao.util.ArrayUtils.last(this._db[path][listId]['allRange']))) {
 				this._target.getElementRange(type, path, listId, start, count, true, parameters, headers, function(elements, exception) {
 					if (exception) {
 						callback(null, exception);
 						return;
 					}
-					for (var i = 0; i < elements.length; i++) {
+					for (var i = elements.length - 1; i >= 0; i--) {
 						self._addToCache(path, elements[i]);
 						self._tryAddToRange(path, elements[i]);
 					}
@@ -327,7 +324,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
  */
 tutao.rest.EntityRestCache.prototype._provideFromCache = function(path, listId, start, count, reverse) {
-	var range = this._db[path][listId].allRange;
+	var range = this._db[path][listId]['allRange'];
 	var ids = undefined;
 	if (reverse) {
 		for (var i = range.length - 1; i >= 0; i--) {
@@ -380,9 +377,9 @@ tutao.rest.EntityRestCache.prototype.deleteElements = function(path, ids, listId
 				if (self._db[path][listId][ids[i]]) {
 					delete self._db[path][listId][ids[i]];
 				}
-				if (self._db[path][listId].allRange) {
+				if (self._db[path][listId]['allRange']) {
 					// if the id exists in the range, then delete it
-					tutao.util.ArrayUtils.remove(self._db[path][listId].allRange, ids[i]);
+					tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], ids[i]);
 				}
 			}
 		}

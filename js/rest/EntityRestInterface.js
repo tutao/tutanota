@@ -34,7 +34,7 @@ tutao.rest.EntityRestInterface.MAX_RANGE_COUNT = 1000;
 
 /**
  * Gets an element from the server.
- * @param {Object} type Type of the elements to load, i.e. the constructor.
+ * @param {function(new:Object, Object)} type Type of the elements to load, i.e. the constructor.
  * @param {string} path The path including prefix, app name and type name.
  * @param {string} id The id of the element to get.
  * @param {?string} listId The list id of the element. May be null for ETs.
@@ -58,7 +58,7 @@ tutao.rest.EntityRestInterface.prototype.getService = function(type, path, data,
 /**
  * Gets multiple elements from the server. If any of the elements are not found, they are not returned, but no
  * error is thrown.
- * @param {Object} type Type of the elements to load, i.e. the constructor.
+ * @param {function(new:Object, Object)} type Type of the elements to load, i.e. the constructor.
  * @param {string} path The path including prefix, app name and type name.
  * @param {Array.<string>|Array.<Array.<string>>} ids The id of the elements to get.
  * @param {?Object} parameters The parameters to send with this request.
@@ -110,7 +110,7 @@ tutao.rest.EntityRestInterface.prototype.postList = function(path, parameters, h
 
 /**
  * Provides a list of elements.
- * @param {Object} type The type of the elements.
+ * @param {function(new:Object, Object)} type The type of the elements (constructor).
  * @param {string} path The path including prefix, app name and type name.
  * @param {string} listId The id of the list that contains the elements.
  * @param {string} start The id from where to start to get elements.

@@ -14,7 +14,6 @@ tutao.rest.EntityRestClient = function() {};
  * @inheritDoc
  */
 tutao.rest.EntityRestClient.prototype.getElement = function(type, path, id, listId, parameters, headers, callback) {
-	var self = this;
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, id, parameters);
 	tutao.locator.restClient.getElement(url, headers, null, function(data, exception) {
 		if (exception) {
@@ -29,7 +28,6 @@ tutao.rest.EntityRestClient.prototype.getElement = function(type, path, id, list
  * @inheritDoc
  */
 tutao.rest.EntityRestClient.prototype.getService = function(type, path, data, parameters, headers, callback) {
-	var self = this;
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
 	tutao.locator.restClient.getElement(url, headers, JSON.stringify(data.toJsonData()), function(returnData, exception) {
 		if (exception) {
@@ -201,6 +199,9 @@ tutao.rest.EntityRestClient.prototype.deleteElements = function(path, ids, listI
 	var nbrOfFinishedElements = 0;
 	for (var i = 0; i < ids.length; i++) {
 		tutao.locator.restClient.deleteElements(tutao.rest.EntityRestClient.createUrl(path, listId, ids[i], parameters), headers, null, function(exception) {
+            if (exception) {
+                console.log(exception);
+            }
 			nbrOfFinishedElements++;
 			if (nbrOfFinishedElements == ids.length) {
 				callback();

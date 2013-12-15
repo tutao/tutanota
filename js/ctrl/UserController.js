@@ -26,6 +26,7 @@ tutao.ctrl.UserController.prototype.reset = function() {
 	this._userClientKey = null;
 	this._mailAddress = null;
 	this._hexSalt = null;
+    this._userGroupInfo = null;
 
 	// external user
 	this._authId = null;
@@ -119,6 +120,14 @@ tutao.ctrl.UserController.prototype.getHexSalt = function() {
 };
 
 /**
+ * Provides the user group info
+ * @return {tutao.entity.sys.UserGroupInfo} the user group info
+ */
+tutao.ctrl.UserController.prototype.getUserGroupInfo = function() {
+    return this._userGroupInfo;
+};
+
+/**
  * Sets the given user as logged-in user.
  * @param {string} mailAddress The mail address of the user.
  * @param {string} passphrase The passphrase of the user.
@@ -166,7 +175,15 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 						callback(new tutao.rest.EntityRestException(e));
 						return;
 					}
-					callback();
+                    tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo(), function(groupInfo, exception) {
+                        if (exception) {
+                            console.log(exception);
+                            callback(exception);
+                        } else {
+                            self._userGroupInfo = groupInfo;
+					        callback();
+                        }
+                    });
 				});
 			});
 		});
@@ -175,8 +192,8 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 
 /**
  * Updates the user login data after a password change.
- * @param {String} verifier The auth verifier.
  * @param {String} hexPassphraseKey The key generated from the users passphrase as hex string.
+ * @param {String} hexSalt hex value of the salt.
  */
 tutao.ctrl.UserController.prototype.passwordChanged = function(hexPassphraseKey, hexSalt) {
 	this._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexPassphraseKey));
@@ -216,7 +233,7 @@ tutao.ctrl.UserController.prototype.getAuthToken = function() {
  * @param {string} userId The user id of the user.
  * @param {string} password The password matching the authentication token.
  * @param {string} saltHex The salt that was used to salt the password, as hex string.
- * @param {function(tutao.rest.EntityRestException=)} callback Called when login is finished. Provides an exception if the login failed.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when login is finished. Provides the password key or an exception if the login failed.
  */
 tutao.ctrl.UserController.prototype.loginExternalUser = function(authId, userId, password, saltHex, callback) {
 	var self = this;
