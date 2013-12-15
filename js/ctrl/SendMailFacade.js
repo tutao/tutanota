@@ -259,7 +259,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 /**
  * Checks that an ExternalRecipient instance with a mail box exists for the given mail address. If it does not exist, it is created. Returns the communication key of the external recipient.
  * @param {String} externalMailAddress The mail address of the external recipient.
- * @param {function(?Object communicationKey, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
  */
 tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAddress, callback) {
 	var self = this;
@@ -273,7 +273,6 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 		tutao.entity.tutanota.ExternalRecipient.load([root.getReference(), mailAddressId], function(externalRecipient, exception) {
 			if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
 				// it does not exist, so create it
-				var data = new tutao.entity.tutanota.ExternalRecipientData();
 				// load the list key of the ExternalRecipients list
                 tutao.entity.EntityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
 					if (exception) {
@@ -282,17 +281,18 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 					}
 					var extRecipientCommunicationKey = tutao.locator.aesCrypter.generateRandomKey();
 					var extRecipientMailListKey = tutao.locator.aesCrypter.generateRandomKey();
-					data.setMailAddress(externalMailAddress);
-					data.setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)); // encrypted attribute
-					data.setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey));
-					data.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()));
-					data.setup([], null, function(nothing, exception) {
-						if (exception) {
-							callback(null, exception);
-						} else {
-							callback(extRecipientCommunicationKey);
-						}
-					});
+				    var data = new tutao.entity.tutanota.ExternalRecipientData();
+					data.setMailAddress(externalMailAddress)
+					    .setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)) // encrypted attribute
+					    .setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey))
+					    .setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()))
+					    .setup([], null, function(nothing, exception) {
+                            if (exception) {
+                                callback(null, exception);
+                            } else {
+                                callback(extRecipientCommunicationKey);
+                            }
+                        });
 				});
 			} else if (exception) {
 				callback(null, exception);
