@@ -35,16 +35,17 @@ TestCase("ContactWrapperTest", {
 	},
 
 	"testGetMailAddressTypeName": function() {
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
 		var c = new tutao.entity.tutanota.Contact();
 		var w = tutao.entity.tutanota.ContactWrapper;
 		var m = new tutao.entity.tutanota.ContactMailAddress(c);
 		c.getMailAddresses().push(m);
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_PRIVATE);
-		assertEquals("private", w.getMailAddressTypeName(m));
+		assertEquals("Private", w.getMailAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_WORK);
-		assertEquals("work", w.getMailAddressTypeName(m));
+		assertEquals("Work", w.getMailAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_OTHER);
-		assertEquals("other", w.getMailAddressTypeName(m));
+		assertEquals("Other", w.getMailAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM);
 		m.setCustomTypeName("something");
 		assertEquals("something", w.getMailAddressTypeName(m));
@@ -54,16 +55,17 @@ TestCase("ContactWrapperTest", {
 	},
 	
 	"testGetAddressTypeName": function() {
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
 		var c = new tutao.entity.tutanota.Contact();
 		var w = tutao.entity.tutanota.ContactWrapper;
 		var m = new tutao.entity.tutanota.ContactAddress(c);
 		c.getAddresses().push(m);
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_PRIVATE);
-		assertEquals("private", w.getAddressTypeName(m));
+		assertEquals("Private", w.getAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_WORK);
-		assertEquals("work", w.getAddressTypeName(m));
+		assertEquals("Work", w.getAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_OTHER);
-		assertEquals("other", w.getAddressTypeName(m));
+		assertEquals("Other", w.getAddressTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM);
 		m.setCustomTypeName("something");
 		assertEquals("something", w.getAddressTypeName(m));
@@ -73,20 +75,21 @@ TestCase("ContactWrapperTest", {
 	},
 	
 	"testGetPhoneNumberTypeName": function() {
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
 		var c = new tutao.entity.tutanota.Contact();
 		var w = tutao.entity.tutanota.ContactWrapper;
 		var m = new tutao.entity.tutanota.ContactPhoneNumber(c);
 		c.getPhoneNumbers().push(m);
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_PRIVATE);
-		assertEquals("private", w.getPhoneNumberTypeName(m));
+		assertEquals("Private", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_MOBILE);
-		assertEquals("mobile", w.getPhoneNumberTypeName(m));
+		assertEquals("Mobile", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX);
-		assertEquals("fax", w.getPhoneNumberTypeName(m));
+		assertEquals("Fax", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_WORK);
-		assertEquals("work", w.getPhoneNumberTypeName(m));
+		assertEquals("Work", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_OTHER);
-		assertEquals("other", w.getPhoneNumberTypeName(m));
+		assertEquals("Other", w.getPhoneNumberTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM);
 		m.setCustomTypeName("something");
 		assertEquals("something", w.getPhoneNumberTypeName(m));
@@ -96,20 +99,21 @@ TestCase("ContactWrapperTest", {
 	},
 	
 	"testGetSocialIdTypeName": function() {
+		tutao.locator.languageViewModel.setCurrentLanguage("en");
 		var c = new tutao.entity.tutanota.Contact();
 		var w = tutao.entity.tutanota.ContactWrapper;
 		var m = new tutao.entity.tutanota.ContactSocialId(c);
 		c.getSocialIds().push(m);
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_TWITTER);
-		assertEquals("twitter", w.getSocialIdTypeName(m));
+		assertEquals("Twitter", w.getSocialIdTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_FACEBOOK);
-		assertEquals("facebook", w.getSocialIdTypeName(m));
+		assertEquals("Facebook", w.getSocialIdTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_XING);
-		assertEquals("xing", w.getSocialIdTypeName(m));
+		assertEquals("Xing", w.getSocialIdTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_LINKED_IN);
-		assertEquals("linked in", w.getSocialIdTypeName(m));
+		assertEquals("Linked in", w.getSocialIdTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_OTHER);
-		assertEquals("other", w.getSocialIdTypeName(m));
+		assertEquals("Other", w.getSocialIdTypeName(m));
 		m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM);
 		m.setCustomTypeName("something");
 		assertEquals("something", w.getSocialIdTypeName(m));

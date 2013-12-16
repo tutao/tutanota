@@ -9,13 +9,13 @@ TestCase("LanguageViewModelTest", {
 	},
 	"test test that switching the language and retrieving translations without params works": function() {
 		this.vm.setCurrentLanguage("en");
-		assertEquals("save", this.vm.get("save_action"));
+		assertEquals("Save", this.vm.get("save_action"));
 		this.vm.setCurrentLanguage("de");
 		assertEquals("Speichern", this.vm.get("save_action"));
 	},
 	"test that retrieving translations with params works": function() {
 		this.vm.setCurrentLanguage("en");
-		assertEquals("for a@b.de", this.vm.get("forUser_label", {'$': 'a@b.de'}));
+		assertEquals("The code was sent to abcde", this.vm.get("codeInputInfo_msg", {'$': 'abcde'}));
 	},
 	"test that all translation names have a valid suffix": function() {
 		var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
@@ -30,6 +30,19 @@ TestCase("LanguageViewModelTest", {
 				for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
 					assertNotUndefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
 					assertNotUndefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
+				}
+			}
+		}
+	},
+	"test that translations all begin with either lowercase or uppercase letter": function() {
+		for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
+			for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
+				for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
+					var textLang1 = tutao.tutanota.ctrl.LanguageViewModel[language][translation];
+					var textLang2 = tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation];
+					if (typeof textLang1 == "string") {
+						assertEquals("different case beginning of text: " + textLang1 + ", " + textLang2, textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase());
+					}
 				}
 			}
 		}
