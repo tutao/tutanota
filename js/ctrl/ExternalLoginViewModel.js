@@ -92,9 +92,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.resetPasswordStatus = funct
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoLogin, mailRef, callback) {
 	var self = this;
 	// split mailRef to get externalMailReferenceId and salt
-	self.saltHex = tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(mailRef.substring(mailRef.length / 2)));
-	self.saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(self.saltHex));
-	self.externalMailReference = mailRef.substring(0, mailRef.length / 2);
+	try {
+		self.saltHex = tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(mailRef.substring(mailRef.length / 2)));
+		self.saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(self.saltHex));
+		self.externalMailReference = mailRef.substring(0, mailRef.length / 2);
+	} catch (e) {
+		this.errorMessageId("invalidLink_msg");
+		callback();
+		return;
+	}
 	
 	var self = this;
 	// TODO (before beta) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
