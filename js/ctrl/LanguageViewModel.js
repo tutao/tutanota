@@ -8,7 +8,7 @@ goog.provide('tutao.tutanota.ctrl.LanguageViewModel');
  */
 tutao.tutanota.ctrl.LanguageViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	var lang = tutao.tutanota.util.LocalStore.load('language');
+	var lang = null // tutao.tutanota.util.LocalStore.load('language');
 	if (!lang) {
 		lang = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
 	}
@@ -31,7 +31,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.setCurrentLanguage = function(la
 	if (lang != "en" && lang != "de") {
 		throw new Error("invalid language: " + lang);
 	}
-	tutao.tutanota.util.LocalStore.store('language', lang);
+	// tutao.tutanota.util.LocalStore.store('language', lang);
 	this._current(lang);
 };
 
@@ -263,7 +263,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	smsSentOften_msg: "Too many sent SMS. Please ask the sender of the message to resend it.",
 	invalidPassword_msg: "Invalid password. Please check it again.",
 	showMail_action: "show email",
-	chooseNumber_msg: "Please choose a phone number. The password for the email will be sent to that number (maximum of three SMS).",
+	chooseNumber_msg: "Please click on one of the phone numbers below. The Tutanota password for the email will be sent to that number (maximum of three SMS).",
+	clickNumber_msg: "Please click on the phone numbers below. The Tutanota password for the email will be sent to that number (maximum of three SMS).",
 	storePassword_action: "Store password in browser",
 	enterPresharedPassword_msg: "Please enter the password which you have agreed upon with the sender.",
 	sendingSms_msg: "Sending SMS...",
@@ -547,9 +548,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	password1InvalidUnsecure_msg: "Neues Passwort ist nicht sicher genug",
 	password2Neutral_msg: "Bitte neues Passwort wiederholen",
 	password2Invalid_msg: "Passwörter sind nicht identisch",
-	verificationCode_msg: "Der Bestätigungs-Code wird Ihnen per SMS zugesendet.",
-	code_label: "Bestätigungs-Code",
-	pwChangeNeutral_msg: "Sie werden einen Bestätigungs-Code als SMS an $ erhalten.",
+	verificationCode_msg: "Der Bestätigungscode wird Ihnen per SMS zugesendet.",
+	code_label: "Bestätigungscode",
+	pwChangeNeutral_msg: "Sie werden einen Bestätigungscode als SMS an $ erhalten.",
 	pwChangeNeutralSendingCode_msg: "Code wird gesendet...",
 	pwChangeValid_msg: "Passwort wurde geändert.",
 	pwChangeInvalidServerNotAvailable_msg: "Der Server ist nicht erreichbar. Das Passwort wurde nicht geändert. Bitte versuchen Sie es später erneut.",
@@ -583,7 +584,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
 	
 	// code verification
-	codeNeutralEnterCode_msg: "Bitte den Code eingeben.",
+	codeNeutralEnterCode_msg: "Bitte den Bestätigungscode eingeben.",
 	codeValid_msg: "Code-Format ok",
 	codeInvalid_msg: "Der Code ist nicht korrekt, bitte überprüfen Sie ihn erneut.",
 
@@ -597,7 +598,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	smsSentOften_msg: "Es wurden zu viele SMS versendet. Fragen Sie den Sender der Nachricht, ob er Ihnen diese erneut zukommen lassen kann.",
 	invalidPassword_msg: "Das Passwort ist leider ungültig.",
 	showMail_action: "E-Mail anzeigen",
-	chooseNumber_msg: "Bitte wählen Sie eine Telefonnummer. Das Passwort für die E-Mail wird an diese Nummer versendet (maximal drei SMS).",
+	chooseNumber_msg: "Bitte klicken Sie auf eine der Telefonnummern. Das Tutanota-Passwort für die E-Mail wird an diese Nummer versendet (maximal drei SMS).",
+	clickNumber_msg: "Bitte klicken Sie auf die Telefonnummer. Das Tutanota-Passwort für die E-Mail wird an diese Nummer versendet (maximal drei SMS).",
 	storePassword_action: "Passwort im Browser speichern",
 	enterPresharedPassword_msg: "Bitte geben Sie das mit dem Absender vereinbarte Passwort ein.",
 	sendingSms_msg: "SMS wird gesendet...",
@@ -690,7 +692,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	desiredAddress_label: "gewünschte E-Mail-Adresse",
 	password_label: 'Passwort',
 	repeatedPassword_label: 'Passwort wiederholen',
-	registrationCodeInput_label: "Bestätigungs-Code",
+	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
 	terms_label: "Nutzungs\u00ADbedingungen", // soft hyphen
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen",

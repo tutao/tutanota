@@ -112,13 +112,21 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 				self.autoLoginActive = false;
 				if (exception) {
 					self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-					self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+					if (self.phoneNumbers().length == 1) {
+						self.sendPasswordStatus({ type: "neutral", text: "clickNumber_msg" });
+					} else {
+						self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+					}
 				}
 				callback();
 			});
 		} else {
 			self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-			self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+			if (self.phoneNumbers().length == 1) {
+				self.sendPasswordStatus({ type: "neutral", text: "clickNumber_msg" });
+			} else {
+				self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+			}
 			callback();
 		}
 	});
