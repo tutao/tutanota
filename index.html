@@ -1089,7 +1089,7 @@ function touchOrClick(e) {
 								<label for="loginPassphrase" class="recordName" data-bind="lang: 'password_label'"></label>
 								<div class="recordData">
 									<div class="recordValue">
-										<input class="inputField wide" id="loginPassphrase" type="password" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused"></input>
+										<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused"></input>
 									</div>
 								</div>
 							</div>
@@ -1246,7 +1246,7 @@ function touchOrClick(e) {
 										<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="newpassword" class="inputField wide" type="password" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+												<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 											</div>
 											<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
 												<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1261,7 +1261,7 @@ function touchOrClick(e) {
 										<label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="newpassword2" class="inputField wide" type="password" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+												<input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
 											</div>
 											<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
 										</div>
@@ -1774,7 +1774,7 @@ function touchOrClick(e) {
 											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="inputField wide" id="oldpassword" type="password" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
+													<input class="inputField wide" id="oldpassword" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
 												</div>
 												<label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
 											</div>
@@ -1783,7 +1783,7 @@ function touchOrClick(e) {
 											<label for="newpassword" class="recordName" data-bind="lang: 'newPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input id="newpassword" class="inputField wide" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+													<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 												</div>
 												<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
 													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1798,7 +1798,7 @@ function touchOrClick(e) {
 											<label for="newpassword2" class="recordName"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input id="newpassword2" class="inputField wide" type="password" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+													<input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
 												</div>
 												<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
 											</div>
