@@ -377,7 +377,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
 						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
 
-						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(getAccountGroupKey(keyData))));
+						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(self._getAccountGroupKey(keyData))));
 
 						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
