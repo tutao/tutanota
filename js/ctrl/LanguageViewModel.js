@@ -189,6 +189,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	importCsv_label: "import CSV data",
 	importCsvInvalid_msg: "the CSV data is invalid (line $).",
     successfullyCreatedUsers_msg: "The following users have been created successfully",
+    deleted_label: "Deleted",
+    created_label: "Created",
 	
 	// account settings
 	accountType_label: "account type",
@@ -247,7 +249,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	add_action: "add", // also used by outlook addin
 	remove_action: "remove", // also used by outlook addin
 	notFound404_msg: "Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
-	
+
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
 	codeValid_msg: "Code format ok",
@@ -523,6 +525,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	importCsv_label: "CSV-Daten importieren",
 	importCsvInvalid_msg: "Die CSV-Daten sind ungültig (Zeile $).",
     successfullyCreatedUsers_msg: "Die folgenden Benutzer wurden erfolgreich angelegt",
+    deleted_label: "Gelöscht",
+    created_label: "Erstellt",
 	
 	// account settings
 	accountType_label: "Account-Typ",
@@ -581,7 +585,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	add_action: "hinzufügen",
 	remove_action: "entfernen",
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
-	
+
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Code eingeben.",
 	codeValid_msg: "Code-Format ok",

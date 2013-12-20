@@ -994,12 +994,19 @@ body {
 									padding-left: @padding;
 									padding-right: @padding;
 									cursor: pointer;
-								    .fadeTextOut;
-									
+
 									&.selected {
 										background-color: @highlight-color;
 									}
-									    
+
+                                    > div.name {
+                                      .fadeTextOut;
+                                      .emphasizedText;
+                                    }
+
+                                    > div.icons {
+                                      float: right;
+                                    }
 								}
 							}
 						}
