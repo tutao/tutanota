@@ -293,7 +293,7 @@ EntityRestTestFunctions.functions = {
 		queue.call('test', function(callbacks) {
 			self.createListAndTwoMails(callbacks, function(listId, e1, e2) {
 				var params = EntityRestTestFunctions.getVersionParams();
-				tutao.locator.entityRestClient.deleteElements(tutao.entity.tutanota.Mail.PATH, [e1.getId()[1]], listId, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(exception1) {
+				tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, e1.getId()[1], listId, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(data, exception1) {
 					assertUndefined(exception1);
 					tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, listId, e1.getId()[1], 10, false, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(loadedElements, exception2) {
 						assertUndefined(exception2);
@@ -310,7 +310,7 @@ EntityRestTestFunctions.functions = {
 //		var e1 = new tutao.entity.tutanota.MailBody();
 //		e1.setText("hui");
 //		assertTrue(tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, e1, null, e1._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()), tutao.entity.EntityHelper.createAuthHeaders()));
-//		assertTrue(tutao.locator.entityRestClient.deleteElements(tutao.entity.tutanota.MailBody.PATH, [e1.getId()], null, null, tutao.entity.EntityHelper.createAuthHeaders()));
+//		assertTrue(tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanota.MailBody.PATH, e1.getId(), null, null, tutao.entity.EntityHelper.createAuthHeaders()));
 //		assertEquals(undefined, tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, e1.getId(), null, null, tutao.entity.EntityHelper.createAuthHeaders()));
 //	},
 

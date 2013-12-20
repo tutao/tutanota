@@ -177,13 +177,13 @@ EntityRestClientTest.prototype.testDeleteElementsWithoutListId = function() {
 	tutao.locator.replace('restClient', RestClient);
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
-	// mock RestClient.deleteElements()
-	RestClient.deleteElements = function(path, headers, json, callback) {
+	// mock RestClient.deleteElement()
+	RestClient.deleteElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mailbody/1", path);
 		callback();
 	};
-	var ids = [1];
-	EntityRestClient.deleteElements(tutao.entity.tutanota.MailBody.PATH, ids, null, null, null, function(exception) {
+	var id = 1;
+	EntityRestClient.deleteElement(tutao.entity.tutanota.MailBody.PATH, id, null, null, null, function(exception) {
 		assertUndefined(exception);
 	});
 };
@@ -196,13 +196,13 @@ EntityRestClientTest.prototype.testDeleteElementsWithListId = function() {
 	tutao.locator.replace('restClient', RestClient);
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
-	// mock RestClient.deleteElements()
-	RestClient.deleteElements = function(path, headers, json, callback) {
+	// mock RestClient.deleteElement()
+	RestClient.deleteElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail/100/1", path);
 		callback();
 	};
-	var ids = [1];
-	EntityRestClient.deleteElements(tutao.entity.tutanota.Mail.PATH, ids, "100", null, null, function(exception) {
+	var id = 1;
+	EntityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, id, "100", null, null, function(exception) {
 		assertUndefined(exception);
 	});
 };
