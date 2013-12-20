@@ -97,6 +97,13 @@ tutao.rest.EntityRestDummy.prototype.getElementRange = function(type, path, list
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.deleteElements = function(path, ids, listId, parameters, headers, callback) {
+tutao.rest.EntityRestDummy.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) {
 	callback();
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.rest.EntityRestDummy.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) {
+    callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };

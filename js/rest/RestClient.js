@@ -73,17 +73,17 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callb
  * @param {string} path Path of the element(s);.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {string} json The payload.
- * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
+ * @param {function(?string, tutao.rest.RestException=)} callback Provides the response from the server as a string or an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.deleteElements = function(path, headers, json, callback) {
+tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json, callback) {
 	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
 	json = json ? json : "";
 	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, dataType: 'text', async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
-			callback();
+			callback(data);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			callback(new tutao.rest.RestException(jqXHR.status));
+			callback(null, new tutao.rest.RestException(jqXHR.status));
 		}
 	});
 };

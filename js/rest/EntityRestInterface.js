@@ -127,13 +127,24 @@ tutao.rest.EntityRestInterface.prototype.getElementRange = function(type, path, 
 /**
  * Deletes elements by id.
  * @param {string} path The path including prefix, app name and type name.
- * @param {Array.<string>} ids A list of ids.
+ * @param {string} id The id.
  * @param {?string} listId An optional list id. Use it to pass the list id of LETs.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {function(tutao.rest.EntityRestException=)} callback Called when finished, with an exception if the rest call failed.
  */
-tutao.rest.EntityRestInterface.prototype.deleteElements = function(path, ids, listId, parameters, headers, callback) { };
+tutao.rest.EntityRestInterface.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) { };
+
+/**
+ * Invokes delete on a service. Just like postService besides that the used HTTP method is DELETE
+ * @param {string} path The path including prefix, app name and type name.
+ * @param {Object} element the object to transmit.
+ * @param {?Object} parameters The parameters to send with this request.
+ * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
+ * @param {?Object} returnType Type of the data that is returned.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Provides the response entity from the server or an exception if the rest call failed.
+ */
+tutao.rest.EntityRestInterface.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) { };
 
 /**
  * Tests if one id is bigger than another.

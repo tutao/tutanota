@@ -49,6 +49,9 @@ tutao.rest.EntityRestCache = function() {
 	 * requests are forwarded to this entity rest instance
 	 */
 	this._target = undefined;
+
+    // TODO remove after update notifications are in place
+    this._ignoredPaths = [tutao.entity.sys.GroupInfo.PATH];
 };
 
 /**
@@ -67,7 +70,7 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 	var self = this;
 	var cacheListId = (listId) ? listId : "0";
 	var versionRequest = (parameters && parameters.version) ? true : false;
-	if (versionRequest || !this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId][id]) {
+	if (versionRequest || !this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId][id] || tutao.util.ArrayUtils.contains(this._ignoredPaths, path)) {
 		// the element is not in the cache, so get it from target
 		this._target.getElement(type, path, id, listId, parameters, headers, function(element, exception) {
 			if (exception) {
@@ -360,29 +363,34 @@ tutao.rest.EntityRestCache.prototype._provideFromCache = function(path, listId, 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.deleteElements = function(path, ids, listId, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) {
 	var self = this;
-	this._target.deleteElements(path, ids, listId, parameters, headers, function(exception) {
+	this._target.deleteElement(path, id, listId, parameters, headers, function(data, exception) {
 		if (!exception) {
 			if (!listId) {
 				listId = "0";
 			}
 			if (!self._db[path] || !self._db[path][listId]) {
-				// this may happen when the elements where not yet cached, but the ids where
+				// this may happen when the elements where not yet cached, but the id was
 				// taken from another loaded element. This is not an error.
-				callback();
+				callback(data);
 				return;
 			}
-			for (var i = 0; i < ids.length; i++) {
-				if (self._db[path][listId][ids[i]]) {
-					delete self._db[path][listId][ids[i]];
-				}
-				if (self._db[path][listId]['allRange']) {
-					// if the id exists in the range, then delete it
-					tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], ids[i]);
-				}
-			}
+            if (self._db[path][listId][id]) {
+                delete self._db[path][listId][id];
+            }
+            if (self._db[path][listId]['allRange']) {
+                // if the id exists in the range, then delete it
+                tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], id);
+            }
 		}
-		callback(exception);
+		callback(data, exception);
 	});
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.rest.EntityRestCache.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) {
+    this._target.deleteService(path, element, parameters, headers, returnType, callback);
 };

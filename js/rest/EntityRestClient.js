@@ -194,20 +194,33 @@ tutao.rest.EntityRestClient.prototype._cloneParameters = function(parameters) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestClient.prototype.deleteElements = function(path, ids, listId, parameters, headers, callback) {
-	//TODO (before beta) define exception handling if some elements failed (return successful ids?)
-	var nbrOfFinishedElements = 0;
-	for (var i = 0; i < ids.length; i++) {
-		tutao.locator.restClient.deleteElements(tutao.rest.EntityRestClient.createUrl(path, listId, ids[i], parameters), headers, null, function(exception) {
-            if (exception) {
-                console.log(exception);
+tutao.rest.EntityRestClient.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) {
+    tutao.locator.restClient.deleteElement(tutao.rest.EntityRestClient.createUrl(path, listId, id, parameters), headers, null, function(data, exception) {
+        if (exception) {
+            console.log(exception);
+            callback(null, exception);
+        } else {
+            callback(data);
+        }
+    });
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.rest.EntityRestClient.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) {
+    var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
+    tutao.locator.restClient.deleteElement(url, headers, JSON.stringify(element.toJsonData()), function(returnData, exception) {
+        if (exception) {
+            callback(null, new tutao.rest.EntityRestException(exception));
+        } else {
+            if (returnType) {
+                callback(new returnType(returnData));
+            } else {
+                callback(null);
             }
-			nbrOfFinishedElements++;
-			if (nbrOfFinishedElements == ids.length) {
-				callback();
-			}
-		});
-	}
+        }
+    });
 };
 
 /**
