@@ -224,8 +224,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 
 		// load recipient key information
 		var parameters = {};
-		parameters[tutao.rest.ResourceConstants.MAIL_ADDRESS] = recipientInfo.getMailAddress();
-		tutao.entity.sys.PublicKeyReturn.load(parameters, null, function(publicKeyData, exception) {
+		tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(recipientInfo.getMailAddress()), parameters, null, function(publicKeyData, exception) {
 			if (exception) {
 				if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
 					notFoundRecipients.push(recipient.getMailAddress());

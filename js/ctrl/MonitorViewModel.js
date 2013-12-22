@@ -509,9 +509,7 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(sna
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._readCounter = function(monitor, ownerId, callback) {
 	var params = {};
-	params["monitor"] = monitor;
-	params["owner"] = ownerId;
-	tutao.entity.monitor.ReadCounterReturn.load(params, null, function(readCounterReturn, exception) {
+	tutao.entity.monitor.ReadCounterReturn.load(new tutao.entity.monitor.ReadCounterData().setMonitor(monitor).setOwner(ownerId), params, null, function(readCounterReturn, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {

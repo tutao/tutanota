@@ -138,9 +138,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(callback) {
 	var params = {};
-	params[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = this.userId;
-	params[tutao.rest.ResourceConstants.DEVICE_TOKEN_PARAMETER_NAME] = this.deviceToken;
-	tutao.entity.sys.AutoLoginDataReturn.load(params, null, function(autoLoginDataReturn, exception) {
+	tutao.entity.sys.AutoLoginDataReturn.load(tutao.entity.sys.AutoLoginDataGet()
+        .setUserId(this.userId)
+        .setDeviceToken(this.deviceToken), params, null, function(autoLoginDataReturn, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
