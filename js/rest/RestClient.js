@@ -5,6 +5,8 @@ goog.provide('tutao.rest.RestClient');
 /**
  * The RestClient class is a facade to jquery's ajax implementation. It provides operations
  * that are more appropriate for our server side.
+ *
+ * We do not provide any data types as jquery will infer them from the returned mime type (which should be set correctly by tutadb)
  * @constructor
  */
 tutao.rest.RestClient = function() {};
@@ -18,10 +20,10 @@ tutao.rest.RestClient = function() {};
  * @param {function(?Object, tutao.rest.RestException=)} callback Provides the data of the element(s) or an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callback) {
-	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
-	json = json ? json : "";
+	var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
+	json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
 	// avoid caching (needed for IE) by setting cache: false
-	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, dataType: 'json', async: true, cache: false, headers: headers,
+	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, processData: true, async: true, cache: false, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},
@@ -39,7 +41,7 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callb
  * @param {function(?string, tutao.rest.RestException=)} callback Provides the response from the server as a string or an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.postElement = function(path, headers, json, callback) {
-	jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, dataType: 'json', async: true, headers: headers,
+	jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},
@@ -58,7 +60,7 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json, call
  * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callback) {
-	jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, dataType: 'text', async: true, headers: headers,
+	jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback();
 		},
@@ -78,7 +80,7 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callb
 tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json, callback) {
 	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
 	json = json ? json : "";
-	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, dataType: 'text', async: true, headers: headers,
+	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, processData: false, async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},
@@ -96,7 +98,7 @@ tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json, ca
  * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.putBinary = function(path, headers, data, callback) {
-	jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, dataType: 'text', async: true, headers: headers,
+	jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
 			callback(data);
 		},

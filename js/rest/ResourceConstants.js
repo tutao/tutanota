@@ -44,6 +44,11 @@ tutao.rest.ResourceConstants.DEVICE_TOKEN_PARAMETER_NAME = "device";
 
 // get requests
 /**
+ * get requests are not allowed to send a body. Therefore, we convert our body to a paramater
+ * @const
+ */
+tutao.rest.ResourceConstants.GET_BODY_PARAM = "_body";
+/**
  * @const
  */
 tutao.rest.ResourceConstants.IDS_PARAMETER_NAME = "ids";
