@@ -15,6 +15,7 @@ EntityRestTestFunctions.addFunctionsToTestPrototype = function(testCase) {
 		}
 	})();
 };
+
 /**
  * @param ?Object.<string, string> params If provided, the version param will be added to this map. 
  */
