@@ -461,8 +461,9 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 											return;
 										}
 										var map = {};
-										map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-										new tutao.entity.tutanota.WelcomeMailData().setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+										new tutao.entity.tutanota.WelcomeMailData()
+                                            .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                            .setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
 										self._keyGenProgress(100);
 										callback();
 									});

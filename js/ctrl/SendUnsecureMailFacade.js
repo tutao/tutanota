@@ -25,15 +25,16 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
 	var service = new tutao.entity.tutanota.SendUnsecureMailData();
-	service.setSubject(subject);
-	service.setBodyText(bodyText);
-	service.setSenderName(senderName);
-	service.setConversationType(conversationType);
-	service.setPreviousMessageId(previousMessageId);
-	service.setMailSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(sessionKey))); // for recipients
-	service.setListEncSessionKey(aes.encryptKey(mailBoxKey, sessionKey)); // for sender
-	service.setSymEncSessionKey(aes.encryptKey(groupKey, sessionKey)); // for sender
-	service.setSharableEncSessionKey(aes.encryptKey(sharableKey, sessionKey)); // for sharing the mailbox
+    service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+	    .setSubject(subject)
+	    .setBodyText(bodyText)
+	    .setSenderName(senderName)
+	    .setConversationType(conversationType)
+	    .setPreviousMessageId(previousMessageId)
+	    .setMailSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(sessionKey))) // for recipients
+	    .setListEncSessionKey(aes.encryptKey(mailBoxKey, sessionKey)) // for sender
+	    .setSymEncSessionKey(aes.encryptKey(groupKey, sessionKey)) // for sender
+	    .setSharableEncSessionKey(aes.encryptKey(sharableKey, sessionKey)); // for sharing the mailbox
 
 	tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(attachments, function(fileDatas, exception) {
 		if (exception) {
@@ -43,13 +44,13 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 
 		for (var i = 0; i < attachments.length; i++) {
 			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.UnsecureAttachment(service);
-			attachment.setFile(null); // currently no existing files can be attached
-			attachment.setFileData(fileDatas[i].getId());
-			attachment.setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true));
-			attachment.setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true));
-			attachment.setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)));
-			attachment.setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
+			var attachment = new tutao.entity.tutanota.UnsecureAttachment(service)
+			    .setFile(null) // currently no existing files can be attached
+			    .setFileData(fileDatas[i].getId())
+			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
+			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
+			    .setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
+			    .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
 			service.getAttachments().push(attachment);
 		}
 
@@ -72,7 +73,6 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 			service.getBccRecipients().push(recipient);
 		}
 		var map = {};
-		map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 		service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendUnsecureMailReturn, ex) {
 			var mailElementId = sendUnsecureMailReturn.getSenderMail()[1];
 			if (ex) {
