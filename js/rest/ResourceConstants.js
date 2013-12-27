@@ -109,35 +109,11 @@ tutao.rest.ResourceConstants.BUCKET_PERMISSION_LIST_ID = "bucketList";
 tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY = "updateListEncSessionKey";
 
 // public key service get request
-/**
- * @const
- */
-tutao.rest.ResourceConstants.MAIL_ADDRESS = "mailAddress";
 
 /**
  * @const
  */
 tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=UTF-8";
-
-/**
- * @const
- */
-tutao.rest.ResourceConstants.MAIL_LIST_ID_PARAMETER_NAME = "mailList";
-
-/**
- * @const
- */
-tutao.rest.ResourceConstants.MAIL_ELEMENT_ID_PARAMETER_NAME = "mail";
-
-/**
- * @const
- */
-tutao.rest.ResourceConstants.SALT_PARAMETER_NAME = "salt";
-
-/**
- * @const
- */
-tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME = "lang";
 
 /**
  * @const
