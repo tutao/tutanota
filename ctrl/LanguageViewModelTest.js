@@ -15,7 +15,7 @@ TestCase("LanguageViewModelTest", {
 	},
 	"test that retrieving translations with params works": function() {
 		this.vm.setCurrentLanguage("en");
-		assertEquals("The code was sent to abcde", this.vm.get("codeInputInfo_msg", {'$': 'abcde'}));
+		assertEquals("The code was sent to abcde.", this.vm.get("codeInputInfo_msg", {'$': 'abcde'}));
 	},
 	"test that all translation names have a valid suffix": function() {
 		var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
