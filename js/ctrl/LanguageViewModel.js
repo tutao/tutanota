@@ -189,6 +189,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	importCsv_label: "Import CSV data",
 	importCsvInvalid_msg: "The CSV data is invalid (line $).",
     successfullyCreatedUsers_msg: "The following users have been created successfully.",
+    deleted_label: "Deleted",
+    created_label: "Created",
 	
 	// account settings
 	accountType_label: "Account type",
@@ -525,6 +527,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	importCsv_label: "CSV-Daten importieren",
 	importCsvInvalid_msg: "Die CSV-Daten sind ungültig (Zeile $).",
     successfullyCreatedUsers_msg: "Die folgenden Benutzer wurden erfolgreich angelegt",
+    deleted_label: "Gelöscht",
+    created_label: "Erstellt",
 	
 	// account settings
 	accountType_label: "Account-Typ",

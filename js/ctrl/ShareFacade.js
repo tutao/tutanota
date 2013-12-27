@@ -44,12 +44,13 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 			callback(exception);
 			return;
 		}
-		shareService.setPubEncBucketKey(keyData.pubEncKey);
-		shareService.setPubKeyVersion(keyData.pubKeyVersion);
+		shareService.setPubEncBucketKey(keyData.pubEncKey)
+		    .setPubKeyVersion(keyData.pubKeyVersion)
+            .setOwnerGroupId(tutao.locator.userController.getUserGroupId());
+
 
 		var headers = tutao.entity.EntityHelper.createAuthHeaders();
 		var postParams = {};
-		postParams[tutao.rest.ResourceConstants.GROUP_ID] = tutao.locator.userController.getUserGroupId();
 		shareService.setup(postParams, headers, function(voidReturn, exception) {
 			if (exception) {
 				callback(new tutao.rest.EntityRestException(exception));
@@ -69,8 +70,7 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup = function(mailAddress, keyToEncrypt, callback) {
 	//load recipient key information
 	var parameters = {};
-	parameters[tutao.rest.ResourceConstants.MAIL_ADDRESS] = mailAddress;
-	tutao.entity.sys.PublicKeyReturn.load(parameters, null, function(publicKeyData, exception) {
+	tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(mailAddress), parameters, null, function(publicKeyData, exception) {
 		if (exception) {
 			if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
 				callback(null, tutao.tutanota.ctrl.RecipientsNotFoundException([mailAddress]));

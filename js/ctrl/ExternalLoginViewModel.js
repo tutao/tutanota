@@ -152,9 +152,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(callback) {
 	var params = {};
-	params[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = this.userId;
-	params[tutao.rest.ResourceConstants.DEVICE_TOKEN_PARAMETER_NAME] = this.deviceToken;
-	tutao.entity.sys.AutoLoginDataReturn.load(params, null, function(autoLoginDataReturn, exception) {
+	tutao.entity.sys.AutoLoginDataReturn.load(tutao.entity.sys.AutoLoginDataGet()
+        .setUserId(this.userId)
+        .setDeviceToken(this.deviceToken), params, null, function(autoLoginDataReturn, exception) {
 		if (exception) {
 			callback(null, exception);
 		} else {
@@ -254,11 +254,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	}
 	
 	var self = this;
-	var service = new tutao.entity.tutanota.PasswordMessagingData();
-	service.setNumber(phoneNumber.getNumber());
-	service.setSymKeyForPasswordTransmission(tutao.locator.aesCrypter.keyToBase64(this.symKeyForPasswordTransmission));
+	var service = new tutao.entity.tutanota.PasswordMessagingData()
+        .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+	    .setNumber(phoneNumber.getNumber())
+	    .setSymKeyForPasswordTransmission(tutao.locator.aesCrypter.keyToBase64(this.symKeyForPasswordTransmission));
 	var map = {};
-	map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 	this.sentSmsNumber(phoneNumber.getNumber());
 	this.state.event("sendSms");
 	this.sendSmsStatus({ type: "neutral", text: "sendingSms_msg" });

@@ -176,25 +176,25 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._sendCode = function() {
 	this.changePasswordStatus({ type: "neutral", text: "pwChangeNeutralSendingCode_msg" });
 	var self = this;
 	var params = {};
-	params[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-	var service = new tutao.entity.sys.SecondFactorAuthData();
-	service.setService("ChangePasswordService");
-	service.setup(params, null, function(dummy, exception) {
-		if (exception) {
-			if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 429) {
-				self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyChangeAttempts_msg" });
-				self.state.event("codeTooManyAttempts");
-			} else {
-				self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidServerNotAvailable_msg" });
-				self.state.event("serverError");
-			}
-		} else {
-			self.changePasswordStatus({ type: "neutral", text: "emptyString_msg" });
-			self.codeStatus({ type: "neutral", text: "codeNeutralEnterCode_msg" });
-			self.changePasswordButtonTextId("pwChangeButtonChangePw_action");
-			self.state.event("codeSent");
-		}
-	});
+	var service = new tutao.entity.sys.SecondFactorAuthData()
+        .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+	    .setService("ChangePasswordService")
+	    .setup(params, null, function(dummy, exception) {
+            if (exception) {
+                if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 429) {
+                    self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyChangeAttempts_msg" });
+                    self.state.event("codeTooManyAttempts");
+                } else {
+                    self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidServerNotAvailable_msg" });
+                    self.state.event("serverError");
+                }
+            } else {
+                self.changePasswordStatus({ type: "neutral", text: "emptyString_msg" });
+                self.codeStatus({ type: "neutral", text: "codeNeutralEnterCode_msg" });
+                self.changePasswordButtonTextId("pwChangeButtonChangePw_action");
+                self.state.event("codeSent");
+            }
+        });
 };
 
 /**

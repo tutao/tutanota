@@ -157,12 +157,15 @@
 	<script type="text/javascript" src="generated/entity/base/PersistenceResourcePostReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/CounterSnapshot.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/CounterSnapshotSeries.js"></script>
+	<script type="text/javascript" src="generated/entity/monitor/CreateCounterMonitor.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/CreateCounterSnapshotData.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/LogEntry.js"></script>
+	<script type="text/javascript" src="generated/entity/monitor/ReadCounterData.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/ReadCounterReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AuthenticatedDevice.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Authentication.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataDelete.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataGet.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginPostReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/BucketPermission.js"></script>
@@ -187,15 +190,18 @@
 	<script type="text/javascript" src="generated/entity/sys/ListVersionInfo.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Login.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/LongConfigValue.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/MembershipAddData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PublicKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationServiceData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RootInstance.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/SaltData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SaltReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthAllowedReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SecondFactorAuthData.js"></script>
@@ -213,10 +219,13 @@
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/User.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UserDataDelete.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/UserIdData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserIdReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UserReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/VerifyRegistrationCodeData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Version.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/VersionData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/VersionReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/WebsocketWrapper.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/Attachment.js"></script>
@@ -1833,7 +1842,10 @@ function touchOrClick(e) {
                                     </div>
 									<div class="userList" data-bind="foreach: {data: userGroups}">
 										<div class="user" data-bind="click: $parent.editUser">
-											<div class="emphasizedText"  data-bind="text: getName()"></div>
+                                            <div class="icons">
+                                                <div class="mailHeaderImage imgButton trash-small" data-bind="visible: getDeleted(), attr: {alt: tutao.lang('deleted_label')}"></div>
+                                            </div>
+											<div class="userName"  data-bind="text: getName()"></div>
 											<div class="smallFont light" data-bind="text: getMailAddress()"></div>
 										</div>
 									</div>
@@ -1847,7 +1859,7 @@ function touchOrClick(e) {
                 <!-- ko if: editing() -->
                     <div data-bind="with: editing()">
                         <h1 data-bind="lang: 'editUser_label'"></h1>
-                        <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { $parent.	saveEdit(); }, 0); }, form: true">
+                        <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
                                 <div class="recordData">
@@ -1864,10 +1876,25 @@ function touchOrClick(e) {
                                 </div>
                             </div>
                             <div class="record">
+                                <label class="recordName" data-bind="lang: 'created_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroup.getCreated())">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="if: userGroup.getDeleted()">
+                                <label class="recordName" data-bind="lang: 'deleted_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroup.getDeleted())">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
                                     <button id="submitUserChange" type="submit" data-bind="lang: 'save_action'"></button>
-                                    <button id="cancelUserChange" class="minimal" data-bind="lang: 'cancel_action', fastClick: $parent.cancelEdit"></button>
+                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="lang: getDeleteButtonText(), fastClick: deleteUser"></button>
+                                    <button id="cancelUserChange" type="button" class="minimal" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
                                 </div>
                             </div>
                         </form>

@@ -34,13 +34,14 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 		var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 
 		var service = new tutao.entity.tutanota.SendMailData();
-		service.setSubject(subject);
-		service.setBodyText(bodyText);
-		service.setSenderName(senderName);
-		service.setSenderNameUnencrypted(senderName);
-		service.setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())); // for sender
-		service.setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())); // for sender
-		service.setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())); // for recipeints
+        service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+            .setSubject(subject)
+            .setBodyText(bodyText)
+            .setSenderName(senderName)
+            .setSenderNameUnencrypted(senderName)
+            .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
+            .setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())) // for sender
+            .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())); // for recipeints
 
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
 			service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service._entityHelper.getSessionKey())); // for sharing the mailbox
@@ -52,13 +53,13 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 
 		for (var i = 0; i < attachments.length; i++) {
 			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.Attachment(service);
-			attachment.setFile(null); // currently no existing files can be attached
-			attachment.setFileData(fileDatas[i].getId());
-			attachment.setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true));
-			attachment.setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true));
-			attachment.setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
-			attachment.setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
+			var attachment = new tutao.entity.tutanota.Attachment(service)
+			    .setFile(null) // currently no existing files can be attached
+			    .setFileData(fileDatas[i].getId())
+			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
+			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
+			    .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
+			    .setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
 			service.getAttachments().push(attachment);
 		}
 
@@ -127,7 +128,6 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
 			callback(null, new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients));
 		} else {
 			var map = {};
-			map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 			service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailReturn, ex) {
 				if (ex) {
 					callback(null, ex);
@@ -224,8 +224,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 
 		// load recipient key information
 		var parameters = {};
-		parameters[tutao.rest.ResourceConstants.MAIL_ADDRESS] = recipientInfo.getMailAddress();
-		tutao.entity.sys.PublicKeyReturn.load(parameters, null, function(publicKeyData, exception) {
+		tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(recipientInfo.getMailAddress()), parameters, null, function(publicKeyData, exception) {
 			if (exception) {
 				if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
 					notFoundRecipients.push(recipient.getMailAddress());
@@ -259,7 +258,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 /**
  * Checks that an ExternalRecipient instance with a mail box exists for the given mail address. If it does not exist, it is created. Returns the communication key of the external recipient.
  * @param {String} externalMailAddress The mail address of the external recipient.
- * @param {function(?Object communicationKey, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
  */
 tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAddress, callback) {
 	var self = this;
@@ -273,7 +272,6 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 		tutao.entity.tutanota.ExternalRecipient.load([root.getReference(), mailAddressId], function(externalRecipient, exception) {
 			if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
 				// it does not exist, so create it
-				var data = new tutao.entity.tutanota.ExternalRecipientData();
 				// load the list key of the ExternalRecipients list
                 tutao.entity.EntityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
 					if (exception) {
@@ -282,17 +280,18 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 					}
 					var extRecipientCommunicationKey = tutao.locator.aesCrypter.generateRandomKey();
 					var extRecipientMailListKey = tutao.locator.aesCrypter.generateRandomKey();
-					data.setMailAddress(externalMailAddress);
-					data.setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)); // encrypted attribute
-					data.setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey));
-					data.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()));
-					data.setup([], null, function(nothing, exception) {
-						if (exception) {
-							callback(null, exception);
-						} else {
-							callback(extRecipientCommunicationKey);
-						}
-					});
+				    var data = new tutao.entity.tutanota.ExternalRecipientData();
+					data.setMailAddress(externalMailAddress)
+					    .setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)) // encrypted attribute
+					    .setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey))
+					    .setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()))
+					    .setup([], null, function(nothing, exception) {
+                            if (exception) {
+                                callback(null, exception);
+                            } else {
+                                callback(extRecipientCommunicationKey);
+                            }
+                        });
 				});
 			} else if (exception) {
 				callback(null, exception);

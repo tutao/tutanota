@@ -28,28 +28,34 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.showSelected = function() {
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.editUser = function(userGroup, event) {
 	this.newViewModel(null);
-	this.editing(new tutao.tutanota.ctrl.AdminEditUserViewModel(userGroup));
+	this.editing(new tutao.tutanota.ctrl.AdminEditUserViewModel(this, userGroup));
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [event.currentTarget];
 	tutao.tutanota.gui.select(this._selectedDomElements);
 };
 
 
-tutao.tutanota.ctrl.AdminUserListViewModel.prototype.cancelEdit = function() {
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.removeSelection = function() {
 	this.editing(null);
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [];
 };
 
-tutao.tutanota.ctrl.AdminUserListViewModel.prototype.saveEdit = function() {
-	var self = this;
-	this.editing().save(function() {
-		// update the saved instance in our list
-		var savedIndex = self.userGroups.indexOf(self.editing().userGroup);
-		self.userGroups.splice(savedIndex, 1);
-		self.userGroups.splice(savedIndex, 0, self.editing().userGroup);
-		self.editing(null);
-	});
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = function() {
+    if (this.editing()) {
+        // update the saved instance in our list
+        var self = this;
+        tutao.entity.sys.GroupInfo.load(this.editing().userGroup.getId(), function(updatedUserGroup, exception) {
+            if (exception) {
+                console.log(exception);
+            } else {
+                var savedIndex = self.userGroups.indexOf(self.editing().userGroup);
+                self.userGroups.splice(savedIndex, 1);
+                self.userGroups.splice(savedIndex, 0, updatedUserGroup);
+                self.editing(null);
+            }
+        })
+    }
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccounts = function() {

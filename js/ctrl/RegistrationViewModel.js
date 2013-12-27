@@ -234,14 +234,13 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
 	}
 	this._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
 	self.joinStatus({ type: "neutral", text: "joinRunning_msg" });
-	var service = new tutao.entity.sys.SendRegistrationCodeData();
-	service.setAccountType(this.accountType());
-	service.setAuthToken(this.authToken());
-	service.setMobilePhoneNumber(tutao.tutanota.util.Formatter.getCleanedPhoneNumber(this.mobileNumber()));
-	var map = {};
-	map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
+	var service = new tutao.entity.sys.SendRegistrationCodeData()
+	    .setAccountType(this.accountType())
+	    .setAuthToken(this.authToken())
+        .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+	    .setMobilePhoneNumber(tutao.tutanota.util.Formatter.getCleanedPhoneNumber(this.mobileNumber()));
 	// if no registration link was used, the authToken is not set yet, but returned by the send registration code service
-	service.setup(map, null, function(sendRegistrationCodeReturn, exception) {
+	service.setup({}, null, function(sendRegistrationCodeReturn, exception) {
 		if (exception) {
 			self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
 			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
@@ -315,6 +314,22 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 	});
 };
 
+/**
+ *
+ * @param {tutao.entity.sys.SystemKeysReturn} keyData
+ * @returns {string} the group key for the current account type
+ * @private
+ */
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._getAccountGroupKey = function (keyData) {
+    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+        return keyData.getFreeGroupKey();
+    } else if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+        return keyData.getStarterGroupKey();
+    } else {
+        throw Error("Illegal account type");
+    }
+};
+
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(callback) {
 	var self = this;
 	tutao.entity.sys.SystemKeysReturn.load({}, null, function(keyData, exception) {
@@ -361,7 +376,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
 						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
 
-						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(keyData.getFreeGroupKey())));
+						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(self._getAccountGroupKey(keyData))));
 
 						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
@@ -446,8 +461,9 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 											return;
 										}
 										var map = {};
-										map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
-										new tutao.entity.tutanota.WelcomeMailData().setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+										new tutao.entity.tutanota.WelcomeMailData()
+                                            .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                            .setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
 										self._keyGenProgress(100);
 										callback();
 									});
@@ -479,8 +495,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier = function(s
 		setTimeout(function() {
 			if (self.mailAddressPrefix() == newValue) {
 				var params = [];
-				params[tutao.rest.ResourceConstants.MAIL_ADDRESS] = cleanedValue + "@" + self.domain();
-				tutao.entity.sys.MailAddressAvailabilityReturn.load(params, [], function(mailAddressAvailabilityReturn, exception) {
+				tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, [], function(mailAddressAvailabilityReturn, exception) {
 					if (self.mailAddressPrefix() == newValue) {
 						if (exception) {
 							console.log(exception);

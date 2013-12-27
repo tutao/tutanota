@@ -29,22 +29,23 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
 		var recipientBucketKey = aes.generateRandomKey();
 
 		var service = new tutao.entity.tutanota.SendMailFromExternalData();
-		service.setSubject(subject);
-		service.setBodyText(bodyText);
-		service.setSenderName(senderName);
-		service.setSenderBucketEncSessionKey(aes.encryptKey(senderBucketKey, service._entityHelper.getSessionKey()));
-		service.setRecipientBucketEncSessionKey(aes.encryptKey(recipientBucketKey, service._entityHelper.getSessionKey()));
-		service.setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey));
-		service.setPreviousMessageId(previousMessageId);
+        service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+		    .setSubject(subject)
+		    .setBodyText(bodyText)
+		    .setSenderName(senderName)
+		    .setSenderBucketEncSessionKey(aes.encryptKey(senderBucketKey, service._entityHelper.getSessionKey()))
+		    .setRecipientBucketEncSessionKey(aes.encryptKey(recipientBucketKey, service._entityHelper.getSessionKey()))
+		    .setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey))
+		    .setPreviousMessageId(previousMessageId);
 
 		for (var i = 0; i < attachments.length; i++) {
 			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service);
-			attachment.setFileData(fileDatas[i].getId());
-			attachment.setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true));
-			attachment.setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true));
-			attachment.setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey));
-			attachment.setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
+			var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
+			    .setFileData(fileDatas[i].getId())
+			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
+			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
+			    .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
+			    .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
 			service.getAttachments().push(attachment);
 		}
 
@@ -58,7 +59,6 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
 				callback(null, new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients));
 			} else {
 				var map = {};
-				map[tutao.rest.ResourceConstants.LANGUAGE_PARAMETER_NAME] = tutao.locator.languageViewModel.getCurrentLanguage();
 				service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailFromExternalReturn, ex) {
 					if (ex) {
 						callback(null, ex);
