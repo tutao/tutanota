@@ -1121,16 +1121,19 @@ function touchOrClick(e) {
 			<div class="welcomeContainer">
 				<div class="panel">
 					<div class="content">
-						<h1 data-bind="lang: 'receiveMsg_msg'"></h1>
+						<h1 data-bind="lang: 'receiveMsg_label'"></h1>
 						<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 						<div data-bind="visible: !errorMessageId()">
 							<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
 								<div class="record">
 									<label class="recordName" data-bind="lang: 'phone_label'"></label>
 									<div class="recordData">
-										<label class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
+										<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
 										<!-- ko foreach: phoneNumbers -->
-										<button class="recordValue" data-bind="text: getMaskedNumber(), css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+										<div class="extPhoneNumberRow recordValue">
+											<div data-bind="text: getMaskedNumber()"></div>
+											<button class="recordAction" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+										</div>
 										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
 										<!-- /ko -->
 									</div>
