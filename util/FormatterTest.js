@@ -190,5 +190,7 @@ TestCase("FormatterTest", {
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4919153335321"));
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4815753335321"));
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber(null));
+		assertTrue(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4917953335321444"));
+		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533353214444"));
 	}
 });
