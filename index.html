@@ -520,14 +520,14 @@ function touchOrClick(e) {
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
 				<div id="searchAndMailList">
-					<!-- ko if: tutao.locator.dao.isSupported() -->
+					<!-- ko if: tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn() -->
 						<div class="search">
 							<div class="searchForm">
 								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
 							</div>
 						</div>
 					<!-- /ko -->
-					<section id="mailList" class="list" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() }">
+					<section id="mailList" class="list" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn() }">
 						<div id="innerMailList" data-bind="foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
