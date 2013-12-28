@@ -263,9 +263,9 @@ tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
  * @param {?string} phoneNumber The phone number to check.
  * @return {boolean} True if it is a mobile phone number, false otherwise.
  */
-tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(phoneNumber) {
+tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(cleanPhoneNumber) {
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.java */
-	if (!phoneNumber || phoneNumber.length < 12 || !tutao.util.StringUtils.startsWith(phoneNumber, "+49")) {
+	if (!cleanPhoneNumber || cleanPhoneNumber.length < 12 || cleanPhoneNumber.length > (3 + 14) || !tutao.util.StringUtils.startsWith(cleanPhoneNumber, "+49")) {
 		return false;
 	}
 	var germanMobileAreaCodes = ["01511", "01512", "01514", "01515", "01516", "016", "0170", "0171", "0175", /* telekom */
@@ -273,7 +273,7 @@ tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(phoneNumber) 
 	                             "01570", "01573", "01575", "01577", "01578", "01579", "0163", "0177", "0178", /* e-plus */
 	                             "01590", "0176", "0179"]; /* o2 */
 	for (var i = 0; i < germanMobileAreaCodes.length; i++) {
-		if (tutao.util.StringUtils.startsWith(phoneNumber.substring(3), germanMobileAreaCodes[i].substring(1))) {
+		if (tutao.util.StringUtils.startsWith(cleanPhoneNumber.substring(3), germanMobileAreaCodes[i].substring(1))) {
 			return true;
 		}
 	}
