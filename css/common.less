@@ -342,7 +342,14 @@ button {
 		opacity: 0.2;
 		
 		&:active {
-			background-color:@background-dark; 
+			// disabled buttons shall not be visible as active
+			background-color: @button-background;
+		}
+		
+		&:focus, &.focus {
+			// disabled buttons shall not be visible as in focus
+	    	border: 1px solid @button-border !important;;
+	    	box-shadow:0 0 0px @focus-blue !important;
 		}
 	}
 	
@@ -532,6 +539,7 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 			> div.recordValue, input.recordValue {
 			}
 			
+			// legacy
 			> div.row {
 				display: table;
 				width: 100%;

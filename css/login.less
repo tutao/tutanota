@@ -4,6 +4,23 @@ div.fastMessage {
 	.fill;
 }
 
+div#externalLogin {
+	label#sendMailPasswordStatus {
+		margin-bottom: 10px;
+	}
+	div.extPhoneNumberRow {
+		.clearfix; // avoid that the right-floating button covers the content below
+
+		> div {
+			display: inline-block;
+			vertical-align: sub;
+		}
+		> button {
+			float: right;
+		}		
+	}
+}
+
 div.login {
 	.fill;
 	

@@ -351,6 +351,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._showMail = function(passwo
 				// no indexing for external users
 				tutao.locator.replace('dao', new tutao.db.DummyDb);
 				self._showingMail = true;
+				tutao.locator.mailListViewModel.mailToShow = [self.mailListId, self.mailId];
 				tutao.locator.navigator.mail();
 			});
 		});

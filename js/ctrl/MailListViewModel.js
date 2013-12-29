@@ -65,6 +65,9 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	this.log = ko.observable("");
 
 	this.buttons = ko.observableArray();
+	
+	// the mail id (Array.<string>) of the email that shall be shown when init() is called
+	this.mailToShow = null;
 };
 
 /**
@@ -101,7 +104,22 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 					self._updateMailList(function() {
 						if (tutao.locator.userController.isExternalUserLoggedIn()) {
 							// no notifications for external users. instead add all loaded mails
-							self.updateOnNewMails(mails, callback);
+							self.updateOnNewMails(mails, function() {
+								if (self.mailToShow) {
+									tutao.entity.tutanota.Mail.load(self.mailToShow, function(mail, exception) {
+										if (!exception) {
+											self.selectMail(mail);
+										}
+										if (callback) {
+											callback();
+										}
+									});
+								} else {									
+									if (callback) {
+										callback();
+									}
+								}
+							});
 						} else {
 							// get the highest indexed mail id for the event tracker
 							tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
