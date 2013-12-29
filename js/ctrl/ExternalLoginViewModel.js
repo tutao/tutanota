@@ -409,10 +409,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
     if (this._showingMail) {
 		return;
 	}
-	var params = {};
-	params[tutao.rest.ResourceConstants.ID_PARAMETER_NAME] = this.autoAuthenticationId();
+    var input = new tutao.entity.tutanota.PasswordRetrievalData()
+        .setAutoAuthenticationId(this.autoAuthenticationId());
 	var self = this;
-	tutao.entity.tutanota.PasswordRetrievalReturn.load(params, null, function(passwordRetrievalReturn, exception) {
+	tutao.entity.tutanota.PasswordRetrievalReturn.load(input, {}, null, function(passwordRetrievalReturn, exception) {
 		if (exception) {
 			self.sendPasswordStatus({ type: "invalid", text: "smsError_msg" });
 		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
