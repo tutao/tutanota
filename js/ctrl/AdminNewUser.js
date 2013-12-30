@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.AdminNewUser.STATE_FAILED = "failed";
 
 /**
  * Create the new user
- * {function(tutao.rest.EntityRestException=}
+ * @param {function(tutao.rest.EntityRestException=} outerCallback Called when finished.
  */
 tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
     var self = this;
@@ -106,22 +106,56 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
                                     .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
                                     .setMobilePhoneNumber("");
 
-                                return userService.setup({}, null, function(userReturn, exception) {
-                                    callback(exception);
+                                userService.setup({}, null, function(userReturn, exception) {
+                                	if (exception) {
+                                		callback(exception);
+                                		return;
+                                	}
+                                	tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey, callback);
                                 });
-
-
                             }
                         });
-
                     }
                 });
-
-
             });
-
-
         }
     });
+};
 
+/**
+ * Initializes the given user group for Tutanota (creates mail box etc.). The admin must be logged in.
+ * @param {string} groupId The group to initialize.
+ * @param {Object} groupKey the group key.
+ * @param {function(tutao.rest.EntityRestException=} callback Called when finished.
+ */
+tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callback) {
+	var s = new tutao.entity.tutanota.InitGroupData();
+	
+	s.setGroupId(groupId);
+
+	var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
+	var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+	s.setSymEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, mailBoxSessionkey));
+	s.setSymEncMailShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, mailShareBucketKey));
+	s.setMailShareBucketEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, mailBoxSessionkey));
+
+	var contactShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
+	var contactListSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+	s.setSymEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, contactListSessionkey));
+	s.setSymEncContactShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, contactShareBucketKey));
+	s.setContactShareBucketEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(contactShareBucketKey, contactListSessionkey));
+
+	var fileShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
+	var fileSystemSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+	s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, fileSystemSessionkey));
+	s.setSymEncFileShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, fileShareBucketKey));
+	s.setFileShareBucketEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileShareBucketKey, fileSystemSessionkey));
+	
+	var externalRecipientListKey = tutao.locator.aesCrypter.generateRandomKey();
+	s.setSymEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(groupKey, externalRecipientListKey));
+	s.setMailShareBucketEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, externalRecipientListKey));
+
+	s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
+		callback(exception);
+	});
 };

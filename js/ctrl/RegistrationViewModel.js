@@ -430,32 +430,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 										return;
 									}
 									//TODO (before beta) create root instances and welcome mail before login
-									var s = new tutao.entity.tutanota.InitGroupData();
-
-									var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
-									var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();
-									var userGroupKey = tutao.locator.userController.getUserGroupKey();
-									s.setSymEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, mailBoxSessionkey));
-									s.setSymEncMailShareBucketKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, mailShareBucketKey));
-									s.setMailShareBucketEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, mailBoxSessionkey));
-
-									var contactShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
-									var contactListSessionkey = tutao.locator.aesCrypter.generateRandomKey();
-									s.setSymEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, contactListSessionkey));
-									s.setSymEncContactShareBucketKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, contactShareBucketKey));
-									s.setContactShareBucketEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(contactShareBucketKey, contactListSessionkey));
-
-									var fileShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
-									var fileSystemSessionkey = tutao.locator.aesCrypter.generateRandomKey();
-									s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileSystemSessionkey));
-									s.setSymEncFileShareBucketKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileShareBucketKey));
-									s.setFileShareBucketEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileShareBucketKey, fileSystemSessionkey));
-									
-									var externalRecipientListKey = tutao.locator.aesCrypter.generateRandomKey();
-									s.setSymEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, externalRecipientListKey));
-									s.setMailShareBucketEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, externalRecipientListKey));
-
-									s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
+									tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey, function(exception) {
 										if (exception) {
 											callback(exception);
 											return;
