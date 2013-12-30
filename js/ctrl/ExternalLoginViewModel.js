@@ -152,7 +152,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(callback) {
 	var params = {};
-	tutao.entity.sys.AutoLoginDataReturn.load(tutao.entity.sys.AutoLoginDataGet()
+	tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
         .setUserId(this.userId)
         .setDeviceToken(this.deviceToken), params, null, function(autoLoginDataReturn, exception) {
 		if (exception) {

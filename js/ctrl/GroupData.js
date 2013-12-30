@@ -27,7 +27,7 @@ tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userK
         var groupData = new tutao.entity.sys.CreateGroupData()
             .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(sessionKey, name, true))
             .setMailAddress(mailAddr)
-            .setPubKey(tutao.locator.rsaCrypter.keyToHex(keyPair.publicKey))
+            .setPubKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.rsaCrypter.keyToHex(keyPair.publicKey)))
             .setSymEncPrivKey(tutao.locator.aesCrypter.encryptPrivateRsaKey(symGroupKey, tutao.locator.rsaCrypter.keyToHex(keyPair.privateKey)));
 
 		if (userKey != null) {

@@ -272,7 +272,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	enterPresharedPassword_msg: "Please enter the password which you have agreed upon with the sender.",
 	sendingSms_msg: "Sending SMS...",
 	onlyPrivateComputer_msg: "Only choose this option if you are using a private computer. Otherwise the password is requested with each access.",
-	loadingMail_msg: "Loading email...",
+	loadingMail_msg: "Loading mailbox...",
 	enterSmsPassword_msg: "Please enter the password that has been transmitted via SMS here or click on the link in the SMS.",
 
 	// login
@@ -611,7 +611,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	enterPresharedPassword_msg: "Bitte geben Sie das mit dem Absender vereinbarte Passwort ein.",
 	sendingSms_msg: "SMS wird gesendet...",
 	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie einen privaten Computer verwenden. Ansonsten wird das Passwort bei jedem Zugriff abgefragt.",
-	loadingMail_msg: "Lade E-Mail...",
+	loadingMail_msg: "Lade Mailbox...",
 	enterSmsPassword_msg: "Bitte geben Sie hier das per SMS übertragene Passwort ein oder klicken Sie auf den Link in der SMS.",
 
 	// login
