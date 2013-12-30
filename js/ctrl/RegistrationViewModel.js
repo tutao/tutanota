@@ -424,7 +424,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 									callback(exception);
 									return;
 								}
-								tutao.locator.userController.loginUser(userGroupData.getMailAddr(), self.password1(), function(exception) {
+								tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1(), function(exception) {
 									if (exception) {
 										callback(exception);
 										return;

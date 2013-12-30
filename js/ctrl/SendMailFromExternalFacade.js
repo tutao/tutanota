@@ -18,36 +18,41 @@ goog.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * if another error occurred.
  */
 tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, callback) {
-	tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(attachments, function(fileDatas, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
-		var aes = tutao.locator.aesCrypter;
-		var groupKey = tutao.locator.userController.getUserGroupKey();
-		var senderBucketKey = aes.generateRandomKey();
-		var recipientBucketKey = aes.generateRandomKey();
+    var aes = tutao.locator.aesCrypter;
+    var groupKey = tutao.locator.userController.getUserGroupKey();
+    var senderBucketKey = aes.generateRandomKey();
+    var recipientBucketKey = aes.generateRandomKey();
 
-		var service = new tutao.entity.tutanota.SendMailFromExternalData();
-        service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-		    .setSubject(subject)
-		    .setBodyText(bodyText)
-		    .setSenderName(senderName)
-		    .setSenderBucketEncSessionKey(aes.encryptKey(senderBucketKey, service._entityHelper.getSessionKey()))
-		    .setRecipientBucketEncSessionKey(aes.encryptKey(recipientBucketKey, service._entityHelper.getSessionKey()))
-		    .setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey))
-		    .setPreviousMessageId(previousMessageId);
+    var service = new tutao.entity.tutanota.SendMailFromExternalData();
+    service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+        .setSubject(subject)
+        .setBodyText(bodyText)
+        .setSenderName(senderName)
+        .setSenderBucketEncSessionKey(aes.encryptKey(senderBucketKey, service._entityHelper.getSessionKey()))
+        .setRecipientBucketEncSessionKey(aes.encryptKey(recipientBucketKey, service._entityHelper.getSessionKey()))
+        .setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey))
+        .setPreviousMessageId(previousMessageId);
 
-		for (var i = 0; i < attachments.length; i++) {
-			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
-			    .setFileData(fileDatas[i].getId())
-			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
-			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
-			    .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
-			    .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
-			service.getAttachments().push(attachment);
-		}
+    tutao.util.FunctionUtils.executeSequentially(attachments, function(dataFile, finishedCallback) {
+        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
+            if (exception) {
+                finishedCallback(exception);
+            }
+            var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
+                .setFileData(fileData.getId())
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
+                .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
+            service.getAttachments().push(attachment);
+            finishedCallback();
+        });
+    }, function(exception) {
+        if (exception) {
+            callback(null, exception);
+            return
+        }
 
 		var notFoundRecipients = [];
 		var serviceRecipient = new tutao.entity.tutanota.Recipient(service);

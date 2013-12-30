@@ -36,50 +36,54 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	    .setSymEncSessionKey(aes.encryptKey(groupKey, sessionKey)) // for sender
 	    .setSharableEncSessionKey(aes.encryptKey(sharableKey, sessionKey)); // for sharing the mailbox
 
-	tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(attachments, function(fileDatas, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
+    tutao.util.FunctionUtils.executeSequentially(attachments, function(dataFile, finishedCallback) {
+        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
+            if (exception) {
+                finishedCallback(exception);
+            }
+            var attachment = new tutao.entity.tutanota.UnsecureAttachment(service)
+                .setFile(null) // currently no existing files can be attached
+                .setFileData(fileData.getId())
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
+                .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
+            service.getAttachments().push(attachment);
+            finishedCallback();
+        });
+    }, function(exception) {
+        if (exception) {
+            callback(null, exception);
+            return
+        }
 
-		for (var i = 0; i < attachments.length; i++) {
-			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.UnsecureAttachment(service)
-			    .setFile(null) // currently no existing files can be attached
-			    .setFileData(fileDatas[i].getId())
-			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
-			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
-			    .setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
-			    .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
-			service.getAttachments().push(attachment);
-		}
-
-		for (var i = 0; i < toRecipients.length; i++) {
-			var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
-			recipient.setName(toRecipients[i].getName());
-			recipient.setMailAddress(toRecipients[i].getMailAddress());
-			service.getToRecipients().push(recipient);
-		}
-		for (var i = 0; i < ccRecipients.length; i++) {
-			var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
-			recipient.setName(ccRecipients[i].getName());
-			recipient.setMailAddress(ccRecipients[i].getMailAddress());
-			service.getCcRecipients().push(recipient);
-		}
-		for (var i = 0; i < bccRecipients.length; i++) {
-			var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
-			recipient.setName(bccRecipients[i].getName());
-			recipient.setMailAddress(bccRecipients[i].getMailAddress());
-			service.getBccRecipients().push(recipient);
-		}
-		var map = {};
-		service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendUnsecureMailReturn, ex) {
-			var mailElementId = sendUnsecureMailReturn.getSenderMail()[1];
-			if (ex) {
-				callback(null, ex);
-			} else {
-				callback(mailElementId);
-			}
-		});
-	});
+        for (var i = 0; i < toRecipients.length; i++) {
+            var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
+            recipient.setName(toRecipients[i].getName());
+            recipient.setMailAddress(toRecipients[i].getMailAddress());
+            service.getToRecipients().push(recipient);
+        }
+        for (var i = 0; i < ccRecipients.length; i++) {
+            var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
+            recipient.setName(ccRecipients[i].getName());
+            recipient.setMailAddress(ccRecipients[i].getMailAddress());
+            service.getCcRecipients().push(recipient);
+        }
+        for (var i = 0; i < bccRecipients.length; i++) {
+            var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
+            recipient.setName(bccRecipients[i].getName());
+            recipient.setMailAddress(bccRecipients[i].getMailAddress());
+            service.getBccRecipients().push(recipient);
+        }
+        var map = {};
+        service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendUnsecureMailReturn, ex) {
+            var mailElementId = sendUnsecureMailReturn.getSenderMail()[1];
+            if (ex) {
+                callback(null, ex);
+            } else {
+                callback(mailElementId);
+            }
+        });
+    });
 };

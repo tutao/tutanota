@@ -5,10 +5,11 @@ goog.provide('tutao.tutanota.ctrl.FileFacade');
 /**
  * Creates a new file on the server in the user file system.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
+ * @param {Object} sessionKey The session key used to encrypt the file.
  * @param {function(?Array.<String>,tutao.rest.EntityRestException=)} callback Is called when finished with the id of the created File. Passes an exception if creating the file fails.
  */
-tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, callback) {
-	tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, function(fileDataId, exception) {
+tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, sessionKey, callback) {
+	tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey, function(fileDataId, exception) {
 		if (exception) {
 			callback(null, exception);
 			return;
@@ -51,20 +52,19 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, callback) {
 /**
  * Creates a new file data instance on the server and uploads the data from the given DataFile to it.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
+ * @param {Object} sessionKey The session key used to encrypt the file.
  * @param {function(?String,tutao.rest.EntityRestException=)} callback Is called when finished with the id of the created FileData. Passes an exception if creating the file fails.
  */
-tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, callback) {
+tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, sessionKey, callback) {
 	var fileData = new tutao.entity.tutanota.FileDataDataPost();
-	tutao.locator.aesCrypter.encryptArrayBuffer(fileData._entityHelper.getSessionKey(), dataFile.getData(), function(encryptedData, exception) {
+	tutao.locator.aesCrypter.encryptArrayBuffer(sessionKey, dataFile.getData(), function(encryptedData, exception) {
 		if (exception) {
 			callback(null, new tutao.rest.EntityRestException(exception));
 			return;
 		}
 		// create file data
-		var symEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), fileData._entityHelper.getSessionKey());
 		fileData.setSize(dataFile.getSize().toString())
-            .setGroup(tutao.locator.userController.getUserGroupId())
-            .setSymEncSessionKey(symEncSessionKey);
+            .setGroup(tutao.locator.userController.getUserGroupId());
 
 		fileData.setup({}, null, function(fileDataPostReturn, exception) {
 			if (exception) {

@@ -23,45 +23,51 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 		callback(null, new Error("invalid account type"));
 		return;
 	}
-	tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(attachments, function(fileDatas, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
-		var aes = tutao.locator.aesCrypter;
-		var groupKey = tutao.locator.userController.getUserGroupKey();
-		var bucketKey = aes.generateRandomKey();
-		var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 
-		var service = new tutao.entity.tutanota.SendMailData();
-        service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-            .setSubject(subject)
-            .setBodyText(bodyText)
-            .setSenderName(senderName)
-            .setSenderNameUnencrypted(senderName)
-            .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
-            .setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())) // for sender
-            .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())); // for recipeints
+    var aes = tutao.locator.aesCrypter;
+    var groupKey = tutao.locator.userController.getUserGroupKey();
+    var bucketKey = aes.generateRandomKey();
+    var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 
-		if (tutao.locator.userController.isInternalUserLoggedIn()) {
-			service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service._entityHelper.getSessionKey())); // for sharing the mailbox
-		} else {
-			service.setSharableEncSessionKey(null);
-		}
-		service.setConversationType(conversationType);
-		service.setPreviousMessageId(previousMessageId);
+    var service = new tutao.entity.tutanota.SendMailData();
+    service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+        .setSubject(subject)
+        .setBodyText(bodyText)
+        .setSenderName(senderName)
+        .setSenderNameUnencrypted(senderName)
+        .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
+        .setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())) // for sender
+        .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())); // for recipeints
 
-		for (var i = 0; i < attachments.length; i++) {
-			var fileSessionKey = fileDatas[i]._entityHelper.getSessionKey();
-			var attachment = new tutao.entity.tutanota.Attachment(service)
-			    .setFile(null) // currently no existing files can be attached
-			    .setFileData(fileDatas[i].getId())
-			    .setFileName(aes.encryptUtf8(fileSessionKey, attachments[i].getName(), true))
-			    .setMimeType(aes.encryptUtf8(fileSessionKey, attachments[i].getMimeType(), true))
-			    .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
-			    .setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
-			service.getAttachments().push(attachment);
-		}
+    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+        service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service._entityHelper.getSessionKey())); // for sharing the mailbox
+    } else {
+        service.setSharableEncSessionKey(null);
+    }
+    service.setConversationType(conversationType);
+    service.setPreviousMessageId(previousMessageId);
+
+    tutao.util.FunctionUtils.executeSequentially(attachments, function(dataFile, finishedCallback) {
+        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
+            if (exception) {
+                finishedCallback(exception);
+            }
+            var attachment = new tutao.entity.tutanota.Attachment(service)
+                .setFile(null) // currently no existing files can be attached
+                .setFileData(fileData.getId())
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
+                .setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
+            service.getAttachments().push(attachment);
+            finishedCallback();
+        });
+    }, function(exception) {
+        if (exception) {
+            callback(null, exception);
+            return;
+        }
 
 		tutao.tutanota.ctrl.SendMailFacade._handleRecipients(service, toRecipients, ccRecipients, bccRecipients, bucketKey, callback);
 	});
@@ -69,30 +75,25 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 
 /**
  * Uploads the given data files and provides a list of files.
- * @param {Array.<tutao.tutanota.util.DataFile>} dataFiles The data files to upload.
- * @param {function(?Array.<tutao.entity.tutanota.FileData>,tutao.rest.EntityRestException=)} callback Called when finished with the file data ids DataFile.
+ * @param {tutao.tutanota.util.DataFile} dataFile The data file to upload.
+ * @param {Object} sessionKey The session key used to encrypt the file.
+ * @param {function(?tutao.entity.tutanota.FileData,tutao.rest.EntityRestException=)} callback Called when finished with the file data ids DataFile.
  * Receives an exception if the operation fails.
  */
-tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(dataFiles, callback) {
-	var fileDatas = [];
-	tutao.util.FunctionUtils.executeSequentially(dataFiles, function(dataFile, finishedCallback) {
-		tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, function(fileDataId, exception) {
-			if (exception) {
-				finishedCallback(exception);
-				return;
-			}
-			tutao.entity.tutanota.FileData.load(fileDataId, function(fileData, exception) {
-				if (exception) {
-					finishedCallback(exception);
-					return;
-				}
-				fileDatas.push(fileData);
-				finishedCallback();
-			});
-		});
-	}, function(exception) {
-		callback(fileDatas, exception);
-	});
+tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(dataFile, sessionKey, callback) {
+    tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey, function(fileDataId, exception) {
+        if (exception) {
+            callback(null, exception);
+            return;
+        }
+        tutao.entity.tutanota.FileData.load(fileDataId, function(fileData, exception) {
+            if (exception) {
+                callback(null, exception);
+                return;
+            }
+            callback(fileData);
+        });
+    });
 };
 
 /**
