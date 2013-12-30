@@ -14,38 +14,31 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, sessionKey, callb
 			callback(null, exception);
 			return;
 		}
-		// load the file data to get the session key
-		tutao.entity.tutanota.FileData.load(fileDataId, function(fileData, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
-			// create file
-			var fileService = new tutao.entity.tutanota.CreateFileData();
-			fileService._entityHelper.setSessionKey(fileData._entityHelper.getSessionKey());
-			fileService.setFileName(dataFile.getName())
-			    .setMimeType(dataFile.getMimeType())
-			    .setParentFolder(null)
-			    .setFileData(fileDataId);
+        // create file
+        var fileService = new tutao.entity.tutanota.CreateFileData();
+        fileService._entityHelper.setSessionKey(sessionKey);
+        fileService.setFileName(dataFile.getName())
+            .setMimeType(dataFile.getMimeType())
+            .setParentFolder(null)
+            .setFileData(fileDataId);
 
-			var fileListId = tutao.locator.mailBoxController.getUserFileSystem().getFiles();
-			fileService._entityHelper.createListEncSessionKey(fileListId, function(listEncSessionKey, exception) {
-				if (exception) {
-					callback(null, exception);
-					return;
-				}
-                fileService.setGroup(tutao.locator.userController.getUserGroupId())
-                    .setListEncSessionKey(listEncSessionKey)
-				    .setup({}, null, function(createFileReturn, exception) {
-					var fileId = createFileReturn.getFile();
-					if (exception) {
-						callback(null, new tutao.rest.EntityRestException(exception));
-						return;
-					}
-					callback(fileId);
-				});
-			});
-		});
+        var fileListId = tutao.locator.mailBoxController.getUserFileSystem().getFiles();
+        fileService._entityHelper.createListEncSessionKey(fileListId, function(listEncSessionKey, exception) {
+            if (exception) {
+                callback(null, exception);
+                return;
+            }
+            fileService.setGroup(tutao.locator.userController.getUserGroupId())
+                .setListEncSessionKey(listEncSessionKey)
+                .setup({}, null, function(createFileReturn, exception) {
+                var fileId = createFileReturn.getFile();
+                if (exception) {
+                    callback(null, new tutao.rest.EntityRestException(exception));
+                    return;
+                }
+                callback(fileId);
+            });
+        });
 	});
 };
 
