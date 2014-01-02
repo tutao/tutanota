@@ -139,11 +139,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 	self._mailAddress = mailAddress;
 	tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(mailAddress), {}, null, function(saltData, exception) {
 		if (exception) {
-			// execute kdf anyway to avoid that the user easily recognises that the mail address is existing
-			var salt = "1234567890123456789012346789012";
-			tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt, function(hexKey) {
-				callback(exception);
-			});
+			callback(exception);
 			return;
 		}
 		self._hexSalt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
