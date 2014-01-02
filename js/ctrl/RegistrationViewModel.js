@@ -86,6 +86,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 	}, 0);
 	
 	if (authToken) {
+		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER); // initial value before reg data is loaded
 		this.authToken(authToken);
 		var params = {};
 		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
@@ -101,12 +102,17 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 			    self.mobileNumber(data.getMobilePhoneNumber());
 			}
 		});
+	} else {
+		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
 	}
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = function() {
-	if (this.authToken()) return 'Starter';
-	return 'Free';
+	if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+		return 'Free';
+	} else {
+		return 'Starter';
+	}
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING = 0;
