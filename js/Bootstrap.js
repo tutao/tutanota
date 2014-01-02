@@ -137,6 +137,10 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         fastMessageView: tutao.tutanota.gui.FastMessageView,
         // @type {tutao.tutanota.gui.NotSupportedView}
         notSupportedView: tutao.tutanota.gui.NotSupportedView,
+        // @type {tutao.tutanota.gui.PreRegistrationView}
+        preRegistrationView: tutao.tutanota.gui.PreRegistrationView,
+        // @type {tutao.tutanota.ctrl.PreRegistrationViewModel}
+        preRegistrationViewModel: tutao.tutanota.ctrl.PreRegistrationViewModel,
         // @type {tutao.tutanota.gui.RegistrationView}
         registrationView: tutao.tutanota.gui.RegistrationView,
         // @type {tutao.tutanota.ctrl.RegistrationViewModel}

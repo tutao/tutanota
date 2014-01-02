@@ -196,6 +196,8 @@
 	<script type="text/javascript" src="generated/entity/sys/MembershipAddData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PreRegistrationData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PreRegistrationServiceData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationData.js"></script>
@@ -215,8 +217,18 @@
 	<script type="text/javascript" src="generated/entity/sys/StringConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/System.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SystemKeysReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherMail.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherMailAttachment.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherMailData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestCatcherSmsData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestSmsCatcherData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestSmsCatcherReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TestSmsListenerData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestSmsListenerMailData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TestSmsListenerReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/TestSmsListenerSmsData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TimeRangeConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/TimeRangeListConfigValue.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/UpdatePermissionKeyData.js"></script>
@@ -284,6 +296,10 @@
 	<script type="text/javascript" src="generated/entity/tutanota/SendMailReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailData.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/TestMailCatcherAttachment.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/TestMailCatcherData.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/TestMailCatcherMailContact.js"></script>
+	<script type="text/javascript" src="generated/entity/tutanota/TestMailCatcherReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/TutanotaProperties.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureAttachment.js"></script>
 	<script type="text/javascript" src="generated/entity/tutanota/UnsecureRecipient.js"></script>
@@ -327,6 +343,7 @@
 	<script type="text/javascript" src="js/ctrl/MonitorViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Navigator.js"></script>
 	<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/PreRegistrationViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientInfo.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientsNotFoundException.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationDataListViewModel.js"></script>
@@ -366,6 +383,7 @@
 	<script type="text/javascript" src="js/gui/MonitorView.js"></script>
 	<script type="text/javascript" src="js/gui/NotFoundView.js"></script>
 	<script type="text/javascript" src="js/gui/NotSupportedView.js"></script>
+	<script type="text/javascript" src="js/gui/PreRegistrationView.js"></script>
 	<script type="text/javascript" src="js/gui/RegistrationView.js"></script>
 	<script type="text/javascript" src="js/gui/SettingsView.js"></script>
 	<script type="text/javascript" src="js/gui/gui.js"></script>
@@ -1194,17 +1212,65 @@ function touchOrClick(e) {
 				'user agent: ' + navigator.userAgent">
 			</div> -->
 		</div>
+
+        <div id="pre_registration" class="login" data-bind="with: tutao.locator.preRegistrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.preRegistrationView">
+            <div class="welcomeContainer">
+                <div class="panel">
+                    <div class="content">
+                        <h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
+                        <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
+
+                        <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
+                            <div class="record">
+                                <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused"></input>
+                                    </div>
+                                    <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <label for="mailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
+                                        <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+                                    </div>
+                                    <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
+                                    <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg', params: { '$1': domain(), '$2': domain() }"></label>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button id="submitPreRegistration" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
+                                    <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div id="welcomePicture"><div></div></div>
+            </div>
+        </div>
 		
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
 					<div class="content">
+						<h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
 						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE && tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
 							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration1Headline_msg')"></div>
-								
+                                <!-- ko if: getRegistrationType() == 'Free' -->
+                                <h2 data-bind="lang: 'registrationSubHeadlineFree1_msg'"></h2>
+                                <!-- /ko -->
+                                <!-- ko if: getRegistrationType() != 'Free' -->
+                                <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
+                                <!-- /ko -->
 								<form class="recordContainer wide" data-bind="submit: sendSms, form: true">
 									<!-- ko if: getRegistrationType() != 'Free' -->
+                                    <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
 									<div class="record">
 										<label class="recordName" data-bind="lang: 'company_label'"></label>
 										<div class="recordData">
@@ -1305,7 +1371,12 @@ function touchOrClick(e) {
 							<!-- /ko -->
 								
 							<!-- ko if: (getSendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-								<div class="defaultMargin heading" data-bind="text:  'Tutanota ' + getRegistrationType() + ' ' + tutao.lang('registration2Headline_msg')"></div>
+                                <!-- ko if: getRegistrationType() == 'Free' -->
+                                <h2 data-bind="lang: 'registrationSubHeadlineFree2_msg'"></h2>
+                                <!-- /ko -->
+                                <!-- ko if: getRegistrationType() != 'Free' -->
+                                <h2 data-bind="lang: 'registrationSubHeadline3_msg'"></h2>
+                                <!-- /ko -->
 								<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
 									<div class="record">
 										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>

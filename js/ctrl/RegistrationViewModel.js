@@ -4,7 +4,6 @@ goog.provide('tutao.tutanota.ctrl.RegistrationViewModel');
 
 /**
  * The ViewModel for the registration template.
- * TODO (before beta) only load and render the DOM when #registration is active, unload from DOM afterwards
  * @constructor
  */
 tutao.tutanota.ctrl.RegistrationViewModel = function() {
