@@ -640,10 +640,10 @@ function touchOrClick(e) {
 						<!-- ko if: $parent.isComposingState() -->
 							<div class="actions">
 								<div class="confidentialAction">
-									<div class="switch" data-bind="fadeVisible: containsExternalRecipients(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+									<button class="switch" data-bind="fadeVisible: containsExternalRecipients(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
 										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
 										<span data-bind="text: (secure() ? tutao.lang('confidential_action') : tutao.lang('nonConfidential_action'))"></span>
-									</div>
+									</button>
 								</div>
 								<div class="otherActions">
 									<div data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
@@ -656,19 +656,19 @@ function touchOrClick(e) {
 											<!-- ko if: tutao.locator.userController.isInternalUserLoggedIn() -->
 												<div class="headerLine">
 													<div class="name edit" data-bind="lang: 'to_label'"></div>
-													<div class="value edit">
+													<div class="value edit" id="composer_to">
 														<div data-bind='template: { name: "bubbleinput-template",  data: {vm: toRecipientsViewModel, tabindex: 10 } }'></div>
 													</div>
 												</div>
 												<div class="headerLine">
 													<div class="name edit" data-bind="text: getCcFieldLabel()"></div>
-													<div class="value edit">
+													<div class="value edit" id="composer_cc">
 														<div data-bind='template: { name: "bubbleinput-template",  data: {vm: ccRecipientsViewModel, tabindex: 11 } }'></div>
 													</div>
 												</div>
 												<div class="headerLine" data-bind="visible: showCcAndBcc()">
 													<div class="name edit" data-bind="lang: 'bcc_label'"></div>
-													<div class="value edit">
+													<div class="value edit" id="composer_bcc">
 														<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bccRecipientsViewModel, tabindex: 12 } }'></div>
 													</div>
 												</div>
@@ -676,7 +676,7 @@ function touchOrClick(e) {
 											<!-- ko if: tutao.locator.userController.isExternalUserLoggedIn() -->
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'to_label'"></div>
-													<div class="value">
+													<div class="value" id="composer_to">
 														<!-- ko foreach: toRecipientsViewModel.bubbles -->
 															<span data-bind="text: text"></span>
 														<!-- /ko -->
@@ -685,7 +685,7 @@ function touchOrClick(e) {
 											<!-- /ko -->
 											<div class="headerLine">
 												<div class="name edit" data-bind="lang: 'subject_label'"></div>
-												<div class="value edit">
+												<div class="value edit" id="composer_subject">
 													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused" tabindex="20"></input>
 												</div>
 											</div>
@@ -2048,13 +2048,13 @@ function touchOrClick(e) {
 						<!-- ko if: (tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) -->
 							<li>
 								<!-- ko if: getActiveView() == tutao.locator.mailView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
+									<div id="menu_mail_new" class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newMail(); }, 0); }">
 										<div class="menu_image"><div class="imgButton mail-new" data-bind="attr: {title: tutao.lang('newMail_alt')}"></div></div>
 										<div class="menu_text" data-bind="lang: 'new_label'"></div>
 									</div>
 								<!-- /ko -->
 								<!-- ko ifnot: getActiveView() == tutao.locator.mailView -->
-									<div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
+									<div id="menu_mail" class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.mail(); }, 0); }">
 										<div class="menu_image"><div class="imgButton mail" data-bind="attr: {title: tutao.lang('emails_alt')}"></div></div>
 										<div class="menu_text" data-bind="lang: 'emails_label'"></div>
 									</div>
@@ -2122,7 +2122,7 @@ function touchOrClick(e) {
 		<div class="buttonBar">
 			<div class="outerButtons" data-bind="style: { right: (hasMoreButton()) ? '55px' : '0px' }">
 				<div class="innerButtons" data-bind="domInit: domButtons">
-					<!-- ko foreach: visibleButtons() --><button data-bind="text: getLabel(), fastClick: click" tabindex="1000"></button><!-- /ko -->
+					<!-- ko foreach: visibleButtons() --><button data-bind="text: getLabel(), fastClick: click, attr: {'id': id}" tabindex="1000"></button><!-- /ko -->
 					<div style="clear: right;"></div>
 				</div>
 			</div>

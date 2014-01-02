@@ -38,9 +38,9 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 		} else {
 			var self = this;
 			return [
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("attachFiles_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, this.attachSelectedFiles, true),
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("send_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, this.sendMail),
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { self.cancelMail(false); })
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("attachFiles_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, this.attachSelectedFiles, true, "composer_attach"),
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("send_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, this.sendMail, false, "composer_send"),
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { self.cancelMail(false); }, false, "composer_cancel")
 			        ];
 
 		}

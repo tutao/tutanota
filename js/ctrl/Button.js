@@ -9,14 +9,16 @@ goog.provide('tutao.tutanota.ctrl.Button');
  * @param {number} visibility One of tutao.tutanota.ctrl.Button.VISIBILITY_*.
  * @param {function} clickCallback Is called when the button is clicked.
  * @param {boolean=} directClick True if the click event shall not be deferred by a setTimeout (needed to avoid alert/confirm popup bugs).
+ * @param {string=} id The id to set for the button.
  */
-tutao.tutanota.ctrl.Button = function(label, visibility, clickCallback, directClick) {
+tutao.tutanota.ctrl.Button = function(label, visibility, clickCallback, directClick, id) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._label = label;
 	this._visibility = visibility;
 	this._clickCallback = clickCallback;
 	this._directClick = (directClick) ? true : false;
 	this.width = ko.observable(null); // is set by setDomWidth binding
+    this.id = id;
 };
 
 /**
