@@ -116,6 +116,15 @@ tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(v
 tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 	var self = this;
 	// configure all routes
+    Path.map("#pre-register-starter").to(function() {
+        if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
+            tutao.tutanota.Bootstrap.init();
+        }
+        if (self.verifyClientSupported()) {
+            tutao.locator.viewManager.select(tutao.locator.preRegistrationView, {});
+        }
+    });
+
 	Path.map("#register(/:parameters)").to(function() {
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();

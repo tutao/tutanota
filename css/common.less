@@ -333,9 +333,19 @@ button {
 			border: 1px solid @button-border;
 		}
 	}
+
+    &.switch {
+      > div.imgButton {
+        height: 20px;
+        width: 20px;
+      }
+      &.off {
+        background-color: @red;
+      }
+    }
 	
 	&:active {
-		background-color:@background-dark; 
+		background-color: @button-active-background;
 	}
 	
 	&.disabled {
@@ -358,6 +368,7 @@ button {
 	    box-shadow:0 0 10px @focus-blue !important;
 	}
 }
+
 
 div.simplebutton {
 	display: inline-block;
@@ -391,43 +402,6 @@ div.menuItem {
 	&.active {
 		background-color: @highlight-color;
 		background-clip: padding-box;
-	}
-}
-
-/***************************************
-  * Switch
-  **************************************/
-  
-div.switch {
-	.light;
-	display: inline-block;
-	height: 35px;
-	padding-left: 10px;
-	padding-right: 10px;
-	border: 1px solid @button-border;;
-	line-height: 35px;
-	text-decoration: none;
-	cursor: pointer;
-	.nonSelectable;
-	.fadeTextOut;
-	background-color: @button-background;
-	
-	> div.imgButton {
-		height: 20px;
-		width: 20px;
-	}
-	
-	&:active {
-		background-color: @button-active-background;
-	}
-	
-	&.off {
-		background-color: @red;
-	}
-	
-	&:focus, &.focus {
-	    border-color: @focus-blue !important;
-	    box-shadow:0 0 10px @focus-blue !important;
 	}
 }
 
@@ -561,6 +535,10 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 		}
 		
 	}
+}
+
+.infoMessage {
+
 }
 
 div.pwStrengthBg {

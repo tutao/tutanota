@@ -24,8 +24,13 @@ tutao.tutanota.util.FileUtils.showFileChooser = function(callback) {
 	});
 	// the file input must be put into the dom, otherwise it does not work in IE
 	$("body").get(0).appendChild(fileInput);
-	fileInput.click();
+    if (!tutao.tutanota.util.FileUtils.WATIR_MODE) {
+	    fileInput.click();
+    }
 };
+
+// this flag disables showing the file chooser when running with watir as watir handles file uploads in another way
+tutao.tutanota.util.FileUtils.WATIR_MODE = false;
 
 /**
  * Loads the content of the given file into an ArrayBuffer.

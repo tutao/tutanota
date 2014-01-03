@@ -3,7 +3,7 @@
 goog.provide('tutao.tutanota.util.DataFile');
 
 /**
- * A data file contains the file name and the content of the file (unencrypted).
+ * A data file contains the file name, the content of the file (unencrypted) and the session key.
  * @param {ArrayBuffer|String} data The content of the file as ArrayBuffer or as base64 string in LEGACY mode.
  * @param {File|tutao.entity.tutanota.File} file The file.
  * @constructor
@@ -13,6 +13,7 @@ tutao.tutanota.util.DataFile = function(data, file) {
 		this._name = file.getName();
 		this._mimeType = file.getMimeType();
 		this._id = file.getId();
+        this._sessionKey = file._entityHelper.getSessionKey();
 	} else { // instanceof File, must be in else block as IE 8/9 do not support the type File (and they use only tutao.entity.tutanota.File)
 		this._name = file.name;
 		if (file.type && file.type !== "") {
@@ -21,6 +22,7 @@ tutao.tutanota.util.DataFile = function(data, file) {
 			this._mimeType = "application/octet-stream";
 		}
 		this._id = null; // file read from filesystem, does not have an id because it has not been stored in tutanota.
+        this._sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 	}
 	this._data = data;
 };
@@ -63,4 +65,12 @@ tutao.tutanota.util.DataFile.prototype.getSize = function() {
  */
 tutao.tutanota.util.DataFile.prototype.getId = function() {
 	return this._id;
+};
+
+/**
+ * Provides the session key of the file.
+ * @return {Object} The session key to be used for the file.
+ */
+tutao.tutanota.util.DataFile.prototype.getId = function() {
+    return this._id;
 };
