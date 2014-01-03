@@ -69,6 +69,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	        this._addMonitorGroup(sentSmsGroup, "SentSmsRegistration", "global", VALUE);
 	        this._addMonitorGroup(sentSmsGroup, "SentSmsPasswordChange", "global", VALUE);
 	        this._addMonitorGroup(sentSmsGroup, "SentSmsMail", "global", VALUE);
+	        this._addMonitorGroup(sentSmsGroup, "SentSmsMonitoring", "global", VALUE);
 	    var smsRuntimeGroup = this._addGroupToView(globalView, "SMS runtime");
 	    	this._addMonitorGroup(smsRuntimeGroup, "SmsRuntime-smskaufen", "global", NO_COUNTER);
 	    	this._addMonitorGroup(smsRuntimeGroup, "SmsRuntime-smskaufen-D1", "global", NO_COUNTER);
@@ -138,6 +139,8 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
             this._addMonitorGroup(emailsGroup, "SentSecureExternalMails", "customer", VALUE); 
             this._addMonitorGroup(emailsGroup, "SentUnsecureExternalMails", "customer", VALUE); 
             this._addMonitorGroup(emailsGroup, "ReceivedExternalMails", "customer", VALUE); 
+        var smsGroup = this._addGroupToView(customerView, "SMS");
+        	this._addMonitorGroup(smsGroup, "SentSms", "customer", VALUE);
         var memoryGroup = this._addGroupToView(customerView, "Memory");
         	this._addMonitorGroup(memoryGroup, "UsedMemory", "customer", VALUE);
     var userView = this._addCounterView("user");
@@ -188,6 +191,8 @@ tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_VALUE = 0; // counter value is sh
 tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF = 1; // counter value is shown, difference of of snapshot value to last one is shown in diagram (applies to monitor type Single)
 tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_NO_COUNTER = 2; // no counter value is shown, snapshot values are directly shown in diagram (applies to monitor type Direct)
 
+tutao.tutanota.ctrl.MonitorViewModel.GLOBAL_MONITOR_ID = "-----------0";
+
 tutao.tutanota.ctrl.MonitorViewModel.prototype._addCounterView = function(name) {
 	var view = { name: name, groups: [] };
 	this._diagramViews.push(view);
@@ -228,11 +233,11 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._addMonitorGroup = function(group
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._getOwnerId = function(owner) {
 	if (owner == "global") {
-		return "-----------0";
+		return tutao.tutanota.ctrl.MonitorViewModel.GLOBAL_MONITOR_ID;
 	} else if (tutao.util.StringUtils.startsWith(owner, "server_")) {
 		return this._serverIds[Number(owner.substring(7))];
 	} else {
-		if (this.owner().length != 14) {
+		if (this.owner().length != tutao.rest.EntityRestInterface.GENERATED_MIN_ID.length) {
 			return null;
 		} else {			
 			return this.owner();
