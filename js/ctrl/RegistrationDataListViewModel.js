@@ -55,10 +55,12 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getStateName = funct
 	if (stateId == "0") {
 		return "Initial";
 	} else if (stateId == "1") {
+        return "DomainVerified";
+    } else if (stateId == "2") {
 		return "CodeSent";
-	} else if (stateId == "2") {
-		return "CodeVerified";
 	} else if (stateId == "3") {
+		return "CodeVerified";
+	} else if (stateId == "4") {
 		return "Registered";
 	}
 };
