@@ -103,7 +103,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype.showSelected = function() {
 	var idType = this._getIdType(this.type());
 	var id = this.id();
 	// treat the custom ids of some special types as strings, all others as the custom id default type base64url
-	if (idType == "CustomId" && (this.type().name == "MailAddressToGroup" || this.type().name == "CounterSnapshotSeries")) {
+	if (idType == "CustomId" && (this.type().name == "MailAddressToGroup" || this.type().name == "CounterSnapshotSeries" || this.type().name == "DomainToCustomer")) {
 		id = tutao.rest.EntityRestInterface.stringToCustomId(this.id());
 	}
 	this.showInstance(this.type(), this.listId(), id);

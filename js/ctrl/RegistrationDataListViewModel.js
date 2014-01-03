@@ -13,7 +13,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	
 	this.company = ko.observable("");
 	this.domain = ko.observable("");
-	this.accountTypes = [{id: '2', name: 'Starter'}];
+	this.accountTypes = [{id: '2', name: 'Starter'}, {id: '1', name: 'Free'}];
 	this.selectedAccountType = ko.observable("");
 	this.groupName = ko.observable("");
 	this.mobilePhoneNumber = ko.observable("");
