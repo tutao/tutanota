@@ -417,8 +417,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
 							    .setAdminEncCustomerSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerSessionKey))
 							    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, clientKey))
-							    .setCustomerBucketEncCustomerSessionKey(tutao.locator.aesCrypter.encryptKey(customerBucketKey, customerSessionKey))
-							    .setSystemAdminPubEncCustomerBucketKey(systemAdminPubEncCustomerBucketKey)
+							    .setCustomerInfoBucketEncCustomerInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerBucketKey, customerSessionKey))
+							    .setSystemAdminPubEncCustomerInfoBucketKey(systemAdminPubEncCustomerBucketKey)
 							    .setSystemAdminPubKeyVersion(systemAdminPubKeyVersion)
 							    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
 							    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))

@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.CustomerViewModel = function() {
  * Shows the customer list.
  */
 tutao.tutanota.ctrl.CustomerViewModel.prototype.listFreeCustomers = function() {
-	this.displayed("listCustomers");
+	this.displayed("listFreeCustomers");
 	this.customerListViewModel.type('free');
 };
 
@@ -53,7 +53,7 @@ tutao.tutanota.ctrl.CustomerViewModel.prototype.listFreeCustomers = function() {
  * Shows the customer list.
  */
 tutao.tutanota.ctrl.CustomerViewModel.prototype.listStarterCustomers = function() {
-	this.displayed("listCustomers");
+	this.displayed("listStarterCustomers");
 	this.customerListViewModel.type('starter');
 };
 
@@ -61,7 +61,7 @@ tutao.tutanota.ctrl.CustomerViewModel.prototype.listStarterCustomers = function(
  * Shows the customer list.
  */
 tutao.tutanota.ctrl.CustomerViewModel.prototype.listPremiumCustomers = function() {
-	this.displayed("listCustomers");
+	this.displayed("listPremiumCustomers");
 	this.customerListViewModel.type('premium');
 };
 

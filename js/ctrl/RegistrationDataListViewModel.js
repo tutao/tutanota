@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.showSelected = funct
  * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
  * @param {string} upperBoundId The id of upper limit (base64 encoded)
  * @param {boolean} reverse If the entries shall be loaded reverse.
- * @param {function(Array.<tutao.entity.sys.Customer>)} callback Will be called with the list of customers. 
+ * @param {function(Array.<tutao.entity.sys.RegistrationData>)} callback Will be called with the list of customers.
  */
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype._loadRegistrationDataEntries = function(upperBoundId, reverse, callback) {
 	var self = this;
