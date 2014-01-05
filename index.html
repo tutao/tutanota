@@ -176,9 +176,9 @@
 	<script type="text/javascript" src="generated/entity/sys/CreateGroupListData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Customer.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerData.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/CustomerEditable.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerInfo.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/CustomerInfoEditable.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerInfoReturn.js"></script>
-	<script type="text/javascript" src="generated/entity/sys/CustomerReference.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/CustomerReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/EntityUpdate.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Exception.js"></script>
@@ -1204,46 +1204,42 @@ function touchOrClick(e) {
 			</div> -->
 		</div>
 
-        <div id="pre_registration" class="login" data-bind="with: tutao.locator.registrationVerifyDomainViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationVerifyDomainView">
+        <div id="pre_registration" class="login" data-bind="with: tutao.locator.preRegistrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.preRegistrationView">
             <div class="welcomeContainer">
                 <div class="panel">
                     <div class="content">
                         <h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
                         <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
-                        <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
-                                <div class="record">
-                                    <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused"></input>
-                                        </div>
-                                        <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
+
+                        <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
+                            <div class="record">
+                                <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused"></input>
                                     </div>
+                                    <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
                                 </div>
-                                <div class="record">
-                                    <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <label for="mailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
-                                            <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
-                                        </div>
-                                        <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
-                                        <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg', params: { '$1': domain(), '$2': domain() }"></label>
+                            </div>
+                            <div class="record">
+                                <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <label for="mailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
+                                        <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
                                     </div>
+                                    <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
+                                    <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg', params: { '$1': domain(), '$2': domain() }"></label>
                                 </div>
-                                <div class="record">
-                                    <div class="recordName"></div>
-                                    <div class="formAction">
-                                        <button id="submitPreRegistration" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
-                                        <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
-                                    </div>
+                            </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button id="submitPreRegistration" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
+                                    <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
                                 </div>
-                            </form>
-                        <!-- /ko -->
-                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="infoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': domain() }"></div>
-                        <!-- /ko -->
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <div id="welcomePicture"><div></div></div>
@@ -1270,7 +1266,7 @@ function touchOrClick(e) {
 										<label class="recordName" data-bind="lang: 'company_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-                                                <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName"></input>
+												<div id="companyName" data-bind="text: companyName"></div>
 											</div>
 										</div>
 									</div>
@@ -1278,7 +1274,7 @@ function touchOrClick(e) {
 										<label class="recordName" data-bind="lang: 'invoiceAddress_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-                                                <textarea class="inputField wide" id="companyName" rows="3" data-bind="enable: isFormEditable(), value: invoiceAddress"></textarea>
+												<div id="invoiceAddress" data-bind="text: invoiceAddress"></div>
 											</div>
 										</div>
 									</div>
@@ -1763,9 +1759,7 @@ function touchOrClick(e) {
 						   <thead>
       							<tr>
 									<th class="small">ID</th>
-                                    <th class="small">sent</th>
 									<th class="medium">company</th>
-                                    <th class="medium">lang</th>
 									<th class="medium">type</th>
 									<th class="medium">state</th>
 									<th class="medium">email user name</th>
@@ -1780,9 +1774,7 @@ function touchOrClick(e) {
 								<!-- ko foreach: registrationDataList -->
       							<tr>
 								    <td class="small"><a target="_blank" data-bind="attr: {href: $parent.getUrl(getId()[1])}">Link</a></td>
-                                    <td class="small" data-bind="attr: {title: getDomainVerificationMailSentOn() != null ? tutao.tutanota.util.Formatter.formatDateTime(getDomainVerificationMailSentOn()) : ''}"><a data-bind="click: $parent.sentDomainVerificationMail, text: getDomainVerificationMailSentOn() != null"></a></td>
 									<td class="medium" data-bind="text: getCompany()"></td>
-                                    <td class="medium" data-bind="text: getLanguage()"></td>
 									<td class="medium" data-bind="text: $parent.getAccountTypeName(getAccountType())"></td>
 									<td class="medium" data-bind="text: $parent.getStateName(getState())"></td>
 									<td class="medium" data-bind="text: getGroupName()"></td>
@@ -1795,9 +1787,7 @@ function touchOrClick(e) {
 								<!-- /ko -->
 								<tr>
 								    <td class="small"></td>
-                                    <td class="small"></td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: company"></input></td>
-                                    <td class="small"><select class="inputField" data-bind="options: ['de', 'en'], value: language"></select></td>
 									<td class="medium"><select class="inputField" data-bind="options: accountTypes, optionsText: 'name', optionsValue: 'id', value: selectedAccountType"></select></td>
 									<td class="medium">initial</td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName"></input></td>
