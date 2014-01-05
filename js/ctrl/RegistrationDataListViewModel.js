@@ -14,6 +14,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	this.company = ko.observable("");
 	this.domain = ko.observable("");
 	this.accountTypes = [{id: '2', name: 'Starter'}, {id: '1', name: 'Free'}];
+    this.language = ko.observable("de");
 	this.selectedAccountType = ko.observable("");
 	this.groupName = ko.observable("");
 	this.mobilePhoneNumber = ko.observable("");
@@ -54,13 +55,11 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getAccountTypeName =
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getStateName = function(stateId) {
 	if (stateId == "0") {
 		return "Initial";
-	} else if (stateId == "1") {
-        return "DomainVerified";
-    } else if (stateId == "2") {
+    } else if (stateId == "1") {
 		return "CodeSent";
-	} else if (stateId == "3") {
+	} else if (stateId == "2") {
 		return "CodeVerified";
-	} else if (stateId == "4") {
+	} else if (stateId == "3") {
 		return "Registered";
 	}
 };
@@ -72,6 +71,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.getStateName = funct
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
 	var regData = new tutao.entity.sys.RegistrationServiceData()
 		.setAccountType(this.selectedAccountType())
+        .setLanguage(this.language())
 		.setCompany(this.company())
 		.setDomain(this.domain())
 		.setGroupName(this.groupName())
@@ -103,6 +103,30 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.remove = function(el
 		this.registrationDataList.remove(element);
 	}
 	return false;
+};
+
+/**
+ * sends the domain verification mail to the requesting user
+ */
+tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.sentDomainVerificationMail = function(element) {
+    if (tutao.tutanota.gui.confirm("Really send domain verification mail?")) {
+        var input = new tutao.entity.sys.RegistrationVerifyDomainDataPut()
+            .setAuthToken(element.getId()[1]);
+        input.update({}, null, function(ret, exception) {
+            if (exception) {
+                console.log(exception);
+            } else {
+                tutao.entity.sys.RegistrationData.load(element.getId(), function(regData, exception) {
+                    if (exception) {
+                        console.log(exception);
+                    } else {
+                        element.setDomainVerificationMailSentOn(regData.getDomainVerificationMailSentOn());
+                    }
+                });
+            }
+        });
+    }
+    return false;
 };
 
 /**

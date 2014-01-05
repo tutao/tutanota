@@ -116,7 +116,7 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.storeConfig = function() {
 		return;
 	}
 	var self = this;
-	data.update({}, null, function(exception) {
+	data.update({}, null, function(ret, exception) {
 		if (exception) {
 			self.submitStatus("error: " + exception.message);
 			return;

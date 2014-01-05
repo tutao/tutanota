@@ -121,7 +121,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
             tutao.tutanota.Bootstrap.init();
         }
         if (self.verifyClientSupported()) {
-            tutao.locator.viewManager.select(tutao.locator.preRegistrationView, {});
+            tutao.locator.viewManager.select(tutao.locator.registrationVerifyDomainView, {});
         }
     });
 
