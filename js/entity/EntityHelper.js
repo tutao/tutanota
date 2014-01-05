@@ -356,7 +356,7 @@ tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId, 
  */
 tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, groupKey, callback) {
 	var self = this;
-	this._loadBucketPermissions(permission.getBucket(), function(bucketPermissions, exception) {
+	this._loadBucketPermissions(permission.getBucket().getBucketPermissions(), function(bucketPermissions, exception) {
 		if (exception) {
 			callback(null, exception);
 			return;
