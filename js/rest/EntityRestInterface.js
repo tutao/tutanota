@@ -100,6 +100,17 @@ tutao.rest.EntityRestInterface.prototype.postService = function(path, element, p
 tutao.rest.EntityRestInterface.prototype.putElement = function(path, element, parameters, headers, callback) { };
 
 /**
+ * Puts to a service.
+ * @param {string} path The path including prefix, app name and type name.
+ * @param {Object} element the object to store.
+ * @param {?Object} parameters The parameters to send with this request.
+ * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
+ * @param {?Object} returnType Type of the data that is returned.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Provides the response entity from the server or an exception if the rest call failed.
+ */
+tutao.rest.EntityRestInterface.prototype.putService = function(path, element, parameters, headers, returnType, callback) { };
+
+/**
  * Creates a new list on the server and provides its id.
  * @param {string} path The path including prefix, app name and type name.
  * @param {?Object} parameters The parameters to send with this request.

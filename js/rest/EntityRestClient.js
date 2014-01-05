@@ -146,6 +146,24 @@ tutao.rest.EntityRestClient.prototype.putElement = function(path, element, param
 /**
  * @inheritDoc
  */
+tutao.rest.EntityRestClient.prototype.putService = function(path, element, parameters, headers, returnType, callback) {
+    var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
+    tutao.locator.restClient.putElement(url, headers, JSON.stringify(element.toJsonData()), function(returnData, exception) {
+        if (exception) {
+            callback(null, new tutao.rest.EntityRestException(exception));
+        } else {
+            if (returnType) {
+                callback(new returnType(returnData));
+            } else {
+                callback(null);
+            }
+        }
+    });
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.rest.EntityRestClient.prototype.postList = function(path, parameters, headers, callback) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
 	tutao.locator.restClient.postElement(url, headers, "", function(returnEntity, exception) {

@@ -245,6 +245,13 @@ tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parame
 /**
  * @inheritDoc
  */
+tutao.rest.EntityRestCache.prototype.putService = function(path, element, parameters, headers, returnType, callback) {
+    this._target.putService(path, element, parameters, headers, returnType, callback);
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.rest.EntityRestCache.prototype.postList = function(path, parameters, headers, callback) {
 	this._target.postList(path, parameters, headers, callback);
 };

@@ -83,6 +83,13 @@ tutao.rest.EntityRestDummy.prototype.putElement = function(path, element, parame
 /**
  * @inheritDoc
  */
+tutao.rest.EntityRestDummy.prototype.putService = function(path, element, parameters, headers, returnType, callback) {
+    callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+};
+
+/**
+ * @inheritDoc
+ */
 tutao.rest.EntityRestDummy.prototype.postList = function(path, parameters, headers, callback) {
 	callback(new tutao.entity.base.PersistenceResourcePostReturn({generatedId: this._getNextId(), permissionListId: this._getNextId()}));
 };
