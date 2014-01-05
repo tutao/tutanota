@@ -26,7 +26,7 @@ tutao.tutanota.ctrl.MailBoxController = function() {
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback) {
 	var self = this;
-	this._loadMailBox(function(exception) {
+	this._loadMailBox(function(mailBox, exception) {
 		if (exception) {
 			callback(exception);
 			return;
@@ -55,7 +55,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback)
 /**
  * Loads the mailbox for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)}
+ * @param {function(tutao.entity.tutanota.MailBox=, tutao.rest.EntityRestException=)}
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback) {
@@ -63,38 +63,13 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback
 	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.MailBox.ROOT_INSTANCE_ID];
 	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
 		if (exception) {
-			callback(exception);
+			callback(null, exception);
 		} else {
 			tutao.entity.tutanota.MailBox.load(root.getReference(), function(mailBox, exception) {
 				self._mailBox = mailBox;
-				callback();
+				callback(mailBox);
 			});
 		}
-	});
-};
-
-/**
- *
- * @param {function(tutao.rest.EntityRestException=)}
- *            callback Called when finished.
- */
-tutao.tutanota.ctrl.MailBoxController.prototype.deleteMailBox = function(callback) {
-	var self = this;
-	this._loadMailBox(function(exception) {
-		if (exception) {
-			callback(exception);
-			return;
-		}
-		tutao.entity.tutanota.Mail.loadRange(self.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(mails, ex) {
-			if (ex) {
-				callback(ex);
-				return;
-			}
-			for (var i = 0; i < mails.length; i++) {
-				mails[i].erase(function() {});
-			}
-			callback();
-		});
 	});
 };
 

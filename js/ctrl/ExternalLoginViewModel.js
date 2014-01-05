@@ -413,7 +413,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
     var input = new tutao.entity.tutanota.PasswordRetrievalData()
         .setAutoAuthenticationId(this.autoAuthenticationId());
 	var self = this;
-	tutao.entity.tutanota.PasswordRetrievalReturn.load(input, {}, null, function(passwordRetrievalReturn, exception) {
+	tutao.entity.tutanota.PasswordRetrievalReturn.load(input, {}, this._getAuthHeaders(), function(passwordRetrievalReturn, exception) {
 		if (exception) {
 			self.sendPasswordStatus({ type: "invalid", text: "smsError_msg" });
 		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
