@@ -71,7 +71,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 		callback(this._entity);
 		return;
 	}
-	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey().length != 0) {
+	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) { // check that it is a list element type and that the list key is set
 		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (exception) {
 				callback(null, exception);
