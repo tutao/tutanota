@@ -12,7 +12,6 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.authToken = ko.observable("");
 	this.accountType = ko.observable(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
 	this.companyName = ko.observable("");
-	this.invoiceAddress = ko.observable("");
 	this.domain = ko.observable("tutanota.de");
 	this.name = ko.observable("");
 	this.nameFieldFocused = ko.observable("");
@@ -93,7 +92,6 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 			if (!exception && (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL || 
 					data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT)) {
 			    self.accountType(data.getAccountType());
-			    self.invoiceAddress(data.getInvoiceAddress());
 			    self.domain(data.getDomain());
 			    self.companyName(data.getCompany());
 			    self.name(data.getGroupName());
@@ -376,8 +374,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 							callback(exception);
 							return;
 						}
-						var customerSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-						var customerBucketKey = tutao.locator.aesCrypter.generateRandomKey();
+                        var accountingInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+						var accountingInfoBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 
 						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
 
@@ -385,7 +383,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
 						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
-						tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(customerBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
+						tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(accountingInfoBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
 							self._keyGenProgress(97);
 							if (exception) {
 								callback(exception);
@@ -396,8 +394,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
                             var customerService = new tutao.entity.sys.CustomerData()
 							    .setAuthToken(self.authToken())
-							    .setCompany(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.companyName(), true))
-							    .setInvoiceAddress(tutao.locator.aesCrypter.encryptUtf8(customerSessionKey, self.invoiceAddress(), true))
+							    .setCompany(self.companyName())
 							    .setDomain(self.domain())
                                 .setAdminGroupList(new tutao.entity.sys.CreateGroupListData()
                                     .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
@@ -415,10 +412,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
                                     .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
                                     .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
 
-							    .setAdminEncCustomerSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerSessionKey))
+                                .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
 							    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, clientKey))
-							    .setCustomerInfoBucketEncCustomerInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerBucketKey, customerSessionKey))
-							    .setSystemAdminPubEncCustomerInfoBucketKey(systemAdminPubEncCustomerBucketKey)
+                                .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
+							    .setSystemAdminPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
 							    .setSystemAdminPubKeyVersion(systemAdminPubKeyVersion)
 							    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
 							    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))

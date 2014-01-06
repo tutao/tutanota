@@ -162,6 +162,7 @@
 	<script type="text/javascript" src="generated/entity/monitor/LogEntry.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/ReadCounterData.js"></script>
 	<script type="text/javascript" src="generated/entity/monitor/ReadCounterReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/AccountingInfo.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AuthenticatedDevice.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Authentication.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/AutoLoginDataDelete.js"></script>
@@ -1269,14 +1270,6 @@ function touchOrClick(e) {
 										</div>
 									</div>
 									<div class="record">
-										<label class="recordName" data-bind="lang: 'invoiceAddress_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-                                                <textarea class="inputField wide" id="companyName" rows="3" data-bind="enable: isFormEditable(), value: invoiceAddress"></textarea>
-											</div>
-										</div>
-									</div>
-									<div class="record">
 										<label class="recordName" data-bind="lang: 'domain_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
@@ -1764,7 +1757,6 @@ function touchOrClick(e) {
 									<th class="medium">state</th>
 									<th class="medium">email user name</th>
 									<th class="medium">mobile number</th>
-									<th class="medium">invoice address</th>
 									<th class="medium">domain</th>
 									<th class="medium">mail address</th>
 									<th class="mini" title="Action">A</th>
@@ -1781,7 +1773,6 @@ function touchOrClick(e) {
 									<td class="medium" data-bind="text: $parent.getStateName(getState())"></td>
 									<td class="medium" data-bind="text: getGroupName()"></td>
 									<td class="medium" data-bind="text: getMobilePhoneNumber()"></td>
-									<td class="medium" data-bind="text: getInvoiceAddress()"></td>
 									<td class="medium" data-bind="text: getDomain()"></td>
 									<td class="medium" data-bind="text: getMailAddress()"></td>
 									<td class="mini"><a data-bind="click: $parent.remove">D</a></td>
@@ -1796,7 +1787,6 @@ function touchOrClick(e) {
 									<td class="medium">initial</td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName"></input></td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: mobilePhoneNumber"></input></td>
-									<td class="medium"><textarea class="inputField" rows="4" data-bind="value: invoiceAddress"></textarea></td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: domain"></input></td>
 									<td class="medium"><input class="inputField" type="text" data-bind="value: mailAddress"></input></td>
 									<td class="mini"><a data-bind="click: add">A</a></td>

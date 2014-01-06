@@ -19,7 +19,6 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	this.groupName = ko.observable("");
 	this.mobilePhoneNumber = ko.observable("");
 	this.phoneNumber = ko.observable("");
-	this.invoiceAddress = ko.observable("");
 	this.mailAddress = ko.observable("");
 	
 	this._listId = ko.observable(systemInstance.getRegistrationDataList());
@@ -32,7 +31,6 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.reset = function() {
 	this.groupName("");
 	this.mobilePhoneNumber("");
 	this.phoneNumber("");
-	this.invoiceAddress("");
 	this.mailAddress("");
 };
 
@@ -76,7 +74,6 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
 		.setDomain(this.domain())
 		.setGroupName(this.groupName())
 		.setMobilePhoneNumber(this.mobilePhoneNumber())
-		.setInvoiceAddress(this.invoiceAddress())
 		.setMailAddress(this.mailAddress())
 		.setState(tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL);
 	var self = this;
