@@ -32,11 +32,13 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.editUser = function(userGro
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [event.currentTarget];
 	tutao.tutanota.gui.select(this._selectedDomElements);
+    tutao.locator.settingsView.showChangeSettingsDetailsColumn();
 };
 
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.removeSelection = function() {
 	this.editing(null);
+    this.newViewModel(null);
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [];
 };
@@ -61,6 +63,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccounts = function() {
 	this.editing(null);
 	this.newViewModel(new tutao.tutanota.ctrl.AdminUserAddViewModel(this));
+    tutao.locator.settingsView.showChangeSettingsDetailsColumn();
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {

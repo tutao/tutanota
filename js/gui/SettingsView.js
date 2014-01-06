@@ -87,6 +87,7 @@ tutao.tutanota.gui.SettingsView.prototype.windowSizeChanged = function(width, he
 
 tutao.tutanota.gui.SettingsView.COLUMN_SETTINGS = 0;
 tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS = 1;
+tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS = 2;
 
 /**
  * @inherit
@@ -116,7 +117,7 @@ tutao.tutanota.gui.SettingsView.prototype.showNeighbourColumn = function(left) {
  */
 tutao.tutanota.gui.SettingsView.prototype.isShowNeighbourColumnPossible = function(left) {
 	if (left) {
-		return (this._leftmostVisibleColumn() == tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS); 
+		return (this._leftmostVisibleColumn() == tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS);
 	} else {
 		return false;
 	}
@@ -130,4 +131,11 @@ tutao.tutanota.gui.SettingsView.prototype.showChangeSettingsColumn = function() 
 	if (this._changeSettingsScroller) {
 		this._changeSettingsScroller.refresh();
 	}
+};
+
+/**
+ * Makes sure that the change settings details column is visible.
+ */
+tutao.tutanota.gui.SettingsView.prototype.showChangeSettingsDetailsColumn = function() {
+    this._viewSlider.showViewColumn(tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS);
 };

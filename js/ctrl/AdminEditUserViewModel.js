@@ -30,12 +30,14 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
 			console.log(exception);
 		} else {
             self.adminUserListViewModel.updateUserGroupInfo();
+            tutao.locator.settingsView.showChangeSettingsColumn();
 		}
 	});
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.cancel = function() {
     this.adminUserListViewModel.removeSelection();
+    tutao.locator.settingsView.showChangeSettingsColumn();
 };
 
 
@@ -54,6 +56,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
                         console.log(exception);
                     } else {
                         self.adminUserListViewModel.updateUserGroupInfo();
+                        tutao.locator.settingsView.showChangeSettingsColumn();
                     }
                 });
         }
