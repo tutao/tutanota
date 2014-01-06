@@ -1221,11 +1221,10 @@ function touchOrClick(e) {
                                     <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <label for="mailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
                                             <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
                                         </div>
                                         <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
-                                        <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg', params: { '$1': domain(), '$2': domain() }"></label>
+                                        <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg'"></label>
                                     </div>
                                 </div>
                                 <div class="record">
@@ -1297,6 +1296,19 @@ function touchOrClick(e) {
 											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
 										</div>
 									</div>
+                                    <!-- ko if: getRegistrationType() != 'Free' -->
+                                    <div class="record">
+                                        <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+                                            </div>
+                                            <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+                                            <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
+                                    <!-- ko if: getRegistrationType() == 'Free' -->
 									<div class="record">
 										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
 										<div class="recordData">
@@ -1307,6 +1319,7 @@ function touchOrClick(e) {
 											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
 										</div>
 									</div>
+                                    <!-- /ko -->
 									<div class="record">
 										<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
 										<div class="recordData">

@@ -34,8 +34,6 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.password2 = ko.observable("");
 	this.termsAccepted = ko.observable(false);
 
-	this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH));
-
 	this.oldName = "";
 	this.name.subscribe(function(newValue) {
 		if ((this.mailAddressPrefix() == "" || this.mailAddressPrefix().toLowerCase() == this._getMailAddressFromName(this.oldName)) && this.name() != "") {
@@ -85,6 +83,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 	
 	if (authToken) {
 		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER); // initial value before reg data is loaded
+        this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, 1));
 		this.authToken(authToken);
 		var params = {};
 		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
@@ -101,6 +100,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 		});
 	} else {
 		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+        this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH));
 	}
 };
 
@@ -460,7 +460,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier = function(s
 
 		var cleanedValue = newValue.toLowerCase();
 		if (self.mailAddressPrefix().length < minLength) {
-			self.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
+            self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
 			return;
 		} else if (!self.isValidMailAddress()) {
 			self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});

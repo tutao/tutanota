@@ -174,9 +174,6 @@ tutao.tutanota.util.Formatter.isValidTutanotaLocalPart = function(string) {
 	if (string != string.toLowerCase().trim()) {
 		return false;
 	}
-	if (string.length < 4) {
-		return false;
-	}
 	if (string[0] == '.' || string[string.length - 1] == '.') {
 		return false;
 	}
