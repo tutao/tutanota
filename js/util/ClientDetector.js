@@ -294,7 +294,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
  */
 tutao.tutanota.util.ClientDetector._setDefaultLanguage = function() {
 	var lang = navigator.language || navigator.userLanguage;
-	if (lang && lang.toLowerCase() == "de-de") {
+	if (lang && (lang.toLowerCase() == "de" || lang.toLowerCase() == "de-de")) {
 		tutao.tutanota.util.ClientDetector._lang = tutao.tutanota.util.ClientDetector.LANGUAGE_DE;
 	} else {
 		tutao.tutanota.util.ClientDetector._lang = tutao.tutanota.util.ClientDetector.LANGUAGE_EN;
