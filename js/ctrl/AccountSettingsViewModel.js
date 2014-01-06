@@ -9,13 +9,15 @@ goog.provide('tutao.tutanota.ctrl.AccountSettingsViewModel');
 tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.records = [];
-	this.records.push({ nameTextId: "accountType_label", infoTextId: null, valueObservable: ko.observable("") });
-	this.records.push({ nameTextId: "mailAddress_label", infoTextId: null, valueObservable: ko.observable("") });
-	this.records.push({ nameTextId: "mailName_label", infoTextId: "mailNameInfo_msg", valueObservable: ko.observable("") });
+    var user = tutao.locator.userController.getLoggedInUser();
 
-	var self = this;
-	var user = tutao.locator.userController.getLoggedInUser();
+    this.records = [];
+    this.records.push({ nameTextId: "accountType_label", infoTextId: null, valueObservable: ko.observable("") });
+    this.records.push({ nameTextId: "mailAddress_label", infoTextId: null, valueObservable: ko.observable("") });
+    this.records.push({ nameTextId: "mailName_label", infoTextId: "mailNameInfo_msg", valueObservable: ko.observable("") });
+    this.showAddinLink = (user.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER);
+
+    var self = this;
 	var accountTypeNames = ["System", "Free", "Starter", "Premium", "Stream"];
 	self.records[0].valueObservable("Tutanota " + accountTypeNames[Number(user.getAccountType())]);
 	user.getUserGroup().loadGroupInfo(function(userGroup, exception) {

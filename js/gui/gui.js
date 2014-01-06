@@ -131,6 +131,7 @@ tutao.tutanota.gui.initKnockout = function() {
 		var e = $(element);
 		e.toggleClass("wide", container.width() >= 350);
 	};
+	// allows moving the record-data part of a record-container below the record-name on small devices
 	var currentForms = []; 
 	ko.bindingHandlers.form = {
 		init: function(element, valueAccessor) {

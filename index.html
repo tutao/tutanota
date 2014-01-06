@@ -1831,6 +1831,17 @@ function touchOrClick(e) {
 									<div class="recordContainer wide" data-bind="foreach: records, form: true">
 										<div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
 									</div>
+									<div class="recordContainer wide" data-bind="visible: showAddinLink, form: true">
+										<div class="record">
+											<label class="recordName">Outlook Addin</label>
+											<div class="recordData">
+												<div class="recordValue">
+													<a target="_blank" href="outlook_addin/TutanotaStarterOutlookSetup.exe">TutanotaStarterOutlookSetup.exe</a>
+												</div>
+												<label class="recordInfo" data-bind="lang: 'addinInfoText_msg'"></label>
+											</div>
+										</div>
+									</div>
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS -->
