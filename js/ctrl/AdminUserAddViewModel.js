@@ -69,6 +69,11 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.importCsv = function() {
 	this.csvDialogVisible(false);
 };
 
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.cancel = function() {
+    this.adminUserListViewModel.removeSelection();
+    tutao.locator.settingsView.showChangeSettingsColumn();
+};
+
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {
     if (!this.isEditable()) {
         return;

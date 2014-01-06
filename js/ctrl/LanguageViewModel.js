@@ -191,6 +191,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     successfullyCreatedUsers_msg: "The following users have been created successfully.",
     deleted_label: "Deleted",
     created_label: "Created",
+    addinInfoText_msg: "Download the Outlook Addin für Tutanota Starter here. New versions are automatically installed when starting Outlook.",
 	
 	// account settings
 	accountType_label: "Account type",
@@ -543,6 +544,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     successfullyCreatedUsers_msg: "Die folgenden Benutzer wurden erfolgreich angelegt",
     deleted_label: "Gelöscht",
     created_label: "Erstellt",
+    addinInfoText_msg: "Hier können Sie das Outlook-Addin für Tutanota Starter herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
 	
 	// account settings
 	accountType_label: "Account-Typ",
