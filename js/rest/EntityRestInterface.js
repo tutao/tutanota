@@ -1,7 +1,6 @@
 "use strict";
 
 goog.provide('tutao.rest.EntityRestInterface');
-//TODO (before release) add putService or use only one function for both
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.
@@ -100,6 +99,7 @@ tutao.rest.EntityRestInterface.prototype.postService = function(path, element, p
 tutao.rest.EntityRestInterface.prototype.putElement = function(path, element, parameters, headers, callback) { };
 
 /**
+ * TODO (timely) put service did not work: When accessing the inputstream on the server, a timeout occurs (no data can be read)
  * Puts to a service.
  * @param {string} path The path including prefix, app name and type name.
  * @param {Object} element the object to store.
