@@ -132,8 +132,8 @@ TestCase("FormatterTest", {
 		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart("a...c"));
 		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart(".abc"));
 		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart("abc."));
-		// test too short
-		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart("abc"));
+		// test that only non-empty strings are required
+		assertTrue(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart("abc"));
 		// test empty adresses
 		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart(""));
 		assertFalse(tutao.tutanota.util.Formatter.isValidTutanotaLocalPart(" "));
