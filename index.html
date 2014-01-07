@@ -1722,7 +1722,7 @@ function touchOrClick(e) {
 				</div>
 			</div>
 			<div id="customerListColumn" class="viewColumn">
-			<!-- ko if: displayed() == 'listCustomers' -->
+			<!-- ko if: (displayed() == 'listFreeCustomers') || (displayed() == 'listStarterCustomers') || (displayed() == 'listPremiumCustomers') -->
 				<div id="customerListInnerColumn" data-bind="with: customerListViewModel">
 					<div id="customers">
 						<table>
@@ -1731,24 +1731,25 @@ function touchOrClick(e) {
 									<th class="small">ID</th>
 									<th class="medium">Name</th>
 									<th class="small">Domain</th>
-									<th class="medium">Address</th>
 									<th class="small">Creation time</th>
 									<th class="medium">Test end time</th>
-									<th class="small">Activation time</th>
+									<th class="medium">Activation time</th>
 								</tr>
    							</thead>
-   							<tbody data-bind="foreach: customers">
+   							<tbody data-bind="foreach: editableCustomerInfos">
       							<tr>
-								    <td class="small" data-bind="text: getCustomer().getId()"></td>
+								    <td class="small" data-bind="text: getCustomerInfo().getCustomer()"></td>
 									<td class="medium" data-bind="text: company, attr: {title: company}"></td>
 									<td class="small" data-bind="text: domain, attr: {title: domain}"></td>
-									<td class="medium" data-bind="text: invoiceAddress, attr: {title: invoiceAddress}"></td>
 									<td class="small" data-bind="simpleDate: creationTime"></td>
 									<td class="medium">
 										<input type="date" data-bind="dateInput: testEndTime"></input>
 										<div class="simplebutton" data-bind="click: function() { $parent.updateTestEndTime($data); }">update</div>
 									</td>
-									<td class="small" data-bind="simpleDate: activationTime"></td>
+									<td class="medium">
+										<input type="date" data-bind="dateInput: activationTime"></input>
+										<div class="simplebutton" data-bind="click: function() { $parent.updateActivationTime($data); }">update</div>
+									</td>
 								</tr>
 							</tbody>
 						</table>
