@@ -67,6 +67,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
 
 	// a blur occurs after a mousedown on a suggestion. These blurs must be skipped in order to hold the cursor on the input field.
 	this.skipNextBlur = false;
+    this.enabled = true;
 };
 
 /**
@@ -82,12 +83,22 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.setInputActive = 
 };
 
 /**
+ * Disables input.
+ */
+tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.setEnabled = function(enabled) {
+    this.enabled = enabled;
+};
+
+/**
  * Dispatches all relevant key codes to the BubbleInputField (see belows methods).
  * @see http://api.jquery.com/keyup/ and http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes for key codes
  * @param data
  * @param event
  */
 tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleKey = function(data, event) {
+    if (!this.enabled) {
+        return false;
+    }
 	if (event.which === 13 || event.which === 32) {
 		return this.createBubble(); // return and whitespace
 	} else if (event.which === 8) {// backspace, del: 46

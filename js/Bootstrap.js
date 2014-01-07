@@ -7,6 +7,7 @@ goog.provide("tutao.tutanota.Bootstrap");
  * Executes all initializations needed for the live one-and-only tutanota website.
  * This binding is located in gui, so that it is not used for unit or integration tests.
  */
+// TODO (timely) use promises instead of callbacks: Switch js code to make use of promises in order to increase the code maintainability. See http://www.html5rocks.com/en/tutorials/es6/promises/?redirect_from_locale=de
 tutao.tutanota.Bootstrap.init = function () {
     if (window.applicationCache) {
         window.applicationCache.addEventListener('updateready', function (e) {

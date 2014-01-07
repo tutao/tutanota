@@ -52,6 +52,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
         tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
             if (exception) {
                 finishedCallback(exception);
+                return;
             }
             var attachment = new tutao.entity.tutanota.Attachment(service)
                 .setFile(null) // currently no existing files can be attached

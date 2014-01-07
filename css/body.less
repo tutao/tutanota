@@ -28,18 +28,6 @@ body {
 			overflow-x: hidden;
 		}
 		
-		> img#mailImage {
-			position: absolute;
-			top: 10px;
-			left: 10px;
-			width: 100px;
-			height: 100px;
-			z-index: 3;
-			opacity: 0.0;
-			visibility: hidden;
-			max-height: 500px; /* the image looks ugly if it is vertically too much stretched */
-		}
-	
 		> div#viewContainer {
 			position: absolute;
 			left: 0px;
@@ -632,6 +620,17 @@ body {
 						display: table-cell;
 					}
 				}
+
+                > img#sendMailBusyImg {
+                  display: block;
+                  position:absolute;
+                  top: 15px;
+                  left: 0px;
+                  right: 0px;
+                  width: 16px;
+                  margin-left: auto;
+                  margin-right: auto;
+                }
 	
 				// mail is used here
 			}
@@ -688,40 +687,7 @@ body {
 					}
 				}
 			}
-			
-			> div.actions {
-			
-				> button {
-					margin-top: 5px;
-					margin-bottom: 5px;
-					float: right;
-				}
-	
-				> div.switch {
-					margin-top: 5px;
-					margin-bottom: 5px;
-					margin-right: 5px;
-					float: right;
-					
-					&.off {
-						.background-gradient(top,lighten(@red, 15%),lighten(@red, 5%));
-						
-						&:active {
-							.background-gradient(top,@red,@red);
-						}
-					}
-	
-					> div {
-						width: 20px;
-						height: 20px;
-						background-size: 20px;
-						position: relative;
-						top: 3px;
-						margin-right: 5px;
-					}
-				}
-			}
-			
+
 			> div.attachments {
 				> div.download {			
 					display: inline-block;
@@ -815,7 +781,7 @@ body {
 				}
 			}
 		}
-		
+
 		> div.mailBody, div.mailBodyQuotation {
 			line-height: 1.3;
 			word-wrap: break-word;

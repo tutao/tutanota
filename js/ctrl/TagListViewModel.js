@@ -39,6 +39,9 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.getActiveSystemTag = function() {
  * Activates the received system tag. All mails fitting to this tag are shown.
  */
 tutao.tutanota.ctrl.TagListViewModel.prototype.activateReceivedTag = function() {
+    if (!tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
+        return;
+    }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID);
 	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
 };
@@ -47,6 +50,9 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateReceivedTag = function() 
  * Activates the sent system tag. All mails fitting to this tag are shown.
  */
 tutao.tutanota.ctrl.TagListViewModel.prototype.activateSentTag = function() {
+    if (!tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
+        return;
+    }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID);
 	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
 };
@@ -55,6 +61,9 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateSentTag = function() {
  * Activates the trashed system tag. All mails fitting to this tag are shown.
  */
 tutao.tutanota.ctrl.TagListViewModel.prototype.activateTrashedTag = function() {
+    if (!tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
+        return;
+    }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID);
 	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
 };

@@ -28,6 +28,12 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.previousMailListColumnVisible = tutao.locator.mailView.isMailListColumnVisible();
 
 	this.busy = ko.observable(false);
+    this.busy.subscribe(function(newBusy) {
+        this.toRecipientsViewModel.setEnabled(!newBusy);
+        this.ccRecipientsViewModel.setEnabled(!newBusy);
+        this.bccRecipientsViewModel.setEnabled(!newBusy);
+    }, this);
+
 	this.directSwitchActive = true;
 
 	this.mailBodyLoaded = ko.observable(true);
@@ -182,36 +188,39 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 		}
 	
 		this.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody()));
-	
-		// the mail is sent in the background
+
+        // the mail is sent in the background
 		this.busy(true);
-		this.directSwitchActive = false;
-		tutao.locator.mailView.disableTouchComposingMode();
-		tutao.locator.mailView.fadeFirstMailOut();
-		setTimeout(function() {
-			tutao.locator.mailViewModel.removeFirstMailFromConversation();
-			self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
-			facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
-					self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-					self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
-				if (exception) {
-					console.log("could not send mail", exception);
-					return;
-				}
-				// external users do not download mails automatically, so download the sent email now
-				if (tutao.locator.userController.isExternalUserLoggedIn()) {
-					tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
-						if (exception) {
-							console.log("error");
-							return;
-						}
-						tutao.locator.mailListViewModel.updateOnNewMails([mail], function() {});
-					});
-				}
-				self.busy(false);
-			});
-		}, 500);
-	}
+        this.directSwitchActive = false;
+        facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
+        self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+        self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
+            if (exception) {
+                tutao.tutanota.gui.alert(tutao.lang("sendingFailed_msg"));
+                console.log("could not send mail", exception);
+                self.busy(false);
+                return;
+            }
+
+            tutao.locator.mailView.disableTouchComposingMode();
+            tutao.locator.mailView.fadeFirstMailOut();
+            setTimeout(function() {
+                self.busy(false);
+                tutao.locator.mailViewModel.removeFirstMailFromConversation();
+                self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
+                if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                    // external users do not download mails automatically, so download the sent email now
+                    tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
+                        if (exception) {
+                            console.log("error");
+                            return;
+                        }
+                        tutao.locator.mailListViewModel.updateOnNewMails([mail], function() {});
+                    });
+                }
+            }, 500);
+        });
+    }
 };
 
 /**
@@ -220,9 +229,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
  * @return {boolean} True if the mail was cancelled, false otherwise.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) {
+    // if the email is currently, sent, do not cancel the email.
+    if (this.busy()) {
+        return false;
+    }
 	this.composerBody(tutao.locator.mailView.getComposingBody());
 	var confirm = (this.composerSubject() !== "" ||
-			this.composerBody() !== "" ||
+            (this.composerBody() !== "" && this.composerBody() !== "<br>") ||
 			this.toRecipientsViewModel.inputValue() !== "" ||
 			this.toRecipientsViewModel.bubbles().length != 0 ||
 			this.ccRecipientsViewModel.inputValue() !== "" ||
@@ -380,6 +393,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.containsExternalRecipients = functio
  * @param {tutao.tutanota.util.DataFile} dataFile The file to download.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dataFile) {
+    if (this.busy()) {
+        return;
+    }
 	var self = this;
 	// do not allow a new download as long as another is running
 	if (this.currentlyDownloadingAttachment()) {
@@ -396,6 +412,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
  * @param {tutao.tutanota.util.DataFile} dataFile The file to remove.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.removeAttachment = function(dataFile) {
+    if (this.busy()) {
+        return;
+    }
 	this._attachments.remove(dataFile);
 };
 
@@ -405,6 +424,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.removeAttachment = function(dataFile
  * @param {Event} e The event.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.handleDragOver = function(data, e) {
+    if (this.busy()) {
+        return;
+    }
     e.originalEvent.stopPropagation();
     e.originalEvent.preventDefault();
     e.originalEvent.dataTransfer.dropEffect = 'copy';
@@ -416,6 +438,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.handleDragOver = function(data, e) {
  * @param {Event} e The event.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachDroppedFiles = function(data, e) {
+    if (this.busy()) {
+        return;
+    }
     e.originalEvent.stopPropagation();
     e.originalEvent.preventDefault();
     this.attachFiles(e.originalEvent.dataTransfer.files);
@@ -458,7 +483,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 
 /**
  * Provides the image that shall be shown in the attachment.
- * @param {tutao.tutanota.DataFile} dataFile The file.
+ * @param {tutao.tutanota.util.DataFile} dataFile The file.
  * @return {String} The name of the image.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.getAttachmentImage = function(dataFile) {
