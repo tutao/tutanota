@@ -197,7 +197,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		callback(null, new tutao.rest.EntityRestException(new Error("no external permission type: " + permission.getType())));
 		return;
 	}
-	this._loadBucketPermissions(permission.getBucket(), function(bucketPermissions, exception) {
+	this._loadBucketPermissions(permission.getBucket().getBucketPermissions(), function(bucketPermissions, exception) {
 		if (exception) {
 			callback(null, exception);
 			return;
