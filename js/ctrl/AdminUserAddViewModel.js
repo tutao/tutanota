@@ -30,11 +30,6 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 	this.csvImportStatus = ko.observable({type: "neutral", text: "emptyString_msg"});
 };
 
-tutao.tutanota.ctrl.AdminUserAddViewModel.USER_NONE = "";
-tutao.tutanota.ctrl.AdminUserAddViewModel.USER_IN_PROGRESS = "progress";
-tutao.tutanota.ctrl.AdminUserAddViewModel.USER_SUCCESS = "success";
-tutao.tutanota.ctrl.AdminUserAddViewModel.USER_FAILED = "failed";
-
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.addEmptyUser = function() {
 	this.newUsers.push(new tutao.tutanota.ctrl.AdminNewUser());
 };
@@ -74,8 +69,21 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.cancel = function() {
     tutao.locator.settingsView.showChangeSettingsColumn();
 };
 
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isCreateAccountsPossible = function() {
     if (!this.isEditable()) {
+        return false;
+    }
+    for(var i = 0; i < this.newUsers().length; i++) {
+        if (!this.newUsers()[i].isCreateAccountPossible()) {
+            return false;
+        }
+        return true;
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {
+    if (!this.isCreateAccountsPossible()) {
+        // TODO (before beta) search in html for "css: { disabled:", replace with sth like knockout enabled-binding and remove all statements like this
         return;
     }
     var self = this;

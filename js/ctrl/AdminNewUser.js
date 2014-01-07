@@ -25,8 +25,10 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStatus = function () {
         return { type: "neutral", text: "password1Neutral_msg" };
     } else if (this.getPasswordStrength() >= 80) {
         return { type: "valid", text: "passwordValid_msg" };
+    } else if (this.password().trim().lenght < 1) {
+        return { type: "invalid", text: "password1InvalidTooShort_msg" };
     } else {
-        return { type: "invalid", text: "password1InvalidUnsecure_msg" };
+        return { type: "neutral", text: "password1InvalidUnsecure_msg" };
     }
 };
 
@@ -42,6 +44,11 @@ tutao.tutanota.ctrl.AdminNewUser.STATE_NONE = "";
 tutao.tutanota.ctrl.AdminNewUser.STATE_IN_PROGRESS = "progress";
 tutao.tutanota.ctrl.AdminNewUser.STATE_SUCCESS = "success";
 tutao.tutanota.ctrl.AdminNewUser.STATE_FAILED = "failed";
+
+tutao.tutanota.ctrl.AdminNewUser.prototype.isCreateAccountPossible = function() {
+    return this.mailAddressStatus().type == "valid" &&
+        this.getPasswordStatus().type != "invalid";
+};
 
 /**
  * Create the new user

@@ -2025,17 +2025,17 @@ function touchOrClick(e) {
                                     <div class="recordValue">
                                         <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}""></input>
                                     </div>
-                                    <label class="recordInfo" data-bind="lang: 'loginNameInfo_msg', attr: {for: 'userName' + $index()}"></label>
+                                    <label class="recordInfo" data-bind="lang: 'loginNameInfoAdmin_msg', attr: {for: 'userName' + $index()}"></label>
                                 </div>
                             </div>
                             <div class="record">
-                                <label class="recordName" data-bind="lang: 'desiredAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
+                                <label class="recordName" data-bind="lang: 'mailAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
                                         <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}"></input><span data-bind="text: '@' + domain()"></span>
                                     </div>
                                     <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
-                                    <label class="recordInfo" data-bind="lang: 'mailAddressInfo_msg', attr: {for: 'userMailAddress' + $index()}"></label>
+                                    <label class="recordInfo" data-bind="lang: 'mailAddressInfoAdmin_msg', attr: {for: 'userMailAddress' + $index()}"></label>
                                 </div>
                             </div>
                             <div class="record">
@@ -2059,7 +2059,7 @@ function touchOrClick(e) {
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button type="submit" data-bind="enable: isEditable, lang: 'create_action'"></button>
+                                    <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
 									<button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button></button>
 									<button class="minimal" data-bind="lang: 'cancel_action', click: cancel"></button>
                                     <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
