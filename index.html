@@ -636,7 +636,7 @@ function touchOrClick(e) {
 						<!-- ko if: $parent.isComposingState() -->
 							<div class="actions">
 								<div class="confidentialAction">
-									<button class="switch" data-bind="fadeVisible: containsExternalRecipients(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+									<button class="switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
 										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
 										<span data-bind="text: (secure() ? tutao.lang('confidential_action') : tutao.lang('nonConfidential_action'))"></span>
 									</button>
@@ -683,7 +683,7 @@ function touchOrClick(e) {
 											<div class="headerLine">
 												<div class="name edit" data-bind="lang: 'subject_label'"></div>
 												<div class="value edit" id="composer_subject">
-													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()" tabindex="20"></input>
+													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()" tabindex="20" />
 												</div>
 											</div>
 										</div>
@@ -1092,7 +1092,7 @@ function touchOrClick(e) {
 								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
 								<div class="recordData">
 									<div class="recordValue">
-										<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused"></input>
+										<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused" />
 									</div>
 								</div>
 							</div>
@@ -1100,7 +1100,7 @@ function touchOrClick(e) {
 								<label for="loginPassphrase" class="recordName" data-bind="lang: 'password_label'"></label>
 								<div class="recordData">
 									<div class="recordValue">
-										<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused"></input>
+										<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused" />
 									</div>
 								</div>
 							</div>
@@ -1204,7 +1204,7 @@ function touchOrClick(e) {
                                     <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused"></input>
+                                            <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused" />
                                         </div>
                                         <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
                                     </div>
@@ -1213,7 +1213,7 @@ function touchOrClick(e) {
                                     <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+                                            <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
                                         </div>
                                         <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
                                         <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg'"></label>
@@ -1242,7 +1242,7 @@ function touchOrClick(e) {
 				<div class="panel">
 					<div class="content">
 						<h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
-						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE && tutao.tutanota.util.ClientDetector.getDeviceType() != tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
+						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
 							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
                                 <!-- ko if: getRegistrationType() == 'Free' -->
                                 <h2 data-bind="lang: 'registrationSubHeadlineFree1_msg'"></h2>
@@ -1256,7 +1256,7 @@ function touchOrClick(e) {
 										<label class="recordName" data-bind="lang: 'company_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-                                                <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName"></input>
+                                                <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName" />
 											</div>
 										</div>
 									</div>
@@ -1273,7 +1273,7 @@ function touchOrClick(e) {
 										<label for="registrationMailName" class="recordName" data-bind="lang: 'name_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused"></input>
+												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused" />
 											</div>
 											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
 										</div>
@@ -1282,7 +1282,7 @@ function touchOrClick(e) {
 										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'"></input>
+												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'" />
 											</div>
 											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
 											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
@@ -1293,7 +1293,7 @@ function touchOrClick(e) {
                                         <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+                                                <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
                                             </div>
                                             <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
                                             <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
@@ -1305,7 +1305,7 @@ function touchOrClick(e) {
 										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'"></input><span data-bind="text: '@' + domain()"></span>
+												<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
 											</div>
 											<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
 											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
@@ -1393,7 +1393,7 @@ function touchOrClick(e) {
 								</form>						
 							<!-- /ko -->
 						<!-- /ko -->
-						<!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD -->
+						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
 							<span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
 							<ul>
 								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
@@ -1402,6 +1402,12 @@ function touchOrClick(e) {
 							</ul>
 							<br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
 						<!-- /ko -->
+                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK -->
+                            <div data-bind="lang: 'regLinkInvalid_msg'"></div>
+                        <!-- /ko -->
+                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING -->
+                            <div data-bind="lang: 'loading_msg'"></div>
+                        <!-- /ko -->
 					</div>
 				</div>
 				<div id="welcomePicture"><div></div></div>
@@ -1421,11 +1427,11 @@ function touchOrClick(e) {
 			<div id="dbSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.dbViewModel">
 				<div id="dbSelectors">
 					<form data-bind="submit: function() { showSelected(); }">
-						<input class="dbSelector" type="text" placeholder="version" data-bind="value: version"></input><br>
+						<input class="dbSelector" type="text" placeholder="version" data-bind="value: version" /><br>
 						<select class="dbSelector" data-bind="options: applications, optionsText: 'name', value: application"></select><br>
 						<select class="dbSelector" data-bind="options: types, optionsText: 'name', value: type"></select><br>
-						<input class="dbSelector" type="text" placeholder="list id" data-bind="value: listId, visible: type().type == 'LIST_ELEMENT_TYPE'"></input><br>
-						<input class="dbSelector" type="text" placeholder="id" data-bind="value: id"></input><br>
+						<input class="dbSelector" type="text" placeholder="list id" data-bind="value: listId, visible: type().type == 'LIST_ELEMENT_TYPE'" /><br>
+						<input class="dbSelector" type="text" placeholder="id" data-bind="value: id" /> /><br>
 						<button class="dbSelector" data-bind="click: function() { showSelected(); }">show</button><br>
 						<button class="dbSelector" data-bind="visible: showRootButton(), click: function() { showRoot(); }">root</button><br>
 						<button class="dbSelector" data-bind="visible: showVersionsButton(), click: function() { showSelectedVersions() }">versions</button>
@@ -1475,15 +1481,15 @@ function touchOrClick(e) {
 							<label><input type="checkbox" data-bind="checked: showThread"> Thread</label>
 							<label><input type="checkbox" data-bind="checked: showMessage"> Message</label>
 					</fieldset>
-					<label>show current <input type="checkbox" data-bind="checked: showCurrent"></input></label>
+					<label>show current <input type="checkbox" data-bind="checked: showCurrent" /></label>
 					<br>
-					<input class="logSelector" type="date" data-bind="value: untilDate, enable: !showCurrent()"></input>
-					<input class="logSelector" type="text" data-bind="value: untilTime, enable: !showCurrent()"></input>
+					<input class="logSelector" type="date" data-bind="value: untilDate, enable: !showCurrent()" /> />
+					<input class="logSelector" type="text" data-bind="value: untilTime, enable: !showCurrent()" /> />
 					<br>
 					<button data-bind="enable: showNewerPossible(), click: showNewer">newer</button>
 					<button data-bind="enable: showOlderPossible(), click: showOlder">older</button>
 					<button data-bind="click: function() { showMore(); }">more</button>
-					<label>limit <input class="logSelector" type="text" data-bind="value: maxCount"></input></label>
+					<label>limit <input class="logSelector" type="text" data-bind="value: maxCount" /> /></label>
 				</div>
 			</div>
 
@@ -1530,7 +1536,7 @@ function touchOrClick(e) {
 				<div id="monitorSelectors">
 					<form data-bind="submit: refreshVisibleCounters">
 						<select class="monitorSelector" data-bind="options: diagramViews, optionsText: 'name', value: diagramView"></select><br>
-						<input class="monitorSelector" type="text" placeholder="owner id" data-bind="value: owner, visible: (diagramView().name != 'none' && diagramView().name != 'global')"></input><br>
+						<input class="monitorSelector" type="text" placeholder="owner id" data-bind="value: owner, visible: (diagramView().name != 'none' && diagramView().name != 'global')" /><br>
 					</form>
 				</div>
 			</div>
@@ -1601,9 +1607,9 @@ function touchOrClick(e) {
 									</div>
 								<!-- /ko -->
 							</div>
-							<label>current <input type="checkbox" data-bind="checked: showCurrent"></input></label>
-    						<input class="monitorSelector" placeholder="end date" type="date" data-bind="value: untilDate, enable: !showCurrent()"></input>
-							<input class="monitorSelector" placeholder="end time" type="text" data-bind="value: untilTime, enable: !showCurrent()"></input>
+							<label>current <input type="checkbox" data-bind="checked: showCurrent" /></label>
+    						<input class="monitorSelector" placeholder="end date" type="date" data-bind="value: untilDate, enable: !showCurrent()" />
+							<input class="monitorSelector" placeholder="end time" type="text" data-bind="value: untilTime, enable: !showCurrent()" />
 							<select class="monitorSelector" data-bind="options: ranges, optionsText: 'name', value: range"></select>
 							<button class="refreshDiagram" data-bind="fastClick: refreshDiagram">refresh</button>
 						<!-- /ko -->
@@ -1658,7 +1664,7 @@ function touchOrClick(e) {
 									<label for="configName" class="recordName">name</label>
 									<div class="recordData">
 										<div class="recordValue">
-											<input class="inputField wide" id="configName" type="text" data-bind="value: configName"></input>
+											<input class="inputField wide" id="configName" type="text" data-bind="value: configName" />
 										</div>
 									</div>
 								</div>
@@ -1666,7 +1672,7 @@ function touchOrClick(e) {
 									<label for="configValue" class="recordName">value</label>
 									<div class="recordData">
 										<div class="recordValue">
-											<input class="inputField wide" id="configValue" type="text" data-bind="enable: (isConfigName()), value: configValue"></input>
+											<input class="inputField wide" id="configValue" type="text" data-bind="enable: (isConfigName()), value: configValue" />
 										</div>
 									</div>
 								</div>
@@ -1674,7 +1680,7 @@ function touchOrClick(e) {
 									<label for="configStart" class="recordName">start date</label>
 									<div class="recordData">
 										<div class="recordValue">
-											<input class="inputField wide" id="configStart" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configStart"></input>
+											<input class="inputField wide" id="configStart" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configStart" />
 										</div>
 										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
 									</div>
@@ -1683,7 +1689,7 @@ function touchOrClick(e) {
 									<label for="configEnd" class="recordName">end date</label>
 									<div class="recordData">
 										<div class="recordValue">
-											<input class="inputField wide" id="configEnd" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configEnd"></input>
+											<input class="inputField wide" id="configEnd" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configEnd" />
 										</div>
 										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
 									</div>
@@ -1735,11 +1741,11 @@ function touchOrClick(e) {
 									<td class="small" data-bind="text: domain, attr: {title: domain}"></td>
 									<td class="small" data-bind="simpleDate: creationTime"></td>
 									<td class="medium">
-										<input type="date" data-bind="dateInput: testEndTime"></input>
+										<input type="date" data-bind="dateInput: testEndTime" />
 										<div class="simplebutton" data-bind="click: function() { $parent.updateTestEndTime($data); }">update</div>
 									</td>
 									<td class="medium">
-										<input type="date" data-bind="dateInput: activationTime"></input>
+										<input type="date" data-bind="dateInput: activationTime" />
 										<div class="simplebutton" data-bind="click: function() { $parent.updateActivationTime($data); }">update</div>
 									</td>
 								</tr>
@@ -1787,14 +1793,14 @@ function touchOrClick(e) {
 								<tr>
 								    <td class="small"></td>
                                     <td class="small"></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: company"></input></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: company" /></td>
                                     <td class="small"><select class="inputField" data-bind="options: ['de', 'en'], value: language"></select></td>
 									<td class="medium"><select class="inputField" data-bind="options: accountTypes, optionsText: 'name', optionsValue: 'id', value: selectedAccountType"></select></td>
 									<td class="medium">initial</td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName"></input></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: mobilePhoneNumber"></input></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: domain"></input></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: mailAddress"></input></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName" /></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: mobilePhoneNumber" /></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: domain" /></td>
+									<td class="medium"><input class="inputField" type="text" data-bind="value: mailAddress" /></td>
 									<td class="mini"><a data-bind="click: add">A</a></td>
 								</tr>
 							</tbody>
@@ -1864,7 +1870,7 @@ function touchOrClick(e) {
 											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
 											<div class="recordData">
 												<div class="recordValue">
-													<input class="inputField wide" id="oldpassword" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"></input>
+													<input class="inputField wide" id="oldpassword" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"/>
 												</div>
 												<label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
 											</div>
@@ -1945,7 +1951,7 @@ function touchOrClick(e) {
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: isEditable(), value: name, valueUpdate: 'input'"></input>
+                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: isEditable(), value: name, valueUpdate: 'input'" />
                                     </div>
                                 </div>
                             </div>
@@ -2023,7 +2029,7 @@ function touchOrClick(e) {
                                 <label class="recordName" data-bind="lang: 'mailAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}"></input><span data-bind="text: '@' + domain()"></span>
+                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" /><span data-bind="text: '@' + domain()"></span>
                                     </div>
                                     <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
                                     <label class="recordInfo" data-bind="lang: 'mailAddressInfoAdmin_msg', attr: {for: 'userMailAddress' + $index()}"></label>
@@ -2225,7 +2231,7 @@ function touchOrClick(e) {
     			<!-- /ko -->
 			</select>
 		</div>
-		<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="visible: !selectVisible(), value: customValueObservable, hasfocus: inputActive"></input>
+		<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="visible: !selectVisible(), value: customValueObservable, hasfocus: inputActive" />
 	</script>
 	
 	<!-- use only with the BubbleInputViewModel -->
