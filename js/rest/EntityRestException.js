@@ -23,7 +23,7 @@ tutao.rest.EntityRestException.prototype.getOriginal = function() {
 
 tutao.rest.EntityRestException.prototype.isConnectionDown = function() {
     if (this._original instanceof tutao.rest.RestException) {
-        /* @type {tutao.rest.RestException}*/
+        /** @type {tutao.rest.RestException}*/
         var original = this._original;
         return original.getResponseCode() == 0;
     }
