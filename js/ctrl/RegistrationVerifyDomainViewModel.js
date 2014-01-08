@@ -10,7 +10,7 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.domain = ko.observable("");
-    this.domainFieldFocused = ko.observable(true);
+    this.domainFieldFocused = ko.observable(false);
 	this.currentMailAddressPrefix = ko.observable("postmaster");
 	this.currentMailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
     this.currentMailAddressStatus = ko.computed(function() {
