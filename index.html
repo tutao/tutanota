@@ -1403,19 +1403,21 @@ function touchOrClick(e) {
 							<!-- /ko -->
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
-							<span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
-							<ul>
-								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-								<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-								<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
-							</ul>
-							<br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
+                            <div class="smallInfoMessage">
+                                <span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
+                                <ul>
+                                    <li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
+                                    <li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+                                    <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+                                </ul>
+                                <br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
+                            </div>
 						<!-- /ko -->
                         <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK -->
-                            <div data-bind="lang: 'regLinkInvalid_msg'"></div>
+                            <div class="smallInfoMessage" data-bind="lang: 'regLinkInvalid_msg'"></div>
                         <!-- /ko -->
                         <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING -->
-                            <div data-bind="lang: 'loading_msg'"></div>
+                            <div class="smallInfoMessage" data-bind="lang: 'loading_msg'"></div>
                         <!-- /ko -->
 					</div>
 				</div>
