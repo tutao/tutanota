@@ -251,6 +251,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	add_action: "Add", // also used by outlook addin
 	remove_action: "Remove", // also used by outlook addin
 	notFound404_msg: "Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
+    loading_msg: "Loading...",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -319,6 +320,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	claim_label: "Tutanota - mail. done. right.",
 
 	// registration
+    regLinkInvalid_msg: "Sorry, this registration link is not valid.",
 	registrationHeadline_msg: "Tutanota $ Registration",
     registrationSubHeadline1_msg: "Verify domain (step 1 of 3)",
     registrationSubHeadline2_msg: "Enter registration data (step 2 of 3)",
@@ -608,6 +610,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	add_action: "Hinzufügen",
 	remove_action: "Entfernen",
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
+    loading_msg: "Lade...",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Bestätigungscode eingeben.",
@@ -676,6 +679,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	thanks_msg: "Vielen Dank für Ihr Verständnis.\nIhr Team von Tutanota",
 
 	// registration
+    regLinkInvalid_msg: "Es tut uns leid, dieser Registrierungslink ist nicht gültig.",
 	claim_label: "Tutanota - einfach. sicher. mailen.",
 	registrationHeadline_msg: "Tutanota $ Registrierung",
     registrationSubHeadline1_msg: "Domain-Prüfung (Schritt 1 von 3)",

@@ -9,8 +9,12 @@ goog.provide('tutao.tutanota.ctrl.RegistrationViewModel');
 tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
+    this.pageStatus = ko.observable(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING);
+    if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD) {
+        this.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED);
+    }
 	this.authToken = ko.observable("");
-	this.accountType = ko.observable(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+	this.accountType = ko.observable("0"); // set to invalid account type for indicating that the account type is not known
 	this.companyName = ko.observable("");
 	this.domain = ko.observable("tutanota.de");
 	this.name = ko.observable("");
@@ -72,50 +76,62 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this._wrongCodes = ko.observableArray([]);
 };
 
-/**
- * Sets the focus when the view is shown.
- */
+tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK = 0;
+tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK = 1;
+tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING = 2;
+tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED = 3;
+
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING = 0;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING = 1;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED = 2;
+
+tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH = 4;
+
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToken) {
-	var self = this;
+    var self = this;
+
+    if (this.pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED) {
+        return;
+    }
+
 	setTimeout(function() {
 		self.nameFieldFocused(true);
 	}, 0);
-	
-	if (authToken) {
-		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER); // initial value before reg data is loaded
+
+    if (authToken) {
         this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, 1));
 		this.authToken(authToken);
 		var params = {};
 		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
 		tutao.entity.sys.RegistrationServiceData.load(params, null, function(data, exception) {
-			if (!exception && (data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL || 
-					data.getState() == tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT)) {
-			    self.accountType(data.getAccountType());
-			    self.domain(data.getDomain());
-			    self.companyName(data.getCompany());
-			    self.name(data.getGroupName());
-			    self.mailAddressPrefix(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
-			    self.mobileNumber(data.getMobilePhoneNumber());
-			}
+            if (exception) {
+                self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
+                return;
+            }
+            self.accountType(data.getAccountType());
+            self.domain(data.getDomain());
+            self.companyName(data.getCompany());
+            self.name(data.getGroupName());
+            self.mailAddressPrefix(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
+            self.mobileNumber(data.getMobilePhoneNumber());
+            self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
 		});
 	} else {
 		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
         this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH));
+        self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
 	}
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = function() {
-	if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
 		return 'Free';
-	} else {
+	} else if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
 		return 'Starter';
-	}
+	} else {
+        return ''; // unknown account type
+    }
 };
-
-tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING = 0;
-tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING = 1;
-tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED = 2;
-tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH = 4;
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._getMailAddressFromName = function(name) {
 	var mailAddress = name;
