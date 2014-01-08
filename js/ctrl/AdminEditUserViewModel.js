@@ -8,11 +8,11 @@ goog.provide('tutao.tutanota.ctrl.AdminEditUserViewModel');
  * @param {tutao.tutanota.ctrl.AdminUserListViewModel, tutao.entity.sys.GroupInfo} userGroup The userGroup of the user to edit
  */
 tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, userGroup) {
-    /*@type {tutao.tutanota.ctrl.AdminUserListViewModel}*/
+    /**@type {tutao.tutanota.ctrl.AdminUserListViewModel}*/
     this.adminUserListViewModel = adminUserListViewModel;
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
-    /*@type {tutao.entity.sys.GroupInfo}*/
+    /**@type {tutao.entity.sys.GroupInfo}*/
 	this.userGroup = userGroup;
 	this.name = ko.observable(userGroup.getName());
 	
