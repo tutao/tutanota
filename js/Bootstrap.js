@@ -14,6 +14,8 @@ tutao.tutanota.Bootstrap.init = function () {
             if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
                 // Browser downloaded a new app cache: We have to reload the page in order to get the new contents
                 window.applicationCache.swapCache();
+                // TODO (before beta) handle application cache reload and show a notice to the user (Updating application... => The application has been updated and will be reloaded)
+                // event description: http://www.html5rocks.com/de/tutorials/appcache/beginner/
                 window.location.reload();
                 console.log("updated to current release");
             }
