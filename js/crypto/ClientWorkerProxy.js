@@ -45,15 +45,14 @@ tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath)
 	tutao.crypto.ClientWorkerProxy.WORKER_FILE = srcPath + 'crypto/ClientWorker.js';
 	tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [
 		libsPath + 'closure-library-base-2012-01-19.js',
-		libsPath + 'crypto-jsbn-2012-08-09.js',
-		libsPath + 'crypto-sjcl-2012-08-09.js',
+		libsPath + 'crypto-jsbn-2012-08-09_1.js',
+		libsPath + 'crypto-sjcl-2012-08-09_1.js',
 		srcPath + 'crypto/AesInterface.js',
 		srcPath + 'crypto/SjclAes.js',
 		srcPath + 'crypto/RsaInterface.js',
 		srcPath + 'crypto/JsbnRsa.js',
 		srcPath + 'crypto/CryptoException.js',
 		srcPath + 'crypto/RandomizerInterface.js',
-		srcPath + 'crypto/SimpleRandomizer.js',
 		srcPath + 'crypto/WorkerRandomizer.js',
 		srcPath + 'crypto/Oaep.js',
 		srcPath + 'util/EncodingConverter.js'
