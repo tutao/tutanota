@@ -5,7 +5,6 @@ goog.provide('tutao.crypto.ClientWorkerProxyAsync');
 /**
  * The worker proxy acts as a proxy to a worker. It is responsible for creating the worker and may receive arbitrary commands for the worker. The worker
  * must contain an implementation that supports the command data. The result is passed back to a callback.
- * TODO (before beta) switch from ClientWorkerProxy to this implementation and from ClientWorker to ClientWorkerImpl
  * @constructor
  */
 tutao.crypto.ClientWorkerProxyAsync = function() {

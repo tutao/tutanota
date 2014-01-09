@@ -102,11 +102,10 @@ tutao.crypto.ClientWorkerImpl.prototype._getNextTaskId = function() {
 };
 
 // this file shall only be loaded if we are in the worker scope
+/* TODO (before beta) switch from ClientWorkerProxy to this implementation and from ClientWorker to ClientWorkerImpl
 var global = Function('return this')();
 if (global.importScripts) {
-    /**
-     * There may be only one command running at any time, no new command is allowed to be sent to this worker as long as the current one has not finished execution.
-     */
+    // There may be only one command running at any time, no new command is allowed to be sent to this worker as long as the current one has not finished execution.
     var clientWorkerImpl = new tutao.crypto.ClientWorkerImpl(self);
     global.addEventListener('message', function(event) {
         var resultId = event.data.resultId;
@@ -124,3 +123,4 @@ if (global.importScripts) {
 
     }, false);
 }
+*/
