@@ -705,7 +705,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     currentMailAddressInfo_msg: "Diese Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört.\nHinweis: Benutzer Sie eine postmaster@<ihre_domain> oder hostmaster@<ihre_domain> Adresse, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt. Die manuelle Prüfung dauert im Normalfall einige Stunden.",
 	mailAddressInfo_msg: "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
     mailAddressInfoBusiness_msg: "Dies wird Ihre neue E-Mail-Adresse.",
-    mailAddressInfoAdmin_msg: "Die E-MailAdresse des Benutzers.",
+    mailAddressInfoAdmin_msg: "Die E-Mail-Adresse des Benutzers.",
 	mailAddressNeutral_msg: "Bitte E-Mail-Adresse eingeben.",
     mailAddressValid_msg: "Die E-Mail-Adresse ist gültig.",
 	mailAddressInvalid_msg: "Ungültige E-Mail-Adresse.",
