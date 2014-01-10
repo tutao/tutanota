@@ -316,8 +316,8 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
 		updateService.setPermission(permission.getId());
 		updateService.setBucketPermission(bucketPermission.getId());
 		updateService.setSymEncSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, sessionKey));
-		updateService.setSymEncBucketKey("");
-		updateService.setBucketEncSessionKey("");
+		updateService.setSymEncBucketKey(null);
+		updateService.setBucketEncSessionKey(null);
 		updateService.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
 	}
 };
