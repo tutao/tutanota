@@ -164,7 +164,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 					try {
 						self._userGroupId = user.getUserGroup().getGroup();
 						self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
-						self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getPwEncClientKey());
+						self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
 					} catch (e) {
 						callback(new tutao.rest.EntityRestException(e));
 						return;
