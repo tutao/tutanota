@@ -429,7 +429,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
                                     .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
 
                                 .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
-							    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, clientKey))
+							    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
                                 .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
 							    .setSystemAdminPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
 							    .setSystemAdminPubKeyVersion(systemAdminPubKeyVersion)

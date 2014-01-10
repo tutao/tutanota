@@ -106,7 +106,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
                                 callback(exception);
                             } else {
                                 var userService = new tutao.entity.sys.UserData()
-                                    .setPwEncClientKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.aesCrypter.generateRandomKey()))
+                                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
                                     .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
                                     .setUserGroupData(userGroupData)
                                     .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))

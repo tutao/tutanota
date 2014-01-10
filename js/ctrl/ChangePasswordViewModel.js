@@ -206,14 +206,12 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
 	var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
 	tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), hexSalt, function(userPassphraseKeyHex) {
 		var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
-		var pwEncClientKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.userController.getUserClientKey());
 		var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.userController.getUserGroupKey());
 		var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
 		
 		var service = new tutao.entity.sys.ChangePasswordData();
 		service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
 		service.setVerifier(verifier);
-		service.setPwEncClientKey(pwEncClientKey);
 		service.setPwEncUserGroupKey(pwEncUserGroupKey);
 		if (self.codeNeeded()) {
 			service.setCode(self.code());

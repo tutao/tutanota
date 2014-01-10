@@ -204,9 +204,8 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 					for (var a = 0; a < numbers.length; a++) {
 						var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
 						if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
-							var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient);
-							number.setNumber(recipientNumber);
-							number.setMaskedNumber(tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber(recipientNumber));
+							var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient)
+							    .setNumber(recipientNumber);
 							recipient.getPasswordChannelPhoneNumbers().push(number);
 							nbrOfValidNumbers++;
 						}
@@ -303,21 +302,3 @@ tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAd
 		});
 	});
 };
-
-tutao.tutanota.ctrl.SendMailFacade._getMaskedNumber = function(number) {
-	var nbrOfVisibleLastDigits = 3;
-	var nbrOfMinVisibleFirstDigits = 6; // e.g. +49170
-	var nbrOfMinMaskedDigits = 3; // this shall have prio over nbrOfMinVisibleFirstDigits
-	var maskChar = "X";
-
-	if (number.length < (nbrOfVisibleLastDigits + nbrOfMinMaskedDigits)) {
-		// not enough digits to show some at the beginning, so only show the last digits
-		var nbrOfMaskedDigits = Math.ceil(number.length / 2);
-		return Array(nbrOfMaskedDigits + 1).join(maskChar) + number.substring(nbrOfMaskedDigits);
-	} else {
-		var nbrOfMaskedDigits = Math.max(nbrOfMinMaskedDigits, number.length - nbrOfVisibleLastDigits - nbrOfMinVisibleFirstDigits);
-		var nbrOfVisibleFirstDigits = number.length - nbrOfMaskedDigits - nbrOfVisibleLastDigits;
-		return number.substring(0, nbrOfVisibleFirstDigits) + Array(nbrOfMaskedDigits + 1).join(maskChar) + number.substring(nbrOfVisibleFirstDigits + nbrOfMaskedDigits);
-	}
-};
-
