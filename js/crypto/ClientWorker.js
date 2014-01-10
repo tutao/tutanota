@@ -37,6 +37,7 @@ if (global.importScripts) {
 				}
 			});
 		} else if (operation == "generateKeyPair") {
+            tutao.locator.randomizer.setNextRandomBytes(data.randomData);
 			tutao.locator.rsaCrypter.generateKeyPair(function(keyPair, exception) {
 				if (exception) {
 					me.postMessage({message: exception.message});

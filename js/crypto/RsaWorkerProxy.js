@@ -21,9 +21,10 @@ tutao.crypto.RsaWorkerProxy = function(rsa) {
  */
 tutao.crypto.RsaWorkerProxy.prototype.generateKeyPair = function(callback) {
 	var self = this;
-	tutao.locator.clientWorkerProxy.sendCommand("generateKeyPair", {}, function(data, errorMessage) {
+	tutao.locator.clientWorkerProxy.sendCommand("generateKeyPair", {randomData: tutao.locator.randomizer.generateRandomData(258)}, function(data, errorMessage) {
 		if (errorMessage) {
-			callback(null, new tutao.crypto.CryptoException(errorMessage));
+            self.generateKeyPair(callback);
+			//TODO (timely) correct retry after out-of-random-data-exception: callback(null, new tutao.crypto.CryptoException(errorMessage));
 		} else {
 			callback({publicKey: self.hexToKey(data.publicKeyHex), privateKey: self.hexToKey(data.privateKeyHex)});
 		}
