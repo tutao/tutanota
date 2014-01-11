@@ -4,7 +4,7 @@ goog.provide('JavaCompatibilityTest');
 
 /**
  * Tests that the key and encrypted data from the CompatibilityTest creates the same results in JavaScript.
- * TODO (before release) add verification test for full coverage of the padding (one test for each possible clear text length in the last block; AES: tests for 0-255 bytes of cleartext data)
+ * TODO (before beta) add verification test for full coverage of the padding (one test for each possible clear text length in the last block; AES: tests for 0-255 bytes of cleartext data)
  */
 AsyncTestCase("JavaCompatibilityTest", {
 	

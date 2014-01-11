@@ -14,7 +14,6 @@ ClassHierarchiesTest.prototype.test = function() {
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.AesWorkerProxy, tutao.crypto.AesInterface));
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JsbnRsa, tutao.crypto.RsaInterface));
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.RsaWorkerProxy, tutao.crypto.RsaInterface));
-	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SimpleRandomizer, tutao.crypto.RandomizerInterface));
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclRandomizer, tutao.crypto.RandomizerInterface));
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.WorkerRandomizer, tutao.crypto.RandomizerInterface));
 	assertTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JBCryptAdapter, tutao.crypto.KdfInterface));
