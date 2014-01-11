@@ -155,48 +155,46 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 	// copy phone number and password information if this is an external contact
 	// otherwise load the key information from the server
 	if (recipientInfo.isExternal() && notFoundRecipients.length == 0) {
-		recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
-		recipient.setPubEncBucketKey(null);
-		recipient.setPubKeyVersion(null);
-		
-		tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey(recipientInfo.getMailAddress(), function(communicationKey, exception) {
-			if (exception) {
-				callback(exception);
-				return;
-			}
+        // pre-shared password has prio
+        var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
+        var preshared = true;
+        if (!password) {
+            password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
+            preshared = false;
+        }
+        if (password == "") {
+            password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
+            if (recipientInfo.isExistingContact()) {
+                recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
+                recipientInfo.getContactWrapper().getContact().update(function() {});
+            }
+        }
+        console.log(password); //TODO (before beta) just for testing, remove later or dev mode
 
-			// pre-shared password has prio
-			var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
-			var preshared = true;
-			if (!password) {
-				password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
-				preshared = false;
-			}
-			if (password == "") {
-				password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
-				if (recipientInfo.isExistingContact()) {
-					recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
-					recipientInfo.getContactWrapper().getContact().update(function() {});
-				}
-			}
-			console.log(password); //TODO (before beta) just for testing, remove later or dev mode
-	
-			var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
-			var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
-			// TODO (story performance): make kdf async in worker
-			tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
-				var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
-				var symEncBucketKey = tutao.locator.aesCrypter.encryptKey(communicationKey, bucketKey);
-				recipient.setSymEncBucketKey(symEncBucketKey);
-				var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
-				// the password is not sent to the server if it is pre-shared
-				if (!preshared) {
-					recipient.setAutoTransmitPassword(password);
-				}
-				recipient.setPasswordVerifier(passwordVerifier);
+        var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
+        var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
+        // TODO (story performance): make kdf async in worker
+        tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
+            var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+            var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
+            tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier, function(externalUserGroupKey, exception) {
+                if (exception) {
+                    callback(exception);
+                    return;
+                }
+
+                recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
+                recipient.setPubEncBucketKey(null);
+                recipient.setPubKeyVersion(null);
+                // the password is not sent to the server if it is pre-shared
+                if (!preshared) {
+                    recipient.setAutoTransmitPassword(password);
+                }
+                recipient.setSymEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, bucketKey));
+                recipient.setPasswordVerifier(passwordVerifier);
 				recipient.setSalt(saltBase64);  // starter accounts may not call this facade, so the salt is always sent to the server
 				recipient.setSaltHash(tutao.locator.shaCrypter.hashHex(saltHex));
-				recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, communicationKey));
+				recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, externalUserGroupKey));
 	
 				if (!preshared) {
 					var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
@@ -257,48 +255,79 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 };
 
 /**
- * Checks that an ExternalRecipient instance with a mail box exists for the given mail address. If it does not exist, it is created. Returns the communication key of the external recipient.
- * @param {String} externalMailAddress The mail address of the external recipient.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished with the communication key, receives an exception if one occurred.
+ * Checks that an external user instance with a mail box exists for the given recipient. If it does not exist, it is created. Returns the user group key of the external recipient.
+ * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The recipient.
+ * @param {string} externalUserPwKey The external user's password key.
+ * @param {string} verifier The external user's verifier.
+ * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished with the external user's group key, Receives an exception if one occurred.
  */
-tutao.tutanota.ctrl.SendMailFacade.getCommunicationKey = function(externalMailAddress, callback) {
+tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo, externalUserPwKey, verifier, callback) {
 	var self = this;
-	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.ExternalRecipient.ROOT_INSTANCE_ID];
-	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
+	var groupRootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.sys.GroupRoot.ROOT_INSTANCE_ID];
+	tutao.entity.sys.RootInstance.load(groupRootId, function(rootInstance, exception) {
 		if (exception) {
 			callback(null, exception);
 			return;
 		}
-		var mailAddressId = tutao.rest.EntityRestInterface.stringToCustomId(externalMailAddress);
-		tutao.entity.tutanota.ExternalRecipient.load([root.getReference(), mailAddressId], function(externalRecipient, exception) {
-			if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
-				// it does not exist, so create it
-				// load the list key of the ExternalRecipients list
-                tutao.entity.EntityHelper.getListKey(root.getReference(), function(externalRecipientsListKey, exception) {
-					if (exception) {
-						callback(null, exception);
-						return;
-					}
-					var extRecipientCommunicationKey = tutao.locator.aesCrypter.generateRandomKey();
-					var extRecipientMailListKey = tutao.locator.aesCrypter.generateRandomKey();
-				    var data = new tutao.entity.tutanota.ExternalRecipientData();
-					data.setMailAddress(externalMailAddress)
-					    .setCommunicationKey(tutao.locator.aesCrypter.keyToBase64(extRecipientCommunicationKey)) // encrypted attribute
-					    .setCommEncMailListKey(tutao.locator.aesCrypter.encryptKey(extRecipientCommunicationKey, extRecipientMailListKey))
-					    .setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalRecipientsListKey, data._entityHelper.getSessionKey()))
-					    .setup([], null, function(nothing, exception) {
+        tutao.entity.sys.GroupRoot.load(rootInstance.getReference(), function(groupRoot, exception) {
+            if (exception) {
+                callback(null, exception);
+                return;
+            }
+            var mailAddressId = tutao.rest.EntityRestInterface.stringToCustomId(recipientInfo.getMailAddress());
+            tutao.entity.sys.ExternalUserReference.load([groupRoot.getExternalUserReferences(), mailAddressId], function(externalUserReference, exception) {
+                if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
+                    // it does not exist, so create it
+                    // load the list key of the ExternalRecipients list
+                    tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos(), function(externalRecipientsListKey, exception) {
+                        if (exception) {
+                            callback(null, exception);
+                            return;
+                        }
+                        tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos(), function(externalGroupInfoListKey, exception) {
                             if (exception) {
                                 callback(null, exception);
-                            } else {
-                                callback(extRecipientCommunicationKey);
+                                return;
                             }
+
+                            var mailListKey = tutao.locator.aesCrypter.generateRandomKey();
+                            var externalUserGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+                            var groupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+                            var clientKey = tutao.locator.aesCrypter.generateRandomKey();
+
+                            var externalRecipientData = new tutao.entity.tutanota.ExternalUserData()
+                                .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailListKey))
+                                .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
+                                .setVerifier(verifier);
+                            var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
+                                .setMailAddress(recipientInfo.getMailAddress())
+                                .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
+                                .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName(), true))
+                                .setGroupInfoListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalGroupInfoListKey, groupInfoSessionKey))
+                                .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey));
+                            externalRecipientData.setUserGroupData(userGroupData)
+                            .setup([], null, function(nothing, exception) {
+                                if (exception) {
+                                    callback(null, exception);
+                                } else {
+                                    callback(externalUserGroupKey);
+                                }
+                            });
                         });
-				});
-			} else if (exception) {
-				callback(null, exception);
-			} else {
-				callback(tutao.locator.aesCrypter.base64ToKey(externalRecipient.getCommunicationKey()));
-			}
-		});
+                    });
+                } else if (exception) {
+                    callback(null, exception);
+                } else {
+                    tutao.entity.sys.Group.load(externalUserReference.getUserGroup(), function(externalUserGroup, exception) {
+                        if (exception) {
+                            callback(null, exception);
+                            return;
+                        }
+                        callback(tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroup.getAdminGroupEncGKey()));
+                    });
+                }
+            });
+
+        });
 	});
 };
