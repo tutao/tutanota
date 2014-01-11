@@ -65,7 +65,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	this.log = ko.observable("");
 
 	this.buttons = ko.observableArray();
-	
+
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
 };
@@ -114,7 +114,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 											callback();
 										}
 									});
-								} else {									
+								} else {
+                                    if (self.mails().length > 0) {
+                                        self.selectMail(self.mails()[0]);
+                                    }
 									if (callback) {
 										callback();
 									}

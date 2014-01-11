@@ -50,7 +50,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel = function() {
 	s.addTransition("ActivatePassword", "activationOk", "PasswordActivated");
 	
 	if (this.codeNeeded()) {
-		this.changePasswordStatus({ type: "neutral", text: "pwChangeNeutral_msg", params: {'$': tutao.locator.userController.getLoggedInUser().getMobilePhoneNumber() } });
+		this.changePasswordStatus({ type: "neutral", text: "pwChangeNeutral_msg", params: {'$': tutao.locator.userController.getLoggedInUser().getPhoneNumbers()[0] } });
 		this.changePasswordButtonTextId("pwChangeButtonSendCode_action");
 		this.overallState("checking");
 		var self = this;

@@ -52,7 +52,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.isCreateAccountPossible = function() 
 
 /**
  * Create the new user
- * @param {function(tutao.rest.EntityRestException=} outerCallback Called when finished.
+ * @param {function(tutao.rest.EntityRestException=)} outerCallback Called when finished.
  */
 tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
     var self = this;
@@ -133,7 +133,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
  * Initializes the given user group for Tutanota (creates mail box etc.). The admin must be logged in.
  * @param {string} groupId The group to initialize.
  * @param {Object} groupKey the group key.
- * @param {function(tutao.rest.EntityRestException=} callback Called when finished.
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
  */
 tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callback) {
 	var s = new tutao.entity.tutanota.InitGroupData();
@@ -157,10 +157,12 @@ tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callbac
 	s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, fileSystemSessionkey));
 	s.setSymEncFileShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, fileShareBucketKey));
 	s.setFileShareBucketEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileShareBucketKey, fileSystemSessionkey));
-	
-	var externalRecipientListKey = tutao.locator.aesCrypter.generateRandomKey();
-	s.setSymEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(groupKey, externalRecipientListKey));
-	s.setMailShareBucketEncExternalRecipientListKey(tutao.locator.aesCrypter.encryptKey(mailShareBucketKey, externalRecipientListKey));
+
+    var groupShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
+    var externalGroupInfoListKey = tutao.locator.aesCrypter.generateRandomKey();
+    s.setSymEncExternalGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(groupKey, externalGroupInfoListKey));
+    s.setSymEncGroupShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, groupShareBucketKey));
+    s.setGroupShareBucketEncExternalGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(groupShareBucketKey, externalGroupInfoListKey));
 
 	s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
 		callback(exception);

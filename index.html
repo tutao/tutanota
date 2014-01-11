@@ -1138,10 +1138,10 @@ function touchOrClick(e) {
 										<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
 										<!-- ko foreach: phoneNumbers -->
 										<div class="extPhoneNumberRow recordValue">
-											<div data-bind="text: getMaskedNumber()"></div>
+											<div data-bind="text: getNumber()"></div>
 											<button class="recordAction" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
 										</div>
-										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getNumber()).type, lang: $parent.getSendSmsStatus(getNumber()).text"></label>
+										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
 										<!-- /ko -->
 									</div>
 								</div>

@@ -298,7 +298,8 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                             var externalRecipientData = new tutao.entity.tutanota.ExternalUserData()
                                 .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailListKey))
                                 .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
-                                .setVerifier(verifier);
+                                .setVerifier(verifier)
+                                .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey));
                             var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
                                 .setMailAddress(recipientInfo.getMailAddress())
                                 .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
