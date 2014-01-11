@@ -74,63 +74,73 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
 	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) { // check that it is a list element type and that the list key is set
 		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
 			if (exception) {
-				callback(null, exception);
+                self._loadSessionKeyOfSinglePermission(callback);
 			} else {				
 				self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
 				callback(self._entity);
 			}
 		});
 	} else {
-		tutao.entity.sys.Permission.loadRange(this._entity.__permissions, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
-			if (tutao.locator.userController.isInternalUserLoggedIn()) {
-				try {
-					self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
-				} catch (e) {
-					callback(null, new tutao.rest.EntityRestException(e));
-					return;
-				}
-				if (self._sessionKey != null) {
-					callback(self._entity);
-					return;
-				}
-				self._tryGetPubEncSessionKey(permissions, function(sessionKey, exception) {
-					if (exception) {
-						callback(null, new tutao.rest.EntityRestException(exception));
-						return;
-					}
-					self.setSessionKey(sessionKey);
-					if (sessionKey == null) {
-						callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
-					} else {
-						callback(self._entity);
-					}
-				});
-			} else {
-				try {
-					self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
-				} catch (e) {
-					callback(null, new tutao.rest.EntityRestException(e));
-					return;
-				}
-				if (self._sessionKey != null) {
-					callback(self._entity);
-					return;
-				}
-				self._tryGetExternalSessionKey(permissions, function(sessionKey, exception) {
-					if (exception) {
-						callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
-						return;
-					}
-					self.setSessionKey(sessionKey);
-					callback(self._entity);
-				});
-			}
-		});
+		this._loadSessionKeyOfSinglePermission(callback);
 	}
+};
+
+/**
+ * Loads the session key from a single permission (no list key is used).
+ * @param {function(Object, tutao.rest.EntityRestException=)}  callback. Called when finished with the same entity as entered. Gets passed an exception if something went wrong.
+ * @private
+ */
+tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function(callback) {
+    var self = this;
+    tutao.entity.sys.Permission.loadRange(this._entity.__permissions, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
+        if (exception) {
+            callback(null, exception);
+            return;
+        }
+        if (tutao.locator.userController.isInternalUserLoggedIn()) {
+            try {
+                self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
+            } catch (e) {
+                callback(null, new tutao.rest.EntityRestException(e));
+                return;
+            }
+            if (self._sessionKey != null) {
+                callback(self._entity);
+                return;
+            }
+            self._tryGetPubEncSessionKey(permissions, function(sessionKey, exception) {
+                if (exception) {
+                    callback(null, new tutao.rest.EntityRestException(exception));
+                    return;
+                }
+                self.setSessionKey(sessionKey);
+                if (sessionKey == null) {
+                    callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
+                } else {
+                    callback(self._entity);
+                }
+            });
+        } else {
+            try {
+                self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
+            } catch (e) {
+                callback(null, new tutao.rest.EntityRestException(e));
+                return;
+            }
+            if (self._sessionKey != null) {
+                callback(self._entity);
+                return;
+            }
+            self._tryGetExternalSessionKey(permissions, function(sessionKey, exception) {
+                if (exception) {
+                    callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
+                    return;
+                }
+                self.setSessionKey(sessionKey);
+                callback(self._entity);
+            });
+        }
+    });
 };
 
 /**
@@ -147,11 +157,14 @@ tutao.entity.EntityHelper.getListKey = function(listId, callback) {
 		}
 		try {
 			var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
+            if (listKey == null) {
+                callback(null, new tutao.rest.EntityRestException(new Error("no list permission found")));
+                return;
+            }
+            callback(listKey);
 		} catch (e) {
 			callback(null, new tutao.rest.EntityRestException(e));
-			return;
 		}
-		callback(listKey);
 	});
 };
 
@@ -471,12 +484,10 @@ tutao.entity.EntityHelper.createPostListPermissionMap = function(bucketData, enc
  */
 tutao.entity.EntityHelper.createAuthHeaders = function() {
 	var map = {};
+    map[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = tutao.locator.userController.getUserId();
 	map[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = tutao.locator.userController.getAuthVerifier();
 	if (tutao.locator.userController.isExternalUserLoggedIn()) {
-		map[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = tutao.locator.userController.getAuthId();
-		map[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = tutao.locator.userController.getAuthToken();
-	} else {
-		map[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = tutao.locator.userController.getUserId();		
+        map[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = tutao.locator.userController.getAuthToken();
 	}
 	return map;
 };

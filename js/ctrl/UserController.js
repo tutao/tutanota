@@ -14,22 +14,19 @@ tutao.ctrl.UserController = function() {
  * Resets all internal state, so nobody is logged in.
  */
 tutao.ctrl.UserController.prototype.reset = function() {
-	// internal and external
+	// internal and external user
 	this._userId = null;
 	this._userGroupKey = null;
 	this._authVerifier = null;
 	this._userGroupId = null;
 	this._user = null;
-
-	// internal user
 	this._userPassphraseKey = null;
 	this._userClientKey = null;
 	this._mailAddress = null;
 	this._hexSalt = null;
-    this._userGroupInfo = null;
+    this._userGroupInfo = null; // indicates that a user is logged in because this is set in the last login step
 
-	// external user
-	this._authId = null;
+	// only set for external user
 	this._authToken = null; // the hash of the salt
 };
 
@@ -74,7 +71,7 @@ tutao.ctrl.UserController.prototype.getLoggedInUser = function() {
 };
 
 tutao.ctrl.UserController.prototype.isLoggedInUserAdmin = function() {
-	if (this._user) {
+	if (this.isInternalUserLoggedIn()) {
 		var memberships = this._user.getMemberships();
 		for (var i=0; i<memberships.length; i++) {
 			if (memberships[i].getAdmin()) {
@@ -121,7 +118,7 @@ tutao.ctrl.UserController.prototype.getHexSalt = function() {
 
 /**
  * Provides the user group info
- * @return {tutao.entity.sys.UserGroupInfo} the user group info
+ * @return {tutao.entity.sys.GroupInfo} the user group info
  */
 tutao.ctrl.UserController.prototype.getUserGroupInfo = function() {
     return this._userGroupInfo;
@@ -139,6 +136,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 	self._mailAddress = mailAddress;
 	tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(mailAddress), {}, null, function(saltData, exception) {
 		if (exception) {
+            self.reset();
 			callback(exception);
 			return;
 		}
@@ -150,6 +148,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 			authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
 			tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(mailAddress), {}, authHeaders, function(userIdReturn, e1) {
 				if (e1) {
+                    self.reset();
 					callback(e1);
 					return;
 				}
@@ -157,6 +156,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 				self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
 				tutao.entity.sys.User.load(self._userId, function(user, e2) {
 					if (e2) {
+                        self.reset();
 						callback(e2);
 						return;
 					}
@@ -166,11 +166,13 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 						self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
 						self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
 					} catch (e) {
+                        self.reset();
 						callback(new tutao.rest.EntityRestException(e));
 						return;
 					}
                     tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo(), function(groupInfo, exception) {
                         if (exception) {
+                            self.reset();
                             console.log(exception);
                             callback(exception);
                         } else {
@@ -200,18 +202,10 @@ tutao.ctrl.UserController.prototype.passwordChanged = function(hexPassphraseKey,
  * @return {boolean} True if an internal user is logged in, false if no user or an external user is logged in.
  */
 tutao.ctrl.UserController.prototype.isInternalUserLoggedIn = function() {
-	return (this._userPassphraseKey != null);
+	return (this._userGroupInfo && this._authToken == null);
 };
 
 // EXTERNAL
-
-/**
- * Provides the authentication id that was used to log in the external user.
- * @return {string} The authentication id.
- */
-tutao.ctrl.UserController.prototype.getAuthId = function() {
-	return this._authId;
-};
 
 /**
  * Provides the authentication token that was used to log in the external user.
@@ -223,42 +217,54 @@ tutao.ctrl.UserController.prototype.getAuthToken = function() {
 
 /**
  * Logs in an external user. Attention: the external user's user group key is not set here. Set it when the key is loaded via setExternalUserGroupKey().
- * @param {string} authId The authentication id that shall be used to log in the user.
  * @param {string} userId The user id of the user.
  * @param {string} password The password matching the authentication token.
  * @param {string} saltHex The salt that was used to salt the password, as hex string.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when login is finished. Provides the password key or an exception if the login failed.
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when login is finished. Provides an exception if the login failed.
  */
-tutao.ctrl.UserController.prototype.loginExternalUser = function(authId, userId, password, saltHex, callback) {
-	var self = this;
-	this.reset();
-	tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
-		var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
-		// the next three attributes must be set here because they are needed when loading the user
-		self._authId = authId;
-		self._userId = userId;
-		// the verifier is always sent as url parameter, so it must be url encoded
-		self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
-		self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(saltHex));
-		tutao.entity.sys.User.load(userId, function(user, e2) {
-			if (e2) {
-				callback(null, e2);
-				return;
-			}
-			self._user = user;
-			self._userGroupId = user.getUserGroup().getGroup();
-			self._userClientKey = tutao.locator.aesCrypter.generateRandomKey(); // dummy key is needed in Indexer
-			callback(passwordKey);
-		});
-	});
-};
+tutao.ctrl.UserController.prototype.loginExternalUser = function(userId, password, saltHex, callback) {
+    var self = this;
+    this.reset();
 
-/**
- * Sets the user group key of an external user.
- * @param {Object} userGroupKey The user group's key. Call this after the login was successful.
- */
-tutao.ctrl.UserController.prototype.setExternalUserGroupKey = function(userGroupKey) {
-	this._userGroupKey = userGroupKey;
+    tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex, function(hexKey) {
+        // the verifier is always sent as url parameter, so it must be url encoded
+        self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
+        self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(saltHex));
+        self._userId = userId;
+        self._hexSalt = saltHex;
+
+        var authHeaders = {};
+        authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
+        self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+        tutao.entity.sys.User.load(self._userId, function(user, e2) {
+            if (e2) {
+                self.reset();
+                callback(e2);
+                return;
+            }
+            self._user = user;
+            try {
+                self._userGroupId = user.getUserGroup().getGroup();
+                self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
+                self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
+            } catch (e) {
+                self.reset();
+                callback(new tutao.rest.EntityRestException(e));
+                return;
+            }
+            tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo(), function(groupInfo, exception) {
+                if (exception) {
+                    self.reset();
+                    console.log(exception);
+                    callback(exception);
+                } else {
+                    self._userGroupInfo = groupInfo;
+                    self._mailAddress = groupInfo.getMailAddress();
+                    callback();
+                }
+            });
+        });
+    });
 };
 
 /**
@@ -266,5 +272,5 @@ tutao.ctrl.UserController.prototype.setExternalUserGroupKey = function(userGroup
  * @return {boolean} True if an external user is logged in, false if no user or an internal user is logged in.
  */
 tutao.ctrl.UserController.prototype.isExternalUserLoggedIn = function() {
-	return (this._authId != null);
+	return (this._authToken != null); // only check auth token because this is already called when loading the user in loginExternalUser()
 };
