@@ -431,8 +431,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
                                 .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
 							    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
                                 .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
-							    .setSystemAdminPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
-							    .setSystemAdminPubKeyVersion(systemAdminPubKeyVersion)
+							    .setSystemCustomerPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
+							    .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
 							    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
 							    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
 							    .setSymEncAccountGroupKey(symEncAccountGroupKey);
