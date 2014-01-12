@@ -21,6 +21,8 @@ tutao.entity.tutanota.ContactWrapper._editableContactsCache = [];
  */
 tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper = function() {
 	var contact = new tutao.entity.tutanota.Contact();
+    contact.setOwner(tutao.locator.userController.getUserGroupId());
+    contact.setArea(tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS);
 	contact.setFirstName("");
 	contact.setLastName("");
 	contact.setCompany("");

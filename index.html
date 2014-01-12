@@ -1439,7 +1439,7 @@ function touchOrClick(e) {
 						<select class="dbSelector" data-bind="options: applications, optionsText: 'name', value: application"></select><br>
 						<select class="dbSelector" data-bind="options: types, optionsText: 'name', value: type"></select><br>
 						<input class="dbSelector" type="text" placeholder="list id" data-bind="value: listId, visible: type().type == 'LIST_ELEMENT_TYPE'" /><br>
-						<input class="dbSelector" type="text" placeholder="id" data-bind="value: id" /> /><br>
+						<input class="dbSelector" type="text" placeholder="id" data-bind="value: id" /><br>
 						<button class="dbSelector" data-bind="click: function() { showSelected(); }">show</button><br>
 						<button class="dbSelector" data-bind="visible: showRootButton(), click: function() { showRoot(); }">root</button><br>
 						<button class="dbSelector" data-bind="visible: showVersionsButton(), click: function() { showSelectedVersions() }">versions</button>
