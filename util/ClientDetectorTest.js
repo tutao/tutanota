@@ -47,7 +47,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, info.getDeviceType());
 		assertEquals(true, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN, info.getSupportedType());
 	},
 	"test detect ie11 windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
