@@ -47,11 +47,11 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
     if (this.editing()) {
         // update the saved instance in our list
         var self = this;
-        tutao.entity.sys.GroupInfo.load(this.editing().userGroup.getId(), function(updatedUserGroup, exception) {
+        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId(), function(updatedUserGroup, exception) {
             if (exception) {
                 console.log(exception);
             } else {
-                var savedIndex = self.userGroups.indexOf(self.editing().userGroup);
+                var savedIndex = self.userGroups.indexOf(self.editing().userGroupInfo);
                 self.userGroups.splice(savedIndex, 1);
                 self.userGroups.splice(savedIndex, 0, updatedUserGroup);
                 self.editing(null);
