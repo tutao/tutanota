@@ -77,8 +77,8 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isCreateAccountsPossible = f
         if (!this.newUsers()[i].isCreateAccountPossible()) {
             return false;
         }
-        return true;
     }
+    return true;
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {

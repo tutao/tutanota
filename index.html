@@ -1890,7 +1890,7 @@ function touchOrClick(e) {
 													<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 												</div>
 												<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
-													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+													<div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 													</div>
 													<div class="password1Status" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
@@ -1982,6 +1982,7 @@ function touchOrClick(e) {
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
                                     </label>
+                                    <div class="recordInfo" data-bind="visible: passwordChanged, lang: 'notePassword_msg'"></div>
                                 </div>
                             </div>
                             <div class="record">
@@ -2070,25 +2071,27 @@ function touchOrClick(e) {
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
                                     </label>
-                                    <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+                                    <div class="recordInfo" data-bind="lang: 'notePassword_msg'"></div>
                                 </div>
                             </div>
                         </form>
                         <!-- /ko -->
-                        <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
-                            <div class="record">
-                                <div class="recordName"></div>
-                                <div class="formAction">
-                                    <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-									<button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button></button>
-									<button class="minimal" data-bind="lang: 'cancel_action', click: cancel"></button>
-                                    <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
+                            <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
+                                <div class="record">
+                                    <div class="recordName"></div>
+                                    <div class="formAction">
+                                        <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
+                                        <button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button></button>
+                                        <button class="minimal" data-bind="lang: 'cancel_action', click: cancel"></button>
+                                        <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
-                        <!-- ko if: (createdUsers().length > 0) --><h2 data-bind="lang: 'successfullyCreatedUsers_msg'"></h2><!-- /ko -->
+                            </form>
+                            <!-- ko if: (createdUsers().length > 0) -->
+                                <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
+                            <!-- /ko -->
                             <ul data-bind="foreach: createdUsers">
-                                <li data-bind="text: name() + ': ' + mailAddressPrefix() + '@' + domain()"></li>
+                                <li class="createdUserEntry" data-bind="text: mailAddressPrefix() + '@' + domain() + ': ' + password()"></li>
                             </ul>
                         <!-- /ko -->
                     </div>

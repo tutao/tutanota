@@ -72,7 +72,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStatus = functio
     } else if (this.getPasswordStrength() >= 80) {
         return { type: "valid", text: "passwordValid_msg" };
     } else {
-        return { type: "invalid", text: "password1InvalidUnsecure_msg" };
+        return { type: "neutral", text: "password1InvalidUnsecure_msg" };
     }
 };
 

@@ -184,11 +184,11 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	create_action: "Create",
     createActionSuccess_msg: "All accounts have been created successfully.",
     createActionFailed_msg: "Failed to create an account. Please try again later.",
-    createActionStatus_msg: "Created ${index} of ${count} accounts.",
+    createActionStatus_msg: "Creating users... Finished ${index} of ${count} accounts.",
 	import_action: "Import",
 	importCsv_label: "Import CSV data",
 	importCsvInvalid_msg: "The CSV data is invalid (line $).",
-    successfullyCreatedUsers_msg: "The following users have been created successfully.",
+    successfullyCreatedUsers_msg: "The following users have been created successfully. Please note the passwords down carefully and provide them to the users.",
     deleted_label: "Deleted",
     created_label: "Created",
     addinInfoText_msg: "Download the Outlook Addin für Tutanota Starter here. New versions are automatically installed when starting Outlook.",
@@ -230,6 +230,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	serverNotReachable_msg: "Could not reach server. Please try again later.",
     passwordNotChanged_msg: "The password is not changed.",
     passwordResetFailed_msg: "An error occurred. The password was not changed.",
+    notePassword_msg: "Please note the password down carefully and provide it to the user.",
 
 	// general
 	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
@@ -545,11 +546,11 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	create_action: "Hinzufügen",
 	createActionSuccess_msg: "Alle Accounts wurden erfolgreich angelegt.",
     createActionFailed_msg: "Ein Account konnte nicht angelegt werden. Bitte versuchen Sie es später erneut.",
-    createActionStatus_msg: "Es wurden ${index} von ${count} Accounts angelegt.",
+    createActionStatus_msg: "Accounts werden angelegt... Es sind ${index} von ${count} erstellt.",
 	import_action: "Importieren",
 	importCsv_label: "CSV-Daten importieren",
 	importCsvInvalid_msg: "Die CSV-Daten sind ungültig (Zeile $).",
-    successfullyCreatedUsers_msg: "Die folgenden Benutzer wurden erfolgreich angelegt",
+    successfullyCreatedUsers_msg: "Die folgenden Benutzer wurden erfolgreich angelegt. Bitte notieren Sie sich die Passwörter gut und geben Sie sie an die Benutzer weiter.",
     deleted_label: "Gelöscht",
     created_label: "Erstellt",
     addinInfoText_msg: "Hier können Sie das Outlook-Addin für Tutanota Starter herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
@@ -591,6 +592,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	serverNotReachable_msg: "Der Server ist nicht erreichbar. Bitte versuchen Sie es es später erneut.",
     passwordNotChanged_msg: "Das Passwort ist nicht geändert.",
     passwordResetFailed_msg: "Es ist ein Fehler aufgetreten. Das Passwort wurde nicht geändert.",
+    notePassword_msg: "Bitte notieren Sie sich das Passwort gut und geben Sie es an den Benutzer weiter.",
 
 	// general
 	emptyString_msg: "\u2008",
