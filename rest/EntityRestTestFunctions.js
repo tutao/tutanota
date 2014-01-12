@@ -67,6 +67,8 @@ EntityRestTestFunctions.functions = {
 	"test you are able to retrieve an element after adding it": function(queue) {
 		queue.call('test', function(callbacks) {
 			var element = new tutao.entity.tutanota.MailBody();
+			element.setOwner(tutao.locator.userController.getUserGroupId());
+			element.setArea("1");
 			element.setText("hello together!");
 			var params = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
 			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
@@ -88,11 +90,15 @@ EntityRestTestFunctions.functions = {
 	"test you are able to retrieve multiple elements after adding them": function(queue) {
 		queue.call('test', function(callbacks) {
 			var element1 = new tutao.entity.tutanota.MailBody();
+			element1.setOwner(tutao.locator.userController.getUserGroupId());
+			element1.setArea("1");
 			element1.setText("hello together!");
 			var params = EntityRestTestFunctions.getVersionParams(element1._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
 			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element1, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
 				assertUndefined(exception1);
 				var element2 = new tutao.entity.tutanota.MailBody();
+				element2.setOwner(tutao.locator.userController.getUserGroupId());
+				element2.setArea("1");
 				element2.setText("hello together now!");
 				var params = EntityRestTestFunctions.getVersionParams(element2._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
 				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element2, null, params, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception2) {
@@ -133,6 +139,8 @@ EntityRestTestFunctions.functions = {
 	"test that you are able to retrieve a list element after adding it to a list": function(queue) {
 		queue.call('test', function(callbacks) {
 			var element = new tutao.entity.tutanota.Mail();
+			element.setOwner(tutao.locator.userController.getUserGroupId());
+			element.setArea("1");
 			element.setSubject("hello together!");
 			element.setDate(new Date());
 			element.setRead(false);
@@ -214,12 +222,16 @@ EntityRestTestFunctions.functions = {
 		var self = this;
 		var e1 = new tutao.entity.tutanota.Mail();
 		var e2 = new tutao.entity.tutanota.Mail();
+		e1.setOwner(tutao.locator.userController.getUserGroupId());
+		e1.setArea("1");
 		e1.setSubject("1");
 		e1.setDate(new Date());
 		e1.setRead(false);
 		e2.setSubject("2");
 		e2.setDate(new Date());
 		e2.setRead(false);
+		e2.setOwner(tutao.locator.userController.getUserGroupId());
+		e2.setArea("1");
 
 		var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
 		tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception1) {
@@ -319,6 +331,8 @@ EntityRestTestFunctions.functions = {
 		var self = this;
 		queue.call('test', function(callbacks) {
 			var element = new tutao.entity.tutanota.MailBody();
+			element.setOwner(tutao.locator.userController.getUserGroupId());
+			element.setArea("1");
 			element.setText("hello together!");
 			var elementParams = EntityRestTestFunctions.getVersionParams(element._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));			
 			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, element, null, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), callbacks.add(function(returnEntity, exception1) {
@@ -340,6 +354,8 @@ EntityRestTestFunctions.functions = {
 		var self = this;
 		queue.call('test', function(callbacks) {
 			var element = new tutao.entity.tutanota.Mail();
+			element.setOwner(tutao.locator.userController.getUserGroupId());
+			element.setArea("1");
 			element.setSubject("hello together!");
 			element.setDate(new Date());
 			element.setRead(false);
