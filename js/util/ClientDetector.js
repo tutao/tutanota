@@ -173,7 +173,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 
 	if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
-	} else if (info._browser == info.BROWSER_TYPE_SAFARI && !info._touch) {
+	} else if (info._browser == info.BROWSER_TYPE_SAFARI) {
 		// safari is only supported on iPad and iPhone
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
 	} else if (info._browserVersion < minVersionNeeded[info._browser]) {
