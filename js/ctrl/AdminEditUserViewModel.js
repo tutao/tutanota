@@ -5,49 +5,174 @@ goog.provide('tutao.tutanota.ctrl.AdminEditUserViewModel');
 /**
  * Allows the admin to edit an existing user
  * @constructor
- * @param {tutao.tutanota.ctrl.AdminUserListViewModel, tutao.entity.sys.GroupInfo} userGroup The userGroup of the user to edit
+ * @param {tutao.tutanota.ctrl.AdminUserListViewModel} adminUserListViewModel The list view model.
+ * @param {tutao.entity.sys.GroupInfo} userGroupInfo The userGroupInfo of the user to edit
  */
-tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, userGroup) {
+tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, userGroupInfo) {
     /**@type {tutao.tutanota.ctrl.AdminUserListViewModel}*/
     this.adminUserListViewModel = adminUserListViewModel;
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
     /**@type {tutao.entity.sys.GroupInfo}*/
-	this.userGroup = userGroup;
-	this.name = ko.observable(userGroup.getName());
-	
-	this.isEditable = ko.observable(true);
-	
-	this.saveStatus = ko.observable({type: "neutral", text: "emptyString_msg" });
+	this.userGroupInfo = userGroupInfo;
+	this.name = ko.observable(userGroupInfo.getName());
+    var emptyPassword = "***";
+    this.password = ko.observable(emptyPassword);
+    this.passwordChanged = ko.computed(function() {
+        return this.password() != emptyPassword;
+    }, this);
+    this.passwordFocused = ko.observable(false);
+    this.passwordFocused.subscribe(function(newValue) {
+        if (this.password() == emptyPassword && newValue) {
+           this.password("");
+        } else if (this.password() == "" && !newValue) {
+            this.password(emptyPassword);
+        }
+    }, this);
+
+	this.busy = ko.observable(false);
+    this.saveStatus = ko.observable({type: "neutral", text: "emptyString_msg" });
+
+    this.passwordChangeAllowed = ko.observable(false);
+    var self = this;
+    tutao.entity.sys.Group.load(userGroupInfo.getGroup(), function(userGroup, exception) {
+        if (!exception && userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
+            tutao.entity.sys.User.load(userGroup.getUser(), function(user, exception) {
+                if (!exception && !self._isAdmin(user)) {
+                    self.passwordChangeAllowed(true);
+                }
+            });
+        }
+    });
+};
+
+/**
+ * Checks if the given user is an admin.
+ * @param {tutao.entity.sys.User} user The user to check.
+ * @returns {boolean} True if the given user is an admin.
+ * @private
+ */
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._isAdmin = function(user) {
+    var memberships = user.getMemberships();
+    for (var i=0; i<memberships.length; i++) {
+        if (memberships[i].getAdmin()) {
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
+ * Provides the status of the first entered new password.
+ * @return {Object} The status containing type and text id.
+ */
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStatus = function() {
+    if (!this.passwordChanged()) {
+        return { type: "neutral", text: "passwordNotChanged_msg" };
+    } else if (this.getPasswordStrength() >= 80) {
+        return { type: "valid", text: "passwordValid_msg" };
+    } else {
+        return { type: "invalid", text: "password1InvalidUnsecure_msg" };
+    }
+};
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isChangeActionAllowed = function() {
+    return (!this.passwordChanged() || this.isChangePasswordActionAllowed()) && !this.busy();
+};
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isChangePasswordActionAllowed = function() {
+    return (this.passwordChangeAllowed() && this.passwordChanged() && this.password() != "");
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
-	this.userGroup.setName(this.name());
-	this.saveStatus({type: "neutral", text: "saving_msg" });
+    if (!this.isChangeActionAllowed()) {
+        return;
+    }
+    this.busy(true);
+	this.userGroupInfo.setName(this.name());
+	this.saveStatus({type: "neutral", text: "save_msg" });
     var self = this;
-	this.userGroup.update(function(exception) {
+	this.userGroupInfo.update(function(exception) {
 		if (exception) {
 			console.log(exception);
 		} else {
-            self.adminUserListViewModel.updateUserGroupInfo();
-            tutao.locator.settingsView.showChangeSettingsColumn();
+            if (self.isChangePasswordActionAllowed()) {
+                self._resetPassword(function(exception) {
+                    self.busy(false);
+                    if (exception) {
+                        self.saveStatus({type: "invalid", text: "passwordResetFailed_msg" });
+                    } else {
+                        self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
+                        self.adminUserListViewModel.updateUserGroupInfo();
+                    }
+                });
+            } else {
+                self.busy(false);
+                self.adminUserListViewModel.updateUserGroupInfo();
+            }
 		}
 	});
 };
 
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function(callback) {
+    var adminGroupKey = null;
+    var memberships = tutao.locator.userController.getLoggedInUser().getMemberships();
+    for (var i = 0; i < memberships.length; i++) {
+        if (memberships[i].getAdmin()) {
+            adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[i].getSymEncGKey());
+        }
+    }
+    if (adminGroupKey == null) {
+        callback(new tutao.entity.EntityRestException(new Error("could not find admin key")));
+        return;
+    }
+    var self = this;
+    tutao.entity.sys.Group.load(self.userGroupInfo.getGroup(), function(userGroup, exception) {
+        if (exception) {
+            callback(exception);
+            return;
+        }
+        var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
+        var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
+        tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt, function(userPassphraseKeyHex) {
+            var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
+            var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey);
+            var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
+
+            var service = new tutao.entity.sys.ResetPasswordData();
+            service.setUser(userGroup.getUser());
+            service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
+            service.setVerifier(verifier);
+            service.setPwEncUserGroupKey(pwEncUserGroupKey);
+            service.setup({}, null, function(dummy, exception) {
+                if (exception) {
+                    callback(exception);
+                    return;
+                }
+                callback();
+            });
+        });
+    });
+};
+
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.cancel = function() {
+    if (this.busy()) {
+        return;
+    }
     this.adminUserListViewModel.removeSelection();
     tutao.locator.settingsView.showChangeSettingsColumn();
 };
 
-
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
+    if (this.busy()) {
+        return;
+    }
     var self = this;
-    this.userGroup.loadGroup(function(group, exception) {
+    this.userGroupInfo.loadGroup(function(group, exception) {
         if (exception) {
             console.log(exception);
         } else {
-            var restore = self.userGroup.getDeleted() != null;
+            var restore = self.userGroupInfo.getDeleted() != null;
             new tutao.entity.sys.UserDataDelete()
                 .setUser(group.getUser())
                 .setRestore(restore)
@@ -64,5 +189,13 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getDeleteButtonText = function() {
-    return this.userGroup.getDeleted() == null ? 'delete_action': 'undelete_action';
+    return this.userGroupInfo.getDeleted() == null ? 'delete_action': 'undelete_action';
+};
+
+/**
+ * Provides the password strength in %.
+ * @return {Number} The strength of the password.
+ */
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStrength = function() {
+    return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password());
 };

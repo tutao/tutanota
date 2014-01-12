@@ -200,6 +200,7 @@
 	<script type="text/javascript" src="generated/entity/sys/RegistrationVerifyDomainDataPost.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationVerifyDomainDataPut.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationVerifyDomainPostReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/ResetPasswordData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RootInstance.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SaltData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/SaltReturn.js"></script>
@@ -1958,37 +1959,52 @@ function touchOrClick(e) {
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: isEditable(), value: name, valueUpdate: 'input'" />
+                                        <input class="inputField wide" id="userName" type="text" data-bind="enable: !busy(), value: name, valueUpdate: 'input'" />
                                     </div>
                                 </div>
                             </div>
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'mailAddress_label'"></label>
                                 <div class="recordData">
-                                    <div class="recordValue" data-bind="text: userGroup.getMailAddress()">
+                                    <div class="recordValue" data-bind="text: userGroupInfo.getMailAddress()">
                                     </div>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: passwordChangeAllowed">
+                                <label for="userPassword" class="recordName" data-bind="lang: 'password_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input class="inputField wide" type="text" data-bind="hasfocus: passwordFocused, enable: !busy(), value: password, valueUpdate: 'input', css: getPasswordStatus().type"/>
+                                    </div>
+                                    <label class="recordStatus" data-bind="css: getPasswordStatus().type">
+                                        <div class="pwStrengthBg dataField" data-bind="visible: passwordChanged, attr: {title: tutao.lang('pwStrength_title') }">
+                                            <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+                                        </div>
+                                        <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
+                                    </label>
                                 </div>
                             </div>
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'created_label'"></label>
                                 <div class="recordData">
-                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroup.getCreated())">
+                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroupInfo.getCreated())">
                                     </div>
                                 </div>
                             </div>
-                            <div class="record" data-bind="if: userGroup.getDeleted()">
+                            <div class="record" data-bind="if: userGroupInfo.getDeleted()">
                                 <label class="recordName" data-bind="lang: 'deleted_label'"></label>
                                 <div class="recordData">
-                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroup.getDeleted())">
+                                    <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroupInfo.getDeleted())">
                                     </div>
                                 </div>
                             </div>
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button id="submitUserChange" type="submit" data-bind="lang: 'save_action'"></button>
-                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="lang: getDeleteButtonText(), fastClick: deleteUser"></button>
-                                    <button id="cancelUserChange" type="button" class="minimal" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
+                                    <button id="submitUserChange" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
+                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser"></button>
+                                    <button id="cancelUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
+                                    <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
                             </div>
                         </form>

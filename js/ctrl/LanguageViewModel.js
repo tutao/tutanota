@@ -228,6 +228,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	pwChangeButtonSendCode_action: "Send code",
 	pwChangeButtonChangePw_action: "Change password",
 	serverNotReachable_msg: "Could not reach server. Please try again later.",
+    passwordNotChanged_msg: "The password is not changed.",
+    passwordResetFailed_msg: "An error occurred. The password was not changed.",
 
 	// general
 	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
@@ -551,7 +553,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     deleted_label: "Gelöscht",
     created_label: "Erstellt",
     addinInfoText_msg: "Hier können Sie das Outlook-Addin für Tutanota Starter herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
-	
+
 	// account settings
 	accountType_label: "Account-Typ",
 	mailName_label: "Absendername",
@@ -587,6 +589,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	pwChangeButtonSendCode_action: "Code senden",
 	pwChangeButtonChangePw_action: "Passwort ändern",
 	serverNotReachable_msg: "Der Server ist nicht erreichbar. Bitte versuchen Sie es es später erneut.",
+    passwordNotChanged_msg: "Das Passwort ist nicht geändert.",
+    passwordResetFailed_msg: "Es ist ein Fehler aufgetreten. Das Passwort wurde nicht geändert.",
 
 	// general
 	emptyString_msg: "\u2008",
@@ -702,7 +706,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberNeutral_msg: "Bitte Mobilfunknummer eingeben.",
 	mobileNumberValid_msg: "Mobilfunknummer ok.",
 	mobileNumberInvalid_msg: "Ungültige Mobilfunknummer.",
-    currentMailAddressInfo_msg: "Diese Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört.\nHinweis: Benutzer Sie eine postmaster@<ihre_domain> oder hostmaster@<ihre_domain> Adresse, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt. Die manuelle Prüfung dauert im Normalfall einige Stunden.",
+    currentMailAddressInfo_msg: "Diese Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört.\nHinweis: Benutzen Sie eine postmaster@<ihre_domain> oder hostmaster@<ihre_domain> Adresse, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt. Die manuelle Prüfung dauert im Normalfall einige Stunden.",
 	mailAddressInfo_msg: "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
     mailAddressInfoBusiness_msg: "Ihre vorhandene E-Mail-Adresse.",
     mailAddressInfoAdmin_msg: "Die E-Mail-Adresse des Benutzers.",
