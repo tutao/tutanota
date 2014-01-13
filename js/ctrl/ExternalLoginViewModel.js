@@ -398,7 +398,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 		} else if (passwordRetrievalReturn.getTransmissionKeyEncryptedPassword() == "") {
 			self.retrievePassword(); // timeout, retry to get the password immediately
 		} else if (!self._showingMail){
-			self.state.event("checkPassword");
 			var password;
 			try {
 				password = tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword());
