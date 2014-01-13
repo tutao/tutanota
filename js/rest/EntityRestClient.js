@@ -134,7 +134,7 @@ tutao.rest.EntityRestClient.prototype.putElement = function(path, element, param
 	}
 	var url = tutao.rest.EntityRestClient.createUrl(path, listId, id, parameters);
 
-	tutao.locator.restClient.putElement(url, headers, JSON.stringify(element.toJsonData()), function(exception) {
+	tutao.locator.restClient.putElement(url, headers, JSON.stringify(element.toJsonData()), function(data, exception) {
 		if (exception) {
 			callback(new tutao.rest.EntityRestException(exception));
 		} else {

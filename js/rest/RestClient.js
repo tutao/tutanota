@@ -57,15 +57,15 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json, call
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {string} json The json data to store.
- * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
+ * @param {function(?string, tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
  */
 tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callback) {
 	jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
 		success: function(data, textStatus, jqXHR) {
-			callback();
+			callback(data);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			callback(new tutao.rest.RestException(jqXHR.status));
+			callback(null, new tutao.rest.RestException(jqXHR.status));
 		}
 	});
 };
