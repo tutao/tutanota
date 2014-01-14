@@ -196,7 +196,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) 
 	var recipient;
 	if (tutao.locator.userController.isExternalUserLoggedIn()) {
 		// TODO iss446 (Internal/external recipients are not correctly resolved): check that the recipient is actually internal (i.e. not unregistered)
-		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress(), false));
+		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()), false);
 	} else {
 		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()));
 	}
