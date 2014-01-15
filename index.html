@@ -1276,7 +1276,12 @@ function touchOrClick(e) {
 									</div>
 									<!-- /ko -->
 									<div class="record">
+                                        <!-- ko if: getRegistrationType() != 'Free' -->
+                                        <label for="registrationMailName" class="recordName" data-bind="lang: 'nameAdmin_label'"></label>
+                                        <!-- /ko -->
+                                        <!-- ko if: getRegistrationType() == 'Free' -->
 										<label for="registrationMailName" class="recordName" data-bind="lang: 'name_label'"></label>
+                                        <!-- /ko -->
 										<div class="recordData">
 											<div class="recordValue">
 												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input', hasfocus: nameFieldFocused" />
@@ -1296,7 +1301,7 @@ function touchOrClick(e) {
 									</div>
                                     <!-- ko if: getRegistrationType() != 'Free' -->
                                     <div class="record">
-                                        <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
+                                        <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
                                                 <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
