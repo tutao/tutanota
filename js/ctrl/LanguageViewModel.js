@@ -357,7 +357,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mailAddressBusy_msg: "Verifying mail address...",
 	pwStrength_title: "This shows the security level of your entered password.",
 	goodPassphrase_action: "How to find a good password?",
-	termsAndConditions_action: "Terms & conditions",
+    passwordImportance_msg: "Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
+	termsAndConditions_action: "I agree to the terms of service and have read the service description and the privacy policy.",
 	join_action: "Join",
 	joinNeutral_msg: "Join to receive your personal verification code via SMS for verifying your mobile number.",
 	joinRunning_msg: "An SMS is sent...",
@@ -374,7 +375,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	createAccountTooManyAttempts_msg: "Too many wrong attempts. Please try again later.",
 	createAccountError_msg: "Sorry, but there was an error. Please try again later.",
 	createAccountInfo_msg: "Depending on your computer's individual performance it may take some minutes to generate your secure keys.",
-	acceptConditions_label: "Accept",
 	name_label: "Name",
 	mobileNumber_label: "Mobile phone number",
 	desiredAddress_label: "Desired email address",
@@ -382,7 +382,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	repeatedPassword_label: 'Repeat password',
 	registrationCodeInput_label: "Verification code",
 	progress_msg: "Progress",
-	terms_label: "Terms & conditions",
+	terms_label: "Confirmation",
 	termsAcceptedNeutral_msg: "Please accept the terms & conditions.",
 
 	// feedback
@@ -720,7 +720,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mailAddressBusy_msg: "E-Mail-Adresse wird überprüft...",
 	pwStrength_title: "Zeigt den Sicherheitsgrad des verwendeten Passworts an",
 	goodPassphrase_action: "Wie finde ich ein gutes Passwort?",
-	termsAndConditions_action: "Nutzungsbedingungen",
+    passwordImportance_msg: "Bitte bewahren Sie dieses Passwort an einem sicheren Ort auf. Wir können das Passwort nicht wiederherstellen oder den Account zurücksetzen, da ihre Daten Ende-zu-Ende verschlüsselt gespeichert werden.",
+	termsAndConditions_action: "Ich habe die Allgemeinen Geschäftsbedingungen, die Datenschutzerklärung und die Leistungsbeschreibung gelesen und erkenne diese an.",
 	join_action: "Fortfahren",
 	joinNeutral_msg: "Sie erhalten anschließend per SMS einen Bestätigungscode für die angegebene Mobilfunknummer.",
 	joinRunning_msg: "Die SMS wird gesendet...",
@@ -737,7 +738,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	createAccountTooManyAttempts_msg: "Zu viele falsche Versuche. Bitte versuchen Sie es später erneut.",
 	createAccountError_msg: "Leider ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
 	createAccountInfo_msg: "Abhängig von der Geschwindigkeit Ihres Computers kann es einige Minuten dauern bis Ihre sicheren Schlüssel erzeugt wurden.",
-	acceptConditions_label: "Ich akzeptiere die",
 	name_label: "Name",
 	mobileNumber_label: "Mobilfunknummer",
 	desiredAddress_label: "Gewünschte E-Mail-Adresse",
@@ -745,7 +745,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	repeatedPassword_label: 'Passwort wiederholen',
 	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
-	terms_label: "Nutzungs\u00ADbedingungen", // soft hyphen
+	terms_label: "Bestätigung", // soft hyphen
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
 
 	// feedback

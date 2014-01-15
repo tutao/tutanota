@@ -1328,9 +1328,10 @@ function touchOrClick(e) {
 												<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 													<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 												</div>
-												<div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
+                                                <div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
 											</label>
-											<div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+                                            <label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
+                                            <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
 										</div>
 									</div>
 									<div class="record">
@@ -1347,7 +1348,7 @@ function touchOrClick(e) {
 										<div class="recordData">
 											<div class="recordValue">
 												<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-												<label for="termsInput" data-bind="lang: 'acceptConditions_label'"></label> <a href="https://tutanota.de/go/tutanota-starter-terms-de/" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+												<a href="https://tutanota.de/go/tutanota-starter-terms-de/" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
 											</div>
 											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
 										</div>
