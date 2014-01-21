@@ -70,6 +70,8 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.allTranslationsAsJson = function
  * Types: label, action, msg, title, alt, placeholder
  */
 tutao.tutanota.ctrl.LanguageViewModel.en = {
+	// soft-hyphen: \u00AD
+		
 	// mail
 	deleteMail_msg:	"Delete new email without saving?",
 	tooBigAttachment_msg: "The following files could not be attached because their size exceeds 25 MB: ",
@@ -711,7 +713,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberNeutral_msg: "Bitte Mobilfunknummer eingeben.",
 	mobileNumberValid_msg: "Mobilfunknummer ok.",
 	mobileNumberInvalid_msg: "Ungültige Mobilfunknummer.",
-    currentMailAddressInfo_msg: "Diese E-Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört bzw. Sie befugt sind, diese zu verwalten.\nTipp: Benutzen Sie eine der Adressen postmaster@<ihre_domain> oder hostmaster@<ihre_domain>, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt und kann bis zu einem Werktag benötigen.",
+    currentMailAddressInfo_msg: "Diese E-Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört oder Sie diese verwalten dürfen.\nTipp: Benutzen Sie eine der Adressen postmaster@<ihre_domain> oder hostmaster@<ihre_domain>, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt und kann bis zu einem Werktag benötigen.",
 	mailAddressInfo_msg: "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
     mailAddressInfoBusiness_msg: "Ihre vorhandene E-Mail-Adresse.",
     mailAddressInfoAdmin_msg: "Die E-Mail-Adresse des Benutzers.",
@@ -749,7 +751,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	repeatedPassword_label: 'Passwort wiederholen',
 	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
-	terms_label: "Bestätigung", // soft hyphen
+	terms_label: "Bestätigung",
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
 
 	// feedback
