@@ -47,7 +47,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, info.getDeviceType());
 		assertEquals(true, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
 	},
 	"test detect ie11 windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
@@ -80,7 +80,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
 		assertEquals(false, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
 	"test detect old ie9 in IE8 mode windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
@@ -91,7 +91,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
 		assertEquals(false, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
 	"test detect old IE8 mode windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
@@ -102,7 +102,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
 		assertEquals(false, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
 	"test detect old ie7 windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
@@ -125,5 +125,16 @@ TestCase("ClientDetectorTest", {
 		assertEquals(false, info.isTouchSupported());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN, info.getSupportedType());
-	}
+	},
+    "test detect safari 6 on OS X": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.71 (KHTML, like Gecko) Version/6.1 Safari/537.71");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assertEquals(6, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
+        assertEquals(false, info.isTouchSupported());
+        assertEquals(false, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI, info.getSupportedType());
+    }
 });
