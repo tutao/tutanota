@@ -185,7 +185,9 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         // @type {tutao.tutanota.gui.FileView}
         fileView: tutao.tutanota.gui.FileView,
         // @type {tutao.tutanota.ctrl.Navigator}
-        navigator: tutao.tutanota.ctrl.Navigator
+        navigator: tutao.tutanota.ctrl.Navigator,
+        // @type {tutao.tutanota.ctrl.LegacyDownloadViewModel}
+        legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel
     };
 
     if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {

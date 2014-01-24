@@ -129,6 +129,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mobileNumberNotValid_msg: "Invalid format.",
 	fromAddressBook_label: "From address book: ",
 	presharedPasswordNotStrongEnough_msg: "One or more agreed passwords are not secure enough. Send the email anyway?",
+    showAttachment_label: "Display attachment",
+    saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser. Please use Mozilla Firefox or Google Chrome otherwise.",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -257,6 +259,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	remove_action: "Remove", // also used by outlook addin
 	notFound404_msg: "Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
     loading_msg: "Loading...",
+    show_action: "Show",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -493,6 +496,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberNotValid_msg: "Format ist nicht gültig.",
 	fromAddressBook_label: "Aus Adressbuch: ",
 	presharedPasswordNotStrongEnough_msg: "Ein oder mehrere vereinbarte Passwörter sind nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
+    showAttachment_label: "Anhang anzeigen",
+    saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
@@ -621,6 +626,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	remove_action: "Entfernen",
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
     loading_msg: "Lade...",
+    show_action: "Öffne",
 	
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Bestätigungscode eingeben.",
