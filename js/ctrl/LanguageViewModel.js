@@ -131,6 +131,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	presharedPasswordNotStrongEnough_msg: "One or more agreed passwords are not secure enough. Send the email anyway?",
     showAttachment_label: "Display attachment",
     saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser. Please use Mozilla Firefox or Google Chrome otherwise.",
+    recipientsNotResolved_msg: "Some recipients could not be resolved, Please wait a moment, then send the email again.",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -498,6 +499,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	presharedPasswordNotStrongEnough_msg: "Ein oder mehrere vereinbarte Passwörter sind nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
     showAttachment_label: "Anhang anzeigen",
     saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
+    recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
