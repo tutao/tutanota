@@ -453,11 +453,12 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 											callback(exception);
 											return;
 										}
-										var map = {};
-										new tutao.entity.tutanota.WelcomeMailData()
-                                            .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                            .setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-										self._keyGenProgress(100);
+                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                                            new tutao.entity.tutanota.WelcomeMailData()
+                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+                                        }
+                                        self._keyGenProgress(100);
 										callback();
 									});
 								});
