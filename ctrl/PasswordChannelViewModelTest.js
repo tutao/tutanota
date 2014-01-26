@@ -24,17 +24,17 @@ TestCase("PasswordChannelViewModelTest", {
 	},
 	"test that secureExternalRecipients is always empty when sending an unsecure message": function() {
 		this.composingSecureMail = false;
-		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@b.de", "a b", null);
+		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@b.de", "a b", null, true);
 		assertTrue(r1.isExternal());
 		assertFalse(r1.isSecure());
 		this.composerRecipients.push(r1);
 		assertEquals([], this.vm.getSecureExternalRecipients());
 	},
 	"test that secureExternalRecipients is correctly sorted when sending a secure mail": function() {
-		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@b.de", "a b", null);
+		var r1 = new tutao.tutanota.ctrl.RecipientInfo("a@b.de", "a b", null, true);
 		assertTrue(r1.isExternal());
 		assertFalse(r1.isSecure());
-		var r2 = new tutao.tutanota.ctrl.RecipientInfo("c@d.de", "c d", null);
+		var r2 = new tutao.tutanota.ctrl.RecipientInfo("c@d.de", "c d", null, true);
 		var contact = new tutao.entity.tutanota.Contact();
 		var contactPhoneNumber = new tutao.entity.tutanota.ContactPhoneNumber(contact);
 		contactPhoneNumber.setNumber("015777777777");

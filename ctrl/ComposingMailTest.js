@@ -21,7 +21,7 @@ AsyncTestCase("ComposingMailTest", {
 			cm.secure(false);
 			tutao.tutanota.gui.alert = callbacks.add(function(text) {
 				assertEquals("Please provide recipients for your email.", text);
-				cm.addToRecipient(new tutao.tutanota.ctrl.RecipientInfo("a@b.de", "Name", null));
+				cm.addToRecipient(new tutao.tutanota.ctrl.RecipientInfo("a@tutanota.de", "Name", null));
 				tutao.tutanota.gui.alert = callbacks.add(function(text) {
 					assertEquals("Please provide a subject for your email.", text);
 					cm.composerSubject("TestSubject");
