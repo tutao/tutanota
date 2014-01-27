@@ -13,7 +13,7 @@ goog.provide('tutao.tutanota.ctrl.GroupData');
  *            the key of the admin group, used to encrypt the symmetric group key for the admin group.
  * @param {Object} listKey
  *            the key of the list, used to encrypt all regular data of the group (e.g. name)
- * @param {function(?tutao.entity.sys.CreateGroupData, ?Object, exception=)} callback Called when finished. Receives the group data object.
+ * @param {function(?tutao.entity.sys.CreateGroupData, ?Object, tutao.crypto.CryptoException=)} callback Called when finished. Receives the group data object.
  */
 tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userKey, adminGroupKey, listKey, callback) {
 	var symGroupKey = tutao.locator.aesCrypter.generateRandomKey();

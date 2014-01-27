@@ -156,13 +156,28 @@ tutao.tutanota.util.Formatter.simpleStringToDate = function(string) {
  */
 tutao.tutanota.util.Formatter.isMailAddress = function(string) {
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
-	// check uppercase and leading or trailing whitespaces because they are not covered by the following regexp
-	if (string != string.toLowerCase().trim()) {
+	// check trailing whitespaces because they are not covered by the following regexp
+    // allow uppercase addresses in input check, convert them before sending to server.
+	if (string == null || string != string.trim()) {
 		return false;
 	}
 	// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
 	return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 };
+
+/**
+ * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
+ * the address to lower case.
+ * @param {string} mailAddress The input mail address.
+ * @return {string} The cleaned mail address.
+ */
+tutao.tutanota.util.Formatter.getCleanedMailAddress = function(mailAddress){
+	if (tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+		return mailAddress.toLowerCase().trim();
+	}	
+   	return null;    
+};
+
 
 /**
  * Checks if the given string is a valid local part of a Tutanota email address.
@@ -192,7 +207,7 @@ tutao.tutanota.util.Formatter.isValidTutanotaLocalPart = function(string) {
 tutao.tutanota.util.Formatter.stringToNameAndMailAddress = function(string) {
 	string = string.trim();
 	if (string == "") {
-		return;
+		return null;
 	}
 	var startIndex = string.indexOf("<");
 	if (startIndex != -1) {
@@ -200,21 +215,22 @@ tutao.tutanota.util.Formatter.stringToNameAndMailAddress = function(string) {
 		if (endIndex == -1) {
 			return null;
 		}
-		var mailAddress = string.substring(startIndex + 1, endIndex).trim().toLowerCase();
-		if (!tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+        var cleanedMailAddress = this.getCleanedMailAddress(string.substring(startIndex + 1, endIndex));
+
+		if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedMailAddress)) {
 			return null;
 		}
 		var name = string.substring(0, startIndex).trim();
-		return {name: name, mailAddress: mailAddress};
+		return {name: name, mailAddress: cleanedMailAddress};
 	} else {
 		var startIndex = string.lastIndexOf(" ");
 		startIndex++;
-		var mailAddress = string.substring(startIndex).trim().toLowerCase();
-		if (!tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+        var cleanedMailAddress = this.getCleanedMailAddress(string.substring(startIndex));
+		if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedMailAddress)) {
 			return null;
 		}
 		var name = string.substring(0, startIndex).trim();
-		return {name: name, mailAddress: mailAddress};
+		return {name: name, mailAddress: cleanedMailAddress};
 	}
 };
 

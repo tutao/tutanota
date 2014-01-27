@@ -25,7 +25,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStatus = function () {
         return { type: "neutral", text: "password1Neutral_msg" };
     } else if (this.getPasswordStrength() >= 80) {
         return { type: "valid", text: "passwordValid_msg" };
-    } else if (this.password().trim().lenght < 1) {
+    } else if (this.password().trim().length < 1) {
         return { type: "invalid", text: "password1InvalidTooShort_msg" };
     } else {
         return { type: "neutral", text: "password1InvalidUnsecure_msg" };
@@ -37,8 +37,13 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStrength = function () {
 };
 
 tutao.tutanota.ctrl.AdminNewUser.prototype.isValidMailAddress = function () {
-    return tutao.tutanota.util.Formatter.isMailAddress(this.mailAddressPrefix() + "@" + this.domain());
+    return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress());
 };
+
+tutao.tutanota.ctrl.AdminNewUser.prototype.getMailAddress = function () {
+    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddressPrefix() + "@" + this.domain());
+};
+
 
 tutao.tutanota.ctrl.AdminNewUser.STATE_NONE = "";
 tutao.tutanota.ctrl.AdminNewUser.STATE_IN_PROGRESS = "progress";
@@ -101,10 +106,11 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
                     if (exception) {
                         callback(exception);
                     } else {
-                        tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminGroupKey, userGroupsListKey, function (userGroupData, userGroupKey, exception) {
+                        tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey, function (userGroupData, userGroupKey, exception) {
                             if (exception != null) {
                                 callback(exception);
                             } else {
+                                /** @type tutao.entity.sys.UserData */
                                 var userService = new tutao.entity.sys.UserData()
                                     .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
                                     .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
