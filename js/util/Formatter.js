@@ -253,7 +253,7 @@ tutao.tutanota.util.Formatter.formatFileSize = function(size) {
 /**
  * Provides the cleaned phone number. Format: +<country_code><number_without_0>. Uses the country code +49 if none is provided.
  * Accepts and removes ' ', '/', '-', '(', ')' from the given phoneNumber.
- * @param {string} size The phone number to clean.
+ * @param {string} phoneNumber The phone number to clean.
  * @return {string?} The cleaned phone number or null if the phone number is not valid.
  */
 tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
@@ -273,18 +273,18 @@ tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
 
 /**
  * Provides the information if the given cleaned phone number is a german mobile phone number.
- * @param {?string} phoneNumber The phone number to check.
+ * @param {?string} cleanPhoneNumber The phone number to check.
  * @return {boolean} True if it is a mobile phone number, false otherwise.
  */
 tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(cleanPhoneNumber) {
-	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.java */
-	if (!cleanPhoneNumber || cleanPhoneNumber.length < 12 || cleanPhoneNumber.length > (3 + 14) || !tutao.util.StringUtils.startsWith(cleanPhoneNumber, "+49")) {
+	/* KEEP IN SYNC WITH JAVA VERSION IN Formatutils.java and CommonCodes.java */
+	if (!cleanPhoneNumber || cleanPhoneNumber.length < (3 + 10) || cleanPhoneNumber.length > (3 + 11) || !tutao.util.StringUtils.startsWith(cleanPhoneNumber, "+49")) {
 		return false;
 	}
-	var germanMobileAreaCodes = ["01511", "01512", "01514", "01515", "01516", "016", "0170", "0171", "0175", /* telekom */
-	                             "01520", "01521", "01522", "01523", "01525", "01529", "0162", "0172", "0173", "0174", /* vodafone */
-	                             "01570", "01573", "01575", "01577", "01578", "01579", "0163", "0177", "0178", /* e-plus */
-	                             "01590", "0176", "0179"]; /* o2 */
+	var germanMobileAreaCodes = ["0151", "0160", "0170", "0171", "0175", /* telekom */
+	                             "0152", "0162", "0172", "0173", "0174", /* vodafone */
+	                             "0155", "0157", "0163", "0177", "0178", /* e-plus */
+	                             "0159", "0176", "0179"]; /* o2 */
 	for (var i = 0; i < germanMobileAreaCodes.length; i++) {
 		if (tutao.util.StringUtils.startsWith(cleanPhoneNumber.substring(3), germanMobileAreaCodes[i].substring(1))) {
 			return true;
