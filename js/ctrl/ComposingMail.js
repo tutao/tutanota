@@ -202,8 +202,19 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
         self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
         self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
             if (exception) {
-                tutao.tutanota.gui.alert(tutao.lang("sendingFailed_msg"));
-                console.log("could not send mail", exception);
+                if(exception instanceof tutao.tutanota.ctrl.RecipientsNotFoundException){
+                    var notFoundRecipients = exception.getRecipients();
+                    var recipientList = "";
+                    for (var i = 0; i < notFoundRecipients.length; i++) {
+                        recipientList += notFoundRecipients[i] + "\n";
+                    }
+                    tutao.tutanota.gui.alert( tutao.lang("invalidRecipients_msg") + "\n" + recipientList );
+                    console.log("recipients not found", exception);
+                }
+                else{
+                    tutao.tutanota.gui.alert(tutao.lang("sendingFailed_msg"));
+                    console.log("could not send mail", exception);
+                }
                 self.busy(false);
                 return;
             }
