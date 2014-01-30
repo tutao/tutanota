@@ -90,7 +90,7 @@ TestCase("FormatterTest", {
 		assertTrue(tutao.tutanota.util.Formatter.isMailAddress("a@hello.c"));
 		assertTrue(tutao.tutanota.util.Formatter.isMailAddress("a.b@hello.de"));
 		// test uppercase
-		assertFalse(tutao.tutanota.util.Formatter.isMailAddress("A@b.hello.de"));
+		assertTrue(tutao.tutanota.util.Formatter.isMailAddress("A@b.hello.de"));
 		// test missing parts
 		assertFalse(tutao.tutanota.util.Formatter.isMailAddress("@b.hello.de"));
 		assertFalse(tutao.tutanota.util.Formatter.isMailAddress("batello.de"));
@@ -190,7 +190,7 @@ TestCase("FormatterTest", {
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4919153335321"));
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4815753335321"));
 		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber(null));
-		assertTrue(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+4917953335321444"));
-		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533353214444"));
+		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533")); // too short
+		assertFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533353214444")); // too long
 	}
 });
