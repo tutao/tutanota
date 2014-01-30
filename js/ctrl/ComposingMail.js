@@ -126,6 +126,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 		}, 0);
 		return;
 	}
+    if (this._containsUnknownRecipients()) {
+        setTimeout(function() {
+            tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("recipientsNotResolved_msg"));
+        }, 0);
+        return;
+    }
 	if (!this.secure()) {
 		var attachmentsSize = 0;
 		for (var i = 0; i < this._attachments().length; i++) {
@@ -348,6 +354,20 @@ tutao.tutanota.ctrl.ComposingMail.prototype._containsUnsecureRecipients = functi
 	return false;
 };
 
+/**
+ * Returns if there are unsecure recipients among the current recipients.
+ * @return {boolean} True if there are unsecure recipients among the given recipients, false otherwise.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype._containsUnknownRecipients = function() {
+    var r = this.getAllComposerRecipients();
+    for (var i = 0; i < r.length; i++) {
+        if (r[i].getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
+            return true;
+        }
+    }
+    return false;
+};
+
 tutao.tutanota.ctrl.ComposingMail.prototype._containsInvalidPasswordChannels = function() {
 	if (!this.secure()) {
 		return false;
@@ -362,7 +382,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._containsInvalidPasswordChannels = f
 };
 
 /**
- * Returns true if this mail shall (also) be sent to external recipients in a secure way.
+ * Returns true if this mail shall (also) be sent to external recipients in a secure way. Returns false if not yet known for some recipients.
  * @return {boolean}
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.composeForSecureExternalRecipients = function() {
@@ -539,7 +559,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.createBubbleFromText = function(text
  * @return {tutao.tutanota.ctrl.bubbleinput.Bubble} The bubble.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = function(recipientInfo) {
-	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, recipientInfo.getDisplayText(), ko.computed(function() { return (this.secure() || !recipientInfo.isExternal()) ? 'secureRecipient' : 'unsecureRecipient';}, this));
+    var state = ko.computed(function() {
+        if (recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
+            return "unknownRecipient";
+        } else if (this.secure() || recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL) {
+            return "secureRecipient";
+        } else {
+            return "unsecureRecipient";
+        }
+    }, this);
+	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state);
 };
 
 /**

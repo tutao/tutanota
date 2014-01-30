@@ -191,7 +191,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function(ca
 			callback(new tutao.rest.EntityRestException(e));
 			return;
 		}
-		self._tryLogin(password);
+		self._tryLogin(password, callback);
 	});
 };
 

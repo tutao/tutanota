@@ -87,7 +87,7 @@ tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, sessionKey, c
 tutao.tutanota.ctrl.FileFacade.readFileData = function(file, callback) {
     var fileParams = new tutao.entity.tutanota.FileDataDataGet()
         .setFile(file.getId())
-        .setBase64(tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY);
+        .setBase64(tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE);
 	var params = {};
 	params[tutao.rest.ResourceConstants.GET_BODY_PARAM] = encodeURIComponent(JSON.stringify(fileParams.toJsonData()));
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();

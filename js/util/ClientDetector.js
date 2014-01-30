@@ -33,8 +33,10 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER = "Other";
 
 /** browser is supported */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED = "supported";
-/** browser is supported in legacy mode (view mails es external recipient). Legacy mode is the same as update needed for all internal users. */
-tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY = "legacy";
+/** browser is supported in legacy mode for IE8 and IE9 with flash plugin (view mails es external recipient). Replying to emails is not supported. */
+tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE = "legacy ie";
+/** browser is supported in legacy mode for Safari (view mails es external recipient). Downloading attachments is not fully supported. */
+tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI = "legacy safari";
 /** browser is not supported */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED = "not supported";
 /** browser is generally supported, but must be updated to fit supported version */
@@ -49,7 +51,7 @@ tutao.tutanota.util.ClientDetector.LANGUAGE_EN = "en";
 
 /**
  * Information about the client.
- * For a list of use agent strings, see: http://www.useragentstring.com/pages/Browserlist/
+ * For a list of used agent strings, see: http://www.useragentstring.com/pages/Browserlist/
  */
 tutao.tutanota.util.ClientDetector._browser = null;
 tutao.tutanota.util.ClientDetector._browserVersion = null;
@@ -173,18 +175,21 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 
 	if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
-	} else if (info._browser == info.BROWSER_TYPE_SAFARI) {
-		// safari is only supported on iPad and iPhone
-		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
 	} else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
 	} else if (info._browser == info.BROWSER_TYPE_IE && info._browserVersion < 10) {
 		if (window.swfobject && swfobject.getFlashPlayerVersion().major >= 8) { // since version 8 file download is supported
-			info._supported = info.SUPPORTED_TYPE_LEGACY;
+			info._supported = info.SUPPORTED_TYPE_LEGACY_IE;
 		} else {
 			info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
 		}
-	} else {
+    } else if (info._browser == info.BROWSER_TYPE_SAFARI) {
+        if (info._device == info.DEVICE_TYPE_IPAD || info._device == info.DEVICE_TYPE_IPHONE) {
+            info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
+        } else {
+            info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
+        }
+    } else {
 		info._supported = info.SUPPORTED_TYPE_SUPPORTED;
 	}
 };

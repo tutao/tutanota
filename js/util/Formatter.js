@@ -156,13 +156,28 @@ tutao.tutanota.util.Formatter.simpleStringToDate = function(string) {
  */
 tutao.tutanota.util.Formatter.isMailAddress = function(string) {
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
-	// check uppercase and leading or trailing whitespaces because they are not covered by the following regexp
-	if (string != string.toLowerCase().trim()) {
+	// check trailing whitespaces because they are not covered by the following regexp
+    // allow uppercase addresses in input check, convert them before sending to server.
+	if (string == null || string != string.trim()) {
 		return false;
 	}
 	// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
 	return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 };
+
+/**
+ * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
+ * the address to lower case.
+ * @param {string} mailAddress The input mail address.
+ * @return {string} The cleaned mail address.
+ */
+tutao.tutanota.util.Formatter.getCleanedMailAddress = function(mailAddress){
+	if (tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+		return mailAddress.toLowerCase().trim();
+	}	
+   	return null;    
+};
+
 
 /**
  * Checks if the given string is a valid local part of a Tutanota email address.
@@ -192,7 +207,7 @@ tutao.tutanota.util.Formatter.isValidTutanotaLocalPart = function(string) {
 tutao.tutanota.util.Formatter.stringToNameAndMailAddress = function(string) {
 	string = string.trim();
 	if (string == "") {
-		return;
+		return null;
 	}
 	var startIndex = string.indexOf("<");
 	if (startIndex != -1) {
@@ -200,21 +215,22 @@ tutao.tutanota.util.Formatter.stringToNameAndMailAddress = function(string) {
 		if (endIndex == -1) {
 			return null;
 		}
-		var mailAddress = string.substring(startIndex + 1, endIndex).trim().toLowerCase();
-		if (!tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+        var cleanedMailAddress = this.getCleanedMailAddress(string.substring(startIndex + 1, endIndex));
+
+		if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedMailAddress)) {
 			return null;
 		}
 		var name = string.substring(0, startIndex).trim();
-		return {name: name, mailAddress: mailAddress};
+		return {name: name, mailAddress: cleanedMailAddress};
 	} else {
 		var startIndex = string.lastIndexOf(" ");
 		startIndex++;
-		var mailAddress = string.substring(startIndex).trim().toLowerCase();
-		if (!tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
+        var cleanedMailAddress = this.getCleanedMailAddress(string.substring(startIndex));
+		if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedMailAddress)) {
 			return null;
 		}
 		var name = string.substring(0, startIndex).trim();
-		return {name: name, mailAddress: mailAddress};
+		return {name: name, mailAddress: cleanedMailAddress};
 	}
 };
 
@@ -237,7 +253,7 @@ tutao.tutanota.util.Formatter.formatFileSize = function(size) {
 /**
  * Provides the cleaned phone number. Format: +<country_code><number_without_0>. Uses the country code +49 if none is provided.
  * Accepts and removes ' ', '/', '-', '(', ')' from the given phoneNumber.
- * @param {string} size The phone number to clean.
+ * @param {string} phoneNumber The phone number to clean.
  * @return {string?} The cleaned phone number or null if the phone number is not valid.
  */
 tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
@@ -257,18 +273,18 @@ tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
 
 /**
  * Provides the information if the given cleaned phone number is a german mobile phone number.
- * @param {?string} phoneNumber The phone number to check.
+ * @param {?string} cleanPhoneNumber The phone number to check.
  * @return {boolean} True if it is a mobile phone number, false otherwise.
  */
 tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(cleanPhoneNumber) {
-	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.java */
-	if (!cleanPhoneNumber || cleanPhoneNumber.length < 12 || cleanPhoneNumber.length > (3 + 14) || !tutao.util.StringUtils.startsWith(cleanPhoneNumber, "+49")) {
+	/* KEEP IN SYNC WITH JAVA VERSION IN Formatutils.java and CommonCodes.java */
+	if (!cleanPhoneNumber || cleanPhoneNumber.length < (3 + 10) || cleanPhoneNumber.length > (3 + 11) || !tutao.util.StringUtils.startsWith(cleanPhoneNumber, "+49")) {
 		return false;
 	}
-	var germanMobileAreaCodes = ["01511", "01512", "01514", "01515", "01516", "016", "0170", "0171", "0175", /* telekom */
-	                             "01520", "01521", "01522", "01523", "01525", "01529", "0162", "0172", "0173", "0174", /* vodafone */
-	                             "01570", "01573", "01575", "01577", "01578", "01579", "0163", "0177", "0178", /* e-plus */
-	                             "01590", "0176", "0179"]; /* o2 */
+	var germanMobileAreaCodes = ["0151", "0160", "0170", "0171", "0175", /* telekom */
+	                             "0152", "0162", "0172", "0173", "0174", /* vodafone */
+	                             "0155", "0157", "0163", "0177", "0178", /* e-plus */
+	                             "0159", "0176", "0179"]; /* o2 */
 	for (var i = 0; i < germanMobileAreaCodes.length; i++) {
 		if (tutao.util.StringUtils.startsWith(cleanPhoneNumber.substring(3), germanMobileAreaCodes[i].substring(1))) {
 			return true;
