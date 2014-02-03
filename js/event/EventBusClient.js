@@ -14,6 +14,7 @@ tutao.event.EventBusClient = function() {
 	this._socket = null;
 	this._failedConnects = 0;
 	this._lastConnectionAttempt = null;
+    this._tryReconnect = false;
 };
 
 /**
@@ -37,7 +38,7 @@ tutao.event.EventBusClient.prototype.notifyObservers = function(data) {
 	this._observable.notifyObservers(data);
 };
 
-tutao.event.EventBusClient.prototype.connect = function(callback) {
+tutao.event.EventBusClient.prototype.connect = function() {
 	var self = this;
 	var protocol = document.location.protocol === 'http:' ? 'ws' : 'wss';
     var port = document.location.port === '' ? '' : ':' + document.location.port;
@@ -54,9 +55,6 @@ tutao.event.EventBusClient.prototype.connect = function(callback) {
 			.setAuthentication(authentication);
 
 	    self._socket.send(JSON.stringify(wrapper.toJsonData()));
-	    if (callback) {
-	    	self._checkSocket(callback);
-	    }
 	};
 	this._socket.onclose = this._close;
 	this._socket.onerror = this._error;
@@ -75,6 +73,7 @@ tutao.event.EventBusClient.prototype.close = function() {
 
 tutao.event.EventBusClient.prototype._error = function(error) {
 	console.log("ws error: ", error);
+    this._tryReconnect = true;
 };
 
 tutao.event.EventBusClient.prototype._message = function(message) {
@@ -89,6 +88,9 @@ tutao.event.EventBusClient.prototype._message = function(message) {
 
 tutao.event.EventBusClient.prototype._close = function(event) {
 	console.log("ws close: ", event, new Date());
+    if (this._tryReconnect) {
+        this._reconnect();
+    }
 };
 
 /**
@@ -114,18 +116,11 @@ tutao.event.EventBusClient.prototype._sendMessage = function(recipient, message)
 	this._socket.send(JSON.stringify(wrapper.toJsonData()));
 };
 
-// currently not used, decide on how to reconnect
-tutao.event.EventBusClient.prototype._checkSocket = function(callback) {
-	if (this._socket.readyState == 0) {
-		// connecting, try again later
-		setTimeout(this._checkSocket(callback), 100);
-	} else if (this._socket.readyState == 1) {
-		// socket is ready, invoke the callback
-		callback();
-	} else {
-		// socket is closing or already closed, create a new one
-		this.connect(callback);
-	}
-	callback();
+
+tutao.event.EventBusClient.prototype._reconnect = function() {
+    console.log("reconnect socket state: " + this._socket.readyState);
+    this._tryReconnect = false;
+    this._reconnectInterval = window.setTimeout(this.connect, 30000 );
 };
+
 
