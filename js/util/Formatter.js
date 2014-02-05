@@ -172,10 +172,11 @@ tutao.tutanota.util.Formatter.isMailAddress = function(string) {
  * @return {string} The cleaned mail address.
  */
 tutao.tutanota.util.Formatter.getCleanedMailAddress = function(mailAddress){
-	if (tutao.tutanota.util.Formatter.isMailAddress(mailAddress)) {
-		return mailAddress.toLowerCase().trim();
+    var cleanedMailAddress = mailAddress.toLowerCase().trim();
+    if (tutao.tutanota.util.Formatter.isMailAddress(cleanedMailAddress)) {
+		return cleanedMailAddress;
 	}	
-   	return null;    
+   	return null;
 };
 
 
