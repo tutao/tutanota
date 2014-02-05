@@ -416,6 +416,7 @@
 	<script type="text/javascript" src="libs/internal/entity/InvalidDataException.js"></script>
 	<script type="text/javascript" src="libs/internal/entity/NotAuthorizedException.js"></script>
 	<script type="text/javascript" src="libs/internal/event/EventBusClient.js"></script>
+	<script type="text/javascript" src="libs/internal/event/EventBusListener.js"></script>
 	<script type="text/javascript" src="libs/internal/event/ListEventTracker.js"></script>
 	<script type="text/javascript" src="libs/internal/event/Observable.js"></script>
 	<script type="text/javascript" src="libs/internal/event/ObservableInterface.js"></script>
@@ -844,7 +845,7 @@ function touchOrClick(e) {
 								<div class="contactBody">
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW -->
 										<div id="contactNameTitleAndImage">
-											<img id="contactImage" data-bind="attr: { src: 'graphics/' + contactWrapper().getContact().getFirstName().toLowerCase() + '.jpg', alt: tutao.lang('contactImage_alt')}"/>
+											<!-- <img id="contactImage" data-bind="attr: { src: 'graphics/' + contactWrapper().getContact().getFirstName().toLowerCase() + '.jpg', alt: tutao.lang('contactImage_alt')}"/>-->
 											<div id="contactNameAndTitle">
 												<h1 data-bind="text: contactWrapper().getFullName()"></h1>
 												<!-- ko if: contactWrapper().getContact().getBirthday() -->
@@ -933,7 +934,7 @@ function touchOrClick(e) {
 									<!-- /ko -->
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT || mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW -->
 										<div id="editContactNameTitleAndImage">
-											<img id="editContactImage" data-bind="attr: { src: 'graphics/' + editableContact.firstName().toLowerCase() + '.jpg'}, attr: {alt: tutao.lang('contactImage_alt')}"/>
+											<!-- <img id="editContactImage" data-bind="attr: { src: 'graphics/' + editableContact.firstName().toLowerCase() + '.jpg'}, attr: {alt: tutao.lang('contactImage_alt')}"/> -->
 											<div id="editContactNameAndTitle">
 												<input id="firstNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.firstName, attr: {placeholder: tutao.lang('firstName_placeholder')}"/>
 												<input id="lastNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.lastName, attr: {placeholder: tutao.lang('lastName_placeholder')}"/>
