@@ -154,7 +154,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isMobileNumberValid = functi
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isValidMailAddress = function() {
-	return tutao.tutanota.util.Formatter.isValidTutanotaLocalPart(this.mailAddressPrefix().toLowerCase());
+    return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress());
 };
 
 /**
@@ -324,8 +324,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 				self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
 			} else {
 				tutao.locator.navigator.login(false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
-				setTimeout(function() {					
-					tutao.locator.loginViewModel.setMailAddress(self.mailAddressPrefix() + "@" + self.domain());
+				setTimeout(function() {
+					tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
 					tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
 				}, 0);
 			}
@@ -373,7 +373,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 					return;
 				}
                 var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddressPrefix() + "@" + self.domain(), userPassphraseKey, adminGroupKey, userGroupsListKey, function(userGroupData, userGroupKey, exception) {
+				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey, function(userGroupData, userGroupKey, exception) {
 					self._keyGenProgress(65);
 					if (exception) {
 						callback(exception);
@@ -504,3 +504,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier = function(s
 		}, 500);
 	};
 };
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.getMailAddress = function () {
+    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddressPrefix() + "@" + this.domain());
+};
+

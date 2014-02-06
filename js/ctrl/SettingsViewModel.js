@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
 	var s = tutao.tutanota.ctrl.SettingsViewModel;
 	var settings = [s.DISPLAY_ACCOUNT_SETTINGS, s.DISPLAY_SECURITY_SETTINGS, s.DISPLAY_CHANGE_PASSWORD];
-	if (tutao.locator.userController.isLoggedInUserAdmin()) {
+	if (tutao.locator.userController.isLoggedInUserAdmin() && !tutao.locator.userController.isLoggedInUserFreeAccount()) {
 		settings.push(s.DISPLAY_ADMIN_USER_LIST);
 	}
 	return settings;
@@ -42,6 +42,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
 /**
  * Provides the text id for the given setting.
  * @param {Number} settings One of tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_*.
+ * @return {String} text id for the setting number
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
 	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminUserAdd_action"][settings];

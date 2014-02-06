@@ -6,6 +6,8 @@ tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER = "0";
 
 tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS = "1";
 
+tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM = "0";
+
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE = "1";
 
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER = "2";

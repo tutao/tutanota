@@ -58,8 +58,8 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getRegistrationT
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.isValidMailAddress = function() {
 	return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress());
 };
-tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getMailAddress = function() {
-    return this.currentMailAddressPrefix().toLowerCase() + "@" + this.domain()
+tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getMailAddress = function () {
+    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.currentMailAddressPrefix() + "@" + this.domain());
 };
 
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.isFormEditable = function() {
