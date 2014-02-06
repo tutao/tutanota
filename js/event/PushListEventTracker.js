@@ -8,17 +8,16 @@ goog.provide('tutao.event.PushListEventTracker');
  * @param {Object} listType The list type that shall be tracked.
  * @param {string} listId The list id of the type.
  * @param {string} typeName The typeName of the type.
- * @param {string} version The version of the model.
- * @constructor
+  * @constructor
  * @implements {tutao.event.ListEventTracker}
  */
-tutao.event.PushListEventTracker = function(listType, listId, typeName, version) {
+tutao.event.PushListEventTracker = function(listType, listId, typeName) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this); // listener methods are invoked from the observable EventBusClient
 	this._listType = listType;
 	this._path = listType.PATH;
 	this._typeName = typeName;
 	this._listId = listId;
-	this._version = version;
+	this._version = listType.MODEL_VERSION;
 
 	this._observable = new tutao.event.Observable();
 };
