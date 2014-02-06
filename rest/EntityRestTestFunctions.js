@@ -23,7 +23,8 @@ EntityRestTestFunctions.getVersionParams =  function(params) {
 	if (!params) {
 		params = {};
 	}
-	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
+    // we use the model version of MailBody, because it is the same for all types used in this test
+	params[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.MailBody.MODEL_VERSION;
 	return params;
 };
 
