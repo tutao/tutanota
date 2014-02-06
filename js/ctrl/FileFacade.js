@@ -67,7 +67,7 @@ tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, sessionKey, c
 			// upload file data
 			var fileDataId = fileDataPostReturn.getFileData();
 			var putParams = { fileDataId: fileDataId };
-			putParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.Constants.Version;
+			putParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.FileDataDataReturn.MODEL_VERSION;
 			tutao.locator.restClient.putBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, putParams), tutao.entity.EntityHelper.createAuthHeaders(), encryptedData, function(exception) {
 				if (exception) {
 					callback(null, new tutao.rest.EntityRestException(exception));

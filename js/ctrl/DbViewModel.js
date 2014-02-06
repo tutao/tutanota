@@ -183,7 +183,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype.showVersion = function(versionInfo) {
  */
 tutao.tutanota.ctrl.DbViewModel.prototype.showVersionInfosByInstance = function(type, instance) {
 	if (type.type == "ELEMENT_TYPE") {
-		this.showVersionInfoById(type, null, instance._id);
+		this.showVersionInfosById(type, null, instance._id);
 	} else {
 		this.showVersionInfosById(type, instance._id[0], instance._id[1]);
 	}
@@ -223,7 +223,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId,
 	var path = "/rest/" + type.app.name.toLowerCase() + "/" + type.name.toLowerCase() + "/";
 	if (type.type == "LIST_ELEMENT_TYPE") {
 		if (id) {
-			path += listId + "/" + id + "?v=" + type.app.version;;			
+			path += listId + "/" + id + "?v=" + type.app.version;
 		} else {
 			if (!startId) {
 				if (this._getIdType(type) == "CustomId") {
@@ -235,7 +235,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId,
 			path += listId + "?start=" + startId + "&" + "count=" + this.MAX_LIST_LOAD_COUNT + "&reverse=false&v=" + type.app.version;
 		}
 	} else {
-		path += id + "?v=" + type.app.version;;
+		path += id + "?v=" + type.app.version;
 	}
 	if (version) {
 		path += "&version=" + version;

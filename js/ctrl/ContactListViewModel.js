@@ -53,7 +53,7 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.init = function() {
 	this.currentSearchResult = [];
-	var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact", tutao.entity.Constants.Version);
+	var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact");
 	eventTracker.addObserver(this.updateOnNewContacts);
 	eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 };
