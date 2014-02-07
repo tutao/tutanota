@@ -1237,7 +1237,7 @@ function touchOrClick(e) {
                             </form>
                         <!-- /ko -->
                         <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="infoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': domain() }"></div>
+                            <div class="infoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': getDomain() }"></div>
                         <!-- /ko -->
                     </div>
                 </div>
