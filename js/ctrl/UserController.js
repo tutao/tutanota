@@ -142,8 +142,8 @@ tutao.ctrl.UserController.prototype.getUserGroupInfo = function() {
 tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase, callback) {
 	this.reset();
 	var self = this;
-	self._mailAddress = mailAddress;
-	tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(mailAddress), {}, null, function(saltData, exception) {
+	self._mailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(mailAddress);
+	tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(self.getMailAddress()), {}, null, function(saltData, exception) {
 		if (exception) {
             self.reset();
 			callback(exception);
@@ -155,7 +155,7 @@ tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase
 			self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
 			var authHeaders = {};
 			authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
-			tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(mailAddress), {}, authHeaders, function(userIdReturn, e1) {
+			tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(self.getMailAddress()), {}, authHeaders, function(userIdReturn, e1) {
 				if (e1) {
                     self.reset();
 					callback(e1);
