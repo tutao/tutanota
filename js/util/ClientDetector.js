@@ -53,13 +53,45 @@ tutao.tutanota.util.ClientDetector.LANGUAGE_EN = "en";
  * Information about the client.
  * For a list of used agent strings, see: http://www.useragentstring.com/pages/Browserlist/
  */
+/**
+ * @type {?string}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._browser = null;
+/**
+ * @type {?number}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._browserVersion = null;
+/**
+ * @type {?string}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._os = null;
+/**
+ * @type {?string}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._device = null;
+/**
+ * @type {?boolean}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._touch = null;
+/**
+ * @type {?boolean}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._phone = null;
+/**
+ * @type {?string}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._supported = null;
+/**
+ * @type {?string}
+ * @private
+ */
 tutao.tutanota.util.ClientDetector._lang = null;
 
 /**
@@ -171,11 +203,13 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	minVersionNeeded[info.BROWSER_TYPE_CHROME] = 30; // we need at least version 30 as swiping is used for tab switching in earlier releases (see https://code.google.com/p/chromium/issues/detail?id=117657)
 	minVersionNeeded[info.BROWSER_TYPE_FIREFOX] = 16;
 	minVersionNeeded[info.BROWSER_TYPE_IE] = 8;
-	minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;
+	minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6.1;
 
-	if (info._browser == info.BROWSER_TYPE_OTHER) {
+    if (info._device == info.DEVICE_TYPE_ANDROID || info._device == info.DEVICE_TYPE_IPAD || info._device == info.DEVICE_TYPE_IPHONE) {
+        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
+    } else if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
-	} else if (info._browserVersion < minVersionNeeded[info._browser]) {
+    } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
 	} else if (info._browser == info.BROWSER_TYPE_IE && info._browserVersion < 10) {
 		if (window.swfobject && swfobject.getFlashPlayerVersion().major >= 8) { // since version 8 file download is supported
@@ -184,11 +218,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 			info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
 		}
     } else if (info._browser == info.BROWSER_TYPE_SAFARI) {
-        if (info._device == info.DEVICE_TYPE_IPAD || info._device == info.DEVICE_TYPE_IPHONE) {
-            info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
-        } else {
-            info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
-        }
+        info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
     } else {
 		info._supported = info.SUPPORTED_TYPE_SUPPORTED;
 	}
@@ -231,11 +261,12 @@ tutao.tutanota.util.ClientDetector._setOs = function(userAgent) {
 	info._os = info.OS_TYPE_OTHER;
 	var windowsIndex = userAgent.indexOf("Windows");
 	var linuxIndex = userAgent.indexOf("Linux");
+    var androidIndex = userAgent.indexOf("Android");
 	var appleIndex1 = userAgent.indexOf("Macintosh");
 	var appleIndex2 = userAgent.indexOf("Mac OS");
 	if (windowsIndex != -1) {
 		info._os = info.OS_TYPE_WINDOWS;
-	} else if (linuxIndex != -1) {
+	} else if (linuxIndex != -1 || androidIndex != -1) {
 		info._os = info.OS_TYPE_LINUX;
 	} else if (appleIndex1 != -1 || appleIndex2 != -1) {
 		info._os = info.OS_TYPE_MAC;
@@ -285,10 +316,10 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		info._browserVersion = 11;
 	}	
 	if (versionIndex != -1) {
-		var versionEndIndex = userAgent.indexOf(".", versionIndex);
-		if (versionEndIndex != -1) {
+		var mainVersionEndIndex = userAgent.indexOf(".", versionIndex);
+		if (mainVersionEndIndex != -1) {
 			try {
-				info._browserVersion = Number(userAgent.substring(versionIndex, versionEndIndex));
+				info._browserVersion = Number(userAgent.substring(versionIndex, mainVersionEndIndex + 2)); // we recognize one digit after the '.'
 			} catch (e) {}
 		}
 	}
