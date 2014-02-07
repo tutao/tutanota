@@ -62,6 +62,11 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getMailAddress =
     return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.currentMailAddressPrefix() + "@" + this.domain());
 };
 
+tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getDomain = function () {
+    return this.domain().trim().toLowerCase();
+};
+
+
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.isFormEditable = function() {
 	return (this.state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_RUNNING);
 };
