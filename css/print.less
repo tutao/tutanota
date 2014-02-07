@@ -4,7 +4,8 @@ div#tagListColumn,
 div#searchAndMailListColumn,
 div.buttonBar,
 img#mailImage,
-button   {
+button,
+input   {
 	display: none;
 }
 
@@ -58,6 +59,67 @@ body {
 								> .rightAligned {
 									float: right;
 								}
+							}
+						}
+					}
+					
+					> div.attachments {
+						> div.download {			
+							display: inline-block;
+							position: relative; // this child 'object' (flash) must be positioned absolute
+							height: 28px;
+						    border-radius: 5px;
+							-moz-border-radius: 5px;
+							-webkit-border-radius: 5px;
+							line-height: 28px;
+							text-decoration: none;
+							cursor: pointer;
+							background-color: @button-background;
+						
+							margin-top: 5px;
+							margin-bottom: 5px;
+						
+							> div.mimeImage {
+								display: inline-block;
+								margin-left: 10px;
+								
+								> img {
+									width: 16px;
+									height: 16px;
+									margin-right: 2px;
+								}
+							}
+							> div.fileName {
+								max-width: 150px;
+								display: inline-block;
+								padding-right: 5px;
+								.fadeTextOut;
+								html.ie.lte8 & {
+									width: 150px;
+								}
+							}
+							
+							> div.fileSize {
+								display: inline-block;
+								vertical-align: top;
+								padding-right: 5px;
+							}
+							> span.legacyDownloadText {
+								display: none;
+								html.ie.lte9 & {
+									display: inline;
+									visibility: hidden;
+								}
+								vertical-align: top;
+								padding-right: 5px;
+								font-weight: bold;
+							}
+							> div.removeAttachment {
+								display: none;
+							}
+							
+							> object { // FlashDownloader
+								display: none;
 							}
 						}
 					}
