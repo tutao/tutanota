@@ -4,7 +4,7 @@ goog.provide('tutao.crypto.EntropyCollector');
 
 /**
  * Automatically collects entropy and feeds it into the Randomizer.
- *  TODO (story RSA review) extend the testcase in order to test all cases (initialization with Math.random/crypto.getRandomValues).
+ *  TODO (before beta) test that entropy collector is correctly used.
  */
 tutao.crypto.EntropyCollector = function() {
 	this.intervalId = null;
@@ -38,7 +38,7 @@ tutao.crypto.EntropyCollector.prototype.start = function() {
 	$("body").bind("keydown", this._keyDown);
 	this.intervalId = setInterval(this._random, 1000);
 
-	//TODO (story review rsa lib and secure randomizer): remove after the randomizer state has been saved for the user.
+	//TODO (timely): remove after the randomizer state has been saved for the user.
 	tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_RANDOM);
 };
 

@@ -50,7 +50,7 @@ tutao.rest.EntityRestCache = function() {
 	 */
 	this._target = undefined;
 
-    // TODO remove after update notifications are in place
+    // TODO (story push events) remove after update notifications are in place
     this._ignoredPaths = [tutao.entity.sys.GroupInfo.PATH];
 };
 
@@ -278,7 +278,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		// cache because the target does not return them if it is a dummy. So add all elements to the range that are
 		// already in the cache
 		// load all elements (i.e. up to 1000000)
-		// TODO (before beta) only cache what is requested.
+		// TODO (story Partial loading of email list) only cache what is requested.
 		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);
