@@ -142,7 +142,7 @@ tutao.ctrl.UserController.prototype.getUserGroupInfo = function() {
 tutao.ctrl.UserController.prototype.loginUser = function(mailAddress, passphrase, callback) {
 	this.reset();
 	var self = this;
-	self._mailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(mailAddress);
+	self._mailAddress = mailAddress.toLowerCase().trim();
 	tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(self.getMailAddress()), {}, null, function(saltData, exception) {
 		if (exception) {
             self.reset();
