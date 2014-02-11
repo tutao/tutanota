@@ -9,11 +9,41 @@ goog.provide('tutao.tutanota.ctrl.AdminNewUser');
 tutao.tutanota.ctrl.AdminNewUser = function () {
     this.mailAddressPrefix = ko.observable("");
     this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
-    this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, 1));
+    this.mailAddressPrefix.subscribe(this._verifyMailAddress, this);
     this.name = ko.observable("");
     this.password = ko.observable(tutao.tutanota.util.PasswordUtils.generatePassword(10));
     this.state = ko.observable(tutao.tutanota.ctrl.AdminNewUser.STATE_NONE);
     this.domain = ko.observable(tutao.locator.userController.getDomain());
+};
+
+tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(newValue) {
+    var self = this;
+    var cleanedValue = newValue.toLowerCase();
+    if (self.mailAddressPrefix().length < 1) {
+        self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+        return;
+    } else if (!self.isValidMailAddress()) {
+        self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+        return;
+    }
+
+    self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
+
+    setTimeout(function() {
+        if (self.mailAddressPrefix() == newValue) {
+            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), [], tutao.entity.EntityHelper.createAuthHeaders(), function(domainMailAddressAvailabilityReturn, exception) {
+                if (self.mailAddressPrefix() == newValue) {
+                    if (exception) {
+                        console.log(exception);
+                    } else if (domainMailAddressAvailabilityReturn.getAvailable()) {
+                        self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
+                    } else {
+                        self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
+                    }
+                }
+            });
+        }
+    }, 500);
 };
 
 /**

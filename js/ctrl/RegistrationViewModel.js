@@ -99,7 +99,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 	}, 0);
 
     if (authToken) {
-        this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, 1));
+        this.mailAddressPrefix.subscribe(this._verifyMailAddress, this);
 		this.authToken(authToken);
 		var params = {};
 		params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
@@ -118,7 +118,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 		});
 	} else {
 		this.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
-        this.mailAddressPrefix.subscribe(tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier(this, tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH));
+        this.mailAddressPrefix.subscribe(this._verifyMailAddress, this);
         self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
 	}
 };
@@ -471,38 +471,35 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 	});
 };
 
-tutao.tutanota.ctrl.RegistrationViewModel.createMailAddressVerifier = function(scope, minLength) {
-	var self = scope;
-	return function(newValue) {
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddress = function(newValue) {
+	var self = this;
+    var cleanedValue = newValue.toLowerCase();
+    if (self.mailAddressPrefix().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
+        self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+        return;
+    } else if (!self.isValidMailAddress()) {
+        self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+        return;
+    }
 
-		var cleanedValue = newValue.toLowerCase();
-		if (self.mailAddressPrefix().length < minLength) {
-            self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
-			return;
-		} else if (!self.isValidMailAddress()) {
-			self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
-			return;
-		}
-		
-		self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
+    self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
 
-		setTimeout(function() {
-			if (self.mailAddressPrefix() == newValue) {
-				var params = [];
-				tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, [], function(mailAddressAvailabilityReturn, exception) {
-					if (self.mailAddressPrefix() == newValue) {
-						if (exception) {
-							console.log(exception);
-						} else if (mailAddressAvailabilityReturn.getAvailable()) {
-							self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
-						} else {
-							self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
-						}
-					}
-				});
-			}
-		}, 500);
-	};
+    setTimeout(function() {
+        if (self.mailAddressPrefix() == newValue) {
+            var params = [];
+            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, [], function(mailAddressAvailabilityReturn, exception) {
+                if (self.mailAddressPrefix() == newValue) {
+                    if (exception) {
+                        console.log(exception);
+                    } else if (mailAddressAvailabilityReturn.getAvailable()) {
+                        self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
+                    } else {
+                        self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
+                    }
+                }
+            });
+        }
+    }, 500);
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getMailAddress = function () {
