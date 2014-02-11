@@ -1745,6 +1745,7 @@ function touchOrClick(e) {
 									<th class="small">ID</th>
 									<th class="medium">Name</th>
 									<th class="small">Domain</th>
+                                    <th class="medium">Email address</th>
 									<th class="small">Creation time</th>
 									<th class="medium">Test end time</th>
 									<th class="medium">Activation time</th>
@@ -1755,6 +1756,7 @@ function touchOrClick(e) {
 								    <td class="small" data-bind="text: getCustomerInfo().getCustomer()"></td>
 									<td class="medium" data-bind="text: company, attr: {title: company}"></td>
 									<td class="small" data-bind="text: domain, attr: {title: domain}"></td>
+                                    <td class="medium" data-bind="text: registrationMailAddress, attr: {title: registrationMailAddress}"></td>
 									<td class="small" data-bind="simpleDate: creationTime"></td>
 									<td class="medium">
 										<input type="date" data-bind="dateInput: testEndTime" />
