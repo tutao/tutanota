@@ -491,6 +491,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddress = functio
                 if (self.mailAddressPrefix() == newValue) {
                     if (exception) {
                         console.log(exception);
+                        self.mailAddressStatus({ type: "invalid", text: "mailAddressDelay_msg"});
                     } else if (mailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
