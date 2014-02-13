@@ -8,7 +8,6 @@ goog.provide('tutao.event.EventBusClient');
 tutao.event.EventBusClient = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this); // listener methods are invoked from the Websocket
 	this._socket = null;
-    this._tryReconnect = false;
     /** @type {Array.<tutao.event.EventBusListener>} */
     this._listeners = [];
 };
@@ -80,7 +79,6 @@ tutao.event.EventBusClient.prototype.close = function() {
 
 tutao.event.EventBusClient.prototype._error = function(error) {
 	console.log("ws error: ", error);
-    this._tryReconnect = true;
 };
 
 tutao.event.EventBusClient.prototype._message = function(message) {
@@ -95,13 +93,16 @@ tutao.event.EventBusClient.prototype._message = function(message) {
 
 tutao.event.EventBusClient.prototype._close = function(event) {
 	console.log("ws close: ", event, new Date());
-    if (this._tryReconnect) {
-        setTimeout(this._reconnect, 30000);
+    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+        setTimeout(this._reconnect, 1000 * this._randomIntFromInterval(30, 100));
     }
 };
 
 tutao.event.EventBusClient.prototype._reconnect = function() {
     console.log("reconnect socket state: " + this._socket.readyState);
-    this._tryReconnect = false;
     this.connect(true);
+};
+
+tutao.event.EventBusClient.prototype._randomIntFromInterval = function(min,max) {
+    return Math.floor(Math.random()*(max-min+1)+min);
 };
