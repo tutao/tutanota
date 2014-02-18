@@ -456,7 +456,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.unselectAll = function() {
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [];
 	this._selectedMails = [];
-	// TODO (before beta) remove the next lines if it is fine not to hide the conversation if the mail list changes, also delete MailViewModel.hideConversation
+	// TODO (before release) remove the next lines if it is fine not to hide the conversation if the mail list changes, also delete MailViewModel.hideConversation
 //	if (!tutao.locator.mailViewModel.isComposingState()) {
 //		tutao.locator.mailViewModel.hideConversation();
 //	}

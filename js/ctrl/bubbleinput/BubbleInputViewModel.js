@@ -21,7 +21,7 @@ goog.provide('tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel');
  *   <li>If the user clicks anywhere inside the BubbleInputField (besided on bubbles), the underlying input field is focused.
  * </ul>
  *
- * TODO (story Make navigation items selectable and mark selected item (keyboard navigation)) key event handler on the document that delegates keypresses to the currently active element (must be marked with tabindex)
+ * TODO (story: Make navigation items selectable and mark selected item (keyboard navigation)) key event handler on the document that delegates keypresses to the currently active element (must be marked with tabindex)
  *       pseudo-code: ko.dataFor(document.activeElement).keypress(event)
  *
  * @constructor

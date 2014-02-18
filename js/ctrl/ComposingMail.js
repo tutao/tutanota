@@ -160,7 +160,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
 
 		for (var i = 0; i < secureExternalRecipients.length; i++) {
-			//TODO (before beta) only update if attributes have changed
+			//TODO (before beta) only update if phone numbers or passwords have changed
 			secureExternalRecipients[i].getEditableContact().update();
 			if (secureExternalRecipients[i].isExistingContact()) {
 				secureExternalRecipients[i].getEditableContact().getContact().update(function(e) {
@@ -615,7 +615,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getRecipientInfoFromText = function(
 };
 
 /**
- * TODO (before beta) allow async loading.
+ * TODO (before release) allow async loading.
  * Provides all contacts of the logged in user. We assume that the contacts are cached because
  * they where loaded during log in.
  * @return {Array.<tutao.entity.tutanota.ContactWrapper>} All contacts of the logged in user.

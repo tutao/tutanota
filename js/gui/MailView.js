@@ -228,7 +228,7 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
  */
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
-	// TODO (before beta) merge sibling blockquotes on top level
+	// sibling blockquotes on top level are not merged if separated by user
 	return bodyTextNode.html();
 };
 

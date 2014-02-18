@@ -169,7 +169,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
                 recipientInfo.getContactWrapper().getContact().update(function() {});
             }
         }
-        console.log(password); //TODO (before beta) just for testing, remove later or dev mode
+        //console.log(password);
 
         var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
         var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);

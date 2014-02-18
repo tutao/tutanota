@@ -50,7 +50,8 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
                     if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
                         self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
                     } else {
-                        //TODO handle exception
+                        // handle exception
+                        console.log(exception);
                     }
                 } else {
                     self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);

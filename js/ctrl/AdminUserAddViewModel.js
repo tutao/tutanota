@@ -83,7 +83,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isCreateAccountsPossible = f
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {
     if (!this.isCreateAccountsPossible()) {
-        // TODO (before beta) search in html for "css: { disabled:", replace with sth like knockout enabled-binding and remove all statements like this
+        // TODO (timely) search in html for "css: { disabled:", replace with sth like knockout enabled-binding and remove all statements like this
         return;
     }
     var self = this;

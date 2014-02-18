@@ -2,7 +2,7 @@
 
 goog.provide('tutao.tutanota.ctrl.Navigator');
 
-// TODO (before beta) check if switching to http://oscar.finnsson.nu/pagerjs/ is an alternative:
+// TODO (before release) check if switching to http://oscar.finnsson.nu/pagerjs/ is an alternative:
 // written for knockout and more active. Page bindings and params come into index.html
 tutao.tutanota.ctrl.Navigator = function() {
 	// just for testing: tutao.tutanota.util.ClientDetector._supported = tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN;
@@ -99,7 +99,7 @@ tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
  * @param {Object} view The view to switch to.
  */
 tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(view) {
-	/* TODO for ios 7: to make sliding work, we need to open a new window on login and close the current.
+	/* TODO (story mobile support) for ios 7: to make sliding work, we need to open a new window on login and close the current.
 	var type = tutao.tutanota.util.ClientDetector.getDeviceType();
 	if (window.history.length > 1 && (type == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || type == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD)) {
 		alert("open");

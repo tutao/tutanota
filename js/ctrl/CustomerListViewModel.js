@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function
 		console.log("invalid date: null");
 		return;
 	}
-	//TODO disable cache, reload customer info?
+	//TODO (before release) disable cache, reload customer info?
 	var oldDate = editableCustomerInfo.getCustomerInfo().getTestEndTime();
 	editableCustomerInfo.update();
 	editableCustomerInfo.getCustomerInfo().update(function(exception) {
@@ -80,7 +80,7 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateActivationTime = funct
         console.log("invalid date: null");
         return;
     }
-    //TODO disable cache, reload customer info?
+    //TODO (before release) disable cache, reload customer info?
     var oldDate = editableCustomerInfo.getCustomerInfo().getActivationTime();
     editableCustomerInfo.update();
     editableCustomerInfo.getCustomerInfo().update(function(exception) {

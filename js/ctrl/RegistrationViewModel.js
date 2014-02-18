@@ -451,7 +451,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 										callback(exception);
 										return;
 									}
-									//TODO (before beta) create root instances and welcome mail before login
+									//TODO (before release) create root instances and welcome mail before login
 									tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey, function(exception) {
 										if (exception) {
 											callback(exception);

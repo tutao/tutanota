@@ -102,7 +102,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 		return;
 	}
 
-	// TODO (before beta) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
+	// TODO (before release) extend with callback and show a spinner until now, switch to the view just after the data has been retrieved.
 	// call PassworChannelService to get the user id and password channels
 	tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders(), function(passwordChannelReturn, exception) {
 		if (exception) {
