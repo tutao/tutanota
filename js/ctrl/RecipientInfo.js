@@ -7,7 +7,7 @@ goog.provide('tutao.tutanota.ctrl.RecipientInfo');
  * @param {string} mailAddress The email address to use as recipient.
  * @param {string} name The name that shall be used for the recipient.
  * @param {tutao.entity.tutanota.ContactWrapper=} contactWrapper The contact to use for recipient info.
- * @param {tutao.entity.tutanota.ContactWrapper=} external Optional. True if the recipient is external, false otherwise. If not set, this information is requested from the server.
+ * @param {Boolean} external Optional. True if the recipient is external, false otherwise. If not set, this information is requested from the server.
  * @constructor
  */
 tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, external) {
@@ -214,3 +214,34 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.getRecipientType = function() {
 tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber = function(number) {
 	return tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber(tutao.tutanota.util.Formatter.getCleanedPhoneNumber(number));
 };
+
+/**
+ * Checks if the phone numbers of the recipient have been changed.
+ * @returns {boolean} True if one of the phone numbers have been changed otherwise false
+ */
+tutao.tutanota.ctrl.RecipientInfo.prototype.hasPhoneNumberChanged = function() {
+    var editedPhoneNumbers = this.getEditableContact().phoneNumbers();
+    var originPhoneNumbers = this.getContactWrapper().getContact().getPhoneNumbers();
+
+    if ( editedPhoneNumbers.length != originPhoneNumbers.length ){
+        return true;
+    }else{
+        for ( var i=0; i< editedPhoneNumbers.length; i++ ){
+            if ( editedPhoneNumbers[i].getContactPhoneNumber().getNumber() != originPhoneNumbers[i].getNumber()){
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/**
+ * Checks if the pre shared password of this recipient has been changed,
+ * @returns {boolean} True if the password has been changed.
+ */
+tutao.tutanota.ctrl.RecipientInfo.prototype.hasPasswordChanged = function() {
+    var editedPassword = this.getEditableContact().presharedPassword();
+    var originPassword = this.getContactWrapper().getContact().getPresharedPassword();
+    return editedPassword != originPassword;
+};
+

@@ -156,28 +156,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 			break;
 		}
 	}
-	
-	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
 
-		for (var i = 0; i < secureExternalRecipients.length; i++) {
-			//TODO (before beta) only update if phone numbers or passwords have changed
-			secureExternalRecipients[i].getEditableContact().update();
-			if (secureExternalRecipients[i].isExistingContact()) {
-				secureExternalRecipients[i].getEditableContact().getContact().update(function(e) {
-					if (e) {
-						console.log("error", e);
-					}
-				});
-			} else {
-				secureExternalRecipients[i].getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function(e) {
-					if (e) {
-						console.log("error", e);
-					}
-				});
-			}
-		}
-	
-		this._freeBubbles();
+	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
+        this._updateContactInfo(secureExternalRecipients);
+        this._freeBubbles();
 	
 		var senderName = "";
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
@@ -648,3 +630,37 @@ tutao.tutanota.ctrl.ComposingMail.prototype.buttonCss = function() {
 	// we do not show a button
 	return null;
 };
+
+
+/**
+ * Updates the contact informations of all external recipients if they have been modified.
+ * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} secureExternalRecipients List of external recipients.
+ * @private
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (secureExternalRecipients) {
+    for (var i = 0; i < secureExternalRecipients.length; i++) {
+        var currentRecipient = secureExternalRecipients[i];
+        // Changes of contact data must be checked before calling EditableContact.update(),
+        var contactDataChanged = currentRecipient.hasPasswordChanged() || currentRecipient.hasPhoneNumberChanged();
+        currentRecipient.getEditableContact().update();
+        if (currentRecipient.isExistingContact()) {
+            //only update if phone numbers or passwords have changed
+            if ( contactDataChanged ){
+                currentRecipient.getEditableContact().getContact().update(function (e) {
+                    if (e) {
+                        console.log("error", e);
+                    }
+                });
+            }
+        } else {
+            currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function (e) {
+                if (e) {
+                    console.log("error", e);
+                }
+            });
+        }
+    }
+};
+
+
+
