@@ -39,5 +39,34 @@ TestCase("RecipientInfoTest", {
 		var r7 = new tutao.tutanota.ctrl.RecipientInfo("bruce-schneier@secure.com", "", null, true);
 		assertEquals("Bruce", r7.getEditableContact().firstName());
 		assertEquals("Schneier", r7.getEditableContact().lastName());
+
+
+        assertFalse( r7.hasPhoneNumberChanged());
+        assertFalse( r7.hasPasswordChanged());
+        r7.getEditableContact().update();
+        assertFalse( r7.hasPhoneNumberChanged());
+        assertFalse( r7.hasPasswordChanged());
+
+        r7.getEditableContact().presharedPassword("abc");
+        assertTrue( r7.hasPasswordChanged());
+        assertEquals(null, r7.getContactWrapper().getContact().getPresharedPassword() );
+
+        r7.getEditableContact().update();
+        assertEquals("abc",  r7.getEditableContact().presharedPassword() );
+        assertEquals("abc", r7.getContactWrapper().getContact().getPresharedPassword() );
+
+
+        var contactPhoneNumber = new tutao.entity.tutanota.ContactPhoneNumber(r7.getContactWrapper().getContact());
+        contactPhoneNumber.setNumber("015777777777");
+        contactPhoneNumber.setType("0");
+        contactPhoneNumber.setCustomTypeName("");
+
+        r7.getEditableContact().phoneNumbers.push( new tutao.entity.tutanota.ContactPhoneNumberEditable(contactPhoneNumber));
+
+        assertTrue( r7.hasPhoneNumberChanged());
+        r7.getEditableContact().update();
+        assertFalse( r7.hasPhoneNumberChanged());
+        assertEquals("015777777777", r7.getContactWrapper().getContact().getPhoneNumbers()[0].getNumber());
+
 	}
 });
