@@ -99,6 +99,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	removeAttachment_alt: "Remove attachment",
 	passwordTransmission_label: "Password transmission",
 	atLeastOneMobileNumber_label: "At least one german mobile number or an agreed password per external recipient is needed.",
+    preSharedPasswordNeeded_label: "Please enter an agreed password for each external recipient.",
 	secureMail_title: 'Email is encrypted for external recipients.',
 	unsecureMail_title: 'Email is not encrypted for external recipients.',
 	noRecipients_msg: 'Please provide recipients for your email.',
@@ -437,7 +438,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Please enter a valid german mobile phone number or a strong enough Password for the following recipient: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed.",
+	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed."
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -468,6 +469,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	removeAttachment_alt: "Anhang entfernen",
 	passwordTransmission_label: "Passwortübertragung",
 	atLeastOneMobileNumber_label: "Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig.",
+    preSharedPasswordNeeded_label: "Bitte geben sie für jeden externen Empfänger ein vereinbartes Passwort an.",
 	secureMail_title: 'Die E-Mail wird für alle externen Empfänger verschlüsselt.',
 	unsecureMail_title: 'Die E-Mail wird unverschlüsselt an externe Empfänger gesendet.',
 	noRecipients_msg: 'Sie müssen mindestens einen Empfänger angeben.',
@@ -807,6 +809,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Bitte geben Sie eine gültige deutsche Mobilfunknummer oder ein ausreichend starkes Passwort für den folgenden Empfänger an: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig.",
+	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig."
 };
 

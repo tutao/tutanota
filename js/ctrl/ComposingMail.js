@@ -151,7 +151,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	var onePresharedPasswordNotStrongEnough = false;
 	for (var i = 0; i < secureExternalRecipients.length; i++) {
 		var presharedPassword = secureExternalRecipients[i].getEditableContact().presharedPassword();
-		if (presharedPassword && tutao.tutanota.util.PasswordUtils.getPasswordStrength(presharedPassword) < 80) {
+		if (presharedPassword != null && tutao.tutanota.util.PasswordUtils.getPasswordStrength(presharedPassword) < 80) {
 			onePresharedPasswordNotStrongEnough = true;
 			break;
 		}

@@ -719,17 +719,17 @@ function touchOrClick(e) {
 					</section>
 				</div>
 			</div>
-			
 			<div id="passwordChannelColumn" class="viewColumn" data-bind="with: tutao.locator.passwordChannelViewModel">
 				<div id="innerPasswordChannelColumn">
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
-							<div id="passwordChannelDescription" data-bind="lang: 'atLeastOneMobileNumber_label'"></div>
+							<div id="passwordChannelDescription" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
 								<div>
 									<hr />
 									<br>
+
 									<button class="editContactButton" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
 									<div class="recipientNameAndAddress">
 										<!-- ko if: getName() != "" -->
@@ -783,7 +783,7 @@ function touchOrClick(e) {
 											<div class="recordData">
 												<div class="row">
 													<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
-													<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }">
+													<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }, visible: !tutao.locator.userController.isLoggedInUserFreeAccount() ">
 														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 													</div>
 												</div>

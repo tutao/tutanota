@@ -134,3 +134,30 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordStrength = fun
 		return 0;
 	}
 };
+
+
+/**
+ * Checks if the auto transmition of the password is allowed for the logged in user.
+ * @return {boolean} True if the auto transmition is allowed.
+ */
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.isAutoTransmitPasswordAllowed = function() {
+	// Get the account type from the ViewManager because the login state is a ko observable to get notfied when the logged in user changes.
+    return tutao.locator.viewManager.getLoggedInUserAccountType() === tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM;
+};
+
+/**
+ * Returns a translatable description of the password channel for the logged in user.
+ *
+ * @return {String} Description of the password channel.
+ */
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordChannelDescription = function() {
+    if (this.isAutoTransmitPasswordAllowed()){
+        return tutao.locator.languageViewModel.get('atLeastOneMobileNumber_label',[]);
+    }else{
+        return tutao.locator.languageViewModel.get('preSharedPasswordNeeded_label',[]);
+    }
+};
+
+
+
+

@@ -158,11 +158,11 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         // pre-shared password has prio
         var password = recipientInfo.getContactWrapper().getContact().getPresharedPassword();
         var preshared = true;
-        if (!password) {
+        if (password == null) {
             password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
             preshared = false;
         }
-        if (password == "") {
+        if (!preshared && password == "") {
             password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
             if (recipientInfo.isExistingContact()) {
                 recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);

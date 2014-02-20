@@ -20,7 +20,18 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 640);
 	});
+
 };
+
+
+
+tutao.tutanota.ctrl.ViewManager.prototype.getLoggedInUserAccountType = function(){
+    if ( this._internalUserLoggedIn() || this._externalUserLoggedIn()){
+        return tutao.locator.userController.getLoggedInUser().getAccountType();
+    }
+    return null;
+};
+
 
 /**
  * Initializes the ViewManager and all views.

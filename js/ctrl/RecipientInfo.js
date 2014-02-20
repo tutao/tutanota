@@ -111,6 +111,10 @@ tutao.tutanota.ctrl.RecipientInfo.prototype._createEditingContact = function() {
         newma.setCustomTypeName("");
         this._editableContact.mailAddresses.push(new tutao.entity.tutanota.ContactMailAddressEditable(newma));
     }
+    // Ensure that external users always have a pre shared password to avoid using of automatic transfer password in SendMailFacade
+    if ( tutao.locator.userController.isLoggedInUserFreeAccount() && this._editableContact.presharedPassword() == null){
+        this._editableContact.presharedPassword("");
+    }
 };
 
 /**
@@ -179,7 +183,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
 	if (!this.isExternal()) {
 		return true;
 	}
-	if (this._editableContact.presharedPassword()) {
+	if (this._editableContact.presharedPassword() != null) {
 		return true;
 	}
 	for (var i = 0; i < this._editableContact.phoneNumbers().length; i++) {

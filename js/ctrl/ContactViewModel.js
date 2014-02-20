@@ -168,7 +168,8 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._refreshScroller = function() {
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function() {
 	// we have to reset the pre-shared password to null if none is set
-	if (this.editableContact.presharedPassword() == "") {
+    // Disable reset of pre-shared password for free users because automatic password transfer is disabled.
+	if (this.editableContact.presharedPassword() == "" && !tutao.locator.userController.isLoggedInUserFreeAccount()) {
 		this.editableContact.presharedPassword(null);
 	}
 	this.editableContact.update();
