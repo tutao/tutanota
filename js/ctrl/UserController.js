@@ -87,8 +87,11 @@ tutao.ctrl.UserController.prototype.isLoggedInUserAdmin = function() {
  * @returns {boolean} True if the account type is FREE otherwise false
  */
 tutao.ctrl.UserController.prototype.isLoggedInUserFreeAccount = function () {
-    var localAccountType = this.getLoggedInUser().getAccountType();
-    return localAccountType === tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE;
+    if ( this.isInternalUserLoggedIn()){
+        var localAccountType = this.getLoggedInUser().getAccountType();
+        return localAccountType === tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE;
+    }
+    return false;
 };
 
 // INTERNAL
