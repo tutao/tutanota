@@ -28,11 +28,11 @@ AsyncTestCase("JavaCompatibilityTest", {
 			// test the JavaScript encryption with above data
 			var aesKey = aesFacade.hexToKey(aesHexKey);
 			// run the encryption with static iv. for the random iv we can just check the decryption.
-			var jsEncryptedUtf8DataStaticIv = aesFacade.encryptUtf8(aesKey, utf8Data, false);
+			var jsEncryptedUtf8DataStaticIv = aesFacade.encryptUtf8Index(aesKey, utf8Data);
 			assertEquals(encryptedUtf8DataStaticIv, jsEncryptedUtf8DataStaticIv);
 			// check that the Java encrypted utf8 data can be decrypted
-			var jsDecryptedUtf8RandomIv = aesFacade.decryptUtf8(aesKey, encryptedUtf8DataRandomIv, true);
-			var jsDecryptedUtf8StaticIv = aesFacade.decryptUtf8(aesKey, encryptedUtf8DataStaticIv, false);
+			var jsDecryptedUtf8RandomIv = aesFacade.decryptUtf8(aesKey, encryptedUtf8DataRandomIv);
+			var jsDecryptedUtf8StaticIv = aesFacade.decryptUtf8Index(aesKey, encryptedUtf8DataStaticIv);
 			assertEquals(utf8Data, jsDecryptedUtf8RandomIv);
 			assertEquals(utf8Data, jsDecryptedUtf8StaticIv);
 			

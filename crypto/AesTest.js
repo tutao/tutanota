@@ -66,7 +66,7 @@ AesTest.prototype.testEncryptWithInvalidKey = function() {
 	var facade = this._getFacade();
 	var key = facade.hexToKey("7878787878");
 	assertException(function() {
-		facade.encryptUtf8(key, "hello", true);
+		facade.encryptUtf8(key, "hello");
 	}, "CryptoException");
 };
 
@@ -74,7 +74,7 @@ AesTest.prototype.testDecryptInvalidData = function() {
 	var facade = this._getFacade();
 	var key = facade.generateRandomKey();
 	assertException(function() {
-		facade.decryptUtf8(key, "hello", true);
+		facade.decryptUtf8(key, "hello");
 	}, "CryptoException");
 };
 
@@ -94,25 +94,25 @@ AesTest.prototype.testThatDifferentKeysResultInDifferentCiphertexts = function()
 	var key1 = facade.generateRandomKey();
 	var key2 = facade.generateRandomKey();
 	var plain = "hello";
-	assertTrue(facade.encryptUtf8(key1, plain, false) !== facade.encryptUtf8(key2, plain, false));
-	assertTrue(facade.encryptUtf8(key1, plain, true) !== facade.encryptUtf8(key2, plain, true));
+	assertTrue(facade.encryptUtf8Index(key1, plain) !== facade.encryptUtf8Index(key2, plain));
+	assertTrue(facade.encryptUtf8(key1, plain) !== facade.encryptUtf8(key2, plain));
 };
 
 AesTest.prototype.testCiphertextLengths = function() {
 	var facade = this._getFacade();
 	var key = facade.generateRandomKey();
 	// check that 15 bytes fit into one block
-	assertEquals(16, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcde", false)));
-	assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcde", true)));
+	assertEquals(16, this._getNbrOfBytes(facade.encryptUtf8Index(key, "1234567890abcde")));
+	assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcde")));
 	// check that 16 bytes need two blocks (because of one byte padding length info)
-	assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdef", false)));
-	assertEquals(48, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdef", true)));
+	assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8Index(key, "1234567890abcdef")));
+	assertEquals(48, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdef")));
 
 	// check that that a non-ascii-character needs two bytes
 	// TODO (jstestdriver utf8) enable as soon as jstestdriver supports utf8. currently the 'ä' consumes 4 characters which is not utf8 compatible.
 	// http://code.google.com/p/js-test-driver/issues/detail?id=85
-	// assertEquals(16, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcä", false)));
-	// assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcdä", false)));
+	// assertEquals(16, this._getNbrOfBytes(facade.encryptUtf8Index(key, "1234567890abcä")));
+	// assertEquals(32, this._getNbrOfBytes(facade.encryptUtf8Index(key, "1234567890abcdä")));
 };
 
 AesTest.prototype._getNbrOfBytes = function(base64) {
@@ -121,15 +121,15 @@ AesTest.prototype._getNbrOfBytes = function(base64) {
 
 AesTest.prototype._checkRoundtripUtf8 = function(facade, key, plain) {
 	// with static iv
-	var encrypted = facade.encryptUtf8(key, plain, false);
-	var encrypted2 = facade.encryptUtf8(key, plain, false);
-	var plainAgain = facade.decryptUtf8(key, encrypted, false);
-	var plainAgain2 = facade.decryptUtf8(key, encrypted2, false);
+	var encrypted = facade.encryptUtf8Index(key, plain);
+	var encrypted2 = facade.encryptUtf8Index(key, plain);
+	var plainAgain = facade.decryptUtf8Index(key, encrypted);
+	var plainAgain2 = facade.decryptUtf8Index(key, encrypted2);
 	// with random iv
-	var encryptedRandomIv = facade.encryptUtf8(key, plain, true);
-	var encrypted2RandomIv = facade.encryptUtf8(key, plain, true);
-	var plainAgainRandomIv = facade.decryptUtf8(key, encryptedRandomIv, true);
-	var plainAgain2RandomIv = facade.decryptUtf8(key, encrypted2RandomIv, true);
+	var encryptedRandomIv = facade.encryptUtf8(key, plain);
+	var encrypted2RandomIv = facade.encryptUtf8(key, plain);
+	var plainAgainRandomIv = facade.decryptUtf8(key, encryptedRandomIv);
+	var plainAgain2RandomIv = facade.decryptUtf8(key, encrypted2RandomIv);
 	
 	// check roundtrip results
 	assertEquals(plain, plainAgain);
@@ -148,31 +148,19 @@ AesTest.prototype._checkRoundtripUtf8 = function(facade, key, plain) {
 };
 
 AesTest.prototype._checkRoundtripHex = function(facade, key, plainHex) {
-	// with static iv
-	var encrypted = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), false);
-	var encrypted2 = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), false);
-	var plainAgain = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted, false));
-	var plainAgain2 = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted2, false));
-	// with random iv
-	var encryptedRandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), true);
-	var encrypted2RandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex), true);
-	var plainAgainRandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encryptedRandomIv, true));
-	var plainAgain2RandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted2RandomIv, true));
+	var encryptedRandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex));
+	var encrypted2RandomIv = facade.encryptBytes(key, tutao.util.EncodingConverter.hexToBase64(plainHex));
+	var plainAgainRandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encryptedRandomIv));
+	var plainAgain2RandomIv = tutao.util.EncodingConverter.base64ToHex(facade.decryptBytes(key, encrypted2RandomIv));
 	
 	// check roundtrip results
-	assertEquals(plainHex, plainAgain);
-	assertEquals(plainHex, plainAgain2);
 	assertEquals(plainHex, plainAgainRandomIv);
 	assertEquals(plainHex, plainAgain2RandomIv);
 	
-	// check that the ciphertexts are the same with static ivs
-	assertTrue(encrypted === encrypted2);
 	// check that the ciphertexts are different with random ivs
 	assertTrue(encryptedRandomIv !== encrypted2RandomIv);
 	// check that the ciphertexts have the same length with random ivs
 	assertTrue(encryptedRandomIv.length === encrypted2RandomIv.length);
-	// check that the ciphertext is longer with random ivs
-	assertTrue(encryptedRandomIv.length > encrypted.length);
 };
 
 AesTest.prototype.testEncryptDecryptRsaPrivateKey = function() {

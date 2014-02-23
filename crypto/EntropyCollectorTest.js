@@ -127,7 +127,7 @@ EntropyCollectorTest.prototype.testFetchMissingUrlsAddEntropy = function(queue) 
 	queue.call('test', function(callbacks) {
 		tutao.locator.randomizer.addEntropy = callbacks.add(function(number, entropy, source) {
 			assertTrue(number > 10);
-			assertEquals(2, entropy);
+			assertEquals(4, entropy);
 			assertEquals("ping", source);
 		}, 1);
 		
