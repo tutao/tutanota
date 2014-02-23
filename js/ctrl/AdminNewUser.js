@@ -175,6 +175,7 @@ tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callbac
 	var s = new tutao.entity.tutanota.InitGroupData();
 	
 	s.setGroupId(groupId);
+    s.setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(groupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
 
 	var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 	var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();

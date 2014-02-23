@@ -238,7 +238,20 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	}
 	// reuse the transmission password to allow receiving the key if the SMS was requested a second time, but the SMS link of the first SMS was clicked
 	if (this.symKeyForPasswordTransmission == null) {
-		this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
+        if (tutao.locator.randomizer.isReady()) {
+            this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
+        } else {
+            // it must be created from Math.random() because the Randomizer is not yet fully initialized. Nevertheless this is no security problem because the server knows the password anyway.
+            var hex = "";
+            for (var i=0; i<16; i++) {
+                var r = Math.floor(Math.random() * 256).toString(16);
+                if (r.length == 1) {
+                    r = "0" + r;
+                }
+                hex += r;
+            }
+            this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.hexToKey(hex);
+        }
 	}
 	
 	var self = this;
@@ -326,12 +339,14 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                 callback(exception);
                 return;
             }
-            self._storePasswordIfPossible(function() {
-                // no indexing for external users
-                tutao.locator.replace('dao', new tutao.db.DummyDb);
-                self._showingMail = true;
-                tutao.locator.navigator.mail();
-                callback();
+            tutao.locator.loginViewModel.loadEntropy(function() {
+                self._storePasswordIfPossible(function() {
+                    // no indexing for external users
+                    tutao.locator.replace('dao', new tutao.db.DummyDb);
+                    self._showingMail = true;
+                    tutao.locator.navigator.mail();
+                    callback();
+                });
             });
         });
     });
@@ -375,7 +390,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 		}
 	} else if (!self.storePassword()) {
 		// delete any stored password
-		if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {			
+		if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {
 			tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
 			tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
 		}
@@ -400,7 +415,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 		} else if (!self._showingMail){
 			var password;
 			try {
-				password = tutao.locator.aesCrypter.decryptUtf8(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword());
+				// no initialization vector because it must fit into an SMS
+				password = tutao.locator.aesCrypter.decryptUtf8Index(self.symKeyForPasswordTransmission, passwordRetrievalReturn.getTransmissionKeyEncryptedPassword());
 			} catch (e) {
 				self.state.event("passwordInvalid");
 				self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });

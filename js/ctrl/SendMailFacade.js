@@ -57,8 +57,8 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
             var attachment = new tutao.entity.tutanota.Attachment(service)
                 .setFile(null) // currently no existing files can be attached
                 .setFileData(fileData.getId())
-                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
                 .setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
             service.getAttachments().push(attachment);
@@ -257,7 +257,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 /**
  * Checks that an external user instance with a mail box exists for the given recipient. If it does not exist, it is created. Returns the user group key of the external recipient.
  * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The recipient.
- * @param {string} externalUserPwKey The external user's password key.
+ * @param {Object} externalUserPwKey The external user's password key.
  * @param {string} verifier The external user's verifier.
  * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished with the external user's group key, Receives an exception if one occurred.
  */
@@ -299,11 +299,12 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                                 .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailListKey))
                                 .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
                                 .setVerifier(verifier)
-                                .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey));
+                                .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey))
+                                .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
                             var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
                                 .setMailAddress(recipientInfo.getMailAddress())
                                 .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
-                                .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName(), true))
+                                .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName()))
                                 .setGroupInfoListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalGroupInfoListKey, groupInfoSessionKey))
                                 .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey));
                             externalRecipientData.setUserGroupData(userGroupData)
