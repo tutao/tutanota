@@ -100,10 +100,10 @@ TestCase("IndexerTest", {
 		};
 
 		// mock crypter
-		tutao.locator.aesCrypter.encryptUtf8 = function(key, text, randomIv) {
+		tutao.locator.aesCrypter.encryptUtf8Index = function(key, text) {
 			return text;
 		};
-		tutao.locator.aesCrypter.decryptUtf8 = function(key, text, randomIv) {
+		tutao.locator.aesCrypter.decryptUtf8Index = function(key, text) {
 			return text;
 		};
 		
@@ -184,10 +184,10 @@ TestCase("IndexerTest", {
 		};
 		
 		// mock crypter
-		tutao.locator.aesCrypter.encryptUtf8 = function(key, text, randomIv) {
+		tutao.locator.aesCrypter.encryptUtf8Index = function(key, text) {
 			return text;
 		};
-		tutao.locator.aesCrypter.decryptUtf8 = function(key, text, randomIv) {
+		tutao.locator.aesCrypter.decryptUtf8Index = function(key, text) {
 			return text;
 		};
 
@@ -219,7 +219,7 @@ TestCase("IndexerTest", {
 		};
 		
 		// mock crypter
-		tutao.locator.aesCrypter.encryptUtf8 = function(key, text, randomIv) {
+		tutao.locator.aesCrypter.encryptUtf8Index = function(key, text) {
 			return text;
 		};
 		
