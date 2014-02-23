@@ -4,7 +4,6 @@ goog.provide('tutao.crypto.EntropyCollector');
 
 /**
  * Automatically collects entropy and feeds it into the Randomizer.
- *  TODO (before beta) test that entropy collector is correctly used.
  */
 tutao.crypto.EntropyCollector = function() {
 	this.intervalId = null;
@@ -38,9 +37,21 @@ tutao.crypto.EntropyCollector.prototype.start = function() {
 	$("body").bind("keydown", this._keyDown);
 	this.intervalId = setInterval(this._random, 1000);
 
-	//TODO (timely): remove after the randomizer state has been saved for the user.
-	tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_RANDOM);
+    //this._checkEntropy();
 };
+
+/* just for testing
+tutao.crypto.EntropyCollector.prototype._checkEntropy = function() {
+    var self = this;
+    if (!tutao.locator.randomizer.isReady()) {
+        console.log("missing entropy");
+        setTimeout(function() {
+            self._checkEntropy();
+        }, 1000);
+    } else {
+        console.log("enough entropy");
+    }
+};*/
 
 /**
  * Stops collecting entropy.
@@ -92,6 +103,17 @@ tutao.crypto.EntropyCollector._getRandomNumber = function() {
 };
 
 /**
+ * Adds the given bytes as static entropy.
+ * @param {string} bytes Base64 coded byte values.
+ */
+tutao.crypto.EntropyCollector.prototype.addStaticEntropy = function(bytes) {
+    var byteArray = tutao.util.EncodingConverter.hexToBytes(tutao.util.EncodingConverter.base64ToHex(bytes));
+    for (var i=0; i<byteArray.length; i++) {
+        tutao.locator.randomizer.addEntropy(byteArray[i], 8, tutao.crypto.RandomizerInterface.ENTROPY_SRC_STATIC);
+    }
+};
+
+/**
  * Fetches the missing entropy by pinging URLs from tutao.crypto.EntropyCollector.URLs and measuring the response times.
  * @param {function()} callback Called when the randomizer has been initialized.
  */
@@ -101,16 +123,16 @@ tutao.crypto.EntropyCollector.prototype.fetchMissingEntropy = function(callback)
 		callback();
 		return;
 	}
-	var url = tutao.crypto.EntropyCollector.URLs[Math.floor(tutao.crypto.EntropyCollector._getRandomNumber() * (tutao.crypto.EntropyCollector.URLs.length + 1))];
 
-	this._ping(url, function(diff) {
-		tutao.locator.randomizer.addEntropy(diff, 2, tutao.crypto.RandomizerInterface.ENTROPY_SRC_PING);
-		if (!tutao.locator.randomizer.isReady()) {
-			self.fetchMissingEntropy(callback);
-		} else {
-			callback();
-		}
-	});
+    tutao.util.FunctionUtils.executeInParallel(10, function(finishedCallback) {
+        var url = tutao.crypto.EntropyCollector.URLs[Math.floor(tutao.crypto.EntropyCollector._getRandomNumber() * tutao.crypto.EntropyCollector.URLs.length)];
+
+        self._ping(url, function(diff) {
+            tutao.locator.randomizer.addEntropy(diff, 4, tutao.crypto.RandomizerInterface.ENTROPY_SRC_PING);
+            //console.log("fetched entropy: " + url + ", " + diff);
+            finishedCallback(!tutao.locator.randomizer.isReady());
+        });
+    }, callback);
 };
 
 tutao.crypto.EntropyCollector.URLs = ["www.heise.de", "www.cnn.com", "www.google.cn", "www.facebook.com", "www.mail.ru", "www.linkedin.com", "www.hotmail.com", "www.rakuten.co.jp", "www.aol.com", "www.yahoo.com", "www.craigslist.org", "www.imageshack.us", "www.imdb.com", "www.bbc.com", "www.cnet.com", "www.paypal.com", "www.fc2.com", "www.tudou.com", "www.photobucket.com", "www.flickr.com", "www.about.com", "www.windows.com", "www.apple.com", "www.sohu.com", "www.ebay.com", "www.myspace.com", "www.youku.com", "www.yahoo.co.jp", "www.amazon.com", "www.taobao.com", "www.twitter.com", "www.ask.com", "www.adobe.com", "www.bing.com", "www.sina.com.cn", "www.qq.com", "www.baidu.com", "www.msn.com"];
@@ -131,5 +153,5 @@ tutao.crypto.EntropyCollector.prototype._ping = function(url, callback) {
 	img.onload = resultCallback;
 	img.onerror = resultCallback;
 
-	img.src = "http://" + url + "/time=" + new Date().getTime();
+	img.src = "http://" + url + "/donotfetch?time=" + new Date().getTime();
 };

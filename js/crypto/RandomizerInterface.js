@@ -18,8 +18,8 @@ tutao.crypto.RandomizerInterface.ENTROPY_SRC_PING = "ping";
 /**
  * Adds entropy to the random number generator algorithm
  * @param {number} number Any number value.
+ * @param {number} entropy The amount of entropy in the number in bit.
  * @param {string} source The source of the number. One of tutao.crypto.RandomizerInterface.ENTROPY_SRC_*.
- * @return {number} entropy The amount of entropy in the number in bit.
  */
 tutao.crypto.RandomizerInterface.prototype.addEntropy = function(number, entropy, source) {};
 

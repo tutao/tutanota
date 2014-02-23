@@ -58,9 +58,9 @@ tutao.crypto.SjclAes.prototype.base64ToKey = function(base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8, randomIv) {
+tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8) {
 	try {
-		return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), randomIv, true);
+		return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), true, true);
 	} catch (e) {
 		throw new tutao.crypto.CryptoException("aes utf8 encryption failed", e);
 	}
@@ -69,9 +69,9 @@ tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8, randomIv) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64, randomIv) {
+tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64) {
 	try {
-		return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, randomIv, true));
+		return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
 		throw new tutao.crypto.CryptoException("aes utf8 decryption failed", e);
 	}
@@ -80,16 +80,38 @@ tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64, randomIv) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptBytes = function(key, base64, randomIv) {
-	return this._encrypt(key, sjcl.codec.base64.toBits(base64), randomIv, true);
+tutao.crypto.SjclAes.prototype.encryptUtf8Index = function(key, utf8) {
+    try {
+        return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), false, true);
+    } catch (e) {
+        throw new tutao.crypto.CryptoException("aes utf8 encryption index failed", e);
+    }
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64, randomIv) {
+tutao.crypto.SjclAes.prototype.decryptUtf8Index = function(key, base64) {
+    try {
+        return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, false, true));
+    } catch (e) {
+        throw new tutao.crypto.CryptoException("aes utf8 decryption index failed", e);
+    }
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.SjclAes.prototype.encryptBytes = function(key, base64) {
+	return this._encrypt(key, sjcl.codec.base64.toBits(base64), true, true);
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64) {
 	try {
-		return sjcl.codec.base64.fromBits(this._decrypt(key, base64, randomIv, true));
+		return sjcl.codec.base64.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
 		throw new tutao.crypto.CryptoException("aes bytes decryption failed", e);
 	}

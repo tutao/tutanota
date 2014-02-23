@@ -79,3 +79,34 @@ tutao.util.FunctionUtils.executeSequentiallyAndReturn = function(array, executor
 	};
 	executeRemaining(0);
 };
+
+/**
+ * Executes a given function in the given number of threads in parallel until the executor function callback indicates that execution shall be stopped.
+ *
+ * @param {Number} nbrOfThreads The number of parallel executions.
+ * @param {function(function(boolean))} executor A function that shall be executed. In the callback it must provide true if execution shall continue and false if execution shall be stopped.
+ * @param {function()} callback Called once when the first executor callback provided "false". Some executions may still be running at this time, but no new ones are started any more.
+ */
+tutao.util.FunctionUtils.executeInParallel = function(nbrOfThreads, executor, callback) {
+    var finished = false;
+    var run = function() {
+        executor(function(continueExecution) {
+            if (continueExecution && !finished) {
+                // the last executor said we shall continue exection and no other set the finished flag, so we execute again from this thread.
+                run();
+            } else if (!finished) {
+                // this is the first time an executor said we shall stop execution, so we call the callback now.
+                finished = true;
+                callback();
+            }
+        });
+    };
+
+    // start executors for the given number of threads
+    for (var i=0; i<nbrOfThreads; i++) {
+        // always check the finished flag because an executor might run synchronously and finish, so not all threads have to be started.
+        if (!finished) {
+            run();
+        }
+    }
+};

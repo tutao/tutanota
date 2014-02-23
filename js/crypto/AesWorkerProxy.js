@@ -53,29 +53,43 @@ tutao.crypto.AesWorkerProxy.prototype.base64ToKey = function(base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.AesWorkerProxy.prototype.encryptUtf8 = function(key, utf8, randomIv) {
-	return this._aes.encryptUtf8(key, utf8, randomIv);
+tutao.crypto.AesWorkerProxy.prototype.encryptUtf8 = function(key, utf8) {
+	return this._aes.encryptUtf8(key, utf8);
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.AesWorkerProxy.prototype.decryptUtf8 = function(key, base64, randomIv) {
-	return this._aes.decryptUtf8(key, base64, randomIv);
+tutao.crypto.AesWorkerProxy.prototype.decryptUtf8 = function(key, base64) {
+	return this._aes.decryptUtf8(key, base64);
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.AesWorkerProxy.prototype.encryptBytes = function(key, base64, randomIv) {
-	return this._aes.encryptBytes(key, base64, randomIv);
+tutao.crypto.AesWorkerProxy.prototype.encryptUtf8Index = function(key, utf8) {
+    return this._aes.encryptUtf8Index(key, utf8);
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.AesWorkerProxy.prototype.decryptBytes = function(key, base64, randomIv) {
-	return this._aes.decryptBytes(key, base64, randomIv);
+tutao.crypto.AesWorkerProxy.prototype.decryptUtf8Index = function(key, base64) {
+    return this._aes.decryptUtf8Index(key, base64);
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.AesWorkerProxy.prototype.encryptBytes = function(key, base64) {
+	return this._aes.encryptBytes(key, base64);
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.crypto.AesWorkerProxy.prototype.decryptBytes = function(key, base64) {
+	return this._aes.decryptBytes(key, base64);
 };
 
 /**
