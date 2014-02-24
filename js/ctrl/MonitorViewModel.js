@@ -101,6 +101,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 		var connectionsGroup = this._addGroupToView(globalView, "Open connections");
 			this._addMonitorGroup(connectionsGroup, "OpenConnectionsInbound", "servers", NO_COUNTER);
 			this._addMonitorGroup(connectionsGroup, "OpenConnectionsOutbound", "servers", NO_COUNTER);
+            this._addMonitorGroup(connectionsGroup, "OpenWebSocketConnections", "global", VALUE);
 		var ramGroup = this._addGroupToView(globalView, "RAM");
 			this._addMonitorGroup(ramGroup, "FreeRam", "servers", NO_COUNTER);
 			this._addMonitorGroup(ramGroup, "ActualFreeRam", "servers", NO_COUNTER);
