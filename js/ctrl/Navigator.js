@@ -38,13 +38,18 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function
 	}
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.login = function(autoLoginAllowed) {
-	this._allowAutoLogin = autoLoginAllowed;
-	if (this.mailRef == null) {
-		location.replace("#login");
-	} else {
-		location.replace("#mail/" + this.mailRef); // an external user was logged in, we redirect him to his login page
-	}
+tutao.tutanota.ctrl.Navigator.prototype.logout = function(autoLoginAllowed) {
+    tutao.locator.loginViewModel.storeEntropy();
+	this._login(autoLoginAllowed);
+};
+
+tutao.tutanota.ctrl.Navigator.prototype._login = function(autoLoginAllowed) {
+    this._allowAutoLogin = autoLoginAllowed;
+    if (this.mailRef == null) {
+        location.replace("#login");
+    } else {
+        location.replace("#mail/" + this.mailRef); // an external user was logged in, we redirect him to his login page
+    }
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.notSupported = function() {
@@ -109,7 +114,7 @@ tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(v
 		tutao.locator.viewManager.select(view);
 	} else {
 		console.log("User not authenticated, switching to login view.");
-		this.login(true);
+		this._login(true);
 	}
 };
 

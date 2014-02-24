@@ -15,13 +15,14 @@ tutao.tutanota.ctrl.MailBoxController = function() {
 	this._contactList = null;
 	this._fileSystem = null;
 	this._shares = null;
+    this._properties = null;
 };
 
 /**
  * Initializes the MailBoxController for the logged in user. This must be called
  * whenever another user logs in. Loads the user's mail list id, contact list id
  * and file list id.
- * @param {function(tutao.rest.EntityRestException=)}
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback) {
@@ -31,31 +32,37 @@ tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback)
 			callback(exception);
 			return;
 		}
-		// external users only have a mailbox
-		if (tutao.locator.userController.isExternalUserLoggedIn()) {
-			callback();
-			return;
-		}
-		self._loadFileSystem(function(exception) {
-			if (exception) {
-				callback(exception);
-				return;
-			}
-			self._loadContactList(function(exception) {
-				if (exception) {
-					callback(exception);
-					return;
-				}
-				self._loadShares(callback);
-			});
-		});
+        self.loadTutanotaProperties(function(exception) {
+            if (exception) {
+                callback(exception);
+                return;
+            }
+            // external users only have a mailbox
+            if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                callback();
+                return;
+            }
+            self._loadFileSystem(function(exception) {
+                if (exception) {
+                    callback(exception);
+                    return;
+                }
+                self._loadContactList(function(exception) {
+                    if (exception) {
+                        callback(exception);
+                        return;
+                    }
+                    self._loadShares(callback);
+                });
+            });
+        });
 	});
 };
 
 /**
  * Loads the mailbox for the logged in user's user group.
  *
- * @param {function(tutao.entity.tutanota.MailBox=, tutao.rest.EntityRestException=)}
+ * @param {function(tutao.entity.tutanota.MailBox=, tutao.rest.EntityRestException=)} callback Called when finished.
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback) {
@@ -76,7 +83,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback
 /**
  * Loads the contacts list id for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)}
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function(callback) {
@@ -97,7 +104,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function(call
 /**
  * Loads the file list id for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)}
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function(callback) {
@@ -118,7 +125,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function(callb
 /**
  * Loads the shares instance for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)}
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
  *            callback Called when finished.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function(callback) {
@@ -134,6 +141,28 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function(callback)
 			});
 		}
 	});
+};
+
+
+/**
+ * Loads the TutanotaProperties instance for the logged in user's user group.
+ *
+ * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
+ *            callback Called when finished.
+ */
+tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = function(callback) {
+    var self = this;
+    var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.TutanotaProperties.ROOT_INSTANCE_ID];
+    tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
+        if (exception) {
+            callback(exception);
+        } else {
+            tutao.entity.tutanota.TutanotaProperties.load(root.getReference(), function(properties, exception) {
+                self._properties = properties;
+                callback();
+            });
+        }
+    });
 };
 
 /**
@@ -193,8 +222,16 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserFileSystemBucketData = fu
 /**
  * Provides the shares instance of the logged in user.
  *
- * @return {tutao.entity.tutanota.Shares} The shares instance.
+ * @return {tutao.entity.sys.Shares} The shares instance.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.getUserShares = function() {
 	return this._shares;
+};
+/**
+ * Provides the TutanotaProperties instance of the logged in user.
+ *
+ * @return {tutao.entity.tutanota.TutanotaProperties} The TutanotaProperties instance.
+ */
+tutao.tutanota.ctrl.MailBoxController.prototype.getUserProperties = function() {
+    return this._properties;
 };

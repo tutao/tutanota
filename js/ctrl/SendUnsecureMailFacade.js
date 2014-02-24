@@ -45,8 +45,8 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
             var attachment = new tutao.entity.tutanota.UnsecureAttachment(service)
                 .setFile(null) // currently no existing files can be attached
                 .setFileData(fileData.getId())
-                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
                 .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
             service.getAttachments().push(attachment);

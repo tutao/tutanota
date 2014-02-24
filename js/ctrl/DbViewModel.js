@@ -67,7 +67,7 @@ tutao.tutanota.ctrl.DbViewModel = function() {
  * the desired group id into the id field.
  */
 tutao.tutanota.ctrl.DbViewModel.prototype.showRootButton = function() {
-	return (this.type().name == "MailBox" || this.type().name == "ContactList");
+	return (this.type().name == "MailBox" || this.type().name == "ContactList" || this.type().name == "FileSystem" || this.type().name == "TutanotaProperties" || this.type().name == "GroupRoot"  || this.type().name == "Shares");
 };
 
 /**

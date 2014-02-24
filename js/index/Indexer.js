@@ -225,8 +225,8 @@ tutao.tutanota.index.Indexer.prototype.getElementsByValues = function(typeId, at
 			callback(tutao.util.ArrayUtils.getUniqueArray(result));
 			return;
 		}
-		tutao.locator.dao.getElementsByValue(typeId, attributeIds, tutao.locator.aesCrypter.encryptUtf8(
-				tutao.locator.userController.getUserClientKey(), values[index], false), function(status, ids) {
+		tutao.locator.dao.getElementsByValue(typeId, attributeIds, tutao.locator.aesCrypter.encryptUtf8Index(
+				tutao.locator.userController.getUserClientKey(), values[index]), function(status, ids) {
 			if (status === tutao.db.DbInterface.STATUS_SUCCESS) {
 				result = result.concat(ids);
 				f(++index);
@@ -298,8 +298,8 @@ tutao.tutanota.index.Indexer.prototype.getLastIndexedId = function(typeId, callb
 tutao.tutanota.index.Indexer.prototype._encryptWords = function(plainTextWords) {
 	var encryptedWords = [];
 	for (var i = 0; i < plainTextWords.length; i++) {
-		encryptedWords.push(tutao.locator.aesCrypter.encryptUtf8(
-				tutao.locator.userController.getUserClientKey(), plainTextWords[i], false));
+		encryptedWords.push(tutao.locator.aesCrypter.encryptUtf8Index(
+				tutao.locator.userController.getUserClientKey(), plainTextWords[i]));
 	}
 	return encryptedWords;
 };

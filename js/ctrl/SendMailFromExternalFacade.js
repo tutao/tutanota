@@ -41,8 +41,8 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
             }
             var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
                 .setFileData(fileData.getId())
-                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName(), true))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType(), true))
+                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
                 .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
             service.getAttachments().push(attachment);

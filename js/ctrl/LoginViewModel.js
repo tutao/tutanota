@@ -105,31 +105,58 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function(callback) {
 			return;
 		}
 		tutao.locator.mailBoxController.initForUser(function() {
-			// this should be the user id instead of the name later
-			tutao.locator.dao.init("Tutanota_" + self.mailAddress(), function() {
-				tutao.locator.eventBus.connect();
-				if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
-					// Starter users may only use settings
-					tutao.locator.navigator.settings();
-				} else {
-					tutao.locator.navigator.mail();
-				}
-				self.loginOngoing(false);
-				// load all contacts to have them available in cache, e.g. for RecipientInfos
-				tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(loadedContacts, exception) {});
-				if (callback && callback instanceof Function) {
-					callback();
-				}
-			});
+            self.loadEntropy(function() {
+                // this should be the user id instead of the name later
+                tutao.locator.dao.init("Tutanota_" + self.mailAddress(), function() {
+                    tutao.locator.eventBus.connect();
+                    if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+                        // Starter users may only use settings
+                        tutao.locator.navigator.settings();
+                    } else {
+                        tutao.locator.navigator.mail();
+                    }
+                    self.loginOngoing(false);
+                    // load all contacts to have them available in cache, e.g. for RecipientInfos
+                    tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(loadedContacts, exception) {});
+                    if (callback && callback instanceof Function) {
+                        callback();
+                    }
+                });
+            });
 		});
 	});
 };
 
 /**
- * Logs a user out of the system.
+ * Loads entropy from the last logout. Fetches missing entropy if none was stored yet and stores it.
+ * @param {function()} callback Called when finished.
  */
-tutao.tutanota.ctrl.LoginViewModel.prototype.logout = function() {
-	Path.root("#login");
+tutao.tutanota.ctrl.LoginViewModel.prototype.loadEntropy = function(callback) {
+    var self = this;
+    var groupEncEntropy = tutao.locator.mailBoxController.getUserProperties().getGroupEncEntropy();
+    if (!groupEncEntropy) {
+        tutao.locator.entropyCollector.fetchMissingEntropy(function() {
+            self.storeEntropy();
+            callback();
+        });
+    } else {
+        var entropy = tutao.locator.aesCrypter.decryptBytes(tutao.locator.userController.getUserGroupKey(), groupEncEntropy);
+        tutao.locator.entropyCollector.addStaticEntropy(entropy);
+        callback();
+    }
+};
+
+/**
+ * Stores entropy from the randomizer for the next login.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
+    var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
+    tutao.locator.mailBoxController.getUserProperties().setGroupEncEntropy(groupEncEntropy);
+    tutao.locator.mailBoxController.getUserProperties().update(function(exception) {
+        if (exception) {
+            console.log(exception);
+        }
+    });
 };
 
 /**
