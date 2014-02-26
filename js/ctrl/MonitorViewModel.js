@@ -101,7 +101,9 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 		var connectionsGroup = this._addGroupToView(globalView, "Open connections");
 			this._addMonitorGroup(connectionsGroup, "OpenConnectionsInbound", "servers", NO_COUNTER);
 			this._addMonitorGroup(connectionsGroup, "OpenConnectionsOutbound", "servers", NO_COUNTER);
-		var ramGroup = this._addGroupToView(globalView, "RAM");
+        var webSocketConnectionsGroup = this._addGroupToView(globalView, "Open web socket connections");
+            this._addMonitorGroup(webSocketConnectionsGroup, "OpenWebSocketConnections", "servers", VALUE);
+        var ramGroup = this._addGroupToView(globalView, "RAM");
 			this._addMonitorGroup(ramGroup, "FreeRam", "servers", NO_COUNTER);
 			this._addMonitorGroup(ramGroup, "ActualFreeRam", "servers", NO_COUNTER);
 			this._addMonitorGroup(ramGroup, "UsedRam", "servers", NO_COUNTER);
@@ -194,7 +196,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 };
 
 tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_VALUE = 0; // counter value is shown, snapshot values are directly shown in diagram (applies to monitor type Single or Average)
-tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF = 1; // counter value is shown, difference of of snapshot value to last one is shown in diagram (applies to monitor type Single)
+tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF = 1; // counter value is shown, difference of snapshot value to last one is shown in diagram (applies to monitor type Single)
 tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_NO_COUNTER = 2; // no counter value is shown, snapshot values are directly shown in diagram (applies to monitor type Direct)
 
 tutao.tutanota.ctrl.MonitorViewModel.GLOBAL_MONITOR_ID = "-----------0";
