@@ -196,6 +196,7 @@
 	<script type="text/javascript" src="generated/entity/sys/PhoneNumber.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/RegistrationConfigReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationServiceData.js"></script>
@@ -1207,7 +1208,7 @@ function touchOrClick(e) {
                     <div class="content">
                         <h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
                         <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
-                        <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
+                        <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED && state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
                             <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
                                 <div class="record">
                                     <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
@@ -1238,7 +1239,13 @@ function touchOrClick(e) {
                             </form>
                         <!-- /ko -->
                         <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="infoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': getDomain() }"></div>
+                            <div class="smallInfoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': getDomain() }"></div>
+                        <!-- /ko -->
+                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
+                            <div class="smallInfoMessage">
+                                <div data-bind="lang: 'regDisabledStarter_msg'"></div>
+                                <a href="https://tutanota.de/#contact" target="_blank" data-bind="text: 'https://tutanota.de/#contact'" tabindex="-1"></a>
+                            </div>
                         <!-- /ko -->
                     </div>
                 </div>
@@ -1424,6 +1431,12 @@ function touchOrClick(e) {
                         <!-- /ko -->
                         <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING -->
                             <div class="smallInfoMessage" data-bind="lang: 'loading_msg'"></div>
+                        <!-- /ko -->
+                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED -->
+                            <div class="smallInfoMessage">
+                                <div data-bind="lang: 'regDisabledFree_msg'"></div>
+                                <a href="https://tutanota.de/#contact" target="_blank" data-bind="text: 'https://tutanota.de/#contact'" tabindex="-1"></a>
+                            </div>
                         <!-- /ko -->
 					</div>
 				</div>

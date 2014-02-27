@@ -40,15 +40,27 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_NOT_RUNNING 
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_RUNNING = 1;
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED = 2;
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED = 3;
+tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED = 4;
 
 /**
  * Sets the focus when the view is shown.
  */
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.activate = function(authToken) {
 	var self = this;
-	setTimeout(function() {
-		self.domainFieldFocused(true);
-	}, 0);
+    var parameters = {};
+    tutao.entity.sys.RegistrationConfigReturn.load(parameters, null, function(registrationConfigReturn, exception) {
+        if (exception) {
+            console.log(exception);
+        } else {
+            if(registrationConfigReturn.getStarterEnabled()){
+                setTimeout(function() {
+                    self.domainFieldFocused(true);
+                }, 0);
+            }else {
+                self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED);
+            }
+        }
+    });
 };
 
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.getRegistrationType = function() {
