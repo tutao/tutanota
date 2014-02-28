@@ -26,7 +26,7 @@ tutao.tutanota.gui.ConfigView.prototype.init = function(external) {
 		self._rightmostVisibleColumn(self._viewSlider.getRightmostVisibleColumnId());
 		tutao.tutanota.gui.viewPositionAndSizeReceiver("#configContent", x, y, initial);
 	});
-	this._viewSlider.addViewColumn(0, 400, 600	, function(x, width) {
+	this._viewSlider.addViewColumn(0, 400, 1024	, function(x, width) {
 		$('#configColumn').css("width", width + "px");
 	});
 
