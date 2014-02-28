@@ -40,7 +40,11 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
     this._listeners.push(listener);
 };
 
-
+/**
+ * Opens a WebSocket connection to receive server events.
+ * @param reconnect Set to true if the connection has been opened before.
+ * @returns {tutao.event.EventBusClient} The event bus client object.
+ */
 tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 	var self = this;
 	var protocol = document.location.protocol === 'http:' ? 'ws' : 'wss';
