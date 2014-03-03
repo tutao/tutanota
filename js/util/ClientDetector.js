@@ -228,6 +228,17 @@ tutao.tutanota.util.ClientDetector.isSupported = function() {
 	return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED;
 };
 
+
+tutao.tutanota.util.ClientDetector.isMobileDevice = function() {
+    var info = tutao.tutanota.util.ClientDetector;
+    if (info._device == info.DEVICE_TYPE_ANDROID || info._device == info.DEVICE_TYPE_IPAD || info._device == info.DEVICE_TYPE_IPHONE) {
+        return true;
+    }
+    return false;
+}
+
+
+
 /**
  * Sets the device info.
  * @param {string} userAgent The user agent string.
