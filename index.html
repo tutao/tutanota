@@ -2239,7 +2239,7 @@ function touchOrClick(e) {
 				<!-- /ko -->
 				<!-- ko if: isUserLoggedIn() -->
 					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false); }, 0); }">
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false, true); }, 0); }">
 							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
 							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
 						</div>
