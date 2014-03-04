@@ -340,7 +340,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                 return;
             }
             tutao.locator.loginViewModel.loadEntropy(function() {
-                self._storePasswordIfPossible(function() {
+                self._storePasswordIfPossible(password, function() {
                     // no indexing for external users
                     tutao.locator.replace('dao', new tutao.db.DummyDb);
                     self._showingMail = true;
@@ -354,9 +354,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
 
 /**
  * Stores the password locally if chosen by user.
+ * @param {string} password The password to store.
  * @param {function(tutao.rest.EntityRestException=)} callback Called when finished. Callback receives an exception if one occurred.
  */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = function(callback) {
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = function(password, callback) {
 	var self = this;
 	// if auto login is active, the password is already stored and valid
 	if (!self.autoLoginActive && self.storePassword()) {
@@ -371,7 +372,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 					return;
 				}
 				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, autoLoginPostReturn.getDeviceToken())) {
-					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.password());
+					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
 					tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
 				}
 				callback();
@@ -383,12 +384,12 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 					callback();
 					return;
 				}
-				var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.password());
+				var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
 				tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
 				callback();
 			});
 		}
-	} else if (!self.storePassword()) {
+	} else if (!self.autoLoginActive && !self.storePassword()) {
 		// delete any stored password
 		if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {
 			tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
