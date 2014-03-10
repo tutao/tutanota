@@ -38,8 +38,10 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function
 	}
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.logout = function(autoLoginAllowed) {
-    tutao.locator.loginViewModel.storeEntropy();
+tutao.tutanota.ctrl.Navigator.prototype.logout = function(autoLoginAllowed, storeEntropy) {
+    if (storeEntropy){
+        tutao.locator.loginViewModel.storeEntropy();
+    }
 	this._login(autoLoginAllowed);
 };
 

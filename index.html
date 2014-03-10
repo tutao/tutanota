@@ -1065,12 +1065,15 @@ function touchOrClick(e) {
 		<div id="notSupported" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
 			<div class="messageWrapper">
 				<div class="infoMessage">
-					<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE -->
+					<!-- ko if: (!tutao.tutanota.util.ClientDetector.isMobileDevice()) && (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) -->
 						<div data-bind="lang: 'oldBrowser_msg'"></div>
 					<!-- /ko -->
-					<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
+					<!-- ko if: (!tutao.tutanota.util.ClientDetector.isMobileDevice()) && (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) -->
 						<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
+                    <!-- ko if: tutao.tutanota.util.ClientDetector.isMobileDevice() -->
+                        <div data-bind="lang: 'unsupportedMobileBrowswer_msg'"></div>
+                    <!-- /ko -->
 					<ul>
 						<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
 						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
@@ -2239,7 +2242,7 @@ function touchOrClick(e) {
 				<!-- /ko -->
 				<!-- ko if: isUserLoggedIn() -->
 					<li>
-						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false); }, 0); }">
+						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false, true); }, 0); }">
 							<div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
 							<div class="menu_text" data-bind="lang: 'logout_label'"></div>
 						</div>
