@@ -33,6 +33,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 			this._addMonitorGroup(exceptionCountGroup, "AccessExpiredCount", "servers", DIFF);
 			this._addMonitorGroup(exceptionCountGroup, "AccessBlockedCount", "servers", DIFF);
 			this._addMonitorGroup(exceptionCountGroup, "TooManyRequestsCount", "servers", DIFF);
+            this._addMonitorGroup(exceptionCountGroup, "LimitReachedCount", "servers", DIFF);
 		var requestTimeGroup = this._addGroupToView(globalView, "Request time");
 			this._addMonitorGroup(requestTimeGroup, "RequestTimeRest", "servers", VALUE);
 			this._addMonitorGroup(requestTimeGroup, "RequestTime-sys-UserIdService", "global", VALUE);

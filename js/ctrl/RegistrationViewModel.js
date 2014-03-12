@@ -284,7 +284,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
 	// if no registration link was used, the authToken is not set yet, but returned by the send registration code service
 	service.setup({}, null, function(sendRegistrationCodeReturn, exception) {
 		if (exception) {
-			self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
+            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
+                self.joinStatus({ type: "invalid", text: "joinAccountLimitReached_msg" });
+            } else {
+                self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
+            }
 			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 		} else {
 			self.authToken(sendRegistrationCodeReturn.getAuthToken());
@@ -316,7 +320,9 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 				} else if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
 					self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
 					self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
-				} else {
+                } else if (exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
+                    self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+                } else {
 					self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
 				}
 			} else {
@@ -344,7 +350,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 				console.log(exception);
 				self._keyGenProgress(0);
 				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-				self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
+                if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
+                    self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+                } else {
+				    self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
+                }
 			} else {
 				tutao.locator.navigator.logout(false, false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
 				setTimeout(function() {
