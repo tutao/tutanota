@@ -190,7 +190,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel
     };
 
-    if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+    if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
         singletons['swipeRecognizer'] = tutao.tutanota.ctrl.SwipeRecognizer;
     }
     tutao.tutanota.legacy.Legacy.setup(singletons);
@@ -205,7 +205,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         viewport.setAttribute('content', 'initial-scale=0.85, maximum-scale=0.85, user-scalable=no');
     }
 
-    if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+    if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
         tutao.locator.replace('dao', new tutao.db.DummyDb);
     }
 

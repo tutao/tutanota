@@ -69,7 +69,7 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._mailListScroller = new iScroll('mailList', {useTransition: true});
 			this._mailsScroller = new iScroll('innerConversationColumn', {useTransition: true});
 			this._externalMailConfigScroller = new iScroll('innerPasswordChannelColumn', {useTransition: true});
@@ -244,7 +244,7 @@ tutao.tutanota.gui.MailView.prototype.fadeFirstMailOut = function() {
  * This is needed because of the keyboard overlay of these devices.
  */
 tutao.tutanota.gui.MailView.prototype.enableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		return;
 	}
 	this._touchComposingModeActive = true;
@@ -300,7 +300,7 @@ tutao.tutanota.gui.MailView.prototype._updateBodyHeightPWChannels = function(wid
  * Disables the touch composing mode for the mail view.
  */
 tutao.tutanota.gui.MailView.prototype.disableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		return;
 	}
 	tutao.tutanota.gui.removeResizeListener($(".conversation")[0], this._updateBodyHeight);

@@ -47,7 +47,7 @@ tutao.tutanota.gui.ConfigView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._configScroller = new iScroll('configInnerColumn', {useTransition: true});
 			
 			// workaround for input field bug. it allows to set the focus on text input elements

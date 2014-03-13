@@ -50,7 +50,7 @@ tutao.tutanota.gui.DbView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._instancesScroller = new iScroll('dbInnerInstancesColumn', {useTransition: true});
 		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns

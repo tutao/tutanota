@@ -50,7 +50,7 @@ tutao.tutanota.gui.CustomerView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._customerListScroller = new iScroll('customerListInnerColumn', {useTransition: true});
 			
 			// workaround for input field bug. it allows to set the focus on text input elements

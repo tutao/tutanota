@@ -37,15 +37,15 @@ tutao.tutanota.ctrl.LogViewModel = function() {
 		this.showSelected();
 	}, this);
 
-	var touch = tutao.tutanota.util.ClientDetector.isTouchSupported();
+	var mobileDevice = tutao.tutanota.util.ClientDetector.isMobileDevice();
 	this.showLevel = ko.observable(true);
 	this.showDate = ko.observable(true);
 	this.showServer = ko.observable(false);
 	this.showUserId = ko.observable(false);
 	this.showUrl = ko.observable(false);
 	this.showAgent = ko.observable(false);
-	this.showLogger = ko.observable(!touch);
-	this.showSource = ko.observable(!touch);
+	this.showLogger = ko.observable(!mobileDevice);
+	this.showSource = ko.observable(!mobileDevice);
 	this.showThread = ko.observable(false);
 	this.showMessage = ko.observable(true);
 

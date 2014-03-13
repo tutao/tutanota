@@ -58,7 +58,7 @@ tutao.tutanota.gui.ContactView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			// the timeout is a workaround for the bug that the contact list scrolls horizontally
 			// on iPad until the orientation is changed (see iss119)
 			setTimeout(function() {
@@ -176,7 +176,7 @@ tutao.tutanota.gui.ContactView.prototype.contactUpdated = function() {
  * This is needed because of the keyboard overlay of these devices.
  */
 tutao.tutanota.gui.ContactView.prototype.enableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		return;
 	}
 	this._touchComposingModeActive = true;
@@ -206,7 +206,7 @@ tutao.tutanota.gui.ContactView.prototype._updateContactHeight = function(width, 
  * Disables the touch composing mode for the contact view.
  */
 tutao.tutanota.gui.ContactView.prototype.disableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		return;
 	}
 	tutao.tutanota.gui.removeResizeListener($('#contactWrapper')[0], this._updateContactHeight);

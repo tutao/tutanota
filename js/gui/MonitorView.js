@@ -53,7 +53,7 @@ tutao.tutanota.gui.MonitorView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._countersScroller = new iScroll('monitorInnerCountersColumn', {useTransition: true});
 			this._diagramScroller = new iScroll('monitorInnerDiagramColumn', {useTransition: true});
 			

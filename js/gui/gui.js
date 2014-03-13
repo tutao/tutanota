@@ -372,7 +372,7 @@ tutao.tutanota.gui.initEvents = function() {
 //	    });
 //	}, 0);
 
-	if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		// do not allow default scrolling on the window
 		tutao.tutanota.gui.disableWindowScrolling();
 	}
@@ -773,7 +773,7 @@ tutao.tutanota.gui.addWindowResizeListener = function(callback) {
 		callback(self.getWindowWidth(), self.getWindowHeight());
 	});
 	// on iOS 6, the orientation change events do not trigger resize events in ComposerMode (see e.g. tutao.locator.mailView.enableTouchComposingMode())
-	if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		$(window).on("orientationchange", function() {
 			callback(self.getWindowWidth(), self.getWindowHeight());
 		});

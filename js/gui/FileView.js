@@ -42,7 +42,7 @@ tutao.tutanota.gui.FileView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			// the timeout is a workaround for the bug that the contact list scrolls horizontally
 			// on iPad until the orientation is changed (see iss119)
 			this._filesScroller = new iScroll('innerFileColumn', {useTransition: true});

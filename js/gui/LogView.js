@@ -51,7 +51,7 @@ tutao.tutanota.gui.LogView.prototype.activate = function() {
 	if (this._firstActivation) {
 		this._firstActivation = false;
 		tutao.locator.logViewModel.showSelected();
-		if (tutao.tutanota.util.ClientDetector.isTouchSupported()) {
+		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 			this._eventsScroller = new iScroll('logInnerEventsColumn', {useTransition: true, zoom: true, zoomMin:0.5 });
 		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
