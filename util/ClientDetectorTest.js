@@ -22,7 +22,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(30, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 		
@@ -34,7 +34,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(17, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
@@ -45,7 +45,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(6, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, info.getDeviceType());
-		assertEquals(true, info.isTouchSupported());
+		assertEquals(true, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
 	},
@@ -56,7 +56,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(11, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
@@ -67,7 +67,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(10, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
@@ -78,7 +78,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(9, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
@@ -89,7 +89,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(8, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
@@ -100,7 +100,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(8, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
 	},
@@ -111,7 +111,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(7, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
 	},
@@ -122,7 +122,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(0, info.getBrowserVersion());
 		assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-		assertEquals(false, info.isTouchSupported());
+		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN, info.getSupportedType());
 	},
@@ -133,7 +133,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(6.1, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-        assertEquals(false, info.isTouchSupported());
+        assertEquals(false, info.isMobileDevice());
         assertEquals(false, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI, info.getSupportedType());
     },
@@ -144,7 +144,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(7, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-        assertEquals(false, info.isTouchSupported());
+        assertEquals(false, info.isMobileDevice());
         assertEquals(false, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI, info.getSupportedType());
     },
@@ -155,7 +155,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(6, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER, info.getDeviceType());
-        assertEquals(false, info.isTouchSupported());
+        assertEquals(false, info.isMobileDevice());
         assertEquals(false, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
     },
@@ -166,7 +166,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(32, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
-        assertEquals(true, info.isTouchSupported());
+        assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     },
@@ -177,7 +177,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(27, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
-        assertEquals(true, info.isTouchSupported());
+        assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     },
@@ -188,8 +188,31 @@ TestCase("ClientDetectorTest", {
         assertEquals(4, info.getBrowserVersion());
         assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
-        assertEquals(true, info.isTouchSupported());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
+    },
+    "test detect windows phone 8.0": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; IEMobile/10.0; ARM; Touch; Microsoft; Virtual)");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+        assertEquals(10, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
+    },
+    "test detect windows phone 7.5": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (compatible; MSIE 9.0; Windows Phone OS 7.5; Trident/5.0; IEMobile/9.0)");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+        assertEquals(9, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     }
+
 });
