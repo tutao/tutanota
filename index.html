@@ -728,7 +728,7 @@ function touchOrClick(e) {
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
 							<div id="passwordChannelDescription" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
-								<div>
+								<div data-bind="attr:{id:'passwordChannelEntry_' + getMailAddress()}">
 									<hr />
 									<br>
 
@@ -785,7 +785,7 @@ function touchOrClick(e) {
 											<div class="recordData">
 												<div class="row">
 													<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
-													<div class="recordAction" data-bind="fastClick: function() { $parent.removePresharedPassword($data) }, visible: !tutao.locator.userController.isLoggedInUserFreeAccount() ">
+													<div class="recordAction" data-bind="attr:{id: 'removePasswordAction_' + getMailAddress()}, fastClick: function() { $parent.removePresharedPassword($data) }, visible: !tutao.locator.userController.isLoggedInUserFreeAccount() ">
 														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 													</div>
 												</div>
@@ -1085,7 +1085,7 @@ function touchOrClick(e) {
 						'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
 						'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
 						'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-						'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
+						'mobile: ' + tutao.tutanota.util.ClientDetector.isMobileDevice() + '\n' +
 						'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
 						'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
 						'user agent: ' + navigator.userAgent">
@@ -1198,7 +1198,7 @@ function touchOrClick(e) {
                 'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
                 'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
                 'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-                'touch: ' + tutao.tutanota.util.ClientDetector.isTouchSupported() + '\n' +
+                'mobile: ' + tutao.tutanota.util.ClientDetector.isMobileDevice() + '\n' +
                 'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
                 'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
                 'user agent: ' + navigator.userAgent">
