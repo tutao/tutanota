@@ -139,7 +139,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
 	    var jvmCpuGroup = this._addGroupToView(globalView, "JVM tutadb cpu usage");
 	    	this._addMonitorGroup(jvmCpuGroup, "JvmTutadbCpuUsage", "servers", NO_COUNTER);
         var cassandraGroup = this._addGroupToView(globalView, "Cassandra");
-            this._addMonitorGroup(cassandraGroup, "CassandraPreparedStatements", "servers", VALUE);
+            this._addMonitorGroup(cassandraGroup, "CassandraPreparedStatements", "servers", NO_COUNTER);
 
 	var customerView = this._addCounterView("customer");
 	    var registrationGroupCustomer = this._addGroupToView(customerView, "Registration");
