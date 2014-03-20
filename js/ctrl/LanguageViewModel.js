@@ -320,6 +320,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	logout_alt: "Logout",
 	settings_label: "Settings",
 	settings_alt: "Settings",
+    register_label: "Register",
+    register_alt: "Register",
 
 	// not supported
 	for_label: "for",
@@ -696,6 +698,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	logout_alt: "Abmelden",
 	settings_label: "Einstellungen",
 	settings_alt: "Einstellungen",
+    register_label: "Registrieren",
+    register_alt: "Registrieren",
 
 	// not supported
 	for_label: "für",

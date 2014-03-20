@@ -101,6 +101,10 @@ tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
 	location.replace("#settings");
 };
 
+tutao.tutanota.ctrl.Navigator.prototype.register = function() {
+    location.replace("#register");
+};
+
 /**
  * Switches to the provided view, if the user is authenticated. Otherwise, switches to the LoginView
  * @param {Object} view The view to switch to.
