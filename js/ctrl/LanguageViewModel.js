@@ -404,6 +404,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// feedback
 	screenshot_msg: "A screenshot will be sent along with your message to us!",
+    screenshot_label: "Attach screenshot",
+    feedbackInfo_msg: "The message is sent encrypted to support@tutao.de together with the browser identifier.",
 	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
 	
 	// outlook
@@ -781,7 +783,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
 
 	// feedback
-	screenshot_msg: "Ein Screenshot wird mit der Nachricht an uns versendet!",
+	screenshot_label: "Screenshot mitsenden",
+    feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
 	sendFeedbackFailed_msg: "Leider konnte das Feedback nicht gesendet werden. Bitte versuchen Sie es später erneut.",
 	
 	// outlook
