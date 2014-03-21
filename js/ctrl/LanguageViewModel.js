@@ -403,7 +403,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	termsAcceptedNeutral_msg: "Please accept the terms & conditions.",
 
 	// feedback
-	screenshot_msg: "A screenshot will be sent along with your message to us!",
     screenshot_label: "Attach screenshot",
     feedbackInfo_msg: "The message is sent encrypted to support@tutao.de together with the browser identifier.",
 	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
