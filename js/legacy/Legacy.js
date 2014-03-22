@@ -30,6 +30,19 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
 		};
 	}
 
+
+    if (typeof Array.prototype.indexOf !== 'function') {
+        Array.prototype.indexOf = function(obj) {
+            for (var i = (0); i < this.length; i++) {
+                if (this[i] === obj) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+    }
+
+
     Object.keys = Object.keys || (function () {
         var hasOwnProperty = Object.prototype.hasOwnProperty,
             hasDontEnumBug = !{toString:null}.propertyIsEnumerable("toString"),
