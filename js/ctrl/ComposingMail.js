@@ -114,12 +114,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	var unsecureRecipients = this._containsUnsecureRecipients();
 	if (this.secure() && unsecureRecipients) {
 		setTimeout(function() {
-			tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("noPasswordChannels_msg"));
+            var message = "noPasswordChannels_msg";
+            if ( !tutao.locator.passwordChannelViewModel.isAutoTransmitPasswordAllowed() ){
+                message = "noPreSharedPassword_msg";
+            }
+			tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get(message));
 			tutao.locator.mailView.showPasswordChannelColumn();
 		}, 0);
 		return;
 	}
-	if (this.secure() && this._containsInvalidPasswordChannels()) {
+	if (this.secure() && this._containsInvalidPhoneNumber()) {
 		setTimeout(function() {
 			tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("invalidPasswordChannels_msg"));
 			tutao.locator.mailView.showPasswordChannelColumn();
@@ -361,7 +365,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._containsUnknownRecipients = functio
     return false;
 };
 
-tutao.tutanota.ctrl.ComposingMail.prototype._containsInvalidPasswordChannels = function() {
+tutao.tutanota.ctrl.ComposingMail.prototype._containsInvalidPhoneNumber = function() {
 	if (!this.secure()) {
 		return false;
 	}

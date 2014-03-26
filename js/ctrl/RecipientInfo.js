@@ -183,7 +183,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
 	if (!this.isExternal()) {
 		return true;
 	}
-	if (this._editableContact.presharedPassword() != null) {
+	if (this._editableContact.presharedPassword() != null && this._editableContact.presharedPassword().trim() != "") {
 		return true;
 	}
 	for (var i = 0; i < this._editableContact.phoneNumbers().length; i++) {

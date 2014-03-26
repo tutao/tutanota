@@ -11,25 +11,20 @@ tutao.tutanota.ctrl.PasswordChannelViewModel = function() {
 };
 
 /**
- * Returns a sorted (recipients with missing phone numbers first) array of recipients.
+ * Returns a array of external recipients.
  * @return {Array.<tutao.tutanota.ctrl.RecipientInfo>} the array of external recipients.
  */
 tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getSecureExternalRecipients = function() {
-	var missingChannelRecipients = [];
-	var existingChannelRecipients = [];
+	var externalRecipients = [];
 	if (tutao.locator.mailViewModel.isComposingMailToSecureExternals()) {
 		var allRecipients = tutao.locator.mailViewModel.getComposingMail().getAllComposerRecipients();
 		for (var i = 0; i < allRecipients.length; i++) {
 			if (allRecipients[i].isExternal()) {
-				if (allRecipients[i].isSecure()) {
-					existingChannelRecipients.push(allRecipients[i]);
-				} else {
-					missingChannelRecipients.push(allRecipients[i]);
-				}
+               externalRecipients.push(allRecipients[i]);
 			}
 		}
 	}
-	return missingChannelRecipients.concat(existingChannelRecipients);
+	return externalRecipients;
 };
 
 /**
