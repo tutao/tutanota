@@ -34,7 +34,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
             "Content-Type: text/html; charset=UTF-8",
             "Content-transfer-encoding: base64",
             "",
-            tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(displayedMail.bodyText())),
+            tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(displayedMail.bodyText())).match(/.{1,78}/g).join("\r\n"),
             ""
         ]);
 
@@ -56,7 +56,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
                         "Content-Disposition: attachment;",
                         " filename=" + base64Filename + "",
                         "",
-                        tutao.util.EncodingConverter.arrayBufferToBase64(dataFile.getData())
+                        tutao.util.EncodingConverter.arrayBufferToBase64(dataFile.getData()).match(/.{1,78}/g).join("\r\n")
                     ]);
                     resolve();
                 });

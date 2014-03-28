@@ -260,7 +260,11 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
     tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
         var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
         var tmpFile = new tutao.entity.tutanota.File();
-        tmpFile.setName(displayedMail.mail.getSubject() + ".eml");
+        var filename = displayedMail.mail.getSubject();
+        if (filename.trim().length == 0) {
+            filename = "unnamed";
+        }
+        tmpFile.setName(filename + ".eml");
         tmpFile.setMimeType("message/rfc822");
         tmpFile.setSize(String(buffer.byteLength));
         tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile), function(error) {
