@@ -253,6 +253,25 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 };
 
 /**
+ * Opens an export dialog that shows how the mail can be exported to Outlook, Thunderbird and the Filesystem.
+ * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to export.
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail) {
+    tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
+        var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
+        var tmpFile = new tutao.entity.tutanota.File();
+        tmpFile.setName(displayedMail.mail.getSubject() + ".eml");
+        tmpFile.setMimeType("text/plain");
+        tmpFile.setSize(String(buffer.byteLength));
+        tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile), function(error) {
+            if (error) {
+                console.log(error);
+            }
+        });
+    });
+};
+
+/**
  * Lets the user write a mail.
  * @param {string} conversationType The conversation type (REPLY or FORWARD). See TutanotaConstants.
  * @param {string} subject The subject for the mail.

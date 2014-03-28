@@ -4,7 +4,7 @@ goog.provide('tutao.tutanota.ctrl.DisplayedMail');
 
 /**
  * This class represents a mail that is currently displayed.
- * @param {tutao.tutanot.entity.Mail} mail The mail.
+ * @param {tutao.entity.tutanota.Mail} mail The mail.
  * @constructor
  */
 tutao.tutanota.ctrl.DisplayedMail = function(mail) {
@@ -36,12 +36,16 @@ tutao.tutanota.ctrl.DisplayedMail = function(mail) {
 				return [new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); })];
 			}
 		} else {
-			return [
+            var buttons = [
 			        new tutao.tutanota.ctrl.Button(trashText, tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.deleteMail(self); }),
 			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("reply_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() { tutao.locator.mailViewModel.replyMail(self); }),
 			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyAll_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.replyAllMail(self); }),
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("forward_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.forwardMail(self); })
+			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("forward_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.forwardMail(self); }),
 			        ];
+            if (tutao.tutanota.util.ClientDetector.isSupported()) {
+                buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("export_action"), tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL, function() { tutao.locator.mailViewModel.exportMail(self); }))
+            }
+            return buttons;
 		}
 	}, this);
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
