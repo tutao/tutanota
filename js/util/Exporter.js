@@ -47,13 +47,14 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
                         reject(exception);
                         return;
                     }
+                    var base64Filename = "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(attachment.getName())) + "?=";
                     emlArray = emlArray.concat([
                         "--------------79Bu5A16qPEYcVIZL@tutanota",
                         "Content-Type: " + attachment.getMimeType(),
-                        " name=\"" + attachment.getName() + "\"",
+                        " name=" + base64Filename + "",
                         "Content-Transfer-Encoding: base64",
                         "Content-Disposition: attachment;",
-                        " filename=\"" + attachment.getName() + "\"",
+                        " filename=" + base64Filename + "",
                         "",
                         tutao.util.EncodingConverter.arrayBufferToBase64(dataFile.getData())
                     ]);
