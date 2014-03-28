@@ -21,6 +21,7 @@ $(document).ready(function() {
 		loginViewModel: tutao.tutanota.ctrl.LoginViewModel,
 		mailListViewModel: tutao.tutanota.ctrl.MailListViewModel,
 		mailViewModel: tutao.tutanota.ctrl.MailViewModel,
+        mailView: tutao.tutanota.gui.MailView,
 		passwordChannelViewModel: tutao.tutanota.ctrl.PasswordChannelViewModel,
 		externalLoginViewModel: tutao.tutanota.ctrl.ExternalLoginViewModel,
 		tagListViewModel: tutao.tutanota.ctrl.TagListViewModel,

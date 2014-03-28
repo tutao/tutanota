@@ -20,6 +20,10 @@ TestCase("FormatterTest", {
 		assertEquals("7. Dec 2011 04:03", tutao.tutanota.util.Formatter.formatFullDateTime(new Date(2011, 11, 7, 4, 3, 2)));
 		assertTrue(tutao.tutanota.util.Formatter.formatFullDateTime(new Date()).length >= 17); // including year
 	},
+
+    "test formatSmtpDateTime": function() {
+        assertEquals("Tue, 12 Dec 2011 04:03:02 +0100", tutao.tutanota.util.Formatter.formatSmtpDateTime(new Date(2011, 11, 12, 4, 3, 2)));
+    },
 	
 	"test formatDateTime": function() {
 		tutao.locator.languageViewModel.setCurrentLanguage("de");
