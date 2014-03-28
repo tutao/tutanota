@@ -22,7 +22,7 @@ TestCase("FormatterTest", {
 	},
 
     "test formatSmtpDateTime": function() {
-        assertEquals("Tue, 12 Dec 2011 04:03:02 +0100", tutao.tutanota.util.Formatter.formatSmtpDateTime(new Date(2011, 11, 12, 4, 3, 2)));
+        assertEquals("Tue, 12 Dec 2011 04:03:02 +0000", tutao.tutanota.util.Formatter.formatSmtpDateTime(new Date(Date.UTC(2011, 11, 12, 4, 3, 2))));
     },
 	
 	"test formatDateTime": function() {

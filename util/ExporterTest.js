@@ -7,7 +7,7 @@ AsyncTestCase("ExporterTest", {
     var mail = new tutao.entity.tutanota.Mail()
         .setSender(new tutao.entity.tutanota.MailAddress()
             .setAddress("sender@tutao.de"))
-        .setSentDate(new Date(2011, 11, 12, 4, 3, 2))
+        .setSentDate(new Date(Date.UTC(2011, 11, 12, 4, 3, 2)))
         .setSubject("Halli Hallo!");
     mail.getToRecipients().push(new tutao.entity.tutanota.MailAddress()
         .setAddress("to1@tutao.de"));
@@ -36,7 +36,7 @@ AsyncTestCase("ExporterTest", {
                 "CC: cc@tutao.de,",
                 "   bcc@tutao.de",
                 "Subject: =?UTF-8?B?SGFsbGkgSGFsbG8h?=",
-                "Date: Tue, 12 Dec 2011 04:03:02 +0100",
+                "Date: Tue, 12 Dec 2011 04:03:02 +0000",
                 "Content-Type: multipart/mixed; boundary=\"------------79Bu5A16qPEYcVIZL@tutanota\"",
                 "",
                 "--------------79Bu5A16qPEYcVIZL@tutanota",
