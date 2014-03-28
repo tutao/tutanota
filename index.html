@@ -9,7 +9,8 @@
 	if(Function('/*@cc_on return document.documentMode===10@*/')()) {
 	    document.getElementsByTagName("html")[0].className = "ie ie10 lte10"
 	}
-	window.CLOSURE_NO_DEPS = true;
+
+    window.CLOSURE_NO_DEPS = true;
 	</script>
 	<meta charset="utf-8" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -301,6 +302,7 @@
 	<script type="text/javascript" src="js/ctrl/AdminNewUser.js"></script>
 	<script type="text/javascript" src="js/ctrl/AdminUserAddViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AdminUserListViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/AppCacheListener.js"></script>
 	<script type="text/javascript" src="js/ctrl/Button.js"></script>
 	<script type="text/javascript" src="js/ctrl/ButtonBarViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ChangePasswordViewModel.js"></script>
@@ -331,6 +333,7 @@
 	<script type="text/javascript" src="js/ctrl/MonitorViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Navigator.js"></script>
 	<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/ProgressDialogModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientInfo.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientsNotFoundException.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationDataListViewModel.js"></script>
@@ -1413,7 +1416,7 @@ function touchOrClick(e) {
 											<button id="submitRegistration2" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                             <button class="minimal" data-bind="css: { disabled: !isBackPossible() }, click: backToStartPage, lang: 'back_action'"></button>
 											<label for="submitRegistration2" class="recordStatus" data-bind="css: createAccountStatus().type">
-												<div class="progressBg" class="defaultMargin dataField">
+												<div class="progressBg defaultMargin dataField">
 													<div class="progressFg" data-bind="style: { width: (100 - getKeyGenerationProgress()) + '%' }"></div>
 												</div>
 												<div class="createAccountStatus" data-bind="lang: createAccountStatus().text"></div>
@@ -2153,6 +2156,15 @@ function touchOrClick(e) {
             <h2 data-bind="lang: 'showAttachment_label'"></h2>
             <a id="downloadLink" target="_blank" data-bind="text: filename(), attr: { href: blobUrl }, click: function() {  setTimeout(function() { closeDialog(); }, 0); return true; }"></a>
             <div class="modalDialogInfo" data-bind="lang: 'saveDownloadNotPossible_msg'"></div>
+        </div>
+    </div>
+
+    <div id="progressDialog" class="modalDialog" data-bind="with: tutao.locator.progressDialogModel, fadeVisible: tutao.locator.progressDialogModel.showDialog">
+        <div>
+            <h2 data-bind="lang: title()" ></h2>
+            <div class="progressBg defaultMargin dataField" >
+                <div class="progressFg" data-bind="style: { width: (100 - progress()) + '%' }"></div>
+            </div>
         </div>
     </div>
 

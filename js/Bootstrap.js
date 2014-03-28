@@ -9,18 +9,6 @@ goog.provide("tutao.tutanota.Bootstrap");
  */
 // TODO (timely) use promises instead of callbacks: Switch js code to make use of promises in order to increase the code maintainability. See http://www.html5rocks.com/en/tutorials/es6/promises/?redirect_from_locale=de
 tutao.tutanota.Bootstrap.init = function () {
-    if (window.applicationCache) {
-        window.applicationCache.addEventListener('updateready', function (e) {
-            if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-                // Browser downloaded a new app cache: We have to reload the page in order to get the new contents
-                window.applicationCache.swapCache();
-                // TODO (story: Show info for version update and offline mode) handle application cache reload and show a notice to the user (Updating application... => The application has been updated and will be reloaded)
-                // event description: http://www.html5rocks.com/de/tutorials/appcache/beginner/
-                window.location.reload();
-                console.log("updated to current release");
-            }
-        }, false);
-    }
 
     // disable all registered event handlers on the document and the window
     $(document).off();
@@ -48,6 +36,10 @@ tutao.tutanota.Bootstrap.init = function () {
         tutao.locator.entropyCollector.start();
 
     });
+
+    if ( window.applicationCache){
+        var listener = new tutao.tutanota.ctrl.AppCacheListener();
+    }
 
     // only for testing
 //		tutao.locator.loginViewModel.mailAddress("premium-admin@tutanota.de");
@@ -187,7 +179,10 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         // @type {tutao.tutanota.ctrl.Navigator}
         navigator: tutao.tutanota.ctrl.Navigator,
         // @type {tutao.tutanota.ctrl.LegacyDownloadViewModel}
-        legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel
+        legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
+        // @type {tutao.tutanota.ctrl.ProgressDialogModel}
+        progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel
+
     };
 
     if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
