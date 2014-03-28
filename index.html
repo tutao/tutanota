@@ -1079,7 +1079,7 @@ function touchOrClick(e) {
 					<ul>
 						<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
 						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
 						<!--<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>-->
 					</ul>
 					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
@@ -1102,7 +1102,7 @@ function touchOrClick(e) {
 					<div class="content">
 						<h1 data-bind="text: welcomeText"></h1>
 			
-						<form class="recordContainer wide" data-bind="submit: login, form: true, form: true">
+						<form class="recordContainer wide" data-bind="submit: login, form: true">
 							<div class="record">
 								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
 								<div class="recordData">
@@ -1124,6 +1124,7 @@ function touchOrClick(e) {
 								<div class="recordName"></div>
 								<div class="formAction">
 									<button id="submitLogin" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+                                    <button class="minimal" data-bind="click: createAccount, lang: 'createAccount_action'"></button>
 									<label for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
@@ -1188,7 +1189,7 @@ function touchOrClick(e) {
 							<ul>
 								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
 								<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-								<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+								<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
                                 <!--<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>-->
                             </ul>
                         </div>
@@ -1431,7 +1432,7 @@ function touchOrClick(e) {
                                 <ul>
                                     <li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
                                     <li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-                                    <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10</a></li>
+                                    <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
                                 </ul>
                                 <br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
                             </div>
@@ -2141,8 +2142,10 @@ function touchOrClick(e) {
 			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: 'feedback_label'"></h2>
 			<textarea rows="3" data-bind="value: message"></textarea>
-            <div class="modalDialogInfo" data-bind="lang: 'screenshot_msg'"></div>
-			<button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
+            <input id="addScreenshotCheckbox" type="checkbox" data-bind="checked: addScreenshot">
+            <label for="addScreenshotCheckbox" data-bind="lang: 'screenshot_label'" />
+            <div class="modalDialogInfo" data-bind="lang: 'feedbackInfo_msg'"></div>
+            <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>
 
@@ -2239,7 +2242,17 @@ function touchOrClick(e) {
 						</li>
 					<!-- /ko -->
 				<!-- /ko -->
-				<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED -->
+                <!-- ko ifnot: isInternalUserLoggedIn() -->
+                <li>
+                    <a href="https://app.tutanota.de/#register" target="_blank">
+                        <div class="menu_link">
+                            <div class="menu_image"><div class="imgButton register" data-bind="attr: {title: tutao.lang('register_alt')}"></div></div>
+                            <div class="menu_text" data-bind="lang: 'register_label'"></div>
+                        </div>
+                    </a>
+                </li>
+                <!-- /ko -->
+				<!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
 					<li>
 						<div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.feedbackViewModel.open(); }, 0); }">
 							<div class="menu_image"><div class="imgButton feedback" data-bind="attr: {title: tutao.lang('feedback_alt')}"></div></div>

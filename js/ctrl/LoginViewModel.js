@@ -159,6 +159,10 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
     });
 };
 
+tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
+    tutao.locator.navigator.register();
+};
+
 /**
  * Completely clears the DB for the current user
  */

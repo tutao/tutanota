@@ -7,7 +7,7 @@ goog.provide('tutao.tutanota.ctrl.RecipientInfo');
  * @param {string} mailAddress The email address to use as recipient.
  * @param {string} name The name that shall be used for the recipient.
  * @param {tutao.entity.tutanota.ContactWrapper=} contactWrapper The contact to use for recipient info.
- * @param {Boolean} external Optional. True if the recipient is external, false otherwise. If not set, this information is requested from the server.
+ * @param {Boolean=} external Optional. True if the recipient is external, false otherwise. If not set, this information is requested from the server.
  * @constructor
  */
 tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, external) {
@@ -183,7 +183,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.isSecure = function() {
 	if (!this.isExternal()) {
 		return true;
 	}
-	if (this._editableContact.presharedPassword() != null) {
+	if (this._editableContact.presharedPassword() != null && this._editableContact.presharedPassword().trim() != "") {
 		return true;
 	}
 	for (var i = 0; i < this._editableContact.phoneNumbers().length; i++) {

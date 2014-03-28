@@ -106,6 +106,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	invalidRecipients_msg: 'Please correct the invalid email addresses\n in the recipients fields.',
 	noSubject_msg: 'Please provide a subject for your email.',
 	noPasswordChannels_msg: 'Please provide a mobile phone number or an agreed password for all external recipients.',
+    noPreSharedPassword_msg: 'Please provide an agreed password for all external recipients.',
 	invalidPasswordChannels_msg: 'Please check the password channels again for invalid phone numbers.',
 	maxSizeExceeded_msg: "The maximum message size of $ to unsecure external recipients is exceeded.",
 	send_action: "Send",
@@ -130,7 +131,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	presharedPassword_label: "Agreed password",
 	mobileNumberNotValid_msg: "Invalid format.",
 	fromAddressBook_label: "From address book: ",
-	presharedPasswordNotStrongEnough_msg: "One or more agreed passwords are not secure enough. Send the email anyway?",
+	presharedPasswordNotStrongEnough_msg: "At least one of the entered passwords is not secure enough. Send the email anyway?",
     showAttachment_label: "Display attachment",
     saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser. Please use Mozilla Firefox or Google Chrome otherwise.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
@@ -321,6 +322,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	logout_alt: "Logout",
 	settings_label: "Settings",
 	settings_alt: "Settings",
+    register_label: "Register",
+    register_alt: "Register",
 
 	// not supported
 	for_label: "for",
@@ -402,7 +405,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	termsAcceptedNeutral_msg: "Please accept the terms & conditions.",
 
 	// feedback
-	screenshot_msg: "A screenshot will be sent along with your message to us!",
+    screenshot_label: "Attach screenshot",
+    feedbackInfo_msg: "The message is sent encrypted to support@tutao.de together with the browser identifier.",
 	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
 	
 	// outlook
@@ -482,6 +486,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	invalidRecipients_msg: 'Bitte korrigieren Sie die ungültigen E-Mail-Adressen der Empfänger.',
 	noSubject_msg: 'Bitte geben Sie einen Betreff für die E-Mail an.',
 	noPasswordChannels_msg: 'Bitte geben Sie eine Mobilfunknummer oder ein vereinbartes Passwort für jeden externen Empfänger an.',
+    noPreSharedPassword_msg: 'Bitte geben Sie ein vereinbartes Passwort für jeden externen Empfänger an.',
 	invalidPasswordChannels_msg: 'Bitte überprüfen Sie die Mobilfunknummern auf Gültigkeit.',
 	maxSizeExceeded_msg: "Die maximale Größe von $ für unsichere Nachrichten an externe Empfänger wurde überschritten.",
 	send_action: "Absenden",
@@ -506,7 +511,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	presharedPassword_label: "Vereinbartes Passwort",
 	mobileNumberNotValid_msg: "Format ist nicht gültig.",
 	fromAddressBook_label: "Aus Adressbuch: ",
-	presharedPasswordNotStrongEnough_msg: "Ein oder mehrere vereinbarte Passwörter sind nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
+	presharedPasswordNotStrongEnough_msg: "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
     showAttachment_label: "Anhang anzeigen",
     saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
@@ -698,6 +703,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	logout_alt: "Abmelden",
 	settings_label: "Einstellungen",
 	settings_alt: "Einstellungen",
+    register_label: "Registrieren",
+    register_alt: "Registrieren",
 
 	// not supported
 	for_label: "für",
@@ -779,7 +786,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
 
 	// feedback
-	screenshot_msg: "Ein Screenshot wird mit der Nachricht an uns versendet!",
+	screenshot_label: "Screenshot mitsenden",
+    feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
 	sendFeedbackFailed_msg: "Leider konnte das Feedback nicht gesendet werden. Bitte versuchen Sie es später erneut.",
 	
 	// outlook

@@ -45,13 +45,18 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 	var self = this;
 	var mails = [];
 	this._setConversation([mail]);
+    mail.loadConversationEntry(function(conversationEntry, exception) {
+        if (exception) {
+            console.log("conversation could not be loaded");
+        }
+    });
+    /* We currently don't display the whole conversation but will do this later
 	// we just load the conversation because we need it later (to get it synchronous)
 	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
 		if (exception) {
 			console.log("conversation could not be loaded");
 		}
 	});
-	/* We currently don't display the whole conversation but will do this later
 	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
 		if (exception) {
 			console.log("conversation could not be loaded");
@@ -297,10 +302,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 		// the conversation is already loaded, so previousMessageId is set synchronously
 		var previousMessageId = null;
 		previousMail.mail.loadConversationEntry(function(ce, ex) {
-			if (!ex) {
-				previousMessageId = ce.getMessageId();
-			}
-		});
+			if (ex) {
+                console.log("could not load conversation entry", ex);
+			} else {
+                previousMessageId = ce.getMessageId();
+            }
+        });
 		// the conversation key may be null if the mail was e.g. received from an external via smtp
 		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
 		this.getComposingMail().composerBody(bodyText);
