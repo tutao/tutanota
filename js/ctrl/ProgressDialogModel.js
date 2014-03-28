@@ -32,10 +32,9 @@ tutao.tutanota.ctrl.ProgressDialogModel.prototype.close = function() {
 
 /**
  * Updates the progress in the dialog.
- * @param {number} workDone The amount of work that is completed.
- * @param {number} totalWork The total amount of work that must be completed.
+ * @param {number} progress Progress between 0 and 100.
  */
-tutao.tutanota.ctrl.ProgressDialogModel.prototype.updateProgress = function(workDone, totalWork) {
-    this.progress((workDone/totalWork)*100);
+tutao.tutanota.ctrl.ProgressDialogModel.prototype.updateProgress = function(progress) {
+    this.progress(progress);
 };
 
