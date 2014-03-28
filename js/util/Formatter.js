@@ -75,15 +75,7 @@ tutao.tutanota.util.Formatter.formatFullDateTime = function(date) {
 tutao.tutanota.util.Formatter.formatSmtpDateTime = function(date) {
     var dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    // the timezone offset is inverted, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
-    var offset = (-1 * date.getTimezoneOffset() / 60) + "00";
-    if (offset.length < 4) {
-        offset = "0" + offset;
-    }
-    if (!tutao.util.StringUtils.startsWith(offset, "-")) {
-        offset = "+" + offset;
-    }
-    return dayNames[date.getDay()] + ", " + date.getDate() + " " + monthNames[date.getMonth()] + " " + (1900 + date.getYear()) + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2) + ":" + tutao.util.StringUtils.pad(date.getSeconds(), 2) + " " + offset;
+    return dayNames[date.getUTCDay()] + ", " + date.getUTCDate() + " " + monthNames[date.getUTCMonth()] + " " + date.getUTCFullYear() + " " + tutao.util.StringUtils.pad(date.getUTCHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getUTCMinutes(), 2) + ":" + tutao.util.StringUtils.pad(date.getUTCSeconds(), 2) + " +0000";
 };
 
 /**
