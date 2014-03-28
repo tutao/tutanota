@@ -261,7 +261,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
         var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
         var tmpFile = new tutao.entity.tutanota.File();
         tmpFile.setName(displayedMail.mail.getSubject() + ".eml");
-        tmpFile.setMimeType("text/plain");
+        tmpFile.setMimeType("message/rfc822");
         tmpFile.setSize(String(buffer.byteLength));
         tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile), function(error) {
             if (error) {
