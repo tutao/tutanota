@@ -50,3 +50,14 @@ EncodingConverterTest.prototype.testTimestampToHexGeneratedId = function() {
 	assertEquals("4fc6fbb10000000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp));
 	assertEquals("4fc6fbb10000000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp + ""));
 };
+
+EncodingConverterTest.prototype.testAsciiToArrayBuffer = function() {
+    // TODO enable, after we do not use chrome 17 for testing anymore (has wrong equals implementation on array <-> arraybuffer)
+    // assertEquals([97, 98, 99, 35], new Uint8Array(tutao.util.EncodingConverter.asciiToArrayBuffer("abc#")));
+    // ATTENTION, unicode chars are not converted correctly, this function works only for ASCII chars
+    // TODO enable after jstestdriver allows utf-8 assertEquals([172], new Uint8Array(tutao.util.EncodingConverter.asciiToArrayBuffer("€")));
+};
+
+EncodingConverterTest.prototype.testArrayBufferToBase64 = function() {
+    assertEquals("YWJjIw==", tutao.util.EncodingConverter.arrayBufferToBase64(tutao.util.EncodingConverter.asciiToArrayBuffer("abc#")));
+};
