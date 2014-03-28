@@ -218,3 +218,36 @@ tutao.util.EncodingConverter.bytesToBase64 = function(byteArray) {
 
 	return base64Array.join('');
 };
+
+/**
+ * Converts an ASCII string to an ArrayBuffer string. Do not use this
+ * for UTF-8/UTF-16-Strings as this conversion uses only one byte per char!
+ *
+ * @param {string} string The ASCII-String to convert.
+ * @return {ArrayBuffer} The ArrayBuffer.
+ */
+tutao.util.EncodingConverter.asciiToArrayBuffer = function(string) {
+    var buffer = new ArrayBuffer(string.length);
+    var bytes = new Uint8Array( buffer );
+    for(var i = 0; i < string.length; i++) {
+        bytes[i] = string.charCodeAt(i);
+    }
+    return buffer;
+};
+
+/**
+ * Converts an ArrayBuffer to a Base64 encoded string.
+ * Works only on IE > 10 (uses btoa).
+ *
+ * @param {ArrayBuffer} string The ASCII-String to convert.
+ * @return {string} The Base64 encoded string.
+ */
+tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {
+    var binary = '';
+    var bytes = new Uint8Array(buffer);
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return btoa(binary);
+};
