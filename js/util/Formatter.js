@@ -68,6 +68,25 @@ tutao.tutanota.util.Formatter.formatFullDateTime = function(date) {
 };
 
 /**
+ * Provides the date as a string.
+ * @param {Date} date The date to format.
+ * @return {string} the formatted date in the form 'Day of week, [d]d Month yyyy hh:mm:ss +zone', e.g. Thu, 20 Mar 2014 11:58:26 +0100.
+ */
+tutao.tutanota.util.Formatter.formatSmtpDateTime = function(date) {
+    var dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    // the timezone offset is inverted, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
+    var offset = (-1 * date.getTimezoneOffset() / 60) + "00";
+    if (offset.length < 4) {
+        offset = "0" + offset;
+    }
+    if (!tutao.util.StringUtils.startsWith(offset, "-")) {
+        offset = "+" + offset;
+    }
+    return dayNames[date.getDay()] + ", " + date.getDate() + " " + monthNames[date.getMonth()] + " " + (1900 + date.getYear()) + " " + tutao.util.StringUtils.pad(date.getHours(), 2) + ":" + tutao.util.StringUtils.pad(date.getMinutes(), 2) + ":" + tutao.util.StringUtils.pad(date.getSeconds(), 2) + " " + offset;
+};
+
+/**
  * Provides the date as a string with the year skipped if it is the current year.
  * TODO (timely) switch to google Date tools for all date formattings, esp. for different locales?
  *
