@@ -223,6 +223,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
                 }
             }, 500);
         });
+    } else{
+        tutao.locator.mailView.showPasswordChannelColumn();
     }
 };
 

@@ -274,7 +274,9 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                 callback(null, exception);
                 return;
             }
-            var mailAddressId = tutao.rest.EntityRestInterface.stringToCustomId(recipientInfo.getMailAddress());
+
+            var cleanedMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(recipientInfo.getMailAddress());
+            var mailAddressId = tutao.rest.EntityRestInterface.stringToCustomId(cleanedMailAddress);
             tutao.entity.sys.ExternalUserReference.load([groupRoot.getExternalUserReferences(), mailAddressId], function(externalUserReference, exception) {
                 if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
                     // it does not exist, so create it
@@ -302,7 +304,7 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                                 .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey))
                                 .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
                             var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
-                                .setMailAddress(recipientInfo.getMailAddress())
+                                .setMailAddress(cleanedMailAddress)
                                 .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
                                 .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName()))
                                 .setGroupInfoListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalGroupInfoListKey, groupInfoSessionKey))
