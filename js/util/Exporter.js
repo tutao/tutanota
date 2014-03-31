@@ -22,8 +22,9 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
         if (mail.getBccRecipients().length > 0) {
             emlArray.push(tutao.tutanota.util.Exporter._formatRecipient("BCC: ", mail.getBccRecipients()));
         }
+        var subject = (mail.getSubject().trim() == "") ? "" : "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(mail.getSubject())) + "?=";
         emlArray = emlArray.concat([
-            "Subject: =?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(mail.getSubject())) + "?=",
+            "Subject: " + subject,
             "Date: " + tutao.tutanota.util.Formatter.formatSmtpDateTime(mail.getSentDate()),
             // TODO (later) load conversation entries and write message id and references
             //"Message-ID: " + // <006e01cf442b$52864f10$f792ed30$@tutao.de>
