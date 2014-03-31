@@ -47,8 +47,11 @@ tutao.entity.tutanota.ContactWrapper.prototype.getContact = function() {
  * @return {boolean} True if the mailAddress matches, false otherwise.
  */
 tutao.entity.tutanota.ContactWrapper.prototype.hasMailAddress = function(mailAddress) {
+
+    var cleanedMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(mailAddress);
 	for (var i = 0; i < this._contact.getMailAddresses().length; i++) {
-		if (this._contact.getMailAddresses()[i].getAddress().toLowerCase() === mailAddress) {
+        var cleanedContactMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(this._contact.getMailAddresses()[i].getAddress());
+		if (cleanedContactMailAddress === cleanedMailAddress) {
 			return true;
 		}
 	}
