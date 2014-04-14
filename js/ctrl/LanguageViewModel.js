@@ -450,7 +450,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Please enter a valid german mobile phone number or a strong enough Password for the following recipient: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed."
+	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed.",
+	messageNotStored_msg: "A confidential email received with Tutanota could not be stored on your mail server. Would you like to send the log files for analysis to Tutao GmbH?",
+	errorNotification_label: "Error notification"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -833,6 +835,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Bitte geben Sie eine gültige deutsche Mobilfunknummer oder ein ausreichend starkes Passwort für den folgenden Empfänger an: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig."
+	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig.",
+	messageNotStored_msg: "Eine mit Tutanota vertraulich empfangene E-Mail konnte nicht auf Ihrem Mail-Server abgespeichert werden. Wollen Sie die Log-Dateien zur Analyse an die Tutao GmbH senden?",
+	errorNotification_label: "Fehlerbenachrichtigung"
 };
 
