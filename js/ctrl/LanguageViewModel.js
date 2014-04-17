@@ -450,7 +450,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Please enter a valid german mobile phone number or a strong enough Password for the following recipient: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed.",
+    passwordChannelColumnInfoInternal_msg: "This message is encrypted and sent confidentially via Tutanota. All recipients use Tutanota so you do not need to exchange any passwords.",
+    passwordChannelColumnInfoExternal_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password for each external (not signed up for Tutanota) recipient.",
+    passwordChannelColumnInfoMixed_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password only for the external (not signed up for Tutanota) recipients listed below.",
 	messageNotStored_msg: "A confidential email received with Tutanota could not be stored on your mail server. Would you like to send the log files for analysis to Tutao GmbH?",
 	errorNotification_label: "Error notification"
 };
@@ -835,7 +837,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Bitte geben Sie eine gültige deutsche Mobilfunknummer oder ein ausreichend starkes Passwort für den folgenden Empfänger an: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig.",
+	passwordChannelColumnInfoInternal_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Da alle Empfänger bei Tutanota registriert sind, ist ein Passwortaustausch nicht notwendig.",
+    passwordChannelColumnInfoExternal_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie für jeden externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
+    passwordChannelColumnInfoMixed_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie nur für die unten aufgelisteten externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
 	messageNotStored_msg: "Eine mit Tutanota vertraulich empfangene E-Mail konnte nicht auf Ihrem Mail-Server abgespeichert werden. Wollen Sie die Log-Dateien zur Analyse an die Tutao GmbH senden?",
 	errorNotification_label: "Fehlerbenachrichtigung"
 };
