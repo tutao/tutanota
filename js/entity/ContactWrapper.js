@@ -68,6 +68,14 @@ tutao.entity.tutanota.ContactWrapper.prototype.getFullName = function() {
 };
 
 /**
+ * Provides the name of the contact by which it is sorted in the contact list.
+ * @return {string} The sort name of the contact.
+ */
+tutao.entity.tutanota.ContactWrapper.prototype.getSortName = function() {
+    return (this._contact.getLastName().trim().toLowerCase() != "") ? (this._contact.getLastName().trim().toLowerCase() + ", " + this._contact.getFirstName().trim().toLowerCase()) : this._contact.getFirstName().trim().toLowerCase();
+};
+
+/**
  * Provides the age of the contact.
  * @return {string=} The age or null if no birthday exists.
  */
