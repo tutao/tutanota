@@ -197,5 +197,5 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getDeleteButtonText = funct
  * @return {Number} The strength of the password.
  */
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStrength = function() {
-    return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password());
+    return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password(), []);
 };
