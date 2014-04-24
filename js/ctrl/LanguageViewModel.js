@@ -454,7 +454,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     passwordChannelColumnInfoExternal_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password for each external (not signed up for Tutanota) recipient.",
     passwordChannelColumnInfoMixed_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password only for the external (not signed up for Tutanota) recipients listed below.",
 	messageNotStored_msg: "A confidential email received with Tutanota could not be stored on your mail server. Would you like to send the log files for analysis to Tutao GmbH?",
-	errorNotification_label: "Error notification"
+	errorNotification_label: "Error notification",
+    notificationMailSignature_label:  "Signature",
+    notificationMailSignatureNone_msg:  "<none>",
+    notificationMailSignature_msg: "This signature will be used for notification emails to external recipients.",
+    notificationMailSignatureSubject_msg: "Confidential email from $1",
+    notificationMailSignatureMessage_msg: "<p>Hello,</p><p>I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/info'>Tutanota</a>, the reviewed and certified service for encrypted emails from Germany. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p><a href='$1'>Show email</a></p><p>The link remains valid until I am sending you a new confidential email.</p><p>Kind regards,<br/>$2</p>",
+    signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -841,6 +847,12 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     passwordChannelColumnInfoExternal_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie für jeden externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
     passwordChannelColumnInfoMixed_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie nur für die unten aufgelisteten externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
 	messageNotStored_msg: "Eine mit Tutanota vertraulich empfangene E-Mail konnte nicht auf Ihrem Mail-Server abgespeichert werden. Wollen Sie die Log-Dateien zur Analyse an die Tutao GmbH senden?",
-	errorNotification_label: "Fehlerbenachrichtigung"
+	errorNotification_label: "Fehlerbenachrichtigung",
+    notificationMailSignature_label:  "Signatur",
+    notificationMailSignatureNone_msg:  "<keine>",
+    notificationMailSignature_msg: "Diese Signatur wird für Benachrichtigungs-E-Mails an externe Empfänger verwendet.",
+    notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
+    notificationMailSignatureMessage_msg: "<p>Guten Tag,</p><p>ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service f&uuml;r verschl&uuml;sselte E-Mails aus Deutschland. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p><a href='$1'>Nachricht anzeigen</a></p><p>Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p>Mit freundlichen Gr&uuml;&szlig;en,<br/>$2</p>",
+    signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?"
 };
 
