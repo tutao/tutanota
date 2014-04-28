@@ -426,7 +426,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	savePassword_label: "Remember",
 	savePassword_msg: "Store the password and do not ask me again for it.",
 	confidentialDefault_label: "Confidential default",
-	confidentialDefault_msg: "Send new messages confidentially by default. You can change this setting anytime in the settings.",
+	confidentialDefault_msg: "Send new messages confidentially by default.",
 	noConnection_msg: "You are offline: Could not connect to Tutanota.",
 	loginAction_msg: "You will only receive secure Tutanota emails after logging in.",
 	presharedPasswordAndStrength_msg: "Password strength:",
