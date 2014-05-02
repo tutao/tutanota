@@ -124,7 +124,7 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.removePresharedPassword =
 tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordStrength = function(recipientInfo) {
 	var password = recipientInfo.getEditableContact().presharedPassword();
 	if (password) {		
-		return tutao.tutanota.util.PasswordUtils.getPasswordStrength(password, []);
+		return tutao.tutanota.util.PasswordUtils.getPasswordStrength(password, [tutao.locator.userController.getMailAddress(), tutao.locator.userController.getUserGroupInfo().getName(), recipientInfo.getMailAddress(), recipientInfo.getName()]);
 	} else {
 		return 0;
 	}
