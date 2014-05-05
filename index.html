@@ -1187,8 +1187,8 @@ function touchOrClick(e) {
 								</div>
 							</form>
 						</div>
-						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE)">
-							<label data-bind="lang: 'legacyNoReply_msg'"></label>
+						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI)">
+							<label data-bind="lang: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) ? 'legacyNoReply_msg' : 'legacyDownloadNotPossible_msg'"></label>
 							<ul>
 								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
 								<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>

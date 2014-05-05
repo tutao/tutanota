@@ -88,6 +88,11 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 	});
 	var loadedContacts = [];
 	self._loadContacts(currentResult, loadedContacts, 0, function() {
+        // sort contacts by name
+        loadedContacts.sort(function(a, b) {
+            return (a.getSortName() > b.getSortName());
+        });
+
 		// unregister the listeners
 		for (var i = 0; i < self.contacts().length; i++) {
 			self.contacts()[i]().getContact().unregisterObserver(self._contactChanged);
@@ -120,7 +125,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(de
 /**
  * Loads the contacts with the given ids in the given order. Uses recoursion to load all contacts.
  * @param {Array.<Array.<String>>} contactIds The ids of the contacts to load.
- * @param {Array.<tutao.entity.tutanota.Contact>} loadedContacts An array that contains all contacts that are loaded up to now.
+ * @param {Array.<tutao.entity.tutanota.ContactWrapper>} loadedContacts An array that contains all contacts that are loaded up to now.
  * @param {number} nextContact The index of the contact id in contactIds that shall be loaded next.
  * @param {function} callback Called when finished.
  */

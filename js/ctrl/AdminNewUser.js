@@ -63,7 +63,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStatus = function () {
 };
 
 tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStrength = function () {
-    return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password())
+    return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password(), [])
 };
 
 tutao.tutanota.ctrl.AdminNewUser.prototype.isValidMailAddress = function () {

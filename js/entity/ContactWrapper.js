@@ -47,8 +47,11 @@ tutao.entity.tutanota.ContactWrapper.prototype.getContact = function() {
  * @return {boolean} True if the mailAddress matches, false otherwise.
  */
 tutao.entity.tutanota.ContactWrapper.prototype.hasMailAddress = function(mailAddress) {
+
+    var cleanedMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(mailAddress);
 	for (var i = 0; i < this._contact.getMailAddresses().length; i++) {
-		if (this._contact.getMailAddresses()[i].getAddress().toLowerCase() === mailAddress) {
+        var cleanedContactMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(this._contact.getMailAddresses()[i].getAddress());
+		if (cleanedContactMailAddress === cleanedMailAddress) {
 			return true;
 		}
 	}
@@ -62,6 +65,14 @@ tutao.entity.tutanota.ContactWrapper.prototype.hasMailAddress = function(mailAdd
 tutao.entity.tutanota.ContactWrapper.prototype.getFullName = function() {
 	var fullName = this._contact.getFirstName() + " " + this._contact.getLastName();
 	return fullName.trim(); // cut off the whitespace if first or last name is not existing
+};
+
+/**
+ * Provides the name of the contact by which it is sorted in the contact list.
+ * @return {string} The sort name of the contact.
+ */
+tutao.entity.tutanota.ContactWrapper.prototype.getSortName = function() {
+    return (this._contact.getLastName().trim().toLowerCase() != "") ? (this._contact.getLastName().trim().toLowerCase() + ", " + this._contact.getFirstName().trim().toLowerCase()) : this._contact.getFirstName().trim().toLowerCase();
 };
 
 /**

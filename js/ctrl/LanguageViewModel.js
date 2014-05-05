@@ -120,7 +120,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	subject_label: "Subject",
 	showQuotation_action: "+ Quotes",
 	hideQuotation_action: "- Quotes",
-	legacyNoReply_msg: "This Internet Explorer is an old version and does not support replying to your received email. Please update or use one of the following browsers:",
+	legacyNoReply_msg: "This Internet Explorer is an old version and does not support replying to or exporting of emails. Please update or use one of the following browsers:",
+    legacyDownloadNotPossible_msg: "Unfortunately, Safari does not support exporting emails or saving attachments to disk. Still, some file types can be displayed in the browser. Please use one of the following browsers otherwise:",
 	clickToSave_label: "Click to save",
 	confidential_action: "Confidential",
 	nonConfidential_action: "Not confidential",
@@ -425,7 +426,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	savePassword_label: "Remember",
 	savePassword_msg: "Store the password and do not ask me again for it.",
 	confidentialDefault_label: "Confidential default",
-	confidentialDefault_msg: "Send new messages confidentially by default. You can change this setting anytime in the settings.",
+	confidentialDefault_msg: "Send new messages confidentially by default.",
 	noConnection_msg: "You are offline: Could not connect to Tutanota.",
 	loginAction_msg: "You will only receive secure Tutanota emails after logging in.",
 	presharedPasswordAndStrength_msg: "Password strength:",
@@ -449,7 +450,17 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Please enter a valid german mobile phone number or a strong enough Password for the following recipient: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "This message is sent confidentially via Tutanota. At least one german mobile number or an agreed password per external recipient is needed."
+    passwordChannelColumnInfoInternal_msg: "This message is encrypted and sent confidentially via Tutanota. All recipients use Tutanota so you do not need to exchange any passwords.",
+    passwordChannelColumnInfoExternal_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password for each external (not signed up for Tutanota) recipient.",
+    passwordChannelColumnInfoMixed_msg: "This message is encrypted and sent confidentially via Tutanota. Please enter a German mobile number or an agreed password only for the external (not signed up for Tutanota) recipients listed below.",
+	messageNotStored_msg: "A confidential email received with Tutanota could not be stored on your mail server. Would you like to send the log files for analysis to Tutao GmbH?",
+	errorNotification_label: "Error notification",
+    notificationMailSignature_label:  "Signature",
+    notificationMailSignatureNone_msg:  "<none>",
+    notificationMailSignature_msg: "This signature will be used for notification emails to external recipients.",
+    notificationMailSignatureSubject_msg: "Confidential email from $1",
+    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/info'>Tutanota</a>, the reviewed and certified service for encrypted emails from Germany. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
+    signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -501,7 +512,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	subject_label: "Betreff",
 	showQuotation_action: "+ Details",
 	hideQuotation_action: "- Details",
-	legacyNoReply_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf Ihre empfangene E-Mail. Bitte aktualisieren Sie den Browser oder verwenden einen der folgenden:",
+	legacyNoReply_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf oder das Exportieren von E-Mails. Bitte aktualisieren Sie den Browser oder verwenden einen der folgenden:",
+    legacyDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Exportieren von E-Mails oder das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls einen der folgenden Browser:",
 	clickToSave_label: "Klicken zum speichern",
 	confidential_action: "Vertraulich",
 	nonConfidential_action: "Nicht vertraulich",
@@ -831,6 +843,16 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	mobileNumberValidFormat_msg: "Format ok.",
 	invalidPasswordChannel_msg: "Bitte geben Sie eine gültige deutsche Mobilfunknummer oder ein ausreichend starkes Passwort für den folgenden Empfänger an: ",
 	passwortChannelColumnHeading_label: "Tutanota",
-	passwordChannelColumnInfo_msg: "Diese Nachricht wird vertraulich mit Tutanota versendet. Für jeden externen Empfänger ist mindestens eine deutsche Mobilfunknummer oder ein vereinbartes Passwort notwendig."
+	passwordChannelColumnInfoInternal_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Da alle Empfänger bei Tutanota registriert sind, ist ein Passwortaustausch nicht notwendig.",
+    passwordChannelColumnInfoExternal_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie für jeden externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
+    passwordChannelColumnInfoMixed_msg: "Diese Nachricht wird mit Tutanota verschlüsselt und vertraulich versendet. Bitte geben Sie nur für die unten aufgelisteten externen (nicht bei Tutanota registrierten) Empfänger eine deutsche Mobilfunknummer oder ein vereinbartes Passwort an.",
+	messageNotStored_msg: "Eine mit Tutanota vertraulich empfangene E-Mail konnte nicht auf Ihrem Mail-Server abgespeichert werden. Wollen Sie die Log-Dateien zur Analyse an die Tutao GmbH senden?",
+	errorNotification_label: "Fehlerbenachrichtigung",
+    notificationMailSignature_label:  "Signatur",
+    notificationMailSignatureNone_msg:  "<keine>",
+    notificationMailSignature_msg: "Diese Signatur wird für Benachrichtigungs-E-Mails an externe Empfänger verwendet.",
+    notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
+    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service f&uuml;r verschl&uuml;sselte E-Mails aus Deutschland. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
+    signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?"
 };
 

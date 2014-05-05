@@ -209,7 +209,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPassword2Status = functio
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPasswordStrength = function() {
-	return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password1());
+	return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password1(), [this.name(), this.mailAddressPrefix(), this.companyName(), this.domain()]);
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsStatus = function() {
