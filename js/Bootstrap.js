@@ -197,7 +197,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE) {
         var viewport = document.querySelector("meta[name=viewport]");
-        viewport.setAttribute('content', 'initial-scale=0.85, maximum-scale=0.85, user-scalable=no');
+        //viewport.setAttribute('content', 'initial-scale=0.85, maximum-scale=0.85, user-scalable=no');
     }
 
     if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
