@@ -49,7 +49,7 @@ tutao.db.DummyDb.prototype.setIndexed = function(typeId, elementId, callback) {
  */
 tutao.db.DummyDb.prototype.getLastIndexed = function(typeId, callback) {
 	if (callback) {
-		callback(tutao.db.DbInterface.STATUS_SUCCESS, null); // null means none was indexed
+		callback(tutao.db.DbInterface.STATUS_SUCCESS, tutao.rest.EntityRestInterface.GENERATED_MAX_ID); // simulate that all elements were indexed
 	}
 };
 

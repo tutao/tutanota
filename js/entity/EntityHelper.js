@@ -200,6 +200,7 @@ tutao.entity.EntityHelper.prototype.setSessionKey = function(sessionKey) {
  * @param {function(?Object, tutao.rest.EntityRestException=)} callback Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
  */
 tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permissions, callback) {
+    var self = this;
 	if (permissions.length == 0) {
 		callback(null, new tutao.rest.EntityRestException(new Error("no permission found")));
 		return;
@@ -231,6 +232,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		try {
 			var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
 			sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
+            self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey);
 		} catch (e) {
 			callback(null, new tutao.rest.EntityRestException(e));
 			return;
