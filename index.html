@@ -562,7 +562,12 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
-						<div id="emptyMailList" class="infoMessage" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)"></div>
+						<div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)  && !loading()"></div>
+                        <div class="infoMessage emptyMailList" data-bind="visible: (mails().length == 0) && loading()">
+                            <div class="spinner" class="defaultMargin">
+                                <img src="graphics/busy.gif" />
+                            </div>
+                        </div>
 					</section>
 				</div>
 			</div>

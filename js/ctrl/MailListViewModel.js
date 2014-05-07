@@ -68,6 +68,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
+    this.loading = ko.observable(false);
 };
 
 /**
@@ -80,6 +81,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 	var self = this;
+    this.loading(true);
 
 //	currently not needed any more because deletion is done in mail view
 //	tutao.tutanota.gui.registerMailLongPress(function(domElement, posX, posY) {
@@ -94,7 +96,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 //			}
 //		}
 //	});
-// loading the whole list to avoid single loads by indexer
 	tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(mails, exception) {
 		// execute the tag filters, then update the mail list, then register the event tracker for mails
 		// it is important to update the filter results in the tag id order because the mails may only appear in the first list that fits
@@ -102,6 +103,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 			self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID, function() {
 				self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID, function() {
 					self._updateMailList(function() {
+                        self.loading(false);
 						if (tutao.locator.userController.isExternalUserLoggedIn()) {
 							// no notifications for external users. instead add all loaded mails
 							self.updateOnNewMails(mails, function() {
@@ -126,6 +128,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 						} else {
 							// get the highest indexed mail id for the event tracker
 							tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
+                                // if no database is available, the last indexed mail is max id. in that case we need to load all mails.
+                                if (lastIndexedId == tutao.rest.EntityRestInterface.GENERATED_MAX_ID) {
+                                    lastIndexedId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
+                                }
 								var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
 								eventTracker.addObserver(self.updateOnNewMails);
 								eventTracker.observeList(lastIndexedId);
