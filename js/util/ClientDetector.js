@@ -10,6 +10,10 @@ tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX = "Firefox";
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE = "Internet Explorer";
 /** Safari browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI = "Safari";
+/** Android browser */
+tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID = "Android";
+/** Opera browser */
+tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA = "Opera";
 /** other browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OTHER = "Other";
 
@@ -32,7 +36,7 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID = "Android";
 /** Windows phone */
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE = "Windows Phone";
 /** other device */
-tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER = "Other";
+tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP = "Desktop";
 
 
 
@@ -191,25 +195,30 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	var minVersionNeeded = {};
 	minVersionNeeded[info.BROWSER_TYPE_CHROME] = 30; // we need at least version 30 as swiping is used for tab switching in earlier releases (see https://code.google.com/p/chromium/issues/detail?id=117657)
 	minVersionNeeded[info.BROWSER_TYPE_FIREFOX] = 16;
-	minVersionNeeded[info.BROWSER_TYPE_IE] = 8;
-	minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6.1;
+	minVersionNeeded[info.BROWSER_TYPE_IE] = 10;
+    minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6.1;
+    minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4.4;
 
-    if (this.isMobileDevice()) {
-        info._supported = info.SUPPORTED_TYPE_SUPPORTED;
+    if (info._browser == info.BROWSER_TYPE_OPERA) {
+        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
-	} else if (info._browser == info.BROWSER_TYPE_IE && info._browserVersion < 10) {
-		if (window.swfobject && swfobject.getFlashPlayerVersion().major >= 8) { // since version 8 file download is supported
-			info._supported = info.SUPPORTED_TYPE_LEGACY_IE;
-		} else {
-			info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
-		}
-    } else if (info._browser == info.BROWSER_TYPE_SAFARI) {
-        info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
     } else {
-		info._supported = info.SUPPORTED_TYPE_SUPPORTED;
+        info._supported = info.SUPPORTED_TYPE_SUPPORTED;
+    }
+	if (info._device == info.DEVICE_TYPE_DESKTOP &&
+            info._browser == info.BROWSER_TYPE_IE &&
+            info._browserVersion >= 8 && // since version 8 file download is supported
+            info._browserVersion < 10 &&
+            window.swfobject &&
+            swfobject.getFlashPlayerVersion().major >= 8) {
+        info._supported = info.SUPPORTED_TYPE_LEGACY_IE;
+    } else if (info._device == info.DEVICE_TYPE_DESKTOP &&
+            info._browser == info.BROWSER_TYPE_SAFARI &&
+            info._browserVersion >= 6.1) {
+        info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
 	}
 };
 
@@ -219,16 +228,12 @@ tutao.tutanota.util.ClientDetector.isSupported = function() {
 
 
 tutao.tutanota.util.ClientDetector.isMobileDevice = function() {
-    if (tutao.tutanota.util.ClientDetector._browser == null) {
+    if (tutao.tutanota.util.ClientDetector._device == null) {
         tutao.tutanota.util.ClientDetector._setClientInfo(navigator.userAgent);
     }
-
     var info = tutao.tutanota.util.ClientDetector;
-    if (info._device == info.DEVICE_TYPE_ANDROID || info._device == info.DEVICE_TYPE_IPAD || info._device == info.DEVICE_TYPE_IPHONE || info._device == info.DEVICE_TYPE_WINDOWS_PHONE) {
-        return true;
-    }
-    return false;
-}
+    return (info._device != info.DEVICE_TYPE_DESKTOP);
+};
 
 
 
@@ -238,7 +243,7 @@ tutao.tutanota.util.ClientDetector.isMobileDevice = function() {
  */
 tutao.tutanota.util.ClientDetector._setDeviceInfo = function(userAgent) {
 	var info = tutao.tutanota.util.ClientDetector;
-	info._device = info.DEVICE_TYPE_OTHER;
+	info._device = info.DEVICE_TYPE_DESKTOP;
 	info._phone = false; // we assume by default devices do not support phones
 	if (userAgent.match(/iPad.*AppleWebKit/) != null) {
 		info._device = info.DEVICE_TYPE_IPAD;
@@ -285,19 +290,33 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	info._browser = info.BROWSER_TYPE_OTHER;
 	info._browserVersion = 0;
 
+    var operaIndex = userAgent.indexOf("Opera");
 	var firefoxIndex = userAgent.indexOf("Firefox/");
 	var chromeIndex = userAgent.indexOf("Chrome/");
 	var safariIndex = userAgent.indexOf("Safari/");
 	var ieIndex = userAgent.indexOf("MSIE");
 	var ie11Index = userAgent.indexOf("Trident");
+    var androidIndex = userAgent.indexOf("Android");
 	var versionIndex = -1;
-	if ((firefoxIndex != -1) && (userAgent.indexOf("Opera") == -1)) {
+    if (operaIndex != -1) {
+        info._browser = info.BROWSER_TYPE_OPERA;
+        versionIndex = userAgent.indexOf("Version/");
+        if (versionIndex != -1) {
+            versionIndex += 8;
+        } else {
+            versionIndex = operaIndex + 6;
+        }
+    } else if ((firefoxIndex != -1) && (operaIndex == -1)) {
 		// Opera may pretend to be Firefox, so it is skipped
 		info._browser = info.BROWSER_TYPE_FIREFOX;
 		versionIndex = firefoxIndex + 8;
 	} else if (chromeIndex != -1) {
 		info._browser = info.BROWSER_TYPE_CHROME;
 		versionIndex = chromeIndex + 7;
+    } else if (androidIndex != -1) {
+        // keep this check after Chrome, Firefox and Opera, because the Android browser does not identify itself in any other way
+        info._browser = info.BROWSER_TYPE_ANDROID;
+        versionIndex = androidIndex + 8;
 	} else if (safariIndex != -1 && chromeIndex == -1) {
 		// Chrome pretends to be Safari, so it is skipped
 		info._browser = info.BROWSER_TYPE_SAFARI;
@@ -306,7 +325,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		if (versionIndex != -1) {
 			versionIndex += 8;
 		}
-	} else if (userAgent.match(/iPad.*AppleWebKit/) != null || userAgent.match(/iPhone.*AppleWebKit/)) {
+	} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
 		// ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
 		alert("alert");
 		info._browser = info.BROWSER_TYPE_SAFARI;

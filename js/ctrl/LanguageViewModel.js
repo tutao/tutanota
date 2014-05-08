@@ -329,9 +329,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// not supported
 	for_label: "for",
-	oldBrowser_msg: "Oh! We are sorry. Unfortunately, you are using an outdated browser with severe security breaches. Please upgrade to the latest version of one of the following browsers:",
+	oldBrowser_msg: "Oh! We are sorry. Unfortunately, you are using an outdated browser. Please upgrade to the latest version of one of the following browsers:",
 	unsupportedBrowser_msg: "Oh! We are sorry. Unfortunately, you are using an unsupported browser. Please use one of the following browsers:",
-    unsupportedMobileBrowswer_msg: "Oh! We are sorry. Unfortunately, mobile devices are not supported yet. We are working on it. For now, please use one of the following desktop browsers:",
 	browserNoKeygen_msg: "Dear Tutanota prospect, during the registration process secure keys are generated. Unfortunately the key generation needs more performance than your currently used browser or device may provide. Please use one of the following browsers on a desktop or laptop computer:",
 	thanks_msg: "Thank you for your cooperation.\nYour team from Tutanota",
 	claim_label: "Tutanota - mail. done. right.",
@@ -722,9 +721,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
 	// not supported
 	for_label: "für",
-	oldBrowser_msg: "Oh, Das tut uns leid. Sie verwenden eine veraltete Version Ihres Browsers mit erheblichen Sicherheitslücken. Bitte nutzen Sie die aktuelle Version einer der folgenden Browser:",
+	oldBrowser_msg: "Oh, Das tut uns leid. Sie verwenden eine veraltete Version Ihres Browsers. Bitte nutzen Sie die aktuelle Version einer der folgenden Browser:",
 	unsupportedBrowser_msg: "Oh! Das tut uns leid. Sie verwenden einen nicht unterstützten Browser. Bitte nutzen Sie einen der folgenden Browser:",
-    unsupportedMobileBrowswer_msg: "Oh! Das tut uns leid. Mobile Geräte werden zur Zeit nicht unterstützt. Wir arbeiten daran. Bitte verwenden Sie bis dahin einen der folgenden Desktop-Browser:",
 	browserNoKeygen_msg: "Lieber Interessent von Tutanota, während der Registrierung werden Schlüssel erzeugt. Die Erzeugung dieser Schlüssel benötigt mehr Rechenleistung als Ihr momentan verwendetes Gerät bereitstellt. Daher registrieren Sie sich bitte am besten auf einem Desktoprechner oder Laptop und verwenden dabei einen der folgenden Browser:",
 	thanks_msg: "Vielen Dank für Ihr Verständnis.\nIhr Team von Tutanota",
 
