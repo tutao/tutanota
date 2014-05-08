@@ -118,8 +118,7 @@ body, input, button, select, textarea { // all other types should inherit from b
   * Media queries
   * see: http://blog.scur.pl/2012/06/variable-media-queries-less-css/
   **************************************/
-@desktop:   ~"(min-width: 960px)";
-@tablet:    ~"(min-width: 720px) and (max-width: 959px)";
+@desktop:   ~"(min-width: 720px)";
 @mobile:    ~"(max-width: 719px)";
 
 /***************************************
@@ -460,7 +459,7 @@ form.recordContainer, div.recordContainer { // div for read-only forms
 		padding-top: 5px;
 		
 		> .recordName {
-			@media @tablet, @desktop {
+			@media desktop {
 				display: table-cell;
 			}
 			.light;

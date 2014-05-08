@@ -1,20 +1,31 @@
+// these mobile css properties are defined here because the original values are defined in html
 @media @mobile {
-	div#logo.loggedIn {
-	    margin-top: 6px;
+	div#leftViewButtonSlider.loggedIn {
+      width: 33px; // = leftViewButton.width + leftViewButton.margin-left
+
+      > div#logo {
+        width: 80px; // must be at least big enough to contain the small logo
+        margin-top: 6px;
+
+        > div.leftViewButton {
+          height: 27px;
+          width: 27px;
+          margin-right: 6px;
+          margin-left: 6px;
+        }
 	    
 		> div.path {
 			width: 30px;
 			height: 27px;
 		}
-		
-		> div.tutanota {
-			left: 31px;
-			width: 74px;
+
+        > div.tutanota {
 			height: 27px;
 		}
 		> div.claim {
 			display: none;
 		}
+      }
 	}
 }
 
@@ -30,15 +41,6 @@ header#main {
 	border-bottom: 1px solid @border-dark;
 	background-color: @background-dark;
 	background-clip: padding-box;
-	
-	> div.logoPathBackground {
-		position: absolute;
-		width: 10px;
-		height: 39px;
-		background-color: @background-dark;
-		z-index:2;
-		//display: none;
-	}
 	
 	> img {
 		display:none;
@@ -62,43 +64,85 @@ header#main {
 		width: 300px;
 		font-size: 10px;
 	}
-	
-	menu {
-		ul#menu_list {
-			list-style-type: none;
-			position: absolute;
-			right: 0px;
-			
-			> li {
-				float:left;
-				.clearfix;
-				
-				> div.menu_link {
-					cursor: pointer;
-					// more properties below
-				}
-				
-				> img.languageIcon {
-					position: relative;
-					top: 10px;
-					margin-left: auto;
-				    margin-right: auto;
-				    text-align: center;
-					height: 26px;
-					opacity: 0.9;
-					cursor: pointer;
-					
-					&.disabled {
-						opacity: 0.2;
-						
-						html.ie.lte8 & {
-							-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-						}
-					}
-				}
-			}
-		}
+
+
+  /* Wrapper element that has the width of the sliding range for the slide right button,
+    Sliding is done between 0 and -100% so it does not depend on the actual width of the sliding range.
+    Wrapper element contains the menu so that it is visibly slided.
+    The sliding range depends on the media query. */
+    div#rightViewButtonSlider {
+      position: absolute;
+      z-index:1; // the left button slider must overlap this one
+      right: 0px;
+      width: 48px; // = rightViewButton.width + rightViewButton.margin-right
+      @media @mobile {
+          width: 33px; // = rightViewButton.width + rightViewButton.margin-right
+      }
+
+      > menu {
+          position: absolute;
+          right: -100%;
+          transition: right 0.5s;
+          width: 500px; /* just a dummy value, so the inner divs do not wrap. The left slider button has a higher z-index, so that it is always clickable.*/
+
+          div.rightViewButton {
+            position: relative;
+            display: inline-block;
+            float: right;
+            top: 10px;
+            width: 35px;
+            height: 35px;
+            margin-right: 8px;
+            margin-left: 10px;
+            opacity: 0.8;
+            cursor: pointer;
+
+            @media @mobile {
+              top: 6px;
+              width: 27px;
+              height: 27px;
+              margin-right: 6px;
+              margin-left: 6px;
+            }
+          }
+
+          > ul#menu_list {
+                list-style-type: none;
+                position: relative;
+                float: right;
+
+                > li {
+                    float:left;
+                    .clearfix;
+
+                    > div.menu_link {
+                        cursor: pointer;
+                        // more properties below
+                    }
+
+                    > img.languageIcon {
+                        position: relative;
+                        top: 10px;
+                        margin-left: auto;
+                        margin-right: auto;
+                        text-align: center;
+                        height: 26px;
+                        opacity: 0.9;
+                        cursor: pointer;
+
+                        &.disabled {
+                            opacity: 0.2;
+
+                            html.ie.lte8 & {
+                                -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+                            }
+                        }
+                    }
+                }
+            }
+      }
 	}
+
 }
 
 // also used in mail and contact view if no entities is shown
