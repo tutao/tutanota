@@ -16,9 +16,12 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
 	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 480);
+    this.windowWidthObservable = ko.observable(0);
+
 	// if the window width is small, just show the logo without "Tutanota" to save space
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 480);
+        self.windowWidthObservable(width);
 	});
 
 };

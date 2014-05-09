@@ -6,35 +6,20 @@ goog.provide('tutao.tutanota.ctrl.Button');
  * Defines a button.
  * @constructor
  * @param {string} label The label visible on the button.
- * @param {number} visibility One of tutao.tutanota.ctrl.Button.VISIBILITY_*.
+ * @param {number} priority The higher the value the higher the priority. Priority 0 buttons are only in the more menu.
  * @param {function} clickCallback Is called when the button is clicked.
  * @param {boolean=} directClick True if the click event shall not be deferred by a setTimeout (needed to avoid alert/confirm popup bugs).
  * @param {string=} id The id to set for the button.
  */
-tutao.tutanota.ctrl.Button = function(label, visibility, clickCallback, directClick, id) {
+tutao.tutanota.ctrl.Button = function(label, priority, clickCallback, directClick, id) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._label = label;
-	this._visibility = visibility;
+	this._priority = priority;
 	this._clickCallback = clickCallback;
 	this._directClick = (directClick) ? true : false;
 	this.width = ko.observable(null); // is set by setDomWidth binding
     this.id = id;
 };
-
-/**
- * The button is always visible (i.e. never hidden in the "more" button).
- */
-tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE = 0;
-
-/**
- * If enough space is left, the button is visible, otherwise it is hidden in the "more" button.
- */
-tutao.tutanota.ctrl.Button.VISIBILITY_OPTIONAL = 1;
-
-/**
- * The button is always hidden in the "more" button.
- */
-tutao.tutanota.ctrl.Button.VISIBILITY_HIDDEN = 2;
 
 /**
  * Provides the label of the button.
@@ -45,11 +30,11 @@ tutao.tutanota.ctrl.Button.prototype.getLabel = function() {
 };
 
 /**
- * Provides the visibility type of the button.
- * @return {number} One of tutao.tutanota.ctrl.Button.VISIBILITY_*.
+ * Provides the priority of the button.
+ * @return {number} 0 or positive number value.
  */
-tutao.tutanota.ctrl.Button.prototype.getVisibility = function() {
-	return this._visibility;
+tutao.tutanota.ctrl.Button.prototype.getPriority = function() {
+	return this._priority;
 };
 
 /**

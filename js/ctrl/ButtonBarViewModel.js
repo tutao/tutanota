@@ -4,146 +4,146 @@ goog.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
 
 // - move gui part to custom binding
 // - width adaption when scrollbar appears/disappears
-// - width adaption when window width changes
 
 /**
  * Defines a button bar.
  *
  * @constructor
- * @param {Object}
- *            button An observable array containing any number of
+ * @param {Object} buttons An observable array containing any number of
  *            tutao.tutanota.ctrl.Button instances.
  */
 tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.buttons = buttons;
-	this.nextButtons = ko.observableArray(); // the buttons that will be shown next (after the visibleButtons have moved away)
-	this.visibleButtons = ko.observableArray(); // the buttons that are currently visible
-	this.domButtons = ko.observable(); // is set via domInit binding to the inner buttons div
-	this.maxWidth = ko.observable(0);
-	var self = this;
-	this.domButtons.subscribe(function(value) {
-		var id = null;
-		id = setInterval(function() {
-			var maxWidth = $(self.domButtons()).parent().width();
-			if (maxWidth != 0) {
-				clearInterval(id);
-				self.maxWidth(maxWidth);
-				self._init();
-			}
-		}, 50);
-	});
-	this.buttons.subscribe(function() {
-		self._init();
-	});
+    this.moreButton = new tutao.tutanota.ctrl.Button("...", 100, this.switchMore);
+    $("button#measureButton").text(this.moreButton.getLabel());
+    this.moreButton.width($("button#measureButton").outerWidth(true));
+
+	this.allButtons = buttons;
+	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
+	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
+    this.moreVisible = ko.observable(false);
+    this.domButtonBar = ko.observable(null); // is set via domInit binding to the buttonBar div
+    this.maxWidth = 0;
+    this.widthSubscription = null;
+
+    this.domButtonBar.subscribe(function(value) {
+        var self = this;
+        var id = null;
+        id = setInterval(function() {
+            self.maxWidth = $(self.domButtonBar()).width();
+            if (self.maxWidth != 0) {
+                clearInterval(id);
+                self.updateVisibleButtons();
+            }
+        }, 50);
+    }, this);
+
+	this.allButtons.subscribe(function() {
+		this.updateVisibleButtons();
+	}, this);
 };
 
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype._init = function() {
-	if (this.maxWidth() == 0) {
-		return;
-	}
-
-	ko.utils.arrayForEach(this.buttons(), function(button) {
-		$("button#measureButton").text(button.getLabel());
-		button.width($("button#measureButton").outerWidth(true));
-	});
-
-	this.visibleButtons([]);
-	this.nextButtons([]);
-	// directly show first buttons
-	this._switchButtons();
-	var myWidth = 0;
-	for (var i = 0; i < this.nextButtons().length; i++) {
-		myWidth += this.nextButtons()[i].width();
-	}
-	$(this.domButtons()).css('right', '0px');
-	$(this.domButtons()).width(myWidth + 5); // +5 for IE10 because otherwise the rightmost button is not visible
-	this.visibleButtons(this.nextButtons());
+/**
+ *
+ * @param {Array} buttons
+ * @returns {number}
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonWidth = function(buttons) {
+    var buttonWidth = 0;
+    for(var i=0; i< buttons.length; i++) {
+        buttonWidth += buttons[i].width();
+    }
+    return buttonWidth;
 };
+
+
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function() {
+    if (!this.widthSubscription) {
+        this.widthSubscription = tutao.locator.viewManager.windowWidthObservable.subscribe( function() {
+            setTimeout(this.updateVisibleButtons, 0); // the column width is not yet updated when the window width changes, so use a timeout
+        }, this);
+    }
+    var buttonMargin = 0;
+    for(var i=0; i< this.allButtons().length; i++) {
+        var currentButton = this.allButtons()[i];
+        $("button#measureButton").text(currentButton.getLabel());
+        currentButton.width($("button#measureButton").outerWidth(true));
+        if (buttonMargin == 0) {
+            buttonMargin = parseInt($("button#measureButton").css("margin-right"));
+        }
+    }
+
+    this.maxWidth = $(this.domButtonBar()).width() - buttonMargin;
+
+    var visibleButtonList = [].concat(this.allButtons());
+    var moreButtonList = [];
+    if (this.maxWidth < this.getButtonWidth(visibleButtonList)){
+        visibleButtonList.push(this.moreButton);
+        this._filterButtons(visibleButtonList, moreButtonList);
+    }
+    this.visibleButtons(visibleButtonList);
+    this.moreButtons(moreButtonList);
+
+    this.visibleButtons.reverse();
+};
+
+/**
+ *
+ * @param {Array} visibleButtonList
+ * @param {Array} moreButtonList
+ * @private
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype._filterButtons = function(visibleButtonList, moreButtonList) {
+    if ( this.maxWidth < this.getButtonWidth(visibleButtonList)){
+        var buttonIndex = this._getLowestPriorityButtonIndex(visibleButtonList);
+        if ( buttonIndex >= 0){
+            var removedButtons = visibleButtonList.splice(buttonIndex, 1);
+            moreButtonList.splice(0, 0, removedButtons[0]);
+            this._filterButtons(visibleButtonList, moreButtonList);
+        }
+    }
+};
+
+
+/**
+ *
+ * @param {Array} buttonList
+ * @return {Number} button index
+ * @private
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype._getLowestPriorityButtonIndex = function(buttonList) {
+    var lowestPriority = 1000;
+    var buttonIndex = -1;
+    for(var i=0; i< buttonList.length; i++ ){
+        var currentButton = buttonList[i];
+        if (currentButton.getPriority() < lowestPriority){
+            lowestPriority = currentButton.getPriority();
+            buttonIndex = i;
+        }
+    }
+    return buttonIndex;
+};
+
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hasMoreButton = function() {
-	if (this.maxWidth() == 0) {
-		return false;
-	}
-
-	var maxWidth = $(this.domButtons()).parent().width();
-	if (this.maxWidth() != maxWidth) {
-		this.maxWidth(maxWidth);
-		this._init();
-	}
-
-	var myWidth = 0;
-	for (var i = 0; i < this.buttons().length; i++) {
-		myWidth += this.buttons()[i].width();
-	}
-
-	// check both max width and buttons explicitly to invoke observable subscriptions
-	var tooSmallMaxWidth = (myWidth > this.maxWidth());
-	var hiddenButtons = false;
-	ko.utils.arrayForEach(this.buttons(), function(button) {
-		hiddenButtons = hiddenButtons || (button.getVisibility() == tutao.tutanota.ctrl.Button.VISIBILITY_HIDDEN);
-	});
-	return (tooSmallMaxWidth || hiddenButtons);
+    return this.moreButtons.length != 0;
 };
 
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.showMore = function() {
-	var self = this;
-	self._switchButtons();
-	var nextWidth = 0;
-	for (var i = 0; i < this.nextButtons().length; i++) {
-		nextWidth += this.nextButtons()[i].width();
-	}
-	$(this.domButtons()).animate({
-		right: -$(self.domButtons()).width() + 'px'
-	}, 300, function() { // move buttons out
-		self.visibleButtons(self.nextButtons());
-		$(self.domButtons()).width(nextWidth);
-		$(self.domButtons()).css('right', -nextWidth + 'px');
-		$(self.domButtons()).animate({
-			right: '0px'
-		}, 300); // move buttons in
-	});
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype._showMore = function() {
+    tutao.locator.modalPageBackgroundViewModel.show(this.hideMore);
+    this.moreVisible(true);
 };
 
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype._switchButtons = function() {
-	var nextButtons = [];
-	if (this.visibleButtons().length == 0
-			|| this.visibleButtons()[this.visibleButtons().length - 1] == this
-					.buttons()[this.buttons().length - 1]) {
-		// the last buttons are are shown, so show the default visible buttons
-		// again
-		var currentWidth = 0;
-		for (var i = 0; i < this.buttons().length; i++) {
-			if (this.buttons()[i].getVisibility() != tutao.tutanota.ctrl.Button.VISIBILITY_HIDDEN
-					&& currentWidth + this.buttons()[i].width() <= this
-							.maxWidth()) {
-				nextButtons.push(this.buttons()[i]);
-				currentWidth += this.buttons()[i].width();
-			}
-		}
-	} else {
-		// the next buttons from the button list are shown. find the first of
-		// the next.
-		var firstOfNext = null;
-		var currentWidth = 0;
-		for (var i = 0; i < this.buttons().length; i++) {
-			if (firstOfNext) {
-				if (currentWidth + this.buttons()[i].width() <= this.maxWidth()) {
-					nextButtons.push(this.buttons()[i]);
-					currentWidth += this.buttons()[i].width();
-				}
-			} else {
-				if (this.buttons()[i] == this.visibleButtons()[this
-						.visibleButtons().length - 1]) {
-					// found the button in the button list that is the last one
-					// in the currently visible buttons.
-					// add new visible buttons beginning with the next in the
-					// button list
-					firstOfNext = i + 1;
-				}
-			}
-		}
-	}
-	this.nextButtons(nextButtons);
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hideMore = function() {
+    this.moreVisible(false);
 };
+
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
+    if ( this.moreVisible()){
+        this.hideMore();
+    }else{
+        this._showMore();
+    }
+};
+

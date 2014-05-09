@@ -139,7 +139,7 @@
 		<div class="message">
 				<div id="fastMessageSpinner"></div>Loading...
 				<p>
-					<br>please wait...<br> bitte warten...<br> espere por favor...<br> 
+					<br>please wait...<br> bitte warten...<br> espere por favor...<br>
 				</p>
 		</div>
 		<div class="errorMessage">
@@ -350,6 +350,7 @@
 	<script type="text/javascript" src="js/ctrl/DropDownViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ExternalLoginViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FeedbackViewModel.js"></script>
+    <script type="text/javascript" src="js/ctrl/ModalPageBackgroundViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FileFacade.js"></script>
 	<script type="text/javascript" src="js/ctrl/FileViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FontViewModel.js"></script>
@@ -505,13 +506,13 @@
 			tutao.tutanota.gui.initKnockout();
 		});
 	}
-	
+
 /*
 $(document).bind("touchstart", function(event) {
 	$("#mail").append('<p>touch start: ' + event.originalEvent.changedTouches[0].pageX + " " + event.originalEvent.changedTouches[0].pageY + "</p>")
 	//if ($(e.target).attr('dragObject')) {
-	//	e.preventDefault(); 
-	//	var orig = e.originalEvent; 
+	//	e.preventDefault();
+	//	var orig = e.originalEvent;
 	//	var x = orig.changedTouches[0].pageX;
 	//	var y = orig.changedTouches[0].pageY;
 	//}
@@ -528,9 +529,9 @@ $(document).bind("touchmove", function(event) {
 function touchOrClick(e) {
 	console.log($(e.target).attr('dragObject'));
 	if ($(e.target).attr('dragObject')) {
-		e.preventDefault(); 
-		var orig = e.originalEvent; 
-		var x = orig.changedTouches[0].pageX; 
+		e.preventDefault();
+		var orig = e.originalEvent;
+		var x = orig.changedTouches[0].pageX;
 		var y = orig.changedTouches[0].pageY;
 		$("#dragObject").css({top: y, left: x});
 	}
@@ -688,7 +689,6 @@ function touchOrClick(e) {
 								<div class="confidentialAction">
 									<button class="switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
 										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
-										<span data-bind="text: (secure() ? tutao.lang('confidential_action') : tutao.lang('nonConfidential_action'))"></span>
 									</button>
 								</div>
 								<div class="otherActions">
@@ -699,6 +699,7 @@ function touchOrClick(e) {
 							<div class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
+                                        <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"'></div>
 										<div class="headerTable">
 											<!-- ko if: tutao.locator.userController.isInternalUserLoggedIn() -->
 												<div class="headerLine">
@@ -849,7 +850,7 @@ function touchOrClick(e) {
 		<div id="contactContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.contactView">
 			<div id="searchAndContactListColumn" class="viewColumn" data-bind="with: tutao.locator.contactListViewModel">
 				<div id="searchAndContactList">
-					<!-- 
+					<!--
 						<div class="search">
 							<div class="searchForm">
 								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
@@ -918,7 +919,7 @@ function touchOrClick(e) {
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
 															<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
-													<!-- /ko -->	
+													<!-- /ko -->
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
 													<div class="contactDataText" data-bind="text: getNumber()"></div>
 												</div>
@@ -985,7 +986,7 @@ function touchOrClick(e) {
 												<input id="titleInput" type="text" data-bind="value: editableContact.title, attr: {placeholder: tutao.lang('title_placeholder')}"/>
 											</div>
 										</div>
-			
+
 										<h2 data-bind="lang: 'email_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.mailAddresses -->
@@ -1006,7 +1007,7 @@ function touchOrClick(e) {
 											</div>
 											<div class="recordAction"></div>
 										</div>
-										
+
 										<h2 data-bind="lang: 'phone_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.phoneNumbers -->
@@ -1027,7 +1028,7 @@ function touchOrClick(e) {
 											</div>
 											<div class="recordAction"></div>
 										</div>
-										
+
 										<h2 data-bind="lang: 'address_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.addresses -->
@@ -1048,7 +1049,7 @@ function touchOrClick(e) {
 											</div>
 											<div class="recordAction"></div>
 										</div>
-										
+
 										<h2 data-bind="lang: 'social_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.socialIds -->
@@ -1069,7 +1070,7 @@ function touchOrClick(e) {
 											</div>
 											<div class="recordAction"></div>
 										</div>
-										
+
 										<h2 data-bind="lang: 'comment_label'"></h2>
 										<hr />
 										<textarea id="editContactComment" rows="3" data-bind="value: editableContact.comment" oninput='this.rows = Math.max(this.value.split("\n").length, 3);'></textarea>
@@ -1139,7 +1140,7 @@ function touchOrClick(e) {
 				<div class="panel">
 					<div class="content">
 						<h1 data-bind="text: welcomeText"></h1>
-			
+
 						<form class="recordContainer wide" data-bind="submit: login, form: true">
 							<div class="record">
 								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
@@ -1157,7 +1158,7 @@ function touchOrClick(e) {
 									</div>
 								</div>
 							</div>
-			
+
 							<div class="record">
 								<div class="recordName"></div>
 								<div class="formAction">
@@ -1196,14 +1197,14 @@ function touchOrClick(e) {
 								</div>
 							</div>
 							<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
-								<div class="record">								
+								<div class="record">
 									<label for="externalMailPasswordInput" class="recordName" data-bind="lang: 'password_label'"></label>
 									<div class="recordData">                                                                                                                                                                                <!-- see http://stackoverflow.com/a/11109560 on why valueUpdate: 'input' is not enough for IE8 -->
 										<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: ['afterkeydown','propertychange','input'], hasfocus: passphraseFieldFocused"/>
 										<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
 									</div>
 								</div>
-								<div class="record">								
+								<div class="record">
 									<div class="recordName"></div>
 									<div class="recordData">
 										<div class="recordValue">
@@ -1213,8 +1214,8 @@ function touchOrClick(e) {
 										<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
 									</div>
 								</div>
-								<div class="record">	
-									<div class="recordName"></div>							
+								<div class="record">
+									<div class="recordName"></div>
 									<div class="formAction">
 										<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
 										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
@@ -1296,7 +1297,7 @@ function touchOrClick(e) {
                 <div id="welcomePicture"><div></div></div>
             </div>
         </div>
-		
+
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
@@ -1417,7 +1418,7 @@ function touchOrClick(e) {
 											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
 										</div>
 									</div>
-	
+
 									<div class="record">
 										<div class="recordName"></div>
 										<div class="formAction">
@@ -1427,7 +1428,7 @@ function touchOrClick(e) {
 									</div>
 								</form>
 							<!-- /ko -->
-								
+
 							<!-- ko if: (getSendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
                                 <!-- ko if: getRegistrationType() == 'Free' -->
                                 <h2 data-bind="lang: 'registrationSubHeadlineFree2_msg'"></h2>
@@ -1446,7 +1447,7 @@ function touchOrClick(e) {
 											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
 										</div>
 									</div>
-	
+
 									<div class="record">
 										<div class="recordName"></div>
 										<div class="formAction">
@@ -1461,7 +1462,7 @@ function touchOrClick(e) {
 											<label for="submitRegistration2" class="recordInfo" data-bind="lang: 'createAccountInfo_msg'"></label>
 										</div>
 									</div>
-								</form>						
+								</form>
 							<!-- /ko -->
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
@@ -1492,7 +1493,7 @@ function touchOrClick(e) {
 				<div id="welcomePicture"><div></div></div>
 			</div>
 		</div>
-		
+
 		<div id="notFound" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
 			<div class="messageWrapper">
 				<div class="infoMessage">
@@ -1945,7 +1946,7 @@ function touchOrClick(e) {
 									<div data-bind="if: overallState() == 'serverNotReachable'">
 										<div data-bind="lang: 'serverNotReachable_msg'"></div>
 									</div>
-									
+
 									<form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
 										<div class="record">
 											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
@@ -2171,10 +2172,10 @@ function touchOrClick(e) {
 				<!-- /ko -->
 			</div>
 		</div>
-		
+
 	</div><!-- end of viewContainer -->
 
-	
+
 	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div>
 			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
@@ -2325,16 +2326,16 @@ function touchOrClick(e) {
 	</script>
 
 	<script type="text/html" id="buttonBar-template">
-		<div class="buttonBar">
-			<div class="outerButtons" data-bind="style: { right: (hasMoreButton()) ? '55px' : '0px' }">
-				<div class="innerButtons" data-bind="domInit: domButtons">
-					<!-- ko foreach: visibleButtons() --><button data-bind="text: getLabel(), fastClick: click, attr: {'id': id}" tabindex="1000"></button><!-- /ko -->
-					<div style="clear: right;"></div>
-				</div>
-			</div>
-			<button class="moreButton" data-bind="text: '+', fastClick: showMore, visible: hasMoreButton()"></button>
-			<div style="height: 45px"></div>
+		<div class="buttonBar" data-bind="domInit: domButtonBar">
+            <!-- ko foreach: visibleButtons() -->
+            <button data-bind="text: getLabel(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <!-- /ko -->
 		</div>
+        <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
+            <!-- ko foreach: moreButtons() -->
+            <button data-bind="text: getLabel(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <!-- /ko -->
+        </div>
 	</script>
 
 	<!-- use only with the DropdownViewModel -->
@@ -2351,7 +2352,7 @@ function touchOrClick(e) {
 		</div>
 		<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="visible: !selectVisible(), value: customValueObservable, hasfocus: inputActive" />
 	</script>
-	
+
 	<!-- use only with the BubbleInputViewModel -->
 	<script type="text/html"  id="bubbleinput-template">
 		<div class="bubbleInput">
@@ -2371,7 +2372,7 @@ function touchOrClick(e) {
 			</div>
 		</div>
 	</script>
-	
+
 	<script type="text/html"  id="files-template">
 			<div class="files" data-bind="foreach: { data: files }">
 				<div class="file" data-bind="fastClick: function() { $parent.fileViewModel.downloadFile($data) }, attr: { title: getName() }">
@@ -2383,7 +2384,7 @@ function touchOrClick(e) {
 				</div>
 			</div>
 	</script>
-	
+
 	<script type="text/html"  id="type-template">
 		<div class="instance">
 			<!-- ko if: type.versioned -->
@@ -2443,12 +2444,12 @@ function touchOrClick(e) {
 								<!-- /ko -->
 							</div>
 						<!-- /ko -->
-					<!-- /ko -->	
+					<!-- /ko -->
 					<!-- ko if: type == 'LIST_ELEMENT_ASSOCIATION' -->
 						<!-- ko if: cardinality == 'ZeroOrOne' || cardinality == 'One' -->
 							<!-- ko if: $parent.instance[name] == null -->
 								<div class="attributeValue"></div>
-							<!-- /ko -->		
+							<!-- /ko -->
 							<!-- ko if: $parent.instance[name] != null -->
 								<div class="attributeValue reference" data-bind="text: $parent.instance[name][0] + ',' + $parent.instance[name][1], click: function() { tutao.locator.dbViewModel.showReference(refType, $parent.instance[name][0], $parent.instance[name][1]); }"></div>
 							<!-- /ko -->

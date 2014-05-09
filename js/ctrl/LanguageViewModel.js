@@ -125,6 +125,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	clickToSave_label: "Click to save",
 	confidential_action: "Confidential",
 	nonConfidential_action: "Not confidential",
+    confidentialStatus_msg: "This message is sent end-to-end encrypted.",
+    nonConfidentialStatus_msg: "This message is not sent end-to-end encrypted.",
+
 	noMails_msg: "There are no emails in this list.",
 	noMail_msg: "No email selected.",
 	addMobileNumber_msg: "Add additional mobile phone number.",
@@ -517,6 +520,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	clickToSave_label: "Klicken zum speichern",
 	confidential_action: "Vertraulich",
 	nonConfidential_action: "Nicht vertraulich",
+    confidentialStatus_msg: "Diese Nachricht wird Ende-zu-Ende verschlüsselt.",
+    nonConfidentialStatus_msg: "Diese Nachricht wird nicht Ende-zu-Ende verschlüsselt.",
 	noMails_msg: "Keine E-Mails in dieser Liste.",
 	noMail_msg: "Keine E-Mail ausgewählt.",
 	addMobileNumber_msg: "Zusätzliche Mobilfunknummer eingeben.",

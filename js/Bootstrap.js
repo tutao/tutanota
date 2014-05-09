@@ -181,8 +181,9 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         // @type {tutao.tutanota.ctrl.LegacyDownloadViewModel}
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
         // @type {tutao.tutanota.ctrl.ProgressDialogModel}
-        progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel
-
+        progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
+        // @type {tutao.tutanota.ctrl.ModalPageBackgroundViewModel}
+        modalPageBackgroundViewModel: tutao.tutanota.ctrl.ModalPageBackgroundViewModel
     };
 
     if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
