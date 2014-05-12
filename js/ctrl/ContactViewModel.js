@@ -81,8 +81,8 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function(contactWr
 
 	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW);
 	this.buttons([
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("edit_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self.editContact),
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("delete_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._deleteContact)
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("edit_action"),10 , self.editContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("delete_action"),9 , self._deleteContact)
 	]);
 	this._refreshScroller();
 	tutao.locator.contactView.showContactColumn();
@@ -105,8 +105,8 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function() {
 	}
 	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW);
 	this.buttons([
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._saveContact),
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() {
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"),10 , self._saveContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"),9 , function() {
 	            	  self.contactWrapper().stopEditingContact(self);
 	            	  tutao.locator.contactView.disableTouchComposingMode();
 	            	  self.removeContact();
@@ -143,8 +143,8 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.editContact = function() {
 	this.editableContact = this.contactWrapper().startEditingContact(this);
 	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT);
 	this.buttons([
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, self._saveContact),
-	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"), tutao.tutanota.ctrl.Button.VISIBILITY_VISIBLE, function() {
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"),10 , self._saveContact),
+	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"),9 , function() {
 	            	  self.contactWrapper().stopEditingContact(self);
 	            	  tutao.locator.contactView.disableTouchComposingMode();
 	            	  self._showContact(self.contactWrapper());
