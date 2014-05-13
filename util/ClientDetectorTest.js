@@ -38,6 +38,17 @@ TestCase("ClientDetectorTest", {
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
+    "test detect safari 5.1 ipad": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko ) Version/5.1 Mobile/9B176 Safari/7534.48.3");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assertEquals(5.1, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(false, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+    },
 	"test detect safari 6.0 ipad": function() {
 		var info = tutao.tutanota.util.ClientDetector;
 		info._setClientInfo("Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A403 Safari/8536.25");
@@ -47,7 +58,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, info.getDeviceType());
 		assertEquals(true, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
 	},
 	"test detect safari 6.1 ipad": function() {
 		var info = tutao.tutanota.util.ClientDetector;
@@ -71,7 +82,29 @@ TestCase("ClientDetectorTest", {
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     },
-	"test detect ie11 windows": function() {
+    "test detect safari 6.0 iphone home screen": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (iPhone; CPU iPhone OS 6_1_6 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Mobile/10B500");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assertEquals(6, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    },
+    "test detect safari 7 iphone home screen": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Mobile/11A501");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assertEquals(7, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    },
+    "test detect ie11 windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
 		info._setClientInfo("Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko");
 		assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());

@@ -27,7 +27,9 @@ TestCase("ViewManagerTest", {
 		verify(view2.init)();
 		verify(view1, noMoreInteractions());
 		verify(view2, noMoreInteractions());
-		assertEquals(null, vm.getActiveView());
+		assertTrue(vm.getActiveView() != view1);
+		assertTrue(vm.getActiveView() != view2);
+		assertNotNull(vm.getActiveView());
 		
 		// select view1 -> activation
 		vm.select(view1);
