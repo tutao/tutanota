@@ -8,7 +8,7 @@ goog.provide('tutao.tutanota.ctrl.LanguageViewModel');
  */
 tutao.tutanota.ctrl.LanguageViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	var lang = null // tutao.tutanota.util.LocalStore.load('language');
+	var lang = null; // tutao.tutanota.util.LocalStore.load('language');
 	if (!lang) {
 		lang = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
 	}
@@ -397,6 +397,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	createAccountError_msg: "Sorry, but there was an error. Please try again later.",
     createAccountTooManyAccountsError_msg: "Sorry, but the maximum number of accounts is reached.",
 	createAccountInfo_msg: "Depending on your computer's individual performance it may take some minutes to generate your secure keys.",
+    createAccountInfoMobile_msg: "On mobile devices it may take several minutes to generate your secure keys. If it takes too long, please use a desktop computer for registration.",
 	name_label: "Name",
     nameAdmin_label: "Name of the administrator",
 	mobileNumber_label: "Mobile phone number",
@@ -791,6 +792,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	createAccountError_msg: "Leider ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
     createAccountTooManyAccountsError_msg: "Leider ist die maximale Anzahl Accounts erreicht.",
 	createAccountInfo_msg: "Abhängig von der Geschwindigkeit Ihres Computers kann es einige Minuten dauern bis Ihre sicheren Schlüssel erzeugt wurden.",
+    createAccountInfoMobile_msg: "Auf mobilen Geräten kann es mehrere Minuten dauern bis Ihre sicheren Schlüssel erzeugt sind. Falls es Ihnen zu lange dauert, bitten wir Sie für die Registrierung einen Desktoprechner zu verwenden.",
 	name_label: "Name",
     nameAdmin_label: "Name des Administrators",
 	mobileNumber_label: "Mobilfunknummer",

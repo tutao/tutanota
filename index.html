@@ -1116,6 +1116,7 @@ function touchOrClick(e) {
 						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop, Android)</a></li>
                         <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
                         <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (iPhone, iPad)</a></li>
+                        <li><a target="_blank" href="http://www.opera.com/mobile">Opera (Android)</a></li>
 						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop, Windows Phone)</a></li>
 					</ul>
 					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
@@ -1456,7 +1457,7 @@ function touchOrClick(e) {
 												</div>
 												<div class="createAccountStatus" data-bind="lang: createAccountStatus().text"></div>
 											</label>
-											<label for="submitRegistration2" class="recordInfo" data-bind="lang: 'createAccountInfo_msg'"></label>
+											<label for="submitRegistration2" class="recordInfo" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? 'createAccountInfoMobile_msg' : 'createAccountInfo_msg'"></label>
 										</div>
 									</div>
 								</form>

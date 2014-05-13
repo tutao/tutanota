@@ -10,9 +10,8 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this.pageStatus = ko.observable(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING);
-    if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD) {
-        this.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED);
-    }
+    // if registration shall be deactivated for specific devices, use the following line
+    // this.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED);
 	this.authToken = ko.observable("");
 	this.accountType = ko.observable("0"); // set to invalid account type for indicating that the account type is not known
 	this.companyName = ko.observable("");
