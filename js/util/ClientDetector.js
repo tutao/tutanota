@@ -198,10 +198,9 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	minVersionNeeded[info.BROWSER_TYPE_IE] = 10;
     minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;
     minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4.4;
+    minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
 
-    if (info._browser == info.BROWSER_TYPE_OPERA) {
-        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
-    } else if (info._browser == info.BROWSER_TYPE_OTHER) {
+    if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
@@ -223,6 +222,9 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
         info._browser == info.BROWSER_TYPE_SAFARI &&
         info._browserVersion < 6.1) {
         info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
+    } else if (info._device == info.DEVICE_TYPE_DESKTOP &&
+        info._browser == info.BROWSER_TYPE_OPERA) {
+        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     }
 };
 
@@ -294,7 +296,8 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	info._browser = info.BROWSER_TYPE_OTHER;
 	info._browserVersion = 0;
 
-    var operaIndex = userAgent.indexOf("Opera");
+    var operaIndex1 = userAgent.indexOf("Opera");
+    var operaIndex2 = userAgent.indexOf("OPR/");
 	var firefoxIndex = userAgent.indexOf("Firefox/");
 	var chromeIndex = userAgent.indexOf("Chrome/");
 	var safariIndex = userAgent.indexOf("Safari/");
@@ -302,15 +305,18 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	var ie11Index = userAgent.indexOf("Trident");
     var androidIndex = userAgent.indexOf("Android");
 	var versionIndex = -1;
-    if (operaIndex != -1) {
+    if (operaIndex1 != -1) {
         info._browser = info.BROWSER_TYPE_OPERA;
         versionIndex = userAgent.indexOf("Version/");
         if (versionIndex != -1) {
             versionIndex += 8;
         } else {
-            versionIndex = operaIndex + 6;
+            versionIndex = operaIndex1 + 6;
         }
-    } else if ((firefoxIndex != -1) && (operaIndex == -1)) {
+    } else if (operaIndex2 != -1) {
+        info._browser = info.BROWSER_TYPE_OPERA;
+        versionIndex = operaIndex2 + 4;
+    } else if ((firefoxIndex != -1) && (operaIndex1 == -1) && (operaIndex2 == -1)) {
 		// Opera may pretend to be Firefox, so it is skipped
 		info._browser = info.BROWSER_TYPE_FIREFOX;
 		versionIndex = firefoxIndex + 8;
