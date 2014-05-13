@@ -243,6 +243,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     passwordNotChanged_msg: "The password is not changed.",
     passwordResetFailed_msg: "An error occurred. The password was not changed.",
     notePassword_msg: "Please note the password down carefully and provide it to the user.",
+    changePasswordNotSupported_msg: "For security reasons password change is not supported on mobile devices.",
 
 	// general
 	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
@@ -637,6 +638,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     passwordNotChanged_msg: "Das Passwort ist nicht geändert.",
     passwordResetFailed_msg: "Es ist ein Fehler aufgetreten. Das Passwort wurde nicht geändert.",
     notePassword_msg: "Bitte notieren Sie sich das Passwort gut und geben Sie es an den Benutzer weiter.",
+    changePasswordNotSupported_msg: "Aus Sicherheitsgründen wird die Passwortänderung auf mobilen Geräten nicht unterstützt.",
 
 	// general
 	emptyString_msg: "\u2008",
