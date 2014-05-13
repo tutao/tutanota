@@ -2023,7 +2023,7 @@ function touchOrClick(e) {
 			</div>
 			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
                 <!-- ko if: editing() -->
-                    <div data-bind="with: editing()">
+                    <div class="scrollable" data-bind="with: editing()">
                         <h1 data-bind="lang: 'editUser_label'"></h1>
                         <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">
@@ -2083,7 +2083,7 @@ function touchOrClick(e) {
                     </div>
                 <!-- /ko -->
                 <!-- ko if: newViewModel() -->
-                    <div id="newUsers" data-bind="with: newViewModel()">
+                    <div id="newUsers" class="scrollable" data-bind="with: newViewModel()">
 
                         <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
                             <div>
