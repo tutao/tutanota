@@ -53,20 +53,6 @@ tutao.tutanota.gui.SettingsView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			this._changeSettingsScroller = new iScroll('changeSettingsInnerColumn', {useTransition: true});
-			
-			// workaround for input field bug. it allows to set the focus on text input elements
-			this._changeSettingsScroller.options.onBeforeScrollStart = function(e) {
-		        var target = e.target;
-
-		        while (target.nodeType != 1) target = target.parentNode;
-
-		        if (!tutao.tutanota.gui.isEditable(e.target)) {
-		            e.preventDefault();
-		        }
-		    };
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 	}
@@ -128,9 +114,6 @@ tutao.tutanota.gui.SettingsView.prototype.isShowNeighbourColumnPossible = functi
  */
 tutao.tutanota.gui.SettingsView.prototype.showChangeSettingsColumn = function() {
 	this._viewSlider.showViewColumn(tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS);
-	if (this._changeSettingsScroller) {
-		this._changeSettingsScroller.refresh();
-	}
 };
 
 /**

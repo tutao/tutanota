@@ -548,7 +548,7 @@ function touchOrClick(e) {
 	<div id="viewContainer">
 		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
 			<div id="tagListColumn" class="viewColumn">
-				<section id="tagList" data-bind="with: tutao.locator.tagListViewModel">
+				<section id="tagList" class="scrollable" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList">
 						<div class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
 							<div class="icon imgButton left"></div>
@@ -574,7 +574,7 @@ function touchOrClick(e) {
 							</div>
 						</div>
 					<!-- /ko -->
-					<section id="mailList" class="list" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn() }">
+					<section id="mailList" class="list scrollable" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn() }">
 						<div id="innerMailList" data-bind="foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
@@ -610,7 +610,7 @@ function touchOrClick(e) {
 				<div id="noMail" class="infoMessage" data-bind="visible: (conversation().length == 0 && !tutao.locator.mailListViewModel.isMailSelected())">
 					<div data-bind="lang: 'noMail_msg'"></div><br>
 				</div>
-				<div id="innerConversationColumn">
+				<div id="innerConversationColumn" class="scrollable">
 					<section class="conversation" data-bind="foreach: { data: conversation }">
 						<!-- ko if: !$parent.isComposingState() -->
 							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }, visible: !$parent.isComposingState()'></div>
@@ -763,7 +763,7 @@ function touchOrClick(e) {
 				</div>
 			</div>
 			<div id="passwordChannelColumn" class="viewColumn" data-bind="with: tutao.locator.passwordChannelViewModel">
-				<div id="innerPasswordChannelColumn">
+				<div id="innerPasswordChannelColumn" class="scrollable">
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
@@ -857,7 +857,7 @@ function touchOrClick(e) {
 							</div>
 						</div>
 					-->
-					<section id="contactList">
+					<section id="contactList" class="scrollable">
 						<div id="innerContactList" data-bind="foreach: {data: contacts}, style: { borderTopWidth: (contacts().length > 0) ? '7px' : '0px', borderBottomWidth: (contacts().length > 0) ? '7px' : '0px' }">
 							<div class="contactInList" data-bind="click: $parent.showContact">
 								<div class="contactNameAndMailAddressInList">
@@ -878,7 +878,7 @@ function touchOrClick(e) {
 				<div id="noContact" class="infoMessage" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
 					<div data-bind="lang: 'noContact_msg'"></div><br>
 				</div>
-				<div id="innerContactColumn">
+				<div id="innerContactColumn" class="scrollable">
 					<div id="contactWrapper">
 						<!-- ko if: mode() !== tutao.tutanota.ctrl.ContactViewModel.MODE_NONE -->
 							<section id="contact">
@@ -1094,7 +1094,7 @@ function touchOrClick(e) {
 
 		<div id="fileContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.fileView">
 			<div id="fileColumn" class="viewColumn" data-bind="with: tutao.locator.fileViewModel">
-				<div id="innerFileColumn">
+				<div id="innerFileColumn" class="scrollable">
 					<div>Received attachments</div>
 					<div data-bind="template: { name: 'files-template', data: { fileViewModel: $data, files: receivedAttachments } }"></div>
 					<div>Sent attachments</div>
@@ -1104,7 +1104,7 @@ function touchOrClick(e) {
 		</div>
 
 		<div id="notSupported" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
-			<div class="messageWrapper">
+			<div class="messageWrapper scrollable">
 				<div class="infoMessage">
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) -->
 						<div data-bind="lang: 'oldBrowser_msg'"></div>
@@ -1135,7 +1135,7 @@ function touchOrClick(e) {
 		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
 			<div class="welcomeContainer">
 				<div class="panel">
-					<div class="content">
+					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
 
 						<form class="recordContainer wide" data-bind="submit: login, form: true">
@@ -1174,7 +1174,7 @@ function touchOrClick(e) {
 		<div id="externalLogin" class="login" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
 			<div class="welcomeContainer">
 				<div class="panel">
-					<div class="content">
+					<div class="content scrollable">
 						<h1 data-bind="lang: 'receiveMsg_label'"></h1>
 						<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 						<div data-bind="visible: !errorMessageId()">
@@ -1247,7 +1247,7 @@ function touchOrClick(e) {
         <div id="pre_registration" class="login" data-bind="with: tutao.locator.registrationVerifyDomainViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationVerifyDomainView">
             <div class="welcomeContainer">
                 <div class="panel">
-                    <div class="content">
+                    <div class="content scrollable">
                         <h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
                         <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
                         <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED && state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
@@ -1298,7 +1298,7 @@ function touchOrClick(e) {
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
-					<div class="content">
+					<div class="content scrollable">
 						<h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
 							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
@@ -1892,7 +1892,7 @@ function touchOrClick(e) {
 
 		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView, if: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
-				<div id="settingsInnerColumn">
+				<div id="settingsInnerColumn" class="scrollable">
 					<div id="settingsData">
 						<div data-bind="foreach: getSettings()">
 							<div class="menuItem" data-bind="css: { active: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
@@ -1903,7 +1903,7 @@ function touchOrClick(e) {
 				</div>
 			</div>
 			<div id="changeSettingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
-				<div id="changeSettingsInnerColumn">
+				<div id="changeSettingsInnerColumn" class="scrollable">
 					<div id="changeSettingsData">
 						<div>
 							<div class="heading" data-bind="lang: getSettingsTextId(displayed())"></div>

@@ -12,7 +12,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	var self = this;
 
 	// tutao.tutanota.ctrl.View
-	this._activeView = ko.observable(null);
+	this._activeView = ko.observable(new tutao.tutanota.gui.NotFoundView()); // just a dummy view because null must be avoided
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
 	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 480);

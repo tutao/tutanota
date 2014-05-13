@@ -22,13 +22,7 @@ body {
 		a:ACTIVE {
 			color: black;
 		}
-		
-		// see tutao.tutanota.gui.TouchComposingMode
-		&.touchComposingMode {
-			overflow-y: auto;
-			overflow-x: hidden;
-		}
-		
+
 		> div#viewContainer {
 			position: absolute;
 			left: 0px;
@@ -157,18 +151,13 @@ body {
 				top: 0px;
 				right: 0px;
 				bottom: 0px;
-				overflow-y: auto; // allow scrolling in the mail list in desktop browsers
-				
+
 				> div#emptyContactList {
 					margin-top: 10px;
 					text-align: center;
 				}
 	
 				> div#innerContactList {
-					/* the js part needs to be enabled and the following lines disabled to enable touch scrolling */
-					/*bottom: 0px;
-					overflow-y: auto;
-					overflow-x: hidden;*/
 					background: @white;
 					background-clip: padding-box;
 					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
@@ -214,7 +203,6 @@ body {
 		> div#innerContactColumn {
 			position: relative;
 			height: 100%;
-			overflow-y: auto;
 
 			> div#contactWrapper {
 				position: absolute;
@@ -413,7 +401,6 @@ body {
 		> div#innerFileColumn {
 			position: relative;
 			height: 100%;
-			overflow-y: auto;
 			
 			> div {
 				> div.files {
@@ -467,19 +454,14 @@ body {
 			.searchAndList;
 			
 			
-			section#mailList {	
+			section#mailList {
 				position: absolute;
-				overflow-y: auto; // allow scrolling in the mail list in desktop browsers
-				
+
 				> div.emptyMailList {
 					text-align: center;
 				}
 				
 				> div#innerMailList {
-					/* the js part needs to be enabled and the following lines disabled to enable touch scrolling */
-					/*bottom: 0px;
-					overflow-y: auto;
-					overflow-x: hidden;*/
 					background: @white;
 					background-clip: padding-box;
 					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
@@ -563,23 +545,10 @@ body {
 		> div#innerConversationColumn {
 			position: relative;
 			height: 100%;
-			//was uncommented with native iOS scrolling: -webkit-overflow-scrolling: touch;
-			overflow-y: auto; // enables scrolling in desktop browsers
-	
-			// tutao.tutanota.gui.TouchComposingMode
-			&.touchComposingMode {
-				overflow-y: visible;
-				overflow-x: hidden;
-			}
 
 			> section.conversation {
 				.fill;
-	
-				/* the js part needs to be enabled and the following lines disabled to enable touch scrolling */
-				/*bottom: 0px;
-				overflow-y: auto;
-				overflow-x: hidden;*/
-				
+
 				> div.actions {
                     position: relative;
 					display: table;
@@ -824,8 +793,7 @@ body {
 		> div#innerPasswordChannelColumn {
 			position: relative;
 			height: 100%;
-			overflow-y: auto;
-			
+
 			> div#passwordChannelListWrapper {
 				position: absolute;
 				right: 0px;
@@ -884,8 +852,7 @@ body {
 			> div#settingsInnerColumn {
 				position: relative;
 				height: 100%;
-				overflow-y: auto;
-				
+
 				> div#settingsData {
 					position: absolute;
 					left: 0px;
@@ -922,8 +889,7 @@ body {
 			> div#changeSettingsInnerColumn {
 				position: relative;
 				height: 100%;
-				overflow-y: auto;
-				
+
 				> div#changeSettingsData {
 				
 					> div {

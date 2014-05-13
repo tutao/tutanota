@@ -42,16 +42,9 @@ tutao.tutanota.gui.FileView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			// the timeout is a workaround for the bug that the contact list scrolls horizontally
-			// on iPad until the orientation is changed (see iss119)
-			this._filesScroller = new iScroll('innerFileColumn', {useTransition: true});
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 		tutao.locator.fileViewModel.init();
-	} else {
-		this.filesUpdated();
 	}
 };
 
@@ -74,14 +67,6 @@ tutao.tutanota.gui.FileView.prototype.windowSizeChanged = function(width, height
 tutao.tutanota.gui.FileView.prototype.swipeRecognized = function(type) {
 };
 
-/**
- * Must be called when the shown contact is changed. Updates iScroll.
- */
-tutao.tutanota.gui.FileView.prototype.filesUpdated = function() {
-	if (this._filesScroller) {
-		this._filesScroller.refresh();
-	}
-};
 
 /**
  * @inherit

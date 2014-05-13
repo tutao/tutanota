@@ -30,6 +30,7 @@ This file should be used to verify, if there are any problems with native scroll
 		overflow-y: scroll;
 
 		> ul {
+            position: relative;
 			list-style-type: none;
 			> li {
 		 		height: 30px;
@@ -90,11 +91,11 @@ This file should be used to verify, if there are any problems with native scroll
 		var self = this;
 
 		this.availableOptions = ['native', 'iscroll'];
-		this.selectedOption = ko.observable(this.availableOptions[0]);
+		this.selectedOption = ko.observable(this.availableOptions[1]);
 		this.touchElement = ko.observable();
 		this.position = ko.observable();
 		this.updateCounter = ko.observable(0);
-        this.edit = ko.observable(true);
+        this.edit = ko.observable(false);
 
 	}
 
@@ -164,14 +165,13 @@ This file should be used to verify, if there are any problems with native scroll
 <!--
     * Handling of input-fields/contenteditable fields is problematic as iscroll handles all touch events and the content size changes
 -->
-	<div id="iscrollWrapper">
+
         <div id="iScroller" data-bind="visible: selectedOption() == 'iscroll'">
             <ul data-bind="foreach: stringList, visible: !edit()">
                 <li data-bind="text: $data"></li>
             </ul>
-            <div class="editable" data-bind="visible: edit" contenteditable="true">Editable</div>
         </div>
-    </div>
+
 
 </body>
 </html>

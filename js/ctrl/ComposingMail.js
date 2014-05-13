@@ -205,7 +205,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
                 return;
             }
 
-            tutao.locator.mailView.disableTouchComposingMode();
             tutao.locator.mailView.fadeFirstMailOut();
             setTimeout(function() {
                 self.busy(false);
@@ -254,7 +253,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) 
 
 		this._freeBubbles();
 
-		tutao.locator.mailView.disableTouchComposingMode();
 		//an async animation is shown when the mail is removed. We have to wait for it.
 		var self = this;
 		tutao.locator.mailViewModel.removeFirstMailFromConversation();

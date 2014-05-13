@@ -52,7 +52,6 @@ tutao.tutanota.gui.MailView.prototype.init = function(external) {
 	}
 
 	this._firstActivation = true;
-	this._touchComposingModeActive = false;
 };
 
 /**
@@ -69,32 +68,9 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			this._mailListScroller = new iScroll('mailList', {useTransition: true});
-			this._mailsScroller = new iScroll('innerConversationColumn', {useTransition: true});
-			this._externalMailConfigScroller = new iScroll('innerPasswordChannelColumn', {useTransition: true});
-
-//			// workaround for input field bug. it allows to set the focus on text input elements
-//			// it is currently not needed, because we disable iscroll as soon as we edit a mail
-//			this._externalMailConfigScroller.options.onBeforeScrollStart = function(e) {
-//		        var target = e.target;
-//
-//		        while (target.nodeType != 1) target = target.parentNode;
-//
-//		        if (!tutao.tutanota.gui.isEditable(e.target)) {
-//		            e.preventDefault();
-//		        }
-//		    };
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 		tutao.locator.mailListViewModel.init();
-	} else {
-		this.mailListUpdated();
-		this.mailsUpdated();
-	}
-	if (this._touchComposingModeActive) {
-		this.enableTouchComposingMode();
 	}
 };
 
@@ -102,11 +78,7 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
  * @inherit
  */
 tutao.tutanota.gui.MailView.prototype.deactivate = function() {
-	if (this._touchComposingModeActive) {
-		this.disableTouchComposingMode();
-		// remember that it is active
-		this._touchComposingModeActive = true;
-	}
+
 };
 
 /**
@@ -237,107 +209,6 @@ tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
  */
 tutao.tutanota.gui.MailView.prototype.fadeFirstMailOut = function() {
 	$(".conversation").find('.mail').first().fadeOut();
-};
-
-/**
- * The touch composing mode is only used on touch devices in order to allow scrolling the complete body during editing.
- * This is needed because of the keyboard overlay of these devices.
- */
-tutao.tutanota.gui.MailView.prototype.enableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-		return;
-	}
-	this._touchComposingModeActive = true;
-
-	// now we allow scrolling the window vertically, so we need to enable touchmove
-	tutao.tutanota.gui.enableWindowScrolling();
-
-	// scrolling the mails is not allowed in touch composing mode because the complete window shall be scrolled
-	this._mailsScroller.scrollTo(0, 0);
-	this._mailsScroller.disable();
-	this._externalMailConfigScroller.scrollTo(0, 0);
-	this._externalMailConfigScroller.disable();
-
-	tutao.tutanota.gui.addResizeListener($(".conversation")[0], this._updateBodyHeight, true);
-	tutao.tutanota.gui.addResizeListener($("#passwordChannelList")[0], this._updateBodyHeightPWChannels, true);
-};
-
-/**
- * This event listener updates the body height and is invoked whenever the contents of the #conversation change.
- * It updates the body height and additionally updates the scroll position for the body contenteditable.
- */
-tutao.tutanota.gui.MailView.prototype._updateBodyHeight = function(width, height) {
-	this._mailsHeight = height + $('#header').height() + 110;
-	var newHeight = Math.max(this._mailsHeight, this._passwordChannelsHeight, tutao.tutanota.gui.getWindowHeight());
-	if (newHeight > tutao.tutanota.gui.getWindowHeight()) {
-		$('body').height(newHeight);
-	}
-
-	// if editing the contenteditable for the body, scroll to the cursor
-	var node = $(window.getSelection().focusNode);
-	if (node.nodeType == tutao.tutanota.gui.TEXT_NODE) {
-		node = node.parentNode;
-	}
-
-	if (!node || node.attr('contenteditable') || !node.offset() || node.offset().top == 0) {
-		// the root content editable has been selected. do not scroll to that position!
-		return;
-	}
-	// $(window.getSelection().focusNode).offset().top
-	var target = $(window.getSelection().getRangeAt().endContainer).offset().top - (window.innerHeight / 3);
-	window.scrollTo(0, target);
-};
-
-tutao.tutanota.gui.MailView.prototype._updateBodyHeightPWChannels = function(width, height) {
-	this._passwordChannelsHeight = height + $('#header').height() + 140;
-	var newHeight = Math.max(this._mailsHeight, this._passwordChannelsHeight, tutao.tutanota.gui.getWindowHeight());
-	if (newHeight > tutao.tutanota.gui.getWindowHeight()) {
-		$('body').height(newHeight);
-	}
-};
-
-/**
- * Disables the touch composing mode for the mail view.
- */
-tutao.tutanota.gui.MailView.prototype.disableTouchComposingMode = function() {
-	if (!tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-		return;
-	}
-	tutao.tutanota.gui.removeResizeListener($(".conversation")[0], this._updateBodyHeight);
-	tutao.tutanota.gui.removeResizeListener($("#passwordChannelList")[0], this._updateBodyHeightPWChannels);
-	this._touchComposingModeActive = false;
-	tutao.tutanota.gui.disableWindowScrolling();
-	this._mailsScroller.enable();
-	this._externalMailConfigScroller.enable();
-};
-
-/**
- * Scrolls the mails up to the first mail.
- */
-tutao.tutanota.gui.MailView.prototype.showFirstMail = function() {
-	if (this._mailsScroller) {
-		this._mailsScroller.scrollTo(0, 0, 0);
-	} else {
-		$("#innerConversationColumn").scrollTop(0);
-	}
-};
-
-/**
- * Must be called when the mail list changes. Updates iScroll.
- */
-tutao.tutanota.gui.MailView.prototype.mailListUpdated = function() {
-	if (this._mailListScroller) {
-		this._mailListScroller.refresh();
-	}
-};
-
-/**
- * Must be called when the mails change. Updates iScroll.
- */
-tutao.tutanota.gui.MailView.prototype.mailsUpdated = function() {
-	if (this._mailsScroller) {
-		this._mailsScroller.refresh();
-	}
 };
 
 /**

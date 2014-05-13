@@ -147,7 +147,6 @@ tutao.tutanota.ctrl.DbViewModel.prototype.showInstance = function(type, listId, 
 			self.message("");
 			self.instanceHistory.push({ type: type, listId: listId, id: id, instance: instance, version: version });
 		}
-		tutao.locator.dbView.instancesUpdated();
 	});
 };
 

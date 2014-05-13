@@ -182,7 +182,6 @@ tutao.tutanota.ctrl.LogViewModel.prototype._loadLogEntries = function(upperBound
 			console.log(exception);
 		} else {
 			callback(logEntryList);
-			tutao.locator.logView.logEntriesUpdated();
 		}
 	});
 };

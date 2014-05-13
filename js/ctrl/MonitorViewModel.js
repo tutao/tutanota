@@ -276,9 +276,6 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype.showDiagram = function(group) {
 	this.diagramGroup(group);
 	this.refreshDiagram();
 	tutao.locator.monitorView.showDiagramColumn();
-	setTimeout(function() {		
-		tutao.locator.monitorView.diagramUpdated();
-	}, 0);
 };
 
 tutao.tutanota.ctrl.MonitorViewModel.prototype.refreshDiagram = function() {
@@ -562,9 +559,6 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype.refreshVisibleCounters = function
 			}
 		}
 	}
-	setTimeout(function() {		
-		tutao.locator.monitorView.countersUpdated();
-	}, 0);
 };
 
 /**

@@ -28,9 +28,7 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 		}
 		if (loaded) {
 			this.showSpinner(false);
-			tutao.locator.mailView.fadeConversationIn(function() {
-				tutao.locator.mailView.mailsUpdated();
-			});
+			tutao.locator.mailView.fadeConversationIn(function() {});
 		} else {
 			tutao.locator.mailView.hideConversation();
 		}
@@ -152,8 +150,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype.addFirstMailToConversation = functio
 tutao.tutanota.ctrl.MailViewModel.prototype._setConversation = function(conversation) {
 	var self = this;
 	self.conversation.removeAll();
-
-	tutao.locator.mailView.showFirstMail();
 
 	tutao.util.FunctionUtils.executeSequentially(conversation, function(mail, callback) {
 		self.conversation.push(new tutao.tutanota.ctrl.DisplayedMail(mail));
@@ -334,7 +330,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 //	tutao.tutanota.gui.refreshScrollerWhenBodyChanges();
 	tutao.locator.mailView.showConversationColumn();
 
-	tutao.locator.mailView.enableTouchComposingMode();
 
 	// uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
 ////TODO (story send html email): test on mobiles and move to view

@@ -70,7 +70,6 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function() {
 			self.bodyTextWithoutQuotation(split.text);
 			self.mailBodyLoaded(true);
 			self.bodyTextQuotation(split.quotation);
-			tutao.locator.mailView.mailsUpdated();
 		}
 	});
 //	},1000);

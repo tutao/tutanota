@@ -31,7 +31,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.removeContact = function() {
 	this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
 	this.contactWrapper(null);
 	this.buttons.removeAll();
-	this._refreshScroller();
 	tutao.locator.contactView.showContactListColumn();
 };
 
@@ -44,7 +43,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function() {
 			return true;
 		}
 		this.contactWrapper().stopEditingContact(this);
-		tutao.locator.contactView.disableTouchComposingMode();
 	} else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
 		var text = tutao.locator.languageViewModel.get("discardContactChanges_msg");
 		if (this.contactWrapper().getFullName() != "") {
@@ -54,7 +52,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function() {
 			return true;
 		}
 		this.contactWrapper().stopEditingContact(this);
-		tutao.locator.contactView.disableTouchComposingMode();
 	}
 	return false;
 };
@@ -84,7 +81,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function(contactWr
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("edit_action"),10 , self.editContact),
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("delete_action"),9 , self._deleteContact)
 	]);
-	this._refreshScroller();
 	tutao.locator.contactView.showContactColumn();
 };
 
@@ -108,12 +104,10 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function() {
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"),10 , self._saveContact),
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"),9 , function() {
 	            	  self.contactWrapper().stopEditingContact(self);
-	            	  tutao.locator.contactView.disableTouchComposingMode();
 	            	  self.removeContact();
 	              })
 	]);
 	tutao.locator.contactView.showContactColumn();
-	tutao.locator.contactView.enableTouchComposingMode();
 };
 
 /**
@@ -146,21 +140,10 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.editContact = function() {
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("save_action"),10 , self._saveContact),
 	              new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"),9 , function() {
 	            	  self.contactWrapper().stopEditingContact(self);
-	            	  tutao.locator.contactView.disableTouchComposingMode();
 	            	  self._showContact(self.contactWrapper());
 	              })
 	]);
 	tutao.locator.contactView.showContactColumn();
-	tutao.locator.contactView.enableTouchComposingMode();
-};
-
-/**
- * Updates the scroller. Must be called when the scrolled height changes.
- */
-tutao.tutanota.ctrl.ContactViewModel.prototype._refreshScroller = function() {
-	setTimeout(function() {
-		tutao.locator.contactView.contactUpdated();
-	}, 0);
 };
 
 /**
@@ -179,7 +162,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function() {
 		this.contactWrapper().getContact().update(function() {});
 	}
 	this.contactWrapper().stopEditingContact(this);
-	tutao.locator.contactView.disableTouchComposingMode();
 	this._showContact(this.contactWrapper());
 };
 

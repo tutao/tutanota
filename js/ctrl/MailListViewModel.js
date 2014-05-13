@@ -260,7 +260,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function(callb
 	self._loadMails(currentResult, loadedMails, 0, function() {
 		self.mails(loadedMails);
 		self.selectPreviouslySelectedMail();
-		tutao.locator.mailView.mailListUpdated();
 		self.addLog("finished downloading " + self.mails().length + " mail headers");
 		callback();
 	});
@@ -364,7 +363,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mail
 			}
 		}
 	}
-	tutao.locator.mailView.mailListUpdated();
 	this._addToIndex(mailIds, mailBodyIds, callback);
 };
 

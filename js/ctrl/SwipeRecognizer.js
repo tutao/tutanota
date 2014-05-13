@@ -23,10 +23,10 @@ tutao.tutanota.ctrl.SwipeRecognizer = function() {
 	this._notified = {};
 
 	//TODO (timely) put this into the ctrl and feed the touch events from outside to make this class gui independent
-	$(document).on("touchstart", this._touchStart);
-	$(document).on("touchmove", this._touchMove);
-	$(document).on("touchend", this._touchEnd);
-	$(document).on("touchcancel", this._touchCancel);
+	$("#tutanota").on("touchstart", this._touchStart);
+	$("#tutanota").on("touchmove", this._touchMove);
+	$("#tutanota").on("touchend", this._touchEnd);
+	$("#tutanota").on("touchcancel", this._touchCancel);
 };
 
 /**

@@ -399,37 +399,46 @@ tutao.tutanota.gui.initEvents = function() {
 //	}, 0);
 
 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-		// do not allow default scrolling on the window
-		tutao.tutanota.gui.disableWindowScrolling();
+		tutao.tutanota.gui._disableWindowScrolling();
 	}
 };
 
 /**
- * This function calls preventDefault() on the given event.
- * @param {Event} e The event.
- */
-tutao.tutanota.gui._preventDefault = function(e) {
-	e.preventDefault();
-};
-
-/**
- * Allows the complete window to scroll vertically. This is used in touch composing mode (i.e. the
- * virtual keyboard is shown on touch devices)
- */
-tutao.tutanota.gui.enableWindowScrolling = function() {
-	$('#viewContainer').addClass('touchComposingMode');
-	document.removeEventListener('touchmove', tutao.tutanota.gui._preventDefault, false);
-};
-
-/**
  * Prevents the complete window from scrolling vertically on touch devices.
+ * See http://stackoverflow.com/questions/10238084/ios-safari-how-to-disable-overscroll-but-allow-scrollable-divs-to-scroll-norma
  */
-tutao.tutanota.gui.disableWindowScrolling = function() {
-	// reset the height to the "normal" height
-	$('body').css("height", "100%");
+tutao.tutanota.gui._disableWindowScrolling = function() {
 
-	$('#viewContainer').removeClass('touchComposingMode').css('height', '');
-	document.addEventListener('touchmove', tutao.tutanota.gui._preventDefault, false);
+    // Uses document because document will be topmost level in bubbling
+    $(document).on('touchmove',function(e){
+        e.preventDefault();
+    });
+
+    // Uses body because jquery on events are called off of the element they are
+    // added to, so bubbling would not work if we used document instead.
+    var scrolling = false;
+    $('body').on('touchstart','.scrollable',function(e) {
+
+        // Only execute the below code once at a time
+        if (!scrolling) {
+            scrolling = true;
+            if (e.currentTarget.scrollTop === 0) {
+                e.currentTarget.scrollTop = 1;
+            } else if (e.currentTarget.scrollHeight === e.currentTarget.scrollTop + e.currentTarget.offsetHeight) {
+                e.currentTarget.scrollTop -= 1;
+            }
+            scrolling = false;
+        }
+    });
+
+    // Prevents preventDefault from being called on document if it sees a scrollable div
+    $('body').on('touchmove', '.scrollable', function(e) {
+        // Only block default if internal div contents are large enough to scroll
+        // Warning: scrollHeight support is not universal. (http://stackoverflow.com/a/15033226/40352)
+        if($(this)[0].scrollHeight > $(this).innerHeight()) {
+            e.stopPropagation();
+        }
+    });
 };
 
 /**
@@ -556,77 +565,6 @@ tutao.tutanota.gui.unselect = function(elements) {
 	}
 };
 
-//not needed currently as we scroll the complete window when editing a mail
-///**
-// * When this function is called the mail scroller is refreshed whenever the body changes. This is needed to keep the
-// * complete new mail scrollable even when the height of the body field increases due to new lines inserted by the user.
-// */
-//tutao.tutanota.gui.refreshScrollerWhenBodyChanges = function() {
-//	/*var defaultWindowHeight = window.innerHeight;
-//
-//	var currentHeight = undefined;
-//	var body = $("#conversation").find(".composeBody");
-//	body.bind("keyup", function(e) {
-//		//console.log(e);
-//		//tutao.tutanota.gui.iscroll.mailsScroller.scrollTo(0, 30);
-//		//window.getSelection().getRangeAt().commonAncestorContainer.parentNode.offsetTop
-//		//tutao.tutanota.gui.findCursorPosition();
-//		if (currentHeight != undefined && currentHeight != $(e.target).height()) {
-//			//console.log("size");
-//			//var lastY = tutao.tutanota.gui.iscroll.mailsScroller.y;
-//			//tutao.tutanota.gui.iscroll.mailsScroller.scrollTo(0, tutao.tutanota.gui.iscroll.mailsScroller.maxScrollY, 0);
-//			setTimeout(function() {
-//				//tutao.tutanota.gui.iscroll.mailsScroller.scrollTo(0, lastY, 0);
-//				setTimeout(function() {
-//					tutao.tutanota.gui.iscroll.mailsScroller.refresh();
-//					//console.log(currentHeight);
-//				},10);
-//			},10);
-//		}
-//		currentHeight = $(e.target).height();
-//	});*/
-//
-//	var body = $("#conversation").find(".composeBody");
-//	body.bind("focus", function(e) {
-//
-//		/*
-//		 * this is a workaround for the bug with webkit-overflow-scrolling
-//		 * when the content element is smaller than its container (i.e. it is not scrollable), then the container is made smaller than the content,
-//		 * the content does not become scrollable. we explicitely change the size of the content to make it scrollable
-//		 */
-//		setTimeout(function() {
-//			if ($(".mail").css("margin-bottom") == "7px") {
-//				$(".mail").css("margin-bottom", "6px");
-//			} else {
-//				$(".mail").css("margin-bottom", "7px");
-//			}
-//		}, 10);
-//		/* end workaround for bug with webkit-overflow-scrolling */
-//
-////		setTimeout(function() {
-////			tutao.tutanota.gui.iscroll.mailsScroller.refresh();
-////		}, 0);
-//	});
-//	/* end workaround for bug with the virtual keyboard on ipad */
-//
-//	// when the virtual keyboard has move the page up and is then switched off, we need to refresh iscroll
-//	// there is no virtual keyboard event, so use blur instead
-//	/*body.bind("blur", function(e) {
-//		//console.log("blur1");
-//		setTimeout(function() {
-////			tutao.tutanota.gui.iscroll.mailsScroller.refresh();
-////			var yPosition = tutao.tutanota.gui.iscroll.mailsScroller.y;
-////			tutao.tutanota.gui.iscroll.mailsScroller.scrollTo(0, -10000, 0);
-//			//console.log("blur22");
-//			setTimeout(function() {
-////				console.log("blur2");
-////				tutao.tutanota.gui.iscroll.mailsScroller.scrollTo(0, yPosition, 0);
-//			}, 1);
-//		}, 1);
-//	});*/
-//	//old to do: once, add listener when the browser height changes
-//};
-
 /* Gui part for the view slider */
 
 /**
@@ -674,94 +612,6 @@ tutao.tutanota.gui.slideBeforeRemove = function(domElement) {
 		$(domElement).slideUp(function() {
 			$(domElement).remove();
 		});
-	}
-};
-
-/**
- * Contains all registered resize listeners {domElement:Object, callback:function(), subtreeListener:function(), inputListener, width:number, height:number}.
- */
-tutao.tutanota.gui._resizeListeners = [];
-
-/**
- * Notifies the given callback about a size change of the given dom element.
- * Uses DOMSubtreeModified for dom changes and an input listener for each text area or contenteditable in the dom element.
- * @param {Object} domElement The dom element.
- * @param {function(number,number)} callback Called when the width or height changes. Receives width and height.
- * @param {Boolean} initialCall When true the callback is once called in this function with the current width and height. Not initially called when it is false.
- */
-tutao.tutanota.gui.addResizeListener = function(domElement, callback, initialCall) {
-	var node = $(domElement);
-	var currentWidth = node.width();
-	var currentHeight = node.height();
-	var listenerData = {domElement: domElement, callback: callback, subtreeListener: null, inputListener: null, width: currentWidth, height: currentHeight};
-	// remember listener to be able to unbind it
-	tutao.tutanota.gui._resizeListeners.push(listenerData);
-
-	// each time an input event on a textarea it fired check the size
-	listenerData.inputListener = function() {
-		tutao.tutanota.gui._checkSizeChange(listenerData);
-		return true;
-	};
-
-	// each time the dom tree changes all input listeners are removed from and added to all text areas because text areas might have been added
-	// additionally check the size
-	listenerData.subtreeListener = function() {
-		tutao.tutanota.gui._updateInputListeners(listenerData);
-		tutao.tutanota.gui._checkSizeChange(listenerData);
-		return true;
-	};
-
-	// bind the subtree listener
-	node.bind("DOMSubtreeModified", listenerData.subtreeListener);
-	// bind the input listeners
-	tutao.tutanota.gui._updateInputListeners(listenerData);
-
-	if (initialCall) {
-		listenerData.callback(currentWidth, currentHeight);
-	}
-};
-
-/**
- * Removes all input listeners and adds them again.
- * @param {Object} listenerData The listener data like defined in tutao.tutanota.gui._resizeListeners.
- */
-tutao.tutanota.gui._updateInputListeners = function(listenerData) {
-	var textareas = $(listenerData.domElement).find("textarea");
-	textareas.unbind("input", listenerData.inputListener);
-	textareas.bind("input", listenerData.inputListener);
-};
-
-/**
- * Notifies the listener if the size of the dom elemen thas changed.
- * @param {Object} listenerData The listener data containing the dom element and callback like defined in tutao.tutanota.gui._resizeListeners.
- */
-tutao.tutanota.gui._checkSizeChange = function(listenerData) {
-	// at least in chrome strangely it takes much time (> 100ms) until the new height is available
-	setTimeout(function() {
-		var currentWidth = $(listenerData.domElement).width();
-		var currentHeight = $(listenerData.domElement).height();
-		if ((currentWidth != listenerData.width) || (currentHeight != listenerData.height)) {
-			listenerData.width = currentWidth;
-			listenerData.height = currentHeight;
-			listenerData.callback(currentWidth, currentHeight);
-		}
-	}, 200);
-};
-
-/**
- * Stops notifying the given callback about a size change of the given dom element.
- * @param {Object} domElement The dom element.
- * @param {function(number,number)} callback Called when the width or height changes. Receives width and height.
- */
-tutao.tutanota.gui.removeResizeListener = function(domElement, callback) {
-	for (var i = 0; i < tutao.tutanota.gui._resizeListeners.length; i++) {
-		var listener = tutao.tutanota.gui._resizeListeners[i];
-		if (listener.domElement == domElement && listener.callback == callback) {
-			$(listener.domElement).unbind("DOMSubtreeModified", listener.subtreeListener);
-			$(listener.domElement).find("textarea").unbind("input", listener.inputListener);
-			tutao.tutanota.gui._resizeListeners.splice(i, 1);
-			return;
-		}
 	}
 };
 

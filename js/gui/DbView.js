@@ -50,9 +50,6 @@ tutao.tutanota.gui.DbView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			this._instancesScroller = new iScroll('dbInnerInstancesColumn', {useTransition: true});
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 	}
@@ -108,11 +105,3 @@ tutao.tutanota.gui.DbView.prototype.isShowNeighbourColumnPossible = function(lef
 	}
 };
 
-/**
- * Must be called when the instances change. Updates iScroll.
- */
-tutao.tutanota.gui.DbView.prototype.instancesUpdated = function() {
-	if (this._instancesScroller) {
-		this._instancesScroller.refresh();
-	}
-};

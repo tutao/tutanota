@@ -53,21 +53,6 @@ tutao.tutanota.gui.MonitorView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			this._countersScroller = new iScroll('monitorInnerCountersColumn', {useTransition: true});
-			this._diagramScroller = new iScroll('monitorInnerDiagramColumn', {useTransition: true});
-			
-			// workaround for input field bug. it allows to set the focus on text input elements
-			this._diagramScroller.options.onBeforeScrollStart = function(e) {
-		        var target = e.target;
-
-		        while (target.nodeType != 1) target = target.parentNode;
-
-		        if (!tutao.tutanota.gui.isEditable(e.target)) {
-		            e.preventDefault();
-		        }
-		    };
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 	}
@@ -122,24 +107,6 @@ tutao.tutanota.gui.MonitorView.prototype.isShowNeighbourColumnPossible = functio
 		return (this._leftmostVisibleColumn() >= tutao.tutanota.gui.MonitorView.COLUMN_COUNTERS); // allow showing selection or counters 
 	} else {
 		return (this._rightmostVisibleColumn() <= tutao.tutanota.gui.MonitorView.COLUMN_COUNTERS); // allow showing diagram or counters
-	}
-};
-
-/**
- * Must be called when the diagram changes. Updates iScroll.
- */
-tutao.tutanota.gui.MonitorView.prototype.diagramUpdated = function() {
-	if (this._diagramScroller) {
-		this._diagramScroller.refresh();
-	}
-};
-
-/**
- * Must be called when the counters change. Updates iScroll.
- */
-tutao.tutanota.gui.MonitorView.prototype.countersUpdated = function() {
-	if (this._countersScroller) {
-		this._countersScroller.refresh();
 	}
 };
 

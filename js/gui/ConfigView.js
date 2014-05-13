@@ -47,20 +47,6 @@ tutao.tutanota.gui.ConfigView.prototype.activate = function() {
 	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-			this._configScroller = new iScroll('configInnerColumn', {useTransition: true});
-			
-			// workaround for input field bug. it allows to set the focus on text input elements
-			this._configScroller.options.onBeforeScrollStart = function(e) {
-		        var target = e.target;
-
-		        while (target.nodeType != 1) target = target.parentNode;
-
-		        if (!tutao.tutanota.gui.isEditable(e.target)) {
-		            e.preventDefault();
-		        }
-		    };
-		}
 		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
 		this._viewSlider.showDefault();
 	}
@@ -112,11 +98,3 @@ tutao.tutanota.gui.ConfigView.prototype.isShowNeighbourColumnPossible = function
 	return false;
 };
 
-/**
- * Must be called when the config view content height is changed. Updates iScroll.
- */
-tutao.tutanota.gui.ConfigView.prototype.configUpdated = function() {
-	if (this._configScroller) {
-		this._configScroller.refresh();
-	}
-};

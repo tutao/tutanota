@@ -105,7 +105,6 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 			observables.push(obs);
 		}
 		self.contacts(observables);
-		tutao.locator.contactView.contactListUpdated();
 		callback();
 	});
 };
