@@ -196,7 +196,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	minVersionNeeded[info.BROWSER_TYPE_CHROME] = 30; // we need at least version 30 as swiping is used for tab switching in earlier releases (see https://code.google.com/p/chromium/issues/detail?id=117657)
 	minVersionNeeded[info.BROWSER_TYPE_FIREFOX] = 16;
 	minVersionNeeded[info.BROWSER_TYPE_IE] = 10;
-    minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6.1;
+    minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;
     minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4.4;
 
     if (info._browser == info.BROWSER_TYPE_OPERA) {
@@ -219,7 +219,11 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
             info._browser == info.BROWSER_TYPE_SAFARI &&
             info._browserVersion >= 6.1) {
         info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
-	}
+	} else if (info._device == info.DEVICE_TYPE_DESKTOP &&
+        info._browser == info.BROWSER_TYPE_SAFARI &&
+        info._browserVersion < 6.1) {
+        info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
+    }
 };
 
 tutao.tutanota.util.ClientDetector.isSupported = function() {
@@ -327,9 +331,15 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		}
 	} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
 		// ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
-		alert("alert");
-		info._browser = info.BROWSER_TYPE_SAFARI;
-		info._browserVersion = 6;
+        // after "OS" the iOS version is sent, so use that one
+		versionIndex = userAgent.indexOf(" OS ");
+        if (versionIndex != -1) {
+		    info._browser = info.BROWSER_TYPE_SAFARI;
+            try {
+		        info._browserVersion = Number(userAgent.substring(versionIndex + 4, versionIndex + 5));
+            } catch (e) {}
+            return;
+        }
 	} else if (ieIndex != -1) {
 		info._browser = info.BROWSER_TYPE_IE;
 		versionIndex = ieIndex + 5;
