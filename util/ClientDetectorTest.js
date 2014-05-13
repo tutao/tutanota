@@ -258,6 +258,17 @@ TestCase("ClientDetectorTest", {
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     },
+    "test detect opera 19 on Android": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Linux; Android 4.1.1; HTC One X+ Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.72 Mobile Safari/537.36 OPR/19.0.1340.69721");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA, info.getBrowserType());
+        assertEquals(19, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    },
     "test detect windows phone 8.0": function() {
         var info = tutao.tutanota.util.ClientDetector;
         info._setClientInfo("Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; IEMobile/10.0; ARM; Touch; Microsoft; Virtual)");
