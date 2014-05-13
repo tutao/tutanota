@@ -37,10 +37,6 @@ AsyncTestCase("MailListViewModelTest", {
 		tutao.locator.mailView = {};
 		tutao.locator.mailView.showDefaultColumns = mockFunction();
 		tutao.locator.mailView.showConversationColumn = mockFunction();
-		tutao.locator.mailView.mailListUpdated = mockFunction();
-		tutao.locator.mailView.showFirstMail = mockFunction();
-		tutao.locator.mailView.mailsUpdated = mockFunction();
-		tutao.locator.mailView.mailsUpdated = mockFunction();
 		tutao.locator.mailView.getMailListDomElement = mockFunction();
 		tutao.locator.mailView.hideConversation = mockFunction();
 		
