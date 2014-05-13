@@ -155,7 +155,7 @@ tutao.tutanota.gui.initKnockout = function() {
 	// sets a wide class on all forms that are wider than 350px
 	var updateForm = function(element, container) {
 		var e = $(element);
-		e.toggleClass("wide", container.width() >= 350);
+		e.toggleClass("wide", container.width() > 360);
 	};
 	// allows moving the record-data part of a record-container below the record-name on small devices
 	var currentForms = []; 
