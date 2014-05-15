@@ -17,7 +17,6 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.companyName = ko.observable("");
 	this.domain = ko.observable("tutanota.de");
 	this.name = ko.observable("");
-	this.nameFieldFocused = ko.observable("");
 	this.mobileNumber = ko.observable("");
 	this.mobileNumberStatus = ko.computed(function() {
 		if (this.mobileNumber() == "") {
@@ -93,9 +92,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
     if (this.pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED) {
         return;
     }
-	setTimeout(function() {
-		self.nameFieldFocused(true);
-	}, 0);
+    // setting the focus into the name field here with knockout focus binding results in too small scrollable registration div
 
     self._activate(authToken);
 };
