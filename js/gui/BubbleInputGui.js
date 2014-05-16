@@ -31,15 +31,6 @@ tutao.tutanota.gui.BubbleInputGui.resizeInputField = function(inputField, text) 
 };
 
 /**
- * @param {*} element The dom element of the input field.
- * @return {number} the position of the cursor on the provided input field.
- */
-tutao.tutanota.gui.BubbleInputGui.getCursorPosition = function(element) {
-	return element.selectionStart;
-};
-
-
-/**
  * Sets the cursor to the end of the input field.
  * @param {*} target The target or one of it's children must be an input field (input with type='text').
  */

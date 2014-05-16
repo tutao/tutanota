@@ -241,10 +241,10 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleDownArrow =
  */
 tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.selectLastBubble = function() {
 	var lastElement = tutao.util.ArrayUtils.last(this.bubbles());
-	var cursorPosition = tutao.tutanota.gui.BubbleInputGui.getCursorPosition(this.inputDomField);
-	if (lastElement && cursorPosition === 0) {
-		lastElement.selected(true);
-	}
+    // getting the cursor position of input type=email fields does not work on chrome, so we check that the field is empty instead
+    if (lastElement && this.inputValue() == "") {
+        lastElement.selected(true);
+    }
 };
 
 /**
