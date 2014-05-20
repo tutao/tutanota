@@ -185,8 +185,8 @@ AsyncTestCase("MailListViewModelTest", {
 		
 		queue.call('check search', function(callbacks) {
 			var finalCallback = callbacks.add(function() {});
-			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("all"), ko.observable("tooltip"), ko.observable("")));
-			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("test"), ko.observable("tooltip"), ko.observable("")));
+			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("all"), ko.observable("tooltip"), ko.observable(""), true));
+			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("test"), ko.observable("tooltip"), ko.observable(""), true));
 			self.vm.search(callbacks.add(function() {
 				assertEquals([mail2, mail1], self.vm.mails());
 				finalCallback();
