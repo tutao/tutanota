@@ -74,17 +74,27 @@ div.login {
 			}
 		}
 	}
-	> div.messageWrapper { // fakes a min-margin
-		padding-left: 7px;
-		padding-right: 7px;
-		
-		> div.infoMessage {
-			margin: auto;
-			max-width: 800px;
-			margin-top: 100px;
-		}
-	}
-		
+}
+
+div.failContent {
+  position: absolute;
+  .fill;
+  margin-top: 70px;
+
+  > div.messageWrapperFail { // fakes a min-margin
+    position: relative;
+    height: 100%;
+    padding-left: 7px;
+    padding-right: 7px;
+
+    > div.infoMessage {
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      max-width: 800px;
+    }
+  }
 }
 
 div.clientInfo {

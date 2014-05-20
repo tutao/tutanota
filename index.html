@@ -1103,8 +1103,8 @@ function touchOrClick(e) {
 			</div>
 		</div>
 
-		<div id="notSupported" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
-			<div class="messageWrapper scrollable">
+		<div id="notSupported" class="failContent" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notSupportedView">
+			<div class="messageWrapperFail scrollable">
 				<div class="infoMessage">
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) -->
 						<div data-bind="lang: 'oldBrowser_msg'"></div>
@@ -1113,11 +1113,11 @@ function touchOrClick(e) {
 						<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
-						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop, Android)</a></li>
+						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
                         <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
-                        <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (iPhone, iPad)</a></li>
                         <li><a target="_blank" href="http://www.opera.com/mobile">Opera (Android)</a></li>
-						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop, Windows Phone)</a></li>
+                        <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (iPhone, iPad)</a></li>
+						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
 					</ul>
 					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
 					<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
@@ -1492,8 +1492,8 @@ function touchOrClick(e) {
 			</div>
 		</div>
 
-		<div id="notFound" class="login" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
-			<div class="messageWrapper">
+		<div id="notFound" class="failContent" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
+			<div class="messageWrapperFail scrollable">
 				<div class="infoMessage">
 					<h1>404</h1>
 					<div data-bind="lang: 'notFound404_msg'"></div>

@@ -198,7 +198,8 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4.4;
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
 
-    if (info._browser == info.BROWSER_TYPE_OTHER) {
+    if (info._browser == info.BROWSER_TYPE_OTHER ||
+        (info._device != info.DEVICE_TYPE_DESKTOP && (info._browser == info.BROWSER_TYPE_FIREFOX || info._browser == info.BROWSER_TYPE_IE))) {
 		info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
