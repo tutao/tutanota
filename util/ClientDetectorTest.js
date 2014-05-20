@@ -234,7 +234,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     },
     "test detect android browser 4.1 on Android": function() {
         var info = tutao.tutanota.util.ClientDetector;
@@ -278,7 +278,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE, info.getDeviceType());
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     },
     "test detect windows phone 7.5": function() {
         var info = tutao.tutanota.util.ClientDetector;
@@ -289,7 +289,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE, info.getDeviceType());
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     },
     "test detect chrome 34 on iphone": function() {
         var info = tutao.tutanota.util.ClientDetector;
