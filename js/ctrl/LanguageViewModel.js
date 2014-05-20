@@ -127,7 +127,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	nonConfidential_action: "Not confidential",
     confidentialStatus_msg: "This message is sent end-to-end encrypted.",
     nonConfidentialStatus_msg: "This message is not sent end-to-end encrypted.",
-
 	noMails_msg: "There are no emails in this list.",
 	noMail_msg: "No email selected.",
 	addMobileNumber_msg: "Add additional mobile phone number.",
@@ -139,6 +138,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     showAttachment_label: "Display attachment",
     saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser. Please use Mozilla Firefox or Google Chrome otherwise.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
+    removeRecipient_alt: "Remove recipient",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -534,6 +534,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     showAttachment_label: "Anhang anzeigen",
     saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
+    removeRecipient_alt: "Empfänger entfernen",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
