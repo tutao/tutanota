@@ -290,6 +290,16 @@ TestCase("ClientDetectorTest", {
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
         assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+    },
+    "test detect chrome 34 on iphone": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) CriOS/34.0.1847.18 Mobile/11A501 Safari/9537.53");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OTHER, info.getBrowserType());
+        assertEquals(0, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE, info.getDeviceType());
+        assertEquals(true, info.isMobileDevice());
+        assertEquals(true, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     }
-
 });
