@@ -50,8 +50,6 @@ tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI = "legacy safari
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED = "not supported";
 /** browser is generally supported, but must be updated to fit supported version */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED = "update needed";
-/** support is unknown */
-tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UNKNOWN = "unknown";
 
 /** german language */
 tutao.tutanota.util.ClientDetector.LANGUAGE_DE = "de";
@@ -201,7 +199,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
 
     if (info._browser == info.BROWSER_TYPE_OTHER) {
-		info._supported = info.SUPPORTED_TYPE_UNKNOWN;
+		info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
     } else {
@@ -361,6 +359,10 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 			} catch (e) {}
 		}
 	}
+    // if the version is not valid, the browser type is not valid, so set it to other
+    if (info._browserVersion == 0) {
+        info._browser = info.BROWSER_TYPE_OTHER;
+    }
 };
 
 /**
