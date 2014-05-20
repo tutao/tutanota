@@ -255,7 +255,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.createBubbleFromSuggestion = 
 
 /** @inheritDoc */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.createBubbleFromText = function(text) {
-	return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(text), ko.observable(null), ko.observable('default'));
+	return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(text), ko.observable(null), ko.observable('default'), false);
 };
 
 /** @inheritDoc */

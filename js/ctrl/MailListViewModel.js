@@ -707,7 +707,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.createBubbleFromSuggestion = fun
 
 /** @inheritDoc */
 tutao.tutanota.ctrl.MailListViewModel.prototype.createBubbleFromText = function(text) {
-	return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(text), ko.observable(null), ko.observable('default'));
+	return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(text), ko.observable(null), ko.observable('default'), false);
 };
 
 /** @inheritDoc */

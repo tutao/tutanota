@@ -565,7 +565,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = fun
             return "unsecureRecipient";
         }
     }, this);
-	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state);
+	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state, true);
 };
 
 /**

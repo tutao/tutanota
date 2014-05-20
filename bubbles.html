@@ -109,18 +109,18 @@
 			var nameWithMail = /^([^<]+)<\s*([^\s@]+@[^\s@]+\.[^\s@>]+)\s*>$/; // matches an address like "Arne<arne@tutao.de>
 			var mail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // matches pure mail addresses like tommy@tutao.de
 			if (mail.test(value)) {
-				return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(value), ko.observable("tooltip"), ko.observable('default'));
+				return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(value), ko.observable("tooltip"), ko.observable('default'), true);
 			} else {
 				var matches = value.match(nameWithMail);
 				if (matches && matches.length === 3) {
-					return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(matches[1].trim() + ": " + matches[2].trim()), ko.observable("tooltip"), ko.observable('default'));
+					return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(matches[1].trim() + ": " + matches[2].trim()), ko.observable("tooltip"), ko.observable('default'), true);
 				}
 			}
 			return null;
 		};
 		
 		tutao.tutanota.ctrl.bubbleinput.MailBubbleHandler.prototype.createBubbleFromSuggestion = function(suggestion) {
-			return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(suggestion.text), ko.observable("tooltip"), ko.observable('suggestion'));
+			return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(suggestion.text), ko.observable("tooltip"), ko.observable('suggestion'), true);
 		};
 		
 		tutao.tutanota.ctrl.bubbleinput.MailBubbleHandler.prototype.buttonClick = function() {};
@@ -136,7 +136,7 @@
 		};
 		
 		tutao.tutanota.ctrl.bubbleinput.TextBubbleHandler.prototype.createBubbleFromText = function(value) {
-			return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(value), ko.observable("tooltip"), ko.observable('default'));
+			return new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable(value), ko.observable("tooltip"), ko.observable('default'), true);
 		};
 		
 		tutao.tutanota.ctrl.bubbleinput.TextBubbleHandler.prototype.createBubbleFromSuggestion = function(suggestion) {

@@ -626,22 +626,36 @@ div.bubbleInput {
 			line-height: 1;
 			padding-left: 5px; // Always update tutao.tutanota.gui.BubbleInput.resizeInputField when updating this value!
 			
-			> span.bubble {
+			> div.bubble {
 				display:inline-block;
 				margin-right: 5px;
-				.fadeTextOut;
 				height: 24px;	// 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
 				line-height: 24px;
-						
 				cursor: pointer;
-			
 				border-radius: 5px;
 				padding-left: 5px;
-				padding-right: 5px;
 				.nonSelectable;
+
+                > div.bubbleText {
+                    display: inline-block;
+                    .fadeTextOut;
+                    padding-right: 5px;
+                }
+
+                > div.removeBubble {
+                    display: inline-block;
+                    width: 35px;
+                    height: 100%;
+                    vertical-align: top;
+                    border-left: 2px solid @white;
+
+                    > div {
+                      background-size: 18px;
+                    }
+                }
 			}
-			
-			> div {
+
+			> div.bubbleInputDiv {
 				display: inline-block;
 				width: 100%;
 				vertical-align: top; // fix for firefox and ie (see: https://bugzilla.mozilla.org/show_bug.cgi?id=491549#c13)
