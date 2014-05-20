@@ -401,6 +401,15 @@ tutao.tutanota.gui.initEvents = function() {
 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		tutao.tutanota.gui._disableWindowScrolling();
 	}
+    window.onbeforeunload = tutao.tutanota.gui._confirmExit;
+};
+
+tutao.tutanota.gui._confirmExit = function() {
+    if (tutao.locator.viewManager.isUserLoggedIn()) {
+        return tutao.lang("leavePageConfirmation_msg");
+    } else {
+        return null;
+    }
 };
 
 /**
