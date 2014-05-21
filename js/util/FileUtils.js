@@ -93,17 +93,18 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 		callback();
 	} else {
         var url;
-		// safari can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
-		if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE) {
+		// safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
+		if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7) {
 			var base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()));
 			url = "data:" + dataFile.getMimeType() + ";base64," + base64;
 		} else {
 			var blob = new Blob([dataFile.getData()], { "type" : dataFile.getMimeType() });
 			url = URL.createObjectURL(blob);
 		}
-        // safari on OS X does not support opening links with simulated clicks, so show a download dialog
-        if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) {
-            tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, function() {
+        // safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog
+        if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI) {
+            var textId = (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? 'saveDownloadNotPossibleMobile_msg' : 'saveDownloadNotPossible_msg';
+            tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId, function() {
                 // the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
                 setTimeout(function() {
                     URL.revokeObjectURL(url);
