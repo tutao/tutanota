@@ -221,9 +221,6 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
         info._browser == info.BROWSER_TYPE_SAFARI &&
         info._browserVersion < 6.1) {
         info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
-    } else if (info._device == info.DEVICE_TYPE_DESKTOP &&
-        info._browser == info.BROWSER_TYPE_OPERA) {
-        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     }
 };
 
