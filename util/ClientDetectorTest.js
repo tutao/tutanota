@@ -170,7 +170,7 @@ TestCase("ClientDetectorTest", {
 		assertEquals(false, info.isPhoneSupported());
 		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
 	},
-	"test detect opera windows": function() {
+	"test detect opera 12 windows": function() {
 		var info = tutao.tutanota.util.ClientDetector;
 		info._setClientInfo("Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.11");
 		assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA, info.getBrowserType());
@@ -179,8 +179,30 @@ TestCase("ClientDetectorTest", {
 		assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
 		assertEquals(false, info.isMobileDevice());
 		assertEquals(false, info.isPhoneSupported());
-		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
+		assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
 	},
+    "test detect opera 21 windows": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.132 Safari/537.36 OPR/21.0.1432.67 (Edition Campaign 38)");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA, info.getBrowserType());
+        assertEquals(21, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assertEquals(false, info.isMobileDevice());
+        assertEquals(false, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    },
+    "test detect opera 21 Mac": function() {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.132 Safari/537.36 OPR/21.0.1432.67");
+        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA, info.getBrowserType());
+        assertEquals(21, info.getBrowserVersion());
+        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assertEquals(false, info.isMobileDevice());
+        assertEquals(false, info.isPhoneSupported());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    },
     "test detect safari 6.1 on OS X": function() {
         var info = tutao.tutanota.util.ClientDetector;
         info._setClientInfo("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.71 (KHTML, like Gecko) Version/6.1 Safari/537.71");
