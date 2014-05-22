@@ -14,21 +14,21 @@ tutao.tutanota.gui.LoginView = function() {
  * @inherit
  */
 tutao.tutanota.gui.LoginView.prototype.init = function() {
-
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.LoginView.prototype.isForInternalUserOnly = function() {
-	return false;
+    return false;
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.LoginView.prototype.activate = function() {
-	tutao.locator.loginViewModel.activate();
+
 };
 
 /**
@@ -41,27 +41,20 @@ tutao.tutanota.gui.LoginView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.LoginView.prototype.windowSizeChanged = function(width, height) {
-
+tutao.tutanota.gui.LoginView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.LoginView.prototype.swipeRecognized = function(type) {
-
+tutao.tutanota.gui.LoginView.prototype.isShowLeftNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.LoginView.prototype.showNeighbourColumn = function(left) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.LoginView.prototype.isShowNeighbourColumnPossible = function(left) {
-	return false;
+tutao.tutanota.gui.LoginView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };

@@ -50,6 +50,17 @@ tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_IN = 2;
 tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_OUT = 3;
 
 /**
+ * Id for the swipe right event.
+ */
+tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT = 4;
+
+/**
+ * Id for the swipe left event.
+ */
+tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT = 5;
+
+
+/**
  * @protected
  * The maximal distance the finger may move in vertical direction to still recognize the gesture as horizontal swipe in px.
  */
@@ -90,6 +101,18 @@ tutao.tutanota.ctrl.SwipeRecognizer._MAX_START_OFFSET_FOR_BORDER_OUT = 450;
  * The distance from the border in px that the finger must at least move (in border direction) to recognize a swipe out.
  */
 tutao.tutanota.ctrl.SwipeRecognizer._MIN_END_OFFSET_FOR_BORDER_OUT = 10;
+
+/**
+ * @protected
+ * The distance the finger must at least move to recognize a swipe left or swipe right.
+ */
+tutao.tutanota.ctrl.SwipeRecognizer._MIN_SLIDE_DISTANCE = 50;
+
+/**
+ * @protected
+ * The distance as percentage of the horizontal slide that the finger may slide vertically to still recognize a swipe left or swipe right.
+ */
+tutao.tutanota.ctrl.SwipeRecognizer._MAX_ORTHOGRAPIC_VARIATION_FACTOR = 0.2;
 
 /**
  * Set the screen resolution. Must be called at least once before adding listeners and in case of browser window
@@ -151,7 +174,8 @@ tutao.tutanota.ctrl.SwipeRecognizer.prototype._touchMove = function(event) {
 tutao.tutanota.ctrl.SwipeRecognizer.prototype._tryRecognization = function() {
 	var SR = tutao.tutanota.ctrl.SwipeRecognizer;
 	// try to recognize a swipe
-	if (this._listeners[SR.TYPE_LEFT_IN] && !this._notified[SR.TYPE_LEFT_IN]) {
+	/* border swipe detection is not used currently
+    if (this._listeners[SR.TYPE_LEFT_IN] && !this._notified[SR.TYPE_LEFT_IN]) {
 		if (this._startX <= SR._MAX_START_OFFSET_FOR_BORDER_IN &&
 				(this._currentX > this._startX) &&
 				(this._currentX >= SR._MIN_END_OFFSET_FOR_BORDER_IN) &&
@@ -190,7 +214,21 @@ tutao.tutanota.ctrl.SwipeRecognizer.prototype._tryRecognization = function() {
 			this._notified[SR.TYPE_RIGHT_OUT] = true;
 			this._listeners[SR.TYPE_RIGHT_OUT]();
 		}
-	}
+	}*/
+    if (this._listeners[SR.TYPE_RIGHT] && !this._notified[SR.TYPE_RIGHT]) {
+        if ((this._currentX >= this._startX + SR._MIN_SLIDE_DISTANCE) &&
+            (Math.abs(this._currentY - this._startY) <= Math.abs(this._currentX - this._startX) * SR._MAX_ORTHOGRAPIC_VARIATION_FACTOR)) {
+            this._notified[SR.TYPE_RIGHT] = true;
+            this._listeners[SR.TYPE_RIGHT]();
+        }
+    }
+    if (this._listeners[SR.TYPE_LEFT] && !this._notified[SR.TYPE_LEFT]) {
+        if ((this._currentX <= this._startX - SR._MIN_SLIDE_DISTANCE) &&
+            (Math.abs(this._currentY - this._startY) <= Math.abs(this._currentX - this._startX) * SR._MAX_ORTHOGRAPIC_VARIATION_FACTOR)) {
+            this._notified[SR.TYPE_LEFT] = true;
+            this._listeners[SR.TYPE_LEFT]();
+        }
+    }
 };
 
 /**

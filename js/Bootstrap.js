@@ -212,17 +212,11 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     if (tutao.locator.swipeRecognizer) {
         tutao.locator.swipeRecognizer.setScreenSize(tutao.tutanota.gui.getWindowWidth(), tutao.tutanota.gui.getWindowHeight());
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_IN, function () {
-            tutao.locator.viewManager.getActiveView().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_IN);
+        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT, function () {
+            tutao.locator.viewManager.getActiveView().getSwipeSlider().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT);
         });
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_OUT, function () {
-            tutao.locator.viewManager.getActiveView().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_OUT);
-        });
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_IN, function () {
-            tutao.locator.viewManager.getActiveView().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_IN);
-        });
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_OUT, function () {
-            tutao.locator.viewManager.getActiveView().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_OUT);
+        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT, function () {
+            tutao.locator.viewManager.getActiveView().getSwipeSlider().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT);
         });
     }
 
@@ -234,7 +228,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
         // notify the active view and the swipe recognizer
         if (tutao.locator.viewManager.getActiveView() != null) {
-            tutao.locator.viewManager.getActiveView().windowSizeChanged(width, height);
+            tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
         }
         if (tutao.locator.swipeRecognizer) {
             tutao.locator.swipeRecognizer.setScreenSize(width, height);

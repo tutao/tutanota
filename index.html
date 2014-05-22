@@ -122,8 +122,8 @@
 <body>
 <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
 <div id="leftViewButtonSlider" data-bind="css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
-    <div id="logo" data-bind="with: tutao.locator.viewManager, slideLeft: tutao.locator.viewManager.getActiveView().isShowNeighbourColumnPossible(true) ? '0%' : '-100%'">
-        <div class="leftViewButton imgButton leftIndicator" data-bind="fastClick: function() { getActiveView().showNeighbourColumn(true); }"></div>
+    <div id="logo" data-bind="with: tutao.locator.viewManager, slideLeft: tutao.locator.viewManager.getActiveView().isShowLeftNeighbourColumnPossible() ? '0%' : '-100%'">
+        <div class="leftViewButton imgButton leftIndicator" data-bind="fastClick: function() { getActiveView().getSwipeSlider().showLeftNeighbourColumn(); }"></div>
 	    <div class="path">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABKCAYAAAAsXNNQAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABkuAAAZLgE9dTosAAAAB3RJTUUH3gEIDhUOxqcwuQAABTBJREFUeNrtm21sFEUYx39zIC9VAgIGvsndrkYTiQQVxHe+VBNEYkSCgELRCkWBEoQqiIRv4hcTUGMgDS2llWjhMNEIYsSQCKLRaCIkhJ3drQIhQAnI+9s9frg70xCB3vVu9/Y6/2aSNtubm/vtf+d55pk5RQftse1BwAQF04H7gIEYpYBDwPcC6xTsGuU4l7MXVfaXn2y7UkEjMNQwu74E9iioHO04//wHcLdtPw1sVYZPZyG2AfePcZxTPXbZ9iAF3wK3GTSd1gCBivoTJ7aqH217poJ6wySvybF/T4HpYljkq5qYpKOtUX5z4fCeAgONA/NWRcww6Jp6Gvd1FaAhaBxoABqABqBRfnmgAWgcaBxoHGgcaGQcaBxoHBiOrgpcUnAO6Af0Mg7MTT2AvgJ9BLYrOA9MCHIAsRTpjc+INwVUpoQKgbeCfO8YkvFixFumLDdKhE+DfN9yCSIe8BvwpsAzQe5vRwXgsUw7CvxNemPbBw4A+4HTz7vOuc0Ju0rBx9JNAJ4HXOAgsDcDwgWOCBw5Ae3VrvO/w/siYfdW0F/BYGA48MTmhF0NDA3684QB8B+gDvgKOPmC65y59h9aE7Z9OzzZmrCHAxYwBBiioC9wS6b1Jv33rdmUotzzQAEaJ7pO1XVcdbeC5cCUG3XQnRPptS+6zqwbXN8n6bwuUooFGPHrb2LPSQKHBC5HKYOKCcH8pJC6GwGc5DqbU6TuFWSsIHWC7AxqbF34TKiNCSvIqWW/pJda+iVXX+nMCzYmrIeBicBzwB2Z4NGHDodDQ1RSfRYswOzjugNomOLq9bm8riVhDVCQyETmkcCjwOMhlrOSqiUEgB10VmAR6aPF56e6Oq+xtCSsEcCkjFOHATGCCUhJ1RwuwKxOAl8KNE9z9faudLQhYQ1R8CAwKuPOxzJ5Y3EcuKE0AHbUXwKTX3b17kJ0tiFhKeDZTPL+SIHnzqRqKj2A2dv7i8DqVzzdVKgu1yeswSodjMYBlXTxXLhAUq2PW6VeTzgs8NR0Tx8oVIdNcSsGVAhUA++TfyU7qRpLH2D2bs+f4elVxei7MW7NBmYCD+UMsCEiADMQW4BpVZ4u+Jgb4lbvTNBJ5vBoJ6NWUJ0C/AF8UOiOZ3j6IvAd0G9d3PoEmN2ZgBOLYPV+ZX3cGlnMu1Tl6TnASIEznVgLR28LBFhcbKtXefp3gRECB8sOoMBda+JW0Vcar3paCzwgcKDcAAZWSXjN00cFKgXaywmgrvb01aAiV7WnfYFx5QTwo6DD/+ue3iNQUw4AG2Z5emcYOVQKGgSc7FhSEQToCdSGlYTWePqCwOQO2UCkAJ4WGF/j6VNhZvI1nv5VYFPUHuHDAvE5nt5bIkvK5ZI+WhcJgN+kYPQbnm4vlfVkKr23sy89B2ZONpVoew9h/FxPHyylBflcT18RoQmhV6kWE34Gauf5halKF+kxXg2MjZXgMb+pMRhTyvAA5vn6gsDXpeLAU8AWgfkL/HCjbI4ubFYfDgu9oLpOwbJaXx8iggrLgaeBnQLzFvraJcIKA+BKYO1CX2vKQEEBPAxsugQLlvjBVVHKAeBeYAWwY5Gvj1OGKgbAc4AD1C729Q7KXIUEeAxYBWyp8/WfdBN1FeAV0l89WPK2rxvphsoX4FnSR3aT7/j6B7qxcgGYAtqBd5f4eg1GNwGYvaA4CbQCrUt9vc0guxbg9S14HJivhM+Bq0vbtPludicc2AZsA5qXtYWzcRNBgALp+ludgt3L2tyLBksOWnFn4h5DIX/9C2Ztxw3suQIzAAAAAElFTkSuQmCC"/>
             <div class="claim" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn()"><img src="data:image/png;base64,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" /></div>
@@ -350,7 +350,6 @@
 	<script type="text/javascript" src="js/ctrl/DropDownViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ExternalLoginViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FeedbackViewModel.js"></script>
-    <script type="text/javascript" src="js/ctrl/ModalPageBackgroundViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FileFacade.js"></script>
 	<script type="text/javascript" src="js/ctrl/FileViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/FontViewModel.js"></script>
@@ -362,6 +361,7 @@
 	<script type="text/javascript" src="js/ctrl/MailBoxController.js"></script>
 	<script type="text/javascript" src="js/ctrl/MailListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/MailViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/ModalPageBackgroundViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/MonitorViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Navigator.js"></script>
 	<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
@@ -409,6 +409,7 @@
 	<script type="text/javascript" src="js/gui/RegistrationVerifyDomainView.js"></script>
 	<script type="text/javascript" src="js/gui/RegistrationView.js"></script>
 	<script type="text/javascript" src="js/gui/SettingsView.js"></script>
+	<script type="text/javascript" src="js/gui/SwipeSlider.js"></script>
 	<script type="text/javascript" src="js/gui/gui.js"></script>
 	<script type="text/javascript" src="js/index/Indexer.js"></script>
 	<script type="text/javascript" src="js/legacy/FlashFileSaver.js"></script>
@@ -1561,13 +1562,13 @@ function touchOrClick(e) {
 					</fieldset>
 					<label>show current <input type="checkbox" data-bind="checked: showCurrent" /></label>
 					<br>
-					<input class="logSelector" type="date" data-bind="value: untilDate, enable: !showCurrent()" /> />
-					<input class="logSelector" type="text" data-bind="value: untilTime, enable: !showCurrent()" /> />
+					<input class="logSelector" type="date" data-bind="value: untilDate, enable: !showCurrent()" />
+					<input class="logSelector" type="text" data-bind="value: untilTime, enable: !showCurrent()" />
 					<br>
 					<button data-bind="enable: showNewerPossible(), click: showNewer">newer</button>
 					<button data-bind="enable: showOlderPossible(), click: showOlder">older</button>
 					<button data-bind="click: function() { showMore(); }">more</button>
-					<label>limit <input class="logSelector" type="text" data-bind="value: maxCount" /> /></label>
+					<label>limit <input class="logSelector" type="text" data-bind="value: maxCount" /></label>
 				</div>
 			</div>
 
@@ -2213,8 +2214,8 @@ function touchOrClick(e) {
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <div id="rightViewButtonSlider" >
-            <menu data-bind="slideRight: getActiveView().isShowNeighbourColumnPossible(false) ? '0%' : '-100%'">
-                <div class="rightViewButton imgButton rightIndicator" data-bind="fastClick: function() { getActiveView().showNeighbourColumn(false); }"></div>
+            <menu data-bind="slideRight: getActiveView().isShowRightNeighbourColumnPossible() ? '0%' : '-100%'">
+                <div class="rightViewButton imgButton rightIndicator" data-bind="fastClick: function() { getActiveView().getSwipeSlider().showRightNeighbourColumn(); }"></div>
                 <ul id="menu_list">
                     <!-- ko if: isInternalUserLoggedIn() -->
                         <!-- ko if: getActiveView() == tutao.locator.dbView || getActiveView() == tutao.locator.monitorView || getActiveView() == tutao.locator.logView  || getActiveView() == tutao.locator.configView  || getActiveView() == tutao.locator.customerView -->

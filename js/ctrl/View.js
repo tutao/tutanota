@@ -33,23 +33,18 @@ tutao.tutanota.ctrl.View.prototype.deactivate = function() {};
 
 /**
  * Called if this view is active and the window size has changed.
+ * @return {tutao.tutanota.gui.SwipeSlider} The SwipeSlider used by the view.
  */
-tutao.tutanota.ctrl.View.prototype.windowSizeChanged = function(width, height) {};
+tutao.tutanota.ctrl.View.prototype.getSwipeSlider = function() {};
 
 /**
- * Called if this view is active and a swipe has been recognized.
+ * Provides the information if it is allowed to show the left neighbour column.
+ * @return {boolean} True if the left neighbour column can be shown, false otherwise.
  */
-tutao.tutanota.ctrl.View.prototype.swipeRecognized = function(type) {};
+tutao.tutanota.ctrl.View.prototype.isShowLeftNeighbourColumnPossible = function() {};
 
 /**
- * Slides the currently visible column(s) left or right to make a neighbour column visible.
- * @param {boolean} left True if the left neighbour column shall be made visible, false if the right neighbour column shall be made visible.
+ * Provides the information if it is allowed to show the right neighbour column.
+ * @return {boolean} True if the right neighbour column can be shown, false otherwise.
  */
-tutao.tutanota.ctrl.View.prototype.showNeighbourColumn = function(left) {};
-
-/**
- * Provides the information if it is allowed to slide to the column left or right.
- * @param {boolean} left True if the left direction shall be checked, false for the right direction.
- * @return {boolean} True if sliding in the given direction is allowed, false otherwise.
- */
-tutao.tutanota.ctrl.View.prototype.isShowNeighbourColumnPossible = function(left) {};
+tutao.tutanota.ctrl.View.prototype.isShowRightNeighbourColumnPossible = function() {};

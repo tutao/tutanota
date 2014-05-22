@@ -8,32 +8,19 @@ goog.provide('tutao.tutanota.gui.CustomerView');
  */
 tutao.tutanota.gui.CustomerView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-
-	this._leftmostVisibleColumn = ko.observable(-1);
-	this._rightmostVisibleColumn = ko.observable(-1);
 };
+
+
+tutao.tutanota.gui.CustomerView.COLUMN_SETTINGS = null;
+tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS = null;
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.CustomerView.prototype.init = function(external) {
-	var self = this;
-	// configure view slider
-	this._viewSlider = new tutao.tutanota.ctrl.ViewSlider();
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
-	this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
-		self._leftmostVisibleColumn(self._viewSlider.getLeftmostVisibleColumnId());
-		self._rightmostVisibleColumn(self._viewSlider.getRightmostVisibleColumnId());
-		tutao.tutanota.gui.viewPositionAndSizeReceiver("#customerContent", x, y, initial);
-	});
-	this._viewSlider.addViewColumn(0, 100, 150	, function(x, width) {
-		$('#customerMenuColumn').css("width", width + "px");
-	});
-	this._viewSlider.addViewColumn(1, 400, 1000	, function(x, width) {
-		$('#customerListColumn').css("width", width + "px");
-	});
-
-	this._firstActivation = true;
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this,"customerContent");
+    tutao.tutanota.gui.CustomerView.COLUMN_SETTINGS = this._swipeSlider.addViewColumn(0, 100, 150, 'customerMenuColumn');
+    tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS = this._swipeSlider.addViewColumn(1, 400, 1000, 'customerListColumn');
 };
 
 /**
@@ -47,12 +34,7 @@ tutao.tutanota.gui.CustomerView.prototype.isForInternalUserOnly = function() {
  * @inherit
  */
 tutao.tutanota.gui.CustomerView.prototype.activate = function() {
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
-	if (this._firstActivation) {
-		this._firstActivation = false;
-		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
-		this._viewSlider.showDefault();
-	}
+    this._swipeSlider.activate();
 };
 
 /**
@@ -64,50 +46,27 @@ tutao.tutanota.gui.CustomerView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.CustomerView.prototype.windowSizeChanged = function(width, height) {
-	this._viewSlider.setScreenWidth(width);
-};
-
-tutao.tutanota.gui.CustomerView.COLUMN_SETTINGS = 0;
-tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS = 1;
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.CustomerView.prototype.swipeRecognized = function(type) {
-	if (type == tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_IN) {
-		if (this.isShowNeighbourColumnPossible(true)) {
-			this.showNeighbourColumn(true);
-		}
-	} else if (type == tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT_IN) {
-		if (this.isShowNeighbourColumnPossible(false)) {
-			this.showNeighbourColumn(false);
-		}
-	}
+tutao.tutanota.gui.CustomerView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.CustomerView.prototype.showNeighbourColumn = function(left) {
-	var columnToShow = (left) ? this._viewSlider.getLeftmostVisibleColumnId() - 1 : this._viewSlider.getRightmostVisibleColumnId() + 1;
-	this._viewSlider.showViewColumn(columnToShow);
+tutao.tutanota.gui.CustomerView.prototype.isShowLeftNeighbourColumnPossible = function() {
+	return (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS);
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.CustomerView.prototype.isShowNeighbourColumnPossible = function(left) {
-	if (left) {
-		return (this._leftmostVisibleColumn() == tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS); 
-	} else {
-		return false;
-	}
+tutao.tutanota.gui.CustomerView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * Makes sure that the change settings column is visible.
  */
 tutao.tutanota.gui.CustomerView.prototype.showChangeSettingsColumn = function() {
-	this._viewSlider.showViewColumn(tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS);
+    this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.CustomerView.COLUMN_CHANGE_SETTINGS);
 };
