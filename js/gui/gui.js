@@ -398,6 +398,12 @@ tutao.tutanota.gui.initEvents = function() {
 //	    });
 //	}, 0);
 
+    if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD && tutao.tutanota.util.ClientDetector.getBrowserVersion() == 7) {
+        tutao.tutanota.gui._fixWindowHeight();
+        window.addEventListener("orientationchange", tutao.tutanota.gui._fixWindowHeight);
+        document.addEventListener('focusout', tutao.tutanota.gui._fixWindowHeight);
+    }
+
 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		tutao.tutanota.gui._disableWindowScrolling();
 	}
@@ -409,6 +415,15 @@ tutao.tutanota.gui._confirmExit = function() {
         return tutao.lang("leavePageConfirmation_msg");
     } else {
         return null;
+    }
+};
+
+tutao.tutanota.gui._fixWindowHeight = function() {
+    if (window.innerHeight != document.body.style.height) {
+        document.body.style.height = window.innerHeight + "px";
+    }
+    if (document.body.scrollTop !== 0) {
+        window.scrollTo(0, 0);
     }
 };
 
