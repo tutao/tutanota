@@ -105,8 +105,10 @@ tutao.tutanota.ctrl.SwipeRecognizer._MIN_END_OFFSET_FOR_BORDER_OUT = 10;
 /**
  * @protected
  * The distance the finger must at least move to recognize a swipe left or swipe right.
+ * Attention: do not use a value > 15 px, because in Chrome on Android only one touchmove event is sent in an otherwise (vertically) scrollable div and touchcancel afterwards. The touch distance is therefore not very big.
+ * See https://code.google.com/p/android/issues/detail?id=5491, https://code.google.com/p/android/issues/detail?id=19827, https://code.google.com/p/chromium/issues/detail?id=150779
  */
-tutao.tutanota.ctrl.SwipeRecognizer._MIN_SLIDE_DISTANCE = 50;
+tutao.tutanota.ctrl.SwipeRecognizer._MIN_SLIDE_DISTANCE = 15;
 
 /**
  * @protected
