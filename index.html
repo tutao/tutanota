@@ -1110,13 +1110,13 @@ function touchOrClick(e) {
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) -->
 						<div data-bind="lang: 'oldBrowser_msg'"></div>
 					<!-- /ko -->
-					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) -->
+					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) -->
 						<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
 						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
                         <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
-                        <li><a target="_blank" href="http://www.opera.com/mobile">Opera (Desktop, Android)</a></li>
+                        <li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
                         <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (iPhone, iPad)</a></li>
 						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
 					</ul>
@@ -1222,13 +1222,22 @@ function touchOrClick(e) {
 								</div>
 							</form>
 						</div>
-						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI)">
-							<label data-bind="lang: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) ? 'legacyNoReply_msg' : 'legacyDownloadNotPossible_msg'"></label>
+						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID)">
+                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE -->
+    							<label data-bind="lang: 'legacyNoReplyIe_msg'"></label>
+                            <!-- /ko -->
+                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
+                                <label data-bind="lang: 'legacyDownloadNotPossible_msg'"></label>
+                            <!-- /ko -->
+                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID -->
+                                <label data-bind="lang: 'legacyNoReplyAndroid_msg'"></label>
+                            <!-- /ko -->
 							<ul>
-								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-								<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-								<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
-                                <!--<li><a target="_blank" href="http://www.apple.com/de/safari/">Safari 6 <span data-bind="lang: 'for_label'"></span> iPhone/iPad</a></li>-->
+                                <li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
+                                <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
+                                <li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
+                                <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (iPhone, iPad)</a></li>
+                                <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
                             </ul>
                         </div>
                     </div>

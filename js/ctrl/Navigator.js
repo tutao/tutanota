@@ -6,7 +6,7 @@ goog.provide('tutao.tutanota.ctrl.Navigator');
 // written for knockout and more active. Page bindings and params come into index.html
 tutao.tutanota.ctrl.Navigator = function() {
 	this.clientSupported = (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED);
-	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI);
+	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID);
 	this.mailRef = null; // the mail reference for an external user
 	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked 
 };
@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(v
 	}
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
+tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 	var self = this;
 	// configure all routes
     Path.map("#registerstarter").to(function() {
@@ -167,6 +167,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function(view) {
 	Path.map("#mail/:mailRef").to(function() {
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
+            tutao.tutanota.gui.resetLogoBindings();
 		}
 		if (self.verifyExternalClientSupported()) {
 			// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap

@@ -101,9 +101,14 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 			var blob = new Blob([dataFile.getData()], { "type" : dataFile.getMimeType() });
 			url = URL.createObjectURL(blob);
 		}
-        // safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog
-        if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI) {
-            var textId = (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? 'saveDownloadNotPossibleMobile_msg' : 'saveDownloadNotPossible_msg';
+        // safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text
+        if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
+            var textId = 'saveDownloadNotPossibleSafariDesktop_msg';
+            if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
+                textId = 'saveDownloadNotPossibleAndroid_msg';
+            } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+                textId = 'saveDownloadNotPossibleSafariMobile_msg';
+            }
             tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId, function() {
                 // the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
                 setTimeout(function() {
