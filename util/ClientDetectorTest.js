@@ -267,18 +267,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
-    },
-    "test detect android browser 4.4 on Android": function() {
-        var info = tutao.tutanota.util.ClientDetector;
-        info._setClientInfo("Mozilla/5.0 (Linux; U; Android 4.4, de-de; HTC_Desire_X Build/JRO03C) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
-        assertEquals(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID, info.getBrowserType());
-        assertEquals(4.4, info.getBrowserVersion());
-        assertEquals(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
-        assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
-        assertEquals(true, info.isMobileDevice());
-        assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID, info.getSupportedType());
     },
     "test detect opera 19 on Android": function() {
         var info = tutao.tutanota.util.ClientDetector;
