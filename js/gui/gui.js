@@ -407,16 +407,17 @@ tutao.tutanota.gui.initEvents = function() {
 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		tutao.tutanota.gui._disableWindowScrolling();
 	}
-    window.onbeforeunload = tutao.tutanota.gui._confirmExit;
+    // not used currently because in the most important case (history sliding on iOS 7) it is not working
+    // window.onbeforeunload = tutao.tutanota.gui._confirmExit;
 };
 
-tutao.tutanota.gui._confirmExit = function() {
+/*tutao.tutanota.gui._confirmExit = function() {
     if (tutao.locator.viewManager.isUserLoggedIn()) {
         return tutao.lang("leavePageConfirmation_msg");
     } else {
         return null;
     }
-};
+};*/
 
 tutao.tutanota.gui._fixWindowHeight = function() {
     if (window.innerHeight != document.body.style.height) {
