@@ -550,15 +550,15 @@ function touchOrClick(e) {
 			<div id="tagListColumn" class="viewColumn">
 				<section id="tagList" class="scrollable" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList">
-						<div class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
+						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
 							<div class="icon imgButton left"></div>
 							<div class="text" data-bind="lang: 'received_action'"></div>
 						</div>
-						<div class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
+						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
 							<div class="icon imgButton  right"></div>
 							<div class="text" data-bind="lang: 'sent_action'"></div>
 						</div>
-						<div class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
+						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
 							<div class="icon imgButton  trash"></div>
 							<div class="text" data-bind="lang: 'trash_action'"></div>
 						</div>
@@ -825,7 +825,7 @@ function touchOrClick(e) {
 											<div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
 											<div class="recordData">
 												<div class="row">
-													<input type="text" class="recordValue inputField wide" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+													<input type="text" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
 													<div class="recordAction" data-bind="attr:{id: 'removePasswordAction_' + getMailAddress()}, fastClick: function() { $parent.removePresharedPassword($data) }, visible: !tutao.locator.userController.isLoggedInUserFreeAccount() ">
 														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 													</div>
@@ -1162,7 +1162,7 @@ function touchOrClick(e) {
 								<div class="formAction">
 									<button id="submitLogin" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
                                     <button class="minimal" data-bind="click: createAccount, lang: 'createAccount_action'"></button>
-									<label for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
 						</form>
