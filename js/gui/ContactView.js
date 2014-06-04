@@ -8,37 +8,21 @@ goog.provide('tutao.tutanota.gui.ContactView');
  */
 tutao.tutanota.gui.ContactView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-
-	this._leftmostVisibleColumn = ko.observable(-1);
-	this._rightmostVisibleColumn = ko.observable(-1);
 };
 
 /**
- * These ids are actually returned by addViewColumn.
+ * These ids are returned by addViewColumn.
  */
-tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = 0;
-tutao.tutanota.gui.ContactView.COLUMN_CONTACT = 1;
+tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = null;
+tutao.tutanota.gui.ContactView.COLUMN_CONTACT = null;
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.ContactView.prototype.init = function() {
-	var self = this;
-	// configure view slider
-	this._viewSlider = new tutao.tutanota.ctrl.ViewSlider();
-
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
-	this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
-		self._leftmostVisibleColumn(self._viewSlider.getLeftmostVisibleColumnId());
-		self._rightmostVisibleColumn(self._viewSlider.getRightmostVisibleColumnId());
-		tutao.tutanota.gui.viewPositionAndSizeReceiver("#contactContent", x, y, initial);
-	});
-	this._viewSlider.addViewColumn(0, 300, 400, function(x, width) {
-		$('#searchAndContactListColumn').css("width", width + "px");
-	});
-	this._viewSlider.addViewColumn(1, 600, 1000, function(x, width) {
-		$('#contactColumn').css("width", width + "px");
-	});
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "contactContent");
+    tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = this._swipeSlider.addViewColumn(0, 300, 400, 'searchAndContactListColumn');
+    tutao.tutanota.gui.ContactView.COLUMN_CONTACT = this._swipeSlider.addViewColumn(1, 600, 1000, 'contactColumn');
 
 	this._firstActivation = true;
 };
@@ -54,11 +38,9 @@ tutao.tutanota.gui.ContactView.prototype.isForInternalUserOnly = function() {
  * @inherit
  */
 tutao.tutanota.gui.ContactView.prototype.activate = function() {
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
+    this._swipeSlider.activate();
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
-		this._viewSlider.showDefault();
 		tutao.locator.contactListViewModel.init();
 	}
 };
@@ -72,51 +54,35 @@ tutao.tutanota.gui.ContactView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.ContactView.prototype.windowSizeChanged = function(width, height) {
-	this._viewSlider.setScreenWidth(width);
+tutao.tutanota.gui.ContactView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.ContactView.prototype.swipeRecognized = function(type) {
-	if (type == tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT_IN) {
-		if (this.isShowNeighbourColumnPossible(true)) {
-			this.showNeighbourColumn(true);
-		}
-	}
+tutao.tutanota.gui.ContactView.prototype.isShowLeftNeighbourColumnPossible = function() {
+	return (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.ContactView.COLUMN_CONTACT
+    		&& (tutao.locator.contactViewModel.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NONE || tutao.locator.contactViewModel.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW)); // allow showing contact list
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.ContactView.prototype.showNeighbourColumn = function(left) {
-	var columnToShow = (left) ? this._viewSlider.getLeftmostVisibleColumnId() - 1 : this._viewSlider.getRightmostVisibleColumnId() + 1;
-	this._viewSlider.showViewColumn(columnToShow);
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.ContactView.prototype.isShowNeighbourColumnPossible = function(left) {
-	if (left) {
-		return (this._leftmostVisibleColumn() == tutao.tutanota.gui.ContactView.COLUMN_CONTACT 
-				&& (tutao.locator.contactViewModel.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NONE || tutao.locator.contactViewModel.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW)); // allow showing contact list
-	} else {
-		return false;
-	}
+tutao.tutanota.gui.ContactView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * Makes sure that the contact list column is visible.
  */
 tutao.tutanota.gui.ContactView.prototype.showContactListColumn = function() {
-	this._viewSlider.showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST);
+    this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST);
 };
 
 /**
  * Makes sure that the contact column is visible.
  */
 tutao.tutanota.gui.ContactView.prototype.showContactColumn = function() {
-	this._viewSlider.showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT);
+    this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT);
 };

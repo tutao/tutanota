@@ -14,7 +14,7 @@ tutao.tutanota.gui.ExternalLoginView = function() {
  * @inherit
  */
 tutao.tutanota.gui.ExternalLoginView.prototype.init = function() {
-
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
@@ -41,27 +41,20 @@ tutao.tutanota.gui.ExternalLoginView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.ExternalLoginView.prototype.windowSizeChanged = function(width, height) {
-
+tutao.tutanota.gui.ExternalLoginView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.ExternalLoginView.prototype.swipeRecognized = function(type) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.ExternalLoginView.prototype.showNeighbourColumn = function(left) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.ExternalLoginView.prototype.isShowNeighbourColumnPossible = function(left) {
+tutao.tutanota.gui.ExternalLoginView.prototype.isShowLeftNeighbourColumnPossible = function() {
 	return false;
+};
+
+/**
+ * @inherit
+ */
+tutao.tutanota.gui.ExternalLoginView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };

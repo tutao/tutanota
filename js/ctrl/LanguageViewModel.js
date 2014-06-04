@@ -136,7 +136,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	fromAddressBook_label: "From address book: ",
 	presharedPasswordNotStrongEnough_msg: "At least one of the entered passwords is not secure enough. Send the email anyway?",
     showAttachment_label: "Display attachment",
-    saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser. Please use Mozilla Firefox or Google Chrome otherwise.",
+    saveDownloadNotPossible_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please use Mozilla Firefox or Google Chrome otherwise.",
+    saveDownloadNotPossibleMobile_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please use a Desktop browser otherwise.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
 
@@ -465,7 +466,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     notificationMailSignature_msg: "This signature will be used for notification emails to external recipients.",
     notificationMailSignatureSubject_msg: "Confidential email from $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/info'>Tutanota</a>, the reviewed and certified service from Germany for encrypted emails. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
-    signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?"
+    signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
+    unsupportedMailFeature_msg: "You have selected a read receipt, voting options or a deferred delivery time. Unfortunately, these functions are not yet supported by Tutanota. Would you like to send the email anyway?"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -533,7 +535,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	fromAddressBook_label: "Aus Adressbuch: ",
 	presharedPasswordNotStrongEnough_msg: "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
     showAttachment_label: "Anhang anzeigen",
-    saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
+    saveDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
+    saveDownloadNotPossibleMobile_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls einen Desktop-Browser.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
 
@@ -863,6 +866,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     notificationMailSignature_msg: "Diese Signatur wird für Benachrichtigungs-E-Mails an externe Empfänger verwendet.",
     notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
-    signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?"
+    signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?",
+    unsupportedMailFeature_msg: "Sie haben eine Lesebestätigung, Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?"
 };
 

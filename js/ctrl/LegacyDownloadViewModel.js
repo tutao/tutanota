@@ -11,14 +11,16 @@ tutao.tutanota.ctrl.LegacyDownloadViewModel = function() {
 
 	this.filename = ko.observable("");
     this.blobUrl = ko.observable("");
+    this.textId = ko.observable(null);
 	this.dialogVisible = ko.observable(false);
     this._callback = null;
 
 };
 
-tutao.tutanota.ctrl.LegacyDownloadViewModel.prototype.showDialog = function(filename, blobUrl, callback) {
+tutao.tutanota.ctrl.LegacyDownloadViewModel.prototype.showDialog = function(filename, blobUrl, textId, callback) {
 	this.filename(filename);
     this.blobUrl(blobUrl);
+    this.textId(textId);
     this._callback = callback;
     this.dialogVisible(true);
 };

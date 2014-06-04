@@ -14,14 +14,14 @@ tutao.tutanota.gui.RegistrationVerifyDomainView= function() {
  * @inherit
  */
 tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.init = function() {
-
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.isForInternalUserOnly = function() {
-	return false;
+    return false;
 };
 
 /**
@@ -41,27 +41,20 @@ tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.deactivate = function(
 /**
  * @inherit
  */
-tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.windowSizeChanged = function(width, height) {
-
+tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.swipeRecognized = function(type) {
-
+tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.isShowLeftNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.showNeighbourColumn = function(left) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.isShowNeighbourColumnPossible = function(left) {
-	return false;
+tutao.tutanota.gui.RegistrationVerifyDomainView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };

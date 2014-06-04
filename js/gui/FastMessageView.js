@@ -14,14 +14,14 @@ tutao.tutanota.gui.FastMessageView = function() {
  * @inherit
  */
 tutao.tutanota.gui.FastMessageView.prototype.init = function() {
-
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.FastMessageView.prototype.isForInternalUserOnly = function() {
-	return false;
+    return false;
 };
 
 /**
@@ -41,27 +41,21 @@ tutao.tutanota.gui.FastMessageView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.FastMessageView.prototype.windowSizeChanged = function(width, height) {
-
+tutao.tutanota.gui.FastMessageView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.FastMessageView.prototype.swipeRecognized = function(type) {
-
+tutao.tutanota.gui.FastMessageView.prototype.isShowLeftNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.FastMessageView.prototype.showNeighbourColumn = function(left) {
-
+tutao.tutanota.gui.FastMessageView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };
 
-/**
- * @inherit
- */
-tutao.tutanota.gui.FastMessageView.prototype.isShowNeighbourColumnPossible = function(left) {
-	return false;
-};

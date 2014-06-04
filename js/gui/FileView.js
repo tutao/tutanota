@@ -14,17 +14,8 @@ tutao.tutanota.gui.FileView = function() {
  * @inherit
  */
 tutao.tutanota.gui.FileView.prototype.init = function() {
-	// configure view slider
-	this._viewSlider = new tutao.tutanota.ctrl.ViewSlider();
-
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
-	this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
-		tutao.tutanota.gui.viewPositionAndSizeReceiver("#fileContent", x, y, initial);
-	});
-	this._viewSlider.addViewColumn(0, 300, 1024, function(x, width) {
-		$('#filesColumn').css("width", width + "px");
-	});
-
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "fileContent");
+	this._swipeSlider.addViewColumn(0, 300, 1024, 'filesColumn');
 	this._firstActivation = true;
 };
 
@@ -39,11 +30,9 @@ tutao.tutanota.gui.FileView.prototype.isForInternalUserOnly = function() {
  * @inherit
  */
 tutao.tutanota.gui.FileView.prototype.activate = function() {
-	this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
+    this._swipeSlider.activate();
 	if (this._firstActivation) {
 		this._firstActivation = false;
-		// only show the default view columns if this is the first activation, otherwise we want to see the last visible view columns
-		this._viewSlider.showDefault();
 		tutao.locator.fileViewModel.init();
 	}
 };
@@ -57,27 +46,20 @@ tutao.tutanota.gui.FileView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.FileView.prototype.windowSizeChanged = function(width, height) {
-	this._viewSlider.setScreenWidth(width);
+tutao.tutanota.gui.FileView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.FileView.prototype.swipeRecognized = function(type) {
-};
-
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.FileView.prototype.showNeighbourColumn = function(left) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.FileView.prototype.isShowNeighbourColumnPossible = function(left) {
+tutao.tutanota.gui.FileView.prototype.isShowLeftNeighbourColumnPossible = function() {
 	return false;
+};
+
+/**
+ * @inherit
+ */
+tutao.tutanota.gui.FileView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };

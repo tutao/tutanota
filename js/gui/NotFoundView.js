@@ -14,14 +14,14 @@ tutao.tutanota.gui.NotFoundView = function() {
  * @inherit
  */
 tutao.tutanota.gui.NotFoundView.prototype.init = function() {
-
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.NotFoundView.prototype.isForInternalUserOnly = function() {
-	return false;
+    return false;
 };
 
 /**
@@ -41,27 +41,20 @@ tutao.tutanota.gui.NotFoundView.prototype.deactivate = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.NotFoundView.prototype.windowSizeChanged = function(width, height) {
-
+tutao.tutanota.gui.NotFoundView.prototype.getSwipeSlider = function() {
+    return this._swipeSlider;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.NotFoundView.prototype.swipeRecognized = function(type) {
-
+tutao.tutanota.gui.NotFoundView.prototype.isShowLeftNeighbourColumnPossible = function() {
+    return false;
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.NotFoundView.prototype.showNeighbourColumn = function(left) {
-
-};
-
-/**
- * @inherit
- */
-tutao.tutanota.gui.NotFoundView.prototype.isShowNeighbourColumnPossible = function(left) {
-	return false;
+tutao.tutanota.gui.NotFoundView.prototype.isShowRightNeighbourColumnPossible = function() {
+    return false;
 };

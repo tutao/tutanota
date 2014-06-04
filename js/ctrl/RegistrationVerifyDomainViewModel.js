@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED = 4
 /**
  * Sets the focus when the view is shown.
  */
-tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.activate = function(authToken) {
+tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.activate = function() {
 	var self = this;
     var parameters = {};
     tutao.entity.sys.RegistrationConfigReturn.load(parameters, null, function(registrationConfigReturn, exception) {
