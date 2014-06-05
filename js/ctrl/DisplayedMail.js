@@ -33,7 +33,8 @@ tutao.tutanota.ctrl.DisplayedMail = function(mail) {
 				buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }));
 			}
             // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
-            if (tutao.tutanota.util.ClientDetector.isSupported()) {
+            // we deactivate export for mobile browsers generally because it is useless
+            if (tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                 buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("export_action"), 9, function() { tutao.locator.mailViewModel.exportMail(self); }))
             }
             buttons.push(new tutao.tutanota.ctrl.Button(trashText, 8, function() { tutao.locator.mailViewModel.deleteMail(self); }));
