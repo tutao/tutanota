@@ -615,7 +615,7 @@ function touchOrClick(e) {
 					<section class="conversation" data-bind="foreach: { data: conversation }">
 						<!-- ko if: !$parent.isComposingState() -->
 							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }, visible: !$parent.isComposingState()'></div>
-							<div class="mailWrapper">
+							<div id="readMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="click: $parent.selectMail">
 									<header>
 										<div class="headerTable">
@@ -697,7 +697,7 @@ function touchOrClick(e) {
 								</div>
 							</div>
                             <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: busy" />
-							<div class="mailWrapper">
+							<div id="composeMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
                                         <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"'></div>
@@ -1108,10 +1108,10 @@ function touchOrClick(e) {
 			<div class="messageWrapperFail scrollable">
 				<div class="infoMessage">
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) -->
-						<div data-bind="lang: 'oldBrowser_msg'"></div>
+						<div id="oldBrowserMessage" data-bind="lang: 'oldBrowser_msg'"></div>
 					<!-- /ko -->
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) -->
-						<div data-bind="lang: 'unsupportedBrowser_msg'"></div>
+						<div id="unsupportedBrowserMessage" data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
 						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
@@ -1222,7 +1222,7 @@ function touchOrClick(e) {
 								</div>
 							</form>
 						</div>
-						<div class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI)">
+						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI)">
 							<label data-bind="lang: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) ? 'legacyNoReply_msg' : 'legacyDownloadNotPossible_msg'"></label>
 							<ul>
 								<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
@@ -2268,13 +2268,13 @@ function touchOrClick(e) {
                                 </li>
                                 <li>
                                     <!-- ko if: getActiveView() == tutao.locator.contactView -->
-                                        <div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
+                                        <div id="menu_contact_new" class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.newContact(); }, 0); }">
                                             <div class="menu_image"><div class="imgButton contact-new" data-bind="attr: {title: tutao.lang('newContact_alt')}"></div></div>
                                             <div class="menu_text" data-bind="lang: 'new_label'"></div>
                                         </div>
                                     <!-- /ko -->
                                     <!-- ko ifnot: getActiveView() == tutao.locator.contactView -->
-                                        <div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
+                                        <div id="menu_contact" class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { tutao.locator.navigator.contact(); }, 0); }">
                                             <div class="menu_image"><div class="imgButton contact" data-bind="attr: {title: tutao.lang('contacts_alt')}"></div></div>
                                             <div class="menu_text" data-bind="lang: 'contacts_label'"></div>
                                         </div>
@@ -2282,7 +2282,7 @@ function touchOrClick(e) {
                                 </li>
                             <!-- /ko -->
                             <li>
-                                <div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
+                                <div id="menu_settings" class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.settings(); }, 0); }">
                                     <div class="menu_image"><div class="imgButton settings" data-bind="attr: {title: tutao.lang('settings_alt')}"></div></div>
                                     <div class="menu_text" data-bind="lang: 'settings_label'"></div>
                                 </div>
@@ -2292,7 +2292,7 @@ function touchOrClick(e) {
                     <!-- ko ifnot: isInternalUserLoggedIn() -->
                     <li>
                         <a href="https://app.tutanota.de/#register" target="_blank">
-                            <div class="menu_link">
+                            <div id="menu_register" class="menu_link">
                                 <div class="menu_image"><div class="imgButton register" data-bind="attr: {title: tutao.lang('register_alt')}"></div></div>
                                 <div class="menu_text" data-bind="lang: 'register_label'"></div>
                             </div>
@@ -2301,7 +2301,7 @@ function touchOrClick(e) {
                     <!-- /ko -->
                     <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
                         <li>
-                            <div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.feedbackViewModel.open(); }, 0); }">
+                            <div id="menu_feedback" class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.feedbackViewModel.open(); }, 0); }">
                                 <div class="menu_image"><div class="imgButton feedback" data-bind="attr: {title: tutao.lang('feedback_alt')}"></div></div>
                                 <div class="menu_text" data-bind="lang: 'feedback_label'"></div>
                             </div>
@@ -2309,7 +2309,7 @@ function touchOrClick(e) {
                     <!-- /ko -->
                     <!-- ko if: isUserLoggedIn() -->
                         <li>
-                            <div class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false, true); }, 0); }">
+                            <div id="menu_logout" class="menu_link" data-bind="fastClick: function() { setTimeout(function() { tutao.locator.navigator.logout(false, true); }, 0); }">
                                 <div class="menu_image"><div class="imgButton logout" data-bind="attr: {title: tutao.lang('logout_alt')}"></div></div>
                                 <div class="menu_text" data-bind="lang: 'logout_label'"></div>
                             </div>

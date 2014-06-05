@@ -30,20 +30,20 @@ tutao.tutanota.ctrl.DisplayedMail = function(mail) {
         var buttons = [];
 		if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			if (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) {
-				buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }));
+				buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }, false, "replyConfidentialAction"));
 			}
             // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download
             if (tutao.tutanota.util.ClientDetector.isSupported()) {
-                buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("export_action"), 9, function() { tutao.locator.mailViewModel.exportMail(self); }))
+                buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("export_action"), 9, function() { tutao.locator.mailViewModel.exportMail(self); },false, "exportAction"))
             }
-            buttons.push(new tutao.tutanota.ctrl.Button(trashText, 8, function() { tutao.locator.mailViewModel.deleteMail(self); }));
+            buttons.push(new tutao.tutanota.ctrl.Button(trashText, 8, function() { tutao.locator.mailViewModel.deleteMail(self); }, false, "deleteMailAction"));
 		} else {
-            buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("reply_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }));
+            buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("reply_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }, false, "replyAction"));
             if (this.mail.getToRecipients().length + this.mail.getCcRecipients().length + this.mail.getBccRecipients().length > 1) {
-                buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyAll_action"), 8, function() { tutao.locator.mailViewModel.replyAllMail(self); }));
+                buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyAll_action"), 8, function() { tutao.locator.mailViewModel.replyAllMail(self); }, false, "replayAllAction"));
             }
-            buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("forward_action"), 7, function() { tutao.locator.mailViewModel.forwardMail(self); }));
-            buttons.push(new tutao.tutanota.ctrl.Button(trashText, 9, function() { tutao.locator.mailViewModel.deleteMail(self); }));
+            buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("forward_action"), 7, function() { tutao.locator.mailViewModel.forwardMail(self); }, false, "forwardAction"));
+            buttons.push(new tutao.tutanota.ctrl.Button(trashText, 9, function() { tutao.locator.mailViewModel.deleteMail(self); }, false, "deleteMailAction"));
 		}
         return buttons;
 	}, this);

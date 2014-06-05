@@ -15,7 +15,7 @@ goog.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
 tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.moreButton = new tutao.tutanota.ctrl.Button("...", 100, this.switchMore);
+    this.moreButton = new tutao.tutanota.ctrl.Button("...", 100, this.switchMore, false, "moreAction");
     $("button#measureButton").text(this.moreButton.getLabel());
     this.moreButton.width($("button#measureButton").outerWidth(true));
 

@@ -14,12 +14,12 @@ tutao.tutanota.ctrl.ModalPageBackgroundViewModel = function() {
     this.visible = ko.observable(false);
     this.closeCallback = null;
     var self = this;
-    window.document.addEventListener("click", function(event){
+
+    $(window.document).click(function(event){
         if(!$(event.target).parent().is('.buttonBarMoreMenu')){
             self._hide();
         }
     });
-
 };
 
 /**
