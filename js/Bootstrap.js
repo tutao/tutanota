@@ -35,9 +35,9 @@ tutao.tutanota.Bootstrap.init = function () {
         tutao.locator.navigator.setup();
         tutao.locator.entropyCollector.start();
 
-    });
+    }, 0);
 
-    if ( window.applicationCache){
+    if (window.applicationCache) {
         var listener = new tutao.tutanota.ctrl.AppCacheListener();
     }
 

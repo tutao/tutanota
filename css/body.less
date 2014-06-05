@@ -79,6 +79,7 @@ body {
       position: absolute;
       background: @background-buttonBar;
       right: 0px;
+      // increased z-index must also be set for complete action bar because otherwise it it does not work in iOS 6
       z-index: 1;
       padding-left: @button-bar-margin;
       padding-right: @button-bar-margin;
@@ -553,6 +554,8 @@ body {
                     position: relative;
 					display: table;
 					width: 100%;
+                    // see div.buttonBarMoreMenu for z-index
+                    z-index: 1;
 					> div.confidentialAction {
 						display: table-cell;
 						width: 42px;

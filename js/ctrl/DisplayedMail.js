@@ -29,11 +29,12 @@ tutao.tutanota.ctrl.DisplayedMail = function(mail) {
 		var trashText = (this.mail.getTrashed()) ? tutao.locator.languageViewModel.get("undelete_action") : tutao.locator.languageViewModel.get("delete_action");
         var buttons = [];
 		if (tutao.locator.userController.isExternalUserLoggedIn()) {
-			if (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) {
+			if (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
 				buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("replyConfidential_action"), 10, function() { tutao.locator.mailViewModel.replyMail(self); }, false, "replyConfidentialAction"));
 			}
-            // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download
-            if (tutao.tutanota.util.ClientDetector.isSupported()) {
+            // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
+            // we deactivate export for mobile browsers generally because it is useless
+            if (tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                 buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("export_action"), 9, function() { tutao.locator.mailViewModel.exportMail(self); },false, "exportAction"))
             }
             buttons.push(new tutao.tutanota.ctrl.Button(trashText, 8, function() { tutao.locator.mailViewModel.deleteMail(self); }, false, "deleteMailAction"));
