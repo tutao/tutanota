@@ -39,7 +39,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
 	}
 	this.inputActive.subscribe(function(active) {
 		if (!active && !this.skipNextBlur) {
-			this.createBubble();  // focus lost
+			this.createBubbles();  // focus lost
 		}
 	}, this);
 	// true if the BubbleInputField is active (currently always when the input field is active)
@@ -100,7 +100,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleKey = funct
         return false;
     }
 	if (event.which === 13 || event.which === 32) {
-		return this.createBubble(); // return and whitespace
+		return this.createBubbles(); // return and whitespace
 	} else if (event.which === 8) {// backspace, del: 46
 		this.handleBackspace();
 	} else if (event.which === 46) {
@@ -287,20 +287,25 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.isBubbleSelected 
  * Creates a new bubble (delegates to the bubbleHandler)
  * @return {boolean} true, if the bubble has been created, false otherwise.
  */
-tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.createBubble = function() {
+tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.createBubbles = function() {
 	var value = this.inputValue().trim();
 	if (value === "") {
 		return false;
 	}
-	var bubble = null;
+	var bubbles = [];
 	// if there is a selected suggestion, we shall create a bubble from that suggestions instead of the entered text
 	if (this.selectedSuggestion()) {
-		bubble = this.bubbleHandler.createBubbleFromSuggestion(this.selectedSuggestion());
+        var bubble = this.bubbleHandler.createBubbleFromSuggestion(this.selectedSuggestion());
+        if (bubble) {
+            bubbles.push(bubble);
+        }
 	} else {
-		bubble = this.bubbleHandler.createBubbleFromText(value);
+		bubbles = this.bubbleHandler.createBubblesFromText(value);
 	}
-	if (bubble) {
-		this.bubbles.push(bubble);
+	if (bubbles.length > 0) {
+        for (var i=0; i<bubbles.length; i++) {
+		    this.bubbles.push(bubbles[i]);
+        }
 		this.inputValue("");
 		tutao.tutanota.gui.BubbleInputGui.resizeInputField(this.inputDomField, this.inputValue());
 	}

@@ -542,12 +542,23 @@ tutao.tutanota.ctrl.ComposingMail.prototype.createBubbleFromSuggestion = functio
 };
 
 /** @inheritDoc */
-tutao.tutanota.ctrl.ComposingMail.prototype.createBubbleFromText = function(text) {
-	var recipientInfo = this.getRecipientInfoFromText(text);
-	if (!recipientInfo) {
-		return null;
-	}
-	return this._createBubbleFromRecipientInfo(recipientInfo);
+tutao.tutanota.ctrl.ComposingMail.prototype.createBubblesFromText = function(text) {
+    var bubbles = [];
+    var separator = (text.indexOf(";") != -1) ? ";" : ",";
+    var textParts = text.split(separator);
+    for (var i=0; i<textParts.length; i++) {
+        var part = textParts[i].trim();
+        if (part.length == 0) {
+            continue;
+        }
+        var recipientInfo = this.getRecipientInfoFromText(part);
+        if (!recipientInfo) {
+            // if one recipient is invalid, we do not return any valid ones because all invalid text would be deleted
+            return [];
+        }
+        bubbles.push(this._createBubbleFromRecipientInfo(recipientInfo));
+    }
+	return bubbles;
 };
 
 /**

@@ -29,9 +29,9 @@ tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.createBubbleFromSuggesti
 /**
  * Creates a new bubble from the provided text.
  * @param {string} text
- * @return {tutao.tutanota.ctrl.bubbleinput.Bubble=} Returns the new bubble or null if none could be created.
+ * @return {Array.<tutao.tutanota.ctrl.bubbleinput.Bubble>} Returns the new bubble or null if none could be created.
  */
-tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.createBubbleFromText = function(text) {};
+tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.createBubblesFromText = function(text) {};
 
 /**
  * Notifies the BubbleHandler that the given bubble was deleted.
