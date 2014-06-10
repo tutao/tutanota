@@ -2,10 +2,8 @@
 
 AsyncTestCase("ComposingMailTest", {
 	setUp: function() {
-		this.originalAlert = tutao.tutanota.alert;
 	},
 	tearDown: function() {
-		tutao.tutanota.altert = this.originalAlert;
 		tutao.locator.reset();
 		tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
 	},

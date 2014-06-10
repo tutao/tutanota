@@ -9,6 +9,10 @@ TestCase("ViewManagerTest", {
 		when(uc.isExternalUserLoggedIn)().thenReturn(false);
 		when(uc.isInternalUserLoggedIn)().thenReturn(true);
 		tutao.locator.replace("userController", uc);
+		if (!tutao.tutanota.gui) {
+			tutao.tutanota.gui = {};
+		}
+		tutao.tutanota.gui.adjustPanelHeight = function() { };
 	},
 	tearDown: function() {
 		tutao.locator.reset();
