@@ -233,22 +233,8 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         if (tutao.locator.swipeRecognizer) {
             tutao.locator.swipeRecognizer.setScreenSize(width, height);
         }
-        tutao.tutanota.Bootstrap.adjustPanelHeight();
     });
 };
-
-/**
- * Adjust the height of all panel elements to enable scrolling in firefox browser. This is just a workaround.
- * http://www.webdesignerdepot.com/2014/02/how-to-create-horizontal-scrolling-using-display-table-cell
- */
-tutao.tutanota.Bootstrap.adjustPanelHeight = function () {
-    if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX){
-        var panelPadding = parseInt( $('.panel').css('padding-top'));
-        var calculatedHeight = $(window).height() - panelPadding;
-        $('.panel > div').css('height', calculatedHeight);
-    }
-};
-
 
 /* html code for file menu icon
  <li>

@@ -409,6 +409,11 @@ tutao.tutanota.gui.initEvents = function() {
 	}
     // not used currently because in the most important case (history sliding on iOS 7) it is not working
     // window.onbeforeunload = tutao.tutanota.gui._confirmExit;
+
+    // workaround for firefox bug
+    tutao.tutanota.gui.addWindowResizeListener(function() {
+        tutao.tutanota.gui.adjustPanelHeight();
+    });
 };
 
 /*tutao.tutanota.gui._confirmExit = function() {
@@ -679,4 +684,16 @@ tutao.tutanota.gui.addWindowResizeListener = function(callback) {
 			callback(self.getWindowWidth(), self.getWindowHeight());
 		});
 	}
+};
+
+/**
+ * Adjust the height of all panel elements to enable scrolling in firefox browser. This is just a workaround.
+ * http://www.webdesignerdepot.com/2014/02/how-to-create-horizontal-scrolling-using-display-table-cell
+ */
+tutao.tutanota.gui.adjustPanelHeight = function () {
+    if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX){
+        var panelPadding = parseInt( $('.panel').css('padding-top'));
+        var calculatedHeight = $(window).height() - panelPadding;
+        $('.panel > div').css('height', calculatedHeight);
+    }
 };
