@@ -67,6 +67,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		}
 		this._activeView(view);
 		this._activeView().activate(params);
+        tutao.tutanota.Bootstrap.adjustPanelHeight();
 	}
 };
 
