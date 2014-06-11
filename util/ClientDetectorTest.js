@@ -289,7 +289,7 @@ TestCase("ClientDetectorTest", {
         assertEquals(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE, info.getDeviceType());
         assertEquals(true, info.isMobileDevice());
         assertEquals(true, info.isPhoneSupported());
-        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
+        assertEquals(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE, info.getSupportedType());
     },
     "test detect windows phone 7.5": function() {
         var info = tutao.tutanota.util.ClientDetector;
