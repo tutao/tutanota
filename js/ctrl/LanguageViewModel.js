@@ -120,7 +120,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	subject_label: "Subject",
 	showQuotation_action: "+ Quotes",
 	hideQuotation_action: "- Quotes",
-	legacyNoReplyIe_msg: "This Internet Explorer is an old version and does not support replying to or exporting of emails. Please update or use one of the following browsers:",
+	legacyNoReplyIe_msg: "This Internet Explorer is an old version and does not support replying to or exporting of emails. If you need this feature, please update or use one of the following browsers:",
+    legacyNoAttachmentsIeMobile_msg: "Internet Explorer mobile does not support downloading attachments or attaching files to emails. If you need these features, use one of the following browsers:",
     legacyNoReplyAndroid_msg: "The Android browser does not support replying to emails or saving attachments to disk. Still, some file types can be displayed in the browser. Please use one of the following browsers otherwise:",
     legacyDownloadNotPossible_msg: "Unfortunately, Safari does not support exporting emails or saving attachments to disk. Still, some file types can be displayed in the browser. Please use one of the following browsers otherwise:",
 	clickToSave_label: "Click to save",
@@ -140,6 +141,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     saveDownloadNotPossibleSafariDesktop_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please use Mozilla Firefox or Google Chrome otherwise.",
     saveDownloadNotPossibleSafariMobile_msg: "Unfortunately, Safari does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please use a desktop browser otherwise.",
     saveDownloadNotPossibleAndroid_msg: "Unfortunately, the native Android browser does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise.",
+    saveDownloadNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
+    addAttachmentNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support adding attachments to emails. Please use a desktop browser for this feature.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
 
@@ -184,7 +187,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	presharedPasswordHeading_label: "Agreed:",
 	autoTransmitPasswordHeading_label: "SMS:",
 	showPassword_alt: "Keep button pressed to show the password.",
-	
+
 	// settings
 	accountSettings_action: "Account",
 	securitySettings_action: "Security",
@@ -207,18 +210,18 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     deleted_label: "Deleted",
     created_label: "Created",
     addinInfoText_msg: "Download the Outlook Addin für Tutanota Starter here. New versions are automatically installed when starting Outlook.",
-	
+
 	// account settings
 	accountType_label: "Account type",
 	mailName_label: "Sender name",
 	mailNameInfo_msg: "This name is shown to recipients of your emails.",
-	
+
 	// security settings
 	lastSuccessfulLogin_label: "Last successful login",
 	lastSuccessfulLoginInfo_msg: "The time of your last successful login before the current one.",
 	failedLogins_label: "Failed logins",
 	failedLoginsInfo_msg: "The number of failed login attempts since your last successful login.",
-	
+
 	// change password
 	passwordValid_msg: "Password ok.",
 	oldPassword_label: "Old password",
@@ -418,7 +421,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     screenshot_label: "Attach screenshot",
     feedbackInfo_msg: "The message is sent encrypted to support@tutao.de together with the browser identifier.",
 	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
-	
+
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
 	version_label: "Version:",
@@ -521,7 +524,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	subject_label: "Betreff",
 	showQuotation_action: "+ Details",
 	hideQuotation_action: "- Details",
-	legacyNoReplyIe_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf oder das Exportieren von E-Mails. Bitte aktualisieren Sie den Browser oder verwenden einen der folgenden:",
+	legacyNoReplyIe_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf oder das Exportieren von E-Mails. Falls Sie diese Funktionalität benötigen, aktualisieren Sie Ihren Browser oder verwenden Sie einen der folgenden:",
+    legacyNoAttachmentsIeMobile_msg: "Internet Explorer auf Windows Phone unterstützt leider nicht das Herunterladen von Anhängen oder das Anhängen von Dateien an E-Mails. Falls Sie diese Funktionalität benötigen, verwenden Sie bitte einen der folgenden Browser:",
     legacyNoReplyAndroid_msg: "Der Android-Browser unterstützt nicht das Antworten auf E-Mails sowie das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls einen der folgenden Browser:",
     legacyDownloadNotPossible_msg: "Leider unterstützt Safari nicht das Exportieren von E-Mails oder das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls einen der folgenden Browser:",
 	clickToSave_label: "Klicken zum speichern",
@@ -541,6 +545,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     saveDownloadNotPossibleSafariDesktop_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
     saveDownloadNotPossibleSafariMobile_msg: "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls einen Desktop-Browser.",
     saveDownloadNotPossibleAndroid_msg: "Leider unterstützt der Android-Browser nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
+    saveDownloadNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Abspeichern oder Anzeigen von Anhängen. Bitte verwenden Sie dafür einen Desktop-Browser.",
+    addAttachmentNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Anhängen von Dateien an E-Mails. Bitte verwenden Sie dafür einen Desktop-Browser.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
 

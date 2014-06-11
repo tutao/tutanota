@@ -7,6 +7,11 @@ goog.provide('tutao.tutanota.util.FileUtils');
  * @param {function(FileList)} callback Called if files are chosen receiving the file list as argument.
  */
 tutao.tutanota.util.FileUtils.showFileChooser = function(callback) {
+    if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) {
+        tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg"));
+        callback([]);
+        return;
+    }
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	var lastFileInput = document.getElementById("hiddenFileChooser");
@@ -85,11 +90,15 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 		});
 	} else if (window.saveAs || navigator.saveBlob) {
 		var blob = new Blob([dataFile.getData()], { "type" : dataFile.getMimeType() });
-		if (window.saveAs) {
-			window.saveAs(blob, dataFile.getName());
-		} else {
-			navigator.saveBlob(blob, dataFile.getName());
-		}
+        try {
+            if (window.saveAs) {
+                window.saveAs(blob, dataFile.getName());
+            } else {
+                navigator.saveBlob(blob, dataFile.getName());
+            }
+        } catch (e) {
+            tutao.tutanota.gui.alert(tutao.lang("saveDownloadNotPossibleIe_msg"));
+        }
 		callback();
 	} else {
         var url;

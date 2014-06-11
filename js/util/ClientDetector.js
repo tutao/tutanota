@@ -44,6 +44,8 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP = "Desktop";
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED = "supported";
 /** browser is supported in legacy mode for IE8 and IE9 with flash plugin (view mails es external recipient). Replying to emails is not supported. */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE = "legacy ie";
+/** browser does not support attaching files and downloading attachments */
+tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE = "legacy ie mobile";
 /** browser is supported in legacy mode for Safari (view mails es external recipient). Downloading attachments is not fully supported. */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI = "legacy safari";
 /** browser is supported in legacy mode for Android 4.0 - 4.3. Replying to emails is not supported. */
@@ -201,7 +203,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
 
     if (info._browser == info.BROWSER_TYPE_OTHER ||
-        (info._device != info.DEVICE_TYPE_DESKTOP && (info._browser == info.BROWSER_TYPE_FIREFOX || info._browser == info.BROWSER_TYPE_IE))) {
+        (info._device != info.DEVICE_TYPE_DESKTOP && (info._browser == info.BROWSER_TYPE_FIREFOX))) {
 		info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
@@ -215,17 +217,26 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
             window.swfobject &&
             swfobject.getFlashPlayerVersion().major >= 8) {
         info._supported = info.SUPPORTED_TYPE_LEGACY_IE;
+    } if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
+            info._browser == info.BROWSER_TYPE_IE &&
+            info._browserVersion >= 10) {
+        info._supported = info.SUPPORTED_TYPE_LEGACY_IE_MOBILE;
+    } if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
+            info._browser == info.BROWSER_TYPE_IE &&
+            info._browserVersion < 10) {
+        // tool old IE versions on win phone shall be shown as not supported instead of update needed
+        info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._device == info.DEVICE_TYPE_DESKTOP &&
             info._browser == info.BROWSER_TYPE_SAFARI &&
             info._browserVersion >= 6.1) {
         info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
 	} else if (info._device == info.DEVICE_TYPE_DESKTOP &&
-        info._browser == info.BROWSER_TYPE_SAFARI &&
-        info._browserVersion < 6.1) {
+            info._browser == info.BROWSER_TYPE_SAFARI &&
+            info._browserVersion < 6.1) {
         info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
     } else if (info._device == info.DEVICE_TYPE_ANDROID &&
-        info._browser == info.BROWSER_TYPE_ANDROID &&
-        info._browserVersion >= 4) {
+            info._browser == info.BROWSER_TYPE_ANDROID &&
+            info._browserVersion >= 4) {
         info._supported = info.SUPPORTED_TYPE_LEGACY_ANDROID;
     }
 };
