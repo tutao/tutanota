@@ -574,6 +574,8 @@ body {
                 }
 
                 > img#sendMailBusyImg {
+                  // z-index must be increased because div.actions z-index is also increased
+                  z-index: 2;
                   display: block;
                   position:absolute;
                   top: 15px;
