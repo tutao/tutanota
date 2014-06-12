@@ -691,7 +691,7 @@ tutao.tutanota.gui.addWindowResizeListener = function(callback) {
  * http://www.webdesignerdepot.com/2014/02/how-to-create-horizontal-scrolling-using-display-table-cell
  */
 tutao.tutanota.gui.adjustPanelHeight = function () {
-    if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX){
+    if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX || (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE && tutao.tutanota.util.ClientDetector.getBrowserVersion() >= 10 && tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP)) {
         var panelPadding = parseInt( $('.panel').css('padding-top'));
         var calculatedHeight = $(window).height() - panelPadding;
         $('.panel > div').css('height', calculatedHeight);
