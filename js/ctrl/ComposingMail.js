@@ -486,6 +486,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 		} else {
 			tutao.tutanota.util.FileUtils.readLocalFile(fileList[i], function(dataFile, exception) {
 				if (exception) {
+                    tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
 					console.log(exception);
 					return;
 				}

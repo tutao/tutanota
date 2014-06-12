@@ -145,6 +145,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     addAttachmentNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support adding attachments to emails. Please use a desktop browser for this feature.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
+    couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -549,6 +550,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     addAttachmentNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Anhängen von Dateien an E-Mails. Bitte verwenden Sie dafür einen Desktop-Browser.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
+    couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
