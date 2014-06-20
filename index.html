@@ -334,7 +334,7 @@
 	<script type="text/javascript" src="js/ctrl/AdminUserAddViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AdminUserListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AppCacheListener.js"></script>
-    <script type="text/javascript" src="js/ctrl/AttachmentDialogViewModel.js"></script>
+	<script type="text/javascript" src="js/ctrl/AttachmentDialogViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Button.js"></script>
 	<script type="text/javascript" src="js/ctrl/ButtonBarViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ChangePasswordViewModel.js"></script>
@@ -769,7 +769,12 @@ function touchOrClick(e) {
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
-							<div id="passwordChannelDescription" data-bind="text: getPasswordChannelDescription()"></div>
+                            <div id="changeNotificationMailLanguage">
+                                <span class="descriptionFont" class="descriptionFont" data-bind="lang: 'changeNotificationMailLanguage_msg'"></span>
+                                <img class="languageButton" src="graphics/german.png" data-bind="css: {languageButtonSelected: germanSelected }, click: function() { setTimeout(function() { germanSelected(true); }, 0); }"/>
+                                <img class="languageButton" src="graphics/english.png" data-bind="css: {languageButtonSelected: !germanSelected()}, click: function() { setTimeout(function() { germanSelected(false); }, 0); }" />
+                            </div>
+                            <div id="passwordChannelDescription" class="descriptionFont" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
 								<div data-bind="attr:{id:'passwordChannelEntry_' + getMailAddress()}">
 									<hr />

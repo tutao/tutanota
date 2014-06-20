@@ -146,6 +146,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
     couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
+    changeNotificationMailLanguage_msg: "Language of notification email:",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -551,6 +552,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
     couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
+    changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",

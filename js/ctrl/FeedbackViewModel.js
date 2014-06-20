@@ -65,7 +65,7 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
         facade = tutao.tutanota.ctrl.SendMailFacade;
         previousMessageId = null;
     }
-    facade.sendMail("Feedback", this.message(), "", [new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "")], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, function(mailId, exception) {
+    facade.sendMail("Feedback", this.message(), "", [new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "")], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de", function(mailId, exception) {
         if (exception) {
             tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("sendFeedbackFailed_msg"));
         }

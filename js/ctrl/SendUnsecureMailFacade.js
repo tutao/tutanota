@@ -13,11 +13,12 @@ goog.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
  * @param {string} conversationType See TutanotaConstants.
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Empty string if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
+ * @param {string} language Notification mail language.
  * @param {function(string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException=)} callback Called when finished with the id of
  * the senders mail (only element id, no list id). Provides a RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
  * if another error occurred.
  */
-tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, callback) {
+tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language, callback) {
 	var aes = tutao.locator.aesCrypter;
 	var groupKey = tutao.locator.userController.getUserGroupKey();
 	var sharableKey = tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey();
@@ -25,7 +26,7 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
 	var service = new tutao.entity.tutanota.SendUnsecureMailData();
-    service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+    service.setLanguage(language)
 	    .setSubject(subject)
 	    .setBodyText(bodyText)
 	    .setSenderName(senderName)
