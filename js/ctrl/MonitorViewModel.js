@@ -44,6 +44,7 @@ tutao.tutanota.ctrl.MonitorViewModel = function() {
         var requestSizeGroup = this._addGroupToView(globalView, "File sizes");
 			this._addMonitorGroup(requestSizeGroup, "AttachmentSize", "global", VALUE);
 	    var registrationGroup = this._addGroupToView(globalView, "Registration");
+            this._addMonitorGroup(registrationGroup, "RegistrationPageVisitorsCount", "global", VALUE);
 	        this._addMonitorGroup(registrationGroup, "FreeCustomerCount", "global", VALUE); 
 	        this._addMonitorGroup(registrationGroup, "StarterCustomerCount", "global", VALUE);
 	        this._addMonitorGroup(registrationGroup, "PremiumCustomerCount", "global", VALUE);

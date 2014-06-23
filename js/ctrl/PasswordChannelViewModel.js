@@ -8,7 +8,18 @@ goog.provide('tutao.tutanota.ctrl.PasswordChannelViewModel');
  */
 tutao.tutanota.ctrl.PasswordChannelViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+    this.germanSelected = ko.observable(true);
 };
+
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.init = function(){
+    var currentLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
+
+    if (currentLanguage == null ){
+        currentLanguage = tutao.locator.languageViewModel.getCurrentLanguage();
+    }
+    this.germanSelected("de" == currentLanguage);
+};
+
 
 /**
  * Returns a array of external recipients.
@@ -153,6 +164,10 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordChannelDescrip
     }
 };
 
-
-
-
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getNotificationMailLanguage = function() {
+    if ( this.germanSelected()){
+        return "de"
+    }else {
+       return "en";
+    }
+}

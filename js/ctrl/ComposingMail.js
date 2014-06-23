@@ -52,6 +52,8 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 		}
 	}, this);
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+
+    tutao.locator.passwordChannelViewModel.init();
 };
 
 /**
@@ -186,7 +188,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
         this.directSwitchActive = false;
         facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
         self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-        self.conversationType, self.previousMessageId, self._attachments(), function(senderMailElementId, exception) {
+        self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage(), function(senderMailElementId, exception) {
             if (exception) {
                 if(exception instanceof tutao.tutanota.ctrl.RecipientsNotFoundException){
                     var notFoundRecipients = exception.getRecipients();
@@ -222,6 +224,19 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
                 }
             }, 500);
         });
+
+
+        var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
+        var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
+        if ( selectedLanguage != propertyLanguage){
+            tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
+            tutao.locator.mailBoxController.getUserProperties().update(function(exception){
+                if (exception){
+                    console.log(exception);
+                }
+            });
+        }
+
     } else{
         tutao.locator.mailView.showPasswordChannelColumn();
     }
