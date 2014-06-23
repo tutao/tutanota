@@ -226,6 +226,8 @@
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PhoneNumber.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PhoneNumberTypeData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PhoneNumberTypeReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationConfigReturn.js"></script>
@@ -1365,10 +1367,10 @@ function touchOrClick(e) {
 										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'" />
+												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber" />
 											</div>
 											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
-											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
+											<label for="mobileNumber" class="recordInfo" data-bind="html: tutao.lang('mobileNumberInfo_msg')"></label>
 										</div>
 									</div>
                                     <!-- ko if: getRegistrationType() != 'Free' -->

@@ -17,17 +17,32 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.companyName = ko.observable("");
 	this.domain = ko.observable("tutanota.de");
 	this.name = ko.observable("");
+
 	this.mobileNumber = ko.observable("");
-	this.mobileNumberStatus = ko.computed(function() {
-		if (this.mobileNumber() == "") {
-			return { type: "neutral", text: "mobileNumberNeutral_msg" };
-		} else if (this.isMobileNumberValid()) {
-			return { type: "valid", text: "mobileNumberValid_msg" };
-		} else {
-			return { type: "invalid", text: "mobileNumberInvalid_msg" };
-		}
-	}, this); 
-	
+    this.mobileNumberStatus = ko.observable({ type: "neutral", text: "mobileNumberNeutral_msg" });
+    this.lastCheckedNumber = null;
+    this.mobileNumber.subscribe(function(newValue) {
+        if (newValue == "") {
+            this.lastCheckedNumber = null;
+            this.mobileNumberStatus({ type: "neutral", text: "mobileNumberNeutral_msg" });
+        } else  if (newValue.substring(0, 1) != "+") {
+            this.lastCheckedNumber = null;
+            this.mobileNumberStatus({ type: "invalid", text: "mobileNumberNoCountryCode_msg" });
+        } else if (this.lastCheckedNumber != newValue) {
+            this.lastCheckedNumber = newValue;
+            var self = this;
+            tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(newValue), {}, [], function(result, exception) {
+                if (exception) {
+                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
+                } else if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
+                    self.mobileNumberStatus({ type: "valid", text: "mobileNumberValid_msg" });
+                } else {
+                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
+                }
+            });
+        }
+    }, this);
+
 	this.mailAddressPrefix = ko.observable("");
 	this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
 	
