@@ -313,6 +313,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	login_action: "Log in",
 	login_msg: "Logging in.",
 	mailAddress_label: "Email address",
+    socialMedia_label: "Stay up to date and share:",
 
 	// header
 	logo_alt: "Tutanota logo",
@@ -718,9 +719,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	loginFailedOften_msg: "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuchen Sie es später erneut.",
 	loginFailed_msg: "Ungültige E-Mail-Adresse oder Passwort. Bitte versuchen Sie es erneut.",
 	login_action: "Anmelden",
-
 	login_msg: 'Sie werden eingeloggt.',
 	mailAddress_label: "E-Mail-Adresse",
+    socialMedia_label: "Folge uns für aktuelle Infos:",
 
 	// header
 	logo_alt: "Tutanota-Logo",
