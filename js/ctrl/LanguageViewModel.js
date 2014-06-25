@@ -313,7 +313,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	login_action: "Log in",
 	login_msg: "Logging in.",
 	mailAddress_label: "Email address",
-    socialMedia_label: "Stay up to date and share:",
+    socialMedia_label: "Follow us for updates:",
 
 	// header
 	logo_alt: "Tutanota logo",
@@ -721,7 +721,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	login_action: "Anmelden",
 	login_msg: 'Sie werden eingeloggt.',
 	mailAddress_label: "E-Mail-Adresse",
-    socialMedia_label: "Folge uns für aktuelle Infos:",
+    socialMedia_label: "Folge uns für Updates:",
 
 	// header
 	logo_alt: "Tutanota-Logo",
