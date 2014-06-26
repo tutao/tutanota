@@ -30,16 +30,21 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
             this.mobileNumberStatus({ type: "invalid", text: "mobileNumberNoCountryCode_msg" });
         } else if (this.lastCheckedNumber != newValue) {
             this.lastCheckedNumber = newValue;
-            var self = this;
-            tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(newValue), {}, [], function(result, exception) {
-                if (exception) {
-                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
-                } else if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
-                    self.mobileNumberStatus({ type: "valid", text: "mobileNumberValid_msg" });
-                } else {
-                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
-                }
-            });
+            var cleaned = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(newValue);
+            if (cleaned == null) {
+                this.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
+            } else {
+                var self = this;
+                tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(cleaned), {}, [], function(result, exception) {
+                    if (exception) {
+                        self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
+                    } else if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
+                        self.mobileNumberStatus({ type: "valid", text: "mobileNumberValid_msg" });
+                    } else {
+                        self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
+                    }
+                });
+            }
         }
     }, this);
 
@@ -179,12 +184,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._getMailAddressFromName = fu
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isMobileNumberValid = function() {
-	var cleaned = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(this.mobileNumber());
-	if (!cleaned) {
-		return false;
-	} else {
-		return tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber(cleaned);
-	}
+    return (this.mobileNumberStatus().type == "valid");
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isValidMailAddress = function() {
