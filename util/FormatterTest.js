@@ -170,21 +170,22 @@ TestCase("FormatterTest", {
 	},
 	
 	"test getCleanedPhoneNumber": function() {
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+4951153335321"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber(" +4951153335321 "));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0511 5333 532-1"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0511/53335321"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0511/533353/21"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0511-533353-21"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0049 51153335321"));
-		assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("(0511)53335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("4951153335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0004951153335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("++4951153335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115_3335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115+3335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115a3335321"));
-		assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115/333/5321a"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+4951153335321"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber(" +4951153335321 "));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+49 511 5333 532-1"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+49 511/53335321"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+49511/533353/21"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+49511-533353-21"));
+        assertEquals("+4951153335321", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("(+49511)53335321"));
+        assertEquals("+12053190944", tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+1 205-319-0944"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0049 51153335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("4951153335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("0004951153335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("++4951153335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115_3335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115+3335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115a3335321"));
+        assertEquals(null, tutao.tutanota.util.Formatter.getCleanedPhoneNumber("+495115/333/5321a"));
 	},
 	
 	"test isGermanMobilePhoneNumber": function() {

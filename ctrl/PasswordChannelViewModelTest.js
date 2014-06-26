@@ -37,7 +37,7 @@ TestCase("PasswordChannelViewModelTest", {
 		var r2 = new tutao.tutanota.ctrl.RecipientInfo("c@d.de", "c d", null, true);
 		var contact = new tutao.entity.tutanota.Contact();
 		var contactPhoneNumber = new tutao.entity.tutanota.ContactPhoneNumber(contact);
-		contactPhoneNumber.setNumber("015777777777");
+		contactPhoneNumber.setNumber("+4915777777777");
 		contactPhoneNumber.setType("0");
 		contactPhoneNumber.setCustomTypeName("");
 		r2.getEditableContact().phoneNumbers.push(new tutao.entity.tutanota.ContactPhoneNumberEditable(contactPhoneNumber));
