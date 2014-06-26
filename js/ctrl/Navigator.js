@@ -58,7 +58,11 @@ tutao.tutanota.ctrl.Navigator.prototype.notSupported = function() {
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.mail = function() {
-	location.replace("#box");
+    if ( tutao.locator.navigator.mailRef != null){
+        location.replace("#box/" + tutao.locator.navigator.mailRef);
+    }else{
+        location.replace("#box");
+    }
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
@@ -150,6 +154,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 	});
 
 	Path.map("#login").to(function() {
+        tutao.locator.navigator.mailRef = null;
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
 			tutao.tutanota.gui.resetLogoBindings();
@@ -172,7 +177,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 		if (self.verifyExternalClientSupported()) {
 			// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
 			tutao.locator.navigator.mailRef = this.params["mailRef"];
-			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, self.mailRef, function() {
+			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, tutao.locator.navigator.mailRef, function() {
 				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
 			});
 		}
@@ -185,6 +190,12 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 	Path.map("#box").to(function() {
 		self.authenticateAndSwitchToView(tutao.locator.mailView);
 	});
+
+    Path.map("#box/:mailRef").to(function() {
+        tutao.locator.navigator.mailRef = this.params["mailRef"];
+        self.authenticateAndSwitchToView(tutao.locator.mailView)
+    });
+
 
 	Path.map("#file").to(function() {
 		self.authenticateAndSwitchToView(tutao.locator.fileView);

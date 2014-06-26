@@ -164,7 +164,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 	}
 
 	if (!onePresharedPasswordNotStrongEnough || tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("presharedPasswordNotStrongEnough_msg"))) {
-        this._updateContactInfo(secureExternalRecipients);
+        this._updateContactInfo(this.getAllComposerRecipients());
         this._freeBubbles();
 	
 		var senderName = "";
@@ -664,13 +664,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.buttonCss = function() {
 
 
 /**
- * Updates the contact informations of all external recipients if they have been modified.
- * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} secureExternalRecipients List of external recipients.
+ * Updates the contact informations of all recipients if they have been modified.
+ * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} recipients List of recipients.
  * @private
  */
-tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (secureExternalRecipients) {
-    for (var i = 0; i < secureExternalRecipients.length; i++) {
-        var currentRecipient = secureExternalRecipients[i];
+tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (recipients) {
+    for (var i = 0; i < recipients.length; i++) {
+        var currentRecipient = recipients[i];
         // Changes of contact data must be checked before calling EditableContact.update(),
         var contactDataChanged = currentRecipient.hasPasswordChanged() || currentRecipient.hasPhoneNumberChanged();
         currentRecipient.getEditableContact().update();
