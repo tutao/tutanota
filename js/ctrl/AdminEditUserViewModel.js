@@ -34,12 +34,14 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     this.saveStatus = ko.observable({type: "neutral", text: "emptyString_msg" });
 
     this.passwordChangeAllowed = ko.observable(false);
+    this.deleteUserAllowed = ko.observable(false);
     var self = this;
     tutao.entity.sys.Group.load(userGroupInfo.getGroup(), function(userGroup, exception) {
         if (!exception && userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
             tutao.entity.sys.User.load(userGroup.getUser(), function(user, exception) {
                 if (!exception && !self._isAdmin(user)) {
                     self.passwordChangeAllowed(true);
+                    self.deleteUserAllowed(true);
                 }
             });
         }

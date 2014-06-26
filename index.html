@@ -1358,7 +1358,12 @@ function touchOrClick(e) {
 											<div class="recordValue">
 												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input'" />
 											</div>
-											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
+                                            <!-- ko if: getRegistrationType() != 'Free' -->
+                                            <label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
+                                            <!-- /ko -->
+                                            <!-- ko if: getRegistrationType() == 'Free' -->
+											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfoFree_msg'"></label>
+                                            <!-- /ko -->
 										</div>
 									</div>
 									<div class="record">
@@ -2024,7 +2029,7 @@ function touchOrClick(e) {
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
 								<div id="adminUserList" data-bind="with: adminUserListViewModel">
-									<div class="buttonBar">
+									<div class="buttonBar" data-bind="visible: changeAccountsAllowed">
                                         <div class="outerButtons">
                                             <div class="innerButtons">
                                                 <button type="submit" data-bind="lang: 'create_action', click: createAccounts"></button>
@@ -2099,7 +2104,7 @@ function touchOrClick(e) {
                                 <div class="recordName"></div>
                                 <div class="formAction">
                                     <button id="submitUserChange" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
-                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser"></button>
+                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
                                     <button id="cancelUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
                                     <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
