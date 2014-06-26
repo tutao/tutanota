@@ -351,7 +351,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// registration
     regLinkInvalid_msg: "Sorry, this registration link is not valid.",
-    regDisabledFree_msg: "The number of Tutanota Free users is limited and registration currently disabled. Please signup here, to get notified as soon as registration is possible again:",
+    regDisabledFree_msg: "The number of Tutanota Free users is limited and registration currently disabled. Please follow us here, to get notified as soon as registration is possible again:",
     regDisabledStarter_msg: "The number of Tutanota Starter users is limited and registration currently disabled. Please signup here, to get notified as soon as registration is possible again:",
 	registrationHeadline_msg: "Tutanota $ Registration",
     registrationSubHeadline1_msg: "Verify domain (step 1 of 3)",
@@ -758,7 +758,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
 	// registration
     regLinkInvalid_msg: "Es tut uns leid, dieser Registrierungslink ist nicht gültig.",
-    regDisabledFree_msg: "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte melde dich hier an, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
+    regDisabledFree_msg: "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte folge uns hier, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
     regDisabledStarter_msg: "Die Anzahl an Registrierungen für Tutanota Starter ist limitiert und im Moment leider nicht möglich. Bitte melden Sie sich hier an, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
 	claim_label: "Tutanota - einfach. sicher. mailen.",
 	registrationHeadline_msg: "Tutanota $ Registrierung",
