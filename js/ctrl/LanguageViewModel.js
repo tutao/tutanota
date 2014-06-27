@@ -277,7 +277,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	notFound404_msg: "Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
     loading_msg: "Loading...",
     show_action: "Show",
-    applicationUpdate_label: "Updating Tutanota...",
+    applicationUpdate_label: "Loading Tutanota...",
     leavePageConfirmation_msg: "Do you really want to leave Tutanota?",
 
 	// code verification
@@ -686,7 +686,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
     loading_msg: "Lade...",
     show_action: "Öffne",
-    applicationUpdate_label: "Tutanota wird aktualisiert...",
+    applicationUpdate_label: "Tutanota wird geladen...",
     leavePageConfirmation_msg: "Wollen Sie Tutanota wirklich schließen?",
 
 	// code verification
