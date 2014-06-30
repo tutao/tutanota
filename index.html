@@ -1446,10 +1446,10 @@ function touchOrClick(e) {
 											<div class="recordValue">
 												<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
                                                 <!-- ko if: getRegistrationType() == 'Free' -->
-                                                <a href="https://tutanota.de/files/Tutanota-Free-Terms_de.pdf" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+                                                <a href="https://tutanota.de/#!termsfree" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
                                                 <!-- /ko -->
                                                 <!-- ko if: getRegistrationType() == 'Starter' -->
-                                                <a href="https://tutanota.de/files/Tutanota-Starter-Terms_de.pdf" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+                                                <a href="https://tutanota.de/#!termsstarter" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
                                                 <!-- /ko -->
 											</div>
 											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
