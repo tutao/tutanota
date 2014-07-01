@@ -106,11 +106,13 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
                     } else {
                         self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
                         self.adminUserListViewModel.updateUserGroupInfo();
+                        tutao.locator.settingsView.showChangeSettingsColumn();
                     }
                 });
             } else {
                 self.busy(false);
                 self.adminUserListViewModel.updateUserGroupInfo();
+                tutao.locator.settingsView.showChangeSettingsColumn();
             }
 		}
 	});
