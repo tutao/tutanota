@@ -684,11 +684,14 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (recip
                 });
             }
         } else {
-            currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function (e) {
-                if (e) {
-                    console.log("error", e);
-                }
-            });
+            // external users have no contact list.
+            if (tutao.locator.mailBoxController.getUserContactList() != null) {
+                currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function (e) {
+                    if (e) {
+                        console.log("error", e);
+                    }
+                });
+            }
         }
     }
 };
