@@ -391,7 +391,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	pwStrength_title: "This shows the security level of your entered password.",
 	goodPassphrase_action: "How to find a good password?",
     passwordImportance_msg: "Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
-	termsAndConditions_action: "I agree to the terms of service and have read the service description and the privacy policy.",
+	termsAndConditions_action: "I have read and agree to the general terms and conditions and the privacy policy.",
 	join_action: "Join",
 	joinNeutral_msg: "Join to receive your personal verification code via SMS for verifying your mobile number.",
 	joinRunning_msg: "An SMS is sent...",
@@ -800,7 +800,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	pwStrength_title: "Zeigt den Sicherheitsgrad des verwendeten Passworts an",
 	goodPassphrase_action: "Wie finde ich ein gutes Passwort?",
     passwordImportance_msg: "Bitte bewahren Sie dieses Passwort an einem sicheren Ort auf. Wir können das Passwort nicht wiederherstellen oder den Account zurücksetzen, da Ihre Daten Ende-zu-Ende verschlüsselt gespeichert werden.",
-	termsAndConditions_action: "Ich habe die Allgemeinen Geschäftsbedingungen, die Datenschutzerklärung und die Leistungsbeschreibung gelesen und erkenne diese an.",
+	termsAndConditions_action: "Ich habe die Allgemeinen Geschäftsbedingungen und die Datenschutzerklärung gelesen und erkenne diese an.",
 	join_action: "Fortfahren",
 	joinNeutral_msg: "Sie erhalten anschließend per SMS einen Bestätigungscode für die angegebene Mobilfunknummer.",
 	joinRunning_msg: "Die SMS wird gesendet...",
@@ -829,7 +829,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
 	terms_label: "Bestätigung",
-	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
+	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die AGB.",
 
 	// feedback
 	screenshot_label: "Screenshot mitsenden",
