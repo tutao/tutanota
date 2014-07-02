@@ -2,6 +2,12 @@
 
 goog.provide('tutao.entity.tutanota.TutanotaConstants');
 
+tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_INVALID = "0";
+tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE = "1";
+tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_FIXED_LINE = "2";
+tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_OTHER = "3";
+tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN = "4";
+
 tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER = "0";
 
 tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS = "1";

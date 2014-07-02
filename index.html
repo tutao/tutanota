@@ -226,6 +226,8 @@
 	<script type="text/javascript" src="generated/entity/sys/OutgoingShare.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/Permission.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PhoneNumber.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PhoneNumberTypeData.js"></script>
+	<script type="text/javascript" src="generated/entity/sys/PhoneNumberTypeReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyData.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/PublicKeyReturn.js"></script>
 	<script type="text/javascript" src="generated/entity/sys/RegistrationConfigReturn.js"></script>
@@ -334,6 +336,7 @@
 	<script type="text/javascript" src="js/ctrl/AdminUserAddViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AdminUserListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/AppCacheListener.js"></script>
+	<script type="text/javascript" src="js/ctrl/AttachmentDialogViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/Button.js"></script>
 	<script type="text/javascript" src="js/ctrl/ButtonBarViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ChangePasswordViewModel.js"></script>
@@ -758,7 +761,12 @@ function touchOrClick(e) {
 					<div id="passwordChannelListWrapper">
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
-							<div id="passwordChannelDescription" data-bind="text: getPasswordChannelDescription()"></div>
+                            <div id="changeNotificationMailLanguage">
+                                <span class="descriptionFont" class="descriptionFont" data-bind="lang: 'changeNotificationMailLanguage_msg'"></span>
+                                <img class="languageButton" src="graphics/german.png" data-bind="css: {languageButtonSelected: germanSelected }, click: function() { setTimeout(function() { germanSelected(true); }, 0); }"/>
+                                <img class="languageButton" src="graphics/english.png" data-bind="css: {languageButtonSelected: !germanSelected()}, click: function() { setTimeout(function() { germanSelected(false); }, 0); }" />
+                            </div>
+                            <div id="passwordChannelDescription" class="descriptionFont" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
 								<div data-bind="attr:{id:'passwordChannelEntry_' + getMailAddress()}">
 									<hr />
@@ -1156,8 +1164,21 @@ function touchOrClick(e) {
 									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
-						</form>
-					</div>
+
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="recordData">
+                                    <div class="recordValue socialMediaLinks">
+                                        <div data-bind="lang: 'socialMedia_label'"></div>
+                                        <a href="https://twitter.com/Tutanota_de" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
+                                        <a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
+                                        <a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
+                                    </div>
+                                </div>
+                            </div>
+
+    					</form>
+                    </div>
 				</div>
 				<div id="welcomePicture"><div></div></div>
 			</div>
@@ -1342,17 +1363,22 @@ function touchOrClick(e) {
 											<div class="recordValue">
 												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input'" />
 											</div>
-											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
+                                            <!-- ko if: getRegistrationType() != 'Free' -->
+                                            <label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
+                                            <!-- /ko -->
+                                            <!-- ko if: getRegistrationType() == 'Free' -->
+											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfoFree_msg'"></label>
+                                            <!-- /ko -->
 										</div>
 									</div>
 									<div class="record">
 										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber, valueUpdate: 'input'" />
+												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber" />
 											</div>
 											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
-											<label for="mobileNumber" class="recordInfo" data-bind="lang: 'mobileNumberInfo_msg'"></label>
+											<label for="mobileNumber" class="recordInfo" data-bind="html: tutao.lang('mobileNumberInfo_msg')"></label>
 										</div>
 									</div>
                                     <!-- ko if: getRegistrationType() != 'Free' -->
@@ -1410,10 +1436,10 @@ function touchOrClick(e) {
 											<div class="recordValue">
 												<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
                                                 <!-- ko if: getRegistrationType() == 'Free' -->
-                                                <a href="https://tutanota.de/files/Tutanota-Free-Terms_de.pdf" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+                                                <label data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
                                                 <!-- /ko -->
                                                 <!-- ko if: getRegistrationType() == 'Starter' -->
-                                                <a href="https://tutanota.de/files/Tutanota-Starter-Terms_de.pdf" target="_blank" data-bind="lang: 'termsAndConditions_action'" tabindex="-1"></a>
+                                                <label data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
                                                 <!-- /ko -->
 											</div>
 											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
@@ -1484,9 +1510,11 @@ function touchOrClick(e) {
                             <div class="smallInfoMessage" data-bind="lang: 'loading_msg'"></div>
                         <!-- /ko -->
                         <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED -->
-                            <div class="smallInfoMessage">
+                            <div class="smallInfoMessage socialMediaLinks">
                                 <div data-bind="lang: 'regDisabledFree_msg'"></div>
-                                <a href="https://tutanota.de/#contact" target="_blank" data-bind="text: 'https://tutanota.de/#contact'" tabindex="-1"></a>
+                                <a href="https://twitter.com/Tutanota_de" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
+                                <a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
+                                <a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
                             </div>
                         <!-- /ko -->
 					</div>
@@ -2008,7 +2036,7 @@ function touchOrClick(e) {
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
 								<div id="adminUserList" data-bind="with: adminUserListViewModel">
-									<div class="buttonBar">
+									<div class="buttonBar" data-bind="visible: changeAccountsAllowed">
                                         <div class="outerButtons">
                                             <div class="innerButtons">
                                                 <button type="submit" data-bind="lang: 'create_action', click: createAccounts"></button>
@@ -2083,7 +2111,7 @@ function touchOrClick(e) {
                                 <div class="recordName"></div>
                                 <div class="formAction">
                                     <button id="submitUserChange" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
-                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser"></button>
+                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
                                     <button id="cancelUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
                                     <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
@@ -2187,8 +2215,8 @@ function touchOrClick(e) {
 			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: 'feedback_label'"></h2>
 			<textarea rows="3" data-bind="value: message"></textarea>
-            <input id="addScreenshotCheckbox" type="checkbox" data-bind="checked: addScreenshot">
-            <label for="addScreenshotCheckbox" data-bind="lang: 'screenshot_label'" />
+            <input id="addScreenshotCheckbox" type="checkbox" data-bind="checked: addScreenshot, visible: showAddScreenshot">
+            <label for="addScreenshotCheckbox" data-bind="lang: 'screenshot_label', visible: showAddScreenshot" />
             <div class="modalDialogInfo" data-bind="lang: 'feedbackInfo_msg'"></div>
             <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
@@ -2211,7 +2239,14 @@ function touchOrClick(e) {
             </div>
         </div>
     </div>
-
+<!--
+    <div id="attachmentDialog" data-bind="with: tutao.locator.attachmentDialogViewModel, fadeVisible: tutao.locator.attachmentDialogViewModel.dialogVisible">
+        <span class="close" data-bind="click: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
+        <a target="_blank" data-bind="attr: { href: blobUrl, download: filename }">
+            <span>Download</span>
+        </a>
+    </div>
+-->
 	<header id="main" data-bind="with: tutao.locator.viewManager, visible: tutao.locator.viewManager.isUserLoggedIn()">
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->

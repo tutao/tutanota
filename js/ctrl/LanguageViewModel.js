@@ -145,6 +145,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     addAttachmentNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support adding attachments to emails. Please use a desktop browser for this feature.",
     recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
+    couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
+    changeNotificationMailLanguage_msg: "Language of notification email:",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -275,7 +277,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	notFound404_msg: "Sorry, but the page you are looking for has not been found. Try checking the URL for errors and hit the refresh button of your browser.",
     loading_msg: "Loading...",
     show_action: "Show",
-    applicationUpdate_label: "Updating Tutanota...",
+    applicationUpdate_label: "Loading Tutanota...",
     leavePageConfirmation_msg: "Do you really want to leave Tutanota?",
 
 	// code verification
@@ -311,6 +313,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	login_action: "Log in",
 	login_msg: "Logging in.",
 	mailAddress_label: "Email address",
+    socialMedia_label: "Follow us for updates:",
 
 	// header
 	logo_alt: "Tutanota logo",
@@ -348,7 +351,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// registration
     regLinkInvalid_msg: "Sorry, this registration link is not valid.",
-    regDisabledFree_msg: "The number of Tutanota Free users is limited and registration currently disabled. Please signup here, to get notified as soon as registration is possible again:",
+    regDisabledFree_msg: "The number of Tutanota Free users is limited and registration currently disabled. Please follow us here, to get notified as soon as registration is possible again:",
     regDisabledStarter_msg: "The number of Tutanota Starter users is limited and registration currently disabled. Please signup here, to get notified as soon as registration is possible again:",
 	registrationHeadline_msg: "Tutanota $ Registration",
     registrationSubHeadline1_msg: "Verify domain (step 1 of 3)",
@@ -368,10 +371,12 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     domainInfo_msg: "You confirm, that you are allowed to administer this domain.",
 	loginNameInfo_msg: "Your name.",
     loginNameInfoAdmin_msg: "Optional: the user's name.",
-	mobileNumberInfo_msg: "Your mobile phone number is needed to authorize you when you want to change your password.",
+    loginNameInfoFree_msg: "Optional: This name is shown to recipients of your emails.",
+	mobileNumberInfo_msg: "Please include your <a href=\"https://en.wikipedia.org/wiki/List_of_mobile_phone_codes_by_country\" target=\"_blank\">country code</a>, .e.g +4917012345678. Your mobile phone number is needed to authorize you when you want to change your password.",
 	mobileNumberNeutral_msg: "Please enter mobile phone number.",
 	mobileNumberValid_msg: "Mobile phone number ok.",
 	mobileNumberInvalid_msg: "Mobile phone number is not valid.",
+    mobileNumberNoCountryCode_msg: "Country code is missing, e.g. +49 for Germany.",
     currentMailAddressInfo_msg: "This address will be used for verifying that you are the owner or administrator of this domain.\nHint: Use a postmaster@<your_domain> or hostmaster@<your_domain> address to be able to register immediately (automatic verification). A manual verification is needed for all other addresses, which may take up to one work day.",
 	mailAddressInfo_msg: "This will be your new mail address. Register with a unique name. First come, first serve. At least four letters required.",
     mailAddressInfoBusiness_msg: "This is your email address.",
@@ -386,8 +391,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	pwStrength_title: "This shows the security level of your entered password.",
 	goodPassphrase_action: "How to find a good password?",
     passwordImportance_msg: "Please store this password in a secure place. We are not able to restore your password or to reset your account because all of your data is end-to-end encrypted.",
-	termsAndConditions_action: "I agree to the terms of service and have read the service description and the privacy policy.",
-	join_action: "Join",
+    termsAndConditionsStarter_label: "I have read and agree to the <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+    termsAndConditionsFree_label: "I have read and agree to the <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+    join_action: "Join",
 	joinNeutral_msg: "Join to receive your personal verification code via SMS for verifying your mobile number.",
 	joinRunning_msg: "An SMS is sent...",
 	joinFailure_msg: "Sorry, we could not send the SMS. Please try again later.",
@@ -549,6 +555,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     addAttachmentNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Anhängen von Dateien an E-Mails. Bitte verwenden Sie dafür einen Desktop-Browser.",
     recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
+    couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
+    changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
@@ -679,7 +687,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	notFound404_msg: "Leider konnte die von Ihnen aufgerufene Seite nicht gefunden werden. Bitte prüfen Sie die URL nach Fehlern und aktualisieren die aktuelle Seite.",
     loading_msg: "Lade...",
     show_action: "Öffne",
-    applicationUpdate_label: "Tutanota wird aktualisiert...",
+    applicationUpdate_label: "Tutanota wird geladen...",
     leavePageConfirmation_msg: "Wollen Sie Tutanota wirklich schließen?",
 
 	// code verification
@@ -713,9 +721,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	loginFailedOften_msg: "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuchen Sie es später erneut.",
 	loginFailed_msg: "Ungültige E-Mail-Adresse oder Passwort. Bitte versuchen Sie es erneut.",
 	login_action: "Anmelden",
-
 	login_msg: 'Sie werden eingeloggt.',
 	mailAddress_label: "E-Mail-Adresse",
+    socialMedia_label: "Folge uns für Updates:",
 
 	// header
 	logo_alt: "Tutanota-Logo",
@@ -752,7 +760,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
 	// registration
     regLinkInvalid_msg: "Es tut uns leid, dieser Registrierungslink ist nicht gültig.",
-    regDisabledFree_msg: "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte melde dich hier an, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
+    regDisabledFree_msg: "Die Anzahl an Registrierungen für Tutanota Free ist limitiert und im Moment leider nicht möglich. Bitte folge uns hier, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
     regDisabledStarter_msg: "Die Anzahl an Registrierungen für Tutanota Starter ist limitiert und im Moment leider nicht möglich. Bitte melden Sie sich hier an, um eine Benachrichtigung zu erhalten sobald weitere Registrierungen möglich sind:",
 	claim_label: "Tutanota - einfach. sicher. mailen.",
 	registrationHeadline_msg: "Tutanota $ Registrierung",
@@ -773,10 +781,12 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     domainInfo_msg: "Hiermit bestätigen Sie, dass Sie diese Domain verwalten dürfen.",
 	loginNameInfo_msg: "Ihr Vor- und Nachname.",
     loginNameInfoAdmin_msg: "Optional: Der Name des Benutzers.",
-	mobileNumberInfo_msg: "Ihre Mobilfunknummer wird zur Autorisierung benötigt, wenn Sie Ihr Passwort ändern möchten.",
+    loginNameInfoFree_msg: "Optional: Dieser Name wird Empfängern Ihrer E-Mails angezeigt.",
+	mobileNumberInfo_msg: "Bitte mit <a href=\"https://de.wikipedia.org/wiki/L%C3%A4ndervorwahlliste_sortiert_nach_L%C3%A4ndern\" target=\"_blank\">Ländervorwahl</a> eingeben, z.B. +4917012345678. Ihre Mobilfunknummer wird zur Autorisierung benötigt, wenn Sie Ihr Passwort ändern möchten.",
 	mobileNumberNeutral_msg: "Bitte Mobilfunknummer eingeben.",
 	mobileNumberValid_msg: "Mobilfunknummer ok.",
 	mobileNumberInvalid_msg: "Ungültige Mobilfunknummer.",
+    mobileNumberNoCountryCode_msg: "Ländervorwahl fehlt, z.B. +49 für Deutschland.",
     currentMailAddressInfo_msg: "Diese E-Mail-Adresse wird genutzt, um zu prüfen, dass Ihnen die Domain gehört oder Sie diese verwalten dürfen.\nTipp: Benutzen Sie eine der Adressen postmaster@<Ihre_Domain> oder hostmaster@<Ihre_Domain>, um die Registrierung sofort fortzusetzen (automatische Prüfung). Eine manuelle Prüfung wird für alle anderen Adressen durchgeführt und kann bis zu einem Werktag benötigen.",
 	mailAddressInfo_msg: "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
     mailAddressInfoBusiness_msg: "Ihre vorhandene E-Mail-Adresse.",
@@ -791,7 +801,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	pwStrength_title: "Zeigt den Sicherheitsgrad des verwendeten Passworts an",
 	goodPassphrase_action: "Wie finde ich ein gutes Passwort?",
     passwordImportance_msg: "Bitte bewahren Sie dieses Passwort an einem sicheren Ort auf. Wir können das Passwort nicht wiederherstellen oder den Account zurücksetzen, da Ihre Daten Ende-zu-Ende verschlüsselt gespeichert werden.",
-	termsAndConditions_action: "Ich habe die Allgemeinen Geschäftsbedingungen, die Datenschutzerklärung und die Leistungsbeschreibung gelesen und erkenne diese an.",
+	termsAndConditionsStarter_label: "Ich habe die <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Allgemeinen Geschäftsbedingungen</a> und die <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Datenschutzerklärung</a> gelesen und erkenne diese an.",
+    termsAndConditionsFree_label: "Ich habe die <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Allgemeinen Geschäftsbedingungen</a> und die <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Datenschutzerklärung</a> gelesen und erkenne diese an.",
 	join_action: "Fortfahren",
 	joinNeutral_msg: "Sie erhalten anschließend per SMS einen Bestätigungscode für die angegebene Mobilfunknummer.",
 	joinRunning_msg: "Die SMS wird gesendet...",
@@ -820,7 +831,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
 	terms_label: "Bestätigung",
-	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die Nutzungsbedingungen.",
+	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die AGB.",
 
 	// feedback
 	screenshot_label: "Screenshot mitsenden",

@@ -77,4 +77,10 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
             return result;
         };
     })();
+
+
+    if (!window.console) {
+        window.console = {log: function() {}};
+    }
+
 };

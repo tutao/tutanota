@@ -14,7 +14,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	this.editing = ko.observable(null);
 	this._selectedDomElements = [];
 	this.newViewModel = ko.observable(null);
-	
+	this.changeAccountsAllowed = !tutao.locator.userController.isLoggedInUserFreeAccount();
     this.update();
 	
 };
@@ -47,13 +47,18 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
     if (this.editing()) {
         // update the saved instance in our list
         var self = this;
-        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId(), function(updatedUserGroup, exception) {
+        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId(), function(updatedUserGroupInfo, exception) {
             if (exception) {
                 console.log(exception);
             } else {
                 var savedIndex = self.userGroups.indexOf(self.editing().userGroupInfo);
                 self.userGroups.splice(savedIndex, 1);
-                self.userGroups.splice(savedIndex, 0, updatedUserGroup);
+                self.userGroups.splice(savedIndex, 0, updatedUserGroupInfo);
+
+                // Update user group info for the logged in user.
+                if (tutao.util.ArrayUtils.arrayEquals( tutao.locator.userController.getUserGroupInfo().getId(),updatedUserGroupInfo.getId()) ){
+                    tutao.locator.userController._userGroupInfo = updatedUserGroupInfo;
+                }
                 self.editing(null);
             }
         })

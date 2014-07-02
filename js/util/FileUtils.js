@@ -45,7 +45,7 @@ tutao.tutanota.util.FileUtils.WATIR_MODE = false;
 tutao.tutanota.util.FileUtils.readLocalFile = function(file, callback) {
 	var reader = new FileReader();
 	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+		if (evt.target.readyState == FileReader.DONE && evt.target.result) { // DONE == 2
 			callback(new tutao.tutanota.util.DataFile(evt.target.result, file));
 		} else {
 			callback(null, new Error("could not load file"));

@@ -30,15 +30,8 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 
     this._deleted = false;
     this._editableContact = null;
-    if (this.isExternal()) {
-        this._createEditingContact();
-    }
-    this._type.subscribe(function(newValue) {
-        // if we later (after querying the server) find out that the recipient is external, we have to create an editable contact
-        if (newValue == tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL && this._editableContact == null) {
-            this._createEditingContact();
-        }
-    }, this);
+
+    this._createEditingContact();
 
     // query the server to find the recipient type
     var self = this;
@@ -122,9 +115,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype._createEditingContact = function() {
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.setDeleted = function() {
     this._deleted = true;
-	if (this.isExternal()) {
-		this._contactWrapper.stopEditingContact(this);
-	}
+    this._contactWrapper.stopEditingContact(this);
 };
 
 /**

@@ -13,11 +13,12 @@ goog.provide('tutao.tutanota.ctrl.SendMailFacade');
  * @param {string} conversationType See TutanotaConstants.
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
+ * @param {string} language Notification mail language.
  * @param {function(?string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException=)} callback Called when finished with the id of
  * the senders mail (only element id, no list id). Provides a RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
  * if another error occurred.
  */
-tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, callback) {
+tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language, callback) {
 	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();
 	if ((accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM)) {
 		callback(null, new Error("invalid account type"));
@@ -30,7 +31,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
     var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
 
     var service = new tutao.entity.tutanota.SendMailData();
-    service.setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+    service.setLanguage(language)
         .setSubject(subject)
         .setBodyText(bodyText)
         .setSenderName(senderName)

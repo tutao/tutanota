@@ -275,12 +275,7 @@ tutao.tutanota.util.Formatter.getCleanedPhoneNumber = function(phoneNumber) {
 	phoneNumber = phoneNumber.replace(/-/g, "");
 	phoneNumber = phoneNumber.replace(/\(/g, "");
 	phoneNumber = phoneNumber.replace(/\)/g, "");
-	if (tutao.util.StringUtils.startsWith(phoneNumber, "00")) {
-		phoneNumber = "+" + phoneNumber.substring(2);
-	} else if (tutao.util.StringUtils.startsWith(phoneNumber, "0")) {
-		phoneNumber = "+49" + phoneNumber.substring(1);
-	}
-	return (/^\+[1-9]{3}[0-9]+$/.test(phoneNumber)) ? phoneNumber : null;
+	return (/^\+[1-9]{1}[0-9]+$/.test(phoneNumber)) ? phoneNumber : null;
 };
 
 /**
