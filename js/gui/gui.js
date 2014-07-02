@@ -697,3 +697,24 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
         $('.panel > div').css('height', calculatedHeight);
     }
 };
+
+
+/**
+ * Shows the tooltip on mobile devices
+ * @param {DOMElement} element
+ */
+tutao.tutanota.gui.showTooltip = function(item, event) {
+    //if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+        var element = event.target.parentElement; // the bubble
+
+        $(document).trigger("click.tooltip"); // hide other tooltips
+        $(element).children(".tooltip").show().transition({ opacity: 0.9 });
+        $(document).on("click.tooltip", function (e) {
+            if (e.timeStamp !== event.timeStamp) { // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately
+                $(document).off("click.tooltip");
+                $(element).children(".tooltip").transition({ opacity: 0 }).hide();
+            }
+        });
+        return false;
+    //}
+};
