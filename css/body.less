@@ -93,7 +93,7 @@ body {
     }
 
 
-  div#tagListColumn {
+    div#tagListColumn {
 	
 		> section#tagList {
 			position: absolute;
@@ -110,36 +110,46 @@ body {
 	}
 	
 	.searchAndList {
-		.fill;
-		
-		> div.search {
-			.fill;
-			padding: @padding;
-			background: @background-buttonBar;
-			height: @button-bar-height;
-			width: 100%;
-				
-			> .searchForm {
-				margin-left: 8px;
-				margin-right: 8px;
-				
-				div.bubbleInput {
-					div.bubble.default {
-						background: @button-background;
-						border: 1px solid @button-background;
-					}
-				}
-			}
-		}
-		
-		> section.list {
-			.fill;
-			
-			&.belowSearch {
-				top: @button-bar-height;
-			}
-		}
-		
+		> div.action{
+          display: table;
+          width: 100%;
+          > div.otherActions {
+            display: table-cell;
+            height: @button-bar-height;
+            width:100%;
+          }
+          > div#searchAction {
+            display: table-cell;
+            width: 42px;
+            vertical-align: top;
+            padding-top: @button-bar-margin;
+            padding-left: @padding;
+            background: @background-buttonBar;
+          }
+          > div.search {
+            .fill;
+
+            vertical-align: top;
+            padding-top:  @padding;
+            padding-left: @padding;
+            padding-right: @padding;
+            background: @background-buttonBar;
+            height: @button-bar-height;
+            width:100%;
+            z-index: 1;
+
+            > .searchForm {
+
+
+              div.bubbleInput {
+                div.bubble.default {
+                  background: @button-background;
+                  border: 1px solid @button-background;
+                }
+              }
+            }
+          }
+        }
 	}
 	
 	div#searchAndContactListColumn {
@@ -453,11 +463,10 @@ body {
 
 	div#searchAndMailListColumn {
 		> div#searchAndMailList {
-			.searchAndList;
-			
-			
+           .searchAndList;
+
 			section#mailList {
-				position: absolute;
+				position: relative;
 
 				> div.emptyMailList {
 					text-align: center;

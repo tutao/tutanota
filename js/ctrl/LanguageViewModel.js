@@ -115,6 +115,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	forward_action: "Forward",
 	replyConfidential_action: "Reply confidentially",
     export_action: "Export",
+    deleteTrash_action: "Delete all",
 	by_label: "by",
 	date_label: "Date",
 	subject_label: "Subject",
@@ -147,6 +148,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     removeRecipient_alt: "Remove recipient",
     couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
     changeNotificationMailLanguage_msg: "Language of notification email:",
+    search_title: "Search",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -525,6 +527,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	forward_action: "Weiterleiten",
 	replyConfidential_action: "Vertraulich antworten",
     export_action: "Exportieren",
+    deleteTrash_action: "Leeren",
 	by_label: "von",
 	date_label: "Datum",
 	subject_label: "Betreff",
@@ -557,6 +560,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     removeRecipient_alt: "Empfänger entfernen",
     couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
     changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
+    search_title: "Suche",
+
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",

@@ -69,6 +69,12 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
     this.loading = ko.observable(false);
+
+    this.buttons = ko.observableArray();
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    this.actionBarVisible = ko.observable(false);
+    this.searchBarVisible = ko.observable(false);
+    this.searchButtonVisible = ko.observable(false);
 };
 
 /**
@@ -82,6 +88,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 	var self = this;
     this.loading(true);
+    this._updateButtonList();
 
 //	currently not needed any more because deletion is done in mail view
 //	tutao.tutanota.gui.registerMailLongPress(function(domElement, posX, posY) {
@@ -187,8 +194,21 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(ta
 	this.unselectAll();
 	this._currentActiveSystemTag = tagId;
 	this._updateMailList(callback);
+    this._updateButtonList();
 	tutao.locator.mailView.showDefaultColumns();
 };
+
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._updateButtonList = function() {
+    this.buttons.splice(0,this.buttons().length);
+    if ( this._currentActiveSystemTag == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID){
+        this.buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("deleteTrash_action"), 10, this._deleteTrash, false, "deleteTrashAction"));
+    }
+    this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn())
+    this.actionBarVisible( this.buttons().length > 0 || this.searchButtonVisible() );
+};
+
+
 
 /**
  * @protected
@@ -623,6 +643,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._getIdsForSearchWords = function
 	});
 };
 
+
 /**
  * Performs a search according to the current search words and updates the mail list accordingly.
  * @param {function()|Object|undefined} callback Is called when finished. Maybe a the dom object that triggered the search. Attention, please!
@@ -692,6 +713,25 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.validateBubbleText = function(te
 	return {text: text, colorId: 0};
 };
 
+/**
+ * Executes the delete trash functionality.
+ * @param {Object} vm The view model.
+ * @param {Event} event The click event.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function(vm, event) {
+
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.showSearchBar = function() {
+    this.searchBarVisible(true);
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.hideSearchBar = function() {
+    this.searchBarVisible(false);
+};
+
+
+
 
 /************** implementation of tutao.tutanota.ctrl.bubbleinput.BubbleHandler **************/
 
@@ -717,7 +757,13 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.bubbleDeleted = function(bubble)
 
 /** @inheritDoc */
 tutao.tutanota.ctrl.MailListViewModel.prototype.buttonClick = function() {
-	this.bubbleInputViewModel.bubbles.removeAll();
-	this.bubbleInputViewModel.inputValue("");
-	this.search();
+    if ( this.buttonCss() == 'search'){
+        this.hideSearchBar();
+    }else {
+        this.bubbleInputViewModel.bubbles.removeAll();
+        this.bubbleInputViewModel.inputValue("");
+        this.search(function(){});
+    }
 };
+
+
