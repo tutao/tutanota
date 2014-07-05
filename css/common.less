@@ -325,7 +325,7 @@ hr {
 .tooltip {
   &.top .tooltip-arrow {
     bottom: 0;
-    left: 20px;
+    left: 50%;
     margin-left: -@tooltip-arrow-width;
     border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
     border-top-color: @tooltip-arrow-color;
@@ -358,7 +358,7 @@ hr {
   }
   &.bottom .tooltip-arrow {
     top: 0;
-    left: 50%;
+    left: 20px;
     margin-left: -@tooltip-arrow-width;
     border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
     border-bottom-color: @tooltip-arrow-color;
@@ -748,10 +748,9 @@ div.bubble {
 
   > div.removeBubble {
     display: inline-block;
-    width: 35px;
     height: 100%;
-    vertical-align: top;
     border-left: 2px solid @white;
+    padding: 2px;
 
     > div {
       background-size: 14px;

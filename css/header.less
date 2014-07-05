@@ -1,188 +1,282 @@
-// these mobile css properties are defined here because the original values are defined in html
-@media @mobile {
-	div#leftViewButtonSlider.loggedIn {
-      width: 33px; // = leftViewButton.width + leftViewButton.margin-left
+@left-navbar-width: 230px;
+@left-navbar-width-small: 80px;
+@nav-icon-width: 48px;
+@nav-icon-width-small: 37px;
+@indicator-width: 35px;
+@indicator-width-small: 27px;
+@indicator-side-margin: 5px;
 
-      > div#logo {
-        width: 80px; // must be at least big enough to contain the small logo
-        margin-top: 6px;
-
-        > div.leftViewButton {
-          height: 27px;
-          width: 27px;
-          margin-right: 6px;
-          margin-left: 6px;
-        }
-	    
-		> div.path {
-			width: 30px;
-			height: 27px;
-		}
-
-        > div.tutanota {
-			height: 27px;
-		}
-		> div.claim {
-			display: none;
-		}
-      }
-	}
-}
+// If these widths are changed, we have to update the measure function in ViewManager!
+@menuItemWidth: 80px;
+@menuItemWidthSmall: 45px;
 
 header#main {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	right: 0px;
-	height: 55px;
-	@media @mobile {
-		height: 40px;
-	}
-	border-bottom: 1px solid @border-dark;
-	background-color: @background-dark;
-	background-clip: padding-box;
-	
-	> img {
-		display:none;
-		position:absolute;
-		height: 37px;
-		margin: 7px;
-		// small: height: 27px; margin-top: 4px;
-	}
-	
-	> select#fontSelector, select#themeSelector  {
-		position: absolute;
-		left: 130px;
-		top: 6px;
-	}
-	
-	div#log {
-		position: absolute;
-		left: 330px;
-		top: 0px;
-		bottom: 0px;
-		width: 300px;
-		font-size: 10px;
-	}
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  height: 55px;
+  @media @mobile {
+    height: 40px;
+  }
 
+  &.loggedIn {
+    border-bottom: 1px solid @border-dark;
+    background-color: @background-dark;
+    background-clip: padding-box;
 
-  /* Wrapper element that has the width of the sliding range for the slide right button,
-    Sliding is done between 0 and -100% so it does not depend on the actual width of the sliding range.
-    Wrapper element contains the menu so that it is visibly slided.
-    The sliding range depends on the media query. */
-    div#rightViewButtonSlider {
-      position: absolute;
-      z-index:1; // the left button slider must overlap this one
-      right: 0px;
-      width: 48px; // = rightViewButton.width + rightViewButton.margin-right
-      @media @mobile {
-          width: 33px; // = rightViewButton.width + rightViewButton.margin-right
+    @media @mobile {
+      > div#right-navbar {
+        margin-left: @left-navbar-width-small;
       }
+      > div#left-navbar {
+        width: @left-navbar-width-small;
 
-      > menu {
-          position: absolute;
-          right: -100%;
-          transition: right 0.5s;
-          width: 700px; /* just a dummy value, so the inner divs do not wrap. The left slider button has a higher z-index, so that it is always clickable.*/
+        > div.leftViewButton {
+          margin-right: @indicator-side-margin;
+          margin-left: @indicator-side-margin;
+          font-size: @indicator-width-small;
+        }
 
-          div.rightViewButton {
-            position: relative;
-            display: inline-block;
-            float: right;
-            top: 10px;
-            width: 35px;
-            height: 35px;
-            margin-right: 8px;
-            margin-left: 10px;
-            opacity: 0.8;
-            cursor: pointer;
+        > div#logo {
 
-            @media @mobile {
-              top: 6px;
-              width: 27px;
-              height: 27px;
-              margin-right: 6px;
-              margin-left: 6px;
-            }
+          > div.path {
+            margin-top: 6px;
+            width: 30px;
+            height: 27px;
           }
 
-          > ul#menu_list {
-                list-style-type: none;
-                position: relative;
-                float: right;
-
-                > li {
-                    float:left;
-                    .clearfix;
-
-                    > div.menu_link {
-                        cursor: pointer;
-                        // more properties below
-                    }
-
-                    > img.languageIcon {
-                        position: relative;
-                        top: 10px;
-                        margin-left: auto;
-                        margin-right: auto;
-                        text-align: center;
-                        height: 26px;
-                        opacity: 0.9;
-                        cursor: pointer;
-
-                        &.disabled {
-                            opacity: 0.2;
-
-                            html.ie.lte8 & {
-                                -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-                            }
-                        }
-                    }
-                }
-            }
+          > div.tutanota {
+            margin-top: 6px;
+            display: none;
+          }
+        }
       }
-	}
+    }
+  }
 
+  > div#left-navbar {
+    position: relative;
+    float: left;
+    height: 100%;
+    left: -@nav-icon-width;
+    @media @mobile {
+      left: -@nav-icon-width-small;
+    }
+    transition: left 0.5s;
+    width: @left-navbar-width;
+
+    &.showNavButton {
+      left: 0;
+    }
+
+    > div.leftViewButton {
+      position: relative;
+      display: inline-block;
+      margin-right: @indicator-side-margin;
+      margin-left: @indicator-side-margin;
+      font-size: @indicator-width;
+      opacity: 0.8;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    > div#logo {
+      display: inline-block;
+
+      > div.path {
+        margin-top: 8px;
+        position: relative;
+        display: inline-block;
+        width: 41px;
+        height: 37px;
+
+        > div.claim {
+          position: absolute;
+          top: 37px;
+          width: 144px;
+          height: 17px;
+
+          header#main.loggedIn & {
+            display: none;
+          }
+        }
+      }
+
+      > div.tutanota {
+        margin-top: 8px;
+        position: relative;
+        display: inline-block;
+        height: 37px;
+      }
+
+      img {
+        height: 100%;
+        //position: absolute;
+      }
+    }
+  }
+
+  > img {
+    display: none;
+    position: absolute;
+    height: 37px;
+    margin: 7px;
+    // small: height: 27px; margin-top: 4px;
+  }
+
+  > select#fontSelector, select#themeSelector {
+    position: absolute;
+    left: 130px;
+    top: 6px;
+  }
+
+  div#log {
+    position: absolute;
+    left: 330px;
+    top: 0px;
+    bottom: 0px;
+    width: 300px;
+    font-size: 10px;
+  }
+
+  > div#right-navbar {
+    margin-left: @left-navbar-width;
+    position: relative;
+    height: 100%;
+    right: -@nav-icon-width;
+    @media @mobile {
+      right: -@nav-icon-width-small;
+    }
+    transition: right 0.5s;
+
+    &.showNavButton {
+      right: 0;
+    }
+
+    > div.rightViewButton {
+      position: relative;
+      display: inline-block;
+      float: right;
+      top: 10px;
+      margin-right: @indicator-side-margin;
+      margin-left: @indicator-side-margin;
+      font-size: @indicator-width;
+      opacity: 0.8;
+      cursor: pointer;
+
+      @media @mobile {
+        top: 6px;
+        margin-right: @indicator-side-margin;
+        margin-left: @indicator-side-margin;
+        font-size: @indicator-width-small;
+      }
+    }
+
+    > menu {
+      height: 100%;
+      margin-right: @indicator-side-margin * 2 + @indicator-width;
+
+      @media @mobile {
+        margin-right: @indicator-side-margin * 2 + @indicator-width-small;
+      }
+
+      > ul#menu_list {
+        list-style-type: none;
+        position: relative;
+        float: right;
+        padding: 0px;
+
+        > li {
+          float: right;
+          .clearfix;
+          cursor: pointer;
+
+
+          > img.languageIcon {
+            position: relative;
+            top: 10px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            height: 26px;
+            opacity: 0.9;
+            cursor: pointer;
+
+            &.disabled {
+              opacity: 0.2;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  > menu#menu_more {
+    position: absolute;
+    right: 10px;
+    top: 100%;
+    background-color: @background-dark;
+    border: 1px solid @border-dark;
+    border-bottom: 0px;
+    z-index: 4;
+    min-width: 200px;
+
+    ul {
+      list-style-type: none;
+      padding: 0px;
+
+      li {
+        cursor: pointer;
+        .light;
+        //height: 35px;
+        padding: @padding;
+        border-bottom: 1px solid @border-dark;
+      }
+    }
+
+  }
 }
 
 // also used in mail and contact view if no entities is shown
-div.menu_link  {
-	width: 80px; // defines the width of each menu item (+ margin)
-	
-	@media @mobile {
-		width: 45px;
-	}
-	
-	div.menu_image {
-		position: relative;
-		height: 30px;
-		margin-left: auto;
-	    margin-right: auto;
-	    text-align: center;
-	    
-		> div {
-		    width: 28px;
-		    height: 28px;
-		    top: 3px;
-		    position: relative;							
-		}
-		
-	}
-	
-	div.menu_text  {
-		.light;
-		.smallFont;
-		text-align: center;
-		overflow: hidden;
-		white-space: nowrap;
-		margin-left: 2px;
-		margin-right: 2px;
-		.fadeTextOut;
-		
-		@media @mobile {
-			display: none;
-		}
-	}
+.menu_link {
+  width: @menuItemWidth; // defines the width of each menu item (+ margin)
+
+  @media @mobile {
+    width: @menuItemWidthSmall;
+  }
+
+  div.menu_image {
+    position: relative;
+    height: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+
+    > div {
+      font-size: 28px;
+      height: 28px;
+      width: 28px;
+      top: 3px;
+      position: relative;
+    }
+
+  }
+
+  div.menu_text {
+    .light;
+    .smallFont;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-left: 2px;
+    margin-right: 2px;
+    .fadeTextOut;
+
+    @media @mobile {
+      display: none;
+    }
+  }
 }
 
 

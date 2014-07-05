@@ -9,17 +9,28 @@ goog.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
  * Defines a button bar.
  *
  * @constructor
- * @param {Object} buttons An observable array containing any number of
- *            tutao.tutanota.ctrl.Button instances.
+ * @param {Array.<tutao.tutanota.ctrl.Button>} buttons An array containing any number of tutao.tutanota.ctrl.Button instances.
+ * @param {string=} moreButtonText The text for the more button.
+ * @param {function(Element):number=} measureFunction A function that returns the width of the buttons dom element including margins.
+ *                                          This function should only be provided if the buttons are no standard-buttons
  */
-tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons) {
+tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measureFunction) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.moreButton = new tutao.tutanota.ctrl.Button("...", 100, this.switchMore, false, "moreAction");
-    $("button#measureButton").text(this.moreButton.getLabel());
-    this.moreButton.width($("button#measureButton").outerWidth(true));
+    if(!moreButtonText) {
+        moreButtonText = "dots_label";
+    }
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, false, "moreAction", null, "more", moreButtonText);
+    if (measureFunction) {
+        this.getSingleButtonWidth = measureFunction;
+    }
 
-	this.allButtons = buttons;
+    // only show buttons that are not hidden
+    this.allButtons = ko.computed(function() {
+        return ko.utils.arrayFilter(buttons, function(button) {
+            return button.isVisible();
+        });
+    });
 	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
 	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
     this.moreVisible = ko.observable(false);
@@ -49,10 +60,10 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons) {
  * @param {Array} buttons
  * @returns {number}
  */
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonWidth = function(buttons) {
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonsWidth = function(buttons) {
     var buttonWidth = 0;
     for(var i=0; i< buttons.length; i++) {
-        buttonWidth += buttons[i].width();
+        buttonWidth += this.getSingleButtonWidth(buttons[i]);
     }
     return buttonWidth;
 };
@@ -64,21 +75,12 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
             setTimeout(this.updateVisibleButtons, 0); // the column width is not yet updated when the window width changes, so use a timeout
         }, this);
     }
-    var buttonMargin = 0;
-    for(var i=0; i< this.allButtons().length; i++) {
-        var currentButton = this.allButtons()[i];
-        $("button#measureButton").text(currentButton.getLabel());
-        currentButton.width($("button#measureButton").outerWidth(true));
-        if (buttonMargin == 0) {
-            buttonMargin = parseInt($("button#measureButton").css("margin-right"));
-        }
-    }
 
-    this.maxWidth = $(this.domButtonBar()).width() - buttonMargin;
+    this.maxWidth = $(this.domButtonBar()).width();
 
     var visibleButtonList = [].concat(this.allButtons());
     var moreButtonList = [];
-    if (this.maxWidth < this.getButtonWidth(visibleButtonList)){
+    if (this.maxWidth < this.getButtonsWidth(visibleButtonList)){
         visibleButtonList.push(this.moreButton);
         this._filterButtons(visibleButtonList, moreButtonList);
     }
@@ -95,7 +97,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
  * @private
  */
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._filterButtons = function(visibleButtonList, moreButtonList) {
-    if ( this.maxWidth < this.getButtonWidth(visibleButtonList)){
+    if ( this.maxWidth < this.getButtonsWidth(visibleButtonList)){
         var buttonIndex = this._getLowestPriorityButtonIndex(visibleButtonList);
         if ( buttonIndex >= 0){
             var removedButtons = visibleButtonList.splice(buttonIndex, 1);
@@ -147,3 +149,12 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
     }
 };
 
+/**
+ * @param {tutao.tutanota.ctrl.Button} button The button to measure
+ * @return {number} The width including the margin of the button
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getSingleButtonWidth = function (button) {
+    var measureButton = $("button#measureButton");
+    measureButton.text(button.label());
+    return measureButton.outerWidth(true);
+};
