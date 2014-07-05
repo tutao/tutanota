@@ -103,7 +103,6 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         // all supported
         new tutao.tutanota.ctrl.Button('feedback_label', 26, tutao.locator.feedbackViewModel.open, feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
 
-
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
             tutao.locator.navigator.logout(false, true);
