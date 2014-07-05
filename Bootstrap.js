@@ -32,7 +32,8 @@ $(document).ready(function() {
 		htmlSanitizer: tutao.tutanota.security.CajaSanitizer,
 		languageViewModel: tutao.tutanota.ctrl.LanguageViewModel,
 		eventBus: tutao.event.EventBusClient,
-		navigator: tutao.tutanota.ctrl.Navigator
+		navigator: tutao.tutanota.ctrl.Navigator,
+        feedbackViewModel: tutao.tutanota.ctrl.FeedbackViewModel
 	});
 
 	tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
