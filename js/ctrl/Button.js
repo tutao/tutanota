@@ -16,9 +16,9 @@ goog.provide('tutao.tutanota.ctrl.Button');
  */
 tutao.tutanota.ctrl.Button = function (label, priority, clickCallback, isVisible, directClick, id, imageClass, imageAltText) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-    this.label = ko.computed(
-        function() { return tutao.lang(label)
-        });
+    this.label = ko.computed(function() {
+        return tutao.locator.languageViewModel.get(label)
+    });
     this._priority = priority;
     this._clickCallback = clickCallback;
     this._directClick = (directClick) ? true : false;
@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.Button = function (label, priority, clickCallback, isVisible
     };
     this.imageClass = imageClass;
     this.imageAltText = ko.computed(function() {
-        return tutao.lang(imageAltText)
+        return tutao.locator.languageViewModel.get(imageAltText)
     });
 };
 
