@@ -38,19 +38,17 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 
 	this.mailBodyLoaded = ko.observable(true);
 
-	this.buttons = ko.computed(function() {
-		if (this.busy()) {
-			return [];
-		} else {
-			var self = this;
-			return [
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("attachFiles_action"),9 , this.attachSelectedFiles, true, "composer_attach"),
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("send_action"),10 , this.sendMail, false, "composer_send"),
-			        new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("dismiss_action"),8 ,function() { self.cancelMail(false); }, false, "composer_cancel")
+    var self = this;
+    var notBusy = function() {
+        return !self.busy();
+    };
+	this.buttons = [
+			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach"),
+			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send"),
+			        new tutao.tutanota.ctrl.Button("dismiss_action", 8, function () {
+                        self.cancelMail(false);
+                    }, notBusy, false, "composer_cancel")
 			        ];
-
-		}
-	}, this);
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 
     tutao.locator.passwordChannelViewModel.init();
@@ -91,7 +89,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.switchSecurity = function() {
  * Sends the new mail.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
-	tutao.tutanota.gui.blur(event.target); // hide the keyboard on ios6
 	var self = this;
 	var invalidRecipients = (this.toRecipientsViewModel.inputValue() !== "") || (this.ccRecipientsViewModel.inputValue() !== "") || (this.bccRecipientsViewModel.inputValue() !== "");
 	if (!invalidRecipients && this.toRecipientsViewModel.bubbles().length === 0 && this.ccRecipientsViewModel.bubbles().length === 0 && this.bccRecipientsViewModel.bubbles().length === 0) {

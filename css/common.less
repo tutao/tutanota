@@ -274,6 +274,109 @@ hr {
 	user-select: none;
 }
 
+// from Bootstrap
+//** Tooltip max width
+@tooltip-max-width:           200px;
+//** Tooltip text color
+@tooltip-color:               #fff;
+//** Tooltip background color
+@tooltip-bg:                  #000;
+@tooltip-opacity:             .9;
+
+//** Tooltip arrow width
+@tooltip-arrow-width:         5px;
+//** Tooltip arrow color
+@tooltip-arrow-color:         @tooltip-bg;
+
+.tooltip {
+  position: absolute;
+  z-index: 5000;
+  display: block;
+  visibility: visible;
+  line-height: 1.4;
+  opacity: 0;
+  display: none;
+
+  &.in     { opacity: @tooltip-opacity; }
+  &.top    { margin-top:  -3px; padding: @tooltip-arrow-width 0; }
+  &.right  { margin-left:  3px; padding: 0 @tooltip-arrow-width; }
+  &.bottom { margin-top:   3px; padding: @tooltip-arrow-width 0; }
+  &.left   { margin-left: -3px; padding: 0 @tooltip-arrow-width; }
+}
+
+// Wrapper for the tooltip content
+.tooltip-inner {
+  max-width: @tooltip-max-width;
+  padding: 3px 8px;
+  color: @tooltip-color;
+  text-align: center;
+  text-decoration: none;
+  background-color: @tooltip-bg;
+  border-radius: 5px;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+}
+.tooltip {
+  &.top .tooltip-arrow {
+    bottom: 0;
+    left: 50%;
+    margin-left: -@tooltip-arrow-width;
+    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
+    border-top-color: @tooltip-arrow-color;
+  }
+  &.top-left .tooltip-arrow {
+    bottom: 0;
+    left: @tooltip-arrow-width;
+    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
+    border-top-color: @tooltip-arrow-color;
+  }
+  &.top-right .tooltip-arrow {
+    bottom: 0;
+    right: @tooltip-arrow-width;
+    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
+    border-top-color: @tooltip-arrow-color;
+  }
+  &.right .tooltip-arrow {
+    top: 50%;
+    left: 0;
+    margin-top: -@tooltip-arrow-width;
+    border-width: @tooltip-arrow-width @tooltip-arrow-width @tooltip-arrow-width 0;
+    border-right-color: @tooltip-arrow-color;
+  }
+  &.left .tooltip-arrow {
+    top: 50%;
+    right: 0;
+    margin-top: -@tooltip-arrow-width;
+    border-width: @tooltip-arrow-width 0 @tooltip-arrow-width @tooltip-arrow-width;
+    border-left-color: @tooltip-arrow-color;
+  }
+  &.bottom .tooltip-arrow {
+    top: 0;
+    left: 20px;
+    margin-left: -@tooltip-arrow-width;
+    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
+    border-bottom-color: @tooltip-arrow-color;
+  }
+  &.bottom-left .tooltip-arrow {
+    top: 0;
+    left: @tooltip-arrow-width;
+    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
+    border-bottom-color: @tooltip-arrow-color;
+  }
+  &.bottom-right .tooltip-arrow {
+    top: 0;
+    right: @tooltip-arrow-width;
+    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
+    border-bottom-color: @tooltip-arrow-color;
+  }
+}
+
 
 /***************************************
   * View
@@ -625,7 +728,35 @@ div#progressDialog {
   * Bubble input fields & autocomplete
   **************************************/
 
-//new 
+//new
+
+div.bubble {
+  display:inline-block;
+  margin-right: 5px;
+  height: 24px;	// 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
+  line-height: 24px;
+  cursor: pointer;
+  border-radius: 5px;
+  padding-left: 5px;
+  .nonSelectable;
+
+  > div.bubbleText {
+    display: inline-block;
+    .fadeTextOut;
+    padding-right: 5px;
+  }
+
+  > div.removeBubble {
+    display: inline-block;
+    height: 100%;
+    border-left: 2px solid @white;
+    padding: 2px;
+
+    > div {
+      background-size: 14px;
+    }
+  }
+}
 
 div.bubbleInput {
 	position: relative;
@@ -641,38 +772,10 @@ div.bubbleInput {
 		> div.inputContainer {
 			overflow: hidden;
 			padding-top: 2px;
-			padding-bottom: 2px;
 			line-height: 1;
 			padding-left: 5px; // Always update tutao.tutanota.gui.BubbleInput.resizeInputField when updating this value!
 			
-			> div.bubble {
-				display:inline-block;
-				margin-right: 5px;
-				height: 24px;	// 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
-				line-height: 24px;
-				cursor: pointer;
-				border-radius: 5px;
-				padding-left: 5px;
-				.nonSelectable;
-
-                > div.bubbleText {
-                    display: inline-block;
-                    .fadeTextOut;
-                    padding-right: 5px;
-                }
-
-                > div.removeBubble {
-                    display: inline-block;
-                    width: 35px;
-                    height: 100%;
-                    vertical-align: top;
-                    border-left: 2px solid @white;
-
-                    > div {
-                      background-size: 14px;
-                    }
-                }
-			}
+			> div.bubble{}
 
 			> div.bubbleInputDiv {
 				display: inline-block;

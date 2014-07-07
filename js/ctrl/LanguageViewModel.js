@@ -342,6 +342,15 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	settings_alt: "Settings",
     register_label: "Register",
     register_alt: "Register",
+    more_label: "More",
+    dots_label: "...",
+
+    //admin
+    logs_label: "logs",
+    db_label: "db",
+    monitor_label: "monitor",
+    config_label: "config",
+    customers_label: "customers",
 
 	// not supported
 	for_label: "for",
@@ -755,6 +764,15 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	settings_alt: "Einstellungen",
     register_label: "Registrieren",
     register_alt: "Registrieren",
+    more_label: "Mehr",
+    dots_label: "...",
+
+    //admin
+    logs_label: "logs",
+    db_label: "db",
+    monitor_label: "monitor",
+    config_label: "config",
+    customers_label: "customers",
 
 	// not supported
 	for_label: "für",

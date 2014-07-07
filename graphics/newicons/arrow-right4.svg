@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="256" height="256" viewBox="0 0 256 256" fill="@{icon-color}">
-  <path d="M96 0l-48 48 80 80-80 80 48 48 128-128z" />
-</svg>

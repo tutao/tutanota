@@ -401,3 +401,18 @@ tutao.tutanota.ctrl.MailViewModel.prototype.isComposingMailToSecureExternals = f
 tutao.tutanota.ctrl.MailViewModel.prototype.isConversationEmpty = function() {
 	return (this.conversation().length == 0);
 };
+
+/**
+ * @param {tutao.entity.tutanota.MailAddress} the MailAddress
+ * @param {string} meId The id of the text that should be used if the mailAddress is the current user
+ * @returns {string} The label for this MailAddress
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype.getLabel = function(mailAddress, meId) {
+    if (mailAddress.getAddress() == tutao.locator.userController.getMailAddress()) {
+        return tutao.locator.languageViewModel.get(meId);
+    } else if (mailAddress.getName() == "") {
+        return mailAddress.getAddress();
+    } else {
+        return mailAddress.getName();
+    }
+};

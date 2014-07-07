@@ -80,6 +80,10 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 	navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
 	window.saveAs = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs;
 	var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+    var mimeType = "application/octet-stream"; // default mime type should only be overridden if a valid (non empty) mime type is provided
+    if (dataFile.getMimeType().trim().length > 0) {
+        mimeType = dataFile.getMimeType();
+    }
 
 	if (typeof dataFile.getData() === "string") {
 		// LEGACY mode
@@ -89,7 +93,7 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 			callback();
 		});
 	} else if (window.saveAs || navigator.saveBlob) {
-		var blob = new Blob([dataFile.getData()], { "type" : dataFile.getMimeType() });
+		var blob = new Blob([dataFile.getData()], { "type" : mimeType });
         try {
             if (window.saveAs) {
                 window.saveAs(blob, dataFile.getName());
@@ -105,9 +109,9 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 		// safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
 		if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7) {
 			var base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()));
-			url = "data:" + dataFile.getMimeType() + ";base64," + base64;
+			url = "data:" + mimeType + ";base64," + base64;
 		} else {
-			var blob = new Blob([dataFile.getData()], { "type" : dataFile.getMimeType() });
+			var blob = new Blob([dataFile.getData()], { "type" : mimeType });
 			url = URL.createObjectURL(blob);
 		}
         // safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text

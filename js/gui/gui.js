@@ -50,12 +50,6 @@ tutao.tutanota.gui.initKnockout = function() {
 		}
 	};
 
-	ko.bindingHandlers.setDomWidth = {
-		update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-			valueAccessor()($(element).outerWidth(true));
-		}
-	};
-
 	ko.bindingHandlers.fadeVisible = {
 			init: function(element, valueAccessor) {
 				// Initially set the element to be instantly visible/hidden depending on the value
@@ -81,32 +75,6 @@ tutao.tutanota.gui.initKnockout = function() {
 				ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).hide();
 			}
 	};
-
-    ko.bindingHandlers.slideLeft = {
-        init: function(element, valueAccessor) {
-            // Initially set the element to be instantly visible/hidden depending on the value
-            var value = valueAccessor();
-            $(element).css({ "left": ko.utils.unwrapObservable(value) }); // Use "unwrapObservable" so we can handle values that may or may not be observable
-        },
-        update: function(element, valueAccessor) {
-            // Whenever the value subsequently changes, slowly fade the element in or out
-            var value = valueAccessor();
-            $(element).css({ "left": ko.utils.unwrapObservable(value) });
-        }
-    };
-
-    ko.bindingHandlers.slideRight = {
-        init: function(element, valueAccessor) {
-            // Initially set the element to be instantly visible/hidden depending on the value
-            var value = valueAccessor();
-            $(element).css({ "right": ko.utils.unwrapObservable(value) }); // Use "unwrapObservable" so we can handle values that may or may not be observable
-        },
-        update: function(element, valueAccessor) {
-            // Whenever the value subsequently changes, slowly fade the element in or out
-            var value = valueAccessor();
-            $(element).css({ "right": ko.utils.unwrapObservable(value) });
-        }
-    };
 	
 	ko.bindingHandlers.lang = {
 		update: function(element, valueAccessor, allBindingsAccessor) {
@@ -696,4 +664,23 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
         var calculatedHeight = $(window).height() - panelPadding;
         $('.panel > div').css('height', calculatedHeight);
     }
+};
+
+
+/**
+ * Shows the tooltip on mobile devices
+ * @param {DOMElement} element
+ */
+tutao.tutanota.gui.showTooltip = function(item, event) {
+    var element = event.target.parentElement; // the bubble
+
+    $(document).trigger("click.tooltip"); // hide other tooltips
+    $(element).children(".tooltip").show().transition({ opacity: 0.9 });
+    $(document).on("click.tooltip", function (e) {
+        if (e.timeStamp !== event.timeStamp) { // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately
+            $(document).off("click.tooltip");
+            $(element).children(".tooltip").transition({ opacity: 0 }).hide();
+        }
+    });
+    return false;
 };
