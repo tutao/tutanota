@@ -22,7 +22,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	// the list of mail ids as result of the currently active search query. if null, there is no search query active.
 	this.currentSearchResult = null;
 
-	this._currentActiveSystemTag = tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID;
+	this._currentActiveSystemTag = ko.observable(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID);
 	// the list of mail ids as result of the currently active tag filters. if null, there is no filter set. each tag has one entry in the array.
 	this.currentTagFilterResult = [];
 	this.currentTagFilterResult[tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID] = [];
@@ -64,17 +64,21 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 
 	this.log = ko.observable("");
 
-	this.buttons = ko.observableArray();
-
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
     this.loading = ko.observable(false);
 
-    this.buttons = ko.observableArray();
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    this.actionBarVisible = ko.observable(false);
+
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
+
+    this.actionBarVisible = ko.computed( function() {
+        return this.isDeleteTrashButtonVisible() || this.searchButtonVisible();
+    },this);
+
+    this.buttons = [];
+    this.buttons.push(new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction"));
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 };
 
 /**
@@ -192,23 +196,20 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(tagId, callback) {
 	this.unselectAll();
-	this._currentActiveSystemTag = tagId;
+	this._currentActiveSystemTag(tagId);
 	this._updateMailList(callback);
     this._updateButtonList();
 	tutao.locator.mailView.showDefaultColumns();
 };
 
-
 tutao.tutanota.ctrl.MailListViewModel.prototype._updateButtonList = function() {
-    this.buttons.splice(0,this.buttons().length);
-    if ( this._currentActiveSystemTag == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID){
-        this.buttons.push(new tutao.tutanota.ctrl.Button(tutao.locator.languageViewModel.get("deleteTrash_action"), 10, this._deleteTrash, false, "deleteTrashAction"));
-    }
-    this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn())
-    this.actionBarVisible( this.buttons().length > 0 || this.searchButtonVisible() );
+    this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
 };
 
 
+tutao.tutanota.ctrl.MailListViewModel.prototype.isDeleteTrashButtonVisible = function() {
+     return this._currentActiveSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID && this.mails().length > 0;
+};
 
 /**
  * @protected
@@ -263,9 +264,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function(callb
 	// collect all id arrays that need to be combined to get the list of mails to show
 	var idsToCombine = undefined;
 	if (this.currentSearchResult == null) {
-		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag]];
+		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag()]];
 	} else {
-		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag], this.currentSearchResult];
+		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag()], this.currentSearchResult];
 	}
 
 	this.addLog("start download");
@@ -374,7 +375,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mail
 			var mailTagValue = mails[i][mailAttribute];
 			if (this.tagToMailAttributeValueMapping[tagId] == mailTagValue) {
 				this.currentTagFilterResult[tagId].unshift(mails[i].getId()[1]);
-				if (this._currentActiveSystemTag == tagId) {
+				if (this._currentActiveSystemTag() == tagId) {
 					// TODO (story search mails): only add the mail if it passes the search query
 					this.mails.unshift(mails[i]);
 				}
@@ -475,7 +476,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isMailSelected = function() {
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.unselectAll = function() {
 	if (this._selectedMails.length == 1) {
-		this._lastSelectedMail[this._currentActiveSystemTag] = this._selectedMails[0];
+		this._lastSelectedMail[this._currentActiveSystemTag()] = this._selectedMails[0];
 	}
 	tutao.tutanota.gui.unselect(this._selectedDomElements);
 	this._selectedDomElements = [];
@@ -490,8 +491,8 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.unselectAll = function() {
  * Provides the last selected mail or null if none was selected.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.getLastSelectedMail = function() {
-	if (this._lastSelectedMail[this._currentActiveSystemTag] && this.mails.indexOf(this._lastSelectedMail[this._currentActiveSystemTag]) != -1) {
-		return this._lastSelectedMail[this._currentActiveSystemTag];
+	if (this._lastSelectedMail[this._currentActiveSystemTag()] && this.mails.indexOf(this._lastSelectedMail[this._currentActiveSystemTag()]) != -1) {
+		return this._lastSelectedMail[this._currentActiveSystemTag()];
 	} else {
 		return null;
 	}

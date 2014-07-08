@@ -502,7 +502,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	sent_action: "Gesendet",
 	sentMail_alt: "Gesendete E-Mail",
 	sentMails_alt: "Gesendete E-Mails",
-	trash_action: "Gelöscht",
+	trash_action: "Papierkorb",
 	trashedMail_alt: "Gelöschte E-Mail",
 	trashedMails_alt: "Gelöschte E-Mails",
 	mailWithAttachment_alt: "E-Mail mit Anhang",

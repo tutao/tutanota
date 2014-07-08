@@ -5,20 +5,19 @@ goog.provide('tutao.tutanota.ctrl.Button');
 /**
  * Defines a button.
  * @constructor
- * @param {string} label The label visible on the button.
+ * @param {string} labelTextId The label visible on the button.
  * @param {number} priority The higher the value the higher the priority. Priority 0 buttons are only in the more menu.
  * @param {function} clickCallback Is called when the button is clicked.
  * @param {function=} isVisible The button is displayed, if this function returns true
  * @param {boolean=} directClick True if the click event shall not be deferred by a setTimeout (needed to avoid alert/confirm popup bugs).
  * @param {string=} id The id to set for the button.
- * @param {string=} imageClass If set, the accoding image will be displayed
- * @param {string=} imageAltText alt text for the optional image
+ * @param {string=} imageClass If set, the according image will be displayed
+ * @param {string=} imageAltTextId alt text for the optional image
  */
-tutao.tutanota.ctrl.Button = function (label, priority, clickCallback, isVisible, directClick, id, imageClass, imageAltText) {
+tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickCallback, isVisible, directClick, id, imageClass, imageAltTextId) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-    this.label = ko.computed(function() {
-        return tutao.locator.languageViewModel.get(label)
-    });
+    this.labelTextId = labelTextId;
+
     this._priority = priority;
     this._clickCallback = clickCallback;
     this._directClick = (directClick) ? true : false;
@@ -27,9 +26,7 @@ tutao.tutanota.ctrl.Button = function (label, priority, clickCallback, isVisible
         return true;
     };
     this.imageClass = imageClass;
-    this.imageAltText = ko.computed(function() {
-        return tutao.locator.languageViewModel.get(imageAltText)
-    });
+    this.imageAltTextId = imageAltTextId;
 };
 
 /**
@@ -57,3 +54,13 @@ tutao.tutanota.ctrl.Button.prototype.click = function (vm, event) {
         }, 0);
     }
 };
+
+
+tutao.tutanota.ctrl.Button.prototype.getImageAltTextId = function () {
+    return this.imageAltTextId;
+};
+
+tutao.tutanota.ctrl.Button.prototype.getLabelTextId = function () {
+    return this.labelTextId;
+};
+

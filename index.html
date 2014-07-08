@@ -2212,8 +2212,8 @@ function touchOrClick(e) {
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
-                            <div class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: imageAltText}"></div></div>
-                            <div class="menu_text" data-bind="text: label"></div>
+                            <div class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></div>
+                            <div class="menu_text" data-bind="lang: getLabelTextId()"></div>
                         </li>
                     <!-- /ko -->
                 </ul>
@@ -2223,8 +2223,8 @@ function touchOrClick(e) {
             <ul >
                 <!-- ko foreach: headerBarViewModel.moreButtons() -->
                 <li data-bind="fastClick: click, attr: {'id': id}">
-                    <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: imageAltText}"></div></span>
-                    <span class="menu_text" data-bind="text: label"></span>
+                    <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
+                    <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
                 </li>
                 <!-- /ko -->
             </ul>
@@ -2243,12 +2243,12 @@ function touchOrClick(e) {
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar" data-bind="domInit: domButtonBar">
             <!-- ko foreach: visibleButtons() -->
-            <button data-bind="text: label, fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <button data-bind="lang: getLabelTextId(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
             <!-- /ko -->
 		</div>
         <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
             <!-- ko foreach: moreButtons() -->
-            <button data-bind="text: label, fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <button data-bind="lang: getLabelTextId(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
             <!-- /ko -->
         </div>
 	</script>

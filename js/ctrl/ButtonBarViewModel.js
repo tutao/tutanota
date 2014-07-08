@@ -155,6 +155,6 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
  */
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getSingleButtonWidth = function (button) {
     var measureButton = $("button#measureButton");
-    measureButton.text(button.label());
+    measureButton.text(tutao.lang(button.getLabelTextId()));
     return measureButton.outerWidth(true);
 };
