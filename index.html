@@ -508,9 +508,9 @@ function touchOrClick(e) {
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
 				<div id="searchAndMailList" >
-                    <div class="action" data-bind="visible: actionBarVisible">
+                    <div class="actions" data-bind="visible: actionBarVisible">
                         <div id="searchAction" data-bind="visible: searchButtonVisible">
-                            <button data-bind="click: showSearchBar">
+                            <button data-bind="click: showSearchBar, attr: {title: tutao.lang('search_title')}">
                                 <div class="imgButton search"></div>
                             </button>
                         </div>

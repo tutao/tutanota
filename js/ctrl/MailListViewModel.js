@@ -92,7 +92,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 	var self = this;
     this.loading(true);
-    this._updateButtonList();
+    this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
 
 //	currently not needed any more because deletion is done in mail view
 //	tutao.tutanota.gui.registerMailLongPress(function(domElement, posX, posY) {
@@ -198,12 +198,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(ta
 	this.unselectAll();
 	this._currentActiveSystemTag(tagId);
 	this._updateMailList(callback);
-    this._updateButtonList();
 	tutao.locator.mailView.showDefaultColumns();
-};
-
-tutao.tutanota.ctrl.MailListViewModel.prototype._updateButtonList = function() {
-    this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
 };
 
 
