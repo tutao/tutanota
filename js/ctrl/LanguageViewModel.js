@@ -150,6 +150,10 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     changeNotificationMailLanguage_msg: "Language of notification email:",
     search_title: "Search",
 
+    //invitation
+    invitationMailSubject_msg: "Your invitation to Tutanota Free",
+    invitationMailBody_msg: "Hello!<br><br>I would like to invite you to Tutanota. Tutanota is a free email service that encrypts emails automatically. This way others cannot eavesdrop on us and we can communicate confidentially.<br><br>Please take a minute to sign up:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>I am looking forward to receiving your first encrypted email!<br><br>Cheers,<br>$",
+
 	// contact
 	discardContact_msg: "Discard new contact?",
 	discardContactChanges_msg: "Discard contact modifications?",
@@ -342,6 +346,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	settings_alt: "Settings",
     register_label: "Register",
     register_alt: "Register",
+    invite_label: "Invite",
+    invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
 
@@ -571,6 +577,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
     search_title: "Suche",
 
+    //invitation
+    invitationMailSubject_msg: "Einladung zu Tutanota Free",
+    invitationMailBody_msg: "Hallo!<br><br>Ich möchte dich gern zu Tutanota einladen. Tutanota ist ein kostenloser E-Mail-Service, mit dem wir automatisch verschlüsselt kommunizieren können. So haben Dritte keine Möglichkeit uns zu belauschen und wir können vertraulich miteinander kommunizieren.<br><br>In einer Minute hast Du Dich hier registriert:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Ich freue mich auf deine erste verschlüsselte E-Mail!<br><br>Liebe Grüße<br>$",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
@@ -764,6 +773,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	settings_alt: "Einstellungen",
     register_label: "Registrieren",
     register_alt: "Registrieren",
+    invite_label: "Einladen",
+    invite_alt: "Einladen",
     more_label: "Mehr",
     dots_label: "...",
 

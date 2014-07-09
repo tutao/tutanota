@@ -101,6 +101,17 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
 
         new tutao.tutanota.ctrl.Button('settings_label', 28, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),
 
+
+        new tutao.tutanota.ctrl.Button('invite_label', 27, function() {
+            tutao.tutanota.ctrl.Navigator.prototype.newMail();
+            //
+            var mail = tutao.locator.mailViewModel.getComposingMail();
+            mail.secure(false);
+            mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
+            var username = tutao.locator.userController.getUserGroupInfo().getName();
+            tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+        }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
+
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, tutao.locator.navigator.register, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
 

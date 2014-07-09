@@ -28,7 +28,12 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     // only show buttons that are not hidden
     this.allButtons = ko.computed(function() {
         return ko.utils.arrayFilter(buttons, function(button) {
-            return button.isVisible();
+            if (button) { // on IE8, the arrayFilter might be called with undefined parameters
+                return button.isVisible();
+            } else {
+                return false;
+            }
+
         });
     });
 	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
