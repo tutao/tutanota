@@ -522,7 +522,7 @@ function touchOrClick(e) {
                         <div class="otherActions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
                     </div>
 					<section id="mailList" class="list scrollable" data-bind="css: { belowSearch: tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn() }">
-						<div id="innerMailList" data-bind="foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
+						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
 									<div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
@@ -540,8 +540,8 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
-						<div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)  && !loading()"></div>
-                        <div class="infoMessage emptyMailList" data-bind="visible: (mails().length == 0) && loading()">
+                        <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)  && !loading()"></div>
+                        <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
                             <div class="spinner" class="defaultMargin">
                                 <img src="graphics/busy.gif" />
                             </div>
