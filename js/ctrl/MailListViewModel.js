@@ -67,18 +67,23 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
     this.loading = ko.observable(false);
+    this.deleting = ko.observable(false);
 
 
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
 
     this.actionBarVisible = ko.computed( function() {
-        return this.isDeleteTrashButtonVisible() || this.searchButtonVisible();
+        return !this.deleting() && (this.isDeleteTrashButtonVisible() || this.searchButtonVisible());
     },this);
 
     this.buttons = [];
     this.buttons.push(new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction"));
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+
+    this.showSpinner = ko.computed(function () {
+        return ((this.mails().length == 0) && this.loading()) || this.deleting();
+    }, this);
 };
 
 /**
@@ -715,6 +720,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.validateBubbleText = function(te
  * @param {Event} event The click event.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function(vm, event) {
+    var self = this;
+    this.deleting(true);
+    setTimeout(function(){self.deleting(false);}, 2000);
 
 };
 
