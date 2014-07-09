@@ -70,7 +70,11 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         }
     }
     var feedbackSupported = function() {
-        return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
+        if (tutao.locator.userController.getLoggedInUser()) {
+            return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
+        } else {
+            return false;
+        }
     }
     var buttons = [
         // admin
