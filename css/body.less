@@ -150,6 +150,12 @@ body {
             }
           }
         }
+        > section.list {
+          .fill;
+          &.belowSearch {
+            top: @button-bar-height;
+          }
+        }
 	}
 	
 	div#searchAndContactListColumn {
@@ -466,12 +472,9 @@ body {
            .searchAndList;
 
 			section#mailList {
-				position: relative;
-
 				> div.emptyMailList {
 					text-align: center;
 				}
-				
 				> div#innerMailList {
 					background: @white;
 					background-clip: padding-box;
