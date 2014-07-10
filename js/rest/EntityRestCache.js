@@ -190,7 +190,7 @@ tutao.rest.EntityRestCache.prototype.postService = function(path, element, param
 };
 
 /**
- * Posts the given element into the cache.
+ * Puts the given element into the cache.
  * @param {string} path The name of the type of the given element.
  * @param {Object} element The element to add.
  * @protected
@@ -198,10 +198,10 @@ tutao.rest.EntityRestCache.prototype.postService = function(path, element, param
 tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
 	var cacheListId = undefined;
 	var id = undefined;
-	if (element.__id instanceof Array) {
+	if (element.__id instanceof Array) { // LET
 		cacheListId = element.__id[0];
 		id = element.__id[1];
-	} else {
+	} else { // ET
 		cacheListId = "0";
 		id = element.__id;
 	}
@@ -288,7 +288,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			for (var i = 0; i < elements.length; i++) {
 				self._addToCache(path, elements[i]);
 			}
-			// add all elements to the range that were posted already. they need to be added inascending order
+			// add all elements to the range that were posted already. they need to be added in ascending order
 			var elementsToAdd = [];
 			for (var member in self._db[path][listId]) {
 				if (member != 'allRange') {
