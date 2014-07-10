@@ -20,7 +20,7 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickCallback, isV
 
     this._priority = priority;
     this._clickCallback = clickCallback;
-    this._directClick = (directClick) ? true : false;
+    this._directClick = directClick;
     this.id = id;
     this.isVisible = isVisible ? isVisible : function () {
         return true;

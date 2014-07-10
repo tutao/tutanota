@@ -294,13 +294,11 @@ tutao.tutanota.gui.MailView.prototype._findNearestOutlookQuotations = function(o
 	distances.length = 100;
 	for (var i = 0; i < outlookQuotes.length; i++) {
 		var distance = $(outlookQuotes[i]).parentsUntil(outerDiv).length;
-		if (distance >= distances.length) {
-			continue; // we don't care any more
-		} else {
-			if (!distances[distance]) {
-				distances[distance] = [];
-			}
-			distances[distance].push(outlookQuotes.get(i));
+		if (distance < distances.length) {
+            if (!distances[distance]) {
+                distances[distance] = [];
+            }
+            distances[distance].push(outlookQuotes.get(i));
 		}
 	}
 	var i = 0;

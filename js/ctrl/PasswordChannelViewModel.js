@@ -170,4 +170,4 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getNotificationMailLangua
     }else {
        return "en";
     }
-}
+};

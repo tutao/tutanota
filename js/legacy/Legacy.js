@@ -15,6 +15,7 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
         delete singletons.clientWorkerProxy;
         delete singletons.rsaCrypter;
         delete singletons.eventBus;
+        //noinspection JSUndefinedPropertyAssignment
         singletons.aesCrypter = tutao.crypto.SjclAes;
     }
 

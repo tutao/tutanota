@@ -37,10 +37,6 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	this.loginPossible = ko.computed(function() {
 		return (!this.loginOngoing());
 	}, this);
-
-	this.invalidPassphraseFormat = ko.computed(function() {
-		return ;
-	}, this);
 };
 
 /**

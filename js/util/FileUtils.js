@@ -173,7 +173,7 @@ tutao.tutanota.util.FileUtils.simulatedClick = function (target, options) {
         metaKey:options.metaKey                 || false, //I *think* 'meta' is 'Cmd/Apple' on Mac, and 'Windows key' on Win. Not sure, though!
         button:options.button                   || 0, //0 = left, 1 = middle, 2 = right
         relatedTarget:options.relatedTarget     || null
-    }
+    };
 
     //Pass in the options
     event.initMouseEvent(
@@ -196,7 +196,7 @@ tutao.tutanota.util.FileUtils.simulatedClick = function (target, options) {
 
     //Fire the event
     target.dispatchEvent(event);
-}
+};
 
 /**
  * Provides the extension of the given filename in lowercase letters.

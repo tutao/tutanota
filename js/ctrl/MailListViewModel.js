@@ -221,9 +221,8 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isDeleteTrashButtonVisible = fun
 tutao.tutanota.ctrl.MailListViewModel.prototype._updateTagFilterResult = function(tagId, callback) {
 	var self = this;
 	var attributeId = this.tagToMailAttributeIdMapping[tagId];
-	var attributeValue = this.tagToMailAttributeValueMapping[tagId];
 
-	var indexedValue = attributeValue;
+	var indexedValue = this.tagToMailAttributeValueMapping[tagId];
 	if (indexedValue === true) {
 		indexedValue = "1";
 	} else if (indexedValue === false) {

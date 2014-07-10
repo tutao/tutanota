@@ -82,6 +82,7 @@ tutao.tutanota.gui.ContextMenu.prototype.showMenu = function(element, posX, posY
     var menuTop = targetBottom + 20;
     */
     var menuLeft = posX - (menuWidth / 2);
+    //noinspection UnnecessaryLocalVariableJS
     var menuTop = posY;
 
     menu.style.top = menuTop + 'px';

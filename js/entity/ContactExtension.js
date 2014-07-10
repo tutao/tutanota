@@ -7,8 +7,11 @@ goog.provide('tutao.entity.tutanota.ContactExtension');
  * @param {tutao.entity.tutanota.ContactEditable} editableContact The contact to add the functionality to.
  */
 tutao.entity.tutanota.ContactExtension = function(editableContact) {
-	editableContact.birthdayString = ko.observable(null);
+	//noinspection JSUndefinedPropertyAssignment
+    editableContact.birthdayString = ko.observable(null);
+    //noinspection JSUndefinedPropertyAssignment
 	editableContact.birthdayStringInvalid = ko.observable(false);
+    //noinspection JSUndefinedPropertyAssignment
 	editableContact.birthdayStringComputed = ko.computed({
         read: function() {
         	if (editableContact.birthdayString() == null) {

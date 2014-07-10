@@ -68,14 +68,14 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         } else {
             return false;
         }
-    }
+    };
     var feedbackSupported = function() {
         if (tutao.locator.userController.getLoggedInUser()) {
             return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
         } else {
             return false;
         }
-    }
+    };
     var buttons = [
         // admin
         new tutao.tutanota.ctrl.Button("logs_label", 40, tutao.locator.navigator.logs, adminViewVisible, false, "menu_logs", "search"),

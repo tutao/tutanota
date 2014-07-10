@@ -17,7 +17,7 @@ tutao.tutanota.ctrl.ContactViewModel = function () {
         return function () {
             return self.mode() == state;
         };
-    }
+    };
     this.contactWrapper.subscribe(function (previousValue) {
         // only init the button bar when we set a contactWrapper for the first time
         if (previousValue != null) {

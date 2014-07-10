@@ -64,8 +64,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
             });
         }).then(function() {
                 emlArray.push("--------------79Bu5A16qPEYcVIZL@tutanota--");
-                var eml = emlArray.join("\r\n");
-                return eml;
+                return emlArray.join("\r\n");
             }));
     });
 };
