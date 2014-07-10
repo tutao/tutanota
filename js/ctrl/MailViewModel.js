@@ -246,6 +246,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 	infoLine += tutao.lang("subject_label") + " " + displayedMail.mail.getSubject();
 	var body = "<br><br>" + infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + displayedMail.bodyText() + "</blockquote>";
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_FORWARD_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [], [], displayedMail, body);
+    this.getComposingMail()._attachments(displayedMail.attachments());
 };
 
 /**

@@ -76,13 +76,31 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 };
 
 /**
- * Uploads the given data files and provides a list of files.
- * @param {tutao.tutanota.util.DataFile} dataFile The data file to upload.
+ * Uploads the given data files
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File} file The file or data file to upload.
  * @param {Object} sessionKey The session key used to encrypt the file.
  * @param {function(?tutao.entity.tutanota.FileData,tutao.rest.EntityRestException=)} callback Called when finished with the file data ids DataFile.
  * Receives an exception if the operation fails.
  */
-tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(dataFile, sessionKey, callback) {
+tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(file, sessionKey, callback) {
+    var dataFile = null;
+    if (file instanceof tutao.tutanota.util.DataFile) {
+        dataFile = file;
+        tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData(dataFile, sessionKey, callback);
+    } else if (tutao.entity.tutanota.File) {
+        // we have to download the DataFile before uploading (forwarded attachment)
+        tutao.tutanota.ctrl.FileFacade.readFileData(file, function(dataFile, error) {
+            if (error) {
+                callback(null, error);
+            } else {
+                tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData(dataFile, sessionKey, callback);
+            }
+        });
+    }
+
+};
+
+tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData = function(dataFile, sessionKey, callback) {
     tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey, function(fileDataId, exception) {
         if (exception) {
             callback(null, exception);

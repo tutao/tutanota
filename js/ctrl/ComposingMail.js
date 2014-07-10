@@ -15,7 +15,8 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.composerSubject = ko.observable("");
 	this.composerBody = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);
-	this._attachments = ko.observableArray(); // contains DataFiles
+    // @type {function(tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=):tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=}
+	this._attachments = ko.observableArray();
 	this.currentlyDownloadingAttachment = ko.observable(); // null or a DataFile
 
 	this.toRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
