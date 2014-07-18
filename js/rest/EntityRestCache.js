@@ -48,6 +48,7 @@ tutao.rest.EntityRestCache = function() {
 	/**
 	 * requests are forwarded to this entity rest instance
 	 */
+    // @type {tutao.rest.EntityRestInterface}
 	this._target = undefined;
 
     // TODO (story push events) remove after update notifications are in place
@@ -66,40 +67,36 @@ tutao.rest.EntityRestCache.prototype.setTarget = function(entityRestTarget) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listId, parameters, headers, callback) {
-	var self = this;
-	var cacheListId = (listId) ? listId : "0";
-	var versionRequest = (parameters && parameters.version) ? true : false;
-	if (versionRequest || !this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId][id] || tutao.util.ArrayUtils.contains(this._ignoredPaths, path)) {
-		// the element is not in the cache, so get it from target
-		this._target.getElement(type, path, id, listId, parameters, headers, function(element, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
-			// cache the received element
-			if (!versionRequest) {
-				self._addToCache(path, element);
-				self._tryAddToRange(path, element);
-			}
-			callback(element);		
-		});
-	} else {
-		callback(this._db[path][cacheListId][id]);
-	}
+tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listId, parameters, headers) {
+    var self = this;
+    var cacheListId = (listId) ? listId : "0";
+    var versionRequest = (parameters && parameters.version) ? true : false;
+    if (versionRequest || !this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId][id] || tutao.util.ArrayUtils.contains(this._ignoredPaths, path)) {
+        // the element is not in the cache, so get it from target
+        return this._target.getElement(type, path, id, listId, parameters, headers).then(function(element) {
+            // cache the received element
+            if (!versionRequest) {
+                self._addToCache(path, element);
+                self._tryAddToRange(path, element);
+            }
+            return element;
+        });
+    } else {
+        return Promise.resolve(self._db[path][cacheListId][id]);
+    }
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.getService = function(type, path, data, parameters, headers, callback) {
-	return this._target.getService(type, path, data, parameters, headers, callback);
+tutao.rest.EntityRestCache.prototype.getService = function(type, path, data, parameters, headers) {
+	return this._target.getService(type, path, data, parameters, headers);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, parameters, headers) {
 	var elements = [];
 	var fromDbIds = [];
 	var cacheListId = "0"; // currently only for ETs
@@ -115,11 +112,7 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
 	}
 	if (fromDbIds.length > 0) {
 		var self = this;
-		this._target.getElements(type, path, fromDbIds, parameters, headers, function(serverElements, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
+		return this._target.getElements(type, path, fromDbIds, parameters, headers).then(function(serverElements) {
 			for ( var i = 0; i < serverElements.length; i++) {
 				// cache the received elements
 				self._addToCache(path, serverElements[i]);
@@ -128,10 +121,10 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
 				// merge with cached elements
 				elements.push(serverElements[i]);
 			}			
-			callback(elements);		
+			return elements;
 		});
 	} else {
-		callback(elements);
+		return Promise.resolve(elements);
 	}
 };
 
@@ -157,36 +150,34 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers) {
 	var self = this;
-	this._target.postElement(path, element, listId, parameters, headers, function(returnEntity, exception) {
-		if (!exception) {
-			var cacheListId = undefined;
-			var id = undefined;
-			if (element.__id instanceof Array) {
-				cacheListId = element.__id[0];
-				id = element.__id[1];
-			} else {
-				cacheListId = "0";
-				id = element.__id;
-			}
-			if (self._db[path] && self._db[path][cacheListId] && self._db[path][cacheListId][id]) {
-				// this should not happen
-				console.log("cache out of sync for post: " + path);
-			}
-			
-			self._addToCache(path, element);
-			self._tryAddToRange(path, element);
-		}
-		callback(returnEntity, exception);
+	return this._target.postElement(path, element, listId, parameters, headers).then(function(returnEntity) {
+        var cacheListId = undefined;
+        var id = undefined;
+        if (element.__id instanceof Array) {
+            cacheListId = element.__id[0];
+            id = element.__id[1];
+        } else {
+            cacheListId = "0";
+            id = element.__id;
+        }
+        if (self._db[path] && self._db[path][cacheListId] && self._db[path][cacheListId][id]) {
+            // this should not happen
+            console.log("cache out of sync for post: " + path);
+        }
+
+        self._addToCache(path, element);
+        self._tryAddToRange(path, element);
+		return returnEntity;
 	});
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
-	this._target.postService(path, element, parameters, headers, returnType, callback);
+tutao.rest.EntityRestCache.prototype.postService = function(path, element, parameters, headers, returnType) {
+	return this._target.postService(path, element, parameters, headers, returnType);
 };
 
 /**
@@ -215,63 +206,56 @@ tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parameters, headers) {
 	var self = this;
-	this._target.putElement(path, element, parameters, headers, function(exception) {
-		if (!exception) {
-			var cacheListId = undefined;
-			var id = undefined;
-			if (element.__id instanceof Array) {
-				cacheListId = element.__id[0];
-				id = element.__id[1];
-			} else {
-				cacheListId = "0";
-				id = element.__id;
-			}
-			if (!self._db[path] || !self._db[path][cacheListId] || !self._db[path][cacheListId][id]) {
-				// this should not happen. it means that the target and this cache are out of sync.
-				// put on the target worked fine, so the element was existing on the target.
-				// it must habe been received from the target or posted first, otherwise it would not have been possible to put it.
-				// we somehow must have missed receiving the element and putting it into the cache.
-				console.log("cache out of sync for " + path);
-			}
-			
-			self._addToCache(path, element);
-		}
-		callback(exception);
+	return this._target.putElement(path, element, parameters, headers).then(function() {
+        var cacheListId = undefined;
+        var id = undefined;
+        if (element.__id instanceof Array) {
+            cacheListId = element.__id[0];
+            id = element.__id[1];
+        } else {
+            cacheListId = "0";
+            id = element.__id;
+        }
+        if (!self._db[path] || !self._db[path][cacheListId] || !self._db[path][cacheListId][id]) {
+            // this should not happen. it means that the target and this cache are out of sync.
+            // put on the target worked fine, so the element was existing on the target.
+            // it must habe been received from the target or posted first, otherwise it would not have been possible to put it.
+            // we somehow must have missed receiving the element and putting it into the cache.
+            console.log("cache out of sync for " + path);
+        }
+
+        self._addToCache(path, element);
 	});
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.putService = function(path, element, parameters, headers, returnType, callback) {
-    this._target.putService(path, element, parameters, headers, returnType, callback);
+tutao.rest.EntityRestCache.prototype.putService = function(path, element, parameters, headers, returnType) {
+    return this._target.putService(path, element, parameters, headers, returnType);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.postList = function(path, parameters, headers, callback) {
-	this._target.postList(path, parameters, headers, callback);
+tutao.rest.EntityRestCache.prototype.postList = function(path, parameters, headers) {
+	return this._target.postList(path, parameters, headers);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers) {
+    tutao.util.Assert.assert(typeof start == "string", "expected start to be a string, but was: " + start + " -> " + (typeof start)); // element id
+
 	var self = this;
 	this._db[path] = this._db[path] || {};
 	this._db[path][listId] = this._db[path][listId] || {};
 
 	if (path.indexOf("/rest/monitor/") != -1 || !type.GENERATED_ID) { // customIds shall not be cached because new instances might be inserted into already retrieved ranges
-		this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers, function(elements, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
-			callback(elements);
-		});
+		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers);
 	} else if (!this._db[path][listId]['allRange']) {
 		// there was no range loaded up to now. we can not load the range earlier than now (or in getElement) because
 		// we need the type argument to create the elements. Any posts that my have come earlier still need to go into the
@@ -279,11 +263,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		// already in the cache
 		// load all elements (i.e. up to 1000000)
 		// TODO (story Partial loading of email list) only cache what is requested.
-		this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers, function(elements, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
+		return this._target.getElementRange(type, path, listId, "", tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, parameters, headers).then(function(elements) {
 			self._db[path][listId].allRange = [];
 			for (var i = 0; i < elements.length; i++) {
 				self._addToCache(path, elements[i]);
@@ -299,28 +279,24 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			for (var b = 0; b < elementsToAdd.length; b++) {
 				self._tryAddToRange(path, elementsToAdd[b]);
 			}
-			callback(self._provideFromCache(path, listId, start, count, reverse));
+			return self._provideFromCache(path, listId, start, count, reverse);
 		});
 	} else {
 		if (reverse) {
 			// only request a range from target if the start id is bigger than the last id in allRange
 			if (this._db[path][listId]['allRange'].length == 0 || tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, tutao.util.ArrayUtils.last(this._db[path][listId]['allRange']))) {
-				this._target.getElementRange(type, path, listId, start, count, true, parameters, headers, function(elements, exception) {
-					if (exception) {
-						callback(null, exception);
-						return;
-					}
+				return this._target.getElementRange(type, path, listId, start, count, true, parameters, headers).then(function(elements) {
 					for (var i = elements.length - 1; i >= 0; i--) {
 						self._addToCache(path, elements[i]);
 						self._tryAddToRange(path, elements[i]);
 					}
-					callback(self._provideFromCache(path, listId, start, count, reverse));
+					return self._provideFromCache(path, listId, start, count, reverse);
 				});
 			} else {
-				callback(self._provideFromCache(path, listId, start, count, reverse));
+				return Promise.resolve(self._provideFromCache(path, listId, start, count, reverse));
 			}			
 		} else {
-			callback(self._provideFromCache(path, listId, start, count, reverse));
+			return Promise.resolve(self._provideFromCache(path, listId, start, count, reverse));
 		}
 	}
 };
@@ -370,34 +346,31 @@ tutao.rest.EntityRestCache.prototype._provideFromCache = function(path, listId, 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) {
+tutao.rest.EntityRestCache.prototype.deleteElement = function(path, id, listId, parameters, headers) {
 	var self = this;
-	this._target.deleteElement(path, id, listId, parameters, headers, function(data, exception) {
-		if (!exception) {
-			if (!listId) {
-				listId = "0";
-			}
-			if (!self._db[path] || !self._db[path][listId]) {
-				// this may happen when the elements where not yet cached, but the id was
-				// taken from another loaded element. This is not an error.
-				callback(data);
-				return;
-			}
-            if (self._db[path][listId][id]) {
-                delete self._db[path][listId][id];
-            }
-            if (self._db[path][listId]['allRange']) {
-                // if the id exists in the range, then delete it
-                tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], id);
-            }
-		}
-		callback(data, exception);
+	return this._target.deleteElement(path, id, listId, parameters, headers).then(function(data) {
+        if (!listId) {
+            listId = "0";
+        }
+        if (!self._db[path] || !self._db[path][listId]) {
+            // this may happen when the elements where not yet cached, but the id was
+            // taken from another loaded element. This is not an error.
+            return data;
+        }
+        if (self._db[path][listId][id]) {
+            delete self._db[path][listId][id];
+        }
+        if (self._db[path][listId]['allRange']) {
+            // if the id exists in the range, then delete it
+            tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], id);
+        }
+		return data;
 	});
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestCache.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) {
-    this._target.deleteService(path, element, parameters, headers, returnType, callback);
+tutao.rest.EntityRestCache.prototype.deleteService = function(path, element, parameters, headers, returnType) {
+    return this._target.deleteService(path, element, parameters, headers, returnType);
 };

@@ -21,7 +21,7 @@ tutao.crypto.JBCryptAdapter.prototype.generateRandomSalt = function() {
 /**
  * @inheritDoc
  */
-tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passphrase, salt, callback) {
+tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
 	var self = this;
 
 	// jbcrypt needs the salt and password as unsigned bytes
@@ -31,10 +31,12 @@ tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passp
 
 	// create a new instance for each call to make sure that no concurrency problems occur (the bcrypt library uses setTimeouts)
 	var b = new bCrypt();
-	b.crypt_raw(passphraseBytes, saltBytes, this.logRounds, function(key) {
-		var hexKey = tutao.util.EncodingConverter.bytesToHex(self._signedToUnsignedBytes(key));
-		callback(hexKey);
-	}, function() {});
+    return new Promise(function(resolve, reject) {
+        b.crypt_raw(passphraseBytes, saltBytes, self.logRounds, function(key) {
+            var hexKey = tutao.util.EncodingConverter.bytesToHex(self._signedToUnsignedBytes(key));
+            resolve(hexKey);
+        }, function() {});
+    });
 };
 
 /**

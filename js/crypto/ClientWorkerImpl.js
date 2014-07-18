@@ -32,7 +32,7 @@ tutao.crypto.ClientWorkerImpl.prototype.initWorker = function(id, data) {
         importScripts(data.imports[i]);
     }
     // simulate the locator with all objects needed
-    tutao.locator = { randomizer: new tutao.crypto.WorkerRandomizer(), aesCrypter: new tutao.crypto.SjclAes(), rsaCrypter: new tutao.crypto.JsbnRsa() };
+    eval("tutao.locator = { randomizer: new tutao.crypto.WorkerRandomizer(), aesCrypter: new tutao.crypto.SjclAes(), rsaCrypter: new tutao.crypto.JsbnRsa() };");
     this._sendResult(id, {});
 };
 

@@ -61,38 +61,26 @@ tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
 tutao.event.PushListEventTracker.prototype._handleEventBusNotification = function(update) {
 	var self = this;
 	if (update.getType() === this._typeName && update.getInstanceListId() === this._listId) {
-		tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders(), function(instance, exception) {
-			if (exception) {
-				console.log(exception);
-			} else {
-				instance._entityHelper.loadSessionKey(function(instance, exception) {
-					if (exception) {
-						console.log(exception);
-					} else {
-						self.notifyObservers([instance]);
-                        self._highestElementId = instance.getId()[1];
-					}
-				});
-			}
-		});
+		return tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(instance, exception) {
+            return instance._entityHelper.loadSessionKey().then(function(instance) {
+                self.notifyObservers([instance]);
+                self._highestElementId = instance.getId()[1];
+            });
+		}).caught(function(exception) {
+            console.log(exception);
+        });
 	}
 };
 
 tutao.event.PushListEventTracker.prototype._notifyAboutExistingElements = function(){
     var self = this;
-    tutao.locator.entityRestClient.getElementRange(self._listType, self._path, self._listId, self._highestElementId, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders(), function(newElements, exception) {
-        if (exception) {
-            console.log(exception);
-        } else if (newElements.length > 0) {
+    tutao.locator.entityRestClient.getElementRange(self._listType, self._path, self._listId, self._highestElementId, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(newElements) {
+        if (newElements.length > 0) {
             console.log("getElementRange received mails: " + newElements.length);
-            tutao.entity.EntityHelper.loadSessionKeys(newElements, function(newElements, exception) {
-                if (exception) {
-                    console.log(exception);
-                } else {
-                    self.notifyObservers(newElements);
-                    if ( newElements.length > 0 ){
-                        self._highestElementId = newElements[newElements.length-1].getId()[1];
-                    }
+            return tutao.entity.EntityHelper.loadSessionKeys(newElements).then(function(newElements) {
+                self.notifyObservers(newElements);
+                if ( newElements.length > 0 ){
+                    self._highestElementId = newElements[newElements.length-1].getId()[1];
                 }
             });
         }

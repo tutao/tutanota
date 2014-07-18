@@ -28,28 +28,28 @@ tutao.rest.EntityRestDummy.prototype._getNextId = function() {
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.getElement = function(type, path, id, listId, parameters, headers, callback) {
-	callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+tutao.rest.EntityRestDummy.prototype.getElement = function(type, path, id, listId, parameters, headers) {
+    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.getService = function(type, path, data, parameters, headers, callback) {
-	callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+tutao.rest.EntityRestDummy.prototype.getService = function(type, path, data, parameters, headers) {
+    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.getElements = function(type, path, ids, parameters, headers, callback) {
-	callback([]);
+tutao.rest.EntityRestDummy.prototype.getElements = function(type, path, ids, parameters, headers) {
+    return Promise.resolve([]);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listId, parameters, headers, callback) {
+tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listId, parameters, headers) {
 	var returnEntity = new tutao.entity.base.PersistenceResourcePostReturn();
 	// only generated ids must be set, so check if it is missing (custom ids are set by client before the post call)
 	if (!element.__id) {		
@@ -63,54 +63,54 @@ tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listI
 	}
 	element.__permissions = this._getNextId();
 	returnEntity.setPermissionListId(element.__permissions);
-	callback(returnEntity);
+    return Promise.resolve(returnEntity);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.postService = function(path, element, parameters, headers, returnType, callback) {
-	callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+tutao.rest.EntityRestDummy.prototype.postService = function(path, element, parameters, headers, returnType) {
+    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.putElement = function(path, element, parameters, headers, callback) {
-	callback();
+tutao.rest.EntityRestDummy.prototype.putElement = function(path, element, parameters, headers) {
+    return Promise.resolve();
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.putService = function(path, element, parameters, headers, returnType, callback) {
-    callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+tutao.rest.EntityRestDummy.prototype.putService = function(path, element, parameters, headers, returnType) {
+    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.postList = function(path, parameters, headers, callback) {
-	callback(new tutao.entity.base.PersistenceResourcePostReturn({generatedId: this._getNextId(), permissionListId: this._getNextId()}));
+tutao.rest.EntityRestDummy.prototype.postList = function(path, parameters, headers) {
+    return Promise.resolve(new tutao.entity.base.PersistenceResourcePostReturn({generatedId: this._getNextId(), permissionListId: this._getNextId()}));
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers, callback) {
-	callback([]);
+tutao.rest.EntityRestDummy.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers) {
+    return Promise.resolve([]);
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.deleteElement = function(path, id, listId, parameters, headers, callback) {
-	callback();
+tutao.rest.EntityRestDummy.prototype.deleteElement = function(path, id, listId, parameters, headers) {
+    return Promise.resolve();
 };
 
 /**
  * @inheritDoc
  */
-tutao.rest.EntityRestDummy.prototype.deleteService = function(path, element, parameters, headers, returnType, callback) {
-    callback(null, new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+tutao.rest.EntityRestDummy.prototype.deleteService = function(path, element, parameters, headers, returnType) {
+    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
 };

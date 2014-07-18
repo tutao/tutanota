@@ -238,7 +238,7 @@ tutao.db.WebSqlDb.prototype._makeSureIndexTableExists = function(name, callback)
 
 /**
  * Creates the table that stores the last element indexed element of a type if it does not yet exist.
- * @param {function(string)} callback Is called when the operation is finished. Passes a status value that indicates failure.
+ * @param {function(string)=} callback Is called when the operation is finished. Passes a status value that indicates failure.
  */
 tutao.db.WebSqlDb.prototype._makeSureIndexedInfoTableExists = function(callback) {
 	var self = this;

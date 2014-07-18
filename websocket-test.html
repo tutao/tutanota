@@ -60,13 +60,14 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 		sjcl.random = new sjcl.random();
-		tutao.locator = new tutao.Locator({
+		tutao['locator'] = new tutao.Locator({
 			randomizer: tutao.crypto.SjclRandomizer,
 			aesCrypter: tutao.crypto.AesWorkerProxy,
 			rsaCrypter: tutao.crypto.RsaWorkerProxy,
 			kdfCrypter: tutao.crypto.JBCryptAdapter,
 			shaCrypter: tutao.crypto.SjclSha256,
 			userController: tutao.ctrl.UserController,
+            // @type {tutao.rest.RestClient}
 			restClient: tutao.rest.RestClient,
 			entityRestClient: tutao.rest.EntityRestClient});
 		

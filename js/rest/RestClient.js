@@ -17,20 +17,23 @@ tutao.rest.RestClient = function() {};
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {?string} json The payload. 
- * @param {function(?Object, tutao.rest.RestException=)} callback Provides the data of the element(s) or an exception if the rest call failed.
+ * @return {Promise.<Object, tutao.rest.RestException>} Provides the data of the element(s) or an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callback) {
-	var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
-	json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
-	// avoid caching (needed for IE) by setting cache: false
-	jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, processData: true, async: true, cache: false, headers: headers,
-		success: function(data, textStatus, jqXHR) {
-			callback(data);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			callback(null, new tutao.rest.RestException(jqXHR.status));
-		}
-	});
+tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
+    return new Promise(function(resolve, reject) {
+        reject(new Error("dummy"));
+        var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
+        json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
+        // avoid caching (needed for IE) by setting cache: false
+        jQuery.ajax({ type: "GET", url: path, contentType: contentType, data: json, processData: true, async: true, cache: false, headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(new tutao.rest.RestException(jqXHR.status));
+            }
+        });
+    });
 };
 
 /**
@@ -38,17 +41,19 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json, callb
  * @param {string} path path of the element, includes element type name.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {string} json The json data to store.
- * @param {function(?string, tutao.rest.RestException=)} callback Provides the response from the server as a string or an exception if the rest call failed.
+ * @return {Promise.<string, tutao.rest.RestException>} Provides the response from the server as a string or an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.postElement = function(path, headers, json, callback) {
-	jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
-		success: function(data, textStatus, jqXHR) {
-			callback(data);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			callback(null, new tutao.rest.RestException(jqXHR.status));
-		}
-	});
+tutao.rest.RestClient.prototype.postElement = function(path, headers, json) {
+    return new Promise(function(resolve, reject) {
+        jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(new tutao.rest.RestException(jqXHR.status));
+            }
+        });
+    });
 };
 
 /**
@@ -57,17 +62,19 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json, call
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {string} json The json data to store.
- * @param {function(?string, tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
+ * @return {Promise.<string, tutao.rest.RestException>} Provides an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callback) {
-	jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
-		success: function(data, textStatus, jqXHR) {
-			callback(data);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			callback(null, new tutao.rest.RestException(jqXHR.status));
-		}
-	});
+tutao.rest.RestClient.prototype.putElement = function(path, headers, json) {
+    return new Promise(function(resolve, reject) {
+        jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(new tutao.rest.RestException(jqXHR.status));
+            }
+        });
+    });
 };
 
 /**
@@ -75,19 +82,21 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json, callb
  * @param {string} path Path of the element(s);.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {string} json The payload.
- * @param {function(?string, tutao.rest.RestException=)} callback Provides the response from the server as a string or an exception if the rest call failed.
+ * @return {Promise.<string, tutao.rest.RestException>} Provides the response from the server as a string or an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json, callback) {
-	var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
-	json = json ? json : "";
-	jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, processData: false, async: true, headers: headers,
-		success: function(data, textStatus, jqXHR) {
-			callback(data);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			callback(null, new tutao.rest.RestException(jqXHR.status));
-		}
-	});
+tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
+    return new Promise(function(resolve, reject) {
+        var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
+        json = json ? json : "";
+        jQuery.ajax({ type: "DELETE", url: path, contentType: contentType, data: json, processData: false, async: true, headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(new tutao.rest.RestException(jqXHR.status));
+            }
+        });
+    });
 };
 
 /**
@@ -95,41 +104,45 @@ tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json, ca
  * @param {string} path Path of the service which receives the binary data.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {ArrayBuffer} data The binary data as ArrayBuffer.
- * @param {function(tutao.rest.RestException=)} callback Provides an exception if the rest call failed.
+ * @return {Promise.<tutao.rest.RestException>} Provides an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.putBinary = function(path, headers, data, callback) {
-	jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, async: true, headers: headers,
-		success: function(data, textStatus, jqXHR) {
-			callback(data);
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			callback(new tutao.rest.RestException(jqXHR.status));
-		}
-	});
+tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
+    return new Promise(function(resolve, reject) {
+        jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, async: true, headers: headers,
+            success: function(data, textStatus, jqXHR) {
+                resolve(data);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                reject(new tutao.rest.RestException(jqXHR.status));
+            }
+        });
+    });
 };
 
 /**
  * Downloads binary data.
  * @param {string} path Path of the service which provides the binary data.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @param {function((ArrayBuffer|String|null), tutao.rest.RestException=)} callback Provides the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Provides an exception if the rest call failed.
+ * @return {Promise.<(ArrayBuffer|String|null), tutao.rest.RestException>} Provides the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Provides an exception if the rest call failed.
  */
-tutao.rest.RestClient.prototype.getBinary = function(path, headers, callback) {
-	var xhr = new XMLHttpRequest();
-	// use the same trick to avoid caching (actually only needed for IE) like jquery: append a unique timestamp
-	xhr.open('GET', path + "&_=" + new Date().getTime(), true);
-	xhr.responseType = 'arraybuffer';
-	for (var i in headers) {
-		xhr.setRequestHeader(i, headers[i]);
-	}
-	xhr.onreadystatechange = function(e) { // XMLHttpRequestProgressEvent, but not needed
-		if (this.readyState == 4) { // DONE
-			if (this.status == 200) {
-				callback(this.response ? this.response : this.responseText); // LEGACY variant for IE 8/9 which uses responseBody for base64 string data
-			} else {
-				callback(null, new tutao.rest.RestException(this.status));
-			}
-		}
-	};
-	xhr.send();
+tutao.rest.RestClient.prototype.getBinary = function(path, headers) {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        // use the same trick to avoid caching (actually only needed for IE) like jquery: append a unique timestamp
+        xhr.open('GET', path + "&_=" + new Date().getTime(), true);
+        xhr.responseType = 'arraybuffer';
+        for (var i in headers) {
+            xhr.setRequestHeader(i, headers[i]);
+        }
+        xhr.onreadystatechange = function(e) { // XMLHttpRequestProgressEvent, but not needed
+            if (this.readyState == 4) { // DONE
+                if (this.status == 200) {
+                    resolve(this.response ? this.response : this.responseText); // LEGACY variant for IE 8/9 which uses responseBody for base64 string data
+                } else {
+                    reject(new tutao.rest.RestException(this.status));
+                }
+            }
+        };
+        xhr.send();
+    });
 };
