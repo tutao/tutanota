@@ -3,9 +3,16 @@
 /**
  * Executes all initializations needed for the unit tests to run.
  */
-$(document).ready(function() {
-	tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/main/html/libs/internal/', '/test/src/main/html/libs/external/');
-	tutao.locator = new tutao.Locator({
+var setupLocator = function() {
+    if (typeof window.parent.karma != 'undefined') {
+        // karma
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/src/main/html/libs/internal/', '/base/src/main/html/libs/external/');
+    } else {
+        // jstestdriver
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/test/src/main/html/libs/internal/', '/test/src/main/html/libs/external/');
+    }
+
+	var singletons = {
 		randomizer: tutao.crypto.SjclRandomizer,
 		entropyCollector: tutao.crypto.EntropyCollector,
 		clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
@@ -34,7 +41,10 @@ $(document).ready(function() {
 		eventBus: tutao.event.EventBusClient,
 		navigator: tutao.tutanota.ctrl.Navigator,
         feedbackViewModel: tutao.tutanota.ctrl.FeedbackViewModel
-	});
+	};
+    eval("tutao.locator = new tutao.Locator(singletons);")
 
 	tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
-});
+};
+
+setupLocator();

@@ -5,7 +5,7 @@ goog.provide('IndexerTest');
 JsHamcrest.Integration.JsTestDriver();
 JsMockito.Integration.JsTestDriver();
 
-TestCase("IndexerTest", {
+AsyncTestCase("IndexerTest", {
 	
 	setUp: function() {
 		// we have to mock getUserClientKey because the indexer calls it
@@ -28,7 +28,7 @@ TestCase("IndexerTest", {
 		assertEquals(["hel", "lo", "w4", "ss"], tutao.locator.indexer.getSearchIndexWordsFromText("hEl%lo. W4=ss"));
 	},
 
-	"test that mails are correctly indexed": function() {
+	"test that mails are correctly indexed": function(queue) {
 		// mock dao
 		var callCount = 0;
 		tutao.locator.dao.getLastIndexed = function(typeId, callback) {
@@ -129,8 +129,8 @@ TestCase("IndexerTest", {
 		mail.__id = ["1", "100"]; // set a fake id
 		
 		// mock loadMail
-		var mailLoader = function(id, callback) {
-			callback(mail);
+		var mailLoader = function(id) {
+            return Promise.resolve(mail);
 		};
 		tutao.locator.replaceStatic(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.load, mailLoader);
 
@@ -141,14 +141,15 @@ TestCase("IndexerTest", {
 		
 		mail.__id = ["1", "1300"]; // set a fake id
 		// now it should be indexed
-		callback = mockFunction();
-		tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.Mail.prototype.TYPE_ID, [mail.getId()], callback);
-		verify(callback)(["1", "1300"]);
-		
-		assertEquals(10, callCount);
+        queue.call('test', function(callbacks) {
+            tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.Mail.prototype.TYPE_ID, [mail.getId()], callbacks.add(function(id) {
+                assertEquals(["1", "1300"], id);
+                assertEquals(10, callCount);
+            }));
+        });
 	},
 	
-	"test that mail bodys are correctly indexed": function() {
+	"test that mail bodys are correctly indexed": function(queue) {
 		// mock dao
 		var callCount = 0;
 		tutao.locator.dao.getLastIndexed = function(typeId, callback) {
@@ -195,17 +196,20 @@ TestCase("IndexerTest", {
 		mailBody.setText("Only three.WoRdS!");
 		mailBody.__id = "400"; // set a fake id
 
-		var mailBodyLoader = function(id, callback) {
-			callback(mailBody);
+		var mailBodyLoader = function(id) {
+			return Promise.resolve(mailBody);
 		};
 		tutao.locator.replaceStatic(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.load, mailBodyLoader);
 
 		// now it should be indexed
-		var callback = mockFunction();
-		tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, [mailBody.getId()], callback);
-		verify(callback)(mailBody.getId());
-		
-		assertEquals(3, callCount);
+        queue.call('test', function(callbacks) {
+            tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, [mailBody.getId()], callbacks.add(function(id) {
+                assertEquals(mailBody.getId(), id);
+
+                assertEquals(3, callCount);
+            }));
+        });
+
 	},
 	
 	"test getElementsByValues": function() {

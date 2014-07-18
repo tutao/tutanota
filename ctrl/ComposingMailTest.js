@@ -25,14 +25,14 @@ AsyncTestCase("ComposingMailTest", {
 					cm.composerSubject("TestSubject");
 					var file1 = new tutao.entity.tutanota.File();
 					file1.setName("n1");
-					file1.setSize(15000000);
+					file1.setSize(15000000 +"");
 					file1.setMimeType("text/plain");
 					var data1 = new ArrayBuffer(15000000);
 					var dataFile1 = new tutao.tutanota.util.DataFile(data1, file1);
 					cm._attachments.push(dataFile1);
 					var file2 = new tutao.entity.tutanota.File();
 					file2.setName("n2");
-					file2.setSize(15000000);
+					file2.setSize(15000000 +"");
 					file2.setMimeType("text/plain");
 					var data2 = new ArrayBuffer(15000000);
 					var dataFile2 = new tutao.tutanota.util.DataFile(data2, file2);
@@ -40,11 +40,11 @@ AsyncTestCase("ComposingMailTest", {
 					tutao.tutanota.gui.alert = callbacks.add(function(text) {
 						assertEquals("The maximum message size of 25 MB to unsecure external recipients is exceeded.", text);
 					});
-					cm.sendMail(null, {target: null});
+					cm.sendMail(null);
 				});
-				cm.sendMail(null, {target: null});
+				cm.sendMail(null);
 			});
-			cm.sendMail(null, {target: null});
+			cm.sendMail(null);
 		});
 	}
 });

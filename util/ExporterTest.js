@@ -4,28 +4,31 @@ goog.provide('ExporterTest');
 
 AsyncTestCase("ExporterTest", {
     "test toEml": function (queue) {
-    var mail = new tutao.entity.tutanota.Mail()
-        .setSender(new tutao.entity.tutanota.MailAddress()
+    var mail = new tutao.entity.tutanota.Mail();
+    mail.setSender(new tutao.entity.tutanota.MailAddress(mail)
             .setAddress("sender@tutao.de"))
         .setSentDate(new Date(Date.UTC(2011, 11, 12, 4, 3, 2)))
         .setSubject("Halli Hallo!");
-    mail.getToRecipients().push(new tutao.entity.tutanota.MailAddress()
+    mail.getToRecipients().push(new tutao.entity.tutanota.MailAddress(mail)
         .setAddress("to1@tutao.de"));
-    mail.getToRecipients().push(new tutao.entity.tutanota.MailAddress()
+    mail.getToRecipients().push(new tutao.entity.tutanota.MailAddress(mail)
         .setAddress("to2@tutao.de"));
-    mail.getCcRecipients().push(new tutao.entity.tutanota.MailAddress()
+    mail.getCcRecipients().push(new tutao.entity.tutanota.MailAddress(mail)
         .setAddress("cc@tutao.de"));
-    mail.getCcRecipients().push(new tutao.entity.tutanota.MailAddress()
+    mail.getCcRecipients().push(new tutao.entity.tutanota.MailAddress(mail)
         .setAddress("bcc@tutao.de"));
-    mail.loadBody = function (callback) {  // invoked from DisplayedMail constructor
-        callback({getText: function () {
-            return "This is the body<br> Kind regards"
-        }});
-    };
+
     var displayedMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
+    displayedMail.bodyText("This is the body<br> Kind regards");
     // TODO replace tutao.tutanota.ctrl.FileFacade.readFileData and test attachments
 
     queue.call('test', function (callbacks) {
+        var doneHandler = callbacks.add(function(e) {
+            if (e) {
+                throw e;
+            }
+        });
+
         tutao.tutanota.util.Exporter.toEml(displayedMail).then(callbacks.add(function (eml) {
 
             var expected = [
@@ -47,7 +50,7 @@ AsyncTestCase("ExporterTest", {
                 "",
                 "--------------79Bu5A16qPEYcVIZL@tutanota--"].join("\r\n");
             assertEquals(expected, eml);
-        }));
+        })).done(doneHandler, doneHandler);
     });
 }
 });

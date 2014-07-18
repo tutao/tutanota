@@ -26,7 +26,7 @@ TestCase("ViewManagerTest", {
 
 		// activate default view1
 		var vm = new tutao.tutanota.ctrl.ViewManager();
-		vm.init([view1, view2]);
+		vm.init([view1, view2], false);
 		verify(view1.init)();
 		verify(view2.init)();
 		verify(view1, noMoreInteractions());

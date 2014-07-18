@@ -4,6 +4,7 @@ JsHamcrest.Integration.JsTestDriver();
 JsMockito.Integration.JsTestDriver();
 
 AsyncTestCase("MailListViewModelTest", {
+    // @type {tutao.tutanota.ctrl.MailListViewModel}
 	vm: new tutao.tutanota.ctrl.MailListViewModel(),
 	setUp: function() {
 		var stub = new tutao.rest.EntityRestCache();
@@ -15,7 +16,7 @@ AsyncTestCase("MailListViewModelTest", {
 		tutao.locator.userController.getUserId = mockFunction();
 		var user = new tutao.entity.sys.User();
 		user.__id = "10";
-		var gm = new tutao.entity.sys.GroupMembership();
+		var gm = new tutao.entity.sys.GroupMembership(user);
 		gm.setGroup("500"); // only the user group id is accessed in the test cases, so we do not need to set other attributes
 		user.setUserGroup(gm);
 		
@@ -65,12 +66,12 @@ AsyncTestCase("MailListViewModelTest", {
 			f([]);
 		};
 		tutao.locator.indexer.getLastIndexedId = function(a, f) {
-			f(null);
+			f(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 		};
 		
 		queue.call('test select', function(callbacks) {
 			var finalCallback = callbacks.add(function() {});
-			self.vm.init(callbacks.add(function() {
+			self.vm.init().then(callbacks.add(function() {
 				var mail = new tutao.entity.tutanota.Mail();
 				mail.__id = ["100", "200"];
 				mail.setSubject("test");
@@ -104,13 +105,19 @@ AsyncTestCase("MailListViewModelTest", {
 
 		var mail1 = undefined;
 		queue.call('check init', function(callbacks) {
+            var doneHandler = callbacks.add(function(e) {
+                if (e) {
+                    throw e;
+                }
+            });
+
+
 			var finalCallback = callbacks.add(function() {});
 			// preload and index a mail
 			var body1 = new tutao.entity.tutanota.MailBody();
 			body1.setText("hello all");
 			// call the entity rest client directly because MailBody does not have the setup function
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body1, null, null, null, callbacks.add(function(returnEntity, ex1) {
-				assertUndefined(ex1);
+			return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body1, null, null, null).then(callbacks.add(function(returnEntity) {
 				mail1 = new tutao.entity.tutanota.Mail();
 				mail1.setBody(body1.getId());
 				mail1.setSubject("test where");
@@ -121,30 +128,34 @@ AsyncTestCase("MailListViewModelTest", {
 				mail1.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail1.setUnread(true);
 				mail1.setTrashed(false);
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail1, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex2) {
-					assertUndefined(ex2);
+				return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail1, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null).then(callbacks.add(function(returnEntity) {
 					tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.Mail.prototype.TYPE_ID, [mail1.getId()], callbacks.add(function(mailIndexedId) {
 						assertEquals(mail1.getId(), mailIndexedId);
 						tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, [body1.getId()], callbacks.add(function(bodyIndexedId) {
 							assertEquals(body1.getId(), bodyIndexedId);
-							self.vm.init(callbacks.add(function() {
+							self.vm.init().then(callbacks.add(function() {
 								assertEquals([mail1], self.vm.mails());
 								finalCallback();
 							}));
 						}));
 					}));
 				}));
-			}));
+			})).done(doneHandler, doneHandler);
 		 });
 
 		var mail2 = undefined;
 		var mail3 = undefined;
 		queue.call('check add mails', function(callbacks) {
+            var doneHandler = callbacks.add(function(e) {
+                if (e) {
+                    throw e;
+                }
+            });
+
 			var finalCallback = callbacks.add(function() {});
 			var body2 = new tutao.entity.tutanota.MailBody();
 			body2.setText("all the birds");
-			tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body2, null, null, null, callbacks.add(function(returnEntity, ex1) {
-				assertUndefined(ex1);
+			return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body2, null, null, null).then(callbacks.add(function(returnEntity) {
 				mail2 = new tutao.entity.tutanota.Mail();
 				mail2.setBody(body2.getId());
 				mail2.setSubject("hello test where");
@@ -155,12 +166,10 @@ AsyncTestCase("MailListViewModelTest", {
 				mail2.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 				mail2.setUnread(true);
 				mail2.setTrashed(false);
-				tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail2, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex2) {
-					assertUndefined(ex2);
+				return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail2, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null).then(callbacks.add(function(returnEntity) {
 					var body3 = new tutao.entity.tutanota.MailBody();
 					body3.setText("hello all");
-					tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body3, null, null, null, callbacks.add(function(returnEntity, ex3) {
-						assertUndefined(ex3);
+					return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body3, null, null, null).then(callbacks.add(function(returnEntity) {
 						mail3 = new tutao.entity.tutanota.Mail();
 						mail3.setBody(body3.getId());
 						mail3.setSubject("testing where");
@@ -171,23 +180,22 @@ AsyncTestCase("MailListViewModelTest", {
 						mail3.setState(tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED);
 						mail3.setUnread(true);
 						mail3.setTrashed(false);
-						tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail3, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null, callbacks.add(function(returnEntity, ex4) {
-							assertUndefined(ex4);
-							self.vm.updateOnNewMails([mail2, mail3], callbacks.add(function() {
+						return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail3, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null).then(callbacks.add(function(returnEntity) {
+							self.vm.updateOnNewMails([mail2, mail3]).then(callbacks.add(function() {
 								assertEquals([mail3, mail2, mail1], self.vm.mails());
 								finalCallback();
 							}));
 						}));
 					}));
 				}));
-			}));
+            })).done(doneHandler, doneHandler);
 		});
 		
 		queue.call('check search', function(callbacks) {
 			var finalCallback = callbacks.add(function() {});
 			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("all"), ko.observable("tooltip"), ko.observable(""), true));
 			self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("test"), ko.observable("tooltip"), ko.observable(""), true));
-			self.vm.search(callbacks.add(function() {
+			self.vm.search().then(callbacks.add(function() {
 				assertEquals([mail2, mail1], self.vm.mails());
 				finalCallback();
 			}));
@@ -199,7 +207,7 @@ AsyncTestCase("MailListViewModelTest", {
 			tutao.locator.tagListViewModel.getTagStatus = function() {
 				return 1;
 			};
-			self.vm.systemTagActivated(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID, function() {
+			self.vm.systemTagActivated(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID).then(function() {
 				assertEquals([], self.vm.mails());
 				finalCallback();
 			});
