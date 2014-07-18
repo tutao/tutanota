@@ -31,11 +31,9 @@ tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(newValu
 
     setTimeout(function() {
         if (self.mailAddressPrefix() == newValue) {
-            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), [], tutao.entity.EntityHelper.createAuthHeaders(), function(domainMailAddressAvailabilityReturn, exception) {
+            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), [], tutao.entity.EntityHelper.createAuthHeaders()).then(function(domainMailAddressAvailabilityReturn) {
                 if (self.mailAddressPrefix() == newValue) {
-                    if (exception) {
-                        console.log(exception);
-                    } else if (domainMailAddressAvailabilityReturn.getAvailable()) {
+                    if (domainMailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
                         self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
@@ -87,81 +85,60 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.isCreateAccountPossible = function() 
 
 /**
  * Create the new user
- * @param {function(tutao.rest.EntityRestException=)} outerCallback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
+tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
     var self = this;
-    var callback = function(exception) {
-        if (exception) {
-            self.state(tutao.tutanota.ctrl.AdminNewUser.STATE_FAILED);
-        } else {
-            self.state(tutao.tutanota.ctrl.AdminNewUser.STATE_SUCCESS);
-        }
-        outerCallback(exception);
-    };
     this.state(tutao.tutanota.ctrl.AdminNewUser.STATE_IN_PROGRESS);
     var adminUser = tutao.locator.userController.getLoggedInUser();
     var memberships = adminUser.getMemberships();
     var adminUserKey = tutao.locator.userController.getUserGroupKey();
 
-    adminUser.loadCustomer(function (customer, exception) {
-        if (exception) {
-            callback(exception);
-        } else {
-            // get the admin group and customer group keys via the group memberships of the admin user
-            var adminGroupKey = null;
-            var customerGroupKey = null;
-            for (var i = 0; i < memberships.length; i++) {
-                if (memberships[i].getAdmin()) {
-                    adminGroupKey = tutao.locator.aesCrypter.decryptKey(adminUserKey, memberships[i].getSymEncGKey());
-                } else if (memberships[i].getGroup() === customer.getCustomerGroup()) {
-                    customerGroupKey = tutao.locator.aesCrypter.decryptKey(adminUserKey, memberships[i].getSymEncGKey());
-                }
+    return adminUser.loadCustomer().then(function (customer) {
+        // get the admin group and customer group keys via the group memberships of the admin user
+        var adminGroupKey = null;
+        var customerGroupKey = null;
+        for (var i = 0; i < memberships.length; i++) {
+            if (memberships[i].getAdmin()) {
+                adminGroupKey = tutao.locator.aesCrypter.decryptKey(adminUserKey, memberships[i].getSymEncGKey());
+            } else if (memberships[i].getGroup() === customer.getCustomerGroup()) {
+                customerGroupKey = tutao.locator.aesCrypter.decryptKey(adminUserKey, memberships[i].getSymEncGKey());
             }
-            if (!adminGroupKey) {
-                callback(new Error("could not create customer, the adminGroupKey is null!"));
-                return;
-            }
-            if (!customerGroupKey) {
-                callback(new Error("could not create customer, the customerGroupKey is null!"));
-                return;
-            }
+        }
+        if (!adminGroupKey) {
+            return Promise.reject(new Error("could not create customer, the adminGroupKey is null!"));
+        }
+        if (!customerGroupKey) {
+            return Promise.reject(new Error("could not create customer, the customerGroupKey is null!"));
+        }
 
-            var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-            tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt, function (userPassphraseKeyHex) {
-                var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
+        var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
+        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt).then(function (userPassphraseKeyHex) {
+            var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
-                var userGroupsListKey = null;
-                tutao.entity.EntityHelper.getListKey(customer.getUserGroups(), function(userGroupsListKey, exception) {
-                    if (exception) {
-                        callback(exception);
-                    } else {
-                        tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey, function (userGroupData, userGroupKey, exception) {
-                            if (exception != null) {
-                                callback(exception);
-                            } else {
-                                /** @type tutao.entity.sys.UserData */
-                                var userService = new tutao.entity.sys.UserData()
-                                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
-                                    .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
-                                    .setUserGroupData(userGroupData)
-                                    .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))
-                                    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
-                                    .setMobilePhoneNumber("");
+            var userGroupsListKey = null;
+            return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
+                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
+                    /** @type tutao.entity.sys.UserData */
+                    var userService = new tutao.entity.sys.UserData()
+                        .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
+                        .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
+                        .setUserGroupData(userGroupData)
+                        .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))
+                        .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                        .setMobilePhoneNumber("");
 
-                                userService.setup({}, null, function(userReturn, exception) {
-                                	if (exception) {
-                                		callback(exception);
-                                		return;
-                                	}
-                                	tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey, callback);
-                                });
-                            }
-                        });
-                    }
+                    return userService.setup({}, null).then(function(userReturn, exception) {
+                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey);
+                    });
                 });
             });
-        }
+        });
+    }).then(function() {
+        self.state(tutao.tutanota.ctrl.AdminNewUser.STATE_SUCCESS);
+    }).caught(function(e) {
+        self.state(tutao.tutanota.ctrl.AdminNewUser.STATE_FAILED);
+        throw e;
     });
 };
 
@@ -169,9 +146,9 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function (outerCallback) {
  * Initializes the given user group for Tutanota (creates mail box etc.). The admin must be logged in.
  * @param {string} groupId The group to initialize.
  * @param {Object} groupKey the group key.
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callback) {
+tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey) {
 	var s = new tutao.entity.tutanota.InitGroupData();
 	
 	s.setGroupId(groupId);
@@ -201,7 +178,5 @@ tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey, callbac
     s.setSymEncGroupShareBucketKey(tutao.locator.aesCrypter.encryptKey(groupKey, groupShareBucketKey));
     s.setGroupShareBucketEncExternalGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(groupShareBucketKey, externalGroupInfoListKey));
 
-	s.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(nothing, exception) {
-		callback(exception);
-	});
+	return s.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 };

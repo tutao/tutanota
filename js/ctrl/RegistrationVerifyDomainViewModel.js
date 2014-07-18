@@ -48,17 +48,13 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED = 4
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.activate = function() {
 	var self = this;
     var parameters = {};
-    tutao.entity.sys.RegistrationConfigReturn.load(parameters, null, function(registrationConfigReturn, exception) {
-        if (exception) {
-            console.log(exception);
-        } else {
-            if(registrationConfigReturn.getStarterEnabled()){
-                setTimeout(function() {
-                    self.domainFieldFocused(true);
-                }, 0);
-            }else {
-                self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED);
-            }
+    tutao.entity.sys.RegistrationConfigReturn.load(parameters, null).then(function(registrationConfigReturn) {
+        if(registrationConfigReturn.getStarterEnabled()){
+            setTimeout(function() {
+                self.domainFieldFocused(true);
+            }, 0);
+        }else {
+            self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED);
         }
     });
 };
@@ -97,13 +93,11 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.verifyDomain = f
     var data = new tutao.entity.sys.RegistrationVerifyDomainDataPost()
         .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
         .setCurrentAdminMailAddress(this.getMailAddress())
-        .setup({}, null, function(returnData, exception) {
-            if (exception) {
-                self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED);
-            } else {
-                self.verificationMailSent = returnData.getMailSent();
-                self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED);
-            }
+        .setup({}, null).then(function(returnData, exception) {
+            self.verificationMailSent = returnData.getMailSent();
+            self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED);
+        }).caught(function(exception) {
+            self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED);
         });
 };
 

@@ -14,11 +14,10 @@ goog.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Empty string if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
- * @param {function(?string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException=)} callback Called when finished with the id of
- * the senders mail (only element id, no list id). Provides a RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
- * if another error occurred.
+ * @return {Promise.<string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException>} Resolves to the senders mail id (only element id, no list id),
+ * rejected with an RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException if another error occurred.
  */
-tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language, callback) {
+tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
     var aes = tutao.locator.aesCrypter;
     var groupKey = tutao.locator.userController.getUserGroupKey();
     var senderBucketKey = aes.generateRandomKey();
@@ -34,12 +33,9 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
         .setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey))
         .setPreviousMessageId(previousMessageId);
 
-    tutao.util.FunctionUtils.executeSequentially(attachments, function(dataFile, finishedCallback) {
+    return Promise.map(attachments, function(dataFile) {
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
-            if (exception) {
-                finishedCallback(exception);
-            }
+        return tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey).then(function(fileData) {
             var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
                 .setFileData(fileData.getId())
                 .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
@@ -47,32 +43,20 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
                 .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
                 .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
             service.getAttachments().push(attachment);
-            finishedCallback();
         });
-    }, function(exception) {
-        if (exception) {
-            callback(null, exception);
-            return
-        }
-
-		var notFoundRecipients = [];
-		var serviceRecipient = new tutao.entity.tutanota.Recipient(service);
-		service.setToRecipient(serviceRecipient);
-		tutao.tutanota.ctrl.SendMailFacade.handleRecipient(toRecipients[0], serviceRecipient, recipientBucketKey, notFoundRecipients, function(exception) {
-			if (exception) {
-				callback(null, exception);
-			} else if (notFoundRecipients.length > 0) {
-				callback(null, new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients));
-			} else {
-				var map = {};
-				service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendMailFromExternalReturn, ex) {
-					if (ex) {
-						callback(null, ex);
-					} else {
-						callback(sendMailFromExternalReturn.getSenderMail()[1]);
-					}
-				});
-			}
-		});
-	});
+    }).then(function() {
+        var notFoundRecipients = [];
+        var serviceRecipient = new tutao.entity.tutanota.Recipient(service);
+        service.setToRecipient(serviceRecipient);
+        return tutao.tutanota.ctrl.SendMailFacade.handleRecipient(toRecipients[0], serviceRecipient, recipientBucketKey, notFoundRecipients).then(function() {
+            if (notFoundRecipients.length > 0) {
+                throw new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients);
+            } else {
+                var map = {};
+                return service.setup(map, tutao.entity.EntityHelper.createAuthHeaders()).then(function(sendMailFromExternalReturn) {
+                    return sendMailFromExternalReturn.getSenderMail()[1];
+                });
+            }
+        });
+    });
 };

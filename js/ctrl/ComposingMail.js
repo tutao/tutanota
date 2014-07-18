@@ -169,7 +169,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
 		    senderName = tutao.locator.userController.getUserGroupInfo().getName();
 		}
-	
+
 		var facade = null;
 		if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
@@ -185,26 +185,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
 		this.busy(true);
         this.directSwitchActive = false;
         facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
-        self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-        self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage(), function(senderMailElementId, exception) {
-            if (exception) {
-                if(exception instanceof tutao.tutanota.ctrl.RecipientsNotFoundException){
-                    var notFoundRecipients = exception.getRecipients();
-                    var recipientList = "";
-                    for (var i = 0; i < notFoundRecipients.length; i++) {
-                        recipientList += notFoundRecipients[i] + "\n";
-                    }
-                    tutao.tutanota.gui.alert( tutao.lang("invalidRecipients_msg") + "\n" + recipientList );
-                    console.log("recipients not found", exception);
-                }
-                else{
-                    tutao.tutanota.gui.alert(tutao.lang("sendingFailed_msg"));
-                    console.log("could not send mail", exception);
-                }
-                self.busy(false);
-                return;
-            }
-
+            self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+            self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function(senderMailElementId, exception) {
             tutao.locator.mailView.fadeFirstMailOut();
             setTimeout(function() {
                 self.busy(false);
@@ -212,15 +194,26 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
                 self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
                 if (tutao.locator.userController.isExternalUserLoggedIn()) {
                     // external users do not download mails automatically, so download the sent email now
-                    tutao.entity.tutanota.Mail.load([tutao.util.ArrayUtils.last(tutao.locator.mailViewModel.conversation()).mail.getId()[0], senderMailElementId], function(mail, exception) {
-                        if (exception) {
-                            console.log("error");
-                            return;
-                        }
-                        tutao.locator.mailListViewModel.updateOnNewMails([mail], function() {});
+                    tutao.entity.tutanota.Mail.load([tutao.locator.mailBoxController.getUserMailBox().getMails(), senderMailElementId]).then(function(mail, exception) {
+                        tutao.locator.mailListViewModel.updateOnNewMails([mail]);
                     });
                 }
             }, 500);
+        }).caught(function(exception) {
+            if(exception instanceof tutao.tutanota.ctrl.RecipientsNotFoundException){
+                var notFoundRecipients = exception.getRecipients();
+                var recipientList = "";
+                for (var i = 0; i < notFoundRecipients.length; i++) {
+                    recipientList += notFoundRecipients[i] + "\n";
+                }
+                tutao.tutanota.gui.alert( tutao.lang("invalidRecipients_msg") + "\n" + recipientList );
+                console.log("recipients not found", exception);
+            } else {
+                tutao.tutanota.gui.alert(tutao.lang("sendingFailed_msg"));
+                console.log("could not send mail", exception);
+            }
+            self.busy(false);
+            return;
         });
 
 
@@ -228,11 +221,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function(vm, event) {
         var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
         if ( selectedLanguage != propertyLanguage){
             tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
-            tutao.locator.mailBoxController.getUserProperties().update(function(exception){
-                if (exception){
-                    console.log(exception);
-                }
-            });
+            tutao.locator.mailBoxController.getUserProperties().update();
         }
 
     } else{
@@ -432,7 +421,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
 		return;
 	}
 	this.currentlyDownloadingAttachment(dataFile);
-	tutao.tutanota.util.FileUtils.provideDownload(dataFile, function() {
+	tutao.tutanota.util.FileUtils.provideDownload(dataFile).then(function() {
 		self.currentlyDownloadingAttachment(null);
 	});
 };
@@ -481,7 +470,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachDroppedFiles = function(data, 
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 	var self = this;
-	tutao.tutanota.util.FileUtils.showFileChooser(function(fileList) {
+	tutao.tutanota.util.FileUtils.showFileChooser().then(function(fileList) {
 		self.attachFiles(fileList);
 	});
 };
@@ -497,14 +486,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 		if (fileList[i].size > tutao.entity.tutanota.TutanotaConstants.MAX_ATTACHMENT_SIZE) {
 			tooBigFiles.push(fileList[i].name);
 		} else {
-			tutao.tutanota.util.FileUtils.readLocalFile(fileList[i], function(dataFile, exception) {
-				if (exception) {
-                    tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
-					console.log(exception);
-					return;
-				}
+			tutao.tutanota.util.FileUtils.readLocalFile(fileList[i]).then(function(dataFile, exception) {
 				self._attachments.push(dataFile);
-			});
+			}).caught(function(exception) {
+                tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+                console.log(exception);
+            });
 		}
 	}
 	if (tooBigFiles.length > 0) {
@@ -626,21 +613,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getRecipientInfoFromText = function(
 };
 
 /**
- * TODO (before release) allow async loading.
- * Provides all contacts of the logged in user. We assume that the contacts are cached because
- * they where loaded during log in.
+ * Provides all contacts of the logged in user.
  * @return {Array.<tutao.entity.tutanota.ContactWrapper>} All contacts of the logged in user.
  */
 tutao.tutanota.ctrl.ComposingMail._getContacts = function() {
-	var contacts = [];
-	if (tutao.locator.userController.isInternalUserLoggedIn()) {
-		tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(loadedContacts, exception) {
-			for (var i = 0; i < loadedContacts.length; i++) {
-				contacts.push(new tutao.entity.tutanota.ContactWrapper(loadedContacts[i]));
-			}
-		});
-	}
-	return contacts;
+	return tutao.locator.contactListViewModel.getRawContacts();
 };
 
 /** @inheritDoc */
@@ -675,20 +652,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (recip
         if (currentRecipient.isExistingContact()) {
             //only update if phone numbers or passwords have changed
             if ( contactDataChanged ){
-                currentRecipient.getEditableContact().getContact().update(function (e) {
-                    if (e) {
-                        console.log("error", e);
-                    }
-                });
+                currentRecipient.getEditableContact().getContact().update();
             }
         } else {
             // external users have no contact list.
             if (tutao.locator.mailBoxController.getUserContactList() != null) {
-                currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function (e) {
-                    if (e) {
-                        console.log("error", e);
-                    }
-                });
+                currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
             }
         }
     }

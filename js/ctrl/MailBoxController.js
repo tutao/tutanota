@@ -22,124 +22,83 @@ tutao.tutanota.ctrl.MailBoxController = function() {
  * Initializes the MailBoxController for the logged in user. This must be called
  * whenever another user logs in. Loads the user's mail list id, contact list id
  * and file list id.
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function() {
 	var self = this;
-	this._loadMailBox(function(mailBox, exception) {
-		if (exception) {
-			callback(exception);
-			return;
-		}
-        self.loadTutanotaProperties(function(exception) {
-            if (exception) {
-                callback(exception);
-                return;
-            }
-            // external users only have a mailbox
-            if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                callback();
-                return;
-            }
-            self._loadFileSystem(function(exception) {
-                if (exception) {
-                    callback(exception);
-                    return;
-                }
-                self._loadContactList(function(exception) {
-                    if (exception) {
-                        callback(exception);
-                        return;
-                    }
-                    self._loadShares(callback);
-                });
-            });
-        });
-	});
+    return this._loadMailBox().then(function(mailBox) {
+        return self.loadTutanotaProperties();
+    }).then(function() {
+        // external users only have a mailbox
+        if (tutao.locator.userController.isExternalUserLoggedIn()) {
+            return Promise.resolve();
+        } else {
+            return Promise.join(
+                self._loadFileSystem(),
+                self._loadContactList(),
+                self._loadShares());
+        }
+    });
 };
 
 /**
  * Loads the mailbox for the logged in user's user group.
  *
- * @param {function(tutao.entity.tutanota.MailBox=, tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
 	var self = this;
 	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.MailBox.ROOT_INSTANCE_ID];
-	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
-		if (exception) {
-			callback(null, exception);
-		} else {
-			tutao.entity.tutanota.MailBox.load(root.getReference(), function(mailBox, exception) {
-				self._mailBox = mailBox;
-				callback(mailBox);
-			});
-		}
+	return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.entity.tutanota.MailBox.load(root.getReference()).then(function(mailBox) {
+            self._mailBox = mailBox;
+            return mailBox;
+        });
 	});
 };
 
 /**
  * Loads the contacts list id for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function() {
 	var self = this;
 	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.ContactList.ROOT_INSTANCE_ID];
-	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
-		if (exception) {
-			callback(exception);
-		} else {
-			tutao.entity.tutanota.ContactList.load(root.getReference(), function(contactList, exception) {
-				self._contactList = contactList;
-				callback();
-			});
-		}
+	return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.entity.tutanota.ContactList.load(root.getReference()).then(function(contactList) {
+            self._contactList = contactList;
+        });
 	});
 };
 
 /**
  * Loads the file list id for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function() {
 	var self = this;
 	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.FileSystem.ROOT_INSTANCE_ID];
-	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
-		if (exception) {
-			callback(exception);
-		} else {
-			tutao.entity.tutanota.FileSystem.load(root.getReference(), function(fileSystem, exception) {
-				self._fileSystem = fileSystem;
-				callback();
-			});
-		}
+	return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.entity.tutanota.FileSystem.load(root.getReference()).then(function(fileSystem, exception) {
+            self._fileSystem = fileSystem;
+        });
 	});
 };
 
 /**
  * Loads the shares instance for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function() {
 	var self = this;
 	var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.sys.Shares.ROOT_INSTANCE_ID];
-	tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
-		if (exception) {
-			callback(exception);
-		} else {
-			tutao.entity.sys.Shares.load(root.getReference(), function(shares, exception) {
-				self._shares = shares;
-				callback();
-			});
-		}
+	return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.entity.sys.Shares.load(root.getReference()).then(function(shares) {
+            self._shares = shares;
+        });
 	});
 };
 
@@ -147,21 +106,15 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function(callback)
 /**
  * Loads the TutanotaProperties instance for the logged in user's user group.
  *
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
- *            callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = function(callback) {
+tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = function() {
     var self = this;
     var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.TutanotaProperties.ROOT_INSTANCE_ID];
-    tutao.entity.sys.RootInstance.load(rootId, function(root, exception) {
-        if (exception) {
-            callback(exception);
-        } else {
-            tutao.entity.tutanota.TutanotaProperties.load(root.getReference(), function(properties, exception) {
-                self._properties = properties;
-                callback();
-            });
-        }
+    return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
+            self._properties = properties;
+        });
     });
 };
 

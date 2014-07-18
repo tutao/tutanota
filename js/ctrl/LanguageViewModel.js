@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.setCurrentLanguage = function(la
 /**
  * Provides the text with the given id and the given params in the currently selected language.
  * @param {string} id One of the ids defined in tutao.tutanota.ctrl.LanguageViewModel.en or tutao.tutanota.ctrl.LanguageViewModel.de.
- * @param {Object<String,String>} params An object whose property keys are the strings that shall be replaced by the corresponding property value in the text.
+ * @param {Object<String,String>=} params An object whose property keys are the strings that shall be replaced by the corresponding property value in the text.
  * @return {string} The text.
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
@@ -206,6 +206,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	edit_label: "Edit",
 	editUser_label: "Edit user",
 	save_msg: "Saving data ...",
+    saved_msg: "Saved successfully!",
 	state_label: "State",
 	create_action: "Create",
     createActionSuccess_msg: "All accounts have been created successfully.",
@@ -633,6 +634,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	edit_label: "Bearbeiten",
 	editUser_label: "Benutzer bearbeiten",
 	save_msg: "Die Daten werden gespeichert ...",
+    saved_msg: "Die Daten wurden erfolgreich gespeichert!",
 	state_label: "Zustand",
 	create_action: "Hinzufügen",
 	createActionSuccess_msg: "Alle Accounts wurden erfolgreich angelegt.",

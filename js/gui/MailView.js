@@ -101,19 +101,19 @@ tutao.tutanota.gui.MailView.prototype.isMailListColumnVisible = function() {
 
 /**
  * Makes sure that the conversation column is visible.
- * @param {function()=} callback The callback to invoke after the conversation column is visible.
+ * @param {function()=} listener The listener to invoke after the conversation column is visible.
  */
-tutao.tutanota.gui.MailView.prototype.showConversationColumn = function(callback) {
+tutao.tutanota.gui.MailView.prototype.showConversationColumn = function(listener) {
 	if (!this.isConversationColumnVisible()) {
         this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION);
-		if (callback) {
+		if (listener) {
 			setTimeout(function() {
-				callback();
+				listener();
 			}, 400);
 		}
 	} else {
-		if (callback) {
-			callback();
+		if (listener) {
+			listener();
 		}
 	}
 };

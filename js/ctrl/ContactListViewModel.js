@@ -6,6 +6,7 @@ goog.provide('tutao.tutanota.ctrl.ContactListViewModel');
  * The list of contact headers on the left.
  * The context of all methods is re-bound to this for allowing the ViewModel to be called from event Handlers that might get executed in a different context.
  * @constructor
+ * @implements {tutao.tutanota.ctrl.bubbleinput.BubbleHandler}
  */
 tutao.tutanota.ctrl.ContactListViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
@@ -17,8 +18,8 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
 
 	this._multiSelect = false;
 
-	// the list of contact ids as result of the currently active search query. if null, there is no search query active.
-	this.currentSearchResult = null;
+	// the list of contact ids as result of the currently active search query.
+	this.currentSearchResult = [];
 
 	// the current search string
 	this.searchString = ko.observable("");
@@ -41,43 +42,54 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
 
 	// contains observables with ContactWrappers
 	this.contacts = ko.observableArray();
-
 	this.buttons = ko.observableArray();
 
-	// list of functions to be called after the contacts have been loaded for the first time
-	this.contactsInitializedCallback = [];
+    // @type {?Array.<tutao.entity.tutanota.ContactWrapper>}
+    this._rawContacts = [];
+
 };
 
 /**
  * Initialize the ContactListViewModel. Registers an event listener on the contact list to get updates.
+ * @return {Promise.<>} Resolves when finished
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.init = function() {
-	this.currentSearchResult = [];
-	var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact");
-	eventTracker.addObserver(this.updateOnNewContacts);
-	eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
+    var self = this;
+    return tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(contacts) {
+        self.updateOnNewContacts(contacts);
+
+        var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact");
+        eventTracker.addObserver(self.updateOnNewContacts);
+        if (contacts.length > 0) {
+            eventTracker.observeList(tutao.util.ArrayUtils.last(contacts).getId()[1]);
+        } else {
+            eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
+        }
+    });
+};
+
+tutao.tutanota.ctrl.ContactListViewModel.prototype.getRawContacts = function() {
+  return this._rawContacts;
 };
 
 /**
  * Called when new contacts are downloaded by the event tracker.
- * @param {Array.<tutao.entity.tutanota.ContactWrapper>} contacts The new contacts.
- * @param {function()} callback Called when finished.
+ * @param {Array.<tutao.entity.tutanota.Contact>} contacts The new contacts.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.updateOnNewContacts = function(contacts) {
 	for (var i = 0; i < contacts.length; i++) {
 		this.currentSearchResult.push(contacts[i].getId()[1]);
-	}
-	this._updateContactList(function() {});
-	for (var i = 0; i < this.contactsInitializedCallback.length; i++) {
-		this.contactsInitializedCallback[i]();
-	}
+        this._rawContacts.push(new tutao.entity.tutanota.ContactWrapper(contacts[i]));
+    }
+	return this._updateContactList();
 };
 
 /**
  * Updates the contact list according to the current search results.
- * @param {function} callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function(callback) {
+tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function() {
 	var self = this;
 	self.unselectAll();
 
@@ -87,7 +99,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 		return (tutao.rest.EntityRestInterface.firstBiggerThanSecond(a, b)) ? -1 : 1;
 	});
 	var loadedContacts = [];
-	self._loadContacts(currentResult, loadedContacts, 0, function() {
+	return self._loadContacts(currentResult, loadedContacts, 0).then(function() {
         // sort contacts by name
         loadedContacts.sort(function(a, b) {
             return (a.getSortName() > b.getSortName());
@@ -105,7 +117,6 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 			observables.push(obs);
 		}
 		self.contacts(observables);
-		callback();
 	});
 };
 
@@ -122,28 +133,26 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(de
 };
 
 /**
- * Loads the contacts with the given ids in the given order. Uses recoursion to load all contacts.
+ * Loads the contacts with the given ids in the given order. Uses recursion to load all contacts.
  * @param {Array.<Array.<String>>} contactIds The ids of the contacts to load.
  * @param {Array.<tutao.entity.tutanota.ContactWrapper>} loadedContacts An array that contains all contacts that are loaded up to now.
  * @param {number} nextContact The index of the contact id in contactIds that shall be loaded next.
- * @param {function} callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.ContactListViewModel.prototype._loadContacts = function(contactIds, loadedContacts, nextContact, callback) {
-if (contactIds.length == 0) {
-	callback();
-	return;
-}
-var self = this;
-	tutao.entity.tutanota.Contact.load([tutao.locator.mailBoxController.getUserContactList().getContacts(), contactIds[nextContact]], function(contact, exception) {
-		if (!exception) {
-			loadedContacts.push(new tutao.entity.tutanota.ContactWrapper(contact));
-		}
-		if (nextContact == contactIds.length - 1) {
-			callback();
-		} else {
-			self._loadContacts(contactIds, loadedContacts, nextContact + 1, callback);
-		}
-	});
+tutao.tutanota.ctrl.ContactListViewModel.prototype._loadContacts = function(contactIds, loadedContacts, nextContact) {
+    if (contactIds.length == 0) {
+        return Promise.resolve();
+    }
+    var self = this;
+	return tutao.entity.tutanota.Contact.load([tutao.locator.mailBoxController.getUserContactList().getContacts(), contactIds[nextContact]]).then(function(contact) {
+        loadedContacts.push(new tutao.entity.tutanota.ContactWrapper(contact));
+    }).lastly(function() {
+        if (nextContact == contactIds.length - 1) {
+            return Promise.resolve();
+        } else {
+            return self._loadContacts(contactIds, loadedContacts, nextContact + 1);
+        }
+    });
 };
 
 /**
@@ -184,13 +193,9 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.unselectAll = function() {
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCsv = function() {
-	tutao.tutanota.util.FileUtils.showFileChooser(function(files) {
+	tutao.tutanota.util.FileUtils.showFileChooser().then(function(files) {
 		if (files && files.length == 1 && tutao.util.StringUtils.endsWith(files.item(0).name, ".csv")) {
-			tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8(files.item(0), function(csv, exception) {
-				if (exception) {
-					console.log(exception);
-					return;
-				}
+			tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8(files.item(0)).then(function(csv, exception) {
 				var contacts = new tutao.tutanota.ctrl.ThunderbirdContactCsvConverter().csvToContacts(csv);
 				if (!contacts) {
 					console.log("import failed");
@@ -208,9 +213,9 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCs
 
 /**
  * Performs a search according to the current search words and updates the contact list accordingly.
- * @param {function()|Object|undefined} callback Is called when finished. Maybe a the dom object that triggered the search. Attention, please!
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.ContactListViewModel.prototype.search = function(callback) {
+tutao.tutanota.ctrl.ContactListViewModel.prototype.search = function() {
 };
 
 /**

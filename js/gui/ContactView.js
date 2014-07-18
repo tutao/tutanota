@@ -24,7 +24,6 @@ tutao.tutanota.gui.ContactView.prototype.init = function() {
     tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = this._swipeSlider.addViewColumn(0, 300, 400, 'searchAndContactListColumn');
     tutao.tutanota.gui.ContactView.COLUMN_CONTACT = this._swipeSlider.addViewColumn(1, 600, 1000, 'contactColumn');
 
-	this._firstActivation = true;
 };
 
 /**
@@ -39,10 +38,6 @@ tutao.tutanota.gui.ContactView.prototype.isForInternalUserOnly = function() {
  */
 tutao.tutanota.gui.ContactView.prototype.activate = function() {
     this._swipeSlider.activate();
-	if (this._firstActivation) {
-		this._firstActivation = false;
-		tutao.locator.contactListViewModel.init();
-	}
 };
 
 /**

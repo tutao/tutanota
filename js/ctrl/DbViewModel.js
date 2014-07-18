@@ -116,13 +116,11 @@ tutao.tutanota.ctrl.DbViewModel.prototype.showSelected = function() {
 tutao.tutanota.ctrl.DbViewModel.prototype.showRoot = function() {
 	var self = this;
 	var rootInstanceType = this.getType(this.applications()[0], "RootInstance");
-	this._loadInstance(rootInstanceType, this.id(), this.type().rootId, null, null, function(instance, exception) {
-		if (exception) {
-			self.message("instance not found");
-		} else {
-			self.showInstance(self.type(), null, instance.reference);
-		}
-	});
+	return this._loadInstance(rootInstanceType, this.id(), this.type().rootId, null, null).then(function(instance) {
+		self.showInstance(self.type(), null, instance.reference);
+	}).caught(function(exception) {
+        self.message("instance not found");
+    });
 };
 
 /**
@@ -140,14 +138,12 @@ tutao.tutanota.ctrl.DbViewModel.prototype.showReference = function(typeName, lis
  */
 tutao.tutanota.ctrl.DbViewModel.prototype.showInstance = function(type, listId, id, startId, version) {
 	var self = this;
-	this._loadInstance(type, listId, id, startId, version, function(instance, exception) {
-		if (exception) {
-			self.message("instance not found");
-		} else {
-			self.message("");
-			self.instanceHistory.push({ type: type, listId: listId, id: id, instance: instance, version: version });
-		}
-	});
+	return this._loadInstance(type, listId, id, startId, version).then(function(instance) {
+        self.message("");
+        self.instanceHistory.push({ type: type, listId: listId, id: id, instance: instance, version: version });
+	}).caught(function(e) {
+        self.message("instance not found");
+    });
 };
 
 /**
@@ -217,8 +213,9 @@ tutao.tutanota.ctrl.DbViewModel.prototype._getIdType = function(type) {
  * startId is optional
  * version is optional
  * startId or version must not be set at the same time
+ * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolved with the instance when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId, id, startId, version, callback) {
+tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId, id, startId, version) {
 	var path = "/rest/" + type.app.name.toLowerCase() + "/" + type.name.toLowerCase() + "/";
 	if (type.type == "LIST_ELEMENT_TYPE") {
 		if (id) {
@@ -239,9 +236,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId,
 	if (version) {
 		path += "&version=" + version;
 	}
-	this._restClient.getElement(path, tutao.entity.EntityHelper.createAuthHeaders(), null, function(instance, exception) {
-		callback(instance, exception);
-	});
+	return this._restClient.getElement(path, tutao.entity.EntityHelper.createAuthHeaders(), null);
 };
 
 /**

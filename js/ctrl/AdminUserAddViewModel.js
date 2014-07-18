@@ -92,25 +92,20 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     var count = this.newUsers().length;
     self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - this.newUsers().length, "${count}": count}});
     if (self.newUsers().length > 0) {
-        var createUsersSequentially = function(exception) {
-            if (exception) {
-                console.log(exception);
-                self.isEditable(true);
-                self.createStatus({type: "invalid", text: "createActionFailed_msg"});
-                self.adminUserListViewModel.update();
-            } else {
-                self.createdUsers.push(self.newUsers.shift());
-                self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - self.newUsers().length, "${count}": count}});
-                if (self.newUsers().length > 0) {
-                    self.newUsers()[0].create(createUsersSequentially);
-                } else {
-                    self.addEmptyUser();
-                    self.isEditable(true);
-                    self.createStatus({type: "valid", text: "createActionSuccess_msg"});
-                    self.adminUserListViewModel.update();
-                }
-            }
-        };
-        self.newUsers()[0].create(createUsersSequentially);
+        return Promise.map(self.newUsers(), function(newUser) {
+            self.createdUsers.push(self.newUsers.shift());
+            self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - self.newUsers().length, "${count}": count}});
+            newUser.create();
+        }).then(function() {
+            self.addEmptyUser();
+            self.isEditable(true);
+            self.createStatus({type: "valid", text: "createActionSuccess_msg"});
+            self.adminUserListViewModel.update();
+        }).caught(function(exception) {
+            self.isEditable(true);
+            self.createStatus({type: "invalid", text: "createActionFailed_msg"});
+            self.adminUserListViewModel.update();
+            throw exception;
+        });
     }
 };

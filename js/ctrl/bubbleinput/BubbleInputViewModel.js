@@ -192,7 +192,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleLeftArrow =
  * Steps from left to right through the bubbles
  * @return {boolean} false, if another bubble has been selected, true otherwise.
  */
-tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleRightArrow = function(event) {
+tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.handleRightArrow = function() {
 	if (this.isBubbleSelected()) {
 		for (var i = 0; i < this.bubbles().length; i++) {
 			if (this.bubbles()[i].selected()) {
@@ -356,7 +356,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.suggestionMousedo
 
 /**
  * Creates a bubble for the given suggestion.
- * @param {tutao.tutanota.ctrl.bubbleinput.MailViewModel.Suggestion} suggestion The suggestion.
+ * @param {tutao.tutanota.ctrl.bubbleinput.Suggestion} suggestion The suggestion.
  * @param {jQuery.Event} event Not used currently.
  */
 tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.acceptSuggestion = function(suggestion, event) {

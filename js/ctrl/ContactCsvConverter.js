@@ -42,7 +42,7 @@ tutao.tutanota.ctrl.ContactCsvConverter.csvToContacts = function(csvString, hand
  * Converts an array of contacts to a csv string.
  * @param {Array.<tutao.entity.tutanota.Contact>} contacts The contacts to convert.
  * @param {tutao.tutanota.ctrl.ContactCsvHandler} handler Gets called for each 
- * contact getting passed the contact and a callback function receiving each field for the csv line (name and value). 
+ * contact getting passed the contact and a handler function receiving each field for the csv line (name and value).
  * If handler returns false, the contact creation is cancelled.
  * @return {Array.<tutao.entity.tutanota.Contact>} The contacts parsed from csv.
  */

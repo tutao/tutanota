@@ -292,85 +292,79 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype.refreshDiagram = function() {
 	var self = this;
 	var dataRows = [];
 	this.tableRows();
-	tutao.util.FunctionUtils.executeSequentially(self.diagramGroup().monitors, function(monitor, callback) {
-		var owner = self._getOwnerId(monitor.owner);
-		if (owner == null) {
-			callback(null, new Error("unknown owner"));
-			return;
-		}
-		self._loadSnapshots(monitor.monitor, owner, function(snapshots, exception) {
-			if (exception) {
-				// just skip this monitor
-				callback();
-			} else if (self.showCurrent() && monitor.counter() != "-") {
-				// read the current counter value and add it to the diagram
-				self._readCounter(monitor.monitor, owner, function(value, exception) {
-					var current = null;
-					if (!exception && value) {
-						monitor.counter(value); // update the value for the counter column
-						current = new tutao.entity.monitor.CounterSnapshot();
-						current.setId([ "", tutao.rest.EntityRestInterface.stringToCustomId(String(new Date().getTime())) ]);
-						current.setValue(value);
-					}
-					// recalculate the values for the DIFF view type
-					if (monitor.type == tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF) {
-						// if we want to add the current value we have to calculate the diff but reduce that diff relative to the "normal" time difference
-						if (current && snapshots.length > 2) { // if there is only one snapshot we do not know the "normal" time difference, so skip it in that case
-							var lastSnapshotTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(snapshots[snapshots.length - 1].getId()[1]))).getTime();
-							var beforeLastSnapshotTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(snapshots[snapshots.length - 2].getId()[1]))).getTime();
-							var currentTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(current.getId()[1]))).getTime();
-							var normalTimeDiff = lastSnapshotTime - beforeLastSnapshotTime;
-							var currentTimeDiff = currentTime - lastSnapshotTime;
-							if (currentTimeDiff > 0) {
-								var currentValueDiff = Number(current.getValue()) - Number(snapshots[snapshots.length - 1].getValue());
-								var currentNormalizedValueDiff = Math.round(currentValueDiff * normalTimeDiff / currentTimeDiff);
-								current.setValue(String(currentNormalizedValueDiff));
-							}
-						}
-						// now calcualte all other diffs beginning at the end
-						for (var i=snapshots.length-1; i>0; i--) {
-							snapshots[i].setValue(String(Number(snapshots[i].getValue()) - Number(snapshots[i - 1].getValue())));
-						}
-						snapshots.shift();
-						if (current) {
-							// add the current now because it shall not influence the diff calculation before
-							snapshots.push(current);
-						}
-					} else {
-						if (current) {
-							// just add the snapshot as last value
-							snapshots.push(current);
-						}
-					}
-					dataRows.push(new tutao.tutanota.ctrl.MonitorViewModel.DataRow(monitor.monitor, monitor.owner, snapshots));
-					callback();
-				});
-			} else {
-				if (monitor.type == tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF) {
-					// recalculate the values for the DIFF view type
-					for (var i=snapshots.length-1; i>0; i--) {
-						snapshots[i].setValue(String(Number(snapshots[i].getValue()) - Number(snapshots[i - 1].getValue())));
-					}
-					snapshots.shift();
-				}
-				// only add the snapshots
-				dataRows.push(new tutao.tutanota.ctrl.MonitorViewModel.DataRow(monitor.monitor, monitor.owner, snapshots));
-				callback();
-			}
-		});
-	}, function(exception) {
-		if (exception) {
-			console.log(exception);
-			return;
-		}
-		var dataTable = self._createDataTable(dataRows);
-		self.tableRows(self._createTableRows(dataRows));
-		self._drawDiagram(self.diagramGroup().name, dataTable);
-		if (self.showCurrent()) {
-			self.untilDate(tutao.tutanota.util.Formatter.dateToDashString(new Date()));
-			self.untilTime(tutao.tutanota.util.Formatter.formatLocalTime(new Date()));
-		}
-	});
+    return Promise.map(self.diagramGroup().monitors, function(monitor) {
+        var owner = self._getOwnerId(monitor.owner);
+        if (owner == null) {
+            throw new Error("unknown owner");
+        }
+        return self._loadSnapshots(monitor.monitor, owner).then(function(snapshots) {
+            if (self.showCurrent() && monitor.counter() != "-") {
+                // read the current counter value and add it to the diagram
+                return self._readCounter(monitor.monitor, owner).then(function(value) {
+                    var current = null;
+                    if (value) {
+                        monitor.counter(value); // update the value for the counter column
+                        current = new tutao.entity.monitor.CounterSnapshot();
+                        current.setId([ "", tutao.rest.EntityRestInterface.stringToCustomId(String(new Date().getTime())) ]);
+                        current.setValue(value);
+                    }
+                    // recalculate the values for the DIFF view type
+                    if (monitor.type == tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF) {
+                        // if we want to add the current value we have to calculate the diff but reduce that diff relative to the "normal" time difference
+                        if (current && snapshots.length > 2) { // if there is only one snapshot we do not know the "normal" time difference, so skip it in that case
+                            var lastSnapshotTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(snapshots[snapshots.length - 1].getId()[1]))).getTime();
+                            var beforeLastSnapshotTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(snapshots[snapshots.length - 2].getId()[1]))).getTime();
+                            var currentTime = new Date(Number(tutao.rest.EntityRestInterface.customIdToString(current.getId()[1]))).getTime();
+                            var normalTimeDiff = lastSnapshotTime - beforeLastSnapshotTime;
+                            var currentTimeDiff = currentTime - lastSnapshotTime;
+                            if (currentTimeDiff > 0) {
+                                var currentValueDiff = Number(current.getValue()) - Number(snapshots[snapshots.length - 1].getValue());
+                                var currentNormalizedValueDiff = Math.round(currentValueDiff * normalTimeDiff / currentTimeDiff);
+                                current.setValue(String(currentNormalizedValueDiff));
+                            }
+                        }
+                        // now calcualte all other diffs beginning at the end
+                        for (var i=snapshots.length-1; i>0; i--) {
+                            snapshots[i].setValue(String(Number(snapshots[i].getValue()) - Number(snapshots[i - 1].getValue())));
+                        }
+                        snapshots.shift();
+                        if (current) {
+                            // add the current now because it shall not influence the diff calculation before
+                            snapshots.push(current);
+                        }
+                    } else {
+                        if (current) {
+                            // just add the snapshot as last value
+                            snapshots.push(current);
+                        }
+                    }
+                    dataRows.push(new tutao.tutanota.ctrl.MonitorViewModel.DataRow(monitor.monitor, monitor.owner, snapshots));
+                });
+            } else {
+                if (monitor.type == tutao.tutanota.ctrl.MonitorViewModel.VIEW_TYPE_DIFF) {
+                    // recalculate the values for the DIFF view type
+                    for (var i=snapshots.length-1; i>0; i--) {
+                        snapshots[i].setValue(String(Number(snapshots[i].getValue()) - Number(snapshots[i - 1].getValue())));
+                    }
+                    snapshots.shift();
+                }
+                // only add the snapshots
+                dataRows.push(new tutao.tutanota.ctrl.MonitorViewModel.DataRow(monitor.monitor, monitor.owner, snapshots));
+            }
+        }).caught(function(e) {
+            // just skip this monitor
+        });
+    }).then(function() {
+        var dataTable = self._createDataTable(dataRows);
+        self.tableRows(self._createTableRows(dataRows));
+        self._drawDiagram(self.diagramGroup().name, dataTable);
+        if (self.showCurrent()) {
+            self.untilDate(tutao.tutanota.util.Formatter.dateToDashString(new Date()));
+            self.untilTime(tutao.tutanota.util.Formatter.formatLocalTime(new Date()));
+        }
+    }).caught(function(exception) {
+        console.log(exception);
+    });
 };
 
 tutao.tutanota.ctrl.MonitorViewModel.prototype._createTableRows = function(dataRows) {
@@ -458,15 +452,12 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._createDataTable = function(dataR
  * @param {string} monitor The monitor name.
  * @param {string} owner The owner id.
  * @param {function(?Array.<tutao.entity.monitor.CounterSnapshot>,tutao.rest.EntityRestException=)}
+ * @return {Promise.<Array.<tutao.entity.monitor.CounterSnapshot>} Resolves to the list of counter snapshots when finished
  */
-tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor, owner, callback) {
+tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor, owner) {
 	var self = this;
 	var seriesId = tutao.rest.EntityRestInterface.stringToCustomId(monitor + "," + owner);
-	tutao.entity.monitor.CounterSnapshotSeries.load(seriesId, function(series, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
+	return tutao.entity.monitor.CounterSnapshotSeries.load(seriesId).then(function(series) {
 		// load snapshots in multiple steps until the time range is fully covered
 		var endTime = null;
 		if (self.showCurrent()) {
@@ -476,8 +467,8 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor
 		}
 		var endDateId = tutao.rest.EntityRestInterface.stringToCustomId(String(endTime));
 		var loadedSnapshots = [];
-		self._loadSnapshotRange(series.getSnapshots(), endTime - self.range().value, endDateId, loadedSnapshots, function() {
-			callback(loadedSnapshots);
+		return self._loadSnapshotRange(series.getSnapshots(), endTime - self.range().value, endDateId, loadedSnapshots).then(function() {
+			return loadedSnapshots;
 		});
 	});
 };
@@ -488,31 +479,25 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor
  * @param {Number} startTime The start time.
  * @param {string} currentEndDateId The current end date id from which the snapshots are loaded in reverse.
  * @param {Array.<tutao.entity.monitor.CounterSnapshot>} loadedSnapshots All loaded snapshots in the correct time order.
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolves when finished
  */
-tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(snapshotsListId, startTime, currentEndDateId, loadedSnapshots, callback) {
+tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(snapshotsListId, startTime, currentEndDateId, loadedSnapshots) {
 	var self = this;
-	tutao.entity.monitor.CounterSnapshot.loadRange(snapshotsListId, currentEndDateId, 100, true, function(snapshots, exception) {
-		if (exception) {
-			callback(exception);
-			return;
-		}
+	return tutao.entity.monitor.CounterSnapshot.loadRange(snapshotsListId, currentEndDateId, 100, true).then(function(snapshots) {
 		if (snapshots.length == 0) {
-			callback();
 			return;
 		}
 		// only include the the loaded snapshots are younger than startTime
 		for (var i=0; i<snapshots.length; i++) {
 			if (Number(tutao.rest.EntityRestInterface.customIdToString(snapshots[i].getId()[1])) < startTime) {
 				// this snapshot must not be added any more. we are finished.
-				callback(snapshots);
-				return;
+				return snapshots;
 			} else {
 				loadedSnapshots.unshift(snapshots[i]);
 			}
 		}
 		// load the next snapshots beginning with the id of the last loaded snapshot
-		self._loadSnapshotRange(snapshotsListId, startTime, loadedSnapshots[0].getId()[1], loadedSnapshots, callback);
+		return self._loadSnapshotRange(snapshotsListId, startTime, loadedSnapshots[0].getId()[1], loadedSnapshots);
 	});
 };
 
@@ -520,16 +505,12 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(sna
  * Reads a counter value.
  * @param {string} monitor The monitor name. 
  * @param {string} ownerId The owner id.
- * @param {function(=Number, tutao.entity.EntityRestException?} callback Called with the counter value or exception when finished.
+ * @return {Promise.<number, tutao.rest.EntityRestException>} Resolves to the the counter value, rejected if failed
  */
-tutao.tutanota.ctrl.MonitorViewModel.prototype._readCounter = function(monitor, ownerId, callback) {
+tutao.tutanota.ctrl.MonitorViewModel.prototype._readCounter = function(monitor, ownerId) {
 	var params = {};
-	tutao.entity.monitor.ReadCounterReturn.load(new tutao.entity.monitor.ReadCounterData().setMonitor(monitor).setOwner(ownerId), params, null, function(readCounterReturn, exception) {
-		if (exception) {
-			callback(null, exception);
-		} else {
-			callback(readCounterReturn.getValue());
-		}
+	return tutao.entity.monitor.ReadCounterReturn.load(new tutao.entity.monitor.ReadCounterData().setMonitor(monitor).setOwner(ownerId), params, null).then(function(readCounterReturn, exception) {
+        return readCounterReturn.getValue();
 	});
 };
 
@@ -547,13 +528,11 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype.refreshVisibleCounters = function
 					} else {
 						(function() {
 							var counter = monitors[monitor].counter;
-							self._readCounter(monitors[monitor].monitor, owner, function(value, exception) {
-								if (exception) {
-									counter("error");
-								} else {
-									counter(value);
-								}
-							});
+							self._readCounter(monitors[monitor].monitor, owner).then(function(value) {
+							    counter(value);
+							}).caught(function(e) {
+                                counter("error");
+                            });
 						})();
 					}
 				}

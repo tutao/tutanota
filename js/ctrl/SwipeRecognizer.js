@@ -5,7 +5,7 @@ goog.provide('tutao.tutanota.ctrl.SwipeRecognizer');
 /**
  * @constructor
  * A SwipeRecognizer can recognize swipe events like swipe in and out from left and right border of the screen. If
- * a listener is registered for these events, the callback is called.
+ * a listener is registered for these events, the listener is called.
  */
 tutao.tutanota.ctrl.SwipeRecognizer = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
@@ -128,13 +128,13 @@ tutao.tutanota.ctrl.SwipeRecognizer.prototype.setScreenSize = function(width, he
 };
 
 /**
- * Registers a callback function that is called when the swipe event indicated by type occurs. It is only possible
- * to register one callback per type.
+ * Registers a listener function that is called when the swipe event indicated by type occurs. It is only possible
+ * to register one listener per type.
  * @param {number} type One of TYPE_LEFT_OUT, TYPE_LEFT_IN, TYPE_RIGHT_IN, TYPE_RIGHT_OUT.
- * @param {function()} callback This function is called as soon as the swipe event occurs.
+ * @param {function()} listener This function is called as soon as the swipe event occurs.
  */
-tutao.tutanota.ctrl.SwipeRecognizer.prototype.addSwipeListener = function(type, callback) {
-	this._listeners[type] = callback;
+tutao.tutanota.ctrl.SwipeRecognizer.prototype.addSwipeListener = function(type, listener) {
+	this._listeners[type] = listener;
 };
 
 /**
@@ -170,7 +170,7 @@ tutao.tutanota.ctrl.SwipeRecognizer.prototype._touchMove = function(event) {
 };
 
 /**
- * Tries to recognize the registered swipe events and calls the corresponding callback if successful.
+ * Tries to recognize the registered swipe events and calls the corresponding listener if successful.
  * @protected
  */
 tutao.tutanota.ctrl.SwipeRecognizer.prototype._tryRecognization = function() {
@@ -254,7 +254,7 @@ tutao.tutanota.ctrl.SwipeRecognizer.prototype._touchCancel = function(event) {
 };
 
 /**
- * Cancels all current touch gestures, so no callback will be called until a new touch start event occurs.
+ * Cancels all current touch gestures, so no listener will be called until a new touch start event occurs.
  * @protected
  */
 tutao.tutanota.ctrl.SwipeRecognizer.prototype._cancel = function() {

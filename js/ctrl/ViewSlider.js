@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.ViewSlider = function() {
  * @param {number} prio The priority of the view column. Lower value = higher priority. This is used to determine which view columns are visible by default.
  * @param {number} minWidth The minimum allowed width for the view column.
  * @param {number} maxWidth The maximum allowed width for the view column.
- * @param {function(number, number)} widthReceiver A callback function that is called whenever the position or width of the view column is modified. Receives the x position and width
+ * @param {function(number, number)} widthReceiver A listener function that is called whenever the position or width of the view column is modified. Receives the x position and width
  * of the view column as argument.
  * @return {number} The id that is now associated with the view column. Use it for calls to showViewColumn and isVisible.
  */
@@ -41,7 +41,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype.addViewColumn = function(prio, minWidth
 /**
  * Set the function that is called when the position and/or width of the view need to be adopted. This function must be called
  * during initialization.
- * @param {function(number,number,boolean)} receiver A callback function that is called as soon as the position and/or width of the view need to be adopted.
+ * @param {function(number,number,boolean)} receiver A listener function that is called as soon as the position and/or width of the view need to be adopted.
  * First argument is the left position in px, second argument is the width in px, third argument indicates if this is the initial call to set the left
  * position and width. The receiver can use this information e.g to initially set the values directly in the gui and animate the change otherwise.
  */

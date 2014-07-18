@@ -81,17 +81,15 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function ()
 tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function () {
     var self = this;
 //	setTimeout(function() {
-    self.mail.loadBody(function (body, exception) {
-        if (exception) {
-            self.bodyText("error while loading");
-            console.log("error");
-        } else {
-            self.bodyText(tutao.locator.htmlSanitizer.sanitize(body.getText()));
-            var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
-            self.bodyTextWithoutQuotation(split.text);
-            self.mailBodyLoaded(true);
-            self.bodyTextQuotation(split.quotation);
-        }
+    self.mail.loadBody().then(function (body) {
+        self.bodyText(tutao.locator.htmlSanitizer.sanitize(body.getText()));
+        var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
+        self.bodyTextWithoutQuotation(split.text);
+        self.mailBodyLoaded(true);
+        self.bodyTextQuotation(split.quotation);
+    }).caught(function(e) {
+        self.bodyText("error while loading");
+        throw e;
     });
 //	},1000);
 };
@@ -103,7 +101,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadAttachments = function () {
     var self = this;
     //TODO (timely) implement loading of multiple LET instances
     for (var i = 0; i < this.mail.getAttachments().length; i++) {
-        tutao.entity.tutanota.File.load(this.mail.getAttachments()[i], function (file, exception) {
+        tutao.entity.tutanota.File.load(this.mail.getAttachments()[i]).then(function (file, exception) {
             if (!exception) {
                 self.attachments.push(file);
             } else {
@@ -124,15 +122,10 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     }
     var self = this;
     this.currentlyDownloadingAttachment(file);
-    tutao.tutanota.ctrl.FileFacade.readFileData(file, function (dataFile, exception) {
-        if (exception) {
-            console.log(exception);
-            self.currentlyDownloadingAttachment(null);
-            return;
-        }
-        tutao.tutanota.util.FileUtils.provideDownload(dataFile, function () {
-            self.currentlyDownloadingAttachment(null);
-        });
+    tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function (dataFile, exception) {
+        return tutao.tutanota.util.FileUtils.provideDownload(dataFile);
+    }).lastly(function (e) {
+        self.currentlyDownloadingAttachment(null);
     });
 };
 

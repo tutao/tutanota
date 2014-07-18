@@ -4,13 +4,12 @@ goog.provide('tutao.tutanota.util.FileUtils');
 
 /**
  * Shows a file chooser and lets the user select multiple files.
- * @param {function(FileList)} callback Called if files are chosen receiving the file list as argument.
+ * @return {Promise.<FileList>} Resolves to the FileList.
  */
-tutao.tutanota.util.FileUtils.showFileChooser = function(callback) {
+tutao.tutanota.util.FileUtils.showFileChooser = function() {
     if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) {
         tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg"));
-        callback([]);
-        return;
+        return Promise.resolve([]);
     }
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
@@ -24,14 +23,17 @@ tutao.tutanota.util.FileUtils.showFileChooser = function(callback) {
 	fileInput.setAttribute("multiple", "multiple");
 	fileInput.setAttribute("id", "hiddenFileChooser");
 
-	$(fileInput).bind("change", function(e) {
-		callback(e.originalEvent.target.files);
-	});
-	// the file input must be put into the dom, otherwise it does not work in IE
-	$("body").get(0).appendChild(fileInput);
+    // the file input must be put into the dom, otherwise it does not work in IE
+    $("body").get(0).appendChild(fileInput);
     if (!tutao.tutanota.util.FileUtils.WATIR_MODE) {
-	    fileInput.click();
+        fileInput.click();
     }
+
+    return new Promise(function(resolve, reject) {
+        $(fileInput).bind("change", function(e) {
+            resolve(e.originalEvent.target.files);
+        });
+    });
 };
 
 // this flag disables showing the file chooser when running with watir as watir handles file uploads in another way
@@ -40,43 +42,47 @@ tutao.tutanota.util.FileUtils.WATIR_MODE = false;
 /**
  * Loads the content of the given file into an ArrayBuffer.
  * @param {File} file The file to load.
- * @param {function(?tutao.tutanota.util.DataFile, Error=)} callback Called when finished receiving the file data. Passes an error if the loading fails.
+ * @return {Promise.<tutao.tutanota.util.DataFile, Error>} Resolves to the loaded DataFile, rejects if the loading fails.
  */
-tutao.tutanota.util.FileUtils.readLocalFile = function(file, callback) {
-	var reader = new FileReader();
-	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE && evt.target.result) { // DONE == 2
-			callback(new tutao.tutanota.util.DataFile(evt.target.result, file));
-		} else {
-			callback(null, new Error("could not load file"));
-		}
-	};
-	reader.readAsArrayBuffer(file);
+tutao.tutanota.util.FileUtils.readLocalFile = function(file) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function(evt) {
+            if (evt.target.readyState == FileReader.DONE && evt.target.result) { // DONE == 2
+                resolve(new tutao.tutanota.util.DataFile(evt.target.result, file));
+            } else {
+                reject(new Error("could not load file"));
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
 };
 
 /**
  * Reads the content of the given file as a UTF8 string.
  * @param {File} file The file to load.
- * @param {function(?string, Error=)} callback Called when finished receiving the string. Passes an error if the loading fails.
+ * @return {Promise.<string, Error>} Resolves to the loaded file content as string, rejects if the loading fails.
  */
-tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8 = function(file, callback) {
-	var reader = new FileReader();
-	reader.onloadend = function(evt) {
-		if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-			callback(evt.target.result);
-		} else {
-			callback(null, new Error("could not load file"));
-		}
-	};
-	reader.readAsText(file, "UTF-8");
+tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8 = function(file) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function(evt) {
+            if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+                resolve(evt.target.result);
+            } else {
+                reject(new Error("could not load file"));
+            }
+        };
+        reader.readAsText(file, "UTF-8");
+    });
 };
 
 /**
  * Provides a link for the user to download the given data file. Using the given file name only works on some browsers.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
- * @param {function(Error=)} callback Called when finished. Passes an error if the download fails.
+ * @return {Promise.<Error>} Resolves when finished, rejects if the dowload fails.
  */
-tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
+tutao.tutanota.util.FileUtils.provideDownload = function(dataFile) {
 	navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
 	window.saveAs = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs;
 	var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
@@ -88,9 +94,8 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
 	if (typeof dataFile.getData() === "string") {
 		// LEGACY mode
 		var downloadButton = $("#downloadButton_" + dataFile.getId()[1]);
-		new tutao.tutanota.legacy.FlashFileSaver("flashDownloader_" + dataFile.getId()[1], downloadButton, downloadButton.outerWidth() + 2, downloadButton.outerHeight() + 2, dataFile.getData(), dataFile.getName(), function() {
+		return new tutao.tutanota.legacy.FlashFileSaver("flashDownloader_" + dataFile.getId()[1], downloadButton, downloadButton.outerWidth() + 2, downloadButton.outerHeight() + 2, dataFile.getData(), dataFile.getName()).then(function() {
 			downloadButton.find("> span.legacyDownloadText").show().css("visibility", "visible");
-			callback();
 		});
 	} else if (window.saveAs || navigator.saveBlob) {
 		var blob = new Blob([dataFile.getData()], { "type" : mimeType });
@@ -103,7 +108,7 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
         } catch (e) {
             tutao.tutanota.gui.alert(tutao.lang("saveDownloadNotPossibleIe_msg"));
         }
-		callback();
+		return Promise.resolve();
 	} else {
         var url;
 		// safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
@@ -122,12 +127,11 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
             } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                 textId = 'saveDownloadNotPossibleSafariMobile_msg';
             }
-            tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId, function() {
+            return tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId).then(function() {
                 // the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
                 setTimeout(function() {
                     URL.revokeObjectURL(url);
                 }, 1);
-                callback();
             });
         } else {
             var link = document.createElement("a");
@@ -145,7 +149,7 @@ tutao.tutanota.util.FileUtils.provideDownload = function(dataFile, callback) {
             setTimeout(function() {
                 URL.revokeObjectURL(url);
             }, 1);
-            callback();
+            return Promise.resolve();
         }
 	}
 };

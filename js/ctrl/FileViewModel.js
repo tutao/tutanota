@@ -18,17 +18,9 @@ tutao.tutanota.ctrl.FileViewModel = function() {
 
 tutao.tutanota.ctrl.FileViewModel.prototype.init = function() {
 	var self = this;
-	tutao.entity.tutanota.File.loadRange(tutao.locator.mailBoxController.getUserMailBox().getReceivedAttachments(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 100, false, function(files, exception) {
-		if (exception) {
-			console.log(exception);
-			return;
-		}
+	tutao.entity.tutanota.File.loadRange(tutao.locator.mailBoxController.getUserMailBox().getReceivedAttachments(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 100, false).then(function(files) {
 		self.receivedAttachments(files);
-		tutao.entity.tutanota.File.loadRange(tutao.locator.mailBoxController.getUserMailBox().getSentAttachments(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 100, false, function(files, exception) {
-			if (exception) {
-				console.log(exception);
-				return;
-			}
+		return tutao.entity.tutanota.File.loadRange(tutao.locator.mailBoxController.getUserMailBox().getSentAttachments(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 100, false).then(function(files) {
 			self.sentAttachments(files);
 		});
 	});
@@ -49,14 +41,9 @@ tutao.tutanota.ctrl.FileViewModel.prototype.downloadFile = function(file) {
 		return;
 	}
 	this.currentlyDownloadingFile(file);
-	tutao.tutanota.ctrl.FileFacade.readFileData(file, function(dataFile, exception) {
-		if (exception) {
-			console.log(exception);
-			self.currentlyDownloadingFile(null);
-			return;
-		}
-		tutao.tutanota.util.FileUtils.provideDownload(dataFile, function() {
-			self.currentlyDownloadingFile(null);
-		});
-	});
+	tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function(dataFile) {
+		return tutao.tutanota.util.FileUtils.provideDownload(dataFile);
+	}).lastly(function() {
+        self.currentlyDownloadingFile(null);
+    });
 };

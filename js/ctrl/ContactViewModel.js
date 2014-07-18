@@ -167,11 +167,9 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
     }
     this.editableContact.update();
     if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
-        this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts(), function () {
-        });
+        this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
     } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
-        this.contactWrapper().getContact().update(function () {
-        });
+        this.contactWrapper().getContact().update();
     }
     this.contactWrapper().stopEditingContact(this);
     this._showContact(this.contactWrapper());
@@ -182,8 +180,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
     if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteContact_msg"))) {
-        this.contactWrapper().getContact().erase(function () {
-        });
+        this.contactWrapper().getContact().erase();
         this.removeContact();
     }
 };

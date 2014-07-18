@@ -53,7 +53,7 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
         var imageFile = new tutao.entity.tutanota.File();
         imageFile.setMimeType("image/png");
         imageFile.setName("screenshot.png");
-        imageFile.setSize(this.image.byteLength);
+        imageFile.setSize(this.image.byteLength + "");
         attachments.push(new tutao.tutanota.util.DataFile(this.image, imageFile));
     }
     var facade;
@@ -65,10 +65,9 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
         facade = tutao.tutanota.ctrl.SendMailFacade;
         previousMessageId = null;
     }
-    facade.sendMail("Feedback", this.message(), "", [new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "")], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de", function(mailId, exception) {
-        if (exception) {
-            tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("sendFeedbackFailed_msg"));
-        }
+    facade.sendMail("Feedback", this.message(), "", [new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "")], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de").then(function(mailId) {
         self.close();
+    }).caught(function(exception) {
+        tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("sendFeedbackFailed_msg"));
     });
 };

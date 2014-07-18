@@ -24,7 +24,6 @@ tutao.tutanota.ctrl.ViewManager = function() {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 480);
         self.windowWidthObservable(width);
 	});
-
 };
 
 
@@ -62,8 +61,8 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
     var adminViewVisible = function() {
         return self.getActiveView() == tutao.locator.dbView || self.getActiveView() == tutao.locator.monitorView || self.getActiveView() == tutao.locator.logView  || self.getActiveView() == tutao.locator.configView  || self.getActiveView() == tutao.locator.customerView;
     };
-    var nonStarterUser = function() {
-        if (tutao.locator.userController.getLoggedInUser()) {
+    var internalNonStarterUser = function() {
+        if (tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn()) {
             return tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
         } else {
             return false;
@@ -86,17 +85,17 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
 
         // internalUsers
         new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
-            return nonStarterUser() && self.getActiveView() == tutao.locator.mailView;
+            return internalNonStarterUser() && self.getActiveView() == tutao.locator.mailView;
         }, false, "menu_mail_new", "mail-new", 'newMail_alt'),
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
-            return nonStarterUser() && self.getActiveView() != tutao.locator.mailView;
+            return internalNonStarterUser() && self.getActiveView() != tutao.locator.mailView;
         }, false, "menu_mail", "mail", 'emails_alt'),
 
         new tutao.tutanota.ctrl.Button('new_label', 29, tutao.locator.navigator.newContact, function () {
-            return nonStarterUser() && self.getActiveView() == tutao.locator.contactView;
+            return internalNonStarterUser() && self.getActiveView() == tutao.locator.contactView;
         }, false, "menu_contact_new", "contact-new", 'newContact_alt'),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
-            return nonStarterUser() && self.getActiveView() != tutao.locator.contactView;
+            return internalNonStarterUser() && self.getActiveView() != tutao.locator.contactView;
         }, false, "menu_contact", "contact", 'contacts_alt'),
 
         new tutao.tutanota.ctrl.Button('settings_label', 28, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),

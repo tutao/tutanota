@@ -77,16 +77,12 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
 		.setMailAddress(this.mailAddress())
 		.setState(tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL);
 	var self = this;
-	var authToken = regData.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function(registrationReturn, exception) {
-		if (exception) {
-			console.log(exception);
-		} else {
-			// Workaround as re-loading a range does not work under all circumstances if the id is custom
-			tutao.entity.sys.RegistrationData.load([self._listId(),registrationReturn.getAuthToken()], function(element, exception) {
-				self.registrationDataList.push(element);
-			});
-			self.reset();
-		}
+	var authToken = regData.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(registrationReturn) {
+        // Workaround as re-loading a range does not work under all circumstances if the id is custom
+        tutao.entity.sys.RegistrationData.load([self._listId(),registrationReturn.getAuthToken()]).then(function(element) {
+            self.registrationDataList.push(element);
+        });
+        self.reset();
 	});
 	return false;
 };
@@ -134,7 +130,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.showSelected = funct
 		return;
 	}
 	var self = this;
-	this._loadRegistrationDataEntries(this.upperBoundId(), false, function(registrationDataList) {
+	this._loadRegistrationDataEntries(this.upperBoundId(), false).then(function(registrationDataList) {
 		self.registrationDataList(registrationDataList);
 	});
 };
@@ -143,15 +139,11 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.showSelected = funct
  * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
  * @param {string} upperBoundId The id of upper limit (base64 encoded)
  * @param {boolean} reverse If the entries shall be loaded reverse.
- * @param {function(Array.<tutao.entity.sys.RegistrationData>)} callback Will be called with the list of customers.
+ * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>} Resolves to the list of customers
  */
-tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype._loadRegistrationDataEntries = function(upperBoundId, reverse, callback) {
+tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype._loadRegistrationDataEntries = function(upperBoundId, reverse) {
 	var self = this;
-	tutao.entity.sys.RegistrationData.loadRange(this._listId(), upperBoundId, 1000, reverse, function(registrationDataList, exception) {
-		if (exception) {
-			console.log(exception);
-		} else {
-			callback(registrationDataList);
-		}
-	});
+	return tutao.entity.sys.RegistrationData.loadRange(this._listId(), upperBoundId, 1000, reverse).caught(function (exception) {
+        console.log(exception);
+    });
 };

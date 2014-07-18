@@ -9,7 +9,9 @@ tutao.tutanota.util.StateMachine = function() {
 };
 
 /**
- * @param {?function()} trigger Called when this state is entered.
+ * @param {string} name
+ * @param {Object} properties
+ * @param {function()=} trigger Called when this state is entered.
  */
 tutao.tutanota.util.StateMachine.prototype.addState = function(name, properties, trigger) {
 	// the first state is the start state

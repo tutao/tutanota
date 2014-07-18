@@ -36,19 +36,18 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
     // query the server to find the recipient type
     var self = this;
     if (this._type() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
-        tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(self.getMailAddress()), {}, null, function(publicKeyData, exception) {
+        tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(self.getMailAddress()), {}, null).then(function(publicKeyData) {
             // do not update any field if this recipient is already deleted, because this._type is subscribed above and might trigger editing a contact otherwise
             if (!self._deleted) {
-                if (exception) {
-                    if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
-                        self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
-                    } else {
-                        // handle exception
-                        console.log(exception);
-                    }
-                } else {
-                    self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
+                self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
+            }
+        }).caught(function(exception) {
+            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
+                if (!self._deleted) {
+                    self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
                 }
+            } else {
+                throw exception;
             }
         });
     }

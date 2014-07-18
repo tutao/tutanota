@@ -7,9 +7,9 @@ goog.provide('tutao.tutanota.ctrl.ShareFacade');
  * @param {String} shareType One of tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_*;.
  * @param {String} shareholderMailAddress The mail address of the user that shall get the data shared (i.e. the shareholder).
  * @param {boolean} writePermission True if the shareholder shall get write permissions, false if he shall only get read permissions.
- * @param {function(tutao.rest.EntityRestException=)} callback Called when finished, receives an exception if an error occurred.
+ * @return {Promise.<tutao.rest.EntityRestException>} Resolves when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddress, writePermission, callback) {
+tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddress, writePermission) {
 	var shareService = new tutao.entity.sys.ShareData();
 	shareService.setApp("tutanota");
 	shareService.setShareType(shareType);
@@ -32,18 +32,13 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 		bucketId = tutao.locator.mailBoxController.getUserFileSystem().getShareBucketId();
 		shareBucketKey = tutao.locator.mailBoxController.getUserFileSystemBucketData().getBucketKey();
 	} else {
-		callback(new tutao.rest.EntityRestException(new Error("invalid share type: " + shareType)));
-		return;
+		return Promise.reject(new tutao.rest.EntityRestException(new Error("invalid share type: " + shareType)));
 	}
 
 	shareService.setInstancePermissions(instancePermissionList);
 	shareService.setBucket(bucketId);
 
-	tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup(shareholderMailAddress, shareBucketKey, function(keyData, exception) {
-		if (exception) {
-			callback(exception);
-			return;
-		}
+	return tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup(shareholderMailAddress, shareBucketKey).then(function(keyData) {
 		shareService.setPubEncBucketKey(keyData.pubEncKey)
 		    .setPubKeyVersion(keyData.pubKeyVersion)
             .setOwnerGroupId(tutao.locator.userController.getUserGroupId());
@@ -51,13 +46,9 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 
 		var headers = tutao.entity.EntityHelper.createAuthHeaders();
 		var postParams = {};
-		shareService.setup(postParams, headers, function(voidReturn, exception) {
-			if (exception) {
-				callback(new tutao.rest.EntityRestException(exception));
-				return;
-			}
-			callback();
-		});
+		return shareService.setup(postParams, headers).caught(function(exception) {
+            throw new tutao.rest.EntityRestException(exception);
+        });
 	});
 };
 
@@ -65,28 +56,28 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
  * Encrypts a symmetric key with the public key of the group with the given mail address (internal user).
  * @param {String} mailAddress The mail address for which we want to get the key info.
  * @param {Object} keyToEncrypt The symmetric key to encrypt.
- * @param {function(?{pubEncKey:String,pubKeyVersion:Number}, tutao.rest.EntityRestException|tutao.tutanota.ctrl.RecipientsNotFoundException=)}
+ * @return {Promise.<{pubEncKey:String,pubKeyVersion:Number}, tutao.rest.EntityRestException|tutao.tutanota.ctrl.RecipientsNotFoundException>} Resolves when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup = function(mailAddress, keyToEncrypt, callback) {
+tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup = function(mailAddress, keyToEncrypt) {
 	//load recipient key information
 	var parameters = {};
-	tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(mailAddress), parameters, null, function(publicKeyData, exception) {
-		if (exception) {
-			if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
-				callback(null, tutao.tutanota.ctrl.RecipientsNotFoundException([mailAddress]));
-			} else {
-				callback(null, exception);
-			}
-		} else {
-			var publicKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
-			var hexBucketKey = tutao.locator.aesCrypter.keyToHex(keyToEncrypt);
-			tutao.locator.rsaCrypter.encryptAesKey(publicKey, hexBucketKey, function(encrypted, exception) {
-				if (exception) {
-					callback(null, exception);
-				} else {
-					callback({ pubEncKey: encrypted, pubKeyVersion: publicKeyData.getPubKeyVersion() });
-				}
-			});
-		}
-	});
+	return tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(mailAddress), parameters, null).then(function(publicKeyData, exception) {
+        var publicKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
+        var hexBucketKey = tutao.locator.aesCrypter.keyToHex(keyToEncrypt);
+        return new Promise(function(resolve, reject) {
+            tutao.locator.rsaCrypter.encryptAesKey(publicKey, hexBucketKey, function(encrypted, exception) {
+                if (exception) {
+                    reject(exception);
+                } else {
+                    resolve({ pubEncKey: encrypted, pubKeyVersion: publicKeyData.getPubKeyVersion() });
+                }
+            });
+        });
+	}).caught(function(exception) {
+        if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
+            throw new tutao.tutanota.ctrl.RecipientsNotFoundException([mailAddress]);
+        } else {
+            throw exception;
+        }
+    });
 };
