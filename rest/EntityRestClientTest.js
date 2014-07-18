@@ -15,12 +15,11 @@ EntityRestClientTest.prototype.testGetElementWithoutListId = function() {
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
 	// mock RestClient.getElement()
-	RestClient.getElement = function(path, headers, json, callback) {
+	RestClient.getElement = function(path, headers, json) {
 		assertEquals("/rest/tutanota/mailbody/100", path);
-		callback({ _id: "100", text: "hello"});
+        return Promise.resolve({ _id: "100", text: "hello"});
 	};
-	EntityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "100", null, null, null, function(mailBody, exception) {
-		assertUndefined(exception);
+	EntityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "100", null, null, null).then(function(mailBody) {
 		assertEquals("hello", mailBody.getText());
 	});
 };
@@ -33,9 +32,9 @@ EntityRestClientTest.prototype.testGetElementWithListId = function() {
 	tutao.locator.replace('restClient', RestClient);
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
-	RestClient.getElement = function(path, headers, json, callback) {
+	RestClient.getElement = function(path, headers, json) {
 		assertEquals("/rest/tutanota/mail/300/100", path);
-		callback({ _id: ["300","100"], subject: "hello2", recipients: []});
+        return Promise.resolve({ _id: ["300","100"], subject: "hello2", recipients: []});
 	};
 	EntityRestClient.getElement(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, "100", "300", null, null, function(mail, exception) {
 		assertUndefined(exception);
@@ -57,7 +56,7 @@ EntityRestClientTest.prototype.testPostElementWithoutListId = function() {
 	RestClient.postElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mailbody", path);
 		assertEquals(body.toJsonData(), JSON.parse(json));
-		callback({generatedId: "400", permissionListId: "564" });
+        return Promise.resolve({generatedId: "400", permissionListId: "564" });
 	};
 	EntityRestClient.postElement(tutao.entity.tutanota.MailBody.PATH, body, null, null, null, function(returnEntity, exception) {
 		assertUndefined(exception);
@@ -80,7 +79,7 @@ EntityRestClientTest.prototype.testPostElementWithListId = function() {
 	RestClient.postElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail/500", path);
 		assertEquals(mail.toJsonData(), JSON.parse(json));
-		callback({generatedId: "500", permissionListId: "564"});
+        return Promise.resolve({generatedId: "500", permissionListId: "564"});
 	};
 	EntityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail, "500", null, null, function(returnEntity, exception) {
 		assertUndefined(exception);
@@ -100,7 +99,7 @@ EntityRestClientTest.prototype.testPostList = function() {
 	RestClient.postElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail", path);
 		assertEquals("", json);
-		callback({generatedId: "600"});
+        return Promise.resolve({generatedId: "600"});
 	};
 	EntityRestClient.postList(tutao.entity.tutanota.Mail.PATH, null, null, function(returnEntity, exception) {
 		assertUndefined(exception);
@@ -122,7 +121,7 @@ EntityRestClientTest.prototype.testPutElementWithoutListId = function() {
 	RestClient.putElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mailbody/600", path);
 		assertEquals(JSON.stringify(body.toJsonData()), json);
-		callback();
+        return Promise.resolve();
 	};
 	EntityRestClient.putElement(tutao.entity.tutanota.MailBody.PATH, body, null, null, function(exception) {
 		assertUndefined(exception);
@@ -142,7 +141,7 @@ EntityRestClientTest.prototype.testPutElementWithListId = function() {
 	RestClient.putElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail/600/5", path);
 		assertEquals(JSON.stringify(mail.toJsonData()), json);
-		callback();
+        return Promise.resolve();
 	};
 	EntityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, mail, null, null, function(exception) {
 		assertUndefined(exception);
@@ -159,9 +158,9 @@ EntityRestClientTest.prototype.testGetElementRange = function() {
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
 	// mock RestClient.getElement()
-	RestClient.getElement = function(path, headers, json, callback) {
+	RestClient.getElement = function(path, headers, json) {
 		assertEquals("/rest/tutanota/mail/700?start=800&count=2&reverse=false", path);
-		callback([]); // just return an empty list for testing
+        return Promise.resolve([]);// just return an empty list for testing
 	};
 	EntityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, "700", "800", 2, false, null, null, function(dummies, exception) {
 		assertUndefined(exception);
@@ -180,7 +179,7 @@ EntityRestClientTest.prototype.testDeleteElementsWithoutListId = function() {
 	// mock RestClient.deleteElement()
 	RestClient.deleteElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mailbody/1", path);
-		callback();
+        return Promise.resolve();
 	};
 	var id = 1;
 	EntityRestClient.deleteElement(tutao.entity.tutanota.MailBody.PATH, id, null, null, null, function(exception) {
@@ -199,7 +198,7 @@ EntityRestClientTest.prototype.testDeleteElementsWithListId = function() {
 	// mock RestClient.deleteElement()
 	RestClient.deleteElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail/100/1", path);
-		callback();
+        return Promise.resolve();
 	};
 	var id = 1;
 	EntityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, id, "100", null, null, function(exception) {

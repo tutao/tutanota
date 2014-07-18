@@ -22,10 +22,10 @@ KdfTest.prototype.testCreateKeyFromPassphrase = function(queue) {
 		var facade = this._getFacade();
 		var salt1 = facade.generateRandomSalt();
 		var salt2 = facade.generateRandomSalt();
-		facade.generateKeyFromPassphrase("hello", salt1, callbacks.add(function(key1Hex) {
-			facade.generateKeyFromPassphrase("hello", salt1, callbacks.add(function(key2Hex) {
-				facade.generateKeyFromPassphrase("hello", salt2, callbacks.add(function(key3Hex) {
-					facade.generateKeyFromPassphrase("hellohello", salt1, callbacks.add(function(key4Hex) {
+		facade.generateKeyFromPassphrase("hello", salt1).then(function(key1Hex) {
+			return facade.generateKeyFromPassphrase("hello", salt1).then(function(key2Hex) {
+				return facade.generateKeyFromPassphrase("hello", salt2).then(function(key3Hex) {
+					return facade.generateKeyFromPassphrase("hellohello", salt1).then(function(key4Hex) {
 						// make sure the same password and salt result in the same key
 						assertEquals(key1Hex, key2Hex);
 						// make sure a different password or different key result in different keys
@@ -35,10 +35,10 @@ KdfTest.prototype.testCreateKeyFromPassphrase = function(queue) {
 						assertEquals(32, key1Hex.length); // same as key2Hex
 						assertEquals(32, key3Hex.length);
 						assertEquals(32, key4Hex.length);
-					}));
-				}));
-			}));
-		}));
+					});
+				});
+			});
+		}).done(callbacks.noop());
 	});
 };
 
@@ -55,9 +55,9 @@ KdfTest.prototype.testPassphrases = function(queue) {
 		for ( var i = 0; i < pairs.length; i++) {
 			(function() {
 				var position = i;
-				facade.generateKeyFromPassphrase(pairs[position].pw, salt, callbacks.add(function(hexKey) {
+				facade.generateKeyFromPassphrase(pairs[position].pw, salt).then(function(hexKey) {
 					assertEquals(pairs[position].hash, hexKey);
-				}));
+				}).done(callbacks.noop());
 			})();
 		}
 	});
