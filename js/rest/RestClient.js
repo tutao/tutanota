@@ -21,7 +21,6 @@ tutao.rest.RestClient = function() {};
  */
 tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
     return new Promise(function(resolve, reject) {
-        reject(new Error("dummy"));
         var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
         json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
         // avoid caching (needed for IE) by setting cache: false
