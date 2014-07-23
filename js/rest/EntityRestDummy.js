@@ -29,14 +29,14 @@ tutao.rest.EntityRestDummy.prototype._getNextId = function() {
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.getElement = function(type, path, id, listId, parameters, headers) {
-    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+    return Promise.reject(new tutao.NotFoundError());
 };
 
 /**
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.getService = function(type, path, data, parameters, headers) {
-    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+    return Promise.reject(new tutao.NotFoundError());
 };
 
 /**
@@ -70,7 +70,7 @@ tutao.rest.EntityRestDummy.prototype.postElement = function(path, element, listI
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.postService = function(path, element, parameters, headers, returnType) {
-    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+    return Promise.reject(new tutao.NotFoundError());
 };
 
 /**
@@ -84,7 +84,7 @@ tutao.rest.EntityRestDummy.prototype.putElement = function(path, element, parame
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.putService = function(path, element, parameters, headers, returnType) {
-    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+    return Promise.reject(new tutao.NotFoundError());
 };
 
 /**
@@ -112,5 +112,5 @@ tutao.rest.EntityRestDummy.prototype.deleteElement = function(path, id, listId, 
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.deleteService = function(path, element, parameters, headers, returnType) {
-    return Promise.reject(new tutao.rest.EntityRestException(new tutao.rest.RestException(404)));
+    return Promise.reject(new tutao.NotFoundError());
 };

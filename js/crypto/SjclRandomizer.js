@@ -38,6 +38,6 @@ tutao.crypto.SjclRandomizer.prototype.generateRandomData = function(nbrOfBytes) 
 		// simply cut off the exceeding bytes
 		return hex.substring(0, nbrOfBytes * 2);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("error during random number generation", e);
+		throw new tutao.crypto.CryptoError("error during random number generation", e);
 	}
 };

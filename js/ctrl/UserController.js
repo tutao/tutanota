@@ -140,7 +140,7 @@ tutao.ctrl.UserController.prototype.getUserGroupInfo = function () {
  * Sets the given user as logged-in user.
  * @param {string} mailAddress The mail address of the user.
  * @param {string} passphrase The passphrase of the user.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the login failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the login failed.
  */
 tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphrase) {
     this.reset();
@@ -208,7 +208,7 @@ tutao.ctrl.UserController.prototype.getAuthToken = function () {
  * @param {string} userId The user id of the user.
  * @param {string} password The password matching the authentication token.
  * @param {string} saltHex The salt that was used to salt the password, as hex string.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the login failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the login failed.
  */
 tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, password, saltHex) {
     var self = this;

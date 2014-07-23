@@ -9,7 +9,9 @@ goog.provide('tutao.rest.RestClient');
  * We do not provide any data types as jquery will infer them from the returned mime type (which should be set correctly by tutadb)
  * @constructor
  */
-tutao.rest.RestClient = function() {};
+tutao.rest.RestClient = function() {
+    this._errorFactory = new tutao.util.ErrorFactory();
+};
 
 /**
  * Provides an element or multiple elements loaded from the server.
@@ -17,9 +19,10 @@ tutao.rest.RestClient = function() {};
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {?string} json The payload. 
- * @return {Promise.<Object, tutao.rest.RestException>} Provides the data of the element(s) or an exception if the rest call failed.
+ * @return {Promise.<Object>} Resolves to the data of the element(s), rejects if the rest call failed.
  */
 tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
         json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
@@ -29,7 +32,7 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(new tutao.rest.RestException(jqXHR.status));
+                reject(self._errorFactory.handleRestError(jqXHR.status, textStatus));
             }
         });
     });
@@ -40,16 +43,17 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
  * @param {string} path path of the element, includes element type name.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {string} json The json data to store.
- * @return {Promise.<string, tutao.rest.RestException>} Provides the response from the server as a string or an exception if the rest call failed.
+ * @return {Promise.<string>} Resolves to the response from the server as a string, rejects if the rest call failed.
  */
 tutao.rest.RestClient.prototype.postElement = function(path, headers, json) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(new tutao.rest.RestException(jqXHR.status));
+                reject(self._errorFactory.handleRestError(jqXHR.status, textStatus));
             }
         });
     });
@@ -61,16 +65,17 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json) {
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * E.g. "body/428347293847" or "mail/232410342431/203482034234".
  * @param {string} json The json data to store.
- * @return {Promise.<string, tutao.rest.RestException>} Provides an exception if the rest call failed.
+ * @return {Promise.<string>} Provides an exception if the rest call failed
  */
 tutao.rest.RestClient.prototype.putElement = function(path, headers, json) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(new tutao.rest.RestException(jqXHR.status));
+                reject(self._errorFactory.handleRestError(jqXHR.status, textStatus));
             }
         });
     });
@@ -81,9 +86,10 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json) {
  * @param {string} path Path of the element(s);.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {string} json The payload.
- * @return {Promise.<string, tutao.rest.RestException>} Provides the response from the server as a string or an exception if the rest call failed.
+ * @return {Promise.<string>} Resolves to the response from the server as a string, rejects if the rest call failed.
  */
 tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
         json = json ? json : "";
@@ -92,7 +98,7 @@ tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(new tutao.rest.RestException(jqXHR.status));
+                reject(self._errorFactory.handleRestError(jqXHR.status, textStatus));
             }
         });
     });
@@ -103,16 +109,17 @@ tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
  * @param {string} path Path of the service which receives the binary data.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {ArrayBuffer} data The binary data as ArrayBuffer.
- * @return {Promise.<tutao.rest.RestException>} Provides an exception if the rest call failed.
+ * @return {Promise.<>} Resolves after finished, rejects if the rest call failed.
  */
 tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
                 resolve(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                reject(new tutao.rest.RestException(jqXHR.status));
+                reject(self._errorFactory.handleRestError(jqXHR.status, textStatus));
             }
         });
     });
@@ -122,9 +129,10 @@ tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
  * Downloads binary data.
  * @param {string} path Path of the service which provides the binary data.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<(ArrayBuffer|String|null), tutao.rest.RestException>} Provides the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Provides an exception if the rest call failed.
+ * @return {Promise.<(ArrayBuffer|String|null)>} Resolves to the binary data as ArrayBuffer or base64 coded string if the parameter base64=true is set. Rejects if the rest call failed.
  */
 tutao.rest.RestClient.prototype.getBinary = function(path, headers) {
+    var self = this;
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         // use the same trick to avoid caching (actually only needed for IE) like jquery: append a unique timestamp
@@ -138,7 +146,7 @@ tutao.rest.RestClient.prototype.getBinary = function(path, headers) {
                 if (this.status == 200) {
                     resolve(this.response ? this.response : this.responseText); // LEGACY variant for IE 8/9 which uses responseBody for base64 string data
                 } else {
-                    reject(new tutao.rest.RestException(this.status));
+                    reject(self._errorFactory.handleRestError(this.status, this.statusText));
                 }
             }
         };

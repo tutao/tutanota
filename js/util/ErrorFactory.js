@@ -1,0 +1,100 @@
+"use strict";
+
+goog.provide('tutao.util.ErrorFactory');
+
+goog.provide('tutao.AccessBlockedError');
+goog.provide('tutao.AccessDeactivatedError');
+goog.provide('tutao.AccessExpiredError');
+goog.provide('tutao.BadRequestError');
+goog.provide('tutao.InvalidDataError');
+goog.provide('tutao.InvalidSoftwareVersionError');
+goog.provide('tutao.LimitReachedError');
+goog.provide('tutao.MethodNotAllowedError');
+goog.provide('tutao.NotAuthenticatedError');
+goog.provide('tutao.NotAuthorizedError');
+goog.provide('tutao.NotFoundError');
+goog.provide('tutao.ResourceError');
+goog.provide('tutao.TechnicalError');
+goog.provide('tutao.TooManyRequestsError');
+goog.provide('tutao.ConnectionError');
+
+tutao.util.ErrorFactory = function () {
+};
+
+/**
+ * @param errorCode
+ * @param {string=} message
+ * @returns {*}
+ */
+tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message) {
+    switch (errorCode) {
+        case 0:
+            return new tutao.ConnectionError();
+        case 472:
+            return new tutao.AccessBlockedError();
+        case 470:
+            return new tutao.AccessDeactivatedError();
+        case 471:
+            return new tutao.AccessExpiredError();
+        case 400:
+            return new tutao.BadRequestError();
+        case 473:
+            return new tutao.InvalidDataError();
+        case 474:
+            return new tutao.InvalidSoftwareVersionError();
+        case 475:
+            return new tutao.LimitReachedError();
+        case 405:
+            return new tutao.MethodNotAllowedError();
+        case 401:
+            return new tutao.NotAuthenticatedError();
+        case 403:
+            return new tutao.NotAuthorizedError();
+        case 404:
+            return new tutao.NotFoundError();
+        case 429:
+            return new tutao.TooManyRequestsError();
+        case 500:
+            return new tutao.InternalServerError();
+        default:
+            return new tutao.ResourceError(errorCode + ":" + (typeof message == "string" ? message : ""));
+    }
+};
+
+
+(function () {
+    function createCustomError(message, name) {
+        function RestError(param) {
+            if (typeof param == "string") {
+                this.message = param;
+            } else {
+                this.message = message;
+            }
+            this.name = name;
+            if (Error.captureStackTrace) {
+                Error.captureStackTrace(this, RestError);
+            } else {
+                this.stack = this.name + ". " + this.message + "\n" + new Error().stack.split("\n").slice(1).join("\n"); // removes first line from stack
+            }
+        };
+        RestError.prototype = Object.create(Error.prototype);
+        RestError.prototype.constructor = RestError;
+        return RestError;
+    };
+
+    tutao.AccessBlockedError = createCustomError(472, "AccessBlockedError");
+    tutao.AccessDeactivatedError = createCustomError(470, "AccessDeactivatedError");
+    tutao.AccessExpiredError = createCustomError(471, "AccessExpiredError");
+    tutao.BadRequestError = createCustomError(400, "BadRequestError");
+    tutao.InvalidDataError = createCustomError(473, "InvalidDataError");
+    tutao.InvalidSoftwareVersionError = createCustomError(474, "InvalidSoftwareVersionError");
+    tutao.LimitReachedError = createCustomError(475, "LimitReachedError");
+    tutao.MethodNotAllowedError = createCustomError(405, "MethodNotAllowedError");
+    tutao.NotAuthenticatedError = createCustomError(401, "NotAuthenticatedError");
+    tutao.NotAuthorizedError = createCustomError(403, "NotAuthorizedError");
+    tutao.NotFoundError = createCustomError(404, "NotFoundError");
+    tutao.TooManyRequestsError = createCustomError(429, "TooManyRequestsError");
+    tutao.ResourceError = createCustomError("", "ResourceError");
+    tutao.ConnectionError = createCustomError("", "ConnectionError");
+    tutao.InternalServerError = createCustomError("", "InternalServerError");
+})();

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.CryptoException');
+goog.provide('tutao.crypto.CryptoError');
 
 /**
  * A crypto exception is thrown whenever an encryption/decryption or conversion of keys fails.
@@ -8,15 +8,15 @@ goog.provide('tutao.crypto.CryptoException');
  * @param {Error=} error The original error that was thrown.
  * @constructor
  */
-tutao.crypto.CryptoException = function(message, error) {
+tutao.crypto.CryptoError = function(message, error) {
 	this.stack = new Error().stack;
 	if (!error) {
 		this.message = message;
 	} else {
 		this.message = message + ", original message: " + error.message;
 	}
-	this.name = "CryptoException";
+	this.name = "CryptoError";
 	this.error = error;
 };
 
-goog.inherits(tutao.crypto.CryptoException, Error);
+goog.inherits(tutao.crypto.CryptoError, Error);

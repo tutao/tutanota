@@ -39,7 +39,7 @@ tutao.rest.EntityRestInterface.MAX_RANGE_COUNT = 1000;
  * @param {?string} listId The list id of the element. May be null for ETs.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to loaded element when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolves to loaded element when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.getElement = function(type, path, id, listId, parameters, headers) { };
 
@@ -50,7 +50,7 @@ tutao.rest.EntityRestInterface.prototype.getElement = function(type, path, id, l
  * @param {?Object} data The entity to send with the request (DataTransferType).
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to loaded element when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolves to loaded element when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.getService = function(type, path, data, parameters, headers) { };
 
@@ -62,7 +62,7 @@ tutao.rest.EntityRestInterface.prototype.getService = function(type, path, data,
  * @param {Array.<string>|Array.<Array.<string>>} ids The id of the elements to get.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<Array.<Object>, tutao.rest.EntityRestException>} Resolves to the list of elements when finished, rejected if the rest call failed.
+ * @return {Promise.<Array.<Object>>} Resolves to the list of elements when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.getElements = function(type, path, ids, parameters, headers) { };
 
@@ -73,7 +73,7 @@ tutao.rest.EntityRestInterface.prototype.getElements = function(type, path, ids,
  * @param {?string} listId The id of the list that shall contain the element.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<tutao.entity.base.PersistenceResourcePostReturn, tutao.rest.EntityRestException>} Resolves to return entity from the server when finished, rejected if the rest call failed.
+ * @return {Promise.<tutao.entity.base.PersistenceResourcePostReturn>} Resolves to return entity from the server when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.postElement = function(path, element, listId, parameters, headers) { };
 
@@ -84,7 +84,7 @@ tutao.rest.EntityRestInterface.prototype.postElement = function(path, element, l
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {?Object} returnType Type of the data that is returned.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to response entity from the server when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolves to response entity from the server when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.postService = function(path, element, parameters, headers, returnType) { };
 
@@ -94,7 +94,7 @@ tutao.rest.EntityRestInterface.prototype.postService = function(path, element, p
  * @param {Object} element the object to store.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.putElement = function(path, element, parameters, headers) { };
 
@@ -106,7 +106,7 @@ tutao.rest.EntityRestInterface.prototype.putElement = function(path, element, pa
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {?Object} returnType Type of the data that is returned.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to response entity from the server when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolves to response entity from the server when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.putService = function(path, element, parameters, headers, returnType) { };
 
@@ -115,7 +115,7 @@ tutao.rest.EntityRestInterface.prototype.putService = function(path, element, pa
  * @param {string} path The path including prefix, app name and type name.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<string, tutao.rest.EntityRestException>} Resolves to the id of the newly created list when finished, rejected if the rest call failed.
+ * @return {Promise.<string>} Resolves to the id of the newly created list when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.postList = function(path, parameters, headers) { };
 
@@ -129,7 +129,7 @@ tutao.rest.EntityRestInterface.prototype.postList = function(path, parameters, h
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<Array.<Object>, tutao.rest.EntityRestException>} Resolves to the the loaded elements when finished, rejected if the rest call failed.
+ * @return {Promise.<Array.<Object>>} Resolves to the the loaded elements when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers) { };
 
@@ -140,7 +140,7 @@ tutao.rest.EntityRestInterface.prototype.getElementRange = function(type, path, 
  * @param {?string} listId An optional list id. Use it to pass the list id of LETs.
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.deleteElement = function(path, id, listId, parameters, headers) { };
 
@@ -151,7 +151,7 @@ tutao.rest.EntityRestInterface.prototype.deleteElement = function(path, id, list
  * @param {?Object} parameters The parameters to send with this request.
  * @param {?Object.<string, string>} headers A map with header key/value pairs to send with the request.
  * @param {?Object} returnType Type of the data that is returned.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to response entity from the server when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolves to response entity from the server when finished, rejected if the rest call failed.
  */
 tutao.rest.EntityRestInterface.prototype.deleteService = function(path, element, parameters, headers, returnType) { };
 

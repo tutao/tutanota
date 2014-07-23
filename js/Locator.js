@@ -171,6 +171,9 @@ tutao.Locator.prototype.reset = function() {
 	var self = this;
 	for (var serviceName in this._services) {
 		var Constructor = this._services[serviceName];
+        if (typeof Constructor == "undefined") {
+            throw new Error("failed to create " + serviceName);
+        }
 		self[serviceName] = new Constructor();
 	}
 
