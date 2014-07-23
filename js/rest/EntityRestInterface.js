@@ -187,3 +187,29 @@ tutao.rest.EntityRestInterface.stringToCustomId = function(string) {
 tutao.rest.EntityRestInterface.customIdToString = function(customId) {
 	return tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(customId)));
 };
+
+/**
+ * Returns the element id from the specified element
+ * @param {object} element The element
+ * @returns {string} The element id
+ */
+tutao.rest.EntityRestInterface.getElementId = function(element) {
+    if (element.__id instanceof Array) {
+        return element.__id[1];
+    } else {
+        return element.__id;
+    }
+};
+
+/**
+ * Returns the list id of the specified element if it is a LET otherwise "0" returns.
+ * @param {Object} element The element
+ * @returns {string} The list id
+ */
+tutao.rest.EntityRestInterface.getListId = function(element) {
+    if (element.__id instanceof Array) {
+        return element.__id[0];
+    } else {
+        return "0";
+    }
+};
