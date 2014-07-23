@@ -53,7 +53,7 @@ AsyncTestCase("RsaTest", {
 				var publicKey = facade.hexToKey(hexPublicKey);
 				fail("illegal key, an exception should occur!");
 			} catch (e) {
-				assertInstanceOf(tutao.crypto.CryptoException, e);
+				assertInstanceOf(tutao.crypto.CryptoError, e);
 				finalCallback();
 			}
 		});
@@ -126,7 +126,7 @@ AsyncTestCase("RsaTest", {
 			facade.encryptAesKey(publicKey, plain, function(encrypted, exception) {
 				assertUndefined(exception);
 				facade.decryptAesKey(privateKey, encrypted, function(decrypted, exception) {
-					assertInstanceOf(tutao.crypto.CryptoException, exception);
+					assertInstanceOf(tutao.crypto.CryptoError, exception);
 					finalCallback();
 				});
 			});
@@ -147,7 +147,7 @@ AsyncTestCase("RsaTest", {
 			facade.encryptAesKey(publicKey, plain, function(encrypted, exception) {
 				assertUndefined(exception);
 				facade.decryptAesKey(privateKey, encrypted + "hello", function(decrypted, exception) {
-					assertInstanceOf(tutao.crypto.CryptoException, exception);
+					assertInstanceOf(tutao.crypto.CryptoError, exception);
 					assertEquals(null, decrypted);
 					finalCallback();
 				});

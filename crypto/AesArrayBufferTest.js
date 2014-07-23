@@ -129,7 +129,7 @@ AesArrayBufferTest.prototype.testEncryptInvalidIvLength = function(queue) {
 		facade._encryptArrayBuffer(key, arrayBuffer, iv, callbacks.add(function(encrypted, exception) {
 			assertNull(encrypted);
 			assertNotNull(exception);
-			assertInstanceOf(tutao.crypto.CryptoException, exception);
+			assertInstanceOf(tutao.crypto.CryptoError, exception);
 		}));
 	});
 };
@@ -143,7 +143,7 @@ AesArrayBufferTest.prototype.testEncryptInvalidKey = function(queue) {
 		facade.encryptArrayBuffer(key, arrayBuffer, callbacks.add(function(encrypted, exception) {
 			assertNull(encrypted);
 			assertNotNull(exception);
-			assertInstanceOf(tutao.crypto.CryptoException, exception);
+			assertInstanceOf(tutao.crypto.CryptoError, exception);
 		}));
 	});
 };
@@ -166,7 +166,7 @@ AesArrayBufferTest.prototype.testDecryptInvalidKey = function(queue) {
 		facade.decryptArrayBuffer(key, arrayBuffer, 10, callbacks.add(function(encrypted, exception) {
 			assertNull(encrypted);
 			assertNotNull(exception);
-			assertInstanceOf(tutao.crypto.CryptoException, exception);
+			assertInstanceOf(tutao.crypto.CryptoError, exception);
 		}));
 	});
 };
@@ -180,7 +180,7 @@ AesArrayBufferTest.prototype.testDecryptInvalidSrcBufferLen = function(queue) {
 		facade.decryptArrayBuffer(key, encrypted, 2, callbacks.add(function(decrypted, exception) {
 			assertNull(decrypted);
 			assertNotNull(exception);
-			assertInstanceOf(tutao.crypto.CryptoException, exception);
+			assertInstanceOf(tutao.crypto.CryptoError, exception);
 		}));
 	});
 };
@@ -194,7 +194,7 @@ AesArrayBufferTest.prototype.testDecryptInvalidDstBufferLen = function(queue) {
 		facade.decryptArrayBuffer(key, encrypted, 4, callbacks.add(function(decrypted, exception) {
 			assertNull(decrypted);
 			assertNotNull(exception);
-			assertInstanceOf(tutao.crypto.CryptoException, exception);
+			assertInstanceOf(tutao.crypto.CryptoError, exception);
 		}));
 	});
 };
@@ -211,7 +211,7 @@ AesArrayBufferTest.prototype.testDecryptInvalidEncrypted = function(queue) {
 			facade.decryptArrayBuffer(key, encrypted, 10, callbacks.add(function(decrypted, exception) {
 				assertNull(decrypted);
 				assertNotNull(exception);
-				assertInstanceOf(tutao.crypto.CryptoException, exception);
+				assertInstanceOf(tutao.crypto.CryptoError, exception);
 			}));
 		}));
 	});
@@ -227,7 +227,7 @@ AesArrayBufferTest.prototype.testDecryptInvalidDecryptedSize = function(queue) {
 			facade.decryptArrayBuffer(key, encrypted, 11, callbacks.add(function(decrypted, exception) {
 				assertNull(decrypted);
 				assertNotNull(exception);
-				assertInstanceOf(tutao.crypto.CryptoException, exception);
+				assertInstanceOf(tutao.crypto.CryptoError, exception);
 			}));
 		}));
 	});
@@ -396,7 +396,7 @@ AesArrayBufferTest.prototype._base64Roundtrip = function(facade, key, arrayBuffe
 //		var facade = self._getFacade();
 //		assertException(function() {
 //			facade.decryptArray();
-//		}, tutao.crypto.CryptoException);
+//		}, tutao.crypto.CryptoError);
 //	});
 //};
 //
