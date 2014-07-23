@@ -28,8 +28,6 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel = function() {
     this.verifyDomainStatus = ko.computed(function() {
         if (this.state() === tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_RUNNING) {
             return { type: "neutral", text: "verifyDomainRunning_msg" };
-        } else if (this.state() === tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED) {
-            return { type: "invalid", text: "verifyDomainFailure_msg" };
         } else {
             return { type: "neutral", text: "verifyDomainNeutral_msg" };
         }
@@ -39,7 +37,6 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel = function() {
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_NOT_RUNNING = 0;
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_RUNNING = 1;
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED = 2;
-tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED = 3;
 tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED = 4;
 
 /**
@@ -96,8 +93,9 @@ tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.prototype.verifyDomain = f
         .setup({}, null).then(function(returnData, exception) {
             self.verificationMailSent = returnData.getMailSent();
             self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED);
-        }).caught(function(exception) {
-            self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FAILED);
+        }).caught(function(e) {
+            self.state(tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_NOT_RUNNING);
+            throw e;
         });
 };
 

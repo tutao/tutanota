@@ -41,8 +41,6 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
                     } else {
                         self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
                     }
-                }).caught(function(exception) {
-                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
                 });
             }
         }
@@ -136,7 +134,9 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
             self.mailAddressPrefix(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
             self.mobileNumber(data.getMobilePhoneNumber());
             self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
-        }).caught(function (exception) {
+        }).caught(tutao.NotFoundError, function (exception) {
+            self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
+        }).caught(tutao.BadRequestError, function (exception) {
             self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
         });
     } else {
@@ -494,9 +494,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressFree = fun
                         self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
                     }
                 }
-            }).caught(function (exception) {
+            }).caught(tutao.AccessDeactivatedError, function (exception) {
                 self.mailAddressStatus({ type: "invalid", text: "mailAddressDelay_msg"});
-                throw exception;
             });
         }
     }, 500);
