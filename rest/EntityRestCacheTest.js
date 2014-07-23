@@ -32,15 +32,14 @@ EntityRestCacheTest.prototype.testLoadRangeFromMin = function(queue) {
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from min expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
             var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-            self.getElementRange( listId,startElementId, 10, false, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId,startElementId, 10, false).then(callbacks.add(function(loadedElements) {
                 assertEquals(10, loadedElements.length);
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, expectedTargetStartElementId, 10, false);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 10, false);
                 self.checkEntityRestCache(localListId, 10, startElementId,  self.getElementId(localMailElements[9]));
                 assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
                 assertEquals(self.getElementId(localMailElements[9]), self.getLastCachedElementRangeId(localListId));
@@ -51,8 +50,7 @@ EntityRestCacheTest.prototype.testLoadRangeFromMin = function(queue) {
     queue.call('Step 2: load range from min expecting to get elements from cache - all requested elements are stored in cache', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-        self.getElementRange( localListId, startElementId, 10, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId, startElementId, 10, false).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);// No calls to target expected
             self.checkEntityRestCache(localListId, 10, startElementId,  self.getElementId(localMailElements[9]));
@@ -64,8 +62,7 @@ EntityRestCacheTest.prototype.testLoadRangeFromMin = function(queue) {
     queue.call('Step 3: load range from min expecting to get elements from cache - request more elements than available in cache', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId); // Expected start element is the last element of the cached mail elements.
-        self.getElementRange(localListId, startElementId, 11, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, false).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, false );
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);
@@ -82,15 +79,14 @@ EntityRestCacheTest.prototype.testLoadRangeFromMax = function(queue) {
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from max expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
             var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-            self.getElementRange( listId, startElementId, 10, true, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 10, true).then(callbacks.add(function(loadedElements) {
                 assertEquals(10, loadedElements.length);
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, expectedTargetStartElementId, 10, true);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 10, true);
                 self.checkEntityRestCache(localListId, 10, self.getElementId(localMailElements[0]), startElementId);
                 assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
                 assertEquals(self.getElementId(localMailElements[9]), self.getLastCachedElementRangeId(localListId));
@@ -101,8 +97,7 @@ EntityRestCacheTest.prototype.testLoadRangeFromMax = function(queue) {
     queue.call('Step 2: load range from max expecting to get elements from cache - all requested elements are stored in cache', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId); // Expected start element is the last element of the cached mail elements.
-        self.getElementRange( localListId, startElementId, 10, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId, startElementId, 10, true).then( callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy); // No calls to target expected
             self.checkEntityRestCache(localListId, 10, self.getElementId(localMailElements[0]), startElementId);
@@ -114,8 +109,7 @@ EntityRestCacheTest.prototype.testLoadRangeFromMax = function(queue) {
     queue.call('Step 3: load range from may expecting to get elements from cache - request more elements than available in cache', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId); // Expected start element is the last element of the cached mail elements.
-        self.getElementRange(localListId, startElementId, 11, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, true).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, true );
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);
@@ -134,18 +128,17 @@ EntityRestCacheTest.prototype.testExtendRangeFromMin = function(queue) {
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from min - expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
             var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-            self.getElementRange( listId, startElementId, 2, false, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 2, false).then(callbacks.add(function(loadedElements) {
                 assertEquals(2, loadedElements.length);
                 self.checkEntityRestCache(localListId, 2, startElementId,  self.getElementId(localMailElements[1]));
                 assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
                 assertEquals(self.getElementId(localMailElements[1]), self.getLastCachedElementRangeId(localListId));
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, expectedTargetStartElementId, 2, false);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, false);
             }));
         }))
     });
@@ -153,8 +146,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMin = function(queue) {
     queue.call('Step 2: load range from min - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange( localListId , startElementId, 3, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId , startElementId, 3, false).then(callbacks.add(function(loadedElements) {
             assertEquals(3, loadedElements.length);
             self.checkEntityRestCache(localListId, 3, startElementId,  self.getElementId(localMailElements[2]));
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -167,8 +159,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMin = function(queue) {
     queue.call('Step 3: load range from min - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 8, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 8, false).then(callbacks.add(function(loadedElements) {
             assertEquals(8, loadedElements.length);
             self.checkEntityRestCache(localListId, 8, startElementId,  self.getElementId(localMailElements[7]));
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -181,8 +172,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMin = function(queue) {
     queue.call('Step 4: load range from min - request more elements than available - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, false).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.checkEntityRestCache(localListId, 10, startElementId,  self.getElementId(localMailElements[9]));
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -195,8 +185,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMin = function(queue) {
     queue.call('Step 5: load range from min - request more elements than available - expecting to request target', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, false).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.checkEntityRestCache(localListId, 10, startElementId,  self.getElementId(localMailElements[9]));
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -214,13 +203,12 @@ EntityRestCacheTest.prototype.testExtendRangeFromFirstElement = function(queue) 
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from first element - expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = self.getElementId(localMailElements[0]) ;
             var expectedTargetStartElementId = self.getElementId(localMailElements[0]) ;
-            self.getElementRange( localListId, startElementId, 2, false, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 2, false).then(callbacks.add(function(loadedElements) {
                 assertEquals(2, loadedElements.length);
                 self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, false);
                 self.checkEntityRestCache(localListId, 2, startElementId, self.getElementId(localMailElements[2]) );
@@ -234,8 +222,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromFirstElement = function(queue) 
     queue.call('Step 2: load range from first cached element - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getFirstCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange( localListId, startElementId, 3, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId, startElementId, 3, false).then(callbacks.add(function(loadedElements) {
             assertEquals(3, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, false);
             self.checkEntityRestCache(localListId, 4, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[4]) );  // Requested start element is the first element from cache therefore cache is increased by two values
@@ -248,8 +235,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromFirstElement = function(queue) 
     queue.call('Step 3: load range from first cached element - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getFirstCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 8, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 8, false).then(callbacks.add(function(loadedElements) {
             assertEquals(8, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 5, false );
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
@@ -262,8 +248,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromFirstElement = function(queue) 
     queue.call('Step 4: load range from first cached element - request more elements than available - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getFirstCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, false).then(callbacks.add(function(loadedElements) {
             assertEquals(8, loadedElements.length); // only 8 elements are loaded because start element is not returned
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3 , false );
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
@@ -276,8 +261,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromFirstElement = function(queue) 
     queue.call('Step 5: load range from first - request more elements than available - expecting to request target', function(callbacks) {
         var startElementId = self.getElementId(localMailElements[0]); // Change the start element id
         var expectedTargetStartElementId = self.getLastCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, false, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, false).then(callbacks.add(function(loadedElements) {
             assertEquals(9, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, false );
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
@@ -295,13 +279,12 @@ EntityRestCacheTest.prototype.testExtendRangeFromLastElement = function(queue) {
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from last element - expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = self.getElementId(localMailElements[9]); // last element in mail list
             var expectedTargetStartElementId = self.getElementId(localMailElements[9]) ;
-            self.getElementRange( localListId, startElementId, 2, true, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 2, true).then(callbacks.add(function(loadedElements, e) {
                 assertEquals(2, loadedElements.length);
                 self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, true);
                 self.checkEntityRestCache(localListId, 2, self.getElementId(localMailElements[7]), self.getElementId(localMailElements[9]));
@@ -315,8 +298,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromLastElement = function(queue) {
     queue.call('Step 2: load range from last cached element - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getLastCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange( localListId, startElementId, 3, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId, startElementId, 3, true).then(callbacks.add(function(loadedElements, e) {
             assertEquals(3, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, true);
             self.checkEntityRestCache(localListId, 4, self.getElementId(localMailElements[5]), self.getElementId(localMailElements[9]) );  // Requested start element is the last element from cache therefore cache is increased by two values
@@ -329,8 +311,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromLastElement = function(queue) {
     queue.call('Step 3: load range from last cached element - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getLastCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 8, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 8, true).then(callbacks.add(function(loadedElements, e) {
             assertEquals(8, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 5, true );
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );
@@ -343,8 +324,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromLastElement = function(queue) {
     queue.call('Step 4: load range from last cached element - request more elements than available - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = self.getLastCachedElementRangeId(localListId) ;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, true).then(callbacks.add(function(loadedElements, e) {
             assertEquals(8, loadedElements.length); // only 8 elements are available because start element does not return
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3, true );
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );
@@ -357,8 +337,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromLastElement = function(queue) {
     queue.call('Step 5: load range from last element - request more elements than available - expecting to request target', function(callbacks) {
         var startElementId = self.getElementId(localMailElements[9]); // last element in mail list
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, true).then(callbacks.add(function(loadedElements, e) {
             assertEquals(9, loadedElements.length);
             self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, true);
             self.checkEntityRestCache(localListId, 9, self.getElementId(localMailElements[0]), self.getElementId(localMailElements[9]) );
@@ -376,22 +355,20 @@ EntityRestCacheTest.prototype.testExtendRangeFromOutsideElementMaxId = function(
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from min expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
-            self.getElementRange( listId,tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 10, false, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
+            return self.getElementRange( localListId,tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 10, false).then(callbacks.add(function(loadedElements, e) {
                 assertEquals(10, loadedElements.length);
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 10, false);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, 10, false);
             }));
         }))
     });
 
     queue.call('Step 2: load range from max - not allowed', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-        self.getElementRange( localListId, startElementId, 5, true, callbacks.add(function(loadedElements, e) {
+        return self.getElementRange( localListId, startElementId, 5, true).caught(callbacks.add(function(e) {
             assertNotUndefined(e);
-            assertNull(loadedElements);
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);// No calls to target expected
         }));
     });
@@ -402,23 +379,21 @@ EntityRestCacheTest.prototype.testExtendRangeFromOutsideElementMinId = function(
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from max expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-            self.getElementRange( listId, startElementId, 10, true, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 10, true).then(callbacks.add(function(loadedElements) {
                 assertEquals(10, loadedElements.length);
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, startElementId, 10, true);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, startElementId, 10, true);
             }));
         }))
     });
 
     queue.call('Step 2: load range from min - not allowed', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-        self.getElementRange( localListId, startElementId, 5, false, callbacks.add(function(loadedElements, e) {
+        return self.getElementRange( localListId, startElementId, 5, false).caught(callbacks.add(function(e) {
             assertNotUndefined(e);
-            assertNull(loadedElements);
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);// No calls to target expected
         }));
     });
@@ -431,23 +406,21 @@ EntityRestCacheTest.prototype.testExtendRangeFromOutsideElementId = function(que
     var localListId = "";
     var localMailElements = [];
     queue.call('Step 1: load range from element expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[2]);
-            self.getElementRange( listId, startElementId, 5, false, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 5, false).then(callbacks.add(function(loadedElements) {
                 assertEquals(5, loadedElements.length);
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, startElementId, 5, false);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, startElementId, 5, false);
             }));
         }))
     });
 
     queue.call('Step 2: load range from outer range element - not allowed', function(callbacks) {
-        var startElementId = tutao.rest.EntityRestInterface.getElementId[localMailElements[8]];
-        self.getElementRange( localListId, startElementId, 5, true, callbacks.add(function(loadedElements, e) {
+        var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[8]);
+        return self.getElementRange( localListId, startElementId, 5, true).caught(callbacks.add(function(e) {
             assertNotUndefined(e);
-            assertNull(loadedElements);
             JsMockito.verifyNoMoreInteractions(self.entityRestSpy);// No calls to target expected
         }));
     });
@@ -463,18 +436,17 @@ EntityRestCacheTest.prototype.testExtendRangeFromMax = function(queue) {
 
 
     queue.call('Step 1: load range from max - expecting to get elements from target', function(callbacks) {
-        self.initMailElements(callbacks, callbacks.add(function(listId, mailElements) {
-            localListId = listId;
-            localMailElements = mailElements;
+        return self.initMailElements(callbacks).then(callbacks.add(function(testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
             var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-            self.getElementRange( listId, startElementId, 2, true, callbacks.add(function(loadedElements, e) {
-                assertUndefined(e);
+            return self.getElementRange( localListId, startElementId, 2, true).then(callbacks.add(function(loadedElements) {
                 assertEquals(2, loadedElements.length);
                 self.checkEntityRestCache(localListId, 2, self.getElementId(localMailElements[8]), startElementId);
                 assertEquals(self.getElementId(localMailElements[8]), self.getFirstCachedElementRangeId(localListId));
                 assertEquals(self.getElementId(localMailElements[9]), self.getLastCachedElementRangeId(localListId));
-                self.verifyGetElementRange(JsMockito.Verifiers.once(), listId, expectedTargetStartElementId, 2, true);
+                self.verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, true);
             }));
         }))
     });
@@ -482,8 +454,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMax = function(queue) {
     queue.call('Step 2: load range from max - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange( localListId , startElementId, 3, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange( localListId , startElementId, 3, true).then(callbacks.add(function(loadedElements) {
             assertEquals(3, loadedElements.length);
             self.checkEntityRestCache(localListId, 3, self.getElementId(localMailElements[7]), startElementId);
             assertEquals(self.getElementId(localMailElements[7]), self.getFirstCachedElementRangeId(localListId));
@@ -496,8 +467,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMax = function(queue) {
     queue.call('Step 3: load range from max - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 8, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 8, true).then(callbacks.add(function(loadedElements) {
             assertEquals(8, loadedElements.length);
             self.checkEntityRestCache(localListId, 8, self.getElementId(localMailElements[2]), startElementId);
             assertEquals(self.getElementId(localMailElements[2]), self.getFirstCachedElementRangeId(localListId));
@@ -510,8 +480,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMax = function(queue) {
     queue.call('Step 4: load range from min - request more elements than available - expecting to get elements from cache and target - extend the range', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, true).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.checkEntityRestCache(localListId, 10, self.getElementId(localMailElements[0]), startElementId);
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -524,8 +493,7 @@ EntityRestCacheTest.prototype.testExtendRangeFromMax = function(queue) {
     queue.call('Step 5: load range from min - request more elements than available - expecting to request target', function(callbacks) {
         var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
         var expectedTargetStartElementId = self.getFirstCachedElementRangeId(localListId);
-        self.getElementRange(localListId, startElementId, 11, true, callbacks.add(function(loadedElements, e) {
-            assertUndefined(e);
+        return self.getElementRange(localListId, startElementId, 11, true).then(callbacks.add(function(loadedElements) {
             assertEquals(10, loadedElements.length);
             self.checkEntityRestCache(localListId, 10, self.getElementId(localMailElements[0]), startElementId);
             assertEquals(self.getElementId(localMailElements[0]), self.getFirstCachedElementRangeId(localListId));
@@ -573,11 +541,11 @@ EntityRestCacheTest.prototype.getElementId = function (element){
  * @param {string} start The id from where to start to get elements.
  * @param {number} count The maximum number of elements to load.
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
- * @param {function(?Array.<Object>, tutao.rest.RestException=)} callback Called when finished with the loaded elements or an exception.
+ * @param {Promise.<Array.<Object>>} Resolves to the loaded elements.
  */
 
-EntityRestCacheTest.prototype.getElementRange = function ( listId, start, count, reverse, callback ){
-    tutao.locator.entityRestClient.getElementRange( tutao.entity.tutanota.Mail,tutao.entity.tutanota.Mail.PATH, listId,start, count,reverse,{},tutao.entity.EntityHelper.createAuthHeaders(), callback);
+EntityRestCacheTest.prototype.getElementRange = function ( listId, start, count, reverse ){
+    return tutao.locator.entityRestClient.getElementRange( tutao.entity.tutanota.Mail,tutao.entity.tutanota.Mail.PATH, listId,start, count,reverse,{},tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 
@@ -596,24 +564,22 @@ EntityRestCacheTest.prototype.verifyGetElementRange = function (verifier, listId
 
 
 
-EntityRestCacheTest.prototype.initMailElements = function(testCallbacks, callback) {
+EntityRestCacheTest.prototype.initMailElements = function(testCallbacks) {
     var self = this;
     var mailList = EntityRestCacheTest.createMailElements(10);
     var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
 
-    tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception1) {
-        assertUndefined(exception1);
+    return tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(testCallbacks.add(function(returnEntity) {
         var listId = returnEntity.getGeneratedId();
-        for( var i =0; i< mailList.length; i++){
-            var mailElement = mailList[i];
+        return Promise.each(mailList, function(mailElement){
             var elementParams = EntityRestTestFunctions.getVersionParams(mailElement._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
-            tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mailElement, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders(), testCallbacks.add(function(returnEntity, exception2) {
-                assertUndefined(exception2);
+            return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mailElement, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders()).then(testCallbacks.add(function(returnEntity) {
             }));
-        }
-        JsMockito.verify(self.entityRestSpy, JsMockito.Verifiers.once()).postList();
-        JsMockito.verify(self.entityRestSpy, JsMockito.Verifiers.times(mailList.length)).postElement();
-        callback(listId, mailList);
+        }).then(testCallbacks.add(function() {
+            JsMockito.verify(self.entityRestSpy, JsMockito.Verifiers.once()).postList();
+            JsMockito.verify(self.entityRestSpy, JsMockito.Verifiers.times(mailList.length)).postElement();
+            return {mailListId: listId, mailList: mailList};
+        }));
     }));
 };
 
