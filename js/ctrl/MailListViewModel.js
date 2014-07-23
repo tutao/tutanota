@@ -68,7 +68,8 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	this.mailToShow = null;
     this.loading = ko.observable(false);
     this.deleting = ko.observable(false);
-
+    this.loadingMore = ko.observable(false);
+    this.currentRangeCount = 0;
 
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
@@ -85,6 +86,13 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
         return ((this.mails().length == 0) && this.loading()) || this.deleting();
     }, this);
 };
+
+
+/**
+ * The initial number of elements requested at login
+ * @const
+ */
+tutao.tutanota.ctrl.MailListViewModel.INITIAL_RANGE_COUNT = 100;
 
 /**
  * Initialize the MailListViewModel:
@@ -112,7 +120,11 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 //			}
 //		}
 //	});
-	tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(mails, exception) {
+
+
+    this.currentRangeCount = tutao.tutanota.ctrl.MailListViewModel.INITIAL_RANGE_COUNT;
+
+	tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, this.currentRangeCount, true, function(mails, exception) {
 		// execute the tag filters, then update the mail list, then register the event tracker for mails
 		// it is important to update the filter results in the tag id order because the mails may only appear in the first list that fits
 		self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID, function() {
@@ -162,6 +174,14 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function(callback) {
 		});
 	});
 };
+
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
+    var self = this;
+    this.loadingMore(true);
+    setTimeout(function(){self.loadingMore(false);}, 2000);
+};
+
 
 /**
  * Provides the string to show in the mail list of the given mail for the sender/recipient field.

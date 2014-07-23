@@ -155,7 +155,23 @@ body {
           &.belowSearch {
             top: @button-bar-height;
           }
+          > div.loadMoreElement{
+            display: table;
+            width: 100%;
+            height: 49px;
+            border-bottom: 1px solid @border-dark;
+            padding-left: @padding;
+            padding-right: @padding;
+            cursor: pointer;
+            > div {
+              display: table-cell;
+            }
+            > img {
+              display: table-cell;
+            }
+          }
         }
+
 	}
 	
 	div#searchAndContactListColumn {

@@ -540,6 +540,10 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
+                        <div class="loadMoreElement" data-bind="click: loadMoreMails, visible: (mails().length > 0)">
+                            <div data-bind="text: tutao.lang('loadMoresMails_action')"></div>
+                            <img src="graphics/busy.gif" data-bind="visible: loadingMore()" />
+                        </div>
                         <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)  && !loading()"></div>
                         <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
                             <div class="spinner" class="defaultMargin">

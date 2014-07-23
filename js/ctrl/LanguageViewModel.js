@@ -149,6 +149,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
     changeNotificationMailLanguage_msg: "Language of notification email:",
     search_title: "Search",
+    loadMoresMails_action: "Load more emails",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -570,6 +571,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
     changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
     search_title: "Suche",
+    loadMoresMails_action: "Weitere E-Mails laden.",
 
 
 	// contact
