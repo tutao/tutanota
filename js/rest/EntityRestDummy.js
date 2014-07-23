@@ -137,16 +137,16 @@ tutao.rest.EntityRestDummy.prototype.deleteService = function(path, element, par
  * @protected
  */
 tutao.rest.EntityRestDummy.prototype._addToCache = function(path, element) {
-    var listId = tutao.rest.EntityRestInterface.getListId(element);
+    var listId = tutao.rest.EntityRestDummy.getListId(element);
     var elementId = tutao.rest.EntityRestInterface.getElementId(element);
     var listData = this._getListData(path,listId);
     for(var i=0; i<listData.length; i++){
         var listElement = listData[i];
-        if ( elementId < tutao.rest.EntityRestInterface.getElementId(listElement)){
+        if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(tutao.rest.EntityRestInterface.getElementId(listElement),elementId)) {
             listData.splice(i, 0, element);
             return;
         }
-        if ( elementId == tutao.rest.EntityRestInterface.getElementId(listElement)){
+        if (elementId == tutao.rest.EntityRestInterface.getElementId(listElement)) {
             listData.splice(i, 1, element);
             return;
         }
@@ -164,15 +164,13 @@ tutao.rest.EntityRestDummy.prototype._addToCache = function(path, element) {
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
  */
 tutao.rest.EntityRestDummy.prototype._provideFromCache = function(path, listId, start, count, reverse) {
+	tutao.util.Assert.assert(count >= 0, "count is negative");
     var listData = this._getListData(path, listId);
     var result = [];
     if (reverse) {
         for (var i = listData.length - 1; i >= 0; i--) {
-            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start,tutao.rest.EntityRestInterface.getElementId(listData[i]))) {
+            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, tutao.rest.EntityRestInterface.getElementId(listData[i]))) {
                 var startIndex = i + 1 - count;
-                if (count < 0) {
-                    count = 0;
-                }
                 if(startIndex < 0){
                     startIndex = 0;
                 }
@@ -183,7 +181,7 @@ tutao.rest.EntityRestDummy.prototype._provideFromCache = function(path, listId, 
         }
     } else {
         for (var i = 0; i < listData.length; i++) {
-            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond( tutao.rest.EntityRestInterface.getElementId(listData[i]), start)) {
+            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(tutao.rest.EntityRestInterface.getElementId(listData[i]), start)) {
                 result = listData.slice(i, i + count);
                 break;
             }
@@ -200,3 +198,15 @@ tutao.rest.EntityRestDummy.prototype._getListData = function(path, listId){
 };
 
 
+/**
+ * Returns the list id of the specified element if it is a LET otherwise "0" returns.
+ * @param {Object} element The element
+ * @returns {string} The list id
+ */
+tutao.rest.EntityRestDummy.getListId = function(element) {
+    if (element.__id instanceof Array) {
+        return element.__id[0];
+    } else {
+        return "0";
+    }
+};

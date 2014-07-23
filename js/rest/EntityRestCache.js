@@ -147,7 +147,7 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
  */
 tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
 	if (element.__id instanceof Array) {
-        var listId = tutao.rest.EntityRestInterface.getListId(element);
+        var listId = tutao.rest.EntityRestCache.getListId(element);
         var elementId = tutao.rest.EntityRestInterface.getElementId(element);
         var allRange = this._db[path][listId]['allRange'];
 
@@ -208,7 +208,7 @@ tutao.rest.EntityRestCache.prototype.postService = function(path, element, param
  * @protected
  */
 tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
-	var cacheListId = tutao.rest.EntityRestInterface.getListId(element);
+	var cacheListId = tutao.rest.EntityRestCache.getListId(element);
 	var id = tutao.rest.EntityRestInterface.getElementId(element);
 	this._getListData(path, cacheListId)['entities'][id] = element;
 };
@@ -221,7 +221,7 @@ tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parame
 	var self = this;
 	this._target.putElement(path, element, parameters, headers, function(exception) {
 		if (!exception) {
-            var cacheListId = tutao.rest.EntityRestInterface.getListId(element);
+            var cacheListId = tutao.rest.EntityRestCache.getListId(element);
             var id = tutao.rest.EntityRestInterface.getElementId(element);
 			if (!self._db[path] || !self._db[path][cacheListId] || !self._db[path][cacheListId]['entities'][id]) {
 				// this should not happen. it means that the target and this cache are out of sync.
@@ -266,11 +266,6 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 			callback(elements);
 		});
 	} else if (!listData['allRange']) {
-		// there was no range loaded up to now. we can not load the range earlier than now (or in getElement) because
-		// we need the type argument to create the elements. Any posts that my have come earlier still need to go into the
-		// cache because the target does not return them if it is a dummy. So add all elements to the range that are
-		// already in the cache
-		// load all elements (i.e. up to 1000000)
 		this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers, function(elements, exception) {
 			if (exception) {
 				callback(null, exception);
@@ -283,22 +278,16 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		});
 	} else if (this._isStartInRange(path, listId, start)){ // check if the requested start element is located in range
        // count the numbers of elements that are already in allRange to determine the number of elements to read
-        this._getNumberOfElementsToRead( path, listId, start, count, reverse, function (values, exception) {
-            if (exception) {
-               callback(null, exception);
-               return;
-            }
-            var newStart = values[0];
-            var newCount = values[1];
+        this._getNumberOfElementsToRead( path, listId, start, count, reverse, function (newStart, newCount,  exception) {
             if ( newCount > 0 ){
                 self._target.getElementRange(type, path, listId, newStart, newCount, reverse, parameters, headers, function(elements, exception) {
-                if (exception) {
-                    callback(null, exception);
-                    return;
-                }
-                self._handleElementRangeResult(path, listId, start, count, reverse, elements, callback);
-            });
-            }else{
+	                if (exception) {
+	                    callback(null, exception);
+	                    return;
+	                }
+	                self._handleElementRangeResult(path, listId, start, count, reverse, elements, callback);
+	            });
+            } else {
                 // all elements are located in cache.
                 callback(self._provideFromCache(path, listId, start, count, reverse));
             }
@@ -313,28 +302,25 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path, listId, start, count, reverse, elements, callback) {
     var listData = this._getListData(path, listId);
     var elementsToAdd = elements;
+	if ( elements.length > 0){
+		// Ensure that elements are cached in ascending (not reverse) order
+		if (reverse){
+		    elementsToAdd = elements.reverse();
+		    // After reversing the list the first element in the list is the lower range limit
+	        listData.lowerRangeId = elements[0].__id[1];
+		} else{
+		    // Last element in the list is the upper range limit
+	        listData.upperRangeId = elements[elements.length -1].__id[1];
+		}
 
-    // Ensure that elements are cached in ascending (not reverse) order
-    if (reverse){
-        elementsToAdd = elements.reverse();
-        // After reversing the list the first element in the list is the lower range limit
-        if ( elements.length > 0 ){
-            listData.lowerRangeId = elements[0].__id[1];
-        }
-    } else{
-        // Last element in the list is the upper range limit
-        if (elements.length > 0 ){
-            listData.upperRangeId = elements[elements.length -1].__id[1];
-        }
-    }
-
-    for (var i = 0; i < elementsToAdd.length; i++) {
-        // add the elements to cache
-        this._addToCache(path, elementsToAdd[i]);
-        // add the elements to the range
-        this._tryAddToRange(path, elementsToAdd[i]);
-    }
-    callback(this._provideFromCache(path, listId, start, count, reverse));
+		for (var i = 0; i < elementsToAdd.length; i++) {
+		    // add the elements to cache
+		    this._addToCache(path, elementsToAdd[i]);
+		    // add the elements to the range
+		    this._tryAddToRange(path, elementsToAdd[i]);
+		}
+	} 
+	callback(this._provideFromCache(path, listId, start, count, reverse));	
 };
 
 
@@ -358,13 +344,13 @@ tutao.rest.EntityRestCache.prototype._isStartInRange = function(path, listId, st
  * @param {string} start The id from where to start to get elements.
  * @param {number} count The maximum number of elements to load.
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
- * @param {function(?Array.<Object>, tutao.entity.InvalidDataException=)} callback Called when finished first element in the array holds the start value second value the new count value.
+ * @param {function(string, number} callback Called when finished first element is the start value second value the new count value.
  */
 tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path, listId, start, count, reverse, callback) {
     var listCache = tutao.locator.entityRestClient._db[path][listId];
     var allRangeList = listCache['allRange'];
     var elementsToRead = count;
-    var startElement = start;
+    var startElementId = start;
 
     var indexOfStart = allRangeList.indexOf(start);
     if ( allRangeList.length == 0){ // Element range is empty read all elements
@@ -372,30 +358,25 @@ tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path,
     } else if ( indexOfStart != -1 ){ // Start element is located in allRange read only elements that are not in allRange.
         if (reverse ){
             elementsToRead = count - indexOfStart;
-            startElement = allRangeList[0]; // use the lowest id in allRange as start element
+            startElementId = allRangeList[0]; // use the lowest id in allRange as start element
         } else {
             elementsToRead = count - (allRangeList.length -1 - indexOfStart);
-            startElement = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
+            startElementId = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
         }
     } else if (listCache["lowerRangeId"] == start) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID
         if ( !reverse ){ // if not reverse read only elements that are not in allRange
-            startElement = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
+            startElementId = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
             elementsToRead = count - allRangeList.length
         }
         // if reverse read all elements
     } else if (listCache["upperRangeId"] == start) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID
         if ( reverse ){ // if not reverse read only elements that are not in allRange
-            startElement = allRangeList[0]; // use the  highest id in allRange as start element
+            startElementId = allRangeList[0]; // use the  highest id in allRange as start element
             elementsToRead = count - allRangeList.length
         }
         // if not reverse read all elements
-    } else {
-        // not allowed.
-        var msg = "invalid range request. start:" + start + " count: " + count + " reverse:" + reverse;
-        callback( null, new tutao.entity.InvalidDataException(msg) );
-
-    }
-    callback([startElement, elementsToRead])
+    } 
+    callback(startElementId, elementsToRead);
 };
 
 
@@ -422,7 +403,7 @@ tutao.rest.EntityRestCache.prototype._provideFromCache = function(path, listId, 
 			if (count < 0) {
 				count = 0;
 			}
-            if ( startIndex < 0){ // start index may be negative if more elements have been requested than available when getting elements reverse.
+            if (startIndex < 0){ // start index may be negative if more elements have been requested than available when getting elements reverse.
                 startIndex = 0;
             }
 			ids = range.slice(startIndex, i + 1);
@@ -485,5 +466,19 @@ tutao.rest.EntityRestCache.prototype._getListData = function(path, listId){
     this._db[path][listId] = this._db[path][listId] || {};
     this._db[path][listId]['entities'] = this._db[path][listId]['entities'] || {};
     return this._db[path][listId];
+};
+
+
+/**
+ * Returns the list id of the specified element if it is a LET otherwise "0" returns.
+ * @param {Object} element The element
+ * @returns {string} The list id
+ */
+tutao.rest.EntityRestCache.getListId = function(element) {
+    if (element.__id instanceof Array) {
+        return element.__id[0];
+    } else {
+        return "0";
+    }
 };
 
