@@ -9,34 +9,34 @@ goog.provide('tutao.entity.EntityHelper');
  */
 tutao.entity.EntityHelper = function(entity) {
 	this._entity = entity;
-	// contains objects of the form {callback: function(), id: *}
+	// contains objects of the form {listener: function(), id: *}
 	this._observers = [];
 };
 
 /**
- * Register a function that is called as soon as any attribute of the entity has changed. If this callback
+ * Register a function that is called as soon as any attribute of the entity has changed. If this listener
  * was already registered it is overwritten (i.e. the new id is stored)
- * @param {function(Object,*=)} callback. The callback function. When called it gets the entity and the given id as arguments.
- * @param {*=} id. An optional value that is just passed-through to the callback.
+ * @param {function(Object,*=)} listener. The listener function. When called it gets the entity and the given id as arguments.
+ * @param {*=} id. An optional value that is just passed-through to the listener.
  */
-tutao.entity.EntityHelper.prototype.registerObserver = function(callback, id) {
+tutao.entity.EntityHelper.prototype.registerObserver = function(listener, id) {
 	for (var i = 0; i < this._observers.length; i++) {
-		if (this._observers[i].callback == callback) {
+		if (this._observers[i].listener == listener) {
 			// just update the id
 			this._observers[i].id = id;
 			return;
 		}
 	}
-	this._observers.push({ callback: callback, id: id });
+	this._observers.push({ listener: listener, id: id });
 };
 
 /**
- * Removes a registered callback function if it was registered before.
- * @param {function(Object)} callback. The callback to unregister.
+ * Removes a registered listener function if it was registered before.
+ * @param {function(Object)} listener. The listener to unregister.
  */
-tutao.entity.EntityHelper.prototype.unregisterObserver = function(callback) {
+tutao.entity.EntityHelper.prototype.unregisterObserver = function(listener) {
 	for (var i = 0; i < this._observers.length; i++) {
-		if (this._observers[i].callback == callback) {
+		if (this._observers[i].listener == listener) {
 			this._observers.splice(i, 1);
 			break;
 		}
@@ -49,7 +49,7 @@ tutao.entity.EntityHelper.prototype.unregisterObserver = function(callback) {
  */
 tutao.entity.EntityHelper.prototype.notifyObservers = function(deleted) {
 	for (var i = 0; i < this._observers.length; i++) {
-		this._observers[i].callback(deleted, this._entity, this._observers[i].id);
+		this._observers[i].listener(deleted, this._entity, this._observers[i].id);
 	}
 };
 
@@ -63,81 +63,54 @@ tutao.entity.EntityHelper.prototype._isNewObject = function() {
 /**
  * Loads the session key from permissions. If not locally available, the permissions are loaded from the server. If the entity itself is a permission, no session key is loaded because permissions are not encrypted.
  * Tries to retrieve the symmetric encrypted sessionKey first for perfomance reasons. Otherwise, the public encrypted sessionKey is used.
- * @param {function(Object, tutao.rest.EntityRestException=)}  callback. Called when finished with the same entity as entered. Gets passed an exception if something went wrong.
+ * @return {Promise.<Object>} Resolves to the entity this function has been called on or an exception if the loading failed.
  */
-tutao.entity.EntityHelper.prototype.loadSessionKey = function(callback) {
+tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
 	var self = this;
 	if (!this._entity.ENCRYPTED || this._sessionKey != null) {
-		callback(this._entity);
-		return;
+		return Promise.resolve(this._entity);
 	}
 	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) { // check that it is a list element type and that the list key is set
-		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
-			if (exception) {
-                self._loadSessionKeyOfSinglePermission(callback);
-			} else {				
-				self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
-				callback(self._entity);
-			}
-		});
+		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
+            self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
+            return self._entity;
+		}).caught(function(e) {
+            return self._loadSessionKeyOfSinglePermission();
+        });
 	} else {
-		this._loadSessionKeyOfSinglePermission(callback);
+		return this._loadSessionKeyOfSinglePermission();
 	}
 };
 
 /**
  * Loads the session key from a single permission (no list key is used).
- * @param {function(Object, tutao.rest.EntityRestException=)}  callback. Called when finished with the same entity as entered. Gets passed an exception if something went wrong.
+ * @return {Promise.<Object>} Resolves to the entity this function has been called on or an exception if the loading failed.
  * @private
  */
-tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function(callback) {
+tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function() {
     var self = this;
-    tutao.entity.sys.Permission.loadRange(this._entity.__permissions, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
-        if (exception) {
-            callback(null, exception);
-            return;
-        }
+    return tutao.entity.sys.Permission.loadRange(this._entity.__permissions, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(permissions, exception) {
         if (tutao.locator.userController.isInternalUserLoggedIn()) {
-            try {
-                self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
-            } catch (e) {
-                callback(null, new tutao.rest.EntityRestException(e));
-                return;
-            }
+            self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
             if (self._sessionKey != null) {
-                callback(self._entity);
-                return;
+                return self._entity;
             }
-            self._tryGetPubEncSessionKey(permissions, function(sessionKey, exception) {
-                if (exception) {
-                    callback(null, new tutao.rest.EntityRestException(exception));
-                    return;
-                }
+            return self._tryGetPubEncSessionKey(permissions).then(function(sessionKey) {
                 self.setSessionKey(sessionKey);
                 if (sessionKey == null) {
-                    callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
+                    throw new tutao.NotAuthorizedError("session key not found in permissions");
                 } else {
-                    callback(self._entity);
+                    return self._entity;
                 }
             });
         } else {
-            try {
-                self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
-            } catch (e) {
-                callback(null, new tutao.rest.EntityRestException(e));
-                return;
-            }
+            self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
             if (self._sessionKey != null) {
-                callback(self._entity);
-                return;
+                return self._entity;
             }
-            self._tryGetExternalSessionKey(permissions, function(sessionKey, exception) {
-                if (exception) {
-                    callback(null, new tutao.rest.EntityRestException(new tutao.entity.NotAuthorizedException("session key not found in permissions")));
-                    return;
-                }
+            return self._tryGetExternalSessionKey(permissions).then(function(sessionKey) {
                 self.setSessionKey(sessionKey);
-                callback(self._entity);
+                return self._entity;
             });
         }
     });
@@ -146,25 +119,16 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
 /**
  * Loads the list key from a list permission.
  * @param {string} listId The id of the list.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Called when finished.
+ * @return {Promise.<Object>} Resolves to the listKey or an exception if the loading failed.
  */
-tutao.entity.EntityHelper.getListKey = function(listId, callback) {
+tutao.entity.EntityHelper.getListKey = function(listId) {
 	var self = this;
-	tutao.entity.sys.Permission.loadRange(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(permissions, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
-		try {
-			var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
-            if (listKey == null) {
-                callback(null, new tutao.rest.EntityRestException(new Error("no list permission found")));
-                return;
-            }
-            callback(listKey);
-		} catch (e) {
-			callback(null, new tutao.rest.EntityRestException(e));
-		}
+	return tutao.entity.sys.Permission.loadRange(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(permissions) {
+        var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
+        if (listKey == null) {
+            throw new Error("no list permission found");
+        }
+        return listKey;
 	});
 };
 
@@ -197,25 +161,19 @@ tutao.entity.EntityHelper.prototype.setSessionKey = function(sessionKey) {
 /**
  * Provides the session key via an externally encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
+ * @return {Promise.<Object>} Resolves to null if no permission was found and the session key otherwise. Rejects, if decrypting the session key failed.
  */
-tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permissions, callback) {
+tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permissions) {
     var self = this;
 	if (permissions.length == 0) {
-		callback(null, new tutao.rest.EntityRestException(new Error("no permission found")));
-		return;
+		return Promise.reject(new Error("no permission found"));
 	}
 	// there should be only one permission
 	var permission = permissions[0];
 	if (permission.getType() != "5") {
-		callback(null, new tutao.rest.EntityRestException(new Error("no external permission type: " + permission.getType())));
-		return;
+		return Promise.reject(new Error("no external permission type: " + permission.getType()));
 	}
-	this._loadBucketPermissions(permission.getBucket().getBucketPermissions(), function(bucketPermissions, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
+	return this._loadBucketPermissions(permission.getBucket().getBucketPermissions()).then(function(bucketPermissions) {
 		// find the bucket permission with the same group as the permission and external type
 		var bucketPermission = null;
 		for (var i = 0; i < bucketPermissions.length; i++) {
@@ -225,19 +183,14 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 			}
 		}
 		if (bucketPermission == null) {
-			callback(null, new tutao.rest.EntityRestException(new Error("no corresponding bucket permission found")));
+			throw new Error("no corresponding bucket permission found");
 			return;
 		}
 		var sessionKey;
-		try {
-			var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
-			sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
-            self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey);
-		} catch (e) {
-			callback(null, new tutao.rest.EntityRestException(e));
-			return;
-		}
-		callback(sessionKey);
+        var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
+        sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
+        self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey);
+		return sessionKey;
 	});
 };
 
@@ -245,7 +198,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
  * Provides the session key via a symmetric encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
  * @return {Object} Returns null if no permission was found and the session key otherwise.
- * @throw {tutao.crypto.CryptoException} If an error occurs during session key decryption.
+ * @throw {tutao.crypto.CryptoError} If an error occurs during session key decryption.
  */
 tutao.entity.EntityHelper._tryGetSymEncSessionKey = function(permissions) {
 	var user = tutao.locator.userController.getLoggedInUser();
@@ -269,35 +222,28 @@ tutao.entity.EntityHelper._tryGetSymEncSessionKey = function(permissions) {
 /**
  * Provides the session key via an asymmetric encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
- * @param {function(?Object, tutao.rest.EntityRestException=)} callback Returns null if no permission was found and the session key otherwise. Returns an exception if decrypting the session key failed.
+ * @return {Promise.<Object>} Resolves to null if no permission was found and the session key otherwise. Rejects if decrypting the session key failed.
  */
-tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissions, callback) {
+tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissions) {
 	var self = this;
 	var user = tutao.locator.userController.getLoggedInUser();
     var groupKey;
 	for (var i = 0; i < permissions.length; i++) {
 		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && permissions[i].getType() == "0") {
 			groupKey = tutao.locator.userController.getUserGroupKey();
-			self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey, callback);
-			return;
+			return self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey);
 		}
 	}
 	var memberships = user.getMemberships();
 	for (var i = 0; i < permissions.length; i++) {
 		for (var a = 0; a < memberships.length; a++) {
 			if (permissions[i].getGroup() == memberships[a].getGroup() && permissions[i].getType() == "0") {
-				try {
-					groupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[a].getSymEncGKey());
-				} catch (e) {
-					callback(null, new tutao.rest.EntityRestException(e));
-					return;
-				}
-				self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey, callback);
-				return;
+                groupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[a].getSymEncGKey());
+				return self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey);
 			}
 		}
 	}
-	callback(null);
+	return Promise.resolve(null);
 };
 
 /**
@@ -310,22 +256,12 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
 tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, groupKey, sessionKey) {
 	var self = this;
 	if (this._entity.getListEncSessionKey) {
-		tutao.entity.EntityHelper.getListKey(this._entity.getId()[0], function(listKey, exception) {
-			if (!exception) {
-				self._entity.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
-				try {
-					self._entity.updateListEncSessionKey(function(exception) {
-						if (exception) {
-							console.log("this exception is ok for testing if another user is logged asynchronously (this method is not waiting executed synchronous)", exception);
-						}
-					});
-				} catch (e) {
-					console.log("this exception is ok for testing if another user is logged asynchronously (this method is not waiting executed synchronous)", e);
-				}
-			} else {
-				console.log("this exception is ok for testing if another user is logged asynchronously (this method is not waiting executed synchronous)", exception);
-			}
-		});
+		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
+            self._entity.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
+            return self._entity.updateListEncSessionKey();
+		}).caught(function(e) {
+            console.log("this exception is ok for testing if another user is logged asynchronously (this method is not waiting executed synchronous)", e);
+        });
 	} else {
 		var updateService = new tutao.entity.sys.UpdatePermissionKeyData();
 		updateService.setPermission(permission.getId());
@@ -333,33 +269,29 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
 		updateService.setSymEncSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, sessionKey));
 		updateService.setSymEncBucketKey(null);
 		updateService.setBucketEncSessionKey(null);
-		updateService.setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+		return updateService.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 	}
 };
 
 /**
  * Downloads the list key and encrypts the session key of the instance with this key.
  * @param {string} listId The id of the list.
- * @param {function(?string, tutao.rest.EntityRestException=)} callback Called when finished.
+ * @return {Promise.<string>}
  */
-tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId, callback) {
+tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId) {
 	var self = this;
-	tutao.entity.EntityHelper.getListKey(listId, function(listKey, exception) {
-		if (exception) {
-			callback(null, exception);
-		} else {
-			callback(tutao.locator.aesCrypter.encryptKey(listKey, self.getSessionKey()));
-		}
+	return tutao.entity.EntityHelper.getListKey(listId).then(function(listKey, exception) {
+		return tutao.locator.aesCrypter.encryptKey(listKey, self.getSessionKey());
 	});
 };
 
 /**
  * Loads the bucket permissions for the given bucket permission list id.
  * @param {string} bucketId The list id of the bucket permissions.
- * @param {function(?Array.<tutao.entity.sys.BucketPermission>, tutao.rest.EntityRestException=)} callback Called when finished.
+ * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>}
  */
-tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId, callback) {
-	tutao.entity.sys.BucketPermission.loadRange(bucketId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, callback);
+tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId) {
+	return tutao.entity.sys.BucketPermission.loadRange(bucketId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false);
 };
 
 /**
@@ -367,15 +299,11 @@ tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId, 
  * symmetric encrypted session key.
  * @param {tutao.entity.sys.Permission} permission The permission that contains the bucket encrypted session key.
  * @param {Object} groupKey The symmetric group key of the owner group of the permission.
- * @param {function(Object, tutao.rest.EntityRestException=)} callback Returns the session key or an exception if decrypting the session key failed or the group could not be loaded.
+ * @return {Promise.<Object>} Resolves to the session key. Rejects if decrypting the session key failed or the group could not be loaded.
  */
-tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, groupKey, callback) {
+tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, groupKey) {
 	var self = this;
-	this._loadBucketPermissions(permission.getBucket().getBucketPermissions(), function(bucketPermissions, exception) {
-		if (exception) {
-			callback(null, exception);
-			return;
-		}
+	return this._loadBucketPermissions(permission.getBucket().getBucketPermissions()).then(function(bucketPermissions) {
 		// find the bucket permission with the same group as the permission and public type
 		var bucketPermission = null;
 		for (var i = 0; i < bucketPermissions.length; i++) {
@@ -385,37 +313,23 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
 			}
 		}
 		if (bucketPermission == null) {
-			callback(null, new tutao.rest.EntityRestException(new Error("no corresponding bucket permission found")));
-			return;
+			throw new Error("no corresponding bucket permission found");
 		}
-		tutao.entity.sys.Group.load(permission.getGroup(), function(group, exception) {
-			if (exception) {
-				callback(null, exception);
-				return;
-			}
-			var privateKey;
-			try {
-				privateKey = self._getPrivateKey(group, Number(bucketPermission.getPubKeyVersion()), groupKey);
-			} catch (e) {
-				callback(null, e);
-				return;
-			}
-			tutao.locator.rsaCrypter.decryptAesKey(privateKey, bucketPermission.getPubEncBucketKey(), function(bucketKeyHex, exception) {
-				if (exception) {
-					callback(null, new tutao.rest.EntityRestException(exception));
-					return;
-				}
-				var sessionKey;
-				try {
-					var bucketKey = tutao.locator.aesCrypter.hexToKey(bucketKeyHex);
-					sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
-					self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey);
-				} catch (e) {
-					callback(null, new tutao.rest.EntityRestException(e));
-					return;
-				}
-				callback(sessionKey);
-			});
+		return tutao.entity.sys.Group.load(permission.getGroup()).then(function(group) {
+			var privateKey = self._getPrivateKey(group, Number(bucketPermission.getPubKeyVersion()), groupKey);
+            return new Promise(function(resolve, reject) {
+                tutao.locator.rsaCrypter.decryptAesKey(privateKey, bucketPermission.getPubEncBucketKey(), function(bucketKeyHex, exception) {
+                    if (exception) {
+                        reject(exception);
+                        return;
+                    }
+                    var sessionKey;
+                    var bucketKey = tutao.locator.aesCrypter.hexToKey(bucketKeyHex);
+                    sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
+                    self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey);
+                    resolve(sessionKey);
+                });
+            });
 		});
 	});
 };
@@ -426,21 +340,17 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
  * @param {number} version The version of the key pair.
  * @param {Object} symGroupKey The group key of the given group.
  * @return {Object} The private key.
- * @throws {tutao.rest.EntityRestException} If the private key could not be found or could not be decrypted.
+ * @throws {tutao.InvalidDataError} If the private key could not be found or could not be decrypted.
  */
 tutao.entity.EntityHelper.prototype._getPrivateKey = function(group, version, symGroupKey) {
 	var keyPairs = group.getKeys();
 	for (var i = 0; i < group.getKeys().length; i++) {
 		if (Number(keyPairs[i].getVersion()) == version) {
-			try {
-				var privateKeyHex = tutao.locator.aesCrypter.decryptPrivateRsaKey(symGroupKey, keyPairs[i].getSymEncPrivKey());
-				return tutao.locator.rsaCrypter.hexToKey(privateKeyHex);
-			} catch (e) {
-				throw new tutao.rest.EntityRestException(e);
-			}
+            var privateKeyHex = tutao.locator.aesCrypter.decryptPrivateRsaKey(symGroupKey, keyPairs[i].getSymEncPrivKey());
+            return tutao.locator.rsaCrypter.hexToKey(privateKeyHex);
 		}
 	}
-	throw new tutao.rest.EntityRestException(new tutao.entity.InvalidDataException("private key with version" + version + " not found for group " + group.getId()));
+	throw new tutao.InvalidDataError("private key with version" + version + " not found for group " + group.getId());
 };
 
 /**
@@ -523,18 +433,10 @@ tutao.entity.EntityHelper.generateAggregateId = function() {
 /**
  * Loads the session keys for the given entities.
  * @param {Array.<Object>} entities. The entities to prepare.
- * @param {function(Array.<Object>, tutao.rest.EntityRestException=)} callback. Called when finished with the same entities as entered. Gets passed an exception if something went wrong.
+ * @return {Promise.<Array.<Object>>} Resolves to the same entities which have been provided. Rejects if loading the session keys failed.
  */
-tutao.entity.EntityHelper.loadSessionKeys = function(entities, callback) {
-	tutao.util.FunctionUtils.executeSequentially(entities, function(entity, elementFinishedCallback) {
-		entity._entityHelper.loadSessionKey(function(entity, exception) {
-			elementFinishedCallback(exception);
-		});
-	}, function(exception) {
-		if (exception) {
-			callback(null, exception);
-		} else {
-			callback(entities);
-		}
-	});
+tutao.entity.EntityHelper.loadSessionKeys = function(entities) {
+    return Promise.map(entities, function(entity) {
+        return entity._entityHelper.loadSessionKey();
+    });
 };

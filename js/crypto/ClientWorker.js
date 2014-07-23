@@ -16,7 +16,7 @@ if (global.importScripts) {
 				importScripts(data.imports[i]);
 			}
 			// simulate the locator with all objects needed
-			tutao.locator = { randomizer: new tutao.crypto.WorkerRandomizer(), aesCrypter: new tutao.crypto.SjclAes(), rsaCrypter: new tutao.crypto.JsbnRsa() };
+			eval("tutao.locator = { randomizer: new tutao.crypto.WorkerRandomizer(), aesCrypter: new tutao.crypto.SjclAes(), rsaCrypter: new tutao.crypto.JsbnRsa() };");
 			me.postMessage({});
 		} else if (operation == "encryptAesKey") {
 			tutao.locator.randomizer.setNextRandomBytes(data.randomData);

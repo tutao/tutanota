@@ -51,7 +51,7 @@ tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath)
 		srcPath + 'crypto/SjclAes.js',
 		srcPath + 'crypto/RsaInterface.js',
 		srcPath + 'crypto/JsbnRsa.js',
-		srcPath + 'crypto/CryptoException.js',
+		srcPath + 'crypto/CryptoError.js',
 		srcPath + 'crypto/RandomizerInterface.js',
 		srcPath + 'crypto/WorkerRandomizer.js',
 		srcPath + 'crypto/Oaep.js',

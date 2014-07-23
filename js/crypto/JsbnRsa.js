@@ -35,7 +35,7 @@ tutao.crypto.JsbnRsa.prototype.generateKeyPair = function(callback) {
 		rsa.generate(this.keyLengthInBits, this.publicExponentAsHex);
 		callback({ publicKey: [rsa.n], privateKey: [rsa.n, rsa.d, rsa.p, rsa.q, rsa.dmp1, rsa.dmq1, rsa.coeff]});
 	} catch (e) {
-		callback(null, new tutao.crypto.CryptoException("key generation failed", e));
+		callback(null, new tutao.crypto.CryptoError("key generation failed", e));
 	}
 };
 
@@ -83,7 +83,7 @@ tutao.crypto.JsbnRsa.prototype.hexToKey = function(hex) {
         this._validateKeyLength(key);
         return key;
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("hex to rsa key failed", e);
+		throw new tutao.crypto.CryptoError("hex to rsa key failed", e);
 	}
 };
 
@@ -124,7 +124,7 @@ tutao.crypto.JsbnRsa.prototype.encryptAesKey = function(publicKey, hex, callback
 
 		callback(base64);
 	} catch (e) {
-		callback(null, new tutao.crypto.CryptoException("rsa encryption failed", e));
+		callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
 	}
 };
 
@@ -156,7 +156,7 @@ tutao.crypto.JsbnRsa.prototype.decryptAesKey = function(privateKey, base64, call
 		var bytes = this._oaep.unpad(paddedBytes, this.keyLengthInBits);
 		callback(tutao.util.EncodingConverter.bytesToHex(bytes));
 	} catch (e) {
-		callback(null, new tutao.crypto.CryptoException("rsa decryption failed", e));
+		callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
 	}
 };
 

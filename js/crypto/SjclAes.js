@@ -40,7 +40,7 @@ tutao.crypto.SjclAes.prototype.hexToKey = function(hex) {
 	try {
 		return sjcl.codec.hex.toBits(hex);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("hex to aes key failed", e);
+		throw new tutao.crypto.CryptoError("hex to aes key failed", e);
 	}
 };
 
@@ -51,7 +51,7 @@ tutao.crypto.SjclAes.prototype.base64ToKey = function(base64) {
 	try {
 		return sjcl.codec.base64.toBits(base64);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("hex to aes key failed", e);
+		throw new tutao.crypto.CryptoError("hex to aes key failed", e);
 	}
 };
 
@@ -62,7 +62,7 @@ tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8) {
 	try {
 		return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), true, true);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes utf8 encryption failed", e);
+		throw new tutao.crypto.CryptoError("aes utf8 encryption failed", e);
 	}
 };
 
@@ -73,7 +73,7 @@ tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64) {
 	try {
 		return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes utf8 decryption failed", e);
+		throw new tutao.crypto.CryptoError("aes utf8 decryption failed", e);
 	}
 };
 
@@ -84,7 +84,7 @@ tutao.crypto.SjclAes.prototype.encryptUtf8Index = function(key, utf8) {
     try {
         return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), false, true);
     } catch (e) {
-        throw new tutao.crypto.CryptoException("aes utf8 encryption index failed", e);
+        throw new tutao.crypto.CryptoError("aes utf8 encryption index failed", e);
     }
 };
 
@@ -95,7 +95,7 @@ tutao.crypto.SjclAes.prototype.decryptUtf8Index = function(key, base64) {
     try {
         return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, false, true));
     } catch (e) {
-        throw new tutao.crypto.CryptoException("aes utf8 decryption index failed", e);
+        throw new tutao.crypto.CryptoError("aes utf8 decryption index failed", e);
     }
 };
 
@@ -113,7 +113,7 @@ tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64) {
 	try {
 		return sjcl.codec.base64.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes bytes decryption failed", e);
+		throw new tutao.crypto.CryptoError("aes bytes decryption failed", e);
 	}
 };
 
@@ -124,7 +124,7 @@ tutao.crypto.SjclAes.prototype.encryptKey = function(key, keyToEncrypt) {
 	try {
 		return this._encrypt(key, keyToEncrypt, false, false);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes key encryption failed", e);
+		throw new tutao.crypto.CryptoError("aes key encryption failed", e);
 	}
 };
 
@@ -135,7 +135,7 @@ tutao.crypto.SjclAes.prototype.decryptKey = function(key, base64) {
 	try {
 		return this._decrypt(key, base64, false, false);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes key decryption failed", e);
+		throw new tutao.crypto.CryptoError("aes key decryption failed", e);
 	}
 };
 
@@ -146,7 +146,7 @@ tutao.crypto.SjclAes.prototype.encryptPrivateRsaKey = function(key, hexKeyToEncr
 	try {
 		return this._encrypt(key, sjcl.codec.hex.toBits(hexKeyToEncrypt), true, true);
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes private key encryption failed", e);
+		throw new tutao.crypto.CryptoError("aes private key encryption failed", e);
 	}
 };
 
@@ -157,7 +157,7 @@ tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function(key, base64) {
 	try {
 		return sjcl.codec.hex.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
-		throw new tutao.crypto.CryptoException("aes private key decryption failed", e);
+		throw new tutao.crypto.CryptoError("aes private key decryption failed", e);
 	}
 };
 
@@ -223,15 +223,15 @@ tutao.crypto.SjclAes.prototype.encryptArrayBuffer = function(key, srcBuffer, cal
  * @param {Object} key The key to use for the encryption.
  * @param {ArrayBuffer} arrayBuffer The plain text data.
  * @param {Object} iv The initialization vector.
- * @param {function(?ArrayBuffer,tutao.crypto.CryptoException=)} callback Called when finished receiving the encrypted array buffer. Receives an exception if the encryption failed.
+ * @param {function(?ArrayBuffer,tutao.crypto.CryptoError=)} callback Called when finished receiving the encrypted array buffer. Receives an exception if the encryption failed.
  */
 tutao.crypto.SjclAes.prototype._encryptArrayBuffer = function(key, srcBuffer, iv, callback) {
 	if (sjcl.bitArray.bitLength(iv) !== this.keyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid iv length: " + sjcl.bitArray.bitLength(iv)));
+		callback(null, new tutao.crypto.CryptoError("invalid iv length: " + sjcl.bitArray.bitLength(iv)));
 		return;
 	}
 	if (sjcl.bitArray.bitLength(key) !== this.keyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid key length: " + sjcl.bitArray.bitLength(key)));
+		callback(null, new tutao.crypto.CryptoError("invalid key length: " + sjcl.bitArray.bitLength(key)));
 		return;
 	}
 	var xor = sjcl.bitArray._xor4;
@@ -298,16 +298,16 @@ tutao.crypto.SjclAes.prototype._encryptArrayBuffer = function(key, srcBuffer, iv
  */
 tutao.crypto.SjclAes.prototype.decryptArrayBuffer = function(key, srcBuffer, decryptedSize, callback) {
 	if (sjcl.bitArray.bitLength(key) !== this.keyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid key length: " + sjcl.bitArray.bitLength(key)));
+		callback(null, new tutao.crypto.CryptoError("invalid key length: " + sjcl.bitArray.bitLength(key)));
 		return;
 	}
 	var byteKeyLength = this.keyLength / 8;
 	if (srcBuffer.byteLength % byteKeyLength != 0 || srcBuffer.byteLength < 2 * byteKeyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid src buffer len: " + srcBuffer.byteLength));
+		callback(null, new tutao.crypto.CryptoError("invalid src buffer len: " + srcBuffer.byteLength));
 		return;
 	}
 	if (decryptedSize < (srcBuffer.byteLength - 2 * byteKeyLength)) {
-		callback(null, new tutao.crypto.CryptoException("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + srcBuffer.byteLength));
+		callback(null, new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + srcBuffer.byteLength));
 		return;
 	}
 	var xor = sjcl.bitArray._xor4;
@@ -351,11 +351,11 @@ tutao.crypto.SjclAes.prototype.decryptArrayBuffer = function(key, srcBuffer, dec
 			// check the padding length
 			var nbrOfPaddingBytes = decryptedBlock[3] & 255;
 			if (nbrOfPaddingBytes == 0 || nbrOfPaddingBytes > 16) {
-				callback(null, new tutao.crypto.CryptoException("invalid padding value: " + nbrOfPaddingBytes));
+				callback(null, new tutao.crypto.CryptoError("invalid padding value: " + nbrOfPaddingBytes));
 				return;
 			}
 			if (decryptedSize != ((nbrOfFullSrcBlocks + 1) * byteKeyLength - nbrOfPaddingBytes)) {
-				callback(null, new tutao.crypto.CryptoException("invalid decrypted size: " + decryptedSize + ", expected: " + (nbrOfFullSrcBlocks * byteKeyLength + nbrOfPaddingBytes)));
+				callback(null, new tutao.crypto.CryptoError("invalid decrypted size: " + decryptedSize + ", expected: " + (nbrOfFullSrcBlocks * byteKeyLength + nbrOfPaddingBytes)));
 				return;
 			}
 			// copy the remaining bytes
@@ -366,7 +366,7 @@ tutao.crypto.SjclAes.prototype.decryptArrayBuffer = function(key, srcBuffer, dec
 			// check the padding bytes
 			for (; a < byteKeyLength; a++) {
 				if (lastSrcBlock.getUint8(a) != nbrOfPaddingBytes) {
-					callback(null, new tutao.crypto.CryptoException("invalid padding byte found: " + lastSrcBlock.getUint8(a) + ", expected: " + nbrOfPaddingBytes));
+					callback(null, new tutao.crypto.CryptoError("invalid padding byte found: " + lastSrcBlock.getUint8(a) + ", expected: " + nbrOfPaddingBytes));
 					return;
 				}
 			}
@@ -380,7 +380,7 @@ tutao.crypto.SjclAes.prototype.decryptArrayBuffer = function(key, srcBuffer, dec
  */
 tutao.crypto.SjclAes.prototype.decryptBase64 = function(key, srcBase64, decryptedSize, callback) {
 	if (sjcl.bitArray.bitLength(key) !== this.keyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid key length: " + sjcl.bitArray.bitLength(key)));
+		callback(null, new tutao.crypto.CryptoError("invalid key length: " + sjcl.bitArray.bitLength(key)));
 		return;
 	}
 
@@ -394,11 +394,11 @@ tutao.crypto.SjclAes.prototype.decryptBase64 = function(key, srcBase64, decrypte
 
 	var byteKeyLength = this.keyLength / 8;
 	if (srcByteLen % byteKeyLength != 0 || srcByteLen < 2 * byteKeyLength) {
-		callback(null, new tutao.crypto.CryptoException("invalid src buffer len: " + srcByteLen));
+		callback(null, new tutao.crypto.CryptoError("invalid src buffer len: " + srcByteLen));
 		return;
 	}
 	if (decryptedSize < (srcByteLen - 2 * byteKeyLength)) {
-		callback(null, new tutao.crypto.CryptoException("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + srcByteLen));
+		callback(null, new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + srcByteLen));
 		return;
 	}
 
@@ -431,7 +431,7 @@ tutao.crypto.SjclAes.prototype.decryptBase64 = function(key, srcBase64, decrypte
  * @param {Object} remainingOutputBits One decrypted source big block can not be directly converted to base64 again because of the initialization vector which splits the first big block.
  *                  therefore the remaining 2 blocks of each decrypted big block are stored in remainingOutputBits. as soon as the first block of the next big block is decrypted,
  *                  is is appended to the remainingOutputBits and converted to base64.
- * @param {function(tutao.crypto.CryptoException=)} callback Receives an exception if the decryption failed.
+ * @param {function(string=, tutao.crypto.CryptoError=)} callback Receives an exception if the decryption failed.
  */
 tutao.crypto.SjclAes.prototype._decryptBase64Block = function(key, srcBase64, srcByteLen, dstArray, iv, decryptedSize, aes, i, a, remainingOutputBits, callback) {
 	try {
@@ -460,11 +460,11 @@ tutao.crypto.SjclAes.prototype._decryptBase64Block = function(key, srcBase64, sr
 					// check the padding length
 					var nbrOfPaddingBytes = sjcl.bitArray.extract(dec, this.keyLength - 8, 8); // the last 8 bit contain the padding length
 					if (nbrOfPaddingBytes == 0 || nbrOfPaddingBytes > byteKeyLength) {
-						callback(null, new tutao.crypto.CryptoException("invalid padding value: " + nbrOfPaddingBytes));
+						callback(null, new tutao.crypto.CryptoError("invalid padding value: " + nbrOfPaddingBytes));
 						return;
 					}
 					if (decryptedSize != (srcByteLen - byteKeyLength - nbrOfPaddingBytes)) {
-						callback(null, new tutao.crypto.CryptoException("invalid decrypted size: " + decryptedSize + ", expected: " + (srcByteLen - byteKeyLength - nbrOfPaddingBytes)));
+						callback(null, new tutao.crypto.CryptoError("invalid decrypted size: " + decryptedSize + ", expected: " + (srcByteLen - byteKeyLength - nbrOfPaddingBytes)));
 						return;
 					}
 
@@ -472,7 +472,7 @@ tutao.crypto.SjclAes.prototype._decryptBase64Block = function(key, srcBase64, sr
 					var paddingBytes = sjcl.codec.bytes.fromBits(sjcl.bitArray.bitSlice(dec, this.keyLength - nbrOfPaddingBytes * 8, this.keyLength));
 					for (var o = 0; o < paddingBytes.length; o++) {
 						if (paddingBytes[o] != nbrOfPaddingBytes) {
-							callback(null, new tutao.crypto.CryptoException("invalid padding byte found: " + paddingBytes[o] + ", expected: " + nbrOfPaddingBytes));
+							callback(null, new tutao.crypto.CryptoError("invalid padding byte found: " + paddingBytes[o] + ", expected: " + nbrOfPaddingBytes));
 							return;
 						}
 					}
@@ -496,7 +496,7 @@ tutao.crypto.SjclAes.prototype._decryptBase64Block = function(key, srcBase64, sr
 			}
 		}
 	} catch (e) {
-		callback(null, new tutao.crypto.CryptoException("error during base64 decryption", e));
+		callback(null, new tutao.crypto.CryptoError("error during base64 decryption", e));
 		return;
 	}
 	var self = this;
@@ -504,83 +504,3 @@ tutao.crypto.SjclAes.prototype._decryptBase64Block = function(key, srcBase64, sr
 		self._decryptBase64Block(key, srcBase64, srcByteLen, dstArray, iv, decryptedSize, aes, i, a, remainingOutputBits, callback);
 	}, 50); // 50 ms for spinner time
 };
-
-// not used currently, but nice implementation
-///**
-// * @inheritDoc
-// */
-//tutao.crypto.SjclAes.prototype.decryptArray = function(key, srcArray, decryptedSize, callback) {
-//	if (sjcl.bitArray.bitLength(key) !== this.keyLength) {
-//		callback(null, new tutao.crypto.CryptoException("invalid key length: " + sjcl.bitArray.bitLength(key)));
-//		return;
-//	}
-//	var byteKeyLength = this.keyLength / 8;
-//	if (srcArray.length % byteKeyLength != 0) {
-//		callback(null, new tutao.crypto.CryptoException("invalid src buffer len: " + srcArray.length));
-//		return;
-//	}
-//	if (decryptedSize < (srcArray.length - 2 * byteKeyLength)) {
-//		callback(null, new tutao.crypto.CryptoException("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + srcArray.length));
-//		return;
-//	}
-//
-//	var aes = new sjcl.cipher.aes(key);
-//	// iv and padding block are not full blocks
-//	var nbrOfFullSrcBlocks = srcArray.length / byteKeyLength - 2;
-//
-//
-//	var dstArray = [];
-//	dstArray.length = decryptedSize;
-//
-//	var iv = sjcl.codec.bytes.toBits(srcArray.slice(0, byteKeyLength));
-//
-//	// skip the iv
-//	this._decryptArrayBlock(key, srcArray, dstArray, iv, decryptedSize, byteKeyLength, aes, 1, nbrOfFullSrcBlocks, callback);
-//};
-//
-//tutao.crypto.SjclAes.prototype._decryptArrayBlock = function(key, srcArray, dstArray, iv, decryptedSize, byteKeyLength, aes, i, nbrOfFullSrcBlocks, callback) {
-//	var nextStop = Math.min(nbrOfFullSrcBlocks + 2, i + 1024 * 100 / 16); // stop every 100 Kb or when finished
-//	for (;i<nextStop;i++) {
-//		var srcArrayOffset = i * byteKeyLength;
-//		var dstArrayOffset = (i - 1) * byteKeyLength;
-//		var encryptedBlock = sjcl.codec.bytes.toBits(srcArray.slice(srcArrayOffset, srcArrayOffset + byteKeyLength));
-//		var decryptedBlock = sjcl.codec.bytes.fromBits(sjcl.bitArray._xor4(iv, aes.decrypt(encryptedBlock)));
-//		if (i < (nbrOfFullSrcBlocks + 1)) {
-//			for (var j = 0; j < byteKeyLength; j++) {
-//				dstArray[j + dstArrayOffset] = decryptedBlock[j];
-//			}
-//			iv = encryptedBlock;
-//		} else {
-//			// check the padding length
-//			var nbrOfPaddingBytes = decryptedBlock[decryptedBlock.length - 1];
-//			if (nbrOfPaddingBytes == 0 || nbrOfPaddingBytes > 16) {
-//				callback(null, new tutao.crypto.CryptoException("invalid padding value: " + nbrOfPaddingBytes));
-//				return;
-//			}
-//			if (decryptedSize != ((nbrOfFullSrcBlocks + 1) * byteKeyLength - nbrOfPaddingBytes)) {
-//				callback(null, new tutao.crypto.CryptoException("invalid decrypted size: " + decryptedSize + ", expected: " + (nbrOfFullSrcBlocks * byteKeyLength + nbrOfPaddingBytes)));
-//				return;
-//			}
-//			// copy the remaining bytes
-//			var a;
-//			for (a=0; a<(byteKeyLength - nbrOfPaddingBytes); a++) {
-//				dstArray[nbrOfFullSrcBlocks * byteKeyLength + a] = decryptedBlock[a];
-//			}
-//			// check the padding bytes
-//			for (; a<byteKeyLength; a++) {
-//				if (decryptedBlock[a] != nbrOfPaddingBytes) {
-//					callback(null, new tutao.crypto.CryptoException("invalid padding byte found: " + decryptedBlock[a] + ", expected: " + nbrOfPaddingBytes));
-//					return;
-//				}
-//			}
-//		}
-//	}
-//	if (i == nbrOfFullSrcBlocks + 2) {
-//		callback(dstArray);
-//	} else {
-//		var self = this;
-//		setTimeout(function() {
-//			self._decryptArrayBlock(key, srcArray, dstArray, iv, decryptedSize, byteKeyLength, aes, i, nbrOfFullSrcBlocks, callback);
-//		}, 50); // 50 ms for spinner time
-//	}
-//};

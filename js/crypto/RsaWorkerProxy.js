@@ -24,7 +24,7 @@ tutao.crypto.RsaWorkerProxy.prototype.generateKeyPair = function(callback) {
 	tutao.locator.clientWorkerProxy.sendCommand("generateKeyPair", {randomData: tutao.locator.randomizer.generateRandomData(258)}, function(data, errorMessage) {
 		if (errorMessage) {
             self.generateKeyPair(callback);
-			//TODO (timely) correct retry after out-of-random-data-exception: callback(null, new tutao.crypto.CryptoException(errorMessage));
+			//TODO (timely) correct retry after out-of-random-data-exception: callback(null, new tutao.crypto.CryptoError(errorMessage));
 		} else {
 			callback({publicKey: self.hexToKey(data.publicKeyHex), privateKey: self.hexToKey(data.privateKeyHex)});
 		}
@@ -54,7 +54,7 @@ tutao.crypto.RsaWorkerProxy.prototype.encryptAesKey = function(publicKey, hex, c
 	var data = { key: this.keyToHex(publicKey), data: hex, randomData: tutao.locator.randomizer.generateRandomData(32) };
 	tutao.locator.clientWorkerProxy.sendCommand("encryptAesKey", data, function(encrypted, errorMessage) {
 		if (errorMessage) {
-			callback(null, new tutao.crypto.CryptoException(errorMessage));
+			callback(null, new tutao.crypto.CryptoError(errorMessage));
 		} else {
 			callback(encrypted);
 		}
@@ -69,7 +69,7 @@ tutao.crypto.RsaWorkerProxy.prototype.decryptAesKey = function(privateKey, base6
 	var data = { key: this.keyToHex(privateKey), data: base64 };
 	tutao.locator.clientWorkerProxy.sendCommand("decryptAesKey", data, function(encrypted, errorMessage) {
 		if (errorMessage) {
-			callback(null, new tutao.crypto.CryptoException(errorMessage));
+			callback(null, new tutao.crypto.CryptoError(errorMessage));
 		} else {
 			callback(encrypted);
 		}

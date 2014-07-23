@@ -128,7 +128,7 @@ tutao.crypto.AesWorkerProxy.prototype.encryptArrayBuffer = function(key, srcBuff
 	var data = { key: this.keyToHex(key), data: srcBuffer, randomData: tutao.locator.randomizer.generateRandomData(32) };
 	tutao.locator.clientWorkerProxy.sendCommand("encryptArrayBuffer", data, function(encrypted, errorMessage) {
 		if (errorMessage) {
-			callback(null, new tutao.crypto.CryptoException(errorMessage));
+			callback(null, new tutao.crypto.CryptoError(errorMessage));
 		} else {
 			callback(encrypted);
 		}
@@ -142,7 +142,7 @@ tutao.crypto.AesWorkerProxy.prototype.decryptArrayBuffer = function(key, srcBuff
 	var data = { key: this.keyToHex(key), data: srcBuffer, decryptedSize: decryptedSize };
 	tutao.locator.clientWorkerProxy.sendCommand("decryptArrayBuffer", data, function(decrypted, errorMessage) {
 		if (errorMessage) {
-			callback(null, new tutao.crypto.CryptoException(errorMessage));
+			callback(null, new tutao.crypto.CryptoError(errorMessage));
 		} else {
 			callback(decrypted);
 		}
@@ -153,5 +153,5 @@ tutao.crypto.AesWorkerProxy.prototype.decryptArrayBuffer = function(key, srcBuff
  * @inheritDoc
  */
 tutao.crypto.AesWorkerProxy.prototype.decryptBase64 = function(key, srcBase64, decryptedSize, callback) {
-	throw new tutao.crypto.CryptoException("legacy implementation, not meant to be used with a worker!");
+	throw new tutao.crypto.CryptoError("legacy implementation, not meant to be used with a worker!");
 };
