@@ -67,7 +67,7 @@ AesTest.prototype.testEncryptWithInvalidKey = function() {
 	var key = facade.hexToKey("7878787878");
 	assertException(function() {
 		facade.encryptUtf8(key, "hello");
-	}, "CryptoException");
+	}, "CryptoError");
 };
 
 AesTest.prototype.testDecryptInvalidData = function() {
@@ -75,7 +75,7 @@ AesTest.prototype.testDecryptInvalidData = function() {
 	var key = facade.generateRandomKey();
 	assertException(function() {
 		facade.decryptUtf8(key, "hello");
-	}, "CryptoException");
+	}, "CryptoError");
 };
 
 AesTest.prototype.testEncryptDecryptAESKey = function() {

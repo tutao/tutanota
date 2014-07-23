@@ -36,8 +36,7 @@ EntityRestTestFunctions.functions = {
     "test an empty db should throw an error on requests for an element": function (queue) {
         queue.call('test', function (callbacks) {
             tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "-0DGl4rds--F", null, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders()).catch(function (exception) {
-                assertInstanceOf(tutao.rest.EntityRestException, exception);
-                assertEquals("RestException(404)", exception.getOriginal().name);
+                assertInstanceOf(tutao.NotFoundError, exception);
             }).done(callbacks.noop());
         });
     },

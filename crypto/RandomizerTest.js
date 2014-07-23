@@ -18,7 +18,7 @@ RandomizerTest.prototype.testSeeding = function() {
 		r.generateRandomData(1);
 		fail("could generate random data");
 	} catch (e) {
-		assertInstanceOf(tutao.crypto.CryptoException, e);
+		assertInstanceOf(tutao.crypto.CryptoError, e);
 	}
 	r.addEntropy(10, 255, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
 	assertFalse(r.isReady());
@@ -26,7 +26,7 @@ RandomizerTest.prototype.testSeeding = function() {
 		r.generateRandomData(1);
 		fail("could generate random data");
 	} catch (e) {
-		assertInstanceOf(tutao.crypto.CryptoException, e);
+		assertInstanceOf(tutao.crypto.CryptoError, e);
 	}
 	r.addEntropy(10, 1, tutao.crypto.RandomizerInterface.ENTROPY_SRC_KEY);
 	assertTrue(r.isReady());
