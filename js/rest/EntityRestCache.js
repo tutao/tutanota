@@ -274,7 +274,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 };
 
 
-tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path, listId, start, count, reverse, elements, callback) {
+tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path, listId, start, count, reverse, elements) {
     var listData = this._getListData(path, listId);
     var elementsToAdd = elements;
 	if ( elements.length > 0){
@@ -295,7 +295,7 @@ tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path,
 		    this._tryAddToRange(path, elementsToAdd[i]);
 		}
 	} 
-	callback(this._provideFromCache(path, listId, start, count, reverse));	
+	return this._provideFromCache(path, listId, start, count, reverse);
 };
 
 
@@ -319,9 +319,9 @@ tutao.rest.EntityRestCache.prototype._isStartInRange = function(path, listId, st
  * @param {string} start The id from where to start to get elements.
  * @param {number} count The maximum number of elements to load.
  * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
- * @param {function(string, number} callback Called when finished first element is the start value second value the new count value.
+ * @return {{newStart:string, newCount:number}} returns the new start and count value.
  */
-tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path, listId, start, count, reverse, callback) {
+tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path, listId, start, count, reverse) {
     var listCache = tutao.locator.entityRestClient._db[path][listId];
     var allRangeList = listCache['allRange'];
     var elementsToRead = count;
@@ -351,7 +351,7 @@ tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path,
         }
         // if not reverse read all elements
     } 
-    callback(startElementId, elementsToRead);
+    return { newStart:startElementId, newCount:elementsToRead };
 };
 
 

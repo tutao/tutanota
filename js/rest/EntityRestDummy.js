@@ -113,7 +113,7 @@ tutao.rest.EntityRestDummy.prototype.postList = function(path, parameters, heade
  * @inheritDoc
  */
 tutao.rest.EntityRestDummy.prototype.getElementRange = function(type, path, listId, start, count, reverse, parameters, headers, callback) {
-	return this._provideFromCache(path, listId, start, count, reverse);
+	return Promise.resolve(this._provideFromCache(path, listId, start, count, reverse));
 };
 
 /**
