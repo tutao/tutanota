@@ -12,7 +12,7 @@ goog.provide('tutao.tutanota.ctrl.ModalPageBackgroundViewModel');
 tutao.tutanota.ctrl.ModalPageBackgroundViewModel = function() {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.visible = ko.observable(false);
-    this.closeCallback = null;
+    this.closeListener = null;
     var self = this;
 
     $(window.document).click(function(event){
@@ -24,10 +24,10 @@ tutao.tutanota.ctrl.ModalPageBackgroundViewModel = function() {
 
 /**
  * Shows a transparent background receiving the next click event.
- * @param {function()} closeCallback
+ * @param {function()} closeListener
  */
-tutao.tutanota.ctrl.ModalPageBackgroundViewModel.prototype.show = function(closeCallback) {
-    this.closeCallback = closeCallback;
+tutao.tutanota.ctrl.ModalPageBackgroundViewModel.prototype.show = function(closeListener) {
+    this.closeListener = closeListener;
     this.visible(true);
 };
 
@@ -37,7 +37,7 @@ tutao.tutanota.ctrl.ModalPageBackgroundViewModel.prototype.show = function(close
  */
 tutao.tutanota.ctrl.ModalPageBackgroundViewModel.prototype._hide = function() {
     this.visible(false);
-    if (this.closeCallback != null){
-        this.closeCallback();
+    if (this.closeListener != null){
+        this.closeListener();
     }
 };

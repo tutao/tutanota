@@ -24,7 +24,6 @@ tutao.tutanota.ctrl.ViewManager = function() {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 480);
         self.windowWidthObservable(width);
 	});
-
 };
 
 
@@ -62,20 +61,13 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
     var adminViewVisible = function() {
         return self.getActiveView() == tutao.locator.dbView || self.getActiveView() == tutao.locator.monitorView || self.getActiveView() == tutao.locator.logView  || self.getActiveView() == tutao.locator.configView  || self.getActiveView() == tutao.locator.customerView;
     };
-    var nonStarterUser = function() {
-        if (tutao.locator.userController.getLoggedInUser()) {
+    var internalNonStarterUser = function() {
+        if (tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn()) {
             return tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
         } else {
             return false;
         }
-    }
-    var feedbackSupported = function() {
-        if (tutao.locator.userController.getLoggedInUser()) {
-            return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
-        } else {
-            return false;
-        }
-    }
+    };
     var buttons = [
         // admin
         new tutao.tutanota.ctrl.Button("logs_label", 40, tutao.locator.navigator.logs, adminViewVisible, false, "menu_logs", "search"),
@@ -86,26 +78,36 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
 
         // internalUsers
         new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
-            return nonStarterUser() && self.getActiveView() == tutao.locator.mailView;
+            return internalNonStarterUser() && self.getActiveView() == tutao.locator.mailView;
         }, false, "menu_mail_new", "mail-new", 'newMail_alt'),
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
-            return nonStarterUser() && self.getActiveView() != tutao.locator.mailView;
+            return internalNonStarterUser() && self.getActiveView() != tutao.locator.mailView;
         }, false, "menu_mail", "mail", 'emails_alt'),
 
         new tutao.tutanota.ctrl.Button('new_label', 29, tutao.locator.navigator.newContact, function () {
-            return nonStarterUser() && self.getActiveView() == tutao.locator.contactView;
+            return internalNonStarterUser() && self.getActiveView() == tutao.locator.contactView;
         }, false, "menu_contact_new", "contact-new", 'newContact_alt'),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
-            return nonStarterUser() && self.getActiveView() != tutao.locator.contactView;
+            return internalNonStarterUser() && self.getActiveView() != tutao.locator.contactView;
         }, false, "menu_contact", "contact", 'contacts_alt'),
 
-        new tutao.tutanota.ctrl.Button('settings_label', 28, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),
+        new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
+            tutao.tutanota.ctrl.Navigator.prototype.newMail();
+            //
+            var mail = tutao.locator.mailViewModel.getComposingMail();
+            mail.secure(false);
+            mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
+            var username = tutao.locator.userController.getUserGroupInfo().getName();
+            tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+        }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
+
+        new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),
 
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, tutao.locator.navigator.register, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
 
         // all supported
-        new tutao.tutanota.ctrl.Button('feedback_label', 26, tutao.locator.feedbackViewModel.open, feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
+        new tutao.tutanota.ctrl.Button('feedback_label', 26, tutao.locator.feedbackViewModel.open, this.feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
@@ -113,6 +115,14 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt'),
     ];
     this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(buttons, "more_label", measureNavButton);
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.feedbackSupported = function() {
+    if (tutao.locator.userController.getLoggedInUser()) {
+        return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
+    } else {
+        return false;
+    }
 };
 
 /**

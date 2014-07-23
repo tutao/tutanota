@@ -35,14 +35,14 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
                 this.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
             } else {
                 var self = this;
-                tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(cleaned), {}, [], function(result, exception) {
-                    if (exception) {
-                        self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
-                    } else if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
+                tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(cleaned), {}, []).then(function(result) {
+                    if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
                         self.mobileNumberStatus({ type: "valid", text: "mobileNumberValid_msg" });
                     } else {
                         self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
                     }
+                }).caught(function(exception) {
+                    self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
                 });
             }
         }
@@ -123,11 +123,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
         this.authToken(authToken);
         var params = {};
         params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
-        tutao.entity.sys.RegistrationServiceData.load(params, null, function(data, exception) {
-            if (exception) {
-                self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
-                return;
-            }
+        tutao.entity.sys.RegistrationServiceData.load(params, null).then(function(data) {
             self.accountType(data.getAccountType());
             if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
                 self.mailAddressPrefix.subscribe(self._verifyMailAddressFree, this);
@@ -140,20 +136,18 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
             self.mailAddressPrefix(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
             self.mobileNumber(data.getMobilePhoneNumber());
             self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
+        }).caught(function (exception) {
+            self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
         });
     } else {
         var parameters = {};
-        tutao.entity.sys.RegistrationConfigReturn.load(parameters, null, function(registrationConfigReturn, exception) {
-            if (exception) {
-                console.log(exception);
+        tutao.entity.sys.RegistrationConfigReturn.load(parameters, null).then(function(registrationConfigReturn) {
+            if (registrationConfigReturn.getFreeEnabled()) {
+                self.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+                self.mailAddressPrefix.subscribe(self._verifyMailAddressFree, self);
+                self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
             } else {
-                if (registrationConfigReturn.getFreeEnabled()) {
-                    self.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
-                    self.mailAddressPrefix.subscribe(self._verifyMailAddressFree, self);
-                    self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
-                } else {
-                    self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED);
-                }
+                self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED);
             }
         });
 
@@ -293,21 +287,18 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
         .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
 	    .setMobilePhoneNumber(tutao.tutanota.util.Formatter.getCleanedPhoneNumber(this.mobileNumber()));
 	// if no registration link was used, the authToken is not set yet, but returned by the send registration code service
-	service.setup({}, null, function(sendRegistrationCodeReturn, exception) {
-		if (exception) {
-            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-                self.joinStatus({ type: "invalid", text: "joinAccountLimitReached_msg" });
-            } else {
-                self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
-            }
-			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-		} else {
-			self.authToken(sendRegistrationCodeReturn.getAuthToken());
-			self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
-			self.code(""); // reset the code input field because it might be filled if the user changed back to the first view
-			self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-		}
-	});
+	service.setup({}, null).then(function(sendRegistrationCodeReturn) {
+        self.authToken(sendRegistrationCodeReturn.getAuthToken());
+        self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
+        self.code(""); // reset the code input field because it might be filled if the user changed back to the first view
+        self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
+	}).caught(tutao.LimitReachedError, function (e) {
+        self.joinStatus({ type: "invalid", text: "joinAccountLimitReached_msg" });
+    }).caught(function (e) {
+        self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
+        self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        throw e;
+    });
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
@@ -320,29 +311,24 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 	var service = new tutao.entity.sys.VerifyRegistrationCodeData();
 	service.setAuthToken(this.authToken());
 	service.setCode(this.code());
-	service.setup({}, null, function(voidReturn, exception) {
-		if (exception) {
-			self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-			if (exception.getOriginal() instanceof tutao.rest.RestException) {
-				if (exception.getOriginal().getResponseCode() == 473) { // InvalidDataException
-					self.codeInputStatus({ type: "invalid", text: "codeInvalid_msg" });
-					self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
-					self._wrongCodes.push(self.code());
-				} else if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
-					self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-					self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
-                } else if (exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-                    self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
-                } else {
-					self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-				}
-			} else {
-				self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-			}
-		} else {
-			self.generateKeys();
-		}
-	});
+	return service.setup({}, null).then(function(voidReturn) {
+        self.generateKeys();
+	}).caught(tutao.InvalidDataError, function(exception) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        self.codeInputStatus({ type: "invalid", text: "codeInvalid_msg" });
+        self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+        self._wrongCodes.push(self.code());
+    }).caught(tutao.TooManyRequestsError, function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
+        self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
+    }).caught(tutao.LimitReachedError, function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+    }).caught(function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+        throw e;
+    });
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.backToStartPage = function() {
@@ -356,24 +342,21 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
 	var self = this;
 	self.createAccountStatus({ type: "neutral", text: "createAccountRunning_msg" });
 	tutao.locator.entropyCollector.fetchMissingEntropy(function() {
-		self._generateKeys(function(exception) {
-			if (exception) {
-				console.log(exception);
-				self._keyGenProgress(0);
-				self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-                if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-                    self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
-                } else {
-				    self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-                }
-			} else {
-				tutao.locator.navigator.logout(false, false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
-				setTimeout(function() {
-					tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
-					tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
-				}, 0);
-			}
-		});
+		self._generateKeys().then(function() {
+            tutao.locator.navigator.logout(false, false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
+            setTimeout(function() {
+                tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
+                tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
+            }, 0);
+		}).caught(tutao.LimitReachedError, function (exception) {
+            self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+        }).caught(function (e) {
+            self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+            throw e;
+        }).lastly(function() {
+            self._keyGenProgress(0);
+            self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        });
 	});
 };
 
@@ -393,47 +376,29 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._getAccountGroupKey = functi
     }
 };
 
-tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(callback) {
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 	var self = this;
-	tutao.entity.sys.SystemKeysReturn.load({}, null, function(keyData, exception) {
-		if (exception) {
-			callback(exception);
-			return;
-		}
-
+	return tutao.entity.sys.SystemKeysReturn.load({}, null).then(function(keyData) {
 		var systemAdminPubKeyBase64 = keyData.getSystemAdminPubKey();
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-		tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, function(userPassphraseKeyHex) {
+		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKeyHex) {
 			self._keyGenProgress(5);
 			var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
             var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-			tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, adminGroupsListKey, function(adminGroupData, adminGroupKey, exception) {
+			return tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, adminGroupsListKey).spread(function(adminGroupData, adminGroupKey) {
 				self._keyGenProgress(35);
-				if (exception) {
-					callback(exception);
-					return;
-				}
                 var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-				tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey, function(userGroupData, userGroupKey, exception) {
+				return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function(userGroupData, userGroupKey) {
 					self._keyGenProgress(65);
-					if (exception) {
-						callback(exception);
-						return;
-					}
-
 					// encrypt the admin key with the user key, because the user key was not available before
 					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey));
 
                     var customerGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-					tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, customerGroupsListKey, function(customerGroupData, customerGroupKey, exception) {
+					return tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, customerGroupsListKey).spread(function(customerGroupData, customerGroupKey) {
 						self._keyGenProgress(95);
-						if (exception) {
-							callback(exception);
-							return;
-						}
                         var accountingInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
 						var accountingInfoBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 
@@ -443,71 +408,61 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function(cal
 
 						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
-						tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(accountingInfoBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
-							self._keyGenProgress(97);
-							if (exception) {
-								callback(exception);
-								return;
-							}
+                        return new Promise(function(resolve, reject) {
+                            tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(accountingInfoBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
+                                self._keyGenProgress(97);
+                                if (exception) {
+                                    reject(exception);
+                                    return;
+                                }
 
-                            var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+                                var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
 
-                            var customerService = new tutao.entity.sys.CustomerData()
-							    .setAuthToken(self.authToken())
-							    .setCompany(self.companyName())
-							    .setDomain(self.domain())
-                                .setAdminGroupList(new tutao.entity.sys.CreateGroupListData()
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
-                                    .setCreateGroupData(adminGroupData))
-                                .setUserGroupList(new tutao.entity.sys.CreateGroupListData()
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
-                                    .setCreateGroupData(userGroupData))
-                                .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData()
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
-                                    .setCreateGroupData(customerGroupData))
-                                .setTeamGroupList(new tutao.entity.sys.CreateGroupListData()
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
+                                var customerService = new tutao.entity.sys.CustomerData();
+                                customerService.setAuthToken(self.authToken())
+                                    .setCompany(self.companyName())
+                                    .setDomain(self.domain())
+                                    .setAdminGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
+                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
+                                        .setCreateGroupData(adminGroupData))
+                                    .setUserGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
+                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
+                                        .setCreateGroupData(userGroupData))
+                                    .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
+                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
+                                        .setCreateGroupData(customerGroupData))
+                                    .setTeamGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
+                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
 
-                                .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
-							    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
-                                .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
-							    .setSystemCustomerPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
-							    .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
-							    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
-							    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
-							    .setSymEncAccountGroupKey(symEncAccountGroupKey);
+                                    .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
+                                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
+                                    .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
+                                    .setSystemCustomerPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
+                                    .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
+                                    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
+                                    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                                    .setSymEncAccountGroupKey(symEncAccountGroupKey);
 
-							customerService.setup({}, null, function(adminUserData, exception) {
-								if (exception) {
-									callback(exception);
-									return;
-								}
-								tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1(), function(exception) {
-									if (exception) {
-										callback(exception);
-										return;
-									}
-									//TODO (before release) create root instances and welcome mail before login
-									tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey, function(exception) {
-										if (exception) {
-											callback(exception);
-											return;
-										}
-                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                                            new tutao.entity.tutanota.WelcomeMailData()
-                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-                                        }
-                                        self._keyGenProgress(100);
-										callback();
-									});
-								});
-							});
-						});
+                                resolve(customerService.setup({}, null).then(function(adminUserData) {
+                                    return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
+                                        //TODO (before release) create root instances and welcome mail before login
+                                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
+                                            if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                                                new tutao.entity.tutanota.WelcomeMailData()
+                                                    .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                                    .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+                                            }
+                                            self._keyGenProgress(100);
+                                        });
+                                    });
+                                }));
+                            });
+                        });
+
 					});
 				});
 			});
@@ -531,17 +486,17 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressFree = fun
     setTimeout(function() {
         if (self.mailAddressPrefix() == newValue) {
             var params = [];
-            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, [], function(mailAddressAvailabilityReturn, exception) {
+            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, []).then(function(mailAddressAvailabilityReturn) {
                 if (self.mailAddressPrefix() == newValue) {
-                    if (exception) {
-                        console.log(exception);
-                        self.mailAddressStatus({ type: "invalid", text: "mailAddressDelay_msg"});
-                    } else if (mailAddressAvailabilityReturn.getAvailable()) {
+                    if (mailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
                         self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
                     }
                 }
+            }).caught(function (exception) {
+                self.mailAddressStatus({ type: "invalid", text: "mailAddressDelay_msg"});
+                throw exception;
             });
         }
     }, 500);

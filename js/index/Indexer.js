@@ -82,16 +82,12 @@ tutao.tutanota.index.Indexer.prototype._indexElementsFrom = function(typeId, ids
 tutao.tutanota.index.Indexer.prototype._indexElement = function(typeId, id, callback) {
 	var self = this;
 	if (typeId == tutao.entity.tutanota.Mail.prototype.TYPE_ID) {
-		tutao.entity.tutanota.Mail.load(id, function(mail, exception) {
-			if (!exception) {
-				self._indexMail(mail, callback);
-			}
+		tutao.entity.tutanota.Mail.load(id).then(function(mail) {
+			self._indexMail(mail, callback);
 		});
 	} else if (typeId == tutao.entity.tutanota.MailBody.prototype.TYPE_ID) {
-		tutao.entity.tutanota.MailBody.load(id, function(body, exception) {
-			if (!exception) {
-				self._indexMailBody(body, callback);
-			}
+		tutao.entity.tutanota.MailBody.load(id).then(function(body) {
+            self._indexMailBody(body, callback);
 		});
 	}
 };

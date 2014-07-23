@@ -37,17 +37,13 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 
 /**
  * Shows the given mail in its conversation.
- * @param {tutao.tutanot.entity.Mail} mail The mail to show.
+ * @param {tutao.entity.tutanota.Mail} mail The mail to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 	var self = this;
 	var mails = [];
 	this._setConversation([mail]);
-    mail.loadConversationEntry(function(conversationEntry, exception) {
-        if (exception) {
-            console.log("conversation could not be loaded");
-        }
-    });
+    mail.loadConversationEntry();
     /* We currently don't display the whole conversation but will do this later
 	// we just load the conversation because we need it later (to get it synchronous)
 	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
@@ -78,23 +74,20 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
  * previous mail.
  * @param {tutao.entity.tutanota.ConversationEntry} conversationEntry The conversation entry to start loading from.
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The result list with all loaded mails.
- * @param {function()} callback Called when finished loading all mails.
+ * @return {Promise.<>} Resolves when all mails have been loaded.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMails = function(conversationEntry, mails, callback) {
+tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMails = function(conversationEntry, mails) {
 	var self = this;
 	// there might be no mail for this user, so skip it in that case
 	if (conversationEntry.getMail()) {
-		conversationEntry.loadMail(function(mail, exception) {
-			if (!exception) {
-				mails.push(mail);
-				self._loadNextMailsLoadPrevious(conversationEntry, mails, callback);
-			} else {
-				console.log(exception);
-				callback();
-			}
-		});
+		return conversationEntry.loadMail().then(function(mail) {
+    		mails.push(mail);
+			return self._loadNextMailsLoadPrevious(conversationEntry, mails);
+		}).caught(function(exception) {
+            console.log(exception);
+        });
 	} else {
-		self._loadNextMailsLoadPrevious(conversationEntry, mails, callback);
+		return self._loadNextMailsLoadPrevious(conversationEntry, mails);
 	}
 };
 
@@ -103,21 +96,18 @@ tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMails = function(conversati
  * the mail from that conversation entry.
  * @param {tutao.entity.tutanota.ConversationEntry} conversationEntry The conversation entry to load the previous from.
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The result list with all loaded mails.
- * @param {function()} callback Called when finished loading all mails.
+ * @return {Promise.<>} Resolves when all mails have been loaded.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMailsLoadPrevious = function(conversationEntry, mails, callback) {
+tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMailsLoadPrevious = function(conversationEntry, mails) {
 	var self = this;
 	if (conversationEntry.getPrevious()) {
-		conversationEntry.loadPrevious(function(nextCe, exception) {
-			if (!exception) {
-				self._loadNextMails(nextCe, mails, callback);
-			} else {
-				console.log(exception);
-				callback();
-			}
-		});
+		return conversationEntry.loadPrevious().then(function(nextCe, exception) {
+			return self._loadNextMails(nextCe, mails);
+		}).caught(function(exception) {
+            console.log(exception);
+        });
 	} else {
-		callback();
+		return Promise.resolve();
 	}
 };
 
@@ -151,16 +141,19 @@ tutao.tutanota.ctrl.MailViewModel.prototype._setConversation = function(conversa
 	var self = this;
 	self.conversation.removeAll();
 
-	tutao.util.FunctionUtils.executeSequentially(conversation, function(mail, callback) {
-		self.conversation.push(new tutao.tutanota.ctrl.DisplayedMail(mail));
-		setTimeout(callback, 0); // pause after decrypting each mail for rotating the spinner (won't do this otherwise).
-	}, function() {	});
-	// only show the spinner after 200ms if the conversation has not been loaded till then
-	setTimeout(function() {
-		if (!self.conversationLoaded()) {
-			self.showSpinner(true);
-		}
-	}, 200);
+    // only show the spinner after 200ms if the conversation has not been loaded till then
+    setTimeout(function() {
+        if (!self.conversationLoaded()) {
+            self.showSpinner(true);
+        }
+    }, 200);
+
+    return Promise.map(conversation, function(mail) {
+        self.conversation.push(new tutao.tutanota.ctrl.DisplayedMail(mail));
+        return new Promise(function(resolve, reject) {
+            setTimeout(resolve, 0); // pause after decrypting each mail for rotating the spinner (won't do this otherwise).
+        });
+    });
 };
 
 /**
@@ -180,7 +173,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype._findContactByMailAddress = function
 
 /**
  * @param {tutao.tutanota.ctrl.RecipientInfo=} recipientInfo Optional recipient info as recipient.
- * @return {boolean} If the new mail can be composed.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.newMail = function(recipientInfo) {
 	var recipients = (recipientInfo) ? [recipientInfo] : [];
@@ -201,6 +193,9 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) 
 	} else {
 		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()));
 	}
+    recipient.resolveType().caught(tutao.ConnectionError, function(e) {
+        // we are offline but we want to show the dialog only when we click on send.
+    });
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [recipient], [], displayedMail, body);
 };
 
@@ -219,6 +214,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyAllMail = function(displayedMai
 			ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(oldRecipients[i].getAddress(), oldRecipients[i].getName(), this._findContactByMailAddress(oldRecipients[i].getAddress())));
 		}
 	}
+    var allRecipients = toRecipients.concat(ccRecipients);
+    Promise.each(allRecipients, function(/*tutao.tutanota.ctrl.RecipientInfo*/recipient) {
+        recipient.resolveType();
+    }).caught(tutao.ConnectionError, function(e) {
+        // we are offline but we want to show the dialog only when we click on send.
+    });
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), toRecipients, ccRecipients, displayedMail, body);
 };
 
@@ -245,7 +246,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 	}
 	infoLine += tutao.lang("subject_label") + " " + displayedMail.mail.getSubject();
 	var body = "<br><br>" + infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + displayedMail.bodyText() + "</blockquote>";
-	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_FORWARD_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [], [], displayedMail, body);
+    var self = this;
+	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_FORWARD_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [], [], displayedMail, body).then(function() {
+        self.getComposingMail()._attachments(displayedMail.attachments());
+    });
 };
 
 /**
@@ -253,7 +257,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to export.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail) {
-    tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
+    return tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
         var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
         var tmpFile = new tutao.entity.tutanota.File();
         var filename = displayedMail.mail.getSubject();
@@ -263,11 +267,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
         tmpFile.setName(filename + ".eml");
         tmpFile.setMimeType("message/rfc822");
         tmpFile.setSize(String(buffer.byteLength));
-        tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile), function(error) {
-            if (error) {
-                console.log(error);
-            }
-        });
+        tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile));
     });
 };
 
@@ -279,7 +279,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipient infos that shall appear as cc recipients in the mail.
  * @param {tutao.tutanota.ctrl.DisplayedMail=} previousMail The previous mail to be visible below the new mail. Null if no previous mail shall be visible.
  * @param {string} bodyText The text to insert into the mail body.
- * @return {boolean} If a new mail is composed.
+ * @return {Promise<boolean>} resolves to true, if the new mail has been created, to false otherwise
  */
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText) {
 	var self = this;
@@ -291,6 +291,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 	// any selected mails in the mail list shall be deselected
 	tutao.locator.mailListViewModel.unselectAll();
 
+    var mailCreatedPromise;
 	if (previousMail) {
 		for (var i = 0; i < this.conversation().length; i++) {
 			if (this.conversation()[i] == previousMail) {
@@ -299,50 +300,49 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 			}
 		}
 
-		// the conversation is already loaded, so previousMessageId is set synchronously
-		var previousMessageId = null;
-		previousMail.mail.loadConversationEntry(function(ce, ex) {
-			if (ex) {
-                console.log("could not load conversation entry", ex);
-			} else {
-                previousMessageId = ce.getMessageId();
-            }
+        var previousMessageId = null;
+		mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
+            previousMessageId = ce.getMessageId();
+        }).caught(function(e) {
+            console.log("could not load conversation entry", e);
+        }).then(function() {
+            // the conversation key may be null if the mail was e.g. received from an external via smtp
+            self.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
+            self.getComposingMail().composerBody(bodyText);
+            tutao.locator.mailView.setComposingBody(bodyText);
         });
-		// the conversation key may be null if the mail was e.g. received from an external via smtp
-		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
-		this.getComposingMail().composerBody(bodyText);
-		tutao.locator.mailView.setComposingBody(bodyText);
 	} else {
+        mailCreatedPromise = Promise.resolve();
 		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null)]);
 	}
 
+    return mailCreatedPromise.then(function() {
+        self.getComposingMail().composerSubject(subject);
+        for (var i = 0; i < toRecipients.length; i++) {
+            self.getComposingMail().addToRecipient(toRecipients[i]);
+        }
+        for (var i = 0; i < ccRecipients.length; i++) {
+            self.getComposingMail().addCcRecipient(ccRecipients[i]);
+        }
 
-	this.getComposingMail().composerSubject(subject);
-	for (var i = 0; i < toRecipients.length; i++) {
-		this.getComposingMail().addToRecipient(toRecipients[i]);
-	}
-	for (var i = 0; i < ccRecipients.length; i++) {
-		this.getComposingMail().addCcRecipient(ccRecipients[i]);
-	}
-
-//	not needed currently as we scroll the complete window when editing a mail
-//	// iscroll must be refreshed when the size of the mail changes
-//	tutao.tutanota.gui.refreshScrollerWhenBodyChanges();
-	tutao.locator.mailView.showConversationColumn();
+        //	not needed currently as we scroll the complete window when editing a mail
+        tutao.locator.mailView.showConversationColumn();
 
 
-	// uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
-////TODO (story send html email): test on mobiles and move to view
-//	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
-//		toolbar:      null, // id of toolbar element
-//		parserRules:  wysihtml5ParserRules // defined in parser rules set
-//	});
-//	var onChange = function() {
-//		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
-//	};
-//	this.editor.on("change", onChange);
+        // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
+        ////TODO (story send html email): test on mobiles and move to view
+        //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
+        //		toolbar:      null, // id of toolbar element
+        //		parserRules:  wysihtml5ParserRules // defined in parser rules set
+        //	});
+        //	var onChange = function() {
+        //		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
+        //	};
+        //	this.editor.on("change", onChange);
 
-	return true;
+        return true;
+    });
+
 };
 
 /**
@@ -350,7 +350,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete/undelete.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail) {
-	tutao.locator.mailListViewModel.trashMail([displayedMail.mail], !displayedMail.mail.getTrashed(), function() {});
+	tutao.locator.mailListViewModel.trashMail([displayedMail.mail], !displayedMail.mail.getTrashed());
 };
 
 /**

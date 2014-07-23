@@ -20,14 +20,12 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
     var self = this;
 	var accountTypeNames = ["System", "Free", "Starter", "Premium", "Stream"];
 	self.records[0].valueObservable("Tutanota " + accountTypeNames[Number(user.getAccountType())]);
-	user.getUserGroup().loadGroupInfo(function(userGroup, exception) {
-		if (exception) {
-            console.log(exception);
-			self.records[1].valueObservable("?");
-			self.records[2].valueObservable("?");
-		} else {
-			self.records[1].valueObservable(userGroup.getMailAddress());
-			self.records[2].valueObservable(userGroup.getName());
-		}
-	});
+	user.getUserGroup().loadGroupInfo().then(function(userGroup, exception) {
+        self.records[1].valueObservable(userGroup.getMailAddress());
+        self.records[2].valueObservable(userGroup.getName());
+	}).caught(function(e) {
+        self.records[1].valueObservable("?");
+        self.records[2].valueObservable("?");
+        throw e;
+    });
 };

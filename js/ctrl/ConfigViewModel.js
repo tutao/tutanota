@@ -62,11 +62,7 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.getSortedTimeRangeLists = function
  */
 tutao.tutanota.ctrl.ConfigViewModel.prototype.loadConfig = function() {
 	var self = this;
-	tutao.entity.sys.ConfigDataReturn.load({}, null, function(c, exception) {
-		if (exception) {
-			console.log(exception);
-			return;
-		}
+	tutao.entity.sys.ConfigDataReturn.load({}, null).then(function(c) {
 		self.config(c);
 	});
 };
@@ -116,15 +112,13 @@ tutao.tutanota.ctrl.ConfigViewModel.prototype.storeConfig = function() {
 		return;
 	}
 	var self = this;
-	data.update({}, null, function(ret, exception) {
-		if (exception) {
-			self.submitStatus("error: " + exception.message);
-			return;
-		}
+	return data.update({}, null).then(function(ret, exception) {
 		self.submitStatus("success");
 		self.configValue("");
 		self.loadConfig();
-	});
+	}).caught(function(exception) {
+        self.submitStatus("error: " + exception.message);
+    });
 };
 
 tutao.tutanota.ctrl.ConfigViewModel.prototype.isLongConfigName = function() {

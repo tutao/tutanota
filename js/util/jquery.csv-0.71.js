@@ -36,7 +36,7 @@ RegExp.escape= function(s) {
 };
 
 (function( $ ) {
-  'use strict'
+  'use strict';
   /**
    * jQuery.csv.defaults
    * Encapsulates the method paramater defaults for the CSV plugin module.
@@ -87,7 +87,7 @@ RegExp.escape= function(s) {
         var data = [];
         var entry = [];
         var state = 0;
-        var value = ''
+        var value = '';
         var exit = false;
 
         function endOfEntry() {
@@ -617,7 +617,7 @@ RegExp.escape= function(s) {
         onParseEntry: options.onParseEntry,
         onParseValue: options.onParseValue,
         state: state
-      }
+      };
 
       var entry = $.csv.parsers.parseEntry(csv, options);
 
@@ -732,7 +732,7 @@ RegExp.escape= function(s) {
           rowNum:1,
           colNum:1
         }
-      }
+      };
       var headerLine = $.csv.parsers.splitLines(csv, headerOptions);
       var headers = $.csv.toArray(headerLine[0], options);
 

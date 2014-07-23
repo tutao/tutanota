@@ -34,16 +34,12 @@ tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
  */
 tutao.tutanota.ctrl.CustomerListViewModel.prototype.showSelected = function() {
 	var self = this;
-    tutao.entity.sys.CustomerInfo.loadRange(this._customerInfoListId, self.upperBoundId(), 1000, true, function(customerInfos, exception) {
-        if (exception) {
-            console.log(exception);
-        } else {
-            var editableCustomerInfos = [];
-            for (var i=0; i<customerInfos.length; i++) {
-                editableCustomerInfos.push(new tutao.entity.sys.CustomerInfoEditable(customerInfos[i]));
-            }
-            self.editableCustomerInfos(editableCustomerInfos);
+    tutao.entity.sys.CustomerInfo.loadRange(this._customerInfoListId, self.upperBoundId(), 1000, true).then(function(customerInfos) {
+        var editableCustomerInfos = [];
+        for (var i=0; i<customerInfos.length; i++) {
+            editableCustomerInfos.push(new tutao.entity.sys.CustomerInfoEditable(customerInfos[i]));
         }
+        self.editableCustomerInfos(editableCustomerInfos);
 	});
 };
 
@@ -60,14 +56,12 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateTestEndTime = function
 	//TODO (before release) disable cache, reload customer info?
 	var oldDate = editableCustomerInfo.getCustomerInfo().getTestEndTime();
 	editableCustomerInfo.update();
-	editableCustomerInfo.getCustomerInfo().update(function(exception) {
-		if (exception) {
-			// reset the date to indicate that the update failed
-			editableCustomerInfo.testEndTime(oldDate);
-			editableCustomerInfo.update();
-			console.log(exception);
-		}
-	});
+	editableCustomerInfo.getCustomerInfo().update().caught(function(exception) {
+        // reset the date to indicate that the update failed
+        editableCustomerInfo.testEndTime(oldDate);
+        editableCustomerInfo.update();
+        throw exception;
+    })
 };
 
 /**
@@ -83,12 +77,10 @@ tutao.tutanota.ctrl.CustomerListViewModel.prototype.updateActivationTime = funct
     //TODO (before release) disable cache, reload customer info?
     var oldDate = editableCustomerInfo.getCustomerInfo().getActivationTime();
     editableCustomerInfo.update();
-    editableCustomerInfo.getCustomerInfo().update(function(exception) {
-        if (exception) {
-            // reset the date to indicate that the update failed
-            editableCustomerInfo.activationTime(oldDate);
-            editableCustomerInfo.update();
-            console.log(exception);
-        }
+    editableCustomerInfo.getCustomerInfo().update().caught(function(exception) {
+        // reset the date to indicate that the update failed
+        editableCustomerInfo.activationTime(oldDate);
+        editableCustomerInfo.update();
+        throw exception;
     });
 };

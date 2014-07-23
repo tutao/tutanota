@@ -43,7 +43,7 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateReceivedTag = function() 
         return;
     }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID);
-	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
+	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag());
 };
 
 /**
@@ -54,7 +54,7 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateSentTag = function() {
         return;
     }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID);
-	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
+	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag());
 };
 
 /**
@@ -65,5 +65,5 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateTrashedTag = function() {
         return;
     }
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID);
-	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag(), function() {});
+	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag());
 };

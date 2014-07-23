@@ -111,7 +111,7 @@ tutao.tutanota.ctrl.Navigator.prototype.register = function() {
 
 /**
  * Switches to the provided view, if the user is authenticated. Otherwise, switches to the LoginView
- * @param {Object} view The view to switch to.
+ * @param {tutao.tutanota.ctrl.View} view The view to switch to.
  */
 tutao.tutanota.ctrl.Navigator.prototype.authenticateAndSwitchToView = function(view) {
 	/* TODO (story mobile support) for ios 7: to make sliding work, we need to open a new window on login and close the current.
@@ -178,7 +178,7 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 		if (self.verifyExternalClientSupported()) {
 			// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
 			tutao.locator.navigator.mailRef = this.params["mailRef"];
-			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, tutao.locator.navigator.mailRef, function() {
+			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, tutao.locator.navigator.mailRef).then(function() {
 				tutao.locator.viewManager.select(tutao.locator.externalLoginView);
 			});
 		}

@@ -7,7 +7,6 @@ goog.provide("tutao.tutanota.Bootstrap");
  * Executes all initializations needed for the live one-and-only tutanota website.
  * This binding is located in gui, so that it is not used for unit or integration tests.
  */
-// TODO (timely) use promises instead of callbacks: Switch js code to make use of promises in order to increase the code maintainability. See http://www.html5rocks.com/en/tutorials/es6/promises/?redirect_from_locale=de
 tutao.tutanota.Bootstrap.init = function () {
 
     // disable all registered event handlers on the document and the window
@@ -25,6 +24,23 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     tutao.tutanota.Bootstrap.initControllers();
+    Promise.longStackTraces();
+    Promise.onPossiblyUnhandledRejection(function(e) {
+        if (e instanceof tutao.ConnectionError) {
+            tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+        } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
+            tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
+        } else {
+            if (tutao.locator.viewManager.feedbackSupported()) {
+                // only logged in users can report errors
+                tutao.locator.feedbackViewModel.open(e.stack);
+            } else {
+                tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
+            }
+        }
+        console.log(e.stack);
+    });
+
     if (!tutao.tutanota.app) {
         tutao.tutanota.app = ko.observable(true);
     } else {
@@ -42,17 +58,13 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-//		tutao.locator.loginViewModel.mailAddress("premium-admin@tutanota.de");
-//		tutao.locator.loginViewModel.passphrase("premiumAdminPw");
-//		tutao.locator.loginViewModel.login(function() {
+//		tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
+//		tutao.locator.loginViewModel.passphrase("map");
+//		tutao.locator.loginViewModel.login();
 //			tutao.locator.navigator.settings();
 //			tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST);
 //			tutao.locator.navigator.customer();
 //			tutao.locator.viewManager.select(tutao.locator.contactView);
-//			tutao.locator.contactListViewModel.contactsInitializedCallback.push(function() {
-//				tutao.locator.contactViewModel.showContact(tutao.locator.contactListViewModel.contacts()[2]());
-//				tutao.locator.contactViewModel.editContact();
-//			});
 //		});
 //		tutao.locator.registrationViewModel.gender("Mr");
 //		tutao.locator.registrationViewModel.firstName("arne");
@@ -70,119 +82,62 @@ tutao.tutanota.Bootstrap.init = function () {
 tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/libs/internal/', '/libs/external/');
     var singletons = {
-        // @type {tutao.crypto.SjclRandomizer}
         randomizer: tutao.crypto.SjclRandomizer,
-        // @type {tutao.crypto.AesWorkerProxy}
         aesCrypter: tutao.crypto.AesWorkerProxy,
-        // @type {tutao.crypto.RsaWorkerProxy}
         rsaCrypter: tutao.crypto.RsaWorkerProxy,
-        // @type {tutao.crypto.JBCryptAdapter}
         kdfCrypter: tutao.crypto.JBCryptAdapter,
-        // @type {tutao.crypto.SjclSha256}
         shaCrypter: tutao.crypto.SjclSha256,
-        // @type {tutao.ctrl.UserController}
         userController: tutao.ctrl.UserController,
-        // @type {tutao.crypto.ClientWorkerProxy}
         clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
-        // @type {tutao.db.WebSqlDb}
         dao: tutao.db.WebSqlDb,
-        // @type {tutao.rest.RestClient}
         restClient: tutao.rest.RestClient,
-        // @type {tutao.rest.EntityRestClient}
         entityRestClient: tutao.rest.EntityRestClient,
-        // @type {tutao.tutanota.index.Indexer}
         indexer: tutao.tutanota.index.Indexer,
-        // @type {tutao.tutanota.ctrl.MailBoxController}
         mailBoxController: tutao.tutanota.ctrl.MailBoxController,
-        // @type {tutao.tutanota.ctrl.ViewManager}
         viewManager: tutao.tutanota.ctrl.ViewManager,
-        // @type {tutao.tutanota.ctrl.LoginViewModel}
         loginViewModel: tutao.tutanota.ctrl.LoginViewModel,
-        // @type {tutao.tutanota.ctrl.ExternalLoginViewModel}
         externalLoginViewModel: tutao.tutanota.ctrl.ExternalLoginViewModel,
-        // @type {tutao.tutanota.ctrl.TagListViewModel}
         tagListViewModel: tutao.tutanota.ctrl.TagListViewModel,
-        // @type {tutao.tutanota.ctrl.MailListViewModel}
         mailListViewModel: tutao.tutanota.ctrl.MailListViewModel,
-        // @type {tutao.tutanota.ctrl.MailViewModel}
         mailViewModel: tutao.tutanota.ctrl.MailViewModel,
-        // @type {tutao.tutanota.ctrl.PasswordChannelViewModel}
         passwordChannelViewModel: tutao.tutanota.ctrl.PasswordChannelViewModel,
-        // @type {tutao.tutanota.ctrl.ContactListViewModel}
         contactListViewModel: tutao.tutanota.ctrl.ContactListViewModel,
-        // @type {tutao.tutanota.ctrl.ContactViewModel}
         contactViewModel: tutao.tutanota.ctrl.ContactViewModel,
-        // @type {tutao.tutanota.ctrl.FeedbackViewModel}
         feedbackViewModel: tutao.tutanota.ctrl.FeedbackViewModel,
-        // @type {tutao.tutanota.ctrl.FontViewModel}
         fontViewModel: tutao.tutanota.ctrl.FontViewModel,
-        // @type {tutao.tutanota.ctrl.ThemeViewModel}
         themeViewModel: tutao.tutanota.ctrl.ThemeViewModel,
-        // @type {tutao.tutanota.gui.LoginView}
         loginView: tutao.tutanota.gui.LoginView,
-        // @type {tutao.tutanota.gui.ExternalLoginView}
         externalLoginView: tutao.tutanota.gui.ExternalLoginView,
-        // @type {tutao.tutanota.gui.LoginView}
         notFoundView: tutao.tutanota.gui.LoginView,
-        // @type {tutao.tutanota.gui.MailView}
         mailView: tutao.tutanota.gui.MailView,
-        // @type {tutao.tutanota.gui.ContactView}
         contactView: tutao.tutanota.gui.ContactView,
-        // @type {tutao.tutanota.gui.FastMessageView}
         fastMessageView: tutao.tutanota.gui.FastMessageView,
-        // @type {tutao.tutanota.gui.NotSupportedView}
         notSupportedView: tutao.tutanota.gui.NotSupportedView,
-        // @type {tutao.tutanota.gui.RegistrationVerifyDomainView}
         registrationVerifyDomainView: tutao.tutanota.gui.RegistrationVerifyDomainView,
-        // @type {tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel}
         registrationVerifyDomainViewModel: tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel,
-        // @type {tutao.tutanota.gui.RegistrationView}
         registrationView: tutao.tutanota.gui.RegistrationView,
-        // @type {tutao.tutanota.ctrl.RegistrationViewModel}
         registrationViewModel: tutao.tutanota.ctrl.RegistrationViewModel,
-        // @type {tutao.tutanota.gui.LogView}
         logView: tutao.tutanota.gui.LogView,
-        // @type {tutao.tutanota.ctrl.LogViewModel}
         logViewModel: tutao.tutanota.ctrl.LogViewModel,
-        // @type {tutao.tutanota.gui.DbView}
         dbView: tutao.tutanota.gui.DbView,
-        // @type {tutao.tutanota.ctrl.DbViewModel}
         dbViewModel: tutao.tutanota.ctrl.DbViewModel,
-        // @type {tutao.tutanota.gui.MonitorView}
         monitorView: tutao.tutanota.gui.MonitorView,
-        // @type {tutao.tutanota.ctrl.MonitorViewModel}
         monitorViewModel: tutao.tutanota.ctrl.MonitorViewModel,
-        // @type {tutao.tutanota.gui.ConfigView}
         configView: tutao.tutanota.gui.ConfigView,
-        // @type {tutao.tutanota.ctrl.ConfigViewModel}
         configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
-        // @type {tutao.tutanota.gui.CustomerView}
         customerView: tutao.tutanota.gui.CustomerView,
-        // @type {tutao.tutanota.ctrl.CustomerViewModel}
         customerViewModel: tutao.tutanota.ctrl.CustomerViewModel,
-        // @type {tutao.tutanota.gui.SettingsView}
         settingsView: tutao.tutanota.gui.SettingsView,
-        // @type {tutao.tutanota.ctrl.SettingsViewModel}
         settingsViewModel: tutao.tutanota.ctrl.SettingsViewModel,
-        // @type {tutao.crypto.EntropyCollector}
         entropyCollector: tutao.crypto.EntropyCollector,
-        // @type {tutao.tutanota.security.CajaSanitizer}
         htmlSanitizer: tutao.tutanota.security.CajaSanitizer,
-        // @type {tutao.tutanota.ctrl.LanguageViewModel}
         languageViewModel: tutao.tutanota.ctrl.LanguageViewModel,
-        // @type {tutao.event.EventBusClient}
         eventBus: tutao.event.EventBusClient,
-        // @type {tutao.tutanota.ctrl.FileViewModel}
         fileViewModel: tutao.tutanota.ctrl.FileViewModel,
-        // @type {tutao.tutanota.gui.FileView}
         fileView: tutao.tutanota.gui.FileView,
-        // @type {tutao.tutanota.ctrl.Navigator}
         navigator: tutao.tutanota.ctrl.Navigator,
-        // @type {tutao.tutanota.ctrl.LegacyDownloadViewModel}
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
-        // @type {tutao.tutanota.ctrl.ProgressDialogModel}
         progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
-        // @type {tutao.tutanota.ctrl.ModalPageBackgroundViewModel}
         modalPageBackgroundViewModel: tutao.tutanota.ctrl.ModalPageBackgroundViewModel
     };
 
@@ -191,6 +146,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     }
     tutao.tutanota.legacy.Legacy.setup(singletons);
 
+    // @type {tutao.Locator}
     tutao.locator = new tutao.Locator(singletons);
 
     // shortcuts

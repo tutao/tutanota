@@ -144,7 +144,6 @@ tutao.tutanota.ctrl.ThunderbirdContactCsvConverter.prototype.addField = function
 	default:
 		return false;
 	}
-	return true;
 };
 
 tutao.tutanota.ctrl.ThunderbirdContactCsvConverter.prototype.finishContact = function(contact) {
@@ -209,7 +208,5 @@ tutao.tutanota.ctrl.ThunderbirdContactCsvConverter.prototype.addAddress = functi
 };
 
 tutao.tutanota.ctrl.ThunderbirdContactCsvConverter.prototype.contactsToCsv = function(contacts) {
-	return tutao.tutanota.ctrl.ContactCsvConverter.contactsToCsv(contacts, function(contact, callback) {
-		
-	});
+	return tutao.tutanota.ctrl.ContactCsvConverter.contactsToCsv(contacts, this);
 };

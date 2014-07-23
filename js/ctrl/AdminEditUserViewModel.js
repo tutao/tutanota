@@ -36,10 +36,10 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     this.passwordChangeAllowed = ko.observable(false);
     this.deleteUserAllowed = ko.observable(false);
     var self = this;
-    tutao.entity.sys.Group.load(userGroupInfo.getGroup(), function(userGroup, exception) {
-        if (!exception && userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
-            tutao.entity.sys.User.load(userGroup.getUser(), function(user, exception) {
-                if (!exception && !self._isAdmin(user)) {
+    tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {
+        if (userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
+            tutao.entity.sys.User.load(userGroup.getUser()).then(function(user) {
+                if (!self._isAdmin(user)) {
                     self.passwordChangeAllowed(true);
                     self.deleteUserAllowed(true);
                 }
@@ -94,31 +94,30 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
 	this.userGroupInfo.setName(this.name());
 	this.saveStatus({type: "neutral", text: "save_msg" });
     var self = this;
-	this.userGroupInfo.update(function(exception) {
-		if (exception) {
-			console.log(exception);
-		} else {
-            if (self.isChangePasswordActionAllowed()) {
-                self._resetPassword(function(exception) {
-                    self.busy(false);
-                    if (exception) {
-                        self.saveStatus({type: "invalid", text: "passwordResetFailed_msg" });
-                    } else {
-                        self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
-                        self.adminUserListViewModel.updateUserGroupInfo();
-                        tutao.locator.settingsView.showChangeSettingsColumn();
-                    }
-                });
-            } else {
-                self.busy(false);
+	this.userGroupInfo.update().then(function() {
+        if (self.isChangePasswordActionAllowed()) {
+            return self._resetPassword().then(function(exception) {
+                self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
                 self.adminUserListViewModel.updateUserGroupInfo();
                 tutao.locator.settingsView.showChangeSettingsColumn();
-            }
-		}
-	});
+            }).caught(function(exception) {
+                self.saveStatus({type: "invalid", text: "passwordResetFailed_msg" });
+
+            })
+        } else {
+            self.saveStatus({type: "neutral", text: "saved_msg" });
+            self.adminUserListViewModel.updateUserGroupInfo();
+            tutao.locator.settingsView.showChangeSettingsColumn();
+        }
+	}).caught(function(e) {
+        self.saveStatus({type: "neutral", text: "emptyString_msg" });
+        throw e;
+    }).lastly(function() {
+        self.busy(false);
+    });
 };
 
-tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function(callback) {
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function() {
     var adminGroupKey = null;
     var memberships = tutao.locator.userController.getLoggedInUser().getMemberships();
     for (var i = 0; i < memberships.length; i++) {
@@ -127,18 +126,13 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function(c
         }
     }
     if (adminGroupKey == null) {
-        callback(new tutao.entity.EntityRestException(new Error("could not find admin key")));
-        return;
+        return Promise.reject(new tutao.entity.EntityRestException(new Error("could not find admin key")));
     }
     var self = this;
-    tutao.entity.sys.Group.load(self.userGroupInfo.getGroup(), function(userGroup, exception) {
-        if (exception) {
-            callback(exception);
-            return;
-        }
+    return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
         var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
         var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-        tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt, function(userPassphraseKeyHex) {
+        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt).then(function(userPassphraseKeyHex) {
             var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
             var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey);
             var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
@@ -148,13 +142,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function(c
             service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
             service.setVerifier(verifier);
             service.setPwEncUserGroupKey(pwEncUserGroupKey);
-            service.setup({}, null, function(dummy, exception) {
-                if (exception) {
-                    callback(exception);
-                    return;
-                }
-                callback();
-            });
+            return service.setup({}, null);
         });
     });
 };
@@ -172,23 +160,19 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
         return;
     }
     var self = this;
-    this.userGroupInfo.loadGroup(function(group, exception) {
-        if (exception) {
-            console.log(exception);
-        } else {
-            var restore = self.userGroupInfo.getDeleted() != null;
-            new tutao.entity.sys.UserDataDelete()
-                .setUser(group.getUser())
-                .setRestore(restore)
-                .erase({}, null, function(deleteUserReturn, exception) {
-                    if (exception) {
-                        console.log(exception);
-                    } else {
-                        self.adminUserListViewModel.updateUserGroupInfo();
-                        tutao.locator.settingsView.showChangeSettingsColumn();
-                    }
-                });
-        }
+    this.userGroupInfo.loadGroup().then(function(group) {
+        var restore = self.userGroupInfo.getDeleted() != null;
+        new tutao.entity.sys.UserDataDelete()
+            .setUser(group.getUser())
+            .setRestore(restore)
+            .erase({}, null, function(deleteUserReturn, exception) {
+                if (exception) {
+                    console.log(exception);
+                } else {
+                    self.adminUserListViewModel.updateUserGroupInfo();
+                    tutao.locator.settingsView.showChangeSettingsColumn();
+                }
+            });
     });
 };
 

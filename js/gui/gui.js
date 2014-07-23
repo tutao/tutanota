@@ -79,7 +79,7 @@ tutao.tutanota.gui.initKnockout = function() {
 	ko.bindingHandlers.lang = {
 		update: function(element, valueAccessor, allBindingsAccessor) {
 			var params = allBindingsAccessor()["params"];
-			ko.bindingHandlers.text.update(element, function() { return tutao.locator.languageViewModel.get(valueAccessor(), params); });
+			ko.bindingHandlers.text.update(element, function() { return tutao.locator.languageViewModel.get(ko.utils.unwrapObservable(valueAccessor()), params); });
 	    }
 	};
 	
@@ -160,7 +160,7 @@ tutao.tutanota.gui.initKnockout = function() {
 	        var value = ko.utils.unwrapObservable(valueAccessor());
 	        $(element).fadeOut(500, function() {
 	            // set the text of the element, 
-	            // value needs to be defined outside of the fadeOut callback to work
+	            // value needs to be defined outside of the fadeOut valueAccessor to work
 	        	ko.bindingHandlers.text.update(element, function() { return value; } );
 	            $(element).fadeIn(500);
 	        });
@@ -468,10 +468,10 @@ tutao.tutanota.gui.isEditable = function(domElement) {
 
 // currently not used because deleting mails is done in mail view and not via context menu in mail list view
 ///**
-// * Register a callback function that is called when a long press on a mail in the mail list is registered.
-// * @param {function(Object,number,number)} callback The callback passes the pressed dom element and the x/y position that was pressed.
+// * Register a listener function that is called when a long press on a mail in the mail list is registered.
+// * @param {function(Object,number,number)} listener The listener passes the pressed dom element and the x/y position that was pressed.
 // */
-//tutao.tutanota.gui.registerMailLongPress = function(callback) {
+//tutao.tutanota.gui.registerMailLongPress = function(listener) {
 //	var pressTimer = undefined;
 //	var startX = undefined;
 //	var startY = undefined;
@@ -483,7 +483,7 @@ tutao.tutanota.gui.isEditable = function(domElement) {
 //		startY = e.pageY;
 //		pressTimer = window.setTimeout(function() {
 //			if (!cancelLongPress) {
-//				callback($(e.target).closest(".mailInList").get(0), startX, startY);
+//				listener($(e.target).closest(".mailInList").get(0), startX, startY);
 //			}
 //		}, 1000);
 //		return false;
@@ -638,18 +638,18 @@ tutao.tutanota.gui.getWindowHeight = function() {
 };
 
 /**
- * Notifies the callback about window size changes.
- * @param {function(number, number)} callback Provides the new width and height of the window if the values change.
+ * Notifies the listener about window size changes.
+ * @param {function(number, number)} listener Provides the new width and height of the window if the values change.
  */
-tutao.tutanota.gui.addWindowResizeListener = function(callback) {
+tutao.tutanota.gui.addWindowResizeListener = function(listener) {
 	var self = this;
 	$(window).on("resize", function() {
-		callback(self.getWindowWidth(), self.getWindowHeight());
+		listener(self.getWindowWidth(), self.getWindowHeight());
 	});
 	// on iOS 6, the orientation change events do not trigger resize events in ComposerMode (see e.g. tutao.locator.mailView.enableTouchComposingMode())
 	if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
 		$(window).on("orientationchange", function() {
-			callback(self.getWindowWidth(), self.getWindowHeight());
+			listener(self.getWindowWidth(), self.getWindowHeight());
 		});
 	}
 };

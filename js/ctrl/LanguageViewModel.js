@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.setCurrentLanguage = function(la
 /**
  * Provides the text with the given id and the given params in the currently selected language.
  * @param {string} id One of the ids defined in tutao.tutanota.ctrl.LanguageViewModel.en or tutao.tutanota.ctrl.LanguageViewModel.de.
- * @param {Object<String,String>} params An object whose property keys are the strings that shall be replaced by the corresponding property value in the text.
+ * @param {Object<String,String>=} params An object whose property keys are the strings that shall be replaced by the corresponding property value in the text.
  * @return {string} The text.
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
@@ -144,12 +144,15 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     saveDownloadNotPossibleAndroid_msg: "Unfortunately, the native Android browser does not support saving attachments to disk. Still, some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise.",
     saveDownloadNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
     addAttachmentNotPossibleIe_msg: "Unfortunately mobile Internet Explorer does not support adding attachments to emails. Please use a desktop browser for this feature.",
-    recipientsNotResolved_msg: "Some recipients could not be resolved, please wait a moment, then send the email again.",
     removeRecipient_alt: "Remove recipient",
     couldNotAttachFile_msg: "Unfortunately, the file could not be loaded.",
     changeNotificationMailLanguage_msg: "Language of notification email:",
     search_title: "Search",
     loadMoresMails_action: "Load more emails",
+
+    //invitation
+    invitationMailSubject_msg: "Your invitation to Tutanota Free",
+    invitationMailBody_msg: "Hello!<br><br>I would like to invite you to Tutanota. Tutanota is a free email service that encrypts emails automatically. This way others cannot eavesdrop on us and we can communicate confidentially.<br><br>Please take a minute to sign up:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>I am looking forward to receiving your first encrypted email!<br><br>Cheers,<br>$",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -203,6 +206,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	edit_label: "Edit",
 	editUser_label: "Edit user",
 	save_msg: "Saving data ...",
+    saved_msg: "Saved successfully!",
 	state_label: "State",
 	create_action: "Create",
     createActionSuccess_msg: "All accounts have been created successfully.",
@@ -245,12 +249,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	pwChangeNeutral_msg: "You will receive a verification code via SMS to $.",
 	pwChangeNeutralSendingCode_msg: "Code is sent...",
 	pwChangeValid_msg: "Password was changed.",
-	pwChangeInvalidServerNotAvailable_msg: "Could not reach server. Password has not been changed. Please try again later.",
 	pwChangeInvalidTooManyVerifyAttempts_msg: "Number of allowed attempts exceeded. Please try again later.",
 	pwChangeInvalidTooManyChangeAttempts_msg: "Your password was changed too often. Please try again later.",
 	pwChangeButtonSendCode_action: "Send code",
 	pwChangeButtonChangePw_action: "Change password",
-	serverNotReachable_msg: "Could not reach server. Please try again later.",
+	serverNotReachable_msg: "Could not reach server, looks like you are offline. Please try again later.",
+    outdatedClient_msg: "Please update Tutanota. The currently installed version is too old and not supported any longer.",
+    unknownError_msg: "An unexpected error occured. Please try again later.",
     passwordNotChanged_msg: "The password is not changed.",
     passwordResetFailed_msg: "An error occurred. The password was not changed.",
     notePassword_msg: "Please note the password down carefully and provide it to the user.",
@@ -343,6 +348,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	settings_alt: "Settings",
     register_label: "Register",
     register_alt: "Register",
+    invite_label: "Invite",
+    invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
 
@@ -420,7 +427,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	createAccount_action: "Create account",
 	createAccountRunning_msg: "Account is being created...",
 	createAccountTooManyAttempts_msg: "Too many wrong attempts. Please try again later.",
-	createAccountError_msg: "Sorry, but there was an error. Please try again later.",
     createAccountTooManyAccountsError_msg: "Sorry, but the maximum number of accounts is reached.",
 	createAccountInfo_msg: "Depending on your computer's individual performance it may take some minutes to generate your secure keys.",
     createAccountInfoMobile_msg: "On mobile devices it may take several minutes to generate your secure keys. If it takes too long, please use a desktop computer for registration.",
@@ -436,9 +442,11 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	termsAcceptedNeutral_msg: "Please accept the terms & conditions.",
 
 	// feedback
+    errorReport_label: "Oh no!!!",
+    errorReportDescription_msg: "An unexpected error occured. Please tell us what happened and we will fix the problem as soon as possible.",
     screenshot_label: "Attach screenshot",
-    feedbackInfo_msg: "The message is sent encrypted to support@tutao.de together with the browser identifier.",
-	sendFeedbackFailed_msg: "Sorry, sending feedback failed. Please try again later.",
+    feedbackInfo_msg: "The message and your browser identifier are sent encrypted to support@tutao.de.",
+    feedbackErrorInfo_msg: "The message, error details and your browser identifier are sent encrypted to support@tutao.de.",
 
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
@@ -566,13 +574,15 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     saveDownloadNotPossibleAndroid_msg: "Leider unterstützt der Android-Browser nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
     saveDownloadNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Abspeichern oder Anzeigen von Anhängen. Bitte verwenden Sie dafür einen Desktop-Browser.",
     addAttachmentNotPossibleIe_msg: "Leider unterstützt der mobile Internet Explorer nicht das Anhängen von Dateien an E-Mails. Bitte verwenden Sie dafür einen Desktop-Browser.",
-    recipientsNotResolved_msg: "Einige Empfänger konnten noch nicht erkannt werden. Bitte warten Sie einem Moment, dann können Sie die E-Mail absenden.",
     removeRecipient_alt: "Empfänger entfernen",
     couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
     changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
     search_title: "Suche",
     loadMoresMails_action: "Weitere E-Mails laden.",
 
+    //invitation
+    invitationMailSubject_msg: "Einladung zu Tutanota Free",
+    invitationMailBody_msg: "Hallo!<br><br>Ich möchte dich gern zu Tutanota einladen. Tutanota ist ein kostenloser E-Mail-Service, mit dem wir automatisch verschlüsselt kommunizieren können. So haben Dritte keine Möglichkeit uns zu belauschen und wir können vertraulich miteinander kommunizieren.<br><br>In einer Minute hast Du Dich hier registriert:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Ich freue mich auf deine erste verschlüsselte E-Mail!<br><br>Liebe Grüße<br>$",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
@@ -626,6 +636,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	edit_label: "Bearbeiten",
 	editUser_label: "Benutzer bearbeiten",
 	save_msg: "Die Daten werden gespeichert ...",
+    saved_msg: "Die Daten wurden erfolgreich gespeichert!",
 	state_label: "Zustand",
 	create_action: "Hinzufügen",
 	createActionSuccess_msg: "Alle Accounts wurden erfolgreich angelegt.",
@@ -668,12 +679,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	pwChangeNeutral_msg: "Sie werden einen Bestätigungscode als SMS an $ erhalten.",
 	pwChangeNeutralSendingCode_msg: "Code wird gesendet...",
 	pwChangeValid_msg: "Passwort wurde geändert.",
-	pwChangeInvalidServerNotAvailable_msg: "Der Server ist nicht erreichbar. Das Passwort wurde nicht geändert. Bitte versuchen Sie es später erneut.",
 	pwChangeInvalidTooManyVerifyAttempts_msg: "Anzahl erlaubter Versuche überschritten. Bitte versuchen Sie es es später erneut.",
 	pwChangeInvalidTooManyChangeAttempts_msg: "Das Passwort wurde zu häufig geändert. Bitte versuchen Sie es es später erneut.",
 	pwChangeButtonSendCode_action: "Code senden",
 	pwChangeButtonChangePw_action: "Passwort ändern",
-	serverNotReachable_msg: "Der Server ist nicht erreichbar. Bitte versuchen Sie es es später erneut.",
+	serverNotReachable_msg: "Der Server konnte nicht erreicht werden, sie sind offline. Bitte versuchen Sie es es später erneut.",
+    outdatedClient_msg: "Bitte aktualisieren Sie Tutanota. Die aktuell installierte Version ist zu alt und wird nicht länger unterstützt.",
+    unknownError_msg: "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
     passwordNotChanged_msg: "Das Passwort ist nicht geändert.",
     passwordResetFailed_msg: "Es ist ein Fehler aufgetreten. Das Passwort wurde nicht geändert.",
     notePassword_msg: "Bitte notieren Sie sich das Passwort gut und geben Sie es an den Benutzer weiter.",
@@ -766,6 +778,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	settings_alt: "Einstellungen",
     register_label: "Registrieren",
     register_alt: "Registrieren",
+    invite_label: "Einladen",
+    invite_alt: "Einladen",
     more_label: "Mehr",
     dots_label: "...",
 
@@ -843,7 +857,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	createAccount_action: "Account anlegen",
 	createAccountRunning_msg: "Account wird erstellt...",
 	createAccountTooManyAttempts_msg: "Zu viele falsche Versuche. Bitte versuchen Sie es später erneut.",
-	createAccountError_msg: "Leider ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.",
     createAccountTooManyAccountsError_msg: "Leider ist die maximale Anzahl Accounts erreicht.",
 	createAccountInfo_msg: "Abhängig von der Geschwindigkeit Ihres Computers kann es einige Minuten dauern bis Ihre sicheren Schlüssel erzeugt wurden.",
     createAccountInfoMobile_msg: "Auf mobilen Geräten kann es mehrere Minuten dauern bis Ihre sicheren Schlüssel erzeugt sind. Falls es Ihnen zu lange dauert, bitten wir Sie für die Registrierung einen Desktoprechner zu verwenden.",
@@ -859,10 +872,12 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die AGB.",
 
 	// feedback
+    errorReport_label: "Oh nein!!!",
+    errorReportDescription_msg: "Es ist ein unerwarteter Fehler aufgetreten. Wir würden uns freuen, wenn Sie uns über die von Ihnen ausgeführten Schritte informieren, damit wir das Problem so schnell wie möglich beheben können.",
 	screenshot_label: "Screenshot mitsenden",
     feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
-	sendFeedbackFailed_msg: "Leider konnte das Feedback nicht gesendet werden. Bitte versuchen Sie es später erneut.",
-	
+    feedbackErrorInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung und Fehlerdetails verschlüsselt an support@tutao.de gesendet.",
+
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter für Microsoft Outlook",
 	version_label: "Version:",

@@ -16,7 +16,7 @@ tutao.tutanota.gui.ConfigView.COLUMN_CONFIG = null;
  * @inherit
  */
 tutao.tutanota.gui.ConfigView.prototype.init = function(external) {
-	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "configContent")
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "configContent");
     tutao.tutanota.gui.ConfigView.COLUMN_CONFIG = this._swipeSlider.addViewColumn(0, 400, 1024, 'configColumn');
 };
 

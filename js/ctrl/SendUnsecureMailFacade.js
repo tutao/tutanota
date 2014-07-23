@@ -14,11 +14,10 @@ goog.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Empty string if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
- * @param {function(string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException=)} callback Called when finished with the id of
- * the senders mail (only element id, no list id). Provides a RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
- * if another error occurred.
+ * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolves to the senders mail id (only element id, no list id),
+ * rejected with an RecipientsNotFoundError if some of the recipients could not be found.
  */
-tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language, callback) {
+tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var aes = tutao.locator.aesCrypter;
 	var groupKey = tutao.locator.userController.getUserGroupKey();
 	var sharableKey = tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey();
@@ -37,12 +36,9 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	    .setSymEncSessionKey(aes.encryptKey(groupKey, sessionKey)) // for sender
 	    .setSharableEncSessionKey(aes.encryptKey(sharableKey, sessionKey)); // for sharing the mailbox
 
-    tutao.util.FunctionUtils.executeSequentially(attachments, function(dataFile, finishedCallback) {
+    return Promise.each(attachments, function(dataFile, index, number) {
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey, function(fileData, exception) {
-            if (exception) {
-                finishedCallback(exception);
-            }
+        return tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey).then(function(fileData) {
             var attachment = new tutao.entity.tutanota.UnsecureAttachment(service)
                 .setFile(null) // currently no existing files can be attached
                 .setFileData(fileData.getId())
@@ -51,14 +47,8 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
                 .setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
                 .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
             service.getAttachments().push(attachment);
-            finishedCallback();
         });
-    }, function(exception) {
-        if (exception) {
-            callback(null, exception);
-            return
-        }
-
+    }).then(function() {
         for (var i = 0; i < toRecipients.length; i++) {
             var recipient = new tutao.entity.tutanota.UnsecureRecipient(service);
             recipient.setName(toRecipients[i].getName());
@@ -78,13 +68,9 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
             service.getBccRecipients().push(recipient);
         }
         var map = {};
-        service.setup(map, tutao.entity.EntityHelper.createAuthHeaders(), function(sendUnsecureMailReturn, ex) {
+        return service.setup(map, tutao.entity.EntityHelper.createAuthHeaders()).then(function(sendUnsecureMailReturn) {
             var mailElementId = sendUnsecureMailReturn.getSenderMail()[1];
-            if (ex) {
-                callback(null, ex);
-            } else {
-                callback(mailElementId);
-            }
+            return mailElementId;
         });
     });
 };

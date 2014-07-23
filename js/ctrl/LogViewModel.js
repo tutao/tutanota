@@ -84,7 +84,7 @@ tutao.tutanota.ctrl.LogViewModel.prototype.showSelected = function() {
 		this.logEntries([]); 
 	}
 	var self = this;
-	this._loadLogEntries(upperBoundId, true, function(logEntryList) {
+	this._loadLogEntries(upperBoundId, true).then(function(logEntryList) {
 		if (self.logEntries().length == 0) {
 			self.logEntries(logEntryList);
 		} else {
@@ -120,7 +120,7 @@ tutao.tutanota.ctrl.LogViewModel.prototype.showNewerPossible = function() {
  */
 tutao.tutanota.ctrl.LogViewModel.prototype.showNewer = function() {
 	var self = this;
-	this._loadLogEntries(this.logEntries()[0].getId()[1], false, function(logEntryList) {
+	this._loadLogEntries(this.logEntries()[0].getId()[1], false).then(function(logEntryList) {
 		if (logEntryList.length == self.maxCount()) {					
 			self.logEntries(logEntryList);
 		} else {
@@ -146,7 +146,7 @@ tutao.tutanota.ctrl.LogViewModel.prototype.showOlder = function() {
 	var self = this;
 	
 	var nextStartId = this.logEntries()[this.logEntries().length - 1].getId()[1];
-	this._loadLogEntries(nextStartId, true, function(logEntryList) {
+	this._loadLogEntries(nextStartId, true).then(function(logEntryList) {
 		if (logEntryList.length > 0) {
 			self.logEntries(logEntryList);
 		}
@@ -158,7 +158,7 @@ tutao.tutanota.ctrl.LogViewModel.prototype.showOlder = function() {
  */
 tutao.tutanota.ctrl.LogViewModel.prototype.showMore = function() {
 	var self = this;
-	this._loadLogEntries(this.logEntries()[this.logEntries().length - 1].getId()[1], true, function(logEntryList) {
+	this._loadLogEntries(this.logEntries()[this.logEntries().length - 1].getId()[1], true).then(function(logEntryList) {
 		for ( var i = 0; i < logEntryList.length; i++) {
 			self.logEntries.push(logEntryList[i]);
 		}
@@ -169,20 +169,16 @@ tutao.tutanota.ctrl.LogViewModel.prototype.showMore = function() {
  * Loads a maximum of maxCount() entries beginning with the entry with a smaller id than upperBoundId 
  * @param {string} upperBoundId The id of upper limit (base64 encoded)
  * @param {boolean} reverse If the entries shall be loaded reverse.
- * @param {function(Array.<tutao.entity.monitor.LogEntry>)} callback Will be called with the list of new log entries. 
+ * @return {Promise.<Array.<tutao.entity.monitor.LogEntry>>} Resolves to the list of new log entries.
  */
-tutao.tutanota.ctrl.LogViewModel.prototype._loadLogEntries = function(upperBoundId, reverse, callback) {
+tutao.tutanota.ctrl.LogViewModel.prototype._loadLogEntries = function(upperBoundId, reverse) {
 	var listId = tutao.util.EncodingConverter.base64ToBase64Ext(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.timestampToHexGeneratedId(this._removeTime(this._untilDate()))));
-	
-	tutao.entity.monitor.LogEntry.loadRange(listId, upperBoundId, this.maxCount(), reverse, function(logEntryList, exception) {
+
+	return tutao.entity.monitor.LogEntry.loadRange(listId, upperBoundId, this.maxCount(), reverse).then(function(logEntryList) {
 		if (!reverse) {
 			logEntryList.reverse();
 		}
-		if (exception) {
-			console.log(exception);
-		} else {
-			callback(logEntryList);
-		}
+	    return logEntryList;
 	});
 };
 

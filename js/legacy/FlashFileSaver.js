@@ -23,26 +23,35 @@ goog.provide('tutao.tutanota.legacy.FlashFileSaver');
  * @param {String} height The height.
  * @param {String} downloadedData Base64 coded binary data.
  * @param {String} filename The filename.
- * @param {function} callback Called when finished.
+ * @return {Promise.<Error>} Resolves when finished.
  * @constructor
  */
-tutao.tutanota.legacy.FlashFileSaver = function(id, parentDomElement, width, height, downloadedData, filename, callback) {
+tutao.tutanota.legacy.FlashFileSaver = function(id, parentDomElement, width, height, downloadedData, filename) {
 	var placeholder = document.createElement('div');
 	placeholder.id = id;
 	$(parentDomElement).append(placeholder);
     var params = { allowScriptAccess: 'always', wmode: 'transparent'};
-	swfobject.embedSWF('js/legacy/FlashFileSaver.swf', id, width, height, "10", null, null, params, null, function(e) {
-		tutao.tutanota.legacy.FlashFileSaver.wait(downloadedData, filename, e.ref, callback);
-	});
+    return new Promise(function(resolve, reject) {
+        swfobject.embedSWF('js/legacy/FlashFileSaver.swf', id, width, height, "10", null, null, params, null, function(e) {
+            tutao.tutanota.legacy.FlashFileSaver.wait(downloadedData, filename, e.ref, resolve);
+        });
+    });
 };
 
-tutao.tutanota.legacy.FlashFileSaver.wait = function(downloadedData, filename, reference, callback) {
+/**
+ *
+ * @param {string} downloadedData
+ * @param {string} filename
+ * @param {FlashFileSaver} reference The reference to the ActionScript flash file saver
+ * @param {function()} resolve The promise resolve function that should be called after the download is ready.
+ */
+tutao.tutanota.legacy.FlashFileSaver.wait = function(downloadedData, filename, reference, resolve) {
 	if (reference.provideDownload) {
 		reference.provideDownload(downloadedData, filename);
-		callback();
+		resolve();
 	} else {
 		setTimeout(function() {
-			tutao.tutanota.legacy.FlashFileSaver.wait(downloadedData, filename, reference, callback);
+			tutao.tutanota.legacy.FlashFileSaver.wait(downloadedData, filename, reference, resolve);
 		}, 50);
 	}
 };
