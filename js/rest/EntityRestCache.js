@@ -54,7 +54,7 @@ tutao.rest.EntityRestCache = function() {
 	/**
 	 * requests are forwarded to this entity rest instance
 	 */
-    // @type {tutao.rest.EntityRestInterface}
+    /* @type {tutao.rest.EntityRestInterface} */
 	this._target = undefined;
 
     // TODO (story push events) remove after update notifications are in place
@@ -166,7 +166,7 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
  */
 tutao.rest.EntityRestCache.prototype.postElement = function(path, element, listId, parameters, headers) {
 	var self = this;
-	return this._target.postElement(path, element, listId, parameters, headers, function(returnEntity, exception) {
+	return this._target.postElement(path, element, listId, parameters, headers).then(function(returnEntity) {
 		var cacheListId = undefined;
 		var id = undefined;
 		if (element.__id instanceof Array) {
