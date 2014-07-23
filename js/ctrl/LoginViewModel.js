@@ -76,7 +76,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
  *   <li>Initializes the DBFacade for the user
  *   <li>Switches to the MailView
  * </ul>
- * @return {Promise.<tutao.rest.EntityRestException>} Resolves when finished, rejected if failed.
+ * @return {Promise.<>} Resolves when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	var self = this;
@@ -107,14 +107,12 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
         } else {
             tutao.locator.navigator.mail();
         }
-    }).caught(function(exception) {
-        if ((exception instanceof tutao.rest.EntityRestException) && (exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 472)) { // AccessBlockedException
-            self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
-        } else {
-            // TODO catch notauthenticatedexception
-            self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
-        }
-        throw exception;
+    }).caught(tutao.AccessBlockedError, function() {
+        self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
+    }).caught(tutao.NotAuthenticatedError, function(exception) {
+        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+    }).caught(tutao.AccessDeactivatedError, function() {
+        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
     }).lastly(function() {
         self.loginOngoing(false);
     });
@@ -122,7 +120,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 
 /**
  * Loads entropy from the last logout. Fetches missing entropy if none was stored yet and stores it.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolves when finished, rejected if failed.
+ * @return {Promise.<>} Resolves when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.loadEntropy = function() {
     var self = this;

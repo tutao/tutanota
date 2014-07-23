@@ -79,7 +79,7 @@ tutao.tutanota.gui.initKnockout = function() {
 	ko.bindingHandlers.lang = {
 		update: function(element, valueAccessor, allBindingsAccessor) {
 			var params = allBindingsAccessor()["params"];
-			ko.bindingHandlers.text.update(element, function() { return tutao.locator.languageViewModel.get(valueAccessor(), params); });
+			ko.bindingHandlers.text.update(element, function() { return tutao.locator.languageViewModel.get(ko.utils.unwrapObservable(valueAccessor()), params); });
 	    }
 	};
 	

@@ -83,7 +83,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
  * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
  * @param {string} boundId The boundary id (base64 encoded)
  * @param {boolean} reverse If the entries shall be loaded reverse.
- * @return {Promise.<Array.<tutao.entity.sys.GroupInfo>, tutao.rest.EntityRestException>} Resolves to the the list of user group infos when finished, rejected if the rest call failed.
+ * @return {Promise.<Array.<tutao.entity.sys.GroupInfo>>} Resolves to the the list of user group infos when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function(boundId, reverse) {
 	return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {

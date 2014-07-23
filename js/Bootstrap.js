@@ -24,6 +24,23 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     tutao.tutanota.Bootstrap.initControllers();
+    Promise.longStackTraces();
+    Promise.onPossiblyUnhandledRejection(function(e) {
+        if (e instanceof tutao.ConnectionError) {
+            tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+        } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
+            tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
+        } else {
+            if (tutao.locator.viewManager.feedbackSupported()) {
+                // only logged in users can report errors
+                tutao.locator.feedbackViewModel.open(e.stack);
+            } else {
+                tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
+            }
+        }
+        console.log(e.stack);
+    });
+
     if (!tutao.tutanota.app) {
         tutao.tutanota.app = ko.observable(true);
     } else {
@@ -41,9 +58,9 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-//		tutao.locator.loginViewModel.mailAddress("premium-admin@tutanota.de");
-//		tutao.locator.loginViewModel.passphrase("premiumAdminPw");
-//		tutao.locator.loginViewModel.login(function() {
+//		tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
+//		tutao.locator.loginViewModel.passphrase("map");
+//		tutao.locator.loginViewModel.login();
 //			tutao.locator.navigator.settings();
 //			tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST);
 //			tutao.locator.navigator.customer();
@@ -166,7 +183,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
         // notify the active view and the swipe recognizer
-        if (tutao.locator.viewManager.getActiveView() != null && tutao.locator.viewManager.getActiveView().getSwipeSlider()) {
+        if (tutao.locator.viewManager.getActiveView() != null) {
             tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
         }
         if (tutao.locator.swipeRecognizer) {

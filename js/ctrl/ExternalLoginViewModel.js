@@ -86,7 +86,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.resetPasswordStatus = funct
  * Initializes the view model with a set of provided parameters and retrieves the phone numbers from the server.
  * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
  * @param {String} authInfo The id of the external user and the salt as base64Url concatenated.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoLogin, authInfo) {
 	var self = this;
@@ -125,22 +125,18 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 			}
             return Promise.resolve();
 		}
-	}).caught(function(e) {
-        self._handleException(e);
+	}).caught(tutao.AccessExpiredError, function(e) {
+        this.errorMessageId("expiredLink_msg");
+    }).caught(tutao.NotAuthenticatedError, function(e) {
+        self.errorMessageId("invalidLink_msg");
+    }).caught(tutao.BadRequestError, function(e) {
+        self.errorMessageId("invalidLink_msg");
     });
-};
-
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._handleException = function(exception) {
-	if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
-		this.errorMessageId("expiredLink_msg");
-	} else {
-		this.errorMessageId("invalidLink_msg");
-	}
 };
 
 /**
  * Loads the device key.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolves to the device key, rejected if loading the device key failed.
+ * @return {Promise.<Object>} Resolves to the device key, rejected if loading the device key failed.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function() {
 	var params = {};
@@ -154,29 +150,27 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function()
 
 /**
  * Tries to login the user automatically.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if auto login failed.
+ * @return {Promise.<>} Resolved when finished, rejected if auto login failed.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function() {
 	var self = this;
 	this.deviceToken = tutao.tutanota.util.LocalStore.load('deviceToken_' + this.userId);
 	var deviceEncPassword = tutao.tutanota.util.LocalStore.load('deviceEncPassword_' + this.userId);
 	if (this.deviceToken == null || deviceEncPassword == null) {
-		return Promise.reject(new tutao.rest.EntityRestException(new Error("no device token or password available")));
+		return Promise.reject(new Error("no device token or password available"));
 	}
 	return this._loadDeviceKey().then(function(deviceKey) {
 		var password = null;
 		try {
 			password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, deviceEncPassword);
 		} catch (e) { //tutao.tutadb.crypto.CryptoException
-			return Promise.reject(new tutao.rest.EntityRestException(e));
+			return Promise.reject(e);
 		}
 		return self._tryLogin(password);
-	}).caught(function(exception) {
-        if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 401) { // not authenticated
-            // device is not authenticated by server, so delete the device token locally
-            tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
-            self.deviceToken = null;
-        }
+	}).caught(tutao.NotAuthenticatedError, function(exception) {
+        // device is not authenticated by server, so delete the device token locally
+        tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
+        self.deviceToken = null;
         throw exception;
     });
 };
@@ -256,15 +250,13 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
         self.smsLocked(true);
         self._allowSmsAfterDelay();
 		self.state.event("sendSmsFinished");
-	}).caught(function(exception) {
-        if ((exception.getOriginal() instanceof tutao.rest.RestException) && (exception.getOriginal().getResponseCode() == 429)) { // TooManyRequestsException
+	}).caught(tutao.TooManyRequestsError, function(exception) {
             self.sendSmsStatus({ type: "invalid", text: "smsSentOften_msg" });
             self.smsLocked(true);
-        } else if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
-            self.errorMessageId("expiredLink_msg");
-        } else {
-            self.sendSmsStatus({ type: "invalid", text: "smsError_msg" });
-        }
+    }).caught(tutao.AccessExpiredError, function(e) {
+        self.errorMessageId("expiredLink_msg");
+    }).caught(tutao.InternalServerError, function() {
+        self.sendSmsStatus({ type: "invalid", text: "smsError_msg" });
     });
 };
 
@@ -295,9 +287,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.checkEnteredPassword = func
 };
 
 /**
- * Must be called after successful login. Loads the communication key via ExternalMailReference, initializes the users mailbox and shows the mails.
+ * Must be called after password entry. Loads the communication key via ExternalMailReference, initializes the users mailbox and shows the mails.
  * @param {string} password The password to try the login with.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(password) {
     var self = this;
@@ -315,26 +307,20 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                     tutao.locator.navigator.mail();
                 });
             });
-        }).caught(function(exception) {
-            self._handleException(exception);
-            throw exception;
         });
-    }).caught(function(exception) {
-        if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 471) { // AccessExpiredException
+    }).caught(tutao.AccessExpiredError, function(e) {
             self.errorMessageId("expiredLink_msg");
-        } else {
-            self.state.event("passwordInvalid");
-            self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
-            self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
-        }
-        throw exception;
+    }).caught(tutao.NotAuthenticatedError, function(e) {
+        self.state.event("passwordInvalid");
+        self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
+        self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
     });
 };
 
 /**
  * Stores the password locally if chosen by user.
  * @param {string} password The password to store.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = function(password) {
 	var self = this;

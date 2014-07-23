@@ -213,7 +213,7 @@ tutao.tutanota.ctrl.DbViewModel.prototype._getIdType = function(type) {
  * startId is optional
  * version is optional
  * startId or version must not be set at the same time
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolved with the instance when finished, rejected if the rest call failed.
+ * @return {Promise.<Object>} Resolved with the instance when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.DbViewModel.prototype._loadInstance = function(type, listId, id, startId, version) {
 	var path = "/rest/" + type.app.name.toLowerCase() + "/" + type.name.toLowerCase() + "/";

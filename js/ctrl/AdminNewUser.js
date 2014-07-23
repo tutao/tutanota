@@ -85,7 +85,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.isCreateAccountPossible = function() 
 
 /**
  * Create the new user
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
     var self = this;
@@ -146,7 +146,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
  * Initializes the given user group for Tutanota (creates mail box etc.). The admin must be logged in.
  * @param {string} groupId The group to initialize.
  * @param {Object} groupKey the group key.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey) {
 	var s = new tutao.entity.tutanota.InitGroupData();

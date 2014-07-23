@@ -22,7 +22,7 @@ tutao.tutanota.ctrl.MailBoxController = function() {
  * Initializes the MailBoxController for the logged in user. This must be called
  * whenever another user logs in. Loads the user's mail list id, contact list id
  * and file list id.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function() {
 	var self = this;
@@ -44,7 +44,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype.initForUser = function() {
 /**
  * Loads the mailbox for the logged in user's user group.
  *
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
 	var self = this;
@@ -60,7 +60,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
 /**
  * Loads the contacts list id for the logged in user's user group.
  *
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function() {
 	var self = this;
@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadContactList = function() {
 /**
  * Loads the file list id for the logged in user's user group.
  *
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function() {
 	var self = this;
@@ -90,7 +90,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadFileSystem = function() {
 /**
  * Loads the shares instance for the logged in user's user group.
  *
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function() {
 	var self = this;
@@ -106,7 +106,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadShares = function() {
 /**
  * Loads the TutanotaProperties instance for the logged in user's user group.
  *
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if failed.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = function() {
     var self = this;

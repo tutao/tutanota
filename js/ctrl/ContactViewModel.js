@@ -54,7 +54,7 @@ tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT = 2;
 tutao.tutanota.ctrl.ContactViewModel.MODE_NEW = 3;
 
 /**
- * Removes the currenlty visible contact. TODO (timely) make private if not used from outside.
+ * Removes the currently visible contact. TODO (timely) make private if not used from outside.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.removeContact = function () {
     this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
@@ -166,13 +166,17 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
         this.editableContact.presharedPassword(null);
     }
     this.editableContact.update();
+    var promise;
     if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
-        this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
+        promise = this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
     } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
-        this.contactWrapper().getContact().update();
+        promise = this.contactWrapper().getContact().update();
     }
-    this.contactWrapper().stopEditingContact(this);
-    this._showContact(this.contactWrapper());
+    var self = this;
+    promise.then(function() {
+        self.contactWrapper().stopEditingContact(this);
+        self._showContact(self.contactWrapper());
+    })
 };
 
 /**
@@ -180,8 +184,9 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
     if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteContact_msg"))) {
-        this.contactWrapper().getContact().erase();
-        this.removeContact();
+        this.contactWrapper().getContact().erase().then(function() {
+            this.removeContact();
+        });
     }
 };
 
@@ -191,6 +196,9 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.sendMail = function (contactMailAddress) {
     var recipient = new tutao.tutanota.ctrl.RecipientInfo(contactMailAddress.getAddress(), this.contactWrapper().getFullName(), this.contactWrapper());
+    recipient.resolveType().caught(tutao.ConnectionError, function(e) {
+        // we are offline but we want to show the dialog only when we click on send.
+    });;
     tutao.locator.navigator.newMail(recipient);
 };
 
@@ -204,7 +212,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.getSocialIdUrl = function (contac
     if (url == null) {
         return null;
     } else {
-        return url + contactSocialId.getId();
+        return url + contactSocialId.getSocialId();
     }
 };
 

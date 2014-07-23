@@ -185,15 +185,13 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._sendCode = function() {
             self.codeStatus({ type: "neutral", text: "codeNeutralEnterCode_msg" });
             self.changePasswordButtonTextId("pwChangeButtonChangePw_action");
             self.state.event("codeSent");
-        }).caught(function(exception) {
-            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 429) {
-                self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyChangeAttempts_msg" });
-                self.state.event("codeTooManyAttempts");
-            } else {
-                self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidServerNotAvailable_msg" });
-                self.state.event("serverError");
-            }
-            throw exception;
+        }).caught(tutao.TooManyRequestsError, function(exception) {
+            self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyChangeAttempts_msg" });
+            self.state.event("codeTooManyAttempts");
+        }).caught(function(e) {
+            self.changePasswordStatus({ type: "invalid", text: "emptyString_msg" });
+            self.state.event("serverError");
+            throw e;
         });
 };
 
@@ -220,20 +218,15 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
             tutao.locator.userController.passwordChanged(userPassphraseKeyHex, hexSalt);
             self.changePasswordStatus({ type: "valid", text: "pwChangeValid_msg" });
             self.state.event("activationOk");
-		}).caught(function(exception) {
-            if (exception.getOriginal() instanceof tutao.rest.RestException) {
-                if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
-                    self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyVerifyAttempts_msg" });
-                    self.state.event("activationTooManyAttempts");
-                    return;
-                } else if (exception.getOriginal().getResponseCode() == 473) { // InvalidDataException
-                    self.codeStatus({ type: "invalid", text: "codeInvalid_msg" });
-                    self.state.event("activationCodeNotOk");
-                    return;
-                }
-            }
-            self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidServerNotAvailable_msg" });
+		}).caught(tutao.TooManyRequestsError, function(exception) {
+            self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyVerifyAttempts_msg" });
+            self.state.event("activationTooManyAttempts");
+        }).caught(tutao.InvalidDataError, function(e) {
+            self.codeStatus({ type: "invalid", text: "codeInvalid_msg" });
+            self.state.event("activationCodeNotOk");
+        }).caught(function(e) {
             self.state.event("serverError");
+            throw e;
         });
 	});
 };

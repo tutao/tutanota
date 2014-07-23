@@ -36,10 +36,10 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     this.passwordChangeAllowed = ko.observable(false);
     this.deleteUserAllowed = ko.observable(false);
     var self = this;
-    tutao.entity.sys.Group.load(userGroupInfo.getGroup(), function(userGroup, exception) {
-        if (!exception && userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
-            tutao.entity.sys.User.load(userGroup.getUser(), function(user, exception) {
-                if (!exception && !self._isAdmin(user)) {
+    tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {
+        if (userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
+            tutao.entity.sys.User.load(userGroup.getUser()).then(function(user) {
+                if (!self._isAdmin(user)) {
                     self.passwordChangeAllowed(true);
                     self.deleteUserAllowed(true);
                 }
@@ -109,8 +109,9 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
             self.adminUserListViewModel.updateUserGroupInfo();
             tutao.locator.settingsView.showChangeSettingsColumn();
         }
-	}).caught(function() {
+	}).caught(function(e) {
         self.saveStatus({type: "neutral", text: "emptyString_msg" });
+        throw e;
     }).lastly(function() {
         self.busy(false);
     });

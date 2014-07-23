@@ -92,10 +92,11 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     var count = this.newUsers().length;
     self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - this.newUsers().length, "${count}": count}});
     if (self.newUsers().length > 0) {
-        return Promise.map(self.newUsers(), function(newUser) {
-            self.createdUsers.push(self.newUsers.shift());
+        return Promise.each(self.newUsers(), function(newUser) {
             self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - self.newUsers().length, "${count}": count}});
-            newUser.create();
+            return newUser.create().then(function() {
+                self.createdUsers.push(self.newUsers.shift());
+            });
         }).then(function() {
             self.addEmptyUser();
             self.isEditable(true);
@@ -104,7 +105,6 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
         }).caught(function(exception) {
             self.isEditable(true);
             self.createStatus({type: "invalid", text: "createActionFailed_msg"});
-            self.adminUserListViewModel.update();
             throw exception;
         });
     }

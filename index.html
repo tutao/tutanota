@@ -307,7 +307,6 @@
 	<script type="text/javascript" src="js/ctrl/PasswordChannelViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/ProgressDialogModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RecipientInfo.js"></script>
-	<script type="text/javascript" src="js/ctrl/RecipientsNotFoundException.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationDataListViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
 	<script type="text/javascript" src="js/ctrl/RegistrationViewModel.js"></script>
@@ -331,6 +330,7 @@
 	<script type="text/javascript" src="js/entity/ContactExtension.js"></script>
 	<script type="text/javascript" src="js/entity/ContactWrapper.js"></script>
 	<script type="text/javascript" src="js/entity/TutanotaConstants.js"></script>
+	<script type="text/javascript" src="js/error/RecipientsNotFoundError.js"></script>
 	<script type="text/javascript" src="js/gui/BubbleInputGui.js"></script>
 	<script type="text/javascript" src="js/gui/ConfigView.js"></script>
 	<script type="text/javascript" src="js/gui/ContactView.js"></script>
@@ -372,7 +372,7 @@
 	<script type="text/javascript" src="libs/internal/crypto/ClientWorkerImpl.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/ClientWorkerProxy.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/ClientWorkerProxyAsync.js"></script>
-	<script type="text/javascript" src="libs/internal/crypto/CryptoException.js"></script>
+	<script type="text/javascript" src="libs/internal/crypto/CryptoError.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/EntropyCollector.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/JBCryptAdapter.js"></script>
 	<script type="text/javascript" src="libs/internal/crypto/JsbnRsa.js"></script>
@@ -393,8 +393,6 @@
 	<script type="text/javascript" src="libs/internal/db/WebSqlDb.js"></script>
 	<script type="text/javascript" src="libs/internal/entity/BucketData.js"></script>
 	<script type="text/javascript" src="libs/internal/entity/EntityHelper.js"></script>
-	<script type="text/javascript" src="libs/internal/entity/InvalidDataException.js"></script>
-	<script type="text/javascript" src="libs/internal/entity/NotAuthorizedException.js"></script>
 	<script type="text/javascript" src="libs/internal/event/EventBusClient.js"></script>
 	<script type="text/javascript" src="libs/internal/event/EventBusListener.js"></script>
 	<script type="text/javascript" src="libs/internal/event/ListEventTracker.js"></script>
@@ -404,14 +402,13 @@
 	<script type="text/javascript" src="libs/internal/rest/EntityRestCache.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/EntityRestClient.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/EntityRestDummy.js"></script>
-	<script type="text/javascript" src="libs/internal/rest/EntityRestException.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/EntityRestInterface.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/ResourceConstants.js"></script>
 	<script type="text/javascript" src="libs/internal/rest/RestClient.js"></script>
-	<script type="text/javascript" src="libs/internal/rest/RestException.js"></script>
 	<script type="text/javascript" src="libs/internal/util/ArrayUtils.js"></script>
 	<script type="text/javascript" src="libs/internal/util/Assert.js"></script>
 	<script type="text/javascript" src="libs/internal/util/EncodingConverter.js"></script>
+	<script type="text/javascript" src="libs/internal/util/ErrorFactory.js"></script>
 	<script type="text/javascript" src="libs/internal/util/FunctionUtils.js"></script>
 	<script type="text/javascript" src="libs/internal/util/StringUtils.js"></script>
 	<script type="text/javascript" src="libs/internal/util/bind.js"></script>
@@ -559,7 +556,7 @@ function touchOrClick(e) {
 				<div id="innerConversationColumn" class="scrollable">
 					<section class="conversation" data-bind="foreach: { data: conversation }">
 						<!-- ko if: !$parent.isComposingState() -->
-							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }, visible: !$parent.isComposingState()'></div>
+							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
 							<div id="readMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="click: $parent.selectMail">
 									<header>
@@ -567,7 +564,7 @@ function touchOrClick(e) {
 											<div class="headerLine">
 												<div class="name" data-bind="lang: 'from_label'"></div>
 												<div class="value">
-                                                    <div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div><!-- /ko -->
+                                                    <div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div>
 													<span class="rightAligned" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(mail.getSentDate())"></span>
 												</div>
 											</div>
@@ -2155,11 +2152,12 @@ function touchOrClick(e) {
 	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div>
 			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
-			<h2 data-bind="lang: 'feedback_label'"></h2>
+			<h2 data-bind="lang: title"></h2>
+            <div class="description" data-bind="visible: isErrorDialog,lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
             <input id="addScreenshotCheckbox" type="checkbox" data-bind="checked: addScreenshot, visible: showAddScreenshot">
             <label for="addScreenshotCheckbox" data-bind="lang: 'screenshot_label', visible: showAddScreenshot" />
-            <div class="modalDialogInfo" data-bind="lang: 'feedbackInfo_msg'"></div>
+            <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
             <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>

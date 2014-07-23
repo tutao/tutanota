@@ -14,9 +14,8 @@ goog.provide('tutao.tutanota.ctrl.SendMailFacade');
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
- * @return {Promise.<string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException>} Resolved finished with the id of
- * the senders mail (only element id, no list id). Rejected with a RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
- * if another error occurred.
+ * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolved finished with the id of the senders mail (only element id, no list id). Rejected with a
+ * RecipientsNotFoundError if some of the recipients could not be found
  */
 tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();
@@ -68,7 +67,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
  * Uploads the given data files
  * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File} file The file or data file to upload.
  * @param {Object} sessionKey The session key used to encrypt the file.
- * @return {Promise.<tutao.entity.tutanota.FileData,tutao.rest.EntityRestException>} Resolved when finished with the file data ids DataFile, rejected if failed.
+ * @return {Promise.<tutao.entity.tutanota.FileData>} Resolved when finished with the file data ids DataFile, rejected if failed.
  */
 tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(file, sessionKey) {
     var dataFile = null;
@@ -97,9 +96,8 @@ tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData = function(dataFile, se
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
  * @param {Object} bucketKey The bucket key.
- * @return {Promise.<string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException>} Resolved when finished with the id of
- * the senders mail (only element id, no list id). Rejects with an RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException
- * if another error occurred.
+ * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolved when finished with the id of
+ * the senders mail (only element id, no list id). Rejects with an RecipientsNotFoundError if some of the recipients could not be found.
  */
 tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecipients, ccRecipients, bccRecipients, bucketKey) {
 	//not found recipients are collected here. even if recipients are not found, all recipients are checked
@@ -109,14 +107,14 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
                  { 'recipientInfoList': ccRecipients, 'serviceRecipientList': service.getCcRecipients()},
                  { 'recipientInfoList': bccRecipients, 'serviceRecipientList': service.getBccRecipients()}],
         function(recipientLists, index, arrayLength) {
-        return Promise.map(recipientLists.recipientInfoList, function(recipientInfo) {
+        return Promise.each(recipientLists.recipientInfoList, function(recipientInfo) {
             var serviceRecipient = new tutao.entity.tutanota.Recipient(service);
             recipientLists.serviceRecipientList.push(serviceRecipient);
             return tutao.tutanota.ctrl.SendMailFacade.handleRecipient(recipientInfo, serviceRecipient, bucketKey, notFoundRecipients);
         });
     }).then(function() {
         if (notFoundRecipients.length > 0) {
-            throw new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients);
+            throw new tutao.RecipientsNotFoundError(notFoundRecipients);
         } else {
             var map = {};
             return service.setup(map, tutao.entity.EntityHelper.createAuthHeaders()).then(function(sendMailReturn) {
@@ -131,7 +129,7 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
  * @param {tutao.entity.tutanota.Recipient} recipient The recipient to fill.
  * @param {Object} bucketKey The bucket key.
  * @param {Array.<String>} notFoundRecipients Collects all recipients that are not found.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if an error occured
+ * @return {Promise.<>} Resolved when finished, rejected if an error occured
  */
 tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, recipient, bucketKey, notFoundRecipients) {
 	recipient.setName(recipientInfo.getName());
@@ -147,11 +145,12 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
             password = recipientInfo.getContactWrapper().getContact().getAutoTransmitPassword();
             preshared = false;
         }
+        var promise = Promise.resolve();
         if (!preshared && password == "") {
             password = tutao.tutanota.util.PasswordUtils.generateMessagePassword();
             if (recipientInfo.isExistingContact()) {
                 recipientInfo.getContactWrapper().getContact().setAutoTransmitPassword(password);
-                recipientInfo.getContactWrapper().getContact().update();
+                promise = recipientInfo.getContactWrapper().getContact().update();
             }
         }
         //console.log(password);
@@ -159,41 +158,43 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
         var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
         // TODO (story performance): make kdf async in worker
-        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
-            var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
-            var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
-            return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
-                recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
-                recipient.setPubEncBucketKey(null);
-                recipient.setPubKeyVersion(null);
-                // the password is not sent to the server if it is pre-shared
-                if (!preshared) {
-                    recipient.setAutoTransmitPassword(password);
-                }
-                recipient.setSymEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, bucketKey));
-                recipient.setPasswordVerifier(passwordVerifier);
-				recipient.setSalt(saltBase64);  // starter accounts may not call this facade, so the salt is always sent to the server
-				recipient.setSaltHash(tutao.locator.shaCrypter.hashHex(saltHex));
-				recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, externalUserGroupKey));
-	
-				if (!preshared) {
-					var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
-					var nbrOfValidNumbers = 0;
-					for (var a = 0; a < numbers.length; a++) {
-						var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
-						if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
-							var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient)
-							    .setNumber(recipientNumber);
-							recipient.getPasswordChannelPhoneNumbers().push(number);
-							nbrOfValidNumbers++;
-						}
-					}
-					if (nbrOfValidNumbers == 0) {
-						throw new tutao.rest.EntityRestException(new Error("no valid password channels for recipient"));
-					}
-				}
-			});
-		});
+        return promise.then(function () {
+            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
+                var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+                var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
+                return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
+                    recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
+                    recipient.setPubEncBucketKey(null);
+                    recipient.setPubKeyVersion(null);
+                    // the password is not sent to the server if it is pre-shared
+                    if (!preshared) {
+                        recipient.setAutoTransmitPassword(password);
+                    }
+                    recipient.setSymEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, bucketKey));
+                    recipient.setPasswordVerifier(passwordVerifier);
+                    recipient.setSalt(saltBase64);  // starter accounts may not call this facade, so the salt is always sent to the server
+                    recipient.setSaltHash(tutao.locator.shaCrypter.hashHex(saltHex));
+                    recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, externalUserGroupKey));
+
+                    if (!preshared) {
+                        var numbers = recipientInfo.getContactWrapper().getContact().getPhoneNumbers();
+                        var nbrOfValidNumbers = 0;
+                        for (var a = 0; a < numbers.length; a++) {
+                            var recipientNumber = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(numbers[a].getNumber());
+                            if (tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(recipientNumber)) {
+                                var number = new tutao.entity.tutanota.PasswordChannelPhoneNumber(recipient)
+                                    .setNumber(recipientNumber);
+                                recipient.getPasswordChannelPhoneNumbers().push(number);
+                                nbrOfValidNumbers++;
+                            }
+                        }
+                        if (nbrOfValidNumbers == 0) {
+                            throw new Error("no valid password channels for recipient");
+                        }
+                    }
+                });
+            });
+        });
 	} else if (!recipientInfo.isExternal()) {
 		recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_INTERNAL);
 
@@ -215,12 +216,8 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
                     });
                 });
 			}
-		}).caught(function(exception) {
-            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
-                notFoundRecipients.push(recipient.getMailAddress());
-            } else {
-                throw exception;
-            }
+		}).caught(tutao.NotFoundError, function(exception) {
+            notFoundRecipients.push(recipient.getMailAddress());
         });
 	}
 };
@@ -230,7 +227,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
  * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The recipient.
  * @param {Object} externalUserPwKey The external user's password key.
  * @param {string} verifier The external user's verifier.
- * @return {Promise.<Object, tutao.rest.EntityRestException>} Resolved to the the external user's group key, rejected if an error occured
+ * @return {Promise.<Object>} Resolved to the the external user's group key, rejected if an error occured
  */
 tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo, externalUserPwKey, verifier) {
 	var self = this;
@@ -243,37 +240,33 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                 return tutao.entity.sys.Group.load(externalUserReference.getUserGroup()).then(function(externalUserGroup, exception) {
                     return tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroup.getAdminGroupEncGKey());
                 });
-            }).caught(function(exception) {
-                if (exception && exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) { // not found
-                    // it does not exist, so create it
-                    // load the list key of the ExternalRecipients list
-                    return tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos()).then(function(externalRecipientsListKey) {
-                        return tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos()).then(function(externalGroupInfoListKey) {
-                            var mailListKey = tutao.locator.aesCrypter.generateRandomKey();
-                            var externalUserGroupKey = tutao.locator.aesCrypter.generateRandomKey();
-                            var groupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-                            var clientKey = tutao.locator.aesCrypter.generateRandomKey();
+            }).caught(tutao.NotFoundError, function(exception) {
+                // it does not exist, so create it
+                // load the list key of the ExternalRecipients list
+                return tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos()).then(function(externalRecipientsListKey) {
+                    return tutao.entity.EntityHelper.getListKey(groupRoot.getExternalGroupInfos()).then(function(externalGroupInfoListKey) {
+                        var mailListKey = tutao.locator.aesCrypter.generateRandomKey();
+                        var externalUserGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+                        var groupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+                        var clientKey = tutao.locator.aesCrypter.generateRandomKey();
 
-                            var externalRecipientData = new tutao.entity.tutanota.ExternalUserData()
-                                .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailListKey))
-                                .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
-                                .setVerifier(verifier)
-                                .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey))
-                                .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
-                            var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
-                                .setMailAddress(cleanedMailAddress)
-                                .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
-                                .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName()))
-                                .setGroupInfoListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalGroupInfoListKey, groupInfoSessionKey))
-                                .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey));
-                            return externalRecipientData.setUserGroupData(userGroupData).setup([], null).then(function() {
-                                return externalUserGroupKey;
-                            });
+                        var externalRecipientData = new tutao.entity.tutanota.ExternalUserData()
+                            .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailListKey))
+                            .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
+                            .setVerifier(verifier)
+                            .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey))
+                            .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
+                        var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
+                            .setMailAddress(cleanedMailAddress)
+                            .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
+                            .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName()))
+                            .setGroupInfoListEncSessionKey(tutao.locator.aesCrypter.encryptKey(externalGroupInfoListKey, groupInfoSessionKey))
+                            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey));
+                        return externalRecipientData.setUserGroupData(userGroupData).setup([], null).then(function() {
+                            return externalUserGroupKey;
                         });
                     });
-                } else {
-                    throw exception;
-                }
+                });
             });
 
         });

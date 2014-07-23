@@ -22,10 +22,8 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 	}
 	if (!contactWrapper) {
 		this._contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
-		this._existingContact = false;
 	} else {
 		this._contactWrapper = contactWrapper;
-		this._existingContact = true;
 	}
 
     this._deleted = false;
@@ -35,22 +33,6 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 
     // query the server to find the recipient type
     var self = this;
-    if (this._type() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
-        tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(self.getMailAddress()), {}, null).then(function(publicKeyData) {
-            // do not update any field if this recipient is already deleted, because this._type is subscribed above and might trigger editing a contact otherwise
-            if (!self._deleted) {
-                self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
-            }
-        }).caught(function(exception) {
-            if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 404) {
-                if (!self._deleted) {
-                    self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
-                }
-            } else {
-                throw exception;
-            }
-        });
-    }
 };
 
 /**
@@ -71,7 +53,7 @@ tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL = 2;
 
 tutao.tutanota.ctrl.RecipientInfo.prototype._createEditingContact = function() {
     this._editableContact = this._contactWrapper.startEditingContact(this);
-    if (!this._existingContact) {
+    if (!this.isExistingContact()) {
         // prepare some contact information. it is only saved if the mail is sent securely
         // use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
         var nameData = [];
@@ -162,7 +144,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.getEditableContact = function() {
  * @return {boolean} True if the contact is already existing.
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.isExistingContact = function() {
-	return this._existingContact;
+	return this._contactWrapper.getContact().getId() != null;
 };
 
 /**
@@ -239,3 +221,23 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.hasPasswordChanged = function() {
     return editedPassword != originPassword;
 };
 
+/**
+ * @return {Promise} Resolves when the recipient type has been resolved
+ */
+tutao.tutanota.ctrl.RecipientInfo.prototype.resolveType = function () {
+    var self = this;
+    if (this._type() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
+        return tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(self.getMailAddress()), {}, null).then(function(publicKeyData) {
+            // do not update any field if this recipient is already deleted, because this._type is subscribed above and might trigger editing a contact otherwise
+            if (!self._deleted) {
+                self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
+            }
+        }).caught(tutao.NotFoundError, function(e) {
+            if (!self._deleted) {
+                self._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
+            }
+        });
+    } else {
+        return Promise.resolve();
+    }
+};

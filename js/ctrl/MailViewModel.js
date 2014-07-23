@@ -193,6 +193,9 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) 
 	} else {
 		recipient = new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), this._findContactByMailAddress(displayedMail.mail.getSender().getAddress()));
 	}
+    recipient.resolveType().caught(tutao.ConnectionError, function(e) {
+        // we are offline but we want to show the dialog only when we click on send.
+    });
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [recipient], [], displayedMail, body);
 };
 
@@ -211,6 +214,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyAllMail = function(displayedMai
 			ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(oldRecipients[i].getAddress(), oldRecipients[i].getName(), this._findContactByMailAddress(oldRecipients[i].getAddress())));
 		}
 	}
+    var allRecipients = toRecipients.concat(ccRecipients);
+    Promise.each(allRecipients, function(/*tutao.tutanota.ctrl.RecipientInfo*/recipient) {
+        recipient.resolveType();
+    }).caught(tutao.ConnectionError, function(e) {
+        // we are offline but we want to show the dialog only when we click on send.
+    });
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), toRecipients, ccRecipients, displayedMail, body);
 };
 

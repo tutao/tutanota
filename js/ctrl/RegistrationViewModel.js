@@ -292,13 +292,12 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.sendSms = function() {
         self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
         self.code(""); // reset the code input field because it might be filled if the user changed back to the first view
         self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-	}).caught(function (exception) {
-        if (exception.getOriginal() instanceof tutao.rest.RestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-            self.joinStatus({ type: "invalid", text: "joinAccountLimitReached_msg" });
-        } else {
-            self.joinStatus({ type: "invalid", text: "joinFailure_msg" });
-        }
+	}).caught(tutao.LimitReachedError, function (e) {
+        self.joinStatus({ type: "invalid", text: "joinAccountLimitReached_msg" });
+    }).caught(function (e) {
+        self.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
         self._sendSmsState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        throw e;
     });
 };
 
@@ -314,24 +313,21 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
 	service.setCode(this.code());
 	return service.setup({}, null).then(function(voidReturn) {
         self.generateKeys();
-	}).caught(function(exception) {
+	}).caught(tutao.InvalidDataError, function(exception) {
         self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-        if (exception.getOriginal() instanceof tutao.rest.RestException) {
-            if (exception.getOriginal().getResponseCode() == 473) { // InvalidDataException
-                self.codeInputStatus({ type: "invalid", text: "codeInvalid_msg" });
-                self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
-                self._wrongCodes.push(self.code());
-            } else if (exception.getOriginal().getResponseCode() == 429) { // TooManyRequestsException
-                self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-                self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
-            } else if (exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-                self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
-            } else {
-                self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-            }
-        } else {
-            self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-        }
+        self.codeInputStatus({ type: "invalid", text: "codeInvalid_msg" });
+        self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+        self._wrongCodes.push(self.code());
+    }).caught(tutao.TooManyRequestsError, function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
+        self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAttempts_msg" });
+    }).caught(tutao.LimitReachedError, function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+    }).caught(function(e) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+        self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+        throw e;
     });
 };
 
@@ -352,15 +348,14 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.generateKeys = function() {
                 tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
                 tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
             }, 0);
-		}).caught(function (exception) {
+		}).caught(tutao.LimitReachedError, function (exception) {
+            self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
+        }).caught(function (e) {
+            self.createAccountStatus({ type: "neutral", text: "emptyString_msg" });
+            throw e;
+        }).lastly(function() {
             self._keyGenProgress(0);
             self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-            if (exception instanceof tutao.rest.EntityRestException && exception.getOriginal().getResponseCode() == 475) { // LimitReachedException
-                self.createAccountStatus({ type: "invalid", text: "createAccountTooManyAccountsError_msg" });
-            } else {
-                self.createAccountStatus({ type: "invalid", text: "createAccountError_msg" });
-            }
-            throw exception;
         });
 	});
 };

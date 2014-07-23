@@ -14,8 +14,8 @@ goog.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Empty string if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
- * @return {Promise.<string, tutao.tutanota.ctrl.RecipientsNotFoundException|tutao.rest.EntityRestException>} Resolves to the senders mail id (only element id, no list id),
- * rejected with an RecipientsNotFoundException if some of the recipients could not be found or an EntityRestException if another error occurred.
+ * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolves to the senders mail id (only element id, no list id),
+ * rejected with an RecipientsNotFoundError if some of the recipients could not be found.
  */
 tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
     var aes = tutao.locator.aesCrypter;
@@ -50,7 +50,7 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
         service.setToRecipient(serviceRecipient);
         return tutao.tutanota.ctrl.SendMailFacade.handleRecipient(toRecipients[0], serviceRecipient, recipientBucketKey, notFoundRecipients).then(function() {
             if (notFoundRecipients.length > 0) {
-                throw new tutao.tutanota.ctrl.RecipientsNotFoundException(notFoundRecipients);
+                throw new tutao.RecipientsNotFoundError(notFoundRecipients);
             } else {
                 var map = {};
                 return service.setup(map, tutao.entity.EntityHelper.createAuthHeaders()).then(function(sendMailFromExternalReturn) {

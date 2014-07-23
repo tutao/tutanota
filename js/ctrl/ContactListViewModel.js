@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.getRawContacts = function() {
 /**
  * Called when new contacts are downloaded by the event tracker.
  * @param {Array.<tutao.entity.tutanota.Contact>} contacts The new contacts.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.updateOnNewContacts = function(contacts) {
 	for (var i = 0; i < contacts.length; i++) {
@@ -87,7 +87,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.updateOnNewContacts = functio
 
 /**
  * Updates the contact list according to the current search results.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function() {
 	var self = this;
@@ -137,7 +137,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(de
  * @param {Array.<Array.<String>>} contactIds The ids of the contacts to load.
  * @param {Array.<tutao.entity.tutanota.ContactWrapper>} loadedContacts An array that contains all contacts that are loaded up to now.
  * @param {number} nextContact The index of the contact id in contactIds that shall be loaded next.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype._loadContacts = function(contactIds, loadedContacts, nextContact) {
     if (contactIds.length == 0) {
@@ -213,7 +213,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCs
 
 /**
  * Performs a search according to the current search words and updates the contact list accordingly.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolved when finished, rejected if the rest call failed.
+ * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.search = function() {
 };

@@ -6,7 +6,7 @@ goog.provide('tutao.tutanota.ctrl.FileFacade');
  * Creates a new file on the server in the user file system.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
  * @param {Object} sessionKey The session key used to encrypt the file.
- * @return {Promise.<Array.<String>, tutao.rest.EntityRestException>} Resolves to the id of the created File, rejected if failed.
+ * @return {Promise.<Array.<String>>} Resolves to the id of the created File, rejected if failed.
  */
 tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, sessionKey) {
 	return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
@@ -26,8 +26,6 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, sessionKey) {
                 .then(function(createFileReturn) {
                 var fileId = createFileReturn.getFile();
                 return fileId;
-            }).caught(function(exception) {
-                throw new tutao.rest.EntityRestException(exception);
             });
         });
 	});
@@ -37,14 +35,14 @@ tutao.tutanota.ctrl.FileFacade.createFile = function(dataFile, sessionKey) {
  * Creates a new file data instance on the server and uploads the data from the given DataFile to it.
  * @param {tutao.tutanota.util.DataFile} dataFile The data file.
  * @param {Object} sessionKey The session key used to encrypt the file.
- * @return {Promise.<String, tutao.rest.EntityRestException>} Resolves to the id of the created FileData, rejected if failed.
+ * @return {Promise.<String>} Resolves to the id of the created FileData, rejected if failed.
  */
 tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, sessionKey) {
 	var fileData = new tutao.entity.tutanota.FileDataDataPost();
     return new Promise(function(resolve, reject) {
         tutao.locator.aesCrypter.encryptArrayBuffer(sessionKey, dataFile.getData(), function(encryptedData, exception) {
             if (exception) {
-                reject(new tutao.rest.EntityRestException(exception));
+                reject(exception);
             }
             // create file data
             fileData.setSize(dataFile.getSize().toString())
@@ -66,7 +64,7 @@ tutao.tutanota.ctrl.FileFacade.uploadFileData = function(dataFile, sessionKey) {
 /**
  * Loads the content of a file from the server and provides it as DataFile.
  * @param {tutao.entity.tutanota.File} file The File.
- * @return {Promise.<tutao.tutanota.util.DataFile, tutao.rest.EntityRestException>} Resolves to the read DataFile, rejected if loading failed.
+ * @return {Promise.<tutao.tutanota.util.DataFile>} Resolves to the read DataFile, rejected if loading failed.
  */
 tutao.tutanota.ctrl.FileFacade.readFileData = function(file) {
     var fileParams = new tutao.entity.tutanota.FileDataDataGet()
@@ -96,7 +94,5 @@ tutao.tutanota.ctrl.FileFacade.readFileData = function(file) {
                 });
             }
         });
-	}).caught(function(exception) {
-        throw new tutao.rest.EntityRestException(exception);
-    });
+	});
 };

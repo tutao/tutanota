@@ -451,7 +451,6 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._createDataTable = function(dataR
  * Loads the snapshots of the given monitor and owner.
  * @param {string} monitor The monitor name.
  * @param {string} owner The owner id.
- * @param {function(?Array.<tutao.entity.monitor.CounterSnapshot>,tutao.rest.EntityRestException=)}
  * @return {Promise.<Array.<tutao.entity.monitor.CounterSnapshot>} Resolves to the list of counter snapshots when finished
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor, owner) {
@@ -479,7 +478,7 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshots = function(monitor
  * @param {Number} startTime The start time.
  * @param {string} currentEndDateId The current end date id from which the snapshots are loaded in reverse.
  * @param {Array.<tutao.entity.monitor.CounterSnapshot>} loadedSnapshots All loaded snapshots in the correct time order.
- * @return {Promise.<tutao.rest.EntityRestException>} Resolves when finished
+ * @return {Promise.<>} Resolves when finished
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(snapshotsListId, startTime, currentEndDateId, loadedSnapshots) {
 	var self = this;
@@ -505,7 +504,7 @@ tutao.tutanota.ctrl.MonitorViewModel.prototype._loadSnapshotRange = function(sna
  * Reads a counter value.
  * @param {string} monitor The monitor name. 
  * @param {string} ownerId The owner id.
- * @return {Promise.<number, tutao.rest.EntityRestException>} Resolves to the the counter value, rejected if failed
+ * @return {Promise.<number>} Resolves to the the counter value, rejected if failed
  */
 tutao.tutanota.ctrl.MonitorViewModel.prototype._readCounter = function(monitor, ownerId) {
 	var params = {};
