@@ -18,10 +18,10 @@ AsyncTestCase("ComposingMailTest", {
 			var cm = new tutao.tutanota.ctrl.ComposingMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW , null);
 			cm.secure(false);
 			tutao.tutanota.gui.alert = callbacks.add(function(text) {
-				assertEquals("Please provide recipients for your email.", text);
+				assertEquals("Please enter the email address of your recipient.", text);
 				cm.addToRecipient(new tutao.tutanota.ctrl.RecipientInfo("a@tutanota.de", "Name", null));
 				tutao.tutanota.gui.alert = callbacks.add(function(text) {
-					assertEquals("Please provide a subject for your email.", text);
+					assertEquals("Please enter a subject.", text);
 					cm.composerSubject("TestSubject");
 					var file1 = new tutao.entity.tutanota.File();
 					file1.setName("n1");
@@ -38,7 +38,7 @@ AsyncTestCase("ComposingMailTest", {
 					var dataFile2 = new tutao.tutanota.util.DataFile(data2, file2);
 					cm._attachments.push(dataFile2);
 					tutao.tutanota.gui.alert = callbacks.add(function(text) {
-						assertEquals("The maximum message size of 25 MB to unsecure external recipients is exceeded.", text);
+						assertEquals("The maximum message size of 25 MB to insecure external recipients is exceeded.", text);
 					});
 					cm.sendMail(null);
 				});
