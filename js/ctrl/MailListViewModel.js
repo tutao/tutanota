@@ -68,7 +68,8 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	this.mailToShow = null;
     this.loading = ko.observable(false);
     this.deleting = ko.observable(false);
-
+    this.loadingMore = ko.observable(false);
+    this.currentRangeCount = 0;
 
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
@@ -86,6 +87,13 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     }, this);
 };
 
+
+/**
+ * The initial number of elements requested at login
+ * @const
+ */
+tutao.tutanota.ctrl.MailListViewModel.INITIAL_RANGE_COUNT = 100;
+
 /**
  * Initialize the MailListViewModel:
  * <ul>
@@ -99,7 +107,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     this.loading(true);
     this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
 
-	return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(mails, exception) {
+    this.currentRangeCount = tutao.tutanota.ctrl.MailListViewModel.INITIAL_RANGE_COUNT;
+
+	return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, this.currentRangeCount, true).then(function(mails) {
 		// execute the tag filters, then update the mail list, then register the event tracker for mails
 		// it is important to update the filter results in the tag id order because the mails may only appear in the first list that fits
 		return self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID).then(function() {
@@ -146,6 +156,14 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
 		});
 	});
 };
+
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
+    var self = this;
+    this.loadingMore(true);
+    setTimeout(function(){self.loadingMore(false);}, 2000);
+};
+
 
 /**
  * Provides the string to show in the mail list of the given mail for the sender/recipient field.
@@ -419,7 +437,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, dom
 	}
 	if (mail.getUnread()) {
 		mail.setUnread(false);
-		mail.update();
+		mail.update(function() {});
 		tutao.locator.indexer.removeIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
 				[[tutao.entity.tutanota.Mail.prototype.UNREAD_ATTRIBUTE_ID]], mail.getId()[1], function() {
 			tutao.locator.indexer.addIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
@@ -655,7 +673,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.search = function() {
 
 /**
  * Adds a line of text to the log output.
- * @param {string|Array.<string>} logLine The text to add to the log.
+ * @param {string} logLine The text to add to the log.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.addLog = function(logLine) {
 // currently disabled
