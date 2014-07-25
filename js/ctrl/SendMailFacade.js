@@ -47,15 +47,11 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
     service.setPreviousMessageId(previousMessageId);
 
     return Promise.each(attachments, function(dataFile) {
-        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        return tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey).then(function(fileData) {
-            var attachment = new tutao.entity.tutanota.Attachment(service)
-                .setFile(null) // currently no existing files can be attached
-                .setFileData(fileData.getId())
-                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
-                .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
+        var attachment = new tutao.entity.tutanota.Attachment(service);
+        return tutao.tutanota.ctrl.SendMailFacade.createAttachment(attachment, dataFile).then(function(fileSessionKey) {
+            attachment.setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey))
                 .setBucketEncFileSessionKey(aes.encryptKey(bucketKey, fileSessionKey));
+
             service.getAttachments().push(attachment);
         });
     }).then(function() {
@@ -64,23 +60,28 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 };
 
 /**
- * Uploads the given data files
+ * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files)
+ * @param {tutao.entity.tutanota.Attachment|tutao.entity.tutanota.UnsecureAttachment|tutao.entity.tutanota.AttachmentFromExternal} attachment The attachment
  * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File} file The file or data file to upload.
- * @param {Object} sessionKey The session key used to encrypt the file.
- * @return {Promise.<tutao.entity.tutanota.FileData>} Resolved when finished with the file data ids DataFile, rejected if failed.
+ * @return {Promise.<Object>} Resolves to the session key of the file, rejects if failed.
  */
-tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData = function(file, sessionKey) {
-    var dataFile = null;
-    if (file instanceof tutao.tutanota.util.DataFile) {
-        dataFile = file;
-        return tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData(dataFile, sessionKey);
-    } else if (tutao.entity.tutanota.File) {
-        // we have to download the DataFile before uploading (forwarded attachment)
-        return tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function(dataFile) {
-            return tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData(dataFile, sessionKey);
+tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
+    var aes = tutao.locator.aesCrypter;
+    if (dataFile instanceof tutao.entity.tutanota.File) {
+        var fileSessionKey = dataFile._entityHelper.getSessionKey()
+        attachment.setFile(dataFile.getId());
+        return Promise.resolve(fileSessionKey);
+    } else if (dataFile instanceof tutao.tutanota.util.DataFile) {
+        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
+            attachment.setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
+                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
+                .setFileData(fileDataId);
+            return fileSessionKey;
         });
+    } else {
+        return Promise.reject(new Error("illegal file type as attachment"))
     }
-
 };
 
 tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData = function(dataFile, sessionKey) {

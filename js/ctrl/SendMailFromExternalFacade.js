@@ -34,13 +34,9 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
         .setPreviousMessageId(previousMessageId);
 
     return Promise.map(attachments, function(dataFile) {
-        var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        return tutao.tutanota.ctrl.SendMailFacade.uploadAttachmentData(dataFile, fileSessionKey).then(function(fileData) {
-            var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service)
-                .setFileData(fileData.getId())
-                .setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
-                .setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
+        var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service);
+        return tutao.tutanota.ctrl.SendMailFacade.createAttachment(attachment, dataFile).then(function(fileSessionKey) {
+            attachment.setSenderBucketEncFileSessionKey(aes.encryptKey(senderBucketKey, fileSessionKey))
                 .setRecipientBucketEncFileSessionKey(aes.encryptKey(recipientBucketKey, fileSessionKey));
             service.getAttachments().push(attachment);
         });
