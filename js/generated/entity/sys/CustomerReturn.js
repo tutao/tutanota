@@ -1,0 +1,127 @@
+"use strict";
+
+goog.provide('tutao.entity.sys.CustomerReturn');
+
+/**
+ * @constructor
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CustomerReturn = function(data) {
+  if (data) {
+    this.__format = data._format;
+    this._adminUser = data.adminUser;
+    this._adminUserGroup = data.adminUserGroup;
+  } else {
+    this.__format = "0";
+    this._adminUser = null;
+    this._adminUserGroup = null;
+  };
+  this._entityHelper = new tutao.entity.EntityHelper(this);
+  this.prototype = tutao.entity.sys.CustomerReturn.prototype;
+};
+
+/**
+ * The version of the model this type belongs to.
+ * @const
+ */
+tutao.entity.sys.CustomerReturn.MODEL_VERSION = '3';
+
+/**
+ * The encrypted flag.
+ * @const
+ */
+tutao.entity.sys.CustomerReturn.prototype.ENCRYPTED = false;
+
+/**
+ * Provides the data of this instances as an object that can be converted to json.
+ * @return {Object} The json object.
+ */
+tutao.entity.sys.CustomerReturn.prototype.toJsonData = function() {
+  return {
+    _format: this.__format, 
+    adminUser: this._adminUser, 
+    adminUserGroup: this._adminUserGroup
+  };
+};
+
+/**
+ * The id of the CustomerReturn type.
+ */
+tutao.entity.sys.CustomerReturn.prototype.TYPE_ID = 370;
+
+/**
+ * The id of the adminUser attribute.
+ */
+tutao.entity.sys.CustomerReturn.prototype.ADMINUSER_ATTRIBUTE_ID = 372;
+
+/**
+ * The id of the adminUserGroup attribute.
+ */
+tutao.entity.sys.CustomerReturn.prototype.ADMINUSERGROUP_ATTRIBUTE_ID = 373;
+
+/**
+ * Sets the format of this CustomerReturn.
+ * @param {string} format The format of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.setFormat = function(format) {
+  this.__format = format;
+  return this;
+};
+
+/**
+ * Provides the format of this CustomerReturn.
+ * @return {string} The format of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.getFormat = function() {
+  return this.__format;
+};
+
+/**
+ * Sets the adminUser of this CustomerReturn.
+ * @param {string} adminUser The adminUser of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.setAdminUser = function(adminUser) {
+  this._adminUser = adminUser;
+  return this;
+};
+
+/**
+ * Provides the adminUser of this CustomerReturn.
+ * @return {string} The adminUser of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.getAdminUser = function() {
+  return this._adminUser;
+};
+
+/**
+ * Loads the adminUser of this CustomerReturn.
+ * @return {Promise.<tutao.entity.sys.User>} Resolves to the loaded adminUser of this CustomerReturn or an exception if the loading failed.
+ */
+tutao.entity.sys.CustomerReturn.prototype.loadAdminUser = function() {
+  return tutao.entity.sys.User.load(this._adminUser);
+};
+
+/**
+ * Sets the adminUserGroup of this CustomerReturn.
+ * @param {string} adminUserGroup The adminUserGroup of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.setAdminUserGroup = function(adminUserGroup) {
+  this._adminUserGroup = adminUserGroup;
+  return this;
+};
+
+/**
+ * Provides the adminUserGroup of this CustomerReturn.
+ * @return {string} The adminUserGroup of this CustomerReturn.
+ */
+tutao.entity.sys.CustomerReturn.prototype.getAdminUserGroup = function() {
+  return this._adminUserGroup;
+};
+
+/**
+ * Loads the adminUserGroup of this CustomerReturn.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded adminUserGroup of this CustomerReturn or an exception if the loading failed.
+ */
+tutao.entity.sys.CustomerReturn.prototype.loadAdminUserGroup = function() {
+  return tutao.entity.sys.Group.load(this._adminUserGroup);
+};

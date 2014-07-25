@@ -136,7 +136,7 @@ EntityRestClientTest.prototype.testPutElementWithListId = function() {
 	tutao.locator.replace('restClient', RestClient);
 	var EntityRestClient = new tutao.rest.EntityRestClient();
 
-	var mail = new tutao.entity.tutanota.Mail({_id: ["600", "5"], _permissions: "564", recipients: []});
+	var mail = new tutao.entity.tutanota.Mail({_id: ["600", "5"], _permissions: "564", toRecipients: [], ccRecipients: [], bccRecipients: []});
 
 	RestClient.putElement = function(path, headers, json, callback) {
 		assertEquals("/rest/tutanota/mail/600/5", path);

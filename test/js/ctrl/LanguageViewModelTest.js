@@ -26,25 +26,34 @@ TestCase("LanguageViewModelTest", {
 	},
 	"test that the languages share the same translations": function() {
 		for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
-			for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
-				for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
-					assertNotUndefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
-					assertNotUndefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
-				}
-			}
+            if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
+                for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
+                    for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
+                        if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(otherLanguage)) {
+                            assertNotUndefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
+                            assertNotUndefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
+                        }
+                    }
+                }
+            }
 		}
 	},
 	"test that translations all begin with either lowercase or uppercase letter": function() {
 		for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
-			for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
-				for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
-					var textLang1 = tutao.tutanota.ctrl.LanguageViewModel[language][translation];
-					var textLang2 = tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation];
-					if (typeof textLang1 == "string") {
-						assertEquals("different case beginning of text: " + textLang1 + ", " + textLang2, textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase());
-					}
-				}
-			}
+            if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
+                for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
+                    for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
+                        if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(otherLanguage)) {
+                            var textLang1 = tutao.tutanota.ctrl.LanguageViewModel[language][translation];
+                            var textLang2 = tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation];
+                            if (typeof textLang1 == "string") {
+                                assertEquals("different case beginning of text: " + textLang1 + ", " + textLang2, textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase());
+                            }
+                        }
+                    }
+                }
+
+            }
 		}
 	},
 });
