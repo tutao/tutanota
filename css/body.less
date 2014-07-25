@@ -1,0 +1,1104 @@
+@button-bar-height: 45px;
+@button-bar-margin: 5px;
+
+body {
+	position: absolute; // needed to allow increasing the body height in touch composing mode
+	left: 0px;
+	right: 0px;
+	height: 100%; // this is overwritten in touch composing mode
+	overflow:hidden;
+	background: @background;
+	
+	> div#tutanota {
+		-webkit-touch-callout: none;
+		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+		overflow: hidden;
+		.fill;
+		
+		a {
+			color: black;
+		}
+		
+		a:ACTIVE {
+			color: black;
+		}
+
+		> div#viewContainer {
+			position: absolute;
+			left: 0px;
+			right: 0px;
+			top: 0px;
+			bottom: 0px;
+			overflow: hidden;
+			
+			
+			> div.content {
+				position: absolute;
+				.fill;
+				border-top: 1px solid @border-dark;
+                margin-top: 54px;
+                @media @mobile {
+					margin-top: 39px;
+				}
+				left: -150px;
+				
+				// see below for the columns
+				> div.viewColumn {
+					position: relative;
+					height: 100%;
+					float: left;
+					overflow: hidden; // avoids that parts of unused columns are visible, e.g. for external mail view
+					border-right: 1px solid @border-dark;
+					
+					// here the button bar is used
+				}
+			}
+		}
+	}
+
+	button#measureButton {
+		position: absolute;
+		visibility: hidden;
+		margin-right: @button-bar-margin;
+	}
+
+	div.buttonBar {
+		position: relative;
+		background: @background-buttonBar;
+		height: @button-bar-height;
+		line-height: @button-bar-height;
+
+        > button {
+          float: right;
+          margin-top: @button-bar-margin;
+          margin-right: @button-bar-margin;
+        }
+	}
+
+    div.buttonBarMoreMenu {
+      position: absolute;
+      background: @background-buttonBar;
+      right: 0px;
+      // increased z-index must also be set for complete action bar because otherwise it it does not work in iOS 6
+      z-index: 1;
+      padding-left: @button-bar-margin;
+      padding-right: @button-bar-margin;
+
+      > button{
+        display: block;
+        position: relative;
+        width: 100%;
+        margin-bottom: @button-bar-margin;
+      }
+    }
+
+
+    div#tagListColumn {
+	
+		> section#tagList {
+			position: absolute;
+			left: 0px;
+			top: 0px;
+			right: 0px;
+			bottom: 0px;
+			background-color: @background-buttonBar;
+
+			> div#innerTagList {
+				.imgButton {
+                  font-size: 15px;
+                }
+			}
+		}
+	}
+	
+	.searchAndList {
+		> div.actions{
+          display: table;
+          width: 100%;
+          > div.otherActions {
+            display: table-cell;
+          }
+          > div#searchAction {
+            display: table-cell;
+            width: 42px;
+            vertical-align: top;
+            padding-top: @button-bar-margin;
+            padding-left: @padding;
+            background: @background-buttonBar;
+          }
+          > div.search {
+            .fill;
+
+            vertical-align: top;
+            padding-top:  @padding;
+            padding-left: @padding;
+            padding-right: @padding;
+            background: @background-buttonBar;
+            height: @button-bar-height;
+            width:100%;
+            z-index: 1;
+
+            > .searchForm {
+
+
+              div.bubbleInput {
+                div.bubble.default {
+                  background: @button-background;
+                  border: 1px solid @button-background;
+                }
+              }
+            }
+          }
+        }
+        > section.list {
+          .fill;
+          &.belowSearch {
+            top: @button-bar-height;
+          }
+          > div.loadMoreElement{
+            display: table;
+            width: 100%;
+            height: 49px;
+            border-bottom: 1px solid @border-dark;
+            padding-left: @padding;
+            padding-right: @padding;
+            cursor: pointer;
+            > div {
+              display: table-cell;
+            }
+            > img {
+              display: table-cell;
+            }
+          }
+        }
+
+	}
+	
+	div#searchAndContactListColumn {
+		> div#searchAndContactList {
+			.searchAndList;
+			
+			section#contactList {	
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				right: 0px;
+				bottom: 0px;
+
+				> div#emptyContactList {
+					margin-top: 10px;
+					text-align: center;
+				}
+	
+				> div#innerContactList {
+					background: @white;
+					background-clip: padding-box;
+					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
+	
+					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
+					> div.contactInList {
+						width: 100%;
+						height: 49px;
+						border-bottom: 1px solid @border-dark;
+						padding-left: @padding;
+						padding-right: @padding;
+						cursor: pointer;
+						
+						&.selected {
+							background-color: @highlight-color;
+						}
+	
+						> div.contactNameAndMailAddressInList {
+							height: 100%;
+						    .fadeTextOut;
+						    
+						    > span.contactMailAddressInList {
+						    	float: right;
+						    	.light;
+						    	.smallFont;
+						    }
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	div#contactColumn {
+
+		> div#noContact {
+			text-align: center;
+			> div {
+				display: inline-block;
+			}
+		}
+	
+		> div#innerContactColumn {
+			position: relative;
+			height: 100%;
+
+			> div#contactWrapper {
+				position: absolute;
+				right: 0px;
+				left: 0px;
+				top: 0px;
+				padding-bottom: 45px; // enough space for the button bar
+				
+				> section#contact {
+					position: relative;
+					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
+					
+					> header {
+						width: 100%;
+						border-bottom: 1px solid @blue;
+					}
+					
+					> div.contactBody {
+						position: relative;
+						padding: @padding;
+
+						// show mode
+						> div#contactNameTitleAndImage {
+							width: 100%;
+										
+							> div#contactNameAndTitle {
+								height: 100%;
+							    .fadeTextOut;
+							    
+							    div#birthdayImage {
+							    	width: 13px;
+							    	height: 13px;
+							    }
+							}
+							
+							> img#contactImage {
+								max-width: 120px;
+								max-height: 120px; // max 20px more than the contactNameTitleAndImage
+								float: right;
+							}	
+						}
+						
+						> h2 {
+							padding-top: 10px;
+							margin-bottom: 0px;
+						}
+						
+						div.contactData {
+							width: 100%;
+							.clearfix;
+							
+							> div {
+								padding-top: @padding;
+								padding-bottom: @padding;
+							}
+						
+							> div.contactDataType {
+								.light;
+								height: 100%;
+								width: 100px;
+								float: left;
+								.fadeTextOut;
+							}
+							
+							> div.contactDataText {
+								height: 35px;
+								.fadeTextOut;
+							}
+							
+							> div.contactDataButton, a > div.contactDataButton {
+								position: relative;
+								top: 5px;
+								height: 25px;
+								width: 25px;
+								float: right;
+								cursor: pointer;
+                                margin-right: 3px; // needed for the mail-new icon which has a :before element (+ icon) which leads to a scrolling column if it overflows
+							}
+							
+							> div.contactDataAreaText {
+								height: 100%;
+								overflow: hidden;
+							}
+						}
+						
+						// edit mode
+						
+						.contactInput {
+							position: relative;
+							.inputField;
+							height: 30px;
+							width: 100%;
+							margin-bottom: 10px;
+						}
+						
+						> div#editContactNameTitleAndImage {
+								width: 100%;
+								height: 190px;
+										
+							> div#editContactNameAndTitle {
+								position: absolute;
+								left: 10px;
+								top: 10px;
+								right: 100px;
+
+								> input#firstNameInput {
+									.contactInput;
+								}
+								
+								> input#lastNameInput {
+									.contactInput;
+								}
+								
+								> input#birthdayInput {
+									.contactInput;
+								}
+								
+								> input#companyInput {
+									.contactInput;
+								}
+								
+								> input#titleInput {
+									.contactInput;
+								}
+							}
+			
+							> img#editContactImage {
+								position: absolute;
+								top: 10px;
+								right: 10px;
+								max-width: 80px;
+								max-height: 110px;  // max 20px more than the editContactNameTitleAndImage
+							}	
+						}
+						
+						// here div.editContactData is used
+						
+						textarea#editContactComment {
+						    margin-top: 10px;
+						    width: 100%;
+						    overflow-y: hidden; // avoids that a scrollbar is visible while resizing
+							.inputArea;
+						}
+					}
+				}
+	
+			}
+		}
+	}
+	
+	// used in PasswordChannelViewColumn and ContactColumn
+	div.editContactData {
+		width: 100%;
+		margin-top: 10px;
+		display: table;
+		
+		> div {
+			display: table-cell;
+			vertical-align: middle;
+		}
+	
+		> div.editContactDataType {
+			width: 130px;
+			padding-right: @padding;
+			
+			> input {
+				height: 30px;
+				width: 100%;
+				.inputField;
+			}
+		}
+		
+		> div.editContactDataText {
+			> input {
+				height: 30px;
+				width: 100%;
+				.inputField;
+			}
+		}
+		
+		> div.editContactDataArea {
+			> textarea {
+				width: 100%;
+				overflow: hidden; // avoids that a scrollbar is visible while resizing
+				.inputArea;
+			}
+		}
+		
+		div.recordAction {
+			> div.imgButton {
+				width: 20px;
+			}
+		}
+	}
+	
+	div#fileColumn {
+		> div#innerFileColumn {
+			position: relative;
+			height: 100%;
+			
+			> div {
+				> div.files {
+					> div.file {			
+						height: 35px;
+					    border-radius: 5px;
+						-moz-border-radius: 5px;
+						-webkit-border-radius: 5px;
+						border: 1px solid @dark-blue;
+						line-height: 33px;
+						text-decoration: none;
+						cursor: pointer;
+					
+						margin-top: 5px;
+						margin-bottom: 5px;
+					
+						> div.mimeImage {
+							display: inline-block;
+							vertical-align: top;
+							margin-left: 10px;
+							
+							> img {
+								width: 16px;
+								height: 16px;
+								margin-right: 2px;
+								vertical-align: middle;
+							}
+						}
+						> div.fileName {
+							display: inline-block;
+							padding-right: @padding;
+							.fadeTextOut;
+							html.ie.lte8 & {
+								width: 150px;
+							}
+						}
+						
+						> div.fileSize {
+							display: inline-block;
+							vertical-align: top;
+							padding-right: @padding;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	div#searchAndMailListColumn {
+		> div#searchAndMailList {
+           .searchAndList;
+
+			section#mailList {
+				> div.emptyMailList {
+					text-align: center;
+				}
+				> div#innerMailList {
+					background: @white;
+					background-clip: padding-box;
+					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
+					
+					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
+					> div.mailInList {
+						width: 100%;
+						height: 49px;
+						border-bottom: 1px solid @border-dark;
+						padding-left: @padding;
+						padding-right: @padding;
+						cursor: pointer;
+						
+						&.unreadFont {
+							font-weight: bold;
+						}
+					
+						&.selected {
+							background-color: @highlight-color;
+						}
+						
+						
+						> div.mailInfo {
+							.fadeTextOut;
+							.light;
+							.smallFont;
+							
+							> div.mailHeaderImage {
+								height: 15px;
+								
+							}
+							
+							> div.bullet {
+								display:inline-block;
+								width: 10px;
+								height: 10px;
+								border-radius: 5px;
+								-moz-border-radius: 5px;
+								-webkit-border-radius: 5px;
+								margin-right: 3px;
+								border: 1px solid black;
+							}
+							
+							> div.date {
+								width: 120px;
+								float: right;
+								.fadeTextOut;
+								text-align: right;
+							}
+							> div.senderOrRecipient {
+								//float: right;
+								//width: 120px;
+							}
+						}
+						
+						> div.subject {
+						    .fadeTextOut;
+						}
+						> div.icons {
+							//width: 40px; // might be used if the fadeTextOut does not work on all devices
+							float: right;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	div#conversationColumn {
+		> div.spinner {
+			margin: 20px 50%;
+		}
+
+		> div#noMail {
+			text-align: center;
+			> div {
+				display: inline-block;
+			}
+		}
+
+		> div#innerConversationColumn {
+			position: relative;
+			height: 100%;
+
+			> section.conversation {
+				.fill;
+
+				> div.actions {
+                    position: relative;
+					display: table;
+					width: 100%;
+                    // see div.buttonBarMoreMenu for z-index
+                    z-index: 1;
+					> div.confidentialAction {
+						display: table-cell;
+						width: 42px;
+						vertical-align: top;
+						padding-top: 5px;
+						padding-left: @padding;
+						background: @background-buttonBar;
+					}
+					
+					> div.otherActions {
+						display: table-cell;
+					}
+				}
+                > div.mailWrapper {
+                    position: relative;
+                }
+
+                > img#sendMailBusyImg {
+                  // z-index must be increased because div.actions z-index is also increased
+                  z-index: 2;
+                  display: block;
+                  position:absolute;
+                  top: 15px;
+                  left: 0px;
+                  right: 0px;
+                  width: 16px;
+                  margin-left: auto;
+                  margin-right: auto;
+                }
+	
+				// mail is used here
+			}
+		}
+	}
+	
+	section.mail {
+		position: relative;
+		-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
+		width: 100%;
+		height: 100%;
+		padding: @padding;
+        padding-top: 4px;
+	    
+		background-clip: padding-box;
+
+		> header {
+			width: 100%;
+			border-bottom: 1px solid @border-dark;
+			padding-bottom: @padding;
+
+            > div.confidentialStateMessage {
+                font-size: 12px;
+                color: @dark-grey;
+            }
+			
+			> div.headerTable {
+				display: table;
+				width: 100%;
+			
+				> div.headerLine {
+					display: table-row;
+					
+					> div.name {
+						.light;
+						display: table-cell;
+						vertical-align: middle;
+						width: 35px;
+					}
+					
+					> div.value.edit, div.name.edit {
+						padding-top: 5px;
+						padding-bottom: 5px;
+					}
+		
+					> .value {
+						display: table-cell;
+						vertical-align: middle;
+						padding-left: 5px;
+	
+						> .rightAligned {
+							float: right;
+						}
+						
+						> input.composeSubjectInput {
+							.inputField;
+							width: 100%;
+							max-width: 100%;
+						}
+					}
+				}
+			}
+
+			> div.attachments {
+				> div.download {			
+					display: inline-block;
+					position: relative; // this child 'object' (flash) must be positioned absolute
+					height: 28px;
+				    border-radius: 5px;
+					-moz-border-radius: 5px;
+					-webkit-border-radius: 5px;
+					line-height: 28px;
+					text-decoration: none;
+					cursor: pointer;
+					background-color: @button-background;
+				
+					margin-top: 5px;
+					margin-bottom: 5px;
+				
+					> div.mimeImage {
+						display: inline-block;
+						margin-left: 10px;
+						
+						> img {
+							width: 16px;
+							height: 16px;
+							margin-right: 2px;
+						}
+					}
+					> div.fileName {
+						max-width: 150px;
+						display: inline-block;
+						padding-right: 5px;
+						.fadeTextOut;
+						html.ie.lte8 & {
+							width: 150px;
+						}
+					}
+					
+					> div.fileSize {
+						display: inline-block;
+						vertical-align: top;
+						padding-right: 5px;
+					}
+					> span.legacyDownloadText {
+						display: none;
+						html.ie.lte9 & {
+							display: inline;
+							visibility: hidden;
+						}
+						vertical-align: top;
+						padding-right: 5px;
+						font-weight: bold;
+					}
+					> div.removeAttachment {
+						display: inline-block;
+						height: 100%;
+                        padding: 2px;
+						vertical-align: top;
+						border-left: 2px solid @white;
+					
+						> div {
+							display: block;
+							background-size: 14px;
+						}
+					}
+					
+					> object { // FlashDownloader
+						position: absolute;
+						left: -2px;
+						top: -2px;
+						z-index: 2;
+					}
+				}
+			}
+	
+			> div.mailSubject {
+				font-weight: bold;
+			}
+	
+			div.bubble {
+			
+				&.secureRecipient {
+					background: @button-background;
+					&.selected {
+						background: darken(@button-background, 20%);
+					}
+				}
+				&.unsecureRecipient {
+					background: @red;
+					&.selected {
+						background: darken(@red, 20%);
+					}
+				}
+                &.unknownRecipient {
+                  background: @grey;
+                  &.selected {
+                    background: darken(@grey, 20%);
+                  }
+                }
+			}
+		}
+
+		> div.mailBody, div.mailBodyQuotation {
+            margin-top: 10px;
+			line-height: 1.3;
+			word-wrap: break-word;
+			
+			&.mailBody {
+				padding-bottom: 0px;
+			}
+			&.mailBodyQuotation {
+				padding-top: 0px;
+			}
+		}
+		
+		blockquote, ul, ol {
+			margin-left: 30px;
+		}
+		
+		// for quoted email text, divs are mailBody and div of mail content or composeBody
+		blockquote.tutanota_quote {
+			border-left: 1px solid @blue;
+			padding-left: 10px;
+			margin-left: 5px;
+		}
+		
+		> div {
+			.clearfix;
+			
+			div.toggleQuotation {
+				float:right;
+				margin-top: 10px;
+			}
+		}
+		
+		// when editing, the compose body is shown like the mailContent, but with a minimal height
+		> div.composeBody {
+			position: static;
+			min-height: 200px;
+			margin: 10px;
+		}
+		
+		textarea#composeBodyTextArea {
+			width: 90%;
+			min-height: 200px;
+		}
+	}
+	
+	div#passwordChannelColumn {
+	
+		> div#innerPasswordChannelColumn {
+			position: relative;
+			height: 100%;
+
+			> div#passwordChannelListWrapper {
+				position: absolute;
+				right: 0px;
+				left: 0px;
+				top: 0px;
+				padding-bottom: 45px; // enough space for the button bar
+				
+				> section#passwordChannelList {
+					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
+					padding: @padding; /* distance between paper border and header box */
+				    position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
+					background-clip: padding-box;
+
+                    > div#changeNotificationMailLanguage {
+                      margin-bottom: 10px;
+                    }
+
+					> div#passwordChannelDescription {
+                      margin-bottom: 10px;
+					}
+
+					> div {
+					
+						> div.recipientNameAndAddress {
+							> span {
+								.fadeTextOut;
+							}
+						}
+						
+						> button.editContactButton {
+							float: right;
+						}
+						
+						> div.recordContainer {
+							> div.record {
+								> div.recordAction {
+									> div.imgButton {
+										background-position-y: 4px;
+										width: 20px;
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				// here div.editContactData is used
+			}
+		}
+	}
+	
+	div#settingsContent {
+		div#settingsColumn {
+	
+			> div#settingsInnerColumn {
+				position: relative;
+				height: 100%;
+
+				> div#settingsData {
+					position: absolute;
+					left: 0px;
+					top: 0px;
+					right: 0px;
+					bottom: 0px;
+					background-clip: padding-box;
+	
+					> div {
+								
+						> div.settingsAction {
+							width: 100%;
+							margin-bottom: 5px;
+						}
+					}
+				}
+			}
+			
+		}
+
+      div#changeSettingsDetailsColumn {
+          div#createdUsersInfo {
+            font-size: 12px;
+            color: @dark-grey;
+            margin-top: 20px;
+          }
+          li.createdUserEntry {
+            list-style-type: none;
+          }
+      }
+		
+		div#changeSettingsColumn {
+	
+			> div#changeSettingsInnerColumn {
+				position: relative;
+				height: 100%;
+
+				> div#changeSettingsData {
+				
+					> div {
+						> div {
+							padding: @padding;
+						}
+	
+						> div#changePasswordData {
+						
+							> div.infoText {
+							
+							}
+						
+							div.password1Status {
+								display: inline-block;
+							}
+						}
+						
+						
+						> div#adminUserList {
+                            > div.buttonBar {
+                              div.innerButtons {
+                                right: 0px;
+                              }
+                            }
+                            border-top: 1px solid @border-dark;
+							padding: 0;
+							> div.userList {
+								background: @white;
+								background-clip: padding-box;
+								position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
+				
+								// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
+								> div.user {
+									width: 100%;
+									height: 49px;
+									border-bottom: 1px solid @border-dark;
+									padding-left: @padding;
+									padding-right: @padding;
+									cursor: pointer;
+
+									&.selected {
+										background-color: @highlight-color;
+									}
+
+                                    > div.name {
+                                      .fadeTextOut;
+                                      .emphasizedText;
+                                    }
+
+                                    > div.icons {
+                                      float: right;
+                                    }
+								}
+							}
+						}
+					}
+				}
+				
+				
+			}
+			
+		}
+		
+		div#changeSettingsDetailsColumn.viewColumn {
+			position: absolute;
+			
+			> div {
+				.fill;
+				padding: @padding;
+			}
+			
+			> div#newUsers {
+				
+				> div#importUsersFromCsv {
+					textarea {
+						height: 150px;
+					}
+				}
+			
+				input.mailAddress {
+					width: 60%;
+				}
+			}
+		}
+	}
+
+
+    #hiddenFileChooser {
+      width: 200px; // Limit the width of the hidden file chooser to avoid horizontal scrolling on mobile devices.
+    }
+/*
+    #attachmentDialog{
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: @background;
+      z-index: 99999;
+      pointer-events: auto;
+      display: none;
+
+      > span.close {
+        background: @blue;
+        color: @white;
+        line-height: 25px;
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        text-align: center;
+        width: 24px;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+        &:hover {
+          background: @dark-blue;
+        }
+      }
+
+      > a {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 50px;
+        > span {
+          background: @blue;
+          color: @white;
+          text-align: center;
+          width: 100%;
+          text-decoration: none;
+          font-weight: bold;
+        }
+
+      }
+
+      > img {
+        position: absolute;
+        top: 25px;
+        left: 0px;
+        width:100%;
+        max-height:100%;
+      }
+      > video {
+        position: absolute;
+        top: 25px;
+        left: 0px;
+        width:100%;
+        max-height:100%;
+      }
+      > iframe {
+        position: absolute;
+        top: 25px;
+        left: 0px;
+        width:100%;
+        max-height:100%;
+        border: 0px;
+        overflow: hidden;
+      }
+
+    }
+*/
+}
+
+/*div#external {
+	
+	.blur {
+		color: #CCC;
+		text-shadow: 1px 1px 8px black;
+	}
+	
+	.blurAlternate {
+		color: transparent;
+		text-shadow: 0 0 26px rgba(0, 0, 0, 0.5);
+	}
+}*/

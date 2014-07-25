@@ -1,0 +1,199 @@
+@font-face {
+  font-family: 'icomoon';
+  src: url('../fonts/icomoon.eot?-1hfhv7');
+  src: url('../fonts/icomoon.eot?#iefix-1hfhv7') format('embedded-opentype'),
+  url('../fonts/icomoon.woff?-1hfhv7') format('woff'),
+  url('../fonts/icomoon.ttf?-1hfhv7') format('truetype'),
+  url('../fonts/icomoon.svg?-1hfhv7#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/******************** buttons.less ********************/
+/* 1. Prepare svg images (replace fill with variable):
+ *		 find . -type f -print0 | xargs -0 sed -i 's/fill="#000000"/fill="@{icon-color}"/g'
+ * 2. Remove all linebreaks and convert " to ' (for embedding as url parameter, see below) 
+ *		 cat calendar2.svg | sed 's/"/'\''/g' | tr -d "\n"
+ *
+ * Setup replacement pngs:
+ * 1. find . -type f -print0 | xargs -0 sed -i 's/fill="@{icon-color}"/fill="#515d6e"/g'
+ * 2. for i in *; do inkscape $i --export-png=`echo $i | sed -e 's/svg$/png/'`; done
+ */
+@icon-color: darken(@dark-blue, 15%);
+@menu-icon-color: darken(@dark-blue, 15%);
+@new-color: lighten(@dark-blue, 15%);
+
+.ie-background-image(@url) {
+}
+
+.imgButton {
+  // TODO remove
+  display: inline-block;
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-position: center;
+  // till here
+
+  /*********** Copied from icomoon style.css ***************/
+  font-family: 'icomoon';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /*********** END: Copied from icomoon style.css ***************/
+
+  color: @icon-color;
+
+  object {
+    display: initial;
+  }
+
+  &.cancel:before {
+    content: "\e36b";
+  }
+
+  &.search:before {
+    content: "\e1b7";
+  }
+
+  &.mail-new {
+    //background-image: url("data:image/svg+xml,@{mail}");
+    &:before {
+      content: "\e0ec";
+    }
+    .new;
+  }
+
+  &.mail:before {
+    content: "\e0ec";
+  }
+
+  &.contact-new {
+    &:before {
+      content: "\e186";
+    }
+    .new;
+  }
+
+  &.contact:before {
+    content: "\e186";
+  }
+
+  &.file-new {
+    &:before {
+      content: "\e12a";
+    }
+    .new;
+  }
+
+  &.file:before {
+    content: "\e12a";
+  }
+
+  &.calendar {
+    > time#day {
+      position: absolute;
+      top: 8px;
+      left: 0px;
+      right: 0px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: @icon-color;
+    }
+  }
+
+  &.settings:before {
+    content: "\e1e0";
+  }
+
+  &.feedback:before {
+    content: "\e167";
+  }
+
+  &.logout:before {
+    content: "\e37d";
+  }
+
+  &.left:before {
+    content: "\e3bf";
+  }
+
+  &.right:before {
+    content: "\e3bb";
+  }
+
+  &.leftIndicator:before {
+    content: "\e3b3";
+  }
+
+  &.rightIndicator:before {
+    content: "\e3b1";
+  }
+
+  &.trash:before {
+    content: "\e24f";
+  }
+
+  &.more:before {
+    content: "\e600";
+  }
+
+  &.attachment-small:before {
+    content: "\e2d7";
+    font-size: 12px;
+  }
+
+  &.trash-small:before {
+    content: "\e24f";
+    font-size: 12px;
+  }
+
+  &.lock-closed:before {
+    content: "\e1d5";
+  }
+
+  &.lock-open:before {
+    content: "\e1d6";
+  }
+
+  &.star:before {
+    content: "\e2fc";
+  }
+
+  &.invite:before {
+    content: "\e48c";
+  }
+
+  &.register:before {
+    content: "\e185";
+  }
+
+  .new {
+    &:after {
+      position: absolute;
+      right: -11px;
+      bottom: -6px;
+      width: 15px;
+      height: 15px;
+      color: @new-color;
+      font-size: 15px;
+      content: "\e376";
+    }
+  }
+
+  &.progress {
+    background-image: url("../graphics/busy.gif");
+    background-size: 15px 15px;
+  }
+}
+
+/******************** buttons.less ********************/
+

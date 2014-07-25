@@ -1,0 +1,142 @@
+
+
+div.fastMessage {
+	.fill;
+}
+
+div#externalLogin {
+	label#sendMailPasswordStatus {
+		margin-bottom: 10px;
+	}
+	div.extPhoneNumberRow {
+		.clearfix; // avoid that the right-floating button covers the content below
+
+		> div {
+			display: inline-block;
+			vertical-align: sub;
+		}
+		> button {
+			float: right;
+		}		
+	}
+}
+
+div.login {
+	.fill;
+	
+	> div.welcomeContainer {
+		display: table;
+		width: 100%;
+		height: 100%;
+		
+		> div#welcomePicture {
+			@media @mobile {
+				display:none;
+			}
+			/*
+			position: absolute;
+			top: 0px;
+			left: 450px;
+			right: 0px;
+			bottom: 0px;
+			*/
+			overflow:hidden;
+			height: 100%;
+			display: table-cell;
+			background: url(../graphics/beach_1000.jpg) no-repeat center center; 
+		  	-webkit-background-size: cover;
+		  	-moz-background-size: cover;
+		  	-o-background-size: cover;
+		  	background-size: cover;
+		  	
+		  	html.ie8 & {
+		  		filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='graphics/beach_1000.jpg',sizingMethod='scale');
+		  	}
+		}
+		
+		> div.panel {
+			display: table-cell;
+			width: 500px;
+			background: @background;
+			height: 100%;
+			
+			bottom: 0px;
+			padding-top: 70px;
+			padding-left: @padding;
+			
+			> div.content {
+				height: 100%;
+				padding-right: @padding;
+
+                > h1 {
+                    margin-top: 20px;
+                }
+			}
+		}
+	}
+}
+
+div.failContent {
+  position: absolute;
+  .fill;
+  margin-top: 70px;
+
+  > div.messageWrapperFail { // fakes a min-margin
+    position: relative;
+    height: 100%;
+    padding-left: 7px;
+    padding-right: 7px;
+
+    > div.infoMessage {
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      max-width: 800px;
+    }
+  }
+}
+
+div.clientInfo {
+	position: absolute;
+	left: 5px;
+	bottom: 5px;
+	font-size: 10px;
+	line-height: 10px;
+}
+
+div#registration, div#pre_registration {
+
+	> div.welcomeContainer {
+		> div.panel {
+			> div.content {
+				
+				input#mailAddress, input#currentMailAddress {
+					width: 60%;
+				}
+				
+				div#invoiceAddress {
+					white-space: pre-wrap;
+				}
+
+				div.password1Status, div.createAccountStatus {
+					display: inline-block;
+				}
+			}
+		}
+	}
+}
+
+div.socialMediaLinks {
+  .light;
+  margin-top: 20px;
+
+  > a {
+    margin-right: 10px;
+
+    > img {
+      width: 30px;
+      margin-top: 5px;
+    }
+  }
+}
