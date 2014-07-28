@@ -12,14 +12,14 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.mail = mail;
 
 
-    this.bodyText = ko.observable("");
+    this.bodyText = ko.observable(""); // contains the sanitized body
     this.bodyTextWithoutQuotation = ko.observable("");
     this.bodyTextQuotation = ko.observable("");
     this.bodyTextQuotationVisible = ko.observable(false);
     this.mailBodyLoaded = ko.observable(false);
 
     this.attachments = ko.observableArray(); // contains Files
-    this.currentlyDownloadingAttachment = ko.observable(); // null or a File
+    this.currentlyDownloadingAttachment = ko.observable(null); // null or a File
 
     this._loadBody();
     this._loadAttachments();
@@ -31,13 +31,19 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     var isExternalExportPossible = function () {
         // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
         // we deactivate export for mobile browsers generally because it is useless
-        return tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice();
+        return tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.locator.userController.isExternalUserLoggedIn();
     };
     var isInternalUserLoggedIn = function() {
         return tutao.locator.userController.isInternalUserLoggedIn();
     };
     var showReplyAll = function () {
         return tutao.locator.userController.isInternalUserLoggedIn() && self.mail.getToRecipients().length + self.mail.getCcRecipients().length + self.mail.getBccRecipients().length > 1;
+    };
+    var trashed = function () {
+        return self.mail.getTrashed();
+    };
+    var untrashed = function () {
+        return !self.mail.getTrashed();
     };
     var trashText = self.mail.getTrashed() ? "undelete_action" : "delete_action";
     this.buttons = [
@@ -46,7 +52,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
             tutao.locator.mailViewModel.replyMail(self);
         }, isExternalAnswerPossible, false, "replyConfidentialAction"),
 
-        new tutao.tutanota.ctrl.Button("export_action", 8, function () {
+        new tutao.tutanota.ctrl.Button("export_action", 7, function () {
             tutao.locator.mailViewModel.exportMail(self);
         }, isExternalExportPossible, false, "exportAction"),
 
@@ -55,18 +61,26 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
             tutao.locator.mailViewModel.replyMail(self);
         }, isInternalUserLoggedIn, false, "replyAction"),
 
-        new tutao.tutanota.ctrl.Button("replyAll_action", 8, function () {
+        new tutao.tutanota.ctrl.Button("replyAll_action", 7, function () {
             tutao.locator.mailViewModel.replyAllMail(self);
         }, showReplyAll, false, "replayAllAction"),
 
-        new tutao.tutanota.ctrl.Button("forward_action", 7, function () {
+        new tutao.tutanota.ctrl.Button("forward_action", 6, function () {
             tutao.locator.mailViewModel.forwardMail(self);
         }, isInternalUserLoggedIn, false, "forwardAction"),
 
         // all
-        new tutao.tutanota.ctrl.Button(trashText, 9, function () {
+        new tutao.tutanota.ctrl.Button("undelete_action", 9, function () {
             tutao.locator.mailViewModel.deleteMail(self);
-        }, null, false, "deleteMailAction"),
+        }, trashed, false, "undeleteMailAction"),
+
+		new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
+            tutao.locator.mailViewModel.finalDeleteMail(self);
+        }, trashed, false, "finalDeleteMailAction"),
+		
+		new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
+            tutao.locator.mailViewModel.deleteMail(self);
+        }, untrashed, false, "deleteMailAction"),
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
     this.buttonBarViewModel.init();
@@ -88,6 +102,10 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function () {
         self.bodyTextWithoutQuotation(split.text);
         self.mailBodyLoaded(true);
         self.bodyTextQuotation(split.quotation);
+		// use setTimeout here to make sure the gui is updated
+        setTimeout(function() {
+            tutao.locator.mailView.addSubmitCheckToMailBody();
+        }, 0);
     }).caught(function(e) {
         self.bodyText("error while loading");
         throw e;

@@ -92,6 +92,7 @@ tutao.util.ArrayUtils.remove = function(theArray, elementToRemove) {
     for (var i = 0; i < theArray.length; i++) {
 		if (theArray[i] === elementToRemove) {
 			theArray.splice(i, 1);
+            return;
 		}
 	}
 };
@@ -131,4 +132,22 @@ tutao.util.ArrayUtils.arrayEquals = function(a1, a2) {
  */
 tutao.util.ArrayUtils.contains = function(array, value) {
 	return array.indexOf(value) != -1;
+};
+
+/**
+ * Adds all elements from an array to another array.
+ * @param {Array} array The array to add elements to.
+ * @param {Array} elements The array with the elements to be added.
+ */
+tutao.util.ArrayUtils.addAll = function(array, elements) {
+    array.push.apply(array, elements);
+};
+
+/**
+ * Adds all elements from an array to the beginning of another array.
+ * @param {Array} array The array to prepend elements to.
+ * @param {Array} elements The array with the elements to be prepended.
+ */
+tutao.util.ArrayUtils.prependAll = function(array, elements) {
+    array.splice.apply(array, [0, 0].concat(elements));
 };

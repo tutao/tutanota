@@ -228,23 +228,23 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyAllMail = function(displayedMai
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to forward.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail) {
-	var infoLine = tutao.lang("date_label") + " " + tutao.tutanota.util.Formatter.formatFullDateTime(displayedMail.mail.getSentDate()) + "<br>";
-	infoLine += tutao.lang("from_label") + " " + displayedMail.mail.getSender().getAddress() + "<br>";
+	var infoLine = tutao.lang("date_label") + ": " + tutao.tutanota.util.Formatter.formatFullDateTime(displayedMail.mail.getSentDate()) + "<br>";
+	infoLine += tutao.lang("from_label") + ": " + displayedMail.mail.getSender().getAddress() + "<br>";
 	if (displayedMail.mail.getToRecipients().length > 0) {
-		infoLine += tutao.lang("to_label") + " " + displayedMail.mail.getToRecipients()[0].getAddress();
+		infoLine += tutao.lang("to_label") + ": " + displayedMail.mail.getToRecipients()[0].getAddress();
 		for (var i = 1; i < displayedMail.mail.getToRecipients().length; i++) {
 			infoLine += ", " + displayedMail.mail.getToRecipients()[i].getAddress();
 		}
 		infoLine += "<br>";
 	}
 	if (displayedMail.mail.getCcRecipients().length > 0) {
-		infoLine += tutao.lang("cc_label") + " " + displayedMail.mail.getCcRecipients()[0].getAddress();
+		infoLine += tutao.lang("cc_label") + ": " + displayedMail.mail.getCcRecipients()[0].getAddress();
 		for (var i = 1; i < displayedMail.mail.getCcRecipients().length; i++) {
 			infoLine += ", " + displayedMail.mail.getCcRecipients()[i].getAddress();
 		}
 		infoLine += "<br>";
 	}
-	infoLine += tutao.lang("subject_label") + " " + displayedMail.mail.getSubject();
+	infoLine += tutao.lang("subject_label") + ": " + displayedMail.mail.getSubject();
 	var body = "<br><br>" + infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + displayedMail.bodyText() + "</blockquote>";
     var self = this;
 	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_FORWARD_SUBJECT_PREFIX + displayedMail.mail.getSubject(), [], [], displayedMail, body).then(function() {
@@ -308,12 +308,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
         }).then(function() {
             // the conversation key may be null if the mail was e.g. received from an external via smtp
             self.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
-            self.getComposingMail().composerBody(bodyText);
-            tutao.locator.mailView.setComposingBody(bodyText);
         });
 	} else {
         mailCreatedPromise = Promise.resolve();
-		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null)]);
+		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null, "")]);
 	}
 
     return mailCreatedPromise.then(function() {
@@ -343,6 +341,15 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
         return true;
     });
 
+};
+
+/**
+ * Finally deletes this mail.
+ * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete finally.
+ * @return {window.Promise} The promise.
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype.finalDeleteMail = function(displayedMail) {
+    return tutao.locator.mailListViewModel.finallyDeleteMails([displayedMail.mail.getId()]);
 };
 
 /**

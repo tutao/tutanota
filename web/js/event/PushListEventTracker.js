@@ -69,20 +69,24 @@ tutao.event.PushListEventTracker.prototype._handleEventBusNotification = functio
 		}).caught(function(exception) {
             console.log(exception);
         });
-	}
+	} else {
+        return Promise.resolve();
+    }
 };
 
-tutao.event.PushListEventTracker.prototype._notifyAboutExistingElements = function(){
+tutao.event.PushListEventTracker.prototype._notifyAboutExistingElements = function() {
     var self = this;
-    tutao.locator.entityRestClient.getElementRange(self._listType, self._path, self._listId, self._highestElementId, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(newElements) {
+    return tutao.rest.EntityRestInterface.loadAll(self._listType, self._listId, self._highestElementId).then(function(newElements) {
         if (newElements.length > 0) {
             console.log("getElementRange received mails: " + newElements.length);
             return tutao.entity.EntityHelper.loadSessionKeys(newElements).then(function(newElements) {
                 self.notifyObservers(newElements);
                 if ( newElements.length > 0 ){
-                    self._highestElementId = newElements[newElements.length-1].getId()[1];
+                    self._highestElementId = newElements[newElements.length - 1].getId()[1];
                 }
             });
+        } else {
+            return Promise.resolve();
         }
     });
 };

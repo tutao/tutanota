@@ -58,29 +58,16 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-//		tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
-//		tutao.locator.loginViewModel.passphrase("map");
+//		tutao.locator.loginViewModel.mailAddress("bed-free@tutanota.de");
+//		tutao.locator.loginViewModel.passphrase("bed");
 //		tutao.locator.loginViewModel.login();
-//			tutao.locator.navigator.settings();
-//			tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST);
-//			tutao.locator.navigator.customer();
-//			tutao.locator.viewManager.select(tutao.locator.contactView);
-//		});
-//		tutao.locator.registrationViewModel.gender("Mr");
-//		tutao.locator.registrationViewModel.firstName("arne");
-//		tutao.locator.registrationViewModel.lastName("moehle");
-//		tutao.locator.registrationViewModel.mailAddress("arne.moehle");
-//		tutao.locator.registrationViewModel.phoneNumber("01739508502");
-//		tutao.locator.registrationViewModel.password1("asdfasdfasdfasdf");
-//		tutao.locator.registrationViewModel.password2("asdfasdfasdfasdf");
-//		tutao.locator.registrationViewModel.termsAccepted(true);
 };
 
 /**
  * @export
  */
 tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/');
+    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/libs/internal/', '/libs/external/');
     var singletons = {
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.AesWorkerProxy,
@@ -157,9 +144,10 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         //viewport.setAttribute('content', 'initial-scale=0.85, maximum-scale=0.85, user-scalable=no');
     }
 
-    if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+	// indexing is disabled currently
+   // if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
         tutao.locator.replace('dao', new tutao.db.DummyDb);
-    }
+   // }
 
     // add a cache to the rest entity chain
     var cache = new tutao.rest.EntityRestCache();

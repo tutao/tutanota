@@ -1,5 +1,6 @@
 @button-bar-height: 45px;
 @button-bar-margin: 5px;
+@list-entry-height: 49px;
 
 body {
 	position: absolute; // needed to allow increasing the body height in touch composing mode
@@ -156,19 +157,15 @@ body {
             top: @button-bar-height;
           }
           > div.loadMoreElement{
-            display: table;
             width: 100%;
-            height: 49px;
+            height: @list-entry-height;
             border-bottom: 1px solid @border-dark;
             padding-left: @padding;
             padding-right: @padding;
             cursor: pointer;
-            > div {
-              display: table-cell;
-            }
-            > img {
-              display: table-cell;
-            }
+            text-align: center;
+            line-height: @list-entry-height;
+            .light;
           }
         }
 
@@ -198,7 +195,7 @@ body {
 					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 					> div.contactInList {
 						width: 100%;
-						height: 49px;
+						height: @list-entry-height;
 						border-bottom: 1px solid @border-dark;
 						padding-left: @padding;
 						padding-right: @padding;
@@ -499,7 +496,7 @@ body {
 					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 					> div.mailInList {
 						width: 100%;
-						height: 49px;
+						height: @list-entry-height;
 						border-bottom: 1px solid @border-dark;
 						padding-left: @padding;
 						padding-right: @padding;
@@ -959,7 +956,7 @@ body {
 								// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 								> div.user {
 									width: 100%;
-									height: 49px;
+									height: @list-entry-height;
 									border-bottom: 1px solid @border-dark;
 									padding-left: @padding;
 									padding-right: @padding;

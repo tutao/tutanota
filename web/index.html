@@ -547,9 +547,9 @@ function touchOrClick(e) {
 								</div>
 							</div>
 						</div>
-                        <div class="loadMoreElement" data-bind="click: loadMoreMails, visible: (mails().length > 0)">
-                            <div data-bind="text: tutao.lang('loadMoresMails_action')"></div>
-                            <img src="graphics/busy.gif" data-bind="visible: loadingMore()" />
+                        <div class="loadMoreElement" data-bind="click: loadMoreMails, visible: moreAvailable() && !showSpinner()">
+                            <span data-bind="text: tutao.lang('loadMoreMails_action'), visible: !loading()"></span>
+                            <img src="graphics/busy.gif" data-bind="visible: loading()" />
                         </div>
                         <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (mails().length == 0)  && !loading()"></div>
                         <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
@@ -1422,7 +1422,7 @@ function touchOrClick(e) {
 										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>
 										<div class="recordData">
 											<div class="recordValue">
-												<input id="registrationCodeInput" class="inputField wide" type="text" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
+												<input id="registrationCodeInput" class="inputField wide" type="number" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
 											</div>
 											<label for="registrationCodeInput" class="recordStatus", data-bind="css: codeInputStatus().type, lang: codeInputStatus().text"></label>
 											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
@@ -1969,12 +1969,12 @@ function touchOrClick(e) {
                                                 </div>
                                             </div>
                                             <div class="record" data-bind="visible: codeNeeded">
-                                                <label for="passwordVerficationCode" class="recordName" data-bind="lang: 'code_label'"></label>
+                                                <label for="passwordVerificationCode" class="recordName" data-bind="lang: 'code_label'"></label>
                                                 <div class="recordData">
                                                     <div class="recordValue">
-                                                        <input id="passwordVerficationCode" class="inputField wide" type="text" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
+                                                        <input id="passwordVerificationCode" class="inputField wide" type="number" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
                                                     </div>
-                                                    <label id="passwordVerficationCode" class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></label>
+                                                    <label id="passwordVerificationCode" class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></label>
                                                 </div>
                                             </div>
                                             <div class="record">

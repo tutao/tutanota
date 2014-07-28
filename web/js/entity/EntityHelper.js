@@ -122,15 +122,24 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
  * @return {Promise.<Object>} Resolves to the listKey or an exception if the loading failed.
  */
 tutao.entity.EntityHelper.getListKey = function(listId) {
-	var self = this;
-	return tutao.entity.sys.Permission.loadRange(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(permissions) {
+    return this._getListKey(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID );
+};
+
+tutao.entity.EntityHelper._getListKey = function(listId, startId) {
+    var self = this;
+    return tutao.entity.sys.Permission.loadRange(listId, startId, 1, false).then(function(permissions) {
         var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
-        if (listKey == null) {
-            throw new Error("no list permission found");
+        if (listKey == null){
+            if (permissions.length > 0){
+                return self._getListKey(listId, permissions[permissions.length -1]);
+            } else {
+                throw new Error("no list permission found");
+            }
         }
         return listKey;
-	});
+    });
 };
+
 
 /**
  * Returns the session key of the entity.
