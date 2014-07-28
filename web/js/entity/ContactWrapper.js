@@ -81,7 +81,14 @@ tutao.entity.tutanota.ContactWrapper.prototype.getSortName = function() {
  */
 tutao.entity.tutanota.ContactWrapper.prototype.getAge = function() {
 	if (this._contact.getBirthday()) {
-		return Math.floor((new Date().getTime() - this._contact.getBirthday().getTime()) / (1000 * 60 * 60 * 24 * 365));
+        var today = new Date();
+        var birthDate = this._contact.getBirthday();
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return String(age);
 	} else {
 		return null;
 	}

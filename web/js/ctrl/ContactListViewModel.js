@@ -54,18 +54,9 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
  * @return {Promise.<>} Resolves when finished
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.init = function() {
-    var self = this;
-    return tutao.entity.tutanota.Contact.loadRange(tutao.locator.mailBoxController.getUserContactList().getContacts(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(contacts) {
-        self.updateOnNewContacts(contacts);
-
-        var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact");
-        eventTracker.addObserver(self.updateOnNewContacts);
-        if (contacts.length > 0) {
-            eventTracker.observeList(tutao.util.ArrayUtils.last(contacts).getId()[1]);
-        } else {
-            eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
-        }
-    });
+    var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Contact, tutao.locator.mailBoxController.getUserContactList().getContacts(), "Contact");
+    eventTracker.addObserver(this.updateOnNewContacts);
+    eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.getRawContacts = function() {

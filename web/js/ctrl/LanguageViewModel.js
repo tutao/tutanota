@@ -147,8 +147,10 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     removeRecipient_alt: "Remove recipient",
 	couldNotAttachFile_msg: "The file could not be loaded.",
     changeNotificationMailLanguage_msg: "Language of notification email:",
+    reallySubmitContent_msg: "Do you really want to send the entered data to an external site?",
     search_title: "Search",
-	loadMoresMails_action: "Load more emails",
+	loadMoreMails_action: "Load more emails",
+    confirmDeleteTrash_msg: "Do you really want to delete all mails from the trash?",
 
     //invitation
     invitationMailSubject_msg: "Your invitation to Tutanota Free",
@@ -268,7 +270,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	cancel_action: "Cancel",
 	edit_action: "Edit",
 	delete_action: "Delete",
-	undelete_action: "Undelete",
+	undelete_action: "Restore",
+    finalDelete_action: "Delete",
 	print_action: "Print",
 	back_action: "Back",
 	ok_action: "Ok",
@@ -576,8 +579,10 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     removeRecipient_alt: "Empfänger entfernen",
     couldNotAttachFile_msg: "Die Datei konnte leider nicht geladen werden.",
     changeNotificationMailLanguage_msg: "Sprache der Benachrichtigungs-E-Mail:",
+    reallySubmitContent_msg: "Wollen Sie die eingegebenen Daten wirklich an eine externe Seite senden?",
     search_title: "Suche",
-	loadMoresMails_action: "Weitere E-Mails laden.",
+	loadMoreMails_action: "Weitere E-Mails laden",
+    confirmDeleteTrash_msg: "Möchtest du wirklich alle E-Mails aus dem Papierkorb löschen?",
 
     //invitation
     invitationMailSubject_msg: "Einladung zu Tutanota Free",
@@ -698,6 +703,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	edit_action: "Ändern",
 	delete_action: "Löschen",
 	undelete_action: "Wiederherstellen",
+    finalDelete_action: "Löschen",
 	print_action: "Drucken",
 	back_action: "Zurück",
 	ok_action: "OK",

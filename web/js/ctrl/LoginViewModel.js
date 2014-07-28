@@ -107,6 +107,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
         } else {
             tutao.locator.navigator.mail();
         }
+        self.passphrase("");
     }).caught(tutao.AccessBlockedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
     }).caught(tutao.NotAuthenticatedError, function(exception) {

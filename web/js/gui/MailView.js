@@ -138,7 +138,10 @@ tutao.tutanota.gui.MailView.prototype.showPasswordChannelColumn = function() {
  * @param {string} text The html body text.
  */
 tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
-	$(".conversation").find(".composeBody").append(text);
+	var composeBody = $(".conversation").find(".composeBody");
+    composeBody.append(tutao.locator.htmlSanitizer.sanitize(text));
+    this.addSubmitCheckToDivs(composeBody);
+
 };
 
 /**
@@ -148,7 +151,7 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
 	// sibling blockquotes on top level are not merged if separated by user
-	return bodyTextNode.html();
+	return tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
 };
 
 /**
@@ -327,4 +330,23 @@ tutao.tutanota.gui.MailView.prototype.fadeConversationIn = function(callback) {
  */
 tutao.tutanota.gui.MailView.prototype.hideConversation = function() {
 	$("#innerConversationColumn").children().hide();
+};
+
+/**
+ * Adds a submit listener to all forms of the mail body which shows a warning if the form is submitted.
+ */
+tutao.tutanota.gui.MailView.prototype.addSubmitCheckToMailBody = function() {
+    var divs = $(".conversation").find('.mailBody, .mailBodyQuotation');
+    this.addSubmitCheckToDivs(divs);
+};
+
+/**
+ * Adds a submit listener to all forms of the mail body which shows a warning if the form is submitted.
+ */
+tutao.tutanota.gui.MailView.prototype.addSubmitCheckToDivs = function(jQueryDivs) {
+    jQueryDivs.submit(function(event) {
+        if (!tutao.tutanota.gui.confirm(tutao.lang("reallySubmitContent_msg"))) {
+            event.preventDefault();
+        }
+    });
 };

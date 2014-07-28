@@ -251,10 +251,13 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers);
 	} else if (!listData['allRange']) {
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers).then(function(elements) {
-            listData.allRange = [];
-            listData.lowerRangeId = start;
-            listData.upperRangeId = start;
-            return self._handleElementRangeResult(path, listId, start, count, reverse, elements);
+            if ( elements.length > 0){
+                listData.allRange = [];
+                listData.lowerRangeId = start;
+                listData.upperRangeId = start;
+                return self._handleElementRangeResult(path, listId, start, count, reverse, elements);
+            }
+            return [];
 		});
 	} else if (this._isStartInRange(path, listId, start)){ // check if the requested start element is located in range
        // count the numbers of elements that are already in allRange to determine the number of elements to read

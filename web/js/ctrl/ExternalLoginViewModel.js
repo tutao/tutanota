@@ -126,7 +126,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
             return Promise.resolve();
 		}
 	}).caught(tutao.AccessExpiredError, function(e) {
-        this.errorMessageId("expiredLink_msg");
+        self.errorMessageId("expiredLink_msg");
     }).caught(tutao.NotAuthenticatedError, function(e) {
         self.errorMessageId("invalidLink_msg");
     }).caught(tutao.BadRequestError, function(e) {

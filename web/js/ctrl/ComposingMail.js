@@ -6,18 +6,18 @@ goog.provide('tutao.tutanota.ctrl.ComposingMail');
  * This class represents a mail that is currently written. It contains mail, body and other editing fields.
  * @param {string} conversationType The conversationType.
  * @param {string?} previousMessageId The message id of the mail that the new mail is a reply to or that is forwarded. Null if this is a new mail.
+ * @param {string} bodyText The unsanitized body text. May be an empty string.
  * @constructor
  * @implements {tutao.tutanota.ctrl.bubbleinput.BubbleHandler}
  */
-tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId) {
+tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId, bodyText) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.composerSubject = ko.observable("");
-	this.composerBody = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);
     // @type {function(tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=):tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=}
 	this._attachments = ko.observableArray();
-	this.currentlyDownloadingAttachment = ko.observable(); // null or a DataFile
+	this.currentlyDownloadingAttachment = ko.observable(null); // null or a DataFile
 
 	this.toRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
 	this.ccRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
@@ -38,6 +38,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.directSwitchActive = true;
 
 	this.mailBodyLoaded = ko.observable(true);
+    tutao.locator.mailView.setComposingBody(bodyText);
 
     var self = this;
     var notBusy = function() {
@@ -177,8 +178,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                     facade = tutao.tutanota.ctrl.SendMailFacade;
                 }
 
-                self.composerBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.mailView.getComposingBody()));
-
                 // the mail is sent in the background
                 self.busy(true);
                 self.directSwitchActive = false;
@@ -192,7 +191,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                 }
 
                 return promise.then(function () {
-                    return facade.sendMail(self.composerSubject(), self.composerBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
+                    return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
                         self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
                         self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function(senderMailElementId, exception) {
                             tutao.locator.mailView.fadeFirstMailOut();
@@ -236,9 +235,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) 
     if (this.busy()) {
         return false;
     }
-	this.composerBody(tutao.locator.mailView.getComposingBody());
+	var body = tutao.locator.mailView.getComposingBody();
 	var confirm = (this.composerSubject() !== "" ||
-            (this.composerBody() !== "" && this.composerBody() !== "<br>") ||
+            (body !== "" && body !== "<br>") ||
 			this.toRecipientsViewModel.inputValue() !== "" ||
 			this.toRecipientsViewModel.bubbles().length != 0 ||
 			this.ccRecipientsViewModel.inputValue() !== "" ||

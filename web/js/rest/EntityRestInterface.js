@@ -200,3 +200,55 @@ tutao.rest.EntityRestInterface.getElementId = function(element) {
         return element.__id;
     }
 };
+
+/**
+ * Loads all elements of the given list.
+ * @param {Object} type The constructor of the type to load.
+ * @param listId The list id.
+ * @param {string=} startId The id to start from. if not set, min id is used
+ * @returns {Promise.<Array.<Object>>} The loaded entities in forward order.
+ */
+tutao.rest.EntityRestInterface.loadAll = function(type, listId, startId) {
+    var resultList = [];
+    return tutao.rest.EntityRestInterface._loadAll(type, listId, (startId) ? startId : tutao.rest.EntityRestInterface.GENERATED_MIN_ID, resultList).then(function() {
+        return resultList;
+    });
+};
+
+tutao.rest.EntityRestInterface._loadAll = function(type, listId, startId, resultList) {
+    var SINGLE_CALL_COUNT = 100;
+    return type.loadRange(listId, startId, SINGLE_CALL_COUNT, false).then(function(elements) {
+        tutao.util.ArrayUtils.addAll(resultList, elements);
+        if (elements.length == SINGLE_CALL_COUNT) {
+            return tutao.rest.EntityRestInterface._loadAll(type, listId, tutao.rest.EntityRestInterface.getElementId(elements[elements.length - 1]), resultList);
+        } else {
+            return Promise.resolve();
+        }
+    });
+};
+
+/**
+ * Loads all elements of the given list in reverse order.
+ * @param {Object} type The constructor of the type to load.
+ * @param listId The list id.
+ * @param {string=} startId The id to start from. if not set, min id is used
+ * @returns {Promise.<Array.<Object>>} The loaded entities in reverse order.
+ */
+tutao.rest.EntityRestInterface.loadAllReverse = function(type, listId, startId) {
+    var resultList = [];
+    return tutao.rest.EntityRestInterface._loadAllReverse(type, listId, (startId) ? startId : tutao.rest.EntityRestInterface.GENERATED_MAX_ID, resultList).then(function() {
+        return resultList;
+    });
+};
+
+tutao.rest.EntityRestInterface._loadAllReverse = function(type, listId, startId, resultList) {
+    var SINGLE_CALL_COUNT = 100;
+    return type.loadRange(listId, startId, SINGLE_CALL_COUNT, true).then(function(elements) {
+        tutao.util.ArrayUtils.prependAll(resultList, elements);
+        if (elements.length == SINGLE_CALL_COUNT) {
+            return tutao.rest.EntityRestInterface._loadAllReverse(type, listId, tutao.rest.EntityRestInterface.getElementId(elements[elements.length - 1]), resultList);
+        } else {
+            return Promise.resolve();
+        }
+    });
+};

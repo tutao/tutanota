@@ -92,6 +92,24 @@ tutao.tutanota.index.Indexer.prototype._indexElement = function(typeId, id, call
 	}
 };
 
+tutao.tutanota.index.Indexer.prototype.tryRemoveFromIndex = function(mail, callback) {
+    tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.SUBJECT_ATTRIBUTE_ID], mail.getId()[1], function() {
+        tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.SENDER_ATTRIBUTE_ID], mail.getId()[1], function() {
+            tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.TORECIPIENTS_ATTRIBUTE_ID], mail.getId()[1], function() {
+                tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.STATE_ATTRIBUTE_ID], mail.getId()[1], function() {
+                    tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.UNREAD_ATTRIBUTE_ID], mail.getId()[1], function() {
+                        tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.TRASHED_ATTRIBUTE_ID], mail.getId()[1], function() {
+                            tutao.locator.dao.removeIndexEntries(mail.TYPE_ID, [mail.BODY_ATTRIBUTE_ID], mail.getId()[1], function() {
+                                tutao.locator.dao.removeIndexEntries(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, [tutao.entity.tutanota.MailBody.prototype.TEXT_ATTRIBUTE_ID], mail.getBody(), callback);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+};
+
 /**
  * @protected
  * Indexes all attributes of the given mail.
