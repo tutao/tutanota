@@ -9,25 +9,24 @@ module.exports = function(config) {
 
 
     // frameworks to use
-    frameworks: ['mocha', 'chai'],
+    frameworks: [],
 
 
     // list of files / patterns to load in the browser
     files: [
-        './test/lib/sinon-1.4.2.js',
-        './test/lib/jsmockito-1.0.4.js',
-        './test/lib/jshamcrest-0.6.7.js',
+        './test/jstd-adapter.js',
         './lib/**/*.js',
         './js/**/*.js',
+        './test/lib/**/*.js',
         './test/js/Bootstrap.js',
-        './test/js/generated/**',
-        './test/js/karma/**/*.js',
+        './test/js/old/ctrl/MailListViewModelTest.js'
+        //'./test/js/**/*.js'
     ],
 
 
     // list of files to exclude
     exclude: [
-        './test/js/old/**'
+        './test/js/karma/**'
     ],
 
 
@@ -38,10 +37,20 @@ module.exports = function(config) {
       outputFile: 'build/test-results/js-unit-tests.xml',
       suite: 'js unit tests'
     },
+    preprocessors: {
+      // source files, that you wanna generate coverage for
+      // do not include tests or libraries
+      // (these files will be instrumented by Istanbul)
+        'src/main/html/js/**/*.js': ['coverage']
+    },
+    coverageReporter: {
+      type : 'html',
+      dir : 'build/test-results/coverage/'
+    },
 
 
     // web server port
-    port: 9888,
+    port: 9889,
 
 
     // enable / disable colors in the output (reporters and logs)

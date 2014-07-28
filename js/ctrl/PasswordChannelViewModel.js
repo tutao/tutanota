@@ -25,7 +25,7 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.init = function(){
  * Returns a array of external recipients.
  * @return {Array.<tutao.tutanota.ctrl.RecipientInfo>} the array of external recipients.
  */
-tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getSecureExternalRecipients = function() {
+    tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getSecureExternalRecipients = function() {
 	var externalRecipients = [];
 	if (tutao.locator.mailViewModel.isComposingMailToSecureExternals()) {
 		var allRecipients = tutao.locator.mailViewModel.getComposingMail().getAllComposerRecipients();

@@ -113,7 +113,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 		return;
 	}
 
-    this._resolveRecipients().then(function() {
+    return this._resolveRecipients().then(function() {
         var unsecureRecipients = self._containsUnsecureRecipients();
         if (self.secure() && unsecureRecipients) {
             setTimeout(function() {
