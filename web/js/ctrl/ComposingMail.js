@@ -207,6 +207,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                             }, 500);
                         });
                 }).caught(tutao.RecipientsNotFoundError, function(exception) {
+                    self.busy(false);
                     var notFoundRecipients = exception.getRecipients();
                     var recipientList = "";
                     for (var i = 0; i < notFoundRecipients.length; i++) {
@@ -215,7 +216,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                     tutao.tutanota.gui.alert( tutao.lang("invalidRecipients_msg") + "\n" + recipientList );
                     console.log("recipients not found", exception);
                 }).lastly(function() {
-                    self.busy(false);
+
                 });
 
             });
