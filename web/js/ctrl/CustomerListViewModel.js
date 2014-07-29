@@ -10,7 +10,6 @@ tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	
 	this.editableCustomerInfos = ko.observableArray();
-	this.upperBoundId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
 	this.type = ko.observable(null);
 	this._customerInfoListId = null;
 	this.type.subscribe(function(value) {
@@ -24,23 +23,36 @@ tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
 		} else if (value == 'starter') {
 			this._customerInfoListId = systemInstance.getStarterCustomerInfos();
 		}
-		this.showSelected();
+        this.editableCustomerInfos([]);
+		this.loadMore();
 	}, this);
-	
+
+    this.loading = ko.observable(false);
+    this.moreAvailable = ko.observable(true);
 };
 
-/**
- * Shows the customer list.
- */
-tutao.tutanota.ctrl.CustomerListViewModel.prototype.showSelected = function() {
-	var self = this;
-    tutao.entity.sys.CustomerInfo.loadRange(this._customerInfoListId, self.upperBoundId(), 1000, true).then(function(customerInfos) {
-        var editableCustomerInfos = [];
-        for (var i=0; i<customerInfos.length; i++) {
-            editableCustomerInfos.push(new tutao.entity.sys.CustomerInfoEditable(customerInfos[i]));
+tutao.tutanota.ctrl.CustomerListViewModel.STEP_RANGE_COUNT = 2;
+
+tutao.tutanota.ctrl.CustomerListViewModel.prototype.loadMore = function() {
+    var self = this;
+    if (this.loading()) {
+        return Promise.resolve();
+    }
+    this.loading(true);
+    var lowestId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+    if (this.editableCustomerInfos().length > 0) {
+        var lastCustomer = this.editableCustomerInfos()[this.editableCustomerInfos().length -1].getCustomerInfo();
+        lowestId = tutao.rest.EntityRestInterface.getElementId(lastCustomer);
+    }
+
+    return tutao.entity.sys.CustomerInfo.loadRange(this._customerInfoListId, lowestId, tutao.tutanota.ctrl.CustomerListViewModel.STEP_RANGE_COUNT, true).then(function(customerInfos) {
+        self.moreAvailable(customerInfos.length == tutao.tutanota.ctrl.CustomerListViewModel.STEP_RANGE_COUNT);
+        for (var i = 0; i < customerInfos.length; i++) {
+            self.editableCustomerInfos.push(new tutao.entity.sys.CustomerInfoEditable(customerInfos[i]));
         }
-        self.editableCustomerInfos(editableCustomerInfos);
-	});
+    }).lastly(function(){
+        self.loading(false);
+    });
 };
 
 /**

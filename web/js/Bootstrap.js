@@ -58,9 +58,11 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-//		tutao.locator.loginViewModel.mailAddress("bed-free@tutanota.de");
-//		tutao.locator.loginViewModel.passphrase("bed");
-//		tutao.locator.loginViewModel.login();
+		tutao.locator.loginViewModel.mailAddress("arm-system@tutanota.de");
+		tutao.locator.loginViewModel.passphrase("!arm&184sys");
+		tutao.locator.loginViewModel.login();
+    setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
+
 };
 
 /**
