@@ -2291,7 +2291,7 @@ function touchOrClick(e) {
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">
-						<div class="imgButton" data-bind="css: vm.bubbleHandler.buttonCss"></div>
+						<div class="imgButton" data-bind="css: vm.bubbleHandler.buttonCss()"></div>
 					</div>
 				<!-- /ko -->
 			</div>

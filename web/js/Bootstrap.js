@@ -79,7 +79,6 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         dao: tutao.db.WebSqlDb,
         restClient: tutao.rest.RestClient,
         entityRestClient: tutao.rest.EntityRestClient,
-        indexer: tutao.tutanota.index.Indexer,
         mailBoxController: tutao.tutanota.ctrl.MailBoxController,
         viewManager: tutao.tutanota.ctrl.ViewManager,
         loginViewModel: tutao.tutanota.ctrl.LoginViewModel,
