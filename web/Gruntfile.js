@@ -58,12 +58,13 @@ module.exports = function (grunt) {
             test: {
                 options: {
                     removeFiles: true,
-                    rebuild: true
+                    rebuild: true,
+                    prefix: "../"
                 },
-                src: 'test.html',
+                src: 'test/index.html',
                 blocks: {
-                    'test': { src: 'test/native/*.js' },
-                    'libs': { src: ['libs/*.js', 'libs/bower/*.js', 'libs/native/*.js']},
+                    'test': { src: ['test/js/generated/**/*.js', 'test/js/karma/**/*.js'] },
+                    'libs': { src: ['lib/*.js', 'test/lib/*.js' ]},
                     'app': { src: ['js/**/*.js', "!js/util/init.js"] }
                 }
             }

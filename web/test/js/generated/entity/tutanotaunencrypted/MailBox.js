@@ -1,12 +1,12 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanotaencrypted.MailBox');
+goog.provide('tutao.entity.tutanotaunencrypted.MailBox');
 
 /**
  * @constructor
  * @param {Object=} data The json data to store in this entity.
  */
-tutao.entity.tutanotaencrypted.MailBox = function(data) {
+tutao.entity.tutanotaunencrypted.MailBox = function(data) {
   if (data) {
     this.__area = data._area;
     this.__format = data._format;
@@ -23,44 +23,44 @@ tutao.entity.tutanotaencrypted.MailBox = function(data) {
     this._mails = null;
   };
   this._entityHelper = new tutao.entity.EntityHelper(this);
-  this.prototype = tutao.entity.tutanotaencrypted.MailBox.prototype;
+  this.prototype = tutao.entity.tutanotaunencrypted.MailBox.prototype;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanotaencrypted.MailBox.MODEL_VERSION = '1';
+tutao.entity.tutanotaunencrypted.MailBox.MODEL_VERSION = '1';
 
 /**
  * The url path to the resource.
  * @const
  */
-tutao.entity.tutanotaencrypted.MailBox.PATH = '/rest/tutanotaencrypted/mailbox';
+tutao.entity.tutanotaunencrypted.MailBox.PATH = '/rest/tutanotaunencrypted/mailbox';
 
 /**
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaencrypted.MailBox.ROOT_INSTANCE_ID = 'EXR1dGFub3RhZW5jcnlwdGVkADA';
+tutao.entity.tutanotaunencrypted.MailBox.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQALw';
 
 /**
  * The generated id type flag.
  * @const
  */
-tutao.entity.tutanotaencrypted.MailBox.GENERATED_ID = true;
+tutao.entity.tutanotaunencrypted.MailBox.GENERATED_ID = true;
 
 /**
  * The encrypted flag.
  * @const
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.ENCRYPTED = true;
+tutao.entity.tutanotaunencrypted.MailBox.prototype.ENCRYPTED = false;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
  * @return {Object} The json object.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.toJsonData = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.toJsonData = function() {
   return {
     _area: this.__area, 
     _format: this.__format, 
@@ -74,28 +74,28 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.toJsonData = function() {
 /**
  * The id of the MailBox type.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.TYPE_ID = 48;
+tutao.entity.tutanotaunencrypted.MailBox.prototype.TYPE_ID = 47;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype._AREA_ATTRIBUTE_ID = 54;
+tutao.entity.tutanotaunencrypted.MailBox.prototype._AREA_ATTRIBUTE_ID = 53;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype._OWNER_ATTRIBUTE_ID = 53;
+tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNER_ATTRIBUTE_ID = 52;
 
 /**
  * The id of the mails attribute.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.MAILS_ATTRIBUTE_ID = 55;
+tutao.entity.tutanotaunencrypted.MailBox.prototype.MAILS_ATTRIBUTE_ID = 54;
 
 /**
  * Provides the id of this MailBox.
  * @return {string} The id of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getId = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getId = function() {
   return this.__id;
 };
 
@@ -103,7 +103,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.getId = function() {
  * Sets the area of this MailBox.
  * @param {string} area The area of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setArea = function(area) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setArea = function(area) {
   this.__area = area;
   return this;
 };
@@ -112,7 +112,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setArea = function(area) {
  * Provides the area of this MailBox.
  * @return {string} The area of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getArea = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getArea = function() {
   return this.__area;
 };
 
@@ -120,7 +120,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.getArea = function() {
  * Sets the format of this MailBox.
  * @param {string} format The format of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setFormat = function(format) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setFormat = function(format) {
   this.__format = format;
   return this;
 };
@@ -129,7 +129,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setFormat = function(format) {
  * Provides the format of this MailBox.
  * @return {string} The format of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getFormat = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getFormat = function() {
   return this.__format;
 };
 
@@ -137,7 +137,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.getFormat = function() {
  * Sets the owner of this MailBox.
  * @param {string} owner The owner of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setOwner = function(owner) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setOwner = function(owner) {
   this.__owner = owner;
   return this;
 };
@@ -146,7 +146,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setOwner = function(owner) {
  * Provides the owner of this MailBox.
  * @return {string} The owner of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getOwner = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getOwner = function() {
   return this.__owner;
 };
 
@@ -154,7 +154,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.getOwner = function() {
  * Sets the permissions of this MailBox.
  * @param {string} permissions The permissions of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setPermissions = function(permissions) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setPermissions = function(permissions) {
   this.__permissions = permissions;
   return this;
 };
@@ -163,7 +163,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setPermissions = function(permi
  * Provides the permissions of this MailBox.
  * @return {string} The permissions of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getPermissions = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getPermissions = function() {
   return this.__permissions;
 };
 
@@ -171,7 +171,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.getPermissions = function() {
  * Sets the mails of this MailBox.
  * @param {string} mails The mails of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setMails = function(mails) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setMails = function(mails) {
   this._mails = mails;
   return this;
 };
@@ -180,29 +180,29 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setMails = function(mails) {
  * Provides the mails of this MailBox.
  * @return {string} The mails of this MailBox.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.getMails = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getMails = function() {
   return this._mails;
 };
 
 /**
  * Loads a MailBox from the server.
  * @param {string} id The id of the MailBox.
- * @return {Promise.<tutao.entity.tutanotaencrypted.MailBox>} Resolves to the MailBox or an exception if the loading failed.
+ * @return {Promise.<tutao.entity.tutanotaunencrypted.MailBox>} Resolves to the MailBox or an exception if the loading failed.
  */
-tutao.entity.tutanotaencrypted.MailBox.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaencrypted.MailBox, tutao.entity.tutanotaencrypted.MailBox.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity._entityHelper.loadSessionKey();
+tutao.entity.tutanotaunencrypted.MailBox.load = function(id) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+    return entity;
   });
 };
 
 /**
  * Loads multiple MailBoxs from the server.
  * @param {Array.<string>} ids The ids of the MailBoxs to load.
- * @return {Promise.<Array.<tutao.entity.tutanotaencrypted.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
+ * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
-tutao.entity.tutanotaencrypted.MailBox.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaencrypted.MailBox, tutao.entity.tutanotaencrypted.MailBox.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
-    return tutao.entity.EntityHelper.loadSessionKeys(entities);
+tutao.entity.tutanotaunencrypted.MailBox.loadMultiple = function(ids) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+    return entities;
   });
 };
 
@@ -211,11 +211,11 @@ tutao.entity.tutanotaencrypted.MailBox.loadMultiple = function(ids) {
  * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setup = function(bucketData) {
   var self = this;
   var params = this._entityHelper.createPostPermissionMap(bucketData)
   params["v"] = 1
-  return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaencrypted.MailBox.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
     self._entityHelper.notifyObservers(false);
@@ -226,9 +226,9 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.setup = function(bucketData) {
  * Updates this MailBox on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.update = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaencrypted.MailBox.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -237,9 +237,9 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.update = function() {
  * Deletes this MailBox on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the delete failed.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.erase = function() {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaencrypted.MailBox.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -250,7 +250,7 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.erase = function() {
  * @param {function(Object,*=)} listener. The listener function. When called it gets the entity and the given id as arguments.
  * @param {*=} id. An optional value that is just passed-through to the listener.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.registerObserver = function(listener, id) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.registerObserver = function(listener, id) {
   this._entityHelper.registerObserver(listener, id);
 };
 
@@ -258,6 +258,6 @@ tutao.entity.tutanotaencrypted.MailBox.prototype.registerObserver = function(lis
  * Removes a registered listener function if it was registered before.
  * @param {function(Object)} listener. The listener to unregister.
  */
-tutao.entity.tutanotaencrypted.MailBox.prototype.unregisterObserver = function(listener) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
 };

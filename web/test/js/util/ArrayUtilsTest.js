@@ -1,43 +1,88 @@
 "use strict";
 
-goog.provide('ArrayUtilsTest');
+describe("ArrayUtilsTest", function () {
 
-var ArrayUtilsTest = TestCase("ArrayUtilsTest");
+    var assert = chai.assert;
 
-ArrayUtilsTest.prototype.testGetUniqueAndArray = function() {
-	assertEquals(["a", "b"], tutao.util.ArrayUtils.getUniqueAndArray([["a", "c", "b", ""], ["cd", "a", "b", "cd"]]).sort());
-};
 
-ArrayUtilsTest.prototype.testGetUniqueOrArray = function() {
-	assertEquals(["a", "b", "c", "cd"], tutao.util.ArrayUtils.getUniqueOrArray([["a", "c", "b", ""], ["cd", "a", "b", "cd"]]).sort());
-};
+    it("GetUniqueAndArray ", function () {
+        assert.deepEqual(["a", "b"], tutao.util.ArrayUtils.getUniqueAndArray([
+            ["a", "c", "b", ""],
+            ["cd", "a", "b", "cd"]
+        ]).sort());
+    });
 
-ArrayUtilsTest.prototype.testGetUniqueArray = function() {
-	assertEquals(["a", "b", "c"], tutao.util.ArrayUtils.getUniqueOrArray(["a", "c", "b", "", "c", "a"]).sort());
-};
+    it("GetUniqueOrArray ", function () {
+        assert.deepEqual(["a", "b", "c", "cd"], tutao.util.ArrayUtils.getUniqueOrArray([
+            ["a", "c", "b", ""],
+            ["cd", "a", "b", "cd"]
+        ]).sort());
+    });
 
-ArrayUtilsTest.prototype.testRemove = function() {
-	var theArray = ["a"];
-	tutao.util.ArrayUtils.remove(theArray, "a");
-	assertEquals([], theArray);
-};
+    it("GetUniqueArray ", function () {
+        assert.deepEqual(["a", "b", "c"], tutao.util.ArrayUtils.getUniqueOrArray(["a", "c", "b", "", "c", "a"]).sort());
+    });
 
-ArrayUtilsTest.prototype.testLast = function() {
-	assertEquals("b", tutao.util.ArrayUtils.last(["a", "b"]));
-	assertEquals(null, tutao.util.ArrayUtils.last([]));
-};
+    it("Remove ", function () {
+        var theArray = ["a"];
+        tutao.util.ArrayUtils.remove(theArray, "a");
+        assert.deepEqual([], theArray);
+    });
 
-ArrayUtilsTest.prototype.testArrayEquals = function() {
-	assertTrue(tutao.util.ArrayUtils.arrayEquals([], []));
-	assertTrue(tutao.util.ArrayUtils.arrayEquals(["a"], ["a"]));
-	assertFalse(tutao.util.ArrayUtils.arrayEquals(["a"], ["b"]));
-	assertFalse(tutao.util.ArrayUtils.arrayEquals(["a"], []));
-	assertFalse(tutao.util.ArrayUtils.arrayEquals([], ["a"]));
-};
+    it("Last ", function () {
+        assert.equal("b", tutao.util.ArrayUtils.last(["a", "b"]));
+        assert.equal(null, tutao.util.ArrayUtils.last([]));
+    });
 
-ArrayUtilsTest.prototype.testContains = function() {
-	assertTrue(tutao.util.ArrayUtils.contains(["a", "b"], "a"));
-	assertTrue(tutao.util.ArrayUtils.contains(["a", "b"], "b"));
-	assertFalse(tutao.util.ArrayUtils.contains(["a", "b"], "c"));
-	assertFalse(tutao.util.ArrayUtils.contains([], "c"));
-};
+    it("ArrayEquals ", function () {
+        assert.isTrue(tutao.util.ArrayUtils.arrayEquals([], []));
+        assert.isTrue(tutao.util.ArrayUtils.arrayEquals(["a"], ["a"]));
+        assert.isFalse(tutao.util.ArrayUtils.arrayEquals(["a"], ["b"]));
+        assert.isFalse(tutao.util.ArrayUtils.arrayEquals(["a"], []));
+        assert.isFalse(tutao.util.ArrayUtils.arrayEquals([], ["a"]));
+    });
+
+    it("Contains ", function () {
+        assert.isTrue(tutao.util.ArrayUtils.contains(["a", "b"], "a"));
+        assert.isTrue(tutao.util.ArrayUtils.contains(["a", "b"], "b"));
+        assert.isFalse(tutao.util.ArrayUtils.contains(["a", "b"], "c"));
+        assert.isFalse(tutao.util.ArrayUtils.contains([], "c"));
+    });
+
+    it("AddAll ", function () {
+        var array = [1, 2, 3];
+        tutao.util.ArrayUtils.addAll(array, [44, 45]);
+        assert.deepEqual([1, 2, 3, 44, 45], array);
+
+        var array = [];
+        tutao.util.ArrayUtils.addAll(array, []);
+        assert.deepEqual([], array);
+
+        var array = [1, 2, 3];
+        tutao.util.ArrayUtils.addAll(array, []);
+        assert.deepEqual([1, 2, 3], array);
+
+        var array = [];
+        tutao.util.ArrayUtils.addAll(array, [44, 45]);
+        assert.deepEqual([44, 45], array);
+    });
+
+    it("PrependAll ", function () {
+        var array = [1, 2, 3];
+        tutao.util.ArrayUtils.prependAll(array, [44, 45]);
+        assert.deepEqual([44, 45, 1, 2, 3], array);
+
+        var array = [];
+        tutao.util.ArrayUtils.prependAll(array, []);
+        assert.deepEqual([], array);
+
+        var array = [1, 2, 3];
+        tutao.util.ArrayUtils.prependAll(array, []);
+        assert.deepEqual([1, 2, 3], array);
+
+        var array = [];
+        tutao.util.ArrayUtils.prependAll(array, [44, 45]);
+        assert.deepEqual([44, 45], array);
+    });
+
+});

@@ -1,16 +1,16 @@
 "use strict";
 
-goog.provide('CodeGeneratorTest');
+describe("CodeGeneratorTest", function () {
 
-TestCase("CodeGeneratorTest", {
-	
-	"test defaults for encrypted values": function(queue) {
-		var e = new tutao.entity.valueencrypted.Et({bool: "", bytes: "", date: "", number: "", string: ""});
-		assertEquals(false, e.getBool());
-		assertEquals("", e.getBytes());
-		assertEquals(new Date(0), e.getDate());
-		assertEquals("0", e.getNumber());
-		assertEquals("", e.getString());
-	}
-	
+    var assert = chai.assert;
+
+    it(" defaults for encrypted values", function () {
+        var e = new tutao.entity.valueencrypted.Et({bool: "", bytes: "", date: "", number: "", string: ""});
+        assert.equal(false, e.getBool());
+        assert.equal("", e.getBytes());
+        assert.deepEqual(new Date(0), e.getDate());
+        assert.equal("0", e.getNumber());
+        assert.equal("", e.getString());
+    });
+
 });
