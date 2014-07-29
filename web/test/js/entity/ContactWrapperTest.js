@@ -29,9 +29,9 @@ TestCase("ContactWrapperTest", {
 		var w = new tutao.entity.tutanota.ContactWrapper(c);
 		c.setBirthday(new Date());
 		assertEquals(0, w.getAge());
-		var date = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 5 - 1);
+		var date = new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * (365 + 100));
 		c.setBirthday(date);
-		assertEquals(5, w.getAge());
+		assertEquals(1, w.getAge());
 	},
 
 	"testGetMailAddressTypeName": function() {

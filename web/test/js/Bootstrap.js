@@ -4,6 +4,7 @@
  * Executes all initializations needed for the unit tests to run.
  */
 var setupLocator = function() {
+    Promise.longStackTraces();
     // karma
     tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/');
 

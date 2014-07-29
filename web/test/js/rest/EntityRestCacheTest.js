@@ -6,7 +6,6 @@ JsHamcrest.Integration.JsTestDriver();
 //JsMockito.Integration.JsTestDriver();
 
 EntityRestCacheTest.prototype.setUp = function(queue) {
-    EntityRestTestFunctions.addFunctionsToTestPrototype(EntityRestCacheTest);
 	var cache = new tutao.rest.EntityRestCache();
     this.entityRestSpy = JsMockito.spy(new tutao.rest.EntityRestDummy());
 	cache.setTarget(this.entityRestSpy);
@@ -25,6 +24,7 @@ EntityRestCacheTest.prototype.tearDown = function() {
 	tutao.locator.reset();
 };
 
+EntityRestTestFunctions.addFunctionsToTestPrototype(EntityRestCacheTest);
 
 EntityRestCacheTest.prototype.testLoadRangeFromMin = function(queue) {
     var self = this;
@@ -591,12 +591,12 @@ EntityRestCacheTest.prototype.initMailElements = function(testCallbacks) {
 EntityRestCacheTest.createMailElements = function(count) {
     var mails = [];
     for( var i = 1; i <= count; i++) {
-        var mail = new tutao.entity.tutanota.Mail()
-            .setOwner(tutao.locator.userController.getUserGroupId())
-            .setArea("" + i)
-            .setSubject("" + i)
-            .setSentDate(new Date())
-            .setUnread(true);
+        var mail = new tutao.entity.tutanota.Mail();
+        mail.setOwner(tutao.locator.userController.getUserGroupId());
+        mail.setArea("" + i);
+        mail.setSubject("" + i);
+        mail.setSentDate(new Date());
+        mail.setUnread(true);
         mails.push(mail);
     }
     return mails;

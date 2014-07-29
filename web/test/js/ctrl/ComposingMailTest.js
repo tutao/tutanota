@@ -14,6 +14,7 @@ AsyncTestCase("ComposingMailTest", {
 			// stub the MailView
 			tutao.locator.mailView = {};
 			tutao.locator.mailView.isMailListColumnVisible = function() {return true;};
+			tutao.locator.mailView.setComposingBody = function() {};
 			tutao.locator.mailBoxController._properties = new tutao.entity.tutanota.TutanotaProperties();
 			var cm = new tutao.tutanota.ctrl.ComposingMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW , null);
 			cm.secure(false);

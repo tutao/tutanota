@@ -73,7 +73,7 @@ EntropyCollectorTest.prototype.testKeydownNotStarted = function(queue) {
 	});
 };
 
-EntropyCollectorTest.prototype.testMousemove = function(queue) {
+EntropyCollectorTest.prototype.testMousemove2 = function(queue) {
 	var self = this;
 	queue.call('test', function(callbacks) {
 		this.collector.start();

@@ -5,7 +5,7 @@ JsMockito.Integration.JsTestDriver();
 
 AsyncTestCase("MailListViewModelTest", {
     // @type {tutao.tutanota.ctrl.MailListViewModel}
-	vm: new tutao.tutanota.ctrl.MailListViewModel(),
+	vm: null,
 	setUp: function() {
 		var stub = new tutao.rest.EntityRestCache();
 		stub.setTarget(new tutao.rest.EntityRestDummy());
@@ -41,6 +41,7 @@ AsyncTestCase("MailListViewModelTest", {
 		tutao.locator.mailView.getMailListDomElement = mockFunction();
 		tutao.locator.mailView.hideConversation = mockFunction();
 		
+		this.vm = new tutao.tutanota.ctrl.MailListViewModel();
 	},
 
 	tearDown: function() {

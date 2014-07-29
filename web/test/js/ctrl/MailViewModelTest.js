@@ -1,11 +1,11 @@
 "use strict";
 
-TestCase("MailViewModelTest", {
-	vm: new tutao.tutanota.ctrl.MailViewModel(),
-	tearDown: function() {
-		tutao.locator.reset();
-		tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
-	},
+//TestCase("MailViewModelTest", {
+//	vm: new tutao.tutanota.ctrl.MailViewModel(),
+//	tearDown: function() {
+//		tutao.locator.reset();
+//		tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
+//	}
 //	"test setting a conversation": function() {
 //		tutao.locator.mailView = {};
 //		var refresh = mockFunction();
@@ -32,4 +32,4 @@ TestCase("MailViewModelTest", {
 //		verify(refresh)();
 //	}
 	
-});
+//});

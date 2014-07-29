@@ -41,3 +41,39 @@ ArrayUtilsTest.prototype.testContains = function() {
 	assertFalse(tutao.util.ArrayUtils.contains(["a", "b"], "c"));
 	assertFalse(tutao.util.ArrayUtils.contains([], "c"));
 };
+
+ArrayUtilsTest.prototype.testAddAll = function() {
+	var array = [1, 2, 3];
+	tutao.util.ArrayUtils.addAll(array, [44, 45]);
+	assertEquals([1, 2, 3, 44, 45], array);
+
+	var array = [];
+	tutao.util.ArrayUtils.addAll(array, []);
+	assertEquals([], array);
+	
+	var array = [1, 2, 3];
+	tutao.util.ArrayUtils.addAll(array, []);
+	assertEquals([1, 2, 3], array);
+	
+	var array = [];
+	tutao.util.ArrayUtils.addAll(array, [44, 45]);
+	assertEquals([44, 45], array);
+};
+
+ArrayUtilsTest.prototype.testPrependAll = function() {
+	var array = [1, 2, 3];
+	tutao.util.ArrayUtils.prependAll(array, [44, 45]);
+	assertEquals([44, 45, 1, 2, 3], array);
+
+	var array = [];
+	tutao.util.ArrayUtils.prependAll(array, []);
+	assertEquals([], array);
+	
+	var array = [1, 2, 3];
+	tutao.util.ArrayUtils.prependAll(array, []);
+	assertEquals([1, 2, 3], array);
+	
+	var array = [];
+	tutao.util.ArrayUtils.prependAll(array, [44, 45]);
+	assertEquals([44, 45], array);
+};

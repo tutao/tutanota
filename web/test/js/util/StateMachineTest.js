@@ -7,7 +7,7 @@ TestCase("StateMachineTest", {
 	setUp: function() {
 	},
 	
-	"testReset": function() {
+	testReset: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {}, null);
 		s.addState("2", {}, null);
@@ -18,7 +18,7 @@ TestCase("StateMachineTest", {
 		assertEquals("1", s.getState());
 	},
 	
-	"testTransition": function() {
+	testTransition: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {}, null);
 		s.addState("2", {}, null);
@@ -29,7 +29,7 @@ TestCase("StateMachineTest", {
 		assertEquals("2", s.getState());
 	},
 	
-	"testProperty": function() {
+	testProperty: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {a: 1, b: 2}, null);
 		s.addState("2", {a: 3, b: 4}, null);
@@ -42,7 +42,7 @@ TestCase("StateMachineTest", {
 		assertEquals(4, s.getProperty('b'));
 	},
 	
-	"testTrigger": function() {
+	testTrigger: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		var trigger = JsMockito.mockFunction();
 		s.addState("1", {}, null);
@@ -54,38 +54,38 @@ TestCase("StateMachineTest", {
 		JsMockito.verify(trigger)();
 	},
 	
-	"testFailStartStateWithTrigger": function() {
+	testFailStartStateWithTrigger: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		assertException(function() { s.addState("1", {}, function() {}); }, "Error");
 	},
 	
-	"testFailInvalidTransitionSource": function() {
+	testFailInvalidTransitionSource: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {}, null);
 		s.addState("2", {}, null);
 		assertException(function() { s.addTransition("3", "e", "2"); }, "Error");
 	},
 	
-	"testFailInvalidTransitionTarget": function() {
+	testFailInvalidTransitionTarget: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {}, null);
 		s.addState("2", {}, null);
 		assertException(function() { s.addTransition("1", "e", "3"); }, "Error");
 	},
 
-	"testFailInvalidEvent": function() {
+	testFailInvalidEvent: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {}, null);
 		assertException(function() { s.event("e"); }, "Error");
 	},
 	
-	"testFailDifferentProperties": function() {
+	testFailDifferentProperties: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {a: 1, b: 2}, null);
 		assertException(function() { s.addState("2", {a: 1, c: 2}, null); }, "Error");
 	},
 	
-	"testFailGetInvalidProperty": function() {
+	testFailGetInvalidProperty: function() {
 		var s = new tutao.tutanota.util.StateMachine();
 		s.addState("1", {a: 1, b: 2}, null);
 		assertException(function() { s.getProperty("c"); }, "Error");

@@ -1,12 +1,12 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanotaencrypted.Attachment');
+goog.provide('tutao.entity.tutanotaunencrypted.Attachment');
 
 /**
  * @constructor
  * @param {Object=} data The json data to store in this entity.
  */
-tutao.entity.tutanotaencrypted.Attachment = function(data) {
+tutao.entity.tutanotaunencrypted.Attachment = function(data) {
   if (data) {
     this.__area = data._area;
     this.__format = data._format;
@@ -23,44 +23,44 @@ tutao.entity.tutanotaencrypted.Attachment = function(data) {
     this._fileData = null;
   };
   this._entityHelper = new tutao.entity.EntityHelper(this);
-  this.prototype = tutao.entity.tutanotaencrypted.Attachment.prototype;
+  this.prototype = tutao.entity.tutanotaunencrypted.Attachment.prototype;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanotaencrypted.Attachment.MODEL_VERSION = '1';
+tutao.entity.tutanotaunencrypted.Attachment.MODEL_VERSION = '1';
 
 /**
  * The url path to the resource.
  * @const
  */
-tutao.entity.tutanotaencrypted.Attachment.PATH = '/rest/tutanotaencrypted/attachment';
+tutao.entity.tutanotaunencrypted.Attachment.PATH = '/rest/tutanotaunencrypted/attachment';
 
 /**
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaencrypted.Attachment.ROOT_INSTANCE_ID = 'EXR1dGFub3RhZW5jcnlwdGVkAAA';
+tutao.entity.tutanotaunencrypted.Attachment.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAAA';
 
 /**
  * The generated id type flag.
  * @const
  */
-tutao.entity.tutanotaencrypted.Attachment.GENERATED_ID = true;
+tutao.entity.tutanotaunencrypted.Attachment.GENERATED_ID = true;
 
 /**
  * The encrypted flag.
  * @const
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.ENCRYPTED = true;
+tutao.entity.tutanotaunencrypted.Attachment.prototype.ENCRYPTED = false;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
  * @return {Object} The json object.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.toJsonData = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.toJsonData = function() {
   return {
     _area: this.__area, 
     _format: this.__format, 
@@ -74,28 +74,28 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.toJsonData = function() {
 /**
  * The id of the Attachment type.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.TYPE_ID = 0;
+tutao.entity.tutanotaunencrypted.Attachment.prototype.TYPE_ID = 0;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype._AREA_ATTRIBUTE_ID = 6;
+tutao.entity.tutanotaunencrypted.Attachment.prototype._AREA_ATTRIBUTE_ID = 6;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype._OWNER_ATTRIBUTE_ID = 5;
+tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNER_ATTRIBUTE_ID = 5;
 
 /**
  * The id of the fileData attribute.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 7;
+tutao.entity.tutanotaunencrypted.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 7;
 
 /**
  * Provides the id of this Attachment.
  * @return {string} The id of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getId = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getId = function() {
   return this.__id;
 };
 
@@ -103,7 +103,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.getId = function() {
  * Sets the area of this Attachment.
  * @param {string} area The area of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setArea = function(area) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setArea = function(area) {
   this.__area = area;
   return this;
 };
@@ -112,7 +112,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setArea = function(area) {
  * Provides the area of this Attachment.
  * @return {string} The area of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getArea = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getArea = function() {
   return this.__area;
 };
 
@@ -120,7 +120,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.getArea = function() {
  * Sets the format of this Attachment.
  * @param {string} format The format of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setFormat = function(format) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setFormat = function(format) {
   this.__format = format;
   return this;
 };
@@ -129,7 +129,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setFormat = function(format)
  * Provides the format of this Attachment.
  * @return {string} The format of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getFormat = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getFormat = function() {
   return this.__format;
 };
 
@@ -137,7 +137,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.getFormat = function() {
  * Sets the owner of this Attachment.
  * @param {string} owner The owner of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setOwner = function(owner) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setOwner = function(owner) {
   this.__owner = owner;
   return this;
 };
@@ -146,7 +146,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setOwner = function(owner) {
  * Provides the owner of this Attachment.
  * @return {string} The owner of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getOwner = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getOwner = function() {
   return this.__owner;
 };
 
@@ -154,7 +154,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.getOwner = function() {
  * Sets the permissions of this Attachment.
  * @param {string} permissions The permissions of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setPermissions = function(permissions) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setPermissions = function(permissions) {
   this.__permissions = permissions;
   return this;
 };
@@ -163,7 +163,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setPermissions = function(pe
  * Provides the permissions of this Attachment.
  * @return {string} The permissions of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getPermissions = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getPermissions = function() {
   return this.__permissions;
 };
 
@@ -171,9 +171,8 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.getPermissions = function() 
  * Sets the fileData of this Attachment.
  * @param {string} fileData The fileData of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setFileData = function(fileData) {
-  var dataToEncrypt = fileData;
-  this._fileData = tutao.locator.aesCrypter.encryptBytes(this._entityHelper.getSessionKey(), dataToEncrypt);
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setFileData = function(fileData) {
+  this._fileData = fileData;
   return this;
 };
 
@@ -181,33 +180,29 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setFileData = function(fileD
  * Provides the fileData of this Attachment.
  * @return {string} The fileData of this Attachment.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.getFileData = function() {
-  if (this._fileData == "") {
-    return "";
-  }
-  var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._fileData);
-  return value;
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getFileData = function() {
+  return this._fileData;
 };
 
 /**
  * Loads a Attachment from the server.
  * @param {string} id The id of the Attachment.
- * @return {Promise.<tutao.entity.tutanotaencrypted.Attachment>} Resolves to the Attachment or an exception if the loading failed.
+ * @return {Promise.<tutao.entity.tutanotaunencrypted.Attachment>} Resolves to the Attachment or an exception if the loading failed.
  */
-tutao.entity.tutanotaencrypted.Attachment.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaencrypted.Attachment, tutao.entity.tutanotaencrypted.Attachment.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity._entityHelper.loadSessionKey();
+tutao.entity.tutanotaunencrypted.Attachment.load = function(id) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+    return entity;
   });
 };
 
 /**
  * Loads multiple Attachments from the server.
  * @param {Array.<string>} ids The ids of the Attachments to load.
- * @return {Promise.<Array.<tutao.entity.tutanotaencrypted.Attachment>>} Resolves to an array of Attachment or rejects with an exception if the loading failed.
+ * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Attachment>>} Resolves to an array of Attachment or rejects with an exception if the loading failed.
  */
-tutao.entity.tutanotaencrypted.Attachment.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaencrypted.Attachment, tutao.entity.tutanotaencrypted.Attachment.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
-    return tutao.entity.EntityHelper.loadSessionKeys(entities);
+tutao.entity.tutanotaunencrypted.Attachment.loadMultiple = function(ids) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+    return entities;
   });
 };
 
@@ -216,11 +211,11 @@ tutao.entity.tutanotaencrypted.Attachment.loadMultiple = function(ids) {
  * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setup = function(bucketData) {
   var self = this;
   var params = this._entityHelper.createPostPermissionMap(bucketData)
   params["v"] = 1
-  return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaencrypted.Attachment.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
     self._entityHelper.notifyObservers(false);
@@ -231,9 +226,9 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.setup = function(bucketData)
  * Updates this Attachment on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.update = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaencrypted.Attachment.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -242,9 +237,9 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.update = function() {
  * Deletes this Attachment on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the delete failed.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.erase = function() {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaencrypted.Attachment.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -255,7 +250,7 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.erase = function() {
  * @param {function(Object,*=)} listener. The listener function. When called it gets the entity and the given id as arguments.
  * @param {*=} id. An optional value that is just passed-through to the listener.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.registerObserver = function(listener, id) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.registerObserver = function(listener, id) {
   this._entityHelper.registerObserver(listener, id);
 };
 
@@ -263,6 +258,6 @@ tutao.entity.tutanotaencrypted.Attachment.prototype.registerObserver = function(
  * Removes a registered listener function if it was registered before.
  * @param {function(Object)} listener. The listener to unregister.
  */
-tutao.entity.tutanotaencrypted.Attachment.prototype.unregisterObserver = function(listener) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
 };

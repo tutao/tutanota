@@ -132,8 +132,8 @@ EntityRestTestFunctions.functions = {
             element.setOwner(tutao.locator.userController.getUserGroupId());
             element.setArea("1");
             element.setSubject("hello together!");
-            element.setDate(new Date());
-            element.setRead(false);
+            element.setSentDate(new Date());
+            element.setUnread(true);
 
             var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
             tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function (returnEntity) {
@@ -210,11 +210,11 @@ EntityRestTestFunctions.functions = {
         e1.setOwner(tutao.locator.userController.getUserGroupId());
         e1.setArea("1");
         e1.setSubject("1");
-        e1.setDate(new Date());
-        e1.setRead(false);
+        e1.setSentDate(new Date());
+        e1.setUnread(true);
         e2.setSubject("2");
-        e2.setDate(new Date());
-        e2.setRead(false);
+        e2.setSentDate(new Date());
+        e2.setUnread(true);
         e2.setOwner(tutao.locator.userController.getUserGroupId());
         e2.setArea("1");
 
@@ -353,8 +353,8 @@ EntityRestTestFunctions.functions = {
             element.setOwner(tutao.locator.userController.getUserGroupId());
             element.setArea("1");
             element.setSubject("hello together!");
-            element.setDate(new Date());
-            element.setRead(false);
+            element.setSentDate(new Date());
+            element.setUnread(true);
             var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
             tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function (returnEntity) {
                 var listId = returnEntity.getGeneratedId();
