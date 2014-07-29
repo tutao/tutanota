@@ -2,6 +2,8 @@
 
 goog.provide('EntityRestTestFunctions');
 
+var assert = chai.assert;
+
 /**
  * @param ?Object.<string, string> params If provided, the version param will be added to this map.
  */

@@ -5,8 +5,8 @@ describe("BaseTest", function () {
     var assert = chai.assert;
 
     it(" ", function () {
-        goog.provide("test.hello.yuhu");
-        assert.deepEqual({}, test.hello.yuhu);
+        goog.provide("tutao.hello.yuhu");
+        assert.deepEqual({}, tutao.hello.yuhu);
     });
 
 });

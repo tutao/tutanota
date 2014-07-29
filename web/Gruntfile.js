@@ -63,8 +63,8 @@ module.exports = function (grunt) {
                 },
                 src: 'test/index.html',
                 blocks: {
-                    'test': { src: ['test/js/generated/**/*.js', 'test/js/karma/**/*.js'] },
-                    'libs': { src: ['lib/*.js', 'test/lib/*.js' ]},
+                    'test': { src: ['test/js/rest/EntityRestTestFunctions.js', 'test/js/**/*.js'] },
+                    'libs': { src: ['lib/*.js', 'test/lib/*.js', "!test/lib/mocha.js" ]},
                     'app': { src: ['js/**/*.js', "!js/util/init.js"] }
                 }
             }

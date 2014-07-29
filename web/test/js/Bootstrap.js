@@ -5,8 +5,13 @@
  */
 var setupLocator = function() {
     Promise.longStackTraces();
-    // karma
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/');
+    if (typeof window.parent.karma != 'undefined') {
+        // karma
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/');
+    } else {
+        // mocha standalone
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/');
+    }
 
 	var singletons = {
 		randomizer: tutao.crypto.SjclRandomizer,
