@@ -1,15 +1,17 @@
 "use strict";
 
-goog.provide('StringUtilsTest');
+describe("StringUtilsTest", function () {
 
-var StringUtilsTest = TestCase("StringUtilsTest");
+    var assert = chai.assert;
 
-StringUtilsTest.prototype.testStartsWith = function() {
-	assertTrue(tutao.util.StringUtils.startsWith("", ""));
-	assertTrue(tutao.util.StringUtils.startsWith("x", ""));
-	assertTrue(tutao.util.StringUtils.startsWith("x", "x"));
-	assertTrue(tutao.util.StringUtils.startsWith("xa", "x"));
-	assertTrue(tutao.util.StringUtils.startsWith("xa", "xa"));
-	assertFalse(tutao.util.StringUtils.startsWith("xa", "xb"));
-	assertFalse(tutao.util.StringUtils.startsWith("xa", "xab"));
-};
+    it("StartsWith ", function () {
+        assert.isTrue(tutao.util.StringUtils.startsWith("", ""));
+        assert.isTrue(tutao.util.StringUtils.startsWith("x", ""));
+        assert.isTrue(tutao.util.StringUtils.startsWith("x", "x"));
+        assert.isTrue(tutao.util.StringUtils.startsWith("xa", "x"));
+        assert.isTrue(tutao.util.StringUtils.startsWith("xa", "xa"));
+        assert.isFalse(tutao.util.StringUtils.startsWith("xa", "xb"));
+        assert.isFalse(tutao.util.StringUtils.startsWith("xa", "xab"));
+    });
+
+});

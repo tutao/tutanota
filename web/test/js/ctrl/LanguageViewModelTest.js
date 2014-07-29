@@ -1,45 +1,54 @@
 "use strict";
 
-TestCase("LanguageViewModelTest", {
+describe("LanguageViewModelTest", function () {
 
-	setUp: function() {
-		this.vm = new tutao.tutanota.ctrl.LanguageViewModel();
-	},
-	tearDown: function() {
-	},
-	"test test that switching the language and retrieving translations without params works": function() {
-		this.vm.setCurrentLanguage("en");
-		assertEquals("Save", this.vm.get("save_action"));
-		this.vm.setCurrentLanguage("de");
-		assertEquals("Speichern", this.vm.get("save_action"));
-	},
-	"test that retrieving translations with params works": function() {
-		this.vm.setCurrentLanguage("en");
-		assertEquals("The code was sent to abcde.", this.vm.get("codeInputInfo_msg", {'$': 'abcde'}));
-	},
-	"test that all translation names have a valid suffix": function() {
-		var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
-		for (var translation in tutao.tutanota.ctrl.LanguageViewModel["en"]) {
-			assertTrue("translation name \"" + translation + "\" does not have a suffix", translation.indexOf("_") != -1);
-			assertTrue("translation name \"" + translation + "\" does not have a valid suffix", tutao.util.ArrayUtils.contains(validSuffixes, translation.substring(translation.indexOf("_") + 1)));
-		}
-	},
-	"test that the languages share the same translations": function() {
-		for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
+    var assert = chai.assert;
+
+
+    beforeEach(function () {
+        this.vm = new tutao.tutanota.ctrl.LanguageViewModel();
+    });
+
+    afterEach(function () {
+    });
+
+    it(" test that switching the language and retrieving translations without params works", function () {
+        this.vm.setCurrentLanguage("en");
+        assert.equal("Save", this.vm.get("save_action"));
+        this.vm.setCurrentLanguage("de");
+        assert.equal("Speichern", this.vm.get("save_action"));
+    });
+
+    it(" that retrieving translations with params works", function () {
+        this.vm.setCurrentLanguage("en");
+        assert.equal("The code was sent to abcde.", this.vm.get("codeInputInfo_msg", {'$': 'abcde'}));
+    });
+
+    it(" that all translation names have a valid suffix", function () {
+        var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
+        for (var translation in tutao.tutanota.ctrl.LanguageViewModel["en"]) {
+            assert.isTrue(translation.indexOf("_") != -1, "translation name \"" + translation + "\" does not have a suffix");
+            assert.isTrue(tutao.util.ArrayUtils.contains(validSuffixes, translation.substring(translation.indexOf("_") + 1)), "translation name \"" + translation + "\" does not have a valid suffix");
+        }
+    });
+
+    it(" that the languages share the same translations", function () {
+        for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
             if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
                 for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
                     for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
                         if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(otherLanguage)) {
-                            assertNotUndefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
-                            assertNotUndefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
+                            assert.isDefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
+                            assert.isDefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
                         }
                     }
                 }
             }
-		}
-	},
-	"test that translations all begin with either lowercase or uppercase letter": function() {
-		for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
+        }
+    });
+
+    it(" that translations all begin with either lowercase or uppercase letter", function () {
+        for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
             if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
                 for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
                     for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
@@ -47,13 +56,15 @@ TestCase("LanguageViewModelTest", {
                             var textLang1 = tutao.tutanota.ctrl.LanguageViewModel[language][translation];
                             var textLang2 = tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation];
                             if (typeof textLang1 == "string") {
-                                assertEquals("different case beginning of text: " + textLang1 + ", " + textLang2, textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase());
+                                assert.equal(textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase(), "different case beginning of text: " + textLang1 + ", " + textLang2);
                             }
                         }
                     }
                 }
 
             }
-		}
-	},
+        }
+    });
+
+
 });
