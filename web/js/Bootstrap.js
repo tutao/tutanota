@@ -58,10 +58,10 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-		tutao.locator.loginViewModel.mailAddress("arm-system@tutanota.de");
-		tutao.locator.loginViewModel.passphrase("!arm&184sys");
-		tutao.locator.loginViewModel.login();
-    setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
+	//	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
+	//	tutao.locator.loginViewModel.passphrase("arm");
+	//	tutao.locator.loginViewModel.login();
+    //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
 
 };
 
