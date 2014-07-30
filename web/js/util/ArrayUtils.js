@@ -84,17 +84,15 @@ tutao.util.ArrayUtils._objectToArray = function(object) {
 };
 
 /**
- * Remove the element from theArray.
+ * Remove the element from theArray if it is contained in the array.
  * @param {Array} theArray The array to remove the element from.
  * @param {*} elementToRemove The element to remove from the array.
  */
 tutao.util.ArrayUtils.remove = function(theArray, elementToRemove) {
-    for (var i = 0; i < theArray.length; i++) {
-		if (theArray[i] === elementToRemove) {
-			theArray.splice(i, 1);
-            return;
-		}
-	}
+    var i = theArray.indexOf(elementToRemove);
+    if (i != -1) {
+        theArray.splice(i, 1);
+    }
 };
 
 /**

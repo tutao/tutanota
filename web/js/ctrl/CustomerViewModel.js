@@ -66,6 +66,6 @@ tutao.tutanota.ctrl.CustomerViewModel.prototype.listPremiumCustomers = function(
  */
 tutao.tutanota.ctrl.CustomerViewModel.prototype.listRegistrationData = function() {
 	this.displayed("listRegistrationData");
-	this.registrationDataListViewModel.showSelected();
+	this.registrationDataListViewModel.show();
 };
 

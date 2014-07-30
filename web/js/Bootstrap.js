@@ -58,16 +58,18 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     // only for testing
-//		tutao.locator.loginViewModel.mailAddress("bed-free@tutanota.de");
-//		tutao.locator.loginViewModel.passphrase("bed");
-//		tutao.locator.loginViewModel.login();
+	//	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
+	//	tutao.locator.loginViewModel.passphrase("arm");
+	//	tutao.locator.loginViewModel.login();
+    //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
+
 };
 
 /**
  * @export
  */
 tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/libs/internal/', '/libs/external/');
+    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/');
     var singletons = {
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.AesWorkerProxy,
@@ -79,7 +81,6 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         dao: tutao.db.WebSqlDb,
         restClient: tutao.rest.RestClient,
         entityRestClient: tutao.rest.EntityRestClient,
-        indexer: tutao.tutanota.index.Indexer,
         mailBoxController: tutao.tutanota.ctrl.MailBoxController,
         viewManager: tutao.tutanota.ctrl.ViewManager,
         loginViewModel: tutao.tutanota.ctrl.LoginViewModel,

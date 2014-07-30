@@ -290,6 +290,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     show_action: "Show",
     applicationUpdate_label: "Loading Tutanota...",
     leavePageConfirmation_msg: "Do you really want to leave Tutanota?",
+    loadMore_action: "Load more",
 
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -722,6 +723,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     show_action: "Öffne",
     applicationUpdate_label: "Tutanota wird geladen...",
     leavePageConfirmation_msg: "Wollen Sie Tutanota wirklich schließen?",
+    loadMore_action: "Weitere laden",
 
 	// code verification
 	codeNeutralEnterCode_msg: "Bitte den Bestätigungscode eingeben.",

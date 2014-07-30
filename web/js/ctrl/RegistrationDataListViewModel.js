@@ -9,8 +9,7 @@ goog.provide('tutao.tutanota.ctrl.RegistrationDataListViewModel');
 tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.registrationDataList = ko.observableArray();
-	this.upperBoundId = ko.observable(tutao.rest.EntityRestInterface.CUSTOM_MIN_ID);
-	
+
 	this.company = ko.observable("");
 	this.domain = ko.observable("");
 	this.accountTypes = [{id: '2', name: 'Starter'}, {id: '1', name: 'Free'}];
@@ -22,8 +21,40 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
 	this.mailAddress = ko.observable("");
 	
 	this._listId = ko.observable(systemInstance.getRegistrationDataList());
+
+    this.loading = ko.observable(false);
+    this.moreAvailable = ko.observable(true);
 };
 
+tutao.tutanota.ctrl.RegistrationDataListViewModel.STEP_RANGE_COUNT = 2;
+
+tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.show = function() {
+    this.registrationDataList([]);
+    this.loadMore();
+};
+
+
+tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.loadMore = function() {
+    var self = this;
+    if (this.loading()) {
+        return Promise.resolve();
+    }
+    this.loading(true);
+    var lowestId = tutao.rest.EntityRestInterface.CUSTOM_MIN_ID;
+    if (this.registrationDataList().length > 0) {
+        var lastRegData = this.registrationDataList()[this.registrationDataList().length - 1];
+        lowestId = tutao.rest.EntityRestInterface.getElementId(lastRegData);
+    }
+
+    return tutao.entity.sys.RegistrationData.loadRange(this._listId(), lowestId, tutao.tutanota.ctrl.RegistrationDataListViewModel.STEP_RANGE_COUNT, false).then(function(regData) {
+        self.moreAvailable(regData.length == tutao.tutanota.ctrl.RegistrationDataListViewModel.STEP_RANGE_COUNT);
+        for (var i = 0; i < regData.length; i++) {
+            self.registrationDataList.push(regData[i]);
+        }
+    }).lastly(function(){
+        self.loading(false);
+    });
+};
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.reset = function() {
 	this.company("");
 	this.domain("");
@@ -105,45 +136,13 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.sentDomainVerificati
     if (tutao.tutanota.gui.confirm("Really send domain verification mail?")) {
         var input = new tutao.entity.sys.RegistrationVerifyDomainDataPut()
             .setAuthToken(element.getId()[1]);
-        input.update({}, null, function(ret, exception) {
-            if (exception) {
-                console.log(exception);
-            } else {
-                tutao.entity.sys.RegistrationData.load(element.getId(), function(regData, exception) {
-                    if (exception) {
-                        console.log(exception);
-                    } else {
-                        element.setDomainVerificationMailSentOn(regData.getDomainVerificationMailSentOn());
-                    }
-                });
-            }
+        input.update({}, null).then(function() {
+            return tutao.entity.sys.RegistrationData.load(element.getId()).then(function(regData) {
+                element.setDomainVerificationMailSentOn(regData.getDomainVerificationMailSentOn());
+            });
         });
     }
     return false;
 };
 
-/**
- * Shows the registration data list.
- */
-tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.showSelected = function() {
-	if (!this._listId()) {
-		return;
-	}
-	var self = this;
-	this._loadRegistrationDataEntries(this.upperBoundId(), false).then(function(registrationDataList) {
-		self.registrationDataList(registrationDataList);
-	});
-};
 
-/**
- * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
- * @param {string} upperBoundId The id of upper limit (base64 encoded)
- * @param {boolean} reverse If the entries shall be loaded reverse.
- * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>} Resolves to the list of customers
- */
-tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype._loadRegistrationDataEntries = function(upperBoundId, reverse) {
-	var self = this;
-	return tutao.entity.sys.RegistrationData.loadRange(this._listId(), upperBoundId, 1000, reverse).caught(function (exception) {
-        console.log(exception);
-    });
-};

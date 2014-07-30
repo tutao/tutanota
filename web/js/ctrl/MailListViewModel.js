@@ -44,32 +44,27 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 	this.tagToMailAttributeValueMapping[tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID] = tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT;
 	this.tagToMailAttributeValueMapping[tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID] = true;   // trashed = true
 
+    this._tagMoreAvailable = [];
+    this._tagMoreAvailable[tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID] = ko.observable(true);
+    this._tagMoreAvailable[tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID] = ko.observable(true);
+    this._tagMoreAvailable[tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID] = ko.observable(true);
+
 	// ===== SEARCH ========
 
 	this.bubbleInputViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
-	this.buttonCss = ko.computed(function() {
-		if (this.bubbleInputViewModel.inputValue().trim() || this.bubbleInputViewModel.bubbles().length > 0) {
-			return 'cancel';
-		} else {
-			return 'search';
-		}
-	},this);
+
 	this.bubbleInputViewModel.bubbles.subscribe(function() {
-		this.search();
+		//this.search();
 	}, this);
 
 	// ===== SEARCH ========
 
 	this.mails = ko.observableArray();
 
-	this.log = ko.observable("");
-
 	// the mail id (Array.<string>) of the email that shall be shown when init() is called
 	this.mailToShow = null;
     this.loading = ko.observable(false);
     this.deleting = ko.observable(false);
-    this.loadingMore = ko.observable(false);
-    this.currentRangeCount = 0;
 
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
@@ -86,7 +81,9 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
         return this.deleting();
     }, this);
 
-    this.moreAvailable = ko.observable(true);
+    this.moreAvailable = ko.computed(function() {
+        return this._tagMoreAvailable[this._currentActiveSystemTag()]();
+    }, this);
 };
 
 
@@ -106,74 +103,25 @@ tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT = 2; // FIXME 25 for mobi
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     var self = this;
     this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
-    return this.loadMoreMails().then(function(){
-        var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
-        eventTracker.addObserver(self.updateOnNewMails);
-        var highestId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-        for (var tagId = 0; tagId < self.currentTagFilterResult.length; tagId++) {
-            if (self.currentTagFilterResult[tagId].length != 0) {
-                var firstId = self.currentTagFilterResult[tagId][0];
-                if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(firstId, highestId)) {
-                    highestId = firstId;
+    return this.loadMoreMails().then(function() {
+        if (tutao.locator.userController.isExternalUserLoggedIn()) {
+            if (self.mailToShow) {
+                return tutao.entity.tutanota.Mail.load(self.mailToShow).then(function(mail) {
+                    self.selectMail(mail);
+                });
+            } else {
+                if (self.mails().length > 0) {
+                    self.selectMail(self.mails()[0]);
                 }
+                return Promise.resolve();
             }
+        } else {
+            var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
+            eventTracker.addObserver(self.updateOnNewMails);
+            eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
+            return Promise.resolve();
         }
-        eventTracker.observeList(highestId);
     });
-
-    /*
-	return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, this.currentRangeCount, true).then(function(mails) {
-		// execute the tag filters, then update the mail list, then register the event tracker for mails
-		// it is important to update the filter results in the tag id order because the mails may only appear in the first list that fits
-		return self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID).then(function() {
-			return self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID).then(function() {
-				return self._updateTagFilterResult(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID).then(function() {
-					return self._updateMailList().then(function() {
-                        self.loading(false);
-						if (tutao.locator.userController.isExternalUserLoggedIn()) {
-							// no notifications for external users. instead add all loaded mails
-							return self.updateOnNewMails(mails).then(function() {
-								if (self.mailToShow) {
-									return tutao.entity.tutanota.Mail.load(self.mailToShow).then(function(mail) {
-                                        self.selectMail(mail);
-									});
-								} else {
-                                    if (self.mails().length > 0) {
-                                        self.selectMail(self.mails()[0]);
-                                    }
-                                    return Promise.resolve();
-								}
-							});
-						} else {
-							// get the highest indexed mail id for the event tracker
-                            return new Promise(function(resolve, reject) {
-                                tutao.locator.indexer.getLastIndexedId(tutao.entity.tutanota.Mail.prototype.TYPE_ID, function(lastIndexedId) {
-                                    try  {
-                                        // if no database is available, the last indexed mail is max id. in that case we need to load all mails.
-                                        if (lastIndexedId == tutao.rest.EntityRestInterface.GENERATED_MAX_ID) {
-                                            if( mails.length > 0){
-                                                lastIndexedId = mails[0].getId()[1];
-                                            }else {
-                                                lastIndexedId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
-                                            }
-                                        }
-                                        var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
-                                        eventTracker.addObserver(self.updateOnNewMails);
-                                        eventTracker.observeList(lastIndexedId);
-                                        resolve();
-                                    } catch (exception) {
-                                        reject(exception);
-                                    }
-                                });
-                            });
-						}
-					});
-				});
-			});
-		});
-	});
-
-	*/
 };
 
 
@@ -184,17 +132,13 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
         return Promise.resolve();
     }
     this.loading(true);
+    var tagId = self._currentActiveSystemTag();
     var lowestId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-    for (var tagId = 0; tagId < this.currentTagFilterResult.length; tagId++) {
-        if (this.currentTagFilterResult[tagId].length != 0) {
-            var lastId = this.currentTagFilterResult[tagId][this.currentTagFilterResult[tagId].length -1];
-            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(lowestId, lastId)) {
-                lowestId = lastId;
-            }
-        }
+    if (this.currentTagFilterResult[tagId].length > 0) {
+        lowestId = this.currentTagFilterResult[tagId][this.currentTagFilterResult[tagId].length -1];
     }
     //return Promise.delay(5000).then(function(){
-        return self._loadMoreMails(0, lowestId).then(function(){
+        return self._loadMoreMails(0, lowestId).lastly(function(){
             self.loading(false);
         });
     //});
@@ -203,29 +147,21 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alreadyLoadedForTagCount, startId) {
     var self = this;
     return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), startId, tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT, true).then(function(mails) {
-        self.moreAvailable(mails.length == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT);
+        var activeTagId = self._currentActiveSystemTag();
+        self._tagMoreAvailable[activeTagId](mails.length == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT);
         for (var i = 0; i < mails.length; i++) {
-            for (var tagId = 0; tagId < self.currentTagFilterResult.length; tagId++) {
-                // get the mail tag value and put the mail id into the corresponding result list if it fits
-                var mailAttribute = self.tagToMailAttributeMapping[tagId];
-                var mailTagValue = mails[i][mailAttribute];
-                if (self.tagToMailAttributeValueMapping[tagId] == mailTagValue) {
-                    var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
-                    self.currentTagFilterResult[tagId].push(elementId);
-                    if (self._currentActiveSystemTag() == tagId) {
-                        alreadyLoadedForTagCount++;
-                        self.mails.push(mails[i]);
-                    }
-                    // the mail must only go into the first tag list that fits, so break now (the tag ids are sorted by priority)
-                    break;
-                }
+            if (activeTagId == self._getTagForMail(mails[i])) {
+                var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
+                self.currentTagFilterResult[activeTagId].push(elementId);
+                alreadyLoadedForTagCount++;
+                self.mails.push(mails[i]);
             }
             if (alreadyLoadedForTagCount == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) {
                 // we may have loaded more mails, but we have already added enough for the current tag list, so stop now
                 break;
             }
         }
-        if ((alreadyLoadedForTagCount < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) && self.moreAvailable()) {
+        if ((alreadyLoadedForTagCount < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) && self._tagMoreAvailable[activeTagId]()) {
             var startId = tutao.rest.EntityRestInterface.getElementId(mails[mails.length-1]);
             return self._loadMoreMails(alreadyLoadedForTagCount, startId);
         } else {
@@ -272,10 +208,17 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
  * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(tagId) {
+    var self = this;
 	this.unselectAll();
 	this._currentActiveSystemTag(tagId);
-	return this._updateMailList().then(function() {
+    return this._updateMailList().then(function() {
         tutao.locator.mailView.showDefaultColumns();
+        // load more mails if there are not enough shown for this tag
+        if (self.moreAvailable() && self.currentTagFilterResult[tagId].length < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) {
+            return self.loadMoreMails();
+        } else {
+            return Promise.resolve();
+        }
     });
 };
 
@@ -284,51 +227,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isDeleteTrashButtonVisible = fun
      return this._currentActiveSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID && this.mails().length > 0;
 };
 
-/**
- * @protected
- * Updates the id list for the given tag.
- * Precondition: All tag filter results with a lower tag id are updated.
- * @param {number} tagId Id of the tag.
- * @return {Promise.<>} Resolved when finished.
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype._updateTagFilterResult = function(tagId) {
-	var self = this;
-	var attributeId = this.tagToMailAttributeIdMapping[tagId];
-
-	var indexedValue = this.tagToMailAttributeValueMapping[tagId];
-	if (indexedValue === true) {
-		indexedValue = "1";
-	} else if (indexedValue === false) {
-		indexedValue = "0";
-	} else {
-		indexedValue = indexedValue + "";
-	}
-
-    return new Promise(function(resolve, reject) {
-        tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.Mail.prototype.TYPE_ID, [attributeId], [indexedValue], function(result) {
-            try  {
-                // only add the mail ids if they do not appear in the tag lists with lower tag ids
-                self.currentTagFilterResult[tagId] = [];
-                for (var a = 0; a < result.length; a++) {
-                    var mailId = result[a];
-                    var addMail = true;
-                    for (var i = 0; i < tagId; i++) {
-                        if (tutao.util.ArrayUtils.contains(self.currentTagFilterResult[i], mailId)) {
-                            addMail = false;
-                            break;
-                        }
-                    }
-                    if (addMail) {
-                        self.currentTagFilterResult[tagId].push(mailId);
-                    }
-                }
-                resolve();
-            } catch (exception) {
-                reject(exception);
-            }
-        });
-    });
-};
 
 /**
  * Updates the mail list according to the current search and tag filter results.
@@ -345,7 +243,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function() {
 		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag()], this.currentSearchResult];
 	}
 
-	this.addLog("start download");
 
 	var currentResult = tutao.util.ArrayUtils.getUniqueAndArray(idsToCombine);
 	// sort the array by mail id descending
@@ -357,7 +254,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function() {
 	return self._loadMails(currentResult, loadedMails, 0).then(function() {
 		self.mails(loadedMails);
 		self.selectPreviouslySelectedMail();
-		self.addLog("finished downloading " + self.mails().length + " mail headers");
 	});
 };
 
@@ -395,70 +291,30 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMails = function(mailIds, l
     });
 };
 
-/**
- * Adds the given mails to the index if they are not yet indexed.
- * @param {Array.<Array.<string>>} mailIds The ids of the mails that shall be indexed. The order must be ascending.
- * @param {Array.<string>} mailBodyIds The ids of the mail bodys belonging to the mails in the same order as the mails.
- * @return {window.Promise.<>} Resolved when indexing is finished finished.
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype._addToIndex = function(mailIds, mailBodyIds) {
-	this.addLog("start indexing");
-	var self = this;
-    return new Promise(function(resolve, reject) {
-        tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.Mail.prototype.TYPE_ID, mailIds, function(firstIndexedMailId) {
-            try  {
-                if (firstIndexedMailId) {
-                    // the mails starting with the id firstIndexedId have been indexed, so index the corresponding bodies now
-                    var bodyIds = [];
-                    for (var a = 0; a < mailIds.length; a++) {
-                        if (mailIds[a][1] === firstIndexedMailId[1]) {
-                            bodyIds = mailBodyIds.slice(a);
-                            break;
-                        }
-                    }
-                    tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, bodyIds, function() {
-                        self.addLog("finished indexing");
-                        resolve();
-                    });
-                } else {
-                    self.addLog("finished indexing");
-                    resolve();
-                }
-            } catch (exception) {
-                reject(exception);
-            }
-        });
-    });
-};
 
 /**
  * This method gets invoked if new mails have been received from the server.
  * @param {Array.<Mail>} mails The mails that are new.
- * @return {window.Promise.<>} Resolved when finished.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mails) {
-	// collect the mail and body ids for indexing and update the tag filter results
-	var mailIds = [];
-	var mailBodyIds = [];
 	for (var i = 0; i < mails.length; i++) {
-		mailIds.push(mails[i].getId());
-		mailBodyIds.push(mails[i].getBody());
-		for (var tagId = 0; tagId < this.currentTagFilterResult.length; tagId++) {
-			// get the mail tag value and put the mail id into the corresponding result list if it fits
-			var mailAttribute = this.tagToMailAttributeMapping[tagId];
-			var mailTagValue = mails[i][mailAttribute];
-			if (this.tagToMailAttributeValueMapping[tagId] == mailTagValue) {
-				this.currentTagFilterResult[tagId].unshift(mails[i].getId()[1]);
-				if (this._currentActiveSystemTag() == tagId) {
-					// TODO (story search mails): only add the mail if it passes the search query
-					this.mails.unshift(mails[i]);
-				}
-				// the mail must only go into the first tag list that fits, so break now (the tag ids are sorted by priority)
-				break;
-			}
-		}
+        var mailTagId = this._getTagForMail(mails[i]);
+        this.currentTagFilterResult[mailTagId].unshift(mails[i].getId()[1]);
+        if (this._currentActiveSystemTag() == mailTagId) {
+            this.mails.unshift(mails[i]);
+        }
 	}
-	return this._addToIndex(mailIds, mailBodyIds);
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._getTagForMail = function(mail) {
+    for (var tagId = 0; tagId < this.currentTagFilterResult.length; tagId++) {
+        var mailAttribute = this.tagToMailAttributeMapping[tagId];
+        var mailTagValue = mail[mailAttribute];
+        if (this.tagToMailAttributeValueMapping[tagId] == mailTagValue) {
+            return tagId;
+        }
+    }
+    throw new Error("no tag found for mail " + mail.getId()[0] + "/" + mail.getId()[1]);
 };
 
 /**
@@ -508,11 +364,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, dom
 	if (mail.getUnread()) {
 		mail.setUnread(false);
 		mail.update();
-		tutao.locator.indexer.removeIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-				[[tutao.entity.tutanota.Mail.prototype.UNREAD_ATTRIBUTE_ID]], mail.getId()[1], function() {
-			tutao.locator.indexer.addIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-					[tutao.entity.tutanota.Mail.prototype.UNREAD_ATTRIBUTE_ID], mail.getId()[1], (mail.getUnread()) ? ["1"] : ["0"]);
-		});
 	}
 
 	if (this._multiSelect) {
@@ -605,9 +456,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
                     mailsToDelete.push(allMails[i].getId());
                 }
             }
-            return self.finallyDeleteMails(mailsToDelete).then(function() {
-                self.deleting(false);
-            });
+            return self.finallyDeleteMails(mailsToDelete);
+        }).lastly(function() {
+            self.deleting(false);
         });
     } else {
         return Promise.resolve();
@@ -633,7 +484,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.trashMail = function(mails, tras
  * @param {boolean} trash If true, the mail is trashed, otherwise it is untrashed.
  * @param {boolean} attributeChanged Indicates if a trash attribute of any mail was changed so far.
  * When all selected mails are finished, if any was trashed/untrashed, this value is true.
- * @return {Promise.<>} Resolved when finished.
+ * @return {window.Promise.<>} Resolved when finished.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails, index, trash, attributeChanged) {
 	var self = this;
@@ -642,45 +493,38 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
 		mail.setTrashed(trash);
 		mail.update();
         return new window.Promise(function(resolve, reject) {
-            tutao.locator.indexer.removeIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-                [[tutao.entity.tutanota.Mail.prototype.TRASHED_ATTRIBUTE_ID]], mail.getId()[1], function() {
-                    return tutao.locator.indexer.addIndexEntries(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-                        [tutao.entity.tutanota.Mail.prototype.TRASHED_ATTRIBUTE_ID], mail.getId()[1], (mail.getTrashed()) ? ["1"] : ["0"], function() {
-                            try  {
-                                // make the icon in the gui visible/invisible if the mail stays in the list. currently it doesn't
+            try  {
+                // make the icon in the gui visible/invisible if the mail stays in the list. currently it doesn't
+                // update the filter results
+                for (var tagId = 0; tagId < self.currentTagFilterResult.length; tagId++) {
+                    if ((tagId == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID) == trash) {
+                        // we need to add the mail id if it is the correct state value
+                        if (mail[self.tagToMailAttributeMapping[tagId]] == self.tagToMailAttributeValueMapping[tagId]) {
+                            self.currentTagFilterResult[tagId].push(mail.getId()[1]);
+                        }
+                    } else {
+                        // we need to remove the mail id
+                        tutao.util.ArrayUtils.remove(self.currentTagFilterResult[tagId], mail.getId()[1]);
+                    }
+                }
 
-                                // update the filter results
-                                for (var tagId = 0; tagId < self.currentTagFilterResult.length; tagId++) {
-                                    if ((tagId == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID) == trash) {
-                                        // we need to add the mail id if it is the correct state value
-                                        if (mail[self.tagToMailAttributeMapping[tagId]] == self.tagToMailAttributeValueMapping[tagId]) {
-                                            self.currentTagFilterResult[tagId].push(mail.getId()[1]);
-                                        }
-                                    } else {
-                                        // we need to remove the mail id
-                                        tutao.util.ArrayUtils.remove(self.currentTagFilterResult[tagId], mail.getId()[1]);
-                                    }
-                                }
-
-                                if (index == mails.length - 1) {
-                                    // when the mails are removed from the list select the first mail if multiple mails have been trashed and
-                                    // select the next mail if one mail has been trashed
-                                    var nextSelectedIndex = 0;
-                                    if (mails.length == 1) {
-                                        nextSelectedIndex = self.mails.indexOf(mails[index]);
-                                    }
-                                    self.unselectAll();
-                                    resolve(self._updateMailList().then(function() {
-                                        self.showIndex(nextSelectedIndex);
-                                    }));
-                                } else {
-                                    resolve(self._trashNextMail(mails, ++index, trash, true));
-                                }
-                            } catch (exception) {
-                                reject(exception);
-                            }
-                        });
-                });
+                if (index == mails.length - 1) {
+                    // when the mails are removed from the list select the first mail if multiple mails have been trashed and
+                    // select the next mail if one mail has been trashed
+                    var nextSelectedIndex = 0;
+                    if (mails.length == 1) {
+                        nextSelectedIndex = self.mails.indexOf(mails[index]);
+                    }
+                    self.unselectAll();
+                    resolve(self._updateMailList().then(function() {
+                        self.showIndex(nextSelectedIndex);
+                    }));
+                } else {
+                    resolve(self._trashNextMail(mails, ++index, trash, true));
+                }
+            } catch (exception) {
+                reject(exception);
+            }
         });
 
 	} else {
@@ -699,113 +543,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
 			return self._trashNextMail(mails, ++index, trash, attributeChanged);
 		}
 	}
-};
-
-/**
- * Provides a list with the ids of all emails that all contain the provides search words (combined with AND logic).
- * @param {Array.<string>} searchWords The words to search for.
- * @param {number} index The index of the next word to seach for in searchWords.
- * @param {?Array.<string>} resultList The list with the current result ids. When received the list of ids for the next search word, that list is ANDed
- * with resultList.
- * @return {Promise.<Array.<string>>} Resolved when the search is finished and passes an array of the ids of all mails containing all search words.
- * @protected
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype._getIdsForSearchWords = function(searchWords, index, resultList) {
-	var self = this;
-	// get the matching ids of subject
-    return new window.Promise(function(resolve, reject) {
-        tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-            [tutao.entity.tutanota.Mail.prototype.SUBJECT_ATTRIBUTE_ID], [searchWords[index]], function(subjectMatchingIds) {
-                // get the matching ids of the sender
-                tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-                    [tutao.entity.tutanota.Mail.prototype.SENDER_ATTRIBUTE_ID], [searchWords[index]], function(senderMatchingIds) {
-                        // get the matching ids of the recipients
-                        tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-                            // all recipients index is stored in toRecipients for now
-                            [tutao.entity.tutanota.Mail.prototype.TORECIPIENTS_ATTRIBUTE_ID], [searchWords[index]], function(recipientsMatchingIds) {
-                                // get the matching body ids for the body text
-                                tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.MailBody.prototype.TYPE_ID,
-                                    [tutao.entity.tutanota.MailBody.prototype.TEXT_ATTRIBUTE_ID], [searchWords[index]], function(textMatchingBodyIds) {
-                                        // get the mail ids that belong to the body ids
-                                        tutao.locator.indexer.getElementsByValues(tutao.entity.tutanota.Mail.prototype.TYPE_ID,
-                                            [tutao.entity.tutanota.Mail.prototype.BODY_ATTRIBUTE_ID], textMatchingBodyIds, function(bodyMatchingIds) {
-                                                try  {
-                                                    var orMergedIds = tutao.util.ArrayUtils.getUniqueOrArray([subjectMatchingIds, senderMatchingIds,
-                                                        recipientsMatchingIds, bodyMatchingIds]);
-                                                    // if this is the first search word, the current result list is still null, so we use orMergedIds as first resultList
-                                                    var andMergedIds;
-                                                    if (resultList == null) {
-                                                        andMergedIds = orMergedIds;
-                                                    } else {
-                                                        andMergedIds = tutao.util.ArrayUtils.getUniqueAndArray([orMergedIds, resultList]);
-                                                    }
-                                                    if (index == searchWords.length - 1) {
-                                                        resolve(andMergedIds);
-                                                    } else {
-                                                        resolve(self._getIdsForSearchWords(searchWords, ++index, andMergedIds));
-                                                    }
-                                                } catch (exception) {
-                                                    reject(exception);
-                                                }
-                                            });
-                                    });
-                            });
-                    });
-            });
-    });
-};
-
-
-/**
- * Performs a search according to the current search words and updates the mail list accordingly.
- * @return {Promise.<Object|undefined>} Resolved when finished. Maybe a the dom object that triggered the search. Attention, please!.
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype.search = function() {
-	if (this.bubbleInputViewModel.bubbles().length === 0) {
-		this.currentSearchResult = null;
-		this.unselectAll();
-		return this._updateMailList();
-	} else {
-		this.addLog("start search");
-		var self = this;
-		var bubbles = this.bubbleInputViewModel.bubbles();
-		var searchString = "";
-		for (var i = 0; i < bubbles.length; i++) {
-			searchString += bubbles[i].text() + " ";
-		}
-		var searchWords = tutao.locator.indexer.getSearchIndexWordsFromText(searchString);
-		this.addLog(searchWords);
-		// search for each word separately, then combine the results with AND
-		return self._getIdsForSearchWords(searchWords, 0, null).then(function(ids) {
-			self.currentSearchResult = ids;
-			self.addLog("finished search: " + ids.length);
-			self.unselectAll();
-			return self._updateMailList();
-		});
-	}
-};
-
-/**
- * Adds a line of text to the log output.
- * @param {string} logLine The text to add to the log.
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype.addLog = function(logLine) {
-// currently disabled
-//	var date = new Date();
-//	var pad = tutao.util.StringUtils.pad;
-//	logLine = pad(date.getMinutes(), 2) + ":" + pad(date.getSeconds(), 2) + " " + logLine;
-//	var MAX_NBR_OF_LINES = 4;
-//	if (this.log() == "") {
-//		this.log(logLine);
-//	} else {
-//		var lines = this.log().split("\n");
-//		if (lines.length == MAX_NBR_OF_LINES) {
-//			lines.shift();
-//			this.log(lines.join("\n") + "\n" + logLine);
-//		} else {
-//			this.log(this.log() + "\n" + logLine);
-//		}
-//	}
 };
 
 /**
@@ -857,7 +594,15 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.buttonClick = function() {
     }else {
         this.bubbleInputViewModel.bubbles.removeAll();
         this.bubbleInputViewModel.inputValue("");
-        this.search();
+        //this.search();
+    }
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.buttonCss = function() {
+    if (this.bubbleInputViewModel.inputValue().trim() || this.bubbleInputViewModel.bubbles().length > 0) {
+        return 'cancel';
+    } else {
+        return 'search';
     }
 };
 

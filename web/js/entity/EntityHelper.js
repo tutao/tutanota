@@ -445,7 +445,8 @@ tutao.entity.EntityHelper.generateAggregateId = function() {
  * @return {Promise.<Array.<Object>>} Resolves to the same entities which have been provided. Rejects if loading the session keys failed.
  */
 tutao.entity.EntityHelper.loadSessionKeys = function(entities) {
-    return Promise.map(entities, function(entity) {
+    // always load sequentially (each) instead of in parallel (map), many server requests may be done in parallel if the key is not yet cached
+    return Promise.each(entities, function(entity) {
         return entity._entityHelper.loadSessionKey();
     });
 };
