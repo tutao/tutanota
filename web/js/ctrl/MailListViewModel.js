@@ -128,7 +128,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
     var self = this;
 
-    if (this.loading()) {
+    if (this.loading() || this.deleting()) {
         return Promise.resolve();
     }
     this.loading(true);
@@ -138,32 +138,33 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
         lowestId = this.currentTagFilterResult[tagId][this.currentTagFilterResult[tagId].length -1];
     }
     //return Promise.delay(5000).then(function(){
-        return self._loadMoreMails(0, lowestId).lastly(function(){
+        return self._loadMoreMails(0, lowestId, tagId).lastly(function(){
             self.loading(false);
         });
     //});
 };
 
-tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alreadyLoadedForTagCount, startId) {
+tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alreadyLoadedForTagCount, startId, tagId) {
     var self = this;
     return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), startId, tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT, true).then(function(mails) {
-        var activeTagId = self._currentActiveSystemTag();
-        self._tagMoreAvailable[activeTagId](mails.length == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT);
+        self._tagMoreAvailable[tagId](mails.length == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT);
         for (var i = 0; i < mails.length; i++) {
-            if (activeTagId == self._getTagForMail(mails[i])) {
+            if (tagId == self._getTagForMail(mails[i])) {
                 var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
-                self.currentTagFilterResult[activeTagId].push(elementId);
+                self.currentTagFilterResult[tagId].push(elementId);
                 alreadyLoadedForTagCount++;
-                self.mails.push(mails[i]);
+                if (tagId == self._currentActiveSystemTag()) {
+                    self.mails.push(mails[i]);
+                }
             }
             if (alreadyLoadedForTagCount == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) {
                 // we may have loaded more mails, but we have already added enough for the current tag list, so stop now
                 break;
             }
         }
-        if ((alreadyLoadedForTagCount < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) && self._tagMoreAvailable[activeTagId]()) {
+        if ((alreadyLoadedForTagCount < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) && self._tagMoreAvailable[tagId]()) {
             var startId = tutao.rest.EntityRestInterface.getElementId(mails[mails.length-1]);
-            return self._loadMoreMails(alreadyLoadedForTagCount, startId);
+            return self._loadMoreMails(alreadyLoadedForTagCount, startId, tagId);
         } else {
             return Promise.resolve();
         }
@@ -445,6 +446,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.finallyDeleteMails = function(ma
  * Executes the delete trash functionality.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
+    if (this.loading() || this.deleting()) {
+        return Promise.resolve();
+    }
+
     var self = this;
     if (tutao.tutanota.gui.confirm(tutao.lang('confirmDeleteTrash_msg'))) {
         this.deleting(true);
@@ -470,7 +475,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
  * Trashes/untrashes all the given mails. updates the mail list view accordingly.
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to delete or undelete.
  * @param {boolean} trash If true, the mail is trashed, otherwise it is untrashed.
- * @return {Promise.<>} Resolved when finished.
+ * @return {window.Promise.<>} Resolved when finished.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.trashMail = function(mails, trash) {
 	return this._trashNextMail(mails, 0, trash, false);

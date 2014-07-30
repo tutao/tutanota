@@ -15,7 +15,7 @@ tutao.entity.tutanota.UpdateFileData = function(data) {
     this.__format = "0";
     this._file = null;
     this._fileData = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.UpdateFileData.prototype;
 };

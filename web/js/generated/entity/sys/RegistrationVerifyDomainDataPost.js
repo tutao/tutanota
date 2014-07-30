@@ -15,7 +15,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost = function(data) {
     this.__format = "0";
     this._currentAdminMailAddress = null;
     this._language = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype;
 };
@@ -24,7 +24,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationVerifyDomainDataPost.MODEL_VERSION = '3';
+tutao.entity.sys.RegistrationVerifyDomainDataPost.MODEL_VERSION = '4';
 
 /**
  * The url path to the resource.
@@ -126,7 +126,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.setup = function(par
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.RegistrationVerifyDomainDataPost.PATH, this, parameters, headers, tutao.entity.sys.RegistrationVerifyDomainPostReturn);
 };

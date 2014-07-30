@@ -19,7 +19,7 @@ tutao.entity.sys.TimeRangeListConfigValue = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._name = null;
     this._timeRanges = [];
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.TimeRangeListConfigValue.prototype;
 };

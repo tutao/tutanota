@@ -15,7 +15,7 @@ tutao.entity.monitor.ReadCounterData = function(data) {
     this.__format = "0";
     this._monitor = null;
     this._owner = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.monitor.ReadCounterData.prototype;
 };

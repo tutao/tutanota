@@ -23,7 +23,7 @@ tutao.entity.sys.UserData = function(data) {
     this._userEncCustomerGroupKey = null;
     this._verifier = null;
     this._userGroupData = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.UserData.prototype;
 };
@@ -32,7 +32,7 @@ tutao.entity.sys.UserData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.UserData.MODEL_VERSION = '3';
+tutao.entity.sys.UserData.MODEL_VERSION = '4';
 
 /**
  * The url path to the resource.
@@ -226,7 +226,7 @@ tutao.entity.sys.UserData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.UserData.PATH, this, parameters, headers, tutao.entity.sys.UserReturn);
 };

@@ -60,7 +60,7 @@ tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
  */
 tutao.event.PushListEventTracker.prototype._handleEventBusNotification = function(update) {
 	var self = this;
-	if (update.getType() === this._typeName && update.getInstanceListId() === this._listId) {
+	if (update.getType() === this._typeName && update.getInstanceListId() === this._listId && update.getOperation() == tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_CREATE) {
 		return tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(instance, exception) {
             return instance._entityHelper.loadSessionKey().then(function(instance) {
                 self.notifyObservers([instance]);
@@ -78,7 +78,6 @@ tutao.event.PushListEventTracker.prototype._notifyAboutExistingElements = functi
     var self = this;
     return tutao.rest.EntityRestInterface.loadAll(self._listType, self._listId, self._highestElementId).then(function(newElements) {
         if (newElements.length > 0) {
-            console.log("getElementRange received mails: " + newElements.length);
             return tutao.entity.EntityHelper.loadSessionKeys(newElements).then(function(newElements) {
                 self.notifyObservers(newElements);
                 if ( newElements.length > 0 ){

@@ -14,7 +14,7 @@ tutao.entity.tutanota.Subfiles = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._files = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.Subfiles.prototype;
 };

@@ -23,7 +23,7 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
     this._chat = null;
     this._entityUpdate = null;
     this._exception = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.WebsocketWrapper.prototype;
 };
@@ -32,7 +32,7 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '3';
+tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '4';
 
 /**
  * The encrypted flag.

@@ -19,7 +19,7 @@ tutao.entity.sys.VersionData = function(data) {
     this._id = null;
     this._listId = null;
     this._typeId = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.VersionData.prototype;
 };
@@ -28,7 +28,7 @@ tutao.entity.sys.VersionData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.VersionData.MODEL_VERSION = '3';
+tutao.entity.sys.VersionData.MODEL_VERSION = '4';
 
 /**
  * The encrypted flag.
