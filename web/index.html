@@ -40,7 +40,7 @@
 		font-family: sans-serif;
 		line-height: 1.5;
 	}
-	div#fastMessageContainer > div.errorMessage, div#fastMessageContainer > div.jsErrorMessage {
+	div#fastMessageContainer > div.jsErrorMessage {
 		display: none;
 	}
 
@@ -79,12 +79,6 @@
 					<br>please wait...<br> bitte warten...<br> espere por favor...<br>
 				</p>
 		</div>
-		<div class="errorMessage">
-				Error...
-				<p>
-					<br>please check your internet connection and try again later...<br> bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es später erneut...<br> compruebe su conexión internet y vuelva a intentarlo más tarde por favor...<br>
-				</p>
-		</div>
 		<div class="jsErrorMessage">
 				Error...
 				<p>
@@ -95,27 +89,24 @@
 </div>
 
 <!-- build:css css/main.css -->
-<link href="css/main.less" rel="stylesheet" type="text/less">
+<link href="less/main.less" rel="stylesheet" type="text/less">
 <!-- /build -->
 <!-- build:js cordova.js -->
 <!-- /build -->
 <!-- build:js libs.js -->
 <!-- fileblock:js libs -->
 <script src="lib/bluebird-2.2.2.js"></script>
-<script src="lib/chart-2013-06-12.min.js"></script>
 <script src="lib/closure-library-base-2012-01-19.js"></script>
 <script src="lib/crypto-jsbn-2012-08-09_1.js"></script>
 <script src="lib/crypto-sjcl-2012-08-09_1.js"></script>
 <script src="lib/google-fastbutton-2012-10-02.js"></script>
 <script src="lib/html-css-sanitizer-r5333-fix1.min.js"></script>
-<script src="lib/html2canvas-0.40.min.js"></script>
-<script src="lib/iscroll-4.2.5.js"></script>
 <script src="lib/jquery-1.9.1.js"></script>
 <script src="lib/jquery-transit-0.9.9.js"></script>
 <script src="lib/knockout-2.2.1.js"></script>
-<script src="lib/less-1.7.0.min.js"></script>
 <script src="lib/path-2012-10-03.js"></script>
 <script src="lib/swfobject-2.2.min.js"></script>
+<script src="lib/dev/less-1.7.0.min.js"></script>
 <!-- endfileblock -->
 <!-- /build -->
 <!-- build:js app.js -->
@@ -443,49 +434,6 @@
 </script>
 <![endif]-->
 
-<script type="text/javascript">
-	// show an error message if the application code has not been loaded correctly
-	if ("undefined" == typeof libsLoaded || "undefined" == typeof tutanotaLoaded) {
-		document.getElementById('fastMessage').getElementsByClassName('message')[0].style.display = "none";
-		document.getElementById('fastMessage').getElementsByClassName('errorMessage')[0].style.display = "block";
-	} else {
-		$(document).ready(function() {
-			tutao.tutanota.Bootstrap.init();
-			tutao.tutanota.gui.initKnockout();
-		});
-	}
-
-/*
-$(document).bind("touchstart", function(event) {
-	$("#mail").append('<p>touch start: ' + event.originalEvent.changedTouches[0].pageX + " " + event.originalEvent.changedTouches[0].pageY + "</p>")
-	//if ($(e.target).attr('dragObject')) {
-	//	e.preventDefault();
-	//	var orig = e.originalEvent;
-	//	var x = orig.changedTouches[0].pageX;
-	//	var y = orig.changedTouches[0].pageY;
-	//}
-});
-
-$(document).bind("touchend", function(event) {
-	$("#mail").append('<p>touch ended: ' + event.originalEvent.changedTouches[0].pageX + " " + event.originalEvent.changedTouches[0].pageY + "</p>")
-});
-
-$(document).bind("touchmove", function(event) {
-	$("#mail").append('<p>touch move: ' + event.originalEvent.targetTouches[0].pageX + " " + event.originalEvent.targetTouches[0].pageY + " " + event.originalEvent.identifier + " " + event.originalEvent.target + "</p>")
-});
-
-function touchOrClick(e) {
-	console.log($(e.target).attr('dragObject'));
-	if ($(e.target).attr('dragObject')) {
-		e.preventDefault();
-		var orig = e.originalEvent;
-		var x = orig.changedTouches[0].pageX;
-		var y = orig.changedTouches[0].pageY;
-		$("#dragObject").css({top: y, left: x});
-	}
-}
-*/
-</script>
 <div id="tutanota" data-bind='template: { name: "tutanota-template",  data: tutao.tutanota.app }'></div>
 
 <script type="text/html"  id="tutanota-template">
@@ -2172,8 +2120,6 @@ function touchOrClick(e) {
 			<h2 data-bind="lang: title"></h2>
             <div class="description" data-bind="visible: isErrorDialog,lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
-            <input id="addScreenshotCheckbox" type="checkbox" data-bind="checked: addScreenshot, visible: showAddScreenshot">
-            <label for="addScreenshotCheckbox" data-bind="lang: 'screenshot_label', visible: showAddScreenshot" />
             <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
             <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>

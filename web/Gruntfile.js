@@ -7,6 +7,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-appcache');
 
     function getIpAddress() {
         var os=require('os');
@@ -24,22 +25,6 @@ module.exports = function (grunt) {
         }
     }
 
-    var bower_libs = [
-        'bower_components/less/dist/less-1.7.0.js',
-        'bower_components/jQuery/dist/jquery.js',
-        'bower_components/knockout/index.js',
-        'bower_components/dispatch/dispatch.js',
-        'bower_components/jquery.transit/jquery.transit.js',
-        'bower_components/fastclick/lib/fastclick.js',
-        'bower_components/bluebird/js/browser/bluebird.js',
-        'bower_components/catiline/dist/catiline.js',
-        'bower_components/operative/dist/operative.js',
-        'bower_components/FileSaver/FileSaver.js',
-        'bower_components/asmcrypto/asmcrypto.js',
-        'bower_components/knockout-secure-binding/dist/knockout-secure-binding.js',
-        'bower_components/chai/chai.js' // only for testing
-    ];
-
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
@@ -51,7 +36,7 @@ module.exports = function (grunt) {
                 },
                 src: 'index.html',
                 blocks: {
-                    'libs': { src: ['lib/*.js']},
+                    'libs': { src: ['lib/*.js', 'lib/dev/*.js']},
                     'app': { src: ["js/**/*.js", "!js/util/init.js"] }
                 }
             },
@@ -73,8 +58,11 @@ module.exports = function (grunt) {
         uglify: {
             default: {
                 files: {
-                    "build/libs.min.js": 'libs/**/*.js',
-                    "build/app.min.js": "js/**/*.js"
+                    "build/app.min.js": ['js/**/*.js', '!js/generated/entity/**'],
+                    "build/lib.min.js": ['lib/*.js'],
+                    "build/gen1.min.js": ['js/generated/entity/tutanota/**/*.js'],
+                    "build/gen2.min.js": ['js/generated/entity/sys/**/*.js'],
+                    "build/gen3.min.js": ['js/generated/entity/monitor/**/*.js', 'js/generated/entity/base/**/*.js']
                 }
             }
         },
@@ -91,7 +79,7 @@ module.exports = function (grunt) {
         concat: {
             webapp: {
                 files: {
-                    'build/app.js': ["js/**/*.js", "!js/util/init.js", "!js/util/Environment.js"]
+                    'build/app.js': ['lib/*.js', "js/**/*.js", "!js/util/init.js"]
                 },
                 options: {
                     // Replace all 'use strict' statements in the code with a single one at the top
@@ -99,18 +87,13 @@ module.exports = function (grunt) {
                         return '// Source: ' + filepath + '\n' +
                             src.replace(/(^|\n)[ \t]*('use strict'|"use strict");?\s*/g, '$1');
                     },
-                    banner: "goog.provide(\"mizz.Env\"); \n\
-                        mizz.Env = { \n\
+                    banner: "goog.provide(\"tutao.Env\"); \n\
+                        tutao.Env = { \n\
                         ssl: false, \n\
                         server: '" + getIpAddress() + "', \n\
-                        port: '9012' \n\
+                        port: '9000' \n\
                     };\n\n",
-                    //footer: grunt.file.read("js/util/init.js").toString('utf-8')
-                }
-            },
-            libs: {
-                files: {
-                    'build/libs.js': 'libs/**/*.js'
+                    footer: "tutao.Bootstrap.init();"
                 }
             }
 
@@ -119,18 +102,12 @@ module.exports = function (grunt) {
         copy: {
             main: {
                 files: [
-                    // includes files within path
-                    {expand: true, src: ['images/**', 'fonts/**'], dest: 'build/'}
-                ]
-            },
-            bower_libs: {
-                files: [
-                    {expand: true, flatten: true, src: bower_libs, dest: 'libs/bower/'}
+                    {expand: true, src: ['images/**', 'fonts/**', 'graphics/**', 'messages.html'], dest: 'build/'},
+                    {expand: true, flatten: true, src: ['js/legacy/FlashFileSaver.swf'], dest: 'build//js/legacy/'}
                 ]
             },
             worker: {
                 files: [
-                    // includes files within path
                     {expand: true, src: ['libs/native/**'], dest: 'build/'}
                 ]
             }
@@ -147,9 +124,25 @@ module.exports = function (grunt) {
             }
         },
 
+        appcache: {
+            options: {
+                basePath: 'build'
+            },
+            all: {
+                dest: 'build/tutanota.appcache',
+                cache: {
+                    patterns: [
+                        'build/**/*',
+                        '!build/test.html'
+                    ]
+                },
+                network: '*'
+            }
+        },
+
         watch: {
             scripts: {
-                files: ['index.html', 'test.html', 'js/**/*.js', 'libs/**/*.js', 'less/**.less'],
+                files: ['index.html', 'test/test.html', 'js/**/*.js', 'lib/*.js', 'less/**.less'],
                 tasks: ['concat', 'processhtml', 'copy', 'less'],
                 options: {
                     spawn: false
@@ -162,4 +155,5 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("default", ['clean', 'fileblocks', 'concat', 'processhtml', 'copy', 'less']);
+    grunt.registerTask("dist", ['clean', 'fileblocks', 'concat', 'processhtml', 'copy', 'less', 'appcache']);
 }

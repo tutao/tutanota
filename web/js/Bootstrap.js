@@ -8,7 +8,7 @@ goog.provide("tutao.tutanota.Bootstrap");
  * This binding is located in gui, so that it is not used for unit or integration tests.
  */
 tutao.tutanota.Bootstrap.init = function () {
-
+    var launch = function () {
     // disable all registered event handlers on the document and the window
     $(document).off();
     $(window).off();
@@ -63,6 +63,12 @@ tutao.tutanota.Bootstrap.init = function () {
 	//	tutao.locator.loginViewModel.login();
     //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
 
+        tutao.tutanota.gui.initKnockout();
+    };
+
+    $(document).ready(function() {
+        launch();
+    });
 };
 
 /**

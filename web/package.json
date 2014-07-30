@@ -25,6 +25,14 @@
     "karma-phantomjs-launcher": "~0.1.4",
     "karma-chrome-launcher": "~0.1.4",
     "karma-junit-reporter": "~0.2.2",
-    "karma-htmlfile-reporter": "~0.1.2"
+    "karma-htmlfile-reporter": "~0.1.2",
+    "grunt-appcache": "~0.1.6",
+    "gulp": "~3.8.6",
+    "gulp-uglify": "~0.3.1",
+    "gulp-concat": "~2.3.4"
+  },
+  "dependencies": {
+    "merge-stream": "~0.1.5",
+    "dev": "~0.1.3"
   }
 }
