@@ -4,13 +4,15 @@
  * Executes all initializations needed for the unit tests to run.
  */
 var setupLocator = function() {
+    tutao.env = new tutao.Environment(tutao.Env.LOCAL, location.protocol == 'https:' ? true : false, location.hostname, location.port === '' ? '' : location.port);
+
     Promise.longStackTraces();
     if (typeof window.parent.karma != 'undefined') {
         // karma
-        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/');
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/worker/');
     } else {
         // mocha standalone
-        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/');
+        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
     }
 
 	var singletons = {

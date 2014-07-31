@@ -1,6 +1,6 @@
 "use strict";
 
-describe("IndexerTest", function () {
+describe.skip("IndexerTest", function () {
 
     var assert = chai.assert;
     JsMockito.Integration.importTo(window);

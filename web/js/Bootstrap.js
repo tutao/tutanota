@@ -75,7 +75,7 @@ tutao.tutanota.Bootstrap.init = function () {
  * @export
  */
 tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/');
+    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
     var singletons = {
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.AesWorkerProxy,

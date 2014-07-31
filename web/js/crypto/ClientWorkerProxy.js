@@ -40,24 +40,26 @@ tutao.crypto.ClientWorkerProxy = function() {
 };
 
 tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath) {
-/* begin dev ClientWorkerProxy section */
-	//everything inside the dev section is replaced by the correct import for the production version
-	tutao.crypto.ClientWorkerProxy.WORKER_FILE = srcPath + 'crypto/ClientWorker.js';
-	tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [
-		libsPath + 'closure-library-base-2012-01-19.js',
-		libsPath + 'crypto-jsbn-2012-08-09_1.js',
-		libsPath + 'crypto-sjcl-2012-08-09_1.js',
-		srcPath + 'crypto/AesInterface.js',
-		srcPath + 'crypto/SjclAes.js',
-		srcPath + 'crypto/RsaInterface.js',
-		srcPath + 'crypto/JsbnRsa.js',
-		srcPath + 'crypto/CryptoError.js',
-		srcPath + 'crypto/RandomizerInterface.js',
-		srcPath + 'crypto/WorkerRandomizer.js',
-		srcPath + 'crypto/Oaep.js',
-		srcPath + 'util/EncodingConverter.js'
-	];
-/* end dev ClientWorkerProxy section */
+    if (tutao.env.type === tutao.Env.LOCAL) {
+        tutao.crypto.ClientWorkerProxy.WORKER_FILE = srcPath + 'crypto/ClientWorker.js';
+        tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [
+                libsPath + 'closure-library-base-2012-01-19.js',
+                libsPath + 'crypto-jsbn-2012-08-09_1.js',
+                libsPath + 'crypto-sjcl-2012-08-09_1.js',
+                srcPath + 'crypto/AesInterface.js',
+                srcPath + 'crypto/SjclAes.js',
+                srcPath + 'crypto/RsaInterface.js',
+                srcPath + 'crypto/JsbnRsa.js',
+                srcPath + 'crypto/CryptoError.js',
+                srcPath + 'crypto/RandomizerInterface.js',
+                srcPath + 'crypto/WorkerRandomizer.js',
+                srcPath + 'crypto/Oaep.js',
+                srcPath + 'util/EncodingConverter.js'
+        ];
+    } else {
+        tutao.crypto.ClientWorkerProxy.WORKER_FILE = 'app.min.js';
+        tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [];
+    }
 };
 
 /**

@@ -325,7 +325,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	login_action: "Log in",
 	login_msg: "Logging in.",
 	mailAddress_label: "Email address",
-	socialMedia_label: "If you like us, liks us:",
+	socialMedia_label: "If you like us, like us:",
 
 	// header
 	logo_alt: "Tutanota logo",

@@ -735,24 +735,26 @@ div.bubble {
   line-height: 24px;
   cursor: pointer;
   border-radius: 5px;
-  padding-left: 5px;
   .nonSelectable;
   margin-bottom: 2px;
 
   > div.bubbleText {
     display: inline-block;
     .fadeTextOut;
-    padding-right: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
   }
 
   > div.removeBubble {
     display: inline-block;
     height: 100%;
     border-left: 2px solid @white;
-    padding: 2px;
+    overflow: hidden;
 
     > div {
-      background-size: 14px;
+      padding-left: 7px;
+      padding-right: 7px;
+      font-size: 14px;
     }
   }
 }
