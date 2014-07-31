@@ -22,7 +22,7 @@ tutao.entity.sys.UserExternalAuthInfo = function(parent, data) {
     this._autoTransmitPassword = null;
     this._latestSaltHash = null;
     this._variableAuthInfo = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.UserExternalAuthInfo.prototype;
 };

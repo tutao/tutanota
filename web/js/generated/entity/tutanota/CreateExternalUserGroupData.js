@@ -22,7 +22,7 @@ tutao.entity.tutanota.CreateExternalUserGroupData = function(parent, data) {
     this._groupInfoListEncSessionKey = null;
     this._mailAddress = null;
     this._symEncGKey = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.CreateExternalUserGroupData.prototype;
 };

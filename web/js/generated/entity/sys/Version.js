@@ -22,7 +22,7 @@ tutao.entity.sys.Version = function(parent, data) {
     this._version = null;
     this._author = null;
     this._authorGroupInfo = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Version.prototype;
 };
@@ -121,7 +121,7 @@ tutao.entity.sys.Version.prototype.setTimestamp = function(timestamp) {
  */
 tutao.entity.sys.Version.prototype.getTimestamp = function() {
   if (isNaN(this._timestamp)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._timestamp);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._timestamp);
   }
   return new Date(Number(this._timestamp));
 };

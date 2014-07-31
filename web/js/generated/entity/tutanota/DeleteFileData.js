@@ -15,7 +15,7 @@ tutao.entity.tutanota.DeleteFileData = function(data) {
     this.__format = "0";
     this._group = null;
     this._file = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.DeleteFileData.prototype;
 };

@@ -18,7 +18,7 @@ tutao.entity.tutanota.ContactAddress = function(parent, data) {
     this._address = null;
     this._customTypeName = null;
     this._type = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ContactAddress.prototype;
 };

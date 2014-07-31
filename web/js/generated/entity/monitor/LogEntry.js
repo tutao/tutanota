@@ -35,7 +35,7 @@ tutao.entity.monitor.LogEntry = function(data) {
     this._thread = null;
     this._url = null;
     this._userId = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.monitor.LogEntry.prototype;
 };
@@ -221,7 +221,7 @@ tutao.entity.monitor.LogEntry.prototype.setDate = function(date) {
  */
 tutao.entity.monitor.LogEntry.prototype.getDate = function() {
   if (isNaN(this._date)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._date);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
   }
   return new Date(Number(this._date));
 };
@@ -379,7 +379,7 @@ tutao.entity.monitor.LogEntry.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.monitor.LogEntry>>} Resolves to an array of LogEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.monitor.LogEntry.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.monitor.LogEntry, tutao.entity.monitor.LogEntry.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.monitor.LogEntry, tutao.entity.monitor.LogEntry.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

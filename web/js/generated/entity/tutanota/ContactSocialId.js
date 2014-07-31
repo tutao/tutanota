@@ -18,7 +18,7 @@ tutao.entity.tutanota.ContactSocialId = function(parent, data) {
     this._customTypeName = null;
     this._socialId = null;
     this._type = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ContactSocialId.prototype;
 };

@@ -156,27 +156,3 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
 tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
     tutao.locator.navigator.register();
 };
-
-/**
- * Completely clears the DB for the current user
- */
-tutao.tutanota.ctrl.LoginViewModel.prototype.clearDbForUser = function() {
-	// delete the mails from the server
-    var self = this;
-	return tutao.locator.userController.loginUser(this.selectedUser(), this.selectedUser()).then(function() {
-        return tutao.locator.mailBoxController.initForUser().then(function() {
-            return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(loadedMails) {
-                if (loadedMails.length > 0) {
-                    for (var i = 0; i < loadedMails.length; i++) {
-                        //enable when deleting mails is activated: loadedMails[i].erase(function() {});
-                    }
-                }
-
-                // delete the search index
-                tutao.locator.dao.init("Tutanota_" + self.selectedUser(), function() {
-                    tutao.locator.dao.clear();
-                });
-            });
-        });
-	});
-};

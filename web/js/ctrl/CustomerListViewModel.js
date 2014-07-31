@@ -31,7 +31,7 @@ tutao.tutanota.ctrl.CustomerListViewModel = function(systemInstance) {
     this.moreAvailable = ko.observable(true);
 };
 
-tutao.tutanota.ctrl.CustomerListViewModel.STEP_RANGE_COUNT = 2;
+tutao.tutanota.ctrl.CustomerListViewModel.STEP_RANGE_COUNT = 200;
 
 tutao.tutanota.ctrl.CustomerListViewModel.prototype.loadMore = function() {
     var self = this;

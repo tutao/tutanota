@@ -26,7 +26,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel = function(systemInstance) {
     this.moreAvailable = ko.observable(true);
 };
 
-tutao.tutanota.ctrl.RegistrationDataListViewModel.STEP_RANGE_COUNT = 2;
+tutao.tutanota.ctrl.RegistrationDataListViewModel.STEP_RANGE_COUNT = 200;
 
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.show = function() {
     this.registrationDataList([]);

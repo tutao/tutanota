@@ -19,6 +19,7 @@ goog.provide('tutao.rest.EntityRestCache');
  *
  * @constructor
  * @implements tutao.rest.EntityRestInterface
+ * @implements {tutao.event.EventBusListener}
  */
 tutao.rest.EntityRestCache = function() {
     /**
@@ -68,6 +69,9 @@ tutao.rest.EntityRestCache = function() {
  */
 tutao.rest.EntityRestCache.prototype.setTarget = function(entityRestTarget) {
 	this._target = entityRestTarget;
+    if (tutao.locator.eventBus) { // there may be no eventBus instance if Tutanota is not supported
+        tutao.locator.eventBus.addListener(this);
+    }
 };
 
 /**
@@ -83,6 +87,7 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 			// cache the received element
 			if (!versionRequest) {
 				self._addToCache(path, element);
+                self._tryAddToRange(path, element);
 			}
 			return element;
 		});
@@ -121,7 +126,7 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
 			for ( var i = 0; i < serverElements.length; i++) {
 				// cache the received elements
 				self._addToCache(path, serverElements[i]);
-
+                self._tryAddToRange(path, serverElements[i]);
 				// merge with cached elements
 				elements.push(serverElements[i]);
 			}			
@@ -145,14 +150,18 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
         var allRange = this._db[path][listId]['allRange'];
 
 		if (allRange) {
+            // If element id does not fit into range do not add it.
+            if( tutao.rest.EntityRestInterface.firstBiggerThanSecond (elementId, this._db[path][listId].upperRangeId) || tutao.rest.EntityRestInterface.firstBiggerThanSecond (this._db[path][listId].lowerRangeId, elementId)){
+                return;
+            }
+
             for(var i=0; i<allRange.length; i++){
                 var rangeElement = allRange[i];
-                if ( tutao.rest.EntityRestInterface.firstBiggerThanSecond(rangeElement, elementId)){
+                if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(rangeElement, elementId)){
                     allRange.splice(i, 0, elementId);
                     return;
                 }
-                if ( rangeElement === elementId){
-                    allRange.splice(i, 1, elementId);
+                if (rangeElement === elementId){
                     return;
                 }
             }
@@ -249,9 +258,10 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 
 	if (path.indexOf("/rest/monitor/") != -1 || !type.GENERATED_ID) { // customIds shall not be cached because new instances might be inserted into already retrieved ranges
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers);
-	} else if (!listData['allRange']) {
+	} else if (!listData['allRange'] || (start == tutao.rest.EntityRestInterface.GENERATED_MAX_ID && reverse && listData['allRange'].upperRangeId != tutao.rest.EntityRestInterface.GENERATED_MAX_ID)) {
+        // if our upper range id is not MAX_ID and we now read the range starting with MAX_ID we just replace the complete existing range with the new one because we do not want to handle multiple ranges
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers).then(function(elements) {
-            if ( elements.length > 0){
+            if (elements.length > 0) {
                 listData.allRange = [];
                 listData.lowerRangeId = start;
                 listData.upperRangeId = start;
@@ -410,23 +420,27 @@ tutao.rest.EntityRestCache.prototype._provideFromCache = function(path, listId, 
 tutao.rest.EntityRestCache.prototype.deleteElement = function(path, id, listId, parameters, headers) {
 	var self = this;
 	return this._target.deleteElement(path, id, listId, parameters, headers).then(function(data) {
-		if (!listId) {
-			listId = "0";
-		}
-		if (!self._db[path] || !self._db[path][listId]) {
-			// this may happen when the elements where not yet cached, but the id was
-			// taken from another loaded element. This is not an error.
-			return data;
-		}
-        if (self._db[path][listId]['entities'][id]) {
-            delete self._db[path][listId]['entities'][id];
-        }
-        if (self._db[path][listId]['allRange']) {
-            // if the id exists in the range, then delete it
-            tutao.util.ArrayUtils.remove(self._db[path][listId]['allRange'], id);
-        }
+        self._deleteFromCache(path, id, listId);
 		return data;
 	});
+};
+
+tutao.rest.EntityRestCache.prototype._deleteFromCache = function(path, id, listId) {
+    if (!listId) {
+        listId = "0";
+    }
+    if (!this._db[path] || !this._db[path][listId]) {
+        // this may happen when the elements where not yet cached, but the id was
+        // taken from another loaded element. Or the element was deleted with a normal rest call. This is not an error.
+        return;
+    }
+    if (this._db[path][listId]['entities'][id]) {
+        delete this._db[path][listId]['entities'][id];
+    }
+    if (this._db[path][listId]['allRange']) {
+        // if the id exists in the range, then delete it
+        tutao.util.ArrayUtils.remove(this._db[path][listId]['allRange'], id);
+    }
 };
 
 /**
@@ -457,3 +471,20 @@ tutao.rest.EntityRestCache.getListId = function(element) {
     }
 };
 
+/**
+ * Notifies the listener that new data has been received.
+ * @param {tutao.entity.sys.EntityUpdate} data The update notification.
+ */
+tutao.rest.EntityRestCache.prototype.notifyNewDataReceived = function(data) {
+    if (data.getOperation() === tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_DELETE) {
+        this._deleteFromCache("/rest/" + data.getApplication().toLowerCase() + "/" + data.getType().toLocaleLowerCase(), data.getInstanceId(), data.getInstanceListId());
+    }
+};
+
+
+/**
+ * Notifies a listener about the reconnect event,
+ */
+tutao.rest.EntityRestCache.prototype.notifyReconnected = function() {
+    // nothing to do
+};

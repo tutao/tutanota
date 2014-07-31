@@ -22,7 +22,7 @@ tutao.entity.valueencrypted.Aggregated = function(parent, data) {
     this._date = null;
     this._number = null;
     this._string = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.valueencrypted.Aggregated.prototype;
 };
@@ -156,7 +156,7 @@ tutao.entity.valueencrypted.Aggregated.prototype.getDate = function() {
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._date);
   if (isNaN(value)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + value);
+    throw new tutao.InvalidDataError('invalid time data: ' + value);
   }
   return new Date(Number(value));
 };

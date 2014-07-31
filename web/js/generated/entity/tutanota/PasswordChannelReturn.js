@@ -16,7 +16,7 @@ tutao.entity.tutanota.PasswordChannelReturn = function(data) {
   } else {
     this.__format = "0";
     this._phoneNumberChannels = [];
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordChannelReturn.prototype;
 };

@@ -90,6 +90,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
         }, this);
     }
 
+    // the maxWidth might be 0 if the domButtonBar is not yet in the dom. in this case all visible buttons are removed by the filter and we have to make sure another trigger comes later
     this.maxWidth = $(this.domButtonBar()).width();
 
     var visibleButtonList = [].concat(this.allButtons());
