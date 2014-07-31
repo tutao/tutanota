@@ -15,7 +15,6 @@ var minifyCSS = require('gulp-minify-css');
 var gulpFilter = require('gulp-filter');
 var insert = require('gulp-insert');
 var gzip = require('gulp-gzip');
-var _ = require('lodash');
 var karma = require('karma').server;
 
 var fs = require('fs');
