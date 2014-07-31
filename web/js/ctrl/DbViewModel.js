@@ -9,7 +9,7 @@ goog.provide('tutao.tutanota.ctrl.DbViewModel');
 tutao.tutanota.ctrl.DbViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	
-	this.MAX_LIST_LOAD_COUNT = tutao.rest.EntityRestInterface.MAX_RANGE_COUNT;
+	this.MAX_LIST_LOAD_COUNT = 100;
 
 	this.message = ko.observable("");
 	

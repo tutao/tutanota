@@ -69,7 +69,9 @@ tutao.rest.EntityRestCache = function() {
  */
 tutao.rest.EntityRestCache.prototype.setTarget = function(entityRestTarget) {
 	this._target = entityRestTarget;
-    tutao.locator.eventBus.addListener(this);
+    if (tutao.locator.eventBus) { // there may be no eventBus instance if Tutanota is not supported
+        tutao.locator.eventBus.addListener(this);
+    }
 };
 
 /**
@@ -85,6 +87,7 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 			// cache the received element
 			if (!versionRequest) {
 				self._addToCache(path, element);
+                self._tryAddToRange(path, element);
 			}
 			return element;
 		});
@@ -123,7 +126,7 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
 			for ( var i = 0; i < serverElements.length; i++) {
 				// cache the received elements
 				self._addToCache(path, serverElements[i]);
-
+                self._tryAddToRange(path, serverElements[i]);
 				// merge with cached elements
 				elements.push(serverElements[i]);
 			}			
@@ -147,14 +150,18 @@ tutao.rest.EntityRestCache.prototype._tryAddToRange = function(path, element) {
         var allRange = this._db[path][listId]['allRange'];
 
 		if (allRange) {
+            // If element id does not fit into range do not add it.
+            if( tutao.rest.EntityRestInterface.firstBiggerThanSecond (elementId, this._db[path][listId].upperRangeId) || tutao.rest.EntityRestInterface.firstBiggerThanSecond (this._db[path][listId].lowerRangeId, elementId)){
+                return;
+            }
+
             for(var i=0; i<allRange.length; i++){
                 var rangeElement = allRange[i];
-                if ( tutao.rest.EntityRestInterface.firstBiggerThanSecond(rangeElement, elementId)){
+                if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(rangeElement, elementId)){
                     allRange.splice(i, 0, elementId);
                     return;
                 }
-                if ( rangeElement === elementId){
-                    allRange.splice(i, 1, elementId);
+                if (rangeElement === elementId){
                     return;
                 }
             }

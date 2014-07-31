@@ -89,7 +89,8 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
  */
 tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function() {
     var self = this;
-    return tutao.entity.sys.Permission.loadRange(this._entity.__permissions, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false).then(function(permissions, exception) {
+    //TODO (Performance) avoid to load elements from server if some are already cached.
+    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Permission, this._entity.__permissions).then(function(permissions, exception) {
         if (tutao.locator.userController.isInternalUserLoggedIn()) {
             self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
             if (self._sessionKey != null) {
@@ -300,7 +301,8 @@ tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId) {
  * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>}
  */
 tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId) {
-	return tutao.entity.sys.BucketPermission.loadRange(bucketId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false);
+    //TODO (Performance) avoid to load elements from server if some are already cached.
+    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.BucketPermission, bucketId);
 };
 
 /**

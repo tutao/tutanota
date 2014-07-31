@@ -25,11 +25,6 @@ tutao.rest.EntityRestInterface.GENERATED_MIN_ID = "------------";
  */
 tutao.rest.EntityRestInterface.CUSTOM_MIN_ID = "";
 
-/**
- * The maximum allowed number of elements that can be requested via getElementRange() in list element entities
- * @const
- */
-tutao.rest.EntityRestInterface.MAX_RANGE_COUNT = 1000;
 
 /**
  * Gets an element from the server.

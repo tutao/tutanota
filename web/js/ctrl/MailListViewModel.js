@@ -76,6 +76,18 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.buttons = [];
     this.buttons.push(new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction"));
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    // this is a workaround:
+    // the action bar visibility depends on the visibility of the delete trash button
+    // the visible buttons in the button bar view model can only be calculated if the action bar is visible and in the dom
+    // to make sure the button bar view model gets notified as late as possible, notify it when the action bar is made visible with a timeout
+    this.actionBarVisible.subscribe(function(value) {
+        if (value) {
+            var self = this;
+            setTimeout(function() {
+                self.buttonBarViewModel.updateVisibleButtons();
+            }, 0);
+        }
+    }, this);
 
     this.showSpinner = ko.computed(function () {
         return this.deleting();
@@ -84,14 +96,10 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.moreAvailable = ko.computed(function() {
         return this._tagMoreAvailable[this._currentActiveSystemTag()]();
     }, this);
+
+    this.stepRangeCount = 25;
 };
 
-
-/**
- * Number of mail elements to load in one step.
- * @const
- */
-tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT = 2; // FIXME 25 for mobile, 200 for desktop?
 
 /**
  * Initialize the MailListViewModel:
@@ -102,6 +110,11 @@ tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT = 2; // FIXME 25 for mobi
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     var self = this;
+    if (tutao.tutanota.util.ClientDetector.isMobileDevice()){
+        this.stepRangeCount = 25;
+    } else {
+        this.stepRangeCount = 200;
+    }
     this.searchButtonVisible(tutao.locator.dao.isSupported() && tutao.locator.viewManager.isInternalUserLoggedIn());
     return this.loadMoreMails().then(function() {
         if (tutao.locator.userController.isExternalUserLoggedIn()) {
@@ -146,26 +159,29 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
 
 tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alreadyLoadedForTagCount, startId, tagId) {
     var self = this;
-    return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), startId, tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT, true).then(function(mails) {
-        self._tagMoreAvailable[tagId](mails.length == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT);
+    return tutao.entity.tutanota.Mail.loadRange(tutao.locator.mailBoxController.getUserMailBox().getMails(), startId, self.stepRangeCount, true).then(function(mails) {
+        self._tagMoreAvailable[tagId](mails.length == self.stepRangeCount);
         for (var i = 0; i < mails.length; i++) {
             if (tagId == self._getTagForMail(mails[i])) {
                 var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
                 self.currentTagFilterResult[tagId].push(elementId);
                 alreadyLoadedForTagCount++;
                 if (tagId == self._currentActiveSystemTag()) {
-                    self.mails.push(mails[i]);
+					// Do not push elements to observable array to increase performance. ValueHasMutated is called later
+                    self.mails().push(mails[i]);
                 }
             }
-            if (alreadyLoadedForTagCount == tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) {
+            if (alreadyLoadedForTagCount == self.stepRangeCount) {
                 // we may have loaded more mails, but we have already added enough for the current tag list, so stop now
                 break;
             }
         }
-        if ((alreadyLoadedForTagCount < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) && self._tagMoreAvailable[tagId]()) {
+        if ((alreadyLoadedForTagCount < self.stepRangeCount) && self._tagMoreAvailable[tagId]()) {
             var startId = tutao.rest.EntityRestInterface.getElementId(mails[mails.length-1]);
             return self._loadMoreMails(alreadyLoadedForTagCount, startId, tagId);
         } else {
+			// Notify about list changes
+            self.mails.valueHasMutated();
             return Promise.resolve();
         }
     });
@@ -215,7 +231,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(ta
     return this._updateMailList().then(function() {
         tutao.locator.mailView.showDefaultColumns();
         // load more mails if there are not enough shown for this tag
-        if (self.moreAvailable() && self.currentTagFilterResult[tagId].length < tutao.tutanota.ctrl.MailListViewModel.STEP_RANGE_COUNT) {
+        if (self.moreAvailable() && self.currentTagFilterResult[tagId].length < self.stepRangeCount) {
             return self.loadMoreMails();
         } else {
             return Promise.resolve();
