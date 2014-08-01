@@ -167,18 +167,10 @@ describe("MailListViewModelTest", function () {
                                 mail3.setUnread(true);
                                 mail3.setTrashed(false);
                                 return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mail3, tutao.locator.mailBoxController.getUserMailBox().getMails(), null, null).then(function (returnEntity) {
-                                    return self.vm.updateOnNewMails([mail2, mail3]).then(function () {
-                                        assert.deepEqual([mail3, mail2, mail1], self.vm.mails());
-                                    });
+                                    self.vm.updateOnNewMails([mail2, mail3]);
+                                    assert.deepEqual([mail3, mail2, mail1], self.vm.mails());
                                 });
                             });
-                        });
-                    }).then(function () {
-                        // check search
-                        self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("all"), ko.observable("tooltip"), ko.observable(""), true));
-                        self.vm.bubbleInputViewModel.bubbles.push(new tutao.tutanota.ctrl.bubbleinput.Bubble(null, ko.observable("test"), ko.observable("tooltip"), ko.observable(""), true));
-                        return self.vm.search().then(function () {
-                            assert.deepEqual([mail2, mail1], self.vm.mails());
                         });
                     }).then(function () {
                         //check tag status change

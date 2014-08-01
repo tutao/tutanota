@@ -258,7 +258,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 
 	if (path.indexOf("/rest/monitor/") != -1 || !type.GENERATED_ID) { // customIds shall not be cached because new instances might be inserted into already retrieved ranges
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers);
-	} else if (!listData['allRange'] || (start == tutao.rest.EntityRestInterface.GENERATED_MAX_ID && reverse && listData['allRange'].upperRangeId != tutao.rest.EntityRestInterface.GENERATED_MAX_ID)) {
+	} else if (!listData['allRange'] || (start == tutao.rest.EntityRestInterface.GENERATED_MAX_ID && reverse && listData.upperRangeId != tutao.rest.EntityRestInterface.GENERATED_MAX_ID)) {
         // if our upper range id is not MAX_ID and we now read the range starting with MAX_ID we just replace the complete existing range with the new one because we do not want to handle multiple ranges
 		return this._target.getElementRange(type, path, listId, start, count, reverse, parameters, headers).then(function(elements) {
             if (elements.length > 0) {
