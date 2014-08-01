@@ -450,7 +450,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     screenshot_label: "Attach screenshot",
     feedbackInfo_msg: "The message and your browser identifier are sent encrypted to support@tutao.de.",
     feedbackErrorInfo_msg: "The message, error details and your browser identifier are sent encrypted to support@tutao.de.",
-    faq_msg: "If you have a question about Tutanota, please check the <a href=\"https://tutanota.de/#!faq\">FAQ</a> first.",
+    faq_msg: "If you have a question about Tutanota, please check the <a target=\"_blank\" href=\"https://tutanota.de/#!faq\">FAQ</a> first.",
 
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
@@ -500,7 +500,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     notificationMailSignatureNone_msg:  "<none>",
 	notificationMailSignature_msg: "This signature will be used for all notification emails to external recipients.",
     notificationMailSignatureSubject_msg: "Confidential email from $1",
-    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/info'>Tutanota</a>, the reviewed and certified service from Germany for encrypted emails. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
+    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/#!info'>Tutanota</a>, the reviewed and certified service from Germany for encrypted emails. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
     signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
     unsupportedMailFeature_msg: "You have selected a read receipt, voting options or a deferred delivery time. Unfortunately, these functions are not yet supported by Tutanota. Would you like to send the email anyway?"
 };
@@ -884,7 +884,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	screenshot_label: "Screenshot mitsenden",
     feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
     feedbackErrorInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung und Fehlerdetails verschlüsselt an support@tutao.de gesendet.",
-    faq_msg: "Wenn Sie eine Frage zu Tutanota haben, bitte schauen sie zuerst in den <a href=\"https://tutanota.de/#!faq\">FAQ</a> nach.",
+    faq_msg: "Wenn du eine Frage zu Tutanota hast, schau doch bitte zuerst in den <a target=\"_blank\" href=\"https://tutanota.de/#!faq\">FAQ</a> nach.",
 
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter für Microsoft Outlook",
@@ -934,7 +934,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     notificationMailSignatureNone_msg:  "<keine>",
     notificationMailSignature_msg: "Diese Signatur wird für Benachrichtigungs-E-Mails an externe Empfänger verwendet.",
     notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
-    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
+    notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/#!info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
     signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?",
     unsupportedMailFeature_msg: "Sie haben eine Lesebestätigung, Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?"
 };
