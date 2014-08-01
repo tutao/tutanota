@@ -23,7 +23,7 @@ tutao.entity.tutanota.CreateFileData = function(data) {
     this._mimeType = null;
     this._fileData = null;
     this._parentFolder = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.CreateFileData.prototype;
 };

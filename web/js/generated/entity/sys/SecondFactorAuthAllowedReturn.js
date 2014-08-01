@@ -13,7 +13,7 @@ tutao.entity.sys.SecondFactorAuthAllowedReturn = function(data) {
   } else {
     this.__format = "0";
     this._allowed = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.SecondFactorAuthAllowedReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SecondFactorAuthAllowedReturn.MODEL_VERSION = '4';
+tutao.entity.sys.SecondFactorAuthAllowedReturn.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -101,6 +101,6 @@ tutao.entity.sys.SecondFactorAuthAllowedReturn.load = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 3;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.SecondFactorAuthAllowedReturn, tutao.entity.sys.SecondFactorAuthAllowedReturn.PATH, null, null, parameters, headers);
 };

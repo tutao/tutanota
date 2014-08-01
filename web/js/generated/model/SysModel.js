@@ -4,7 +4,7 @@ goog.provide('tutao.tutanota.model.sys_model');
 
 tutao.tutanota.model.sys_model = {
 name: "sys",
-version: "4",
+version: "3",
 types: {
   KeyPair: {
     name: "KeyPair",
@@ -1140,7 +1140,6 @@ types: {
       { name: "application", id: "464", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false"},
       { name: "instanceId", id: "467", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false"},
       { name: "instanceListId", id: "466", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false"},
-      { name: "operation", id: "624", since: "4", type: "Number", cardinality: "One", final: "false", enrypted: "false"},
       { name: "type", id: "465", since: "1", type: "String", cardinality: "One", final: "false", enrypted: "false"},
     ], associations: [
     ]

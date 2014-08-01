@@ -15,7 +15,7 @@ tutao.entity.sys.AutoLoginDataGet = function(data) {
     this.__format = "0";
     this._deviceToken = null;
     this._userId = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.AutoLoginDataGet.prototype;
 };
@@ -24,7 +24,7 @@ tutao.entity.sys.AutoLoginDataGet = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AutoLoginDataGet.MODEL_VERSION = '4';
+tutao.entity.sys.AutoLoginDataGet.MODEL_VERSION = '3';
 
 /**
  * The encrypted flag.

@@ -13,7 +13,7 @@ tutao.entity.tutanota.WelcomeMailData = function(data) {
   } else {
     this.__format = "0";
     this._language = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.WelcomeMailData.prototype;
 };

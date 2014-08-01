@@ -29,7 +29,7 @@ tutao.entity.sys.ShareData = function(data) {
     this._shareType = null;
     this._shareholderMailAddress = null;
     this._writePermission = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ShareData.prototype;
 };
@@ -38,7 +38,7 @@ tutao.entity.sys.ShareData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ShareData.MODEL_VERSION = '4';
+tutao.entity.sys.ShareData.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -301,7 +301,7 @@ tutao.entity.sys.ShareData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 3;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.ShareData.PATH, this, parameters, headers, null);
 };

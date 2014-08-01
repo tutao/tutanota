@@ -9,6 +9,7 @@ describe("JavaCompatibilityTest", function () {
     var assert = chai.assert;
 
     it("testJavaCompatibility", function (done) {
+        this.timeout(5000);
         var aesFacade = tutao.locator.aesCrypter;
         var rsaFacade = new tutao.crypto.RsaWorkerProxy();
 

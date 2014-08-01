@@ -24,7 +24,7 @@ tutao.entity.tutanota.FileData = function(data) {
     this._size = null;
     this._unreferenced = null;
     this._blocks = [];
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FileData.prototype;
 };
@@ -195,7 +195,7 @@ tutao.entity.tutanota.FileData.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileData>>} Resolves to an array of FileData or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileData.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return entities;
   });
 };

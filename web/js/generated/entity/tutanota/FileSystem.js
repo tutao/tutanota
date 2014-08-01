@@ -21,7 +21,7 @@ tutao.entity.tutanota.FileSystem = function(data) {
     this._shareBucketId = null;
     this._symEncShareBucketKey = null;
     this._files = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FileSystem.prototype;
 };
@@ -201,7 +201,7 @@ tutao.entity.tutanota.FileSystem.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileSystem>>} Resolves to an array of FileSystem or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileSystem.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

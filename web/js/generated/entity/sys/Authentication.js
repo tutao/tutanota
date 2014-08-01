@@ -16,7 +16,7 @@ tutao.entity.sys.Authentication = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._authVerifier = null;
     this._userId = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.Authentication.prototype;
 };

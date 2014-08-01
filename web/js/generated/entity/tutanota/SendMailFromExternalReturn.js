@@ -13,7 +13,7 @@ tutao.entity.tutanota.SendMailFromExternalReturn = function(data) {
   } else {
     this.__format = "0";
     this._senderMail = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailFromExternalReturn.prototype;
 };

@@ -22,7 +22,7 @@ tutao.entity.tutanota.NotificationMail = function(parent, data) {
     this._recipientMailAddress = null;
     this._recipientName = null;
     this._subject = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.NotificationMail.prototype;
 };

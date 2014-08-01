@@ -17,7 +17,7 @@ tutao.entity.tutanota.PasswordMessagingData = function(data) {
     this._language = null;
     this._numberId = null;
     this._symKeyForPasswordTransmission = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordMessagingData.prototype;
 };

@@ -56,7 +56,7 @@ tutao.entity.tutanota.Mail = function(data) {
     this._conversationEntry = null;
     this._sender = null;
     this._toRecipients = [];
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.Mail.prototype;
 };
@@ -307,7 +307,7 @@ tutao.entity.tutanota.Mail.prototype.setReceivedDate = function(receivedDate) {
  */
 tutao.entity.tutanota.Mail.prototype.getReceivedDate = function() {
   if (isNaN(this._receivedDate)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._receivedDate);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._receivedDate);
   }
   return new Date(Number(this._receivedDate));
 };
@@ -327,7 +327,7 @@ tutao.entity.tutanota.Mail.prototype.setSentDate = function(sentDate) {
  */
 tutao.entity.tutanota.Mail.prototype.getSentDate = function() {
   if (isNaN(this._sentDate)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._sentDate);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._sentDate);
   }
   return new Date(Number(this._sentDate));
 };
@@ -521,7 +521,7 @@ tutao.entity.tutanota.Mail.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.Mail>>} Resolves to an array of Mail or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.Mail.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

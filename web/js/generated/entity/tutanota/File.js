@@ -33,7 +33,7 @@ tutao.entity.tutanota.File = function(data) {
     this._data = null;
     this._parent = null;
     this._subFiles = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.File.prototype;
 };
@@ -376,7 +376,7 @@ tutao.entity.tutanota.File.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.File>>} Resolves to an array of File or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.File.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

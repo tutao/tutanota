@@ -39,7 +39,7 @@ tutao.entity.tutanota.InitGroupData = function(data) {
     this._symEncGroupShareBucketKey = null;
     this._symEncMailBoxSessionKey = null;
     this._symEncMailShareBucketKey = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.InitGroupData.prototype;
 };

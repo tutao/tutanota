@@ -21,7 +21,7 @@ tutao.entity.tutanota.CreateFolderData = function(data) {
     this._listEncSessionKey = null;
     this._symEncSessionKey = null;
     this._parentFolder = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.CreateFolderData.prototype;
 };

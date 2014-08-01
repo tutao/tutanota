@@ -13,7 +13,7 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn = function(data) {
   } else {
     this.__format = "0";
     this._mailSent = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationVerifyDomainPostReturn.MODEL_VERSION = '4';
+tutao.entity.sys.RegistrationVerifyDomainPostReturn.MODEL_VERSION = '3';
 
 /**
  * The encrypted flag.

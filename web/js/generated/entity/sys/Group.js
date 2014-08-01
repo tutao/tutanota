@@ -38,7 +38,7 @@ tutao.entity.sys.Group = function(data) {
     this._keys = [];
     this._members = null;
     this._user = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.Group.prototype;
 };
@@ -47,7 +47,7 @@ tutao.entity.sys.Group = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Group.MODEL_VERSION = '4';
+tutao.entity.sys.Group.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -391,7 +391,7 @@ tutao.entity.sys.Group.prototype.loadUser = function() {
  * @return {Promise.<tutao.entity.sys.Group>} Resolves to the Group or an exception if the loading failed.
  */
 tutao.entity.sys.Group.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, id, null, {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, id, null, {"v" : 3}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -402,7 +402,7 @@ tutao.entity.sys.Group.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Group>>} Resolves to an array of Group or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Group.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, ids, {"v": 3}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return entities;
   });
 };

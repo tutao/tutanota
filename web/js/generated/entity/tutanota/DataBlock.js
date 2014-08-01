@@ -16,7 +16,7 @@ tutao.entity.tutanota.DataBlock = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._blockData = null;
     this._size = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.DataBlock.prototype;
 };

@@ -24,7 +24,7 @@ tutao.entity.tutanota.UnsecureAttachment = function(parent, data) {
     this._mimeType = null;
     this._file = null;
     this._fileData = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.UnsecureAttachment.prototype;
 };

@@ -15,7 +15,7 @@ tutao.entity.sys.CustomerReturn = function(data) {
     this.__format = "0";
     this._adminUser = null;
     this._adminUserGroup = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerReturn.prototype;
 };
@@ -24,7 +24,7 @@ tutao.entity.sys.CustomerReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerReturn.MODEL_VERSION = '4';
+tutao.entity.sys.CustomerReturn.MODEL_VERSION = '3';
 
 /**
  * The encrypted flag.

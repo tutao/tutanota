@@ -13,7 +13,7 @@ tutao.entity.sys.SaltReturn = function(data) {
   } else {
     this.__format = "0";
     this._salt = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SaltReturn.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.SaltReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SaltReturn.MODEL_VERSION = '4';
+tutao.entity.sys.SaltReturn.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -102,6 +102,6 @@ tutao.entity.sys.SaltReturn.load = function(entity, parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 3;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.SaltReturn, tutao.entity.sys.SaltReturn.PATH, entity, parameters, headers);
 };

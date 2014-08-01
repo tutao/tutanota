@@ -22,7 +22,7 @@ tutao.entity.sys.GroupMembership = function(parent, data) {
     this._group = null;
     this._groupInfo = null;
     this._groupMember = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.GroupMembership.prototype;
 };

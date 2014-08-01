@@ -22,7 +22,7 @@ tutao.entity.tutanota.ImapSyncConfiguration = function(parent, data) {
     this._port = null;
     this._user = null;
     this._imapSyncState = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ImapSyncConfiguration.prototype;
 };

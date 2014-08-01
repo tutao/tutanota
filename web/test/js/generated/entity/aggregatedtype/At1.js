@@ -12,7 +12,7 @@ tutao.entity.aggregatedtype.At1 = function(parent, data) {
     this.__id = data._id;
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.aggregatedtype.At1.prototype;
 };

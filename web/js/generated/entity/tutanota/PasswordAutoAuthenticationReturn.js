@@ -11,7 +11,7 @@ tutao.entity.tutanota.PasswordAutoAuthenticationReturn = function(data) {
     this.__format = data._format;
   } else {
     this.__format = "0";
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordAutoAuthenticationReturn.prototype;
 };

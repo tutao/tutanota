@@ -34,7 +34,7 @@ tutao.entity.tutanota.SendMailFromExternalData = function(data) {
     this._subject = null;
     this._attachments = [];
     this._toRecipient = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailFromExternalData.prototype;
 };

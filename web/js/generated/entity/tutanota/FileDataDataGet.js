@@ -15,7 +15,7 @@ tutao.entity.tutanota.FileDataDataGet = function(data) {
     this.__format = "0";
     this._base64 = null;
     this._file = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FileDataDataGet.prototype;
 };

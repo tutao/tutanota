@@ -17,7 +17,7 @@ tutao.entity.sys.Login = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._time = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.Login.prototype;
 };
@@ -26,7 +26,7 @@ tutao.entity.sys.Login = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Login.MODEL_VERSION = '4';
+tutao.entity.sys.Login.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -132,7 +132,7 @@ tutao.entity.sys.Login.prototype.setTime = function(time) {
  */
 tutao.entity.sys.Login.prototype.getTime = function() {
   if (isNaN(this._time)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._time);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._time);
   }
   return new Date(Number(this._time));
 };
@@ -143,7 +143,7 @@ tutao.entity.sys.Login.prototype.getTime = function() {
  * @return {Promise.<tutao.entity.sys.Login>} Resolves to the Login or an exception if the loading failed.
  */
 tutao.entity.sys.Login.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, id[1], id[0], {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, id[1], id[0], {"v" : 3}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -154,7 +154,7 @@ tutao.entity.sys.Login.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Login>>} Resolves to an array of Login or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Login.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, ids, {"v": 3}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return entities;
   });
 };
@@ -166,7 +166,7 @@ tutao.entity.sys.Login.loadMultiple = function(ids) {
 tutao.entity.sys.Login.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 4;
+  params["v"] = 3;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Login.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -179,7 +179,7 @@ tutao.entity.sys.Login.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Login>>} Resolves to an array of Login or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Login.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, listId, start, count, reverse, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Login, tutao.entity.sys.Login.PATH, listId, start, count, reverse, {"v": 3}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

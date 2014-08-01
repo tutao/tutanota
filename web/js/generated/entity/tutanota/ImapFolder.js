@@ -20,7 +20,7 @@ tutao.entity.tutanota.ImapFolder = function(parent, data) {
     this._name = null;
     this._uidvalidity = null;
     this._syncInfo = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ImapFolder.prototype;
 };

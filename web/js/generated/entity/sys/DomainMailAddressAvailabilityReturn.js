@@ -13,7 +13,7 @@ tutao.entity.sys.DomainMailAddressAvailabilityReturn = function(data) {
   } else {
     this.__format = "0";
     this._available = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.DomainMailAddressAvailabilityReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.DomainMailAddressAvailabilityReturn.MODEL_VERSION = '4';
+tutao.entity.sys.DomainMailAddressAvailabilityReturn.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -102,6 +102,6 @@ tutao.entity.sys.DomainMailAddressAvailabilityReturn.load = function(entity, par
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 3;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.DomainMailAddressAvailabilityReturn, tutao.entity.sys.DomainMailAddressAvailabilityReturn.PATH, entity, parameters, headers);
 };

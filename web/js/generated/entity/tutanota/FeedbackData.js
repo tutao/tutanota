@@ -17,7 +17,7 @@ tutao.entity.tutanota.FeedbackData = function(data) {
     this._image = null;
     this._msg = null;
     this._useragent = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FeedbackData.prototype;
 };

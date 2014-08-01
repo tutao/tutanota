@@ -13,7 +13,7 @@ tutao.entity.tutanota.FileDataReturnPost = function(data) {
   } else {
     this.__format = "0";
     this._fileData = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FileDataReturnPost.prototype;
 };

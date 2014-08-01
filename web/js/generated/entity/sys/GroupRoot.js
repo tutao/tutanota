@@ -23,7 +23,7 @@ tutao.entity.sys.GroupRoot = function(data) {
     this._symEncShareBucketKey = null;
     this._externalGroupInfos = null;
     this._externalUserReferences = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.GroupRoot.prototype;
 };
@@ -32,7 +32,7 @@ tutao.entity.sys.GroupRoot = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.GroupRoot.MODEL_VERSION = '4';
+tutao.entity.sys.GroupRoot.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -215,7 +215,7 @@ tutao.entity.sys.GroupRoot.prototype.getExternalUserReferences = function() {
  * @return {Promise.<tutao.entity.sys.GroupRoot>} Resolves to the GroupRoot or an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : 3}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -226,7 +226,7 @@ tutao.entity.sys.GroupRoot.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.GroupRoot>>} Resolves to an array of GroupRoot or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": 3}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return entities;
   });
 };

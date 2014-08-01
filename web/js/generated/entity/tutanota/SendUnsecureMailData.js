@@ -51,7 +51,7 @@ tutao.entity.tutanota.SendUnsecureMailData = function(data) {
     this._bccRecipients = [];
     this._ccRecipients = [];
     this._toRecipients = [];
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendUnsecureMailData.prototype;
 };

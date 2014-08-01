@@ -14,7 +14,7 @@ tutao.entity.monitor.CreateCounterMonitor = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._monitor = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.monitor.CreateCounterMonitor.prototype;
 };

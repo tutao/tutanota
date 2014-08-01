@@ -22,7 +22,7 @@ tutao.entity.valueunencrypted.Aggregated = function(parent, data) {
     this._date = null;
     this._number = null;
     this._string = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.valueunencrypted.Aggregated.prototype;
 };
@@ -138,7 +138,7 @@ tutao.entity.valueunencrypted.Aggregated.prototype.setDate = function(date) {
  */
 tutao.entity.valueunencrypted.Aggregated.prototype.getDate = function() {
   if (isNaN(this._date)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._date);
   }
   return new Date(Number(this._date));
 };

@@ -37,7 +37,7 @@ tutao.entity.aggregatedtype.At2 = function(parent, data) {
     this._oneAggregated = null;
     this._oneList = null;
     this._oneResource = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.aggregatedtype.At2.prototype;
 };
@@ -172,7 +172,7 @@ tutao.entity.aggregatedtype.At2.prototype.setDateValue = function(DateValue) {
  */
 tutao.entity.aggregatedtype.At2.prototype.getDateValue = function() {
   if (isNaN(this._DateValue)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._DateValue);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._DateValue);
   }
   return new Date(Number(this._DateValue));
 };

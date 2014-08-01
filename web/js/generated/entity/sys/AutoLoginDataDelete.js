@@ -13,7 +13,7 @@ tutao.entity.sys.AutoLoginDataDelete = function(data) {
   } else {
     this.__format = "0";
     this._deviceToken = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.AutoLoginDataDelete.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.AutoLoginDataDelete = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AutoLoginDataDelete.MODEL_VERSION = '4';
+tutao.entity.sys.AutoLoginDataDelete.MODEL_VERSION = '3';
 
 /**
  * The url path to the resource.
@@ -101,7 +101,7 @@ tutao.entity.sys.AutoLoginDataDelete.prototype.erase = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 3;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.AutoLoginDataDelete.PATH, this, parameters, headers, null);
 };

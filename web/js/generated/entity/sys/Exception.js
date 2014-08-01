@@ -16,7 +16,7 @@ tutao.entity.sys.Exception = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._msg = null;
     this._type = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.Exception.prototype;
 };

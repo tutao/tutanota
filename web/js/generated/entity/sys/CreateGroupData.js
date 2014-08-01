@@ -26,7 +26,7 @@ tutao.entity.sys.CreateGroupData = function(parent, data) {
     this._pubKey = null;
     this._symEncGKey = null;
     this._symEncPrivKey = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.CreateGroupData.prototype;
 };

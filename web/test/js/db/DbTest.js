@@ -11,7 +11,7 @@ describe("DbTest", function () {
     it(" that elements with same words are found", function (done) {
         var self = this;
         if (!this.dbUnderTest.isSupported()) {
-            return;
+            return done();
         }
         this.dbUnderTest.init("test_db");
         this.dbUnderTest.clear();
@@ -45,7 +45,7 @@ describe("DbTest", function () {
     it(" that elements of different type or attribute chain are not found", function (done) {
         var self = this;
         if (!this.dbUnderTest.isSupported()) {
-            return;
+            return done();
         }
         this.dbUnderTest.init("test_db");
         this.dbUnderTest.clear();
@@ -75,7 +75,7 @@ describe("DbTest", function () {
     it(" deleting tables", function (done) {
         var self = this;
         if (!this.dbUnderTest.isSupported()) {
-            return;
+            return done();
         }
         this.dbUnderTest.init("test_db");
         this.dbUnderTest.clear();
@@ -104,7 +104,7 @@ describe("DbTest", function () {
     it(" setting and getting indexed info", function (done) {
         var self = this;
         if (!this.dbUnderTest.isSupported()) {
-            return;
+            return done();
         }
 
         this.dbUnderTest.init("test_db", function (status) {
@@ -138,7 +138,7 @@ describe("DbTest", function () {
     it(" deleting index entries", function (done) {
         var self = this;
         if (!this.dbUnderTest.isSupported()) {
-            return;
+            return done();
         }
 
         this.dbUnderTest.init("test_db", function (status) {

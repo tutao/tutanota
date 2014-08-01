@@ -39,7 +39,7 @@ tutao.entity.tutanota.Recipient = function(parent, data) {
     this._symEncBucketKey = null;
     this._type = null;
     this._passwordChannelPhoneNumbers = [];
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.Recipient.prototype;
 };

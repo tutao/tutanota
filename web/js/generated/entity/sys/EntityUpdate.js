@@ -13,16 +13,14 @@ tutao.entity.sys.EntityUpdate = function(parent, data) {
     this._application = data.application;
     this._instanceId = data.instanceId;
     this._instanceListId = data.instanceListId;
-    this._operation = data.operation;
     this._type = data.type;
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._application = null;
     this._instanceId = null;
     this._instanceListId = null;
-    this._operation = null;
     this._type = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.EntityUpdate.prototype;
 };
@@ -37,7 +35,6 @@ tutao.entity.sys.EntityUpdate.prototype.toJsonData = function() {
     application: this._application, 
     instanceId: this._instanceId, 
     instanceListId: this._instanceListId, 
-    operation: this._operation, 
     type: this._type
   };
 };
@@ -61,11 +58,6 @@ tutao.entity.sys.EntityUpdate.prototype.INSTANCEID_ATTRIBUTE_ID = 467;
  * The id of the instanceListId attribute.
  */
 tutao.entity.sys.EntityUpdate.prototype.INSTANCELISTID_ATTRIBUTE_ID = 466;
-
-/**
- * The id of the operation attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.OPERATION_ATTRIBUTE_ID = 624;
 
 /**
  * The id of the type attribute.
@@ -138,23 +130,6 @@ tutao.entity.sys.EntityUpdate.prototype.setInstanceListId = function(instanceLis
  */
 tutao.entity.sys.EntityUpdate.prototype.getInstanceListId = function() {
   return this._instanceListId;
-};
-
-/**
- * Sets the operation of this EntityUpdate.
- * @param {string} operation The operation of this EntityUpdate.
- */
-tutao.entity.sys.EntityUpdate.prototype.setOperation = function(operation) {
-  this._operation = operation;
-  return this;
-};
-
-/**
- * Provides the operation of this EntityUpdate.
- * @return {string} The operation of this EntityUpdate.
- */
-tutao.entity.sys.EntityUpdate.prototype.getOperation = function() {
-  return this._operation;
 };
 
 /**

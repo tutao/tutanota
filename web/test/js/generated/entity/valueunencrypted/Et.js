@@ -29,7 +29,7 @@ tutao.entity.valueunencrypted.Et = function(data) {
     this._date = null;
     this._number = null;
     this._string = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.valueunencrypted.Et.prototype;
 };
@@ -248,7 +248,7 @@ tutao.entity.valueunencrypted.Et.prototype.setDate = function(date) {
  */
 tutao.entity.valueunencrypted.Et.prototype.getDate = function() {
   if (isNaN(this._date)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._date);
   }
   return new Date(Number(this._date));
 };
@@ -304,7 +304,7 @@ tutao.entity.valueunencrypted.Et.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.valueunencrypted.Et>>} Resolves to an array of Et or rejects with an exception if the loading failed.
  */
 tutao.entity.valueunencrypted.Et.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.Et, tutao.entity.valueunencrypted.Et.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.Et, tutao.entity.valueunencrypted.Et.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

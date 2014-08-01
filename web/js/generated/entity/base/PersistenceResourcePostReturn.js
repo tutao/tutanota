@@ -15,7 +15,7 @@ tutao.entity.base.PersistenceResourcePostReturn = function(data) {
     this.__format = "0";
     this._generatedId = null;
     this._permissionListId = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.base.PersistenceResourcePostReturn.prototype;
 };

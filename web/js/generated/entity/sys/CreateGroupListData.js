@@ -18,7 +18,7 @@ tutao.entity.sys.CreateGroupListData = function(parent, data) {
     this._adminEncGroupInfoListKey = null;
     this._customerEncGroupInfoListKey = null;
     this._createGroupData = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.CreateGroupListData.prototype;
 };

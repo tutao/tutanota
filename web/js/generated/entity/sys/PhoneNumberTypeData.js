@@ -13,7 +13,7 @@ tutao.entity.sys.PhoneNumberTypeData = function(data) {
   } else {
     this.__format = "0";
     this._phoneNumber = null;
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.PhoneNumberTypeData.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.PhoneNumberTypeData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PhoneNumberTypeData.MODEL_VERSION = '4';
+tutao.entity.sys.PhoneNumberTypeData.MODEL_VERSION = '3';
 
 /**
  * The encrypted flag.

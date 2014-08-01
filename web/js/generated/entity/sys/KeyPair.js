@@ -18,7 +18,7 @@ tutao.entity.sys.KeyPair = function(parent, data) {
     this._pubKey = null;
     this._symEncPrivKey = null;
     this._version = null;
-  }
+  };
   this._parent = parent;
   this.prototype = tutao.entity.sys.KeyPair.prototype;
 };

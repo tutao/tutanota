@@ -57,7 +57,7 @@ tutao.entity.tutanota.Contact = function(data) {
     this._mailAddresses = [];
     this._phoneNumbers = [];
     this._socialIds = [];
-  }
+  };
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.Contact.prototype;
 };
@@ -333,7 +333,7 @@ tutao.entity.tutanota.Contact.prototype.getBirthday = function() {
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._birthday);
   if (isNaN(value)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + value);
+    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + value);
   }
   return new Date(Number(value));
 };
@@ -525,7 +525,7 @@ tutao.entity.tutanota.Contact.load = function(id) {
 tutao.entity.tutanota.Contact.prototype.loadVersion = function(versionId) {
   var map = {};
   map["version"] = versionId;
-  map["v"] = 5;
+  map["v"] = 5
   return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.Contact, tutao.entity.tutanota.Contact.PATH, this.getId()[1], this.getId()[0], map, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -548,7 +548,7 @@ tutao.entity.tutanota.Contact.prototype.loadVersionInfo = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.Contact>>} Resolves to an array of Contact or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.Contact.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Contact, tutao.entity.tutanota.Contact.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Contact, tutao.entity.tutanota.Contact.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
