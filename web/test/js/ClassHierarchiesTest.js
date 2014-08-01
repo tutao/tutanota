@@ -4,7 +4,7 @@ describe("ClassHierarchiesTest", function () {
 
     var assert = chai.assert;
 
-    it("test", function () {
+    it("should confirm that interfaces are implemented correctly", function () {
         // db
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.db.DummyDb, tutao.db.DbInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.db.WebSqlDb, tutao.db.DbInterface));

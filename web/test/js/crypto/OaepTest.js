@@ -63,7 +63,7 @@ describe("OaepTest", function () {
         assert.deepEqual(unpadded, value);
     });
 
-    it("test", function () {
+    it("oaep roundtrip", function () {
         var a = new tutao.crypto.Oaep();
         var value = [136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136, 136];
         // random seed and resulting block taken from Java reference test debugging
