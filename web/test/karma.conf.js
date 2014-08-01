@@ -22,7 +22,7 @@ module.exports = function(config) {
         exclude: [
             './js/util/init.js',
             './lib/dev/**',
-            //'test/js/crypto/**'
+            'test/js/crypto/**'
         ],
 
         // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
@@ -47,6 +47,8 @@ module.exports = function(config) {
 
         // If browser does not capture in given timeout [ms], kill it
         captureTimeout: 60000,
+
+        browserNoActivityTimeout: 30000, // increased for our long running crypto tests
 
         // Start these browsers, currently available:
         // - Chrome
