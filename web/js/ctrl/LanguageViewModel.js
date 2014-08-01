@@ -450,6 +450,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     screenshot_label: "Attach screenshot",
     feedbackInfo_msg: "The message and your browser identifier are sent encrypted to support@tutao.de.",
     feedbackErrorInfo_msg: "The message, error details and your browser identifier are sent encrypted to support@tutao.de.",
+    faq_msg: "If you have a question about Tutanota, please check the <a href=\"https://tutanota.de/#!faq\">FAQ</a> first.",
 
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter for Microsoft Outlook",
@@ -883,6 +884,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	screenshot_label: "Screenshot mitsenden",
     feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
     feedbackErrorInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung und Fehlerdetails verschlüsselt an support@tutao.de gesendet.",
+    faq_msg: "Wenn Sie eine Frage zu Tutanota haben, bitte schauen sie zuerst in den <a href=\"https://tutanota.de/#!faq\">FAQ</a> nach.",
 
 	// outlook
 	tutanotaStarter_label: "Tutanota Starter für Microsoft Outlook",
