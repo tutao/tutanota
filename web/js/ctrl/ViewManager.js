@@ -92,13 +92,14 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         }, false, "menu_contact", "contact", 'contacts_alt'),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
-            tutao.tutanota.ctrl.Navigator.prototype.newMail();
-            //
-            var mail = tutao.locator.mailViewModel.getComposingMail();
-            mail.secure(false);
-            mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
-            var username = tutao.locator.userController.getUserGroupInfo().getName();
-            tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+            tutao.tutanota.ctrl.Navigator.prototype.newMail().then(function () {
+                var mail = tutao.locator.mailViewModel.getComposingMail();
+                mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
+                mail.secure(false);
+                var username = tutao.locator.userController.getUserGroupInfo().getName();
+                tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+            });
+
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
 
         new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),

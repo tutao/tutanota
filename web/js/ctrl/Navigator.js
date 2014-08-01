@@ -66,10 +66,15 @@ tutao.tutanota.ctrl.Navigator.prototype.mail = function() {
     }
 };
 
+/**
+ * @param {tutao.tutanota.ctrl.RecipientInfo=} recipient
+ * @return {Promise}
+ */
 tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
-	if (tutao.locator.mailViewModel.newMail(recipient)) {
-		this.mail();
-	}
+    var self = this;
+	return tutao.locator.mailViewModel.newMail(recipient).then(function () {
+        self.mail();
+    });
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.contact = function() {

@@ -173,6 +173,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._findContactByMailAddress = function
 
 /**
  * @param {tutao.tutanota.ctrl.RecipientInfo=} recipientInfo Optional recipient info as recipient.
+ * @return {Promise.<boolean>}
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.newMail = function(recipientInfo) {
 	var recipients = (recipientInfo) ? [recipientInfo] : [];
