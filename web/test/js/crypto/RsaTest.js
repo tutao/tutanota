@@ -4,6 +4,8 @@ describe("RsaTest", function () {
 
     var assert = chai.assert;
 
+    this.timeout(1000 * 60); // 1 min
+
     var _rsa;
     var getFacade = function () {
         if (!_rsa) {
@@ -28,7 +30,6 @@ describe("RsaTest", function () {
     }
 
     it("hex key conversion", function(done) {
-        this.timeout(300000); // 5 min
         if (tutao.supportsRsaKeyGeneration()) {
             var facade = getFacade();
             _getKeyPair(function(keyPair) {

@@ -16,7 +16,7 @@ tutao.entity.monitor.CreateCounterSnapshotData = function(data) {
   } else {
     this.__format = "0";
     this._monitors = [];
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.monitor.CreateCounterSnapshotData.prototype;
 };

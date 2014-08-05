@@ -21,7 +21,7 @@ tutao.entity.tutanota.ContactList = function(data) {
     this._shareBucketId = null;
     this._symEncShareBucketKey = null;
     this._contacts = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.ContactList.prototype;
 };
@@ -201,7 +201,7 @@ tutao.entity.tutanota.ContactList.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ContactList>>} Resolves to an array of ContactList or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ContactList.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

@@ -13,7 +13,7 @@ tutao.entity.tutanota.PasswordRetrievalData = function(data) {
   } else {
     this.__format = "0";
     this._autoAuthenticationId = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordRetrievalData.prototype;
 };

@@ -14,7 +14,7 @@ tutao.entity.sys.Bucket = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bucketPermissions = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Bucket.prototype;
 };

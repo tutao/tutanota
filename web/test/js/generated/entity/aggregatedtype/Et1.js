@@ -26,7 +26,7 @@ tutao.entity.aggregatedtype.Et1 = function(data) {
     this.__permissions = null;
     this._anyAggregated = [];
     this._oneAggregated = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.aggregatedtype.Et1.prototype;
 };
@@ -220,7 +220,7 @@ tutao.entity.aggregatedtype.Et1.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.aggregatedtype.Et1>>} Resolves to an array of Et1 or rejects with an exception if the loading failed.
  */
 tutao.entity.aggregatedtype.Et1.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

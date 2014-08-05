@@ -23,7 +23,7 @@ tutao.entity.tutanota.ExternalUserData = function(data) {
     this._userEncClientKey = null;
     this._verifier = null;
     this._userGroupData = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.ExternalUserData.prototype;
 };

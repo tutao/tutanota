@@ -27,7 +27,7 @@ tutao.entity.sys.RegistrationServiceData = function(data) {
     this._mailAddress = null;
     this._mobilePhoneNumber = null;
     this._state = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationServiceData.prototype;
 };
@@ -36,7 +36,7 @@ tutao.entity.sys.RegistrationServiceData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationServiceData.MODEL_VERSION = '3';
+tutao.entity.sys.RegistrationServiceData.MODEL_VERSION = '4';
 
 /**
  * The url path to the resource.
@@ -276,7 +276,7 @@ tutao.entity.sys.RegistrationServiceData.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationServiceData, tutao.entity.sys.RegistrationServiceData.PATH, null, null, parameters, headers);
 };
 
@@ -290,7 +290,7 @@ tutao.entity.sys.RegistrationServiceData.prototype.setup = function(parameters, 
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.RegistrationServiceData.PATH, this, parameters, headers, tutao.entity.sys.RegistrationReturn);
 };

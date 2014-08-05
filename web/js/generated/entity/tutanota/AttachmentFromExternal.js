@@ -22,7 +22,7 @@ tutao.entity.tutanota.AttachmentFromExternal = function(parent, data) {
     this._recipientBucketEncFileSessionKey = null;
     this._senderBucketEncFileSessionKey = null;
     this._fileData = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.AttachmentFromExternal.prototype;
 };

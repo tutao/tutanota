@@ -18,7 +18,7 @@ tutao.entity.sys.TimeRangeConfigValue = function(parent, data) {
     this._end = null;
     this._identifier = null;
     this._start = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.TimeRangeConfigValue.prototype;
 };
@@ -95,7 +95,7 @@ tutao.entity.sys.TimeRangeConfigValue.prototype.getEnd = function() {
     return null;
   }
   if (isNaN(this._end)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._end);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._end);
   }
   return new Date(Number(this._end));
 };
@@ -139,7 +139,7 @@ tutao.entity.sys.TimeRangeConfigValue.prototype.getStart = function() {
     return null;
   }
   if (isNaN(this._start)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._start);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._start);
   }
   return new Date(Number(this._start));
 };

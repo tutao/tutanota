@@ -21,7 +21,7 @@ tutao.entity.tutanotaunencrypted.MailBody = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._text = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.MailBody.prototype;
 };
@@ -203,7 +203,7 @@ tutao.entity.tutanotaunencrypted.MailBody.load = function(id) {
 tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersion = function(versionId) {
   var map = {};
   map["version"] = versionId;
-  map["v"] = 1
+  map["v"] = 1;
   return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, this.getId(), null, map, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -225,7 +225,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersionInfo = function()
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.MailBody>>} Resolves to an array of MailBody or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBody.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

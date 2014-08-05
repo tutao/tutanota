@@ -16,7 +16,7 @@ tutao.entity.sys.StringConfigValue = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._name = null;
     this._value = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.StringConfigValue.prototype;
 };

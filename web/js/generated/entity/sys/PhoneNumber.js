@@ -14,7 +14,7 @@ tutao.entity.sys.PhoneNumber = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._number = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.PhoneNumber.prototype;
 };

@@ -18,7 +18,7 @@ tutao.entity.tutanota.ContactPhoneNumber = function(parent, data) {
     this._customTypeName = null;
     this._number = null;
     this._type = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ContactPhoneNumber.prototype;
 };

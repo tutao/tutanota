@@ -18,7 +18,7 @@ tutao.entity.sys.AuthenticatedDevice = function(parent, data) {
     this._authType = null;
     this._deviceKey = null;
     this._deviceToken = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.AuthenticatedDevice.prototype;
 };
