@@ -18,7 +18,7 @@ tutao.entity.sys.Chat = function(parent, data) {
     this._recipient = null;
     this._sender = null;
     this._text = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Chat.prototype;
 };

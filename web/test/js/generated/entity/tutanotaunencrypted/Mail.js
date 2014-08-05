@@ -38,7 +38,7 @@ tutao.entity.tutanotaunencrypted.Mail = function(data) {
     this._previous = null;
     this._recipients = [];
     this._sender = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.Mail.prototype;
 };
@@ -241,7 +241,7 @@ tutao.entity.tutanotaunencrypted.Mail.prototype.setDate = function(date) {
  */
 tutao.entity.tutanotaunencrypted.Mail.prototype.getDate = function() {
   if (isNaN(this._date)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._date);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
   }
   return new Date(Number(this._date));
 };
@@ -382,7 +382,7 @@ tutao.entity.tutanotaunencrypted.Mail.load = function(id) {
 tutao.entity.tutanotaunencrypted.Mail.prototype.loadVersion = function(versionId) {
   var map = {};
   map["version"] = versionId;
-  map["v"] = 1
+  map["v"] = 1;
   return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Mail, tutao.entity.tutanotaunencrypted.Mail.PATH, this.getId()[1], this.getId()[0], map, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -405,7 +405,7 @@ tutao.entity.tutanotaunencrypted.Mail.prototype.loadVersionInfo = function() {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Mail>>} Resolves to an array of Mail or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Mail.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Mail, tutao.entity.tutanotaunencrypted.Mail.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Mail, tutao.entity.tutanotaunencrypted.Mail.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

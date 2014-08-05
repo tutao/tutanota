@@ -14,7 +14,7 @@ tutao.entity.tutanota.PasswordChannelPhoneNumber = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._number = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype;
 };

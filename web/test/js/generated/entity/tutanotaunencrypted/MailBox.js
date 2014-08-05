@@ -21,7 +21,7 @@ tutao.entity.tutanotaunencrypted.MailBox = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._mails = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.MailBox.prototype;
 };
@@ -201,7 +201,7 @@ tutao.entity.tutanotaunencrypted.MailBox.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBox.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

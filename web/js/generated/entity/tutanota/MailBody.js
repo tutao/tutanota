@@ -21,7 +21,7 @@ tutao.entity.tutanota.MailBody = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._text = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.MailBody.prototype;
 };
@@ -206,7 +206,7 @@ tutao.entity.tutanota.MailBody.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBody>>} Resolves to an array of MailBody or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBody.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

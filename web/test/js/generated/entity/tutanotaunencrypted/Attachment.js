@@ -21,7 +21,7 @@ tutao.entity.tutanotaunencrypted.Attachment = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._fileData = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.Attachment.prototype;
 };
@@ -201,7 +201,7 @@ tutao.entity.tutanotaunencrypted.Attachment.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Attachment>>} Resolves to an array of Attachment or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Attachment.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

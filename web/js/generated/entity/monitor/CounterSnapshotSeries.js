@@ -17,7 +17,7 @@ tutao.entity.monitor.CounterSnapshotSeries = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._snapshots = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.monitor.CounterSnapshotSeries.prototype;
 };
@@ -159,7 +159,7 @@ tutao.entity.monitor.CounterSnapshotSeries.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.monitor.CounterSnapshotSeries>>} Resolves to an array of CounterSnapshotSeries or rejects with an exception if the loading failed.
  */
 tutao.entity.monitor.CounterSnapshotSeries.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.monitor.CounterSnapshotSeries, tutao.entity.monitor.CounterSnapshotSeries.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.monitor.CounterSnapshotSeries, tutao.entity.monitor.CounterSnapshotSeries.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

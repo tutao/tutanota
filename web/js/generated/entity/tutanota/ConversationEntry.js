@@ -23,7 +23,7 @@ tutao.entity.tutanota.ConversationEntry = function(data) {
     this._messageId = null;
     this._mail = null;
     this._previous = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.ConversationEntry.prototype;
 };
@@ -242,7 +242,7 @@ tutao.entity.tutanota.ConversationEntry.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ConversationEntry>>} Resolves to an array of ConversationEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

@@ -16,7 +16,7 @@ tutao.entity.tutanota.UnsecureRecipient = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._mailAddress = null;
     this._name = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.UnsecureRecipient.prototype;
 };

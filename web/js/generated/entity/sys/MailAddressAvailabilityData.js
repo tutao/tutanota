@@ -13,7 +13,7 @@ tutao.entity.sys.MailAddressAvailabilityData = function(data) {
   } else {
     this.__format = "0";
     this._mailAddress = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.MailAddressAvailabilityData.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.MailAddressAvailabilityData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAvailabilityData.MODEL_VERSION = '3';
+tutao.entity.sys.MailAddressAvailabilityData.MODEL_VERSION = '4';
 
 /**
  * The encrypted flag.

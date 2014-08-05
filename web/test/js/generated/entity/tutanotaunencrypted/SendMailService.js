@@ -22,7 +22,7 @@ tutao.entity.tutanotaunencrypted.SendMailService = function(data) {
     this._title = null;
     this._recipients = [];
     this._sender = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.SendMailService.prototype;
 };

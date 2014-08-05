@@ -18,7 +18,7 @@ tutao.entity.tutanotaunencrypted.MailAddress = function(parent, data) {
     this._address = null;
     this._name = null;
     this._contact = null;
-  };
+  }
   this._parent = parent;
   this.prototype = tutao.entity.tutanotaunencrypted.MailAddress.prototype;
 };

@@ -27,7 +27,7 @@ tutao.entity.tutanotaunencrypted.Contact = function(data) {
     this._mail = null;
     this._name = null;
     this._userid = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.Contact.prototype;
 };
@@ -206,7 +206,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.setBirthday = function(birthd
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.getBirthday = function() {
   if (isNaN(this._birthday)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._birthday);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._birthday);
   }
   return new Date(Number(this._birthday));
 };
@@ -279,7 +279,7 @@ tutao.entity.tutanotaunencrypted.Contact.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Contact>>} Resolves to an array of Contact or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Contact.loadMultiple = function(ids) {
-  tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders(), function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

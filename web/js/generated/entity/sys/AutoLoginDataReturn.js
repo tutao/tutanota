@@ -13,7 +13,7 @@ tutao.entity.sys.AutoLoginDataReturn = function(data) {
   } else {
     this.__format = "0";
     this._deviceKey = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.AutoLoginDataReturn.prototype;
 };
@@ -22,7 +22,7 @@ tutao.entity.sys.AutoLoginDataReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AutoLoginDataReturn.MODEL_VERSION = '3';
+tutao.entity.sys.AutoLoginDataReturn.MODEL_VERSION = '4';
 
 /**
  * The url path to the resource.
@@ -102,7 +102,7 @@ tutao.entity.sys.AutoLoginDataReturn.load = function(entity, parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.AutoLoginDataReturn, tutao.entity.sys.AutoLoginDataReturn.PATH, entity, parameters, headers);
 };
 
@@ -116,7 +116,7 @@ tutao.entity.sys.AutoLoginDataReturn.prototype.setup = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 3;
+  parameters["v"] = 4;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.AutoLoginDataReturn.PATH, this, parameters, headers, tutao.entity.sys.AutoLoginPostReturn);
 };

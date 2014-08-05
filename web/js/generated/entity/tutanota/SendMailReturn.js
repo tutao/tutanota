@@ -22,7 +22,7 @@ tutao.entity.tutanota.SendMailReturn = function(data) {
     this._sentDate = null;
     this._notifications = [];
     this._senderMail = null;
-  };
+  }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailReturn.prototype;
 };
@@ -127,7 +127,7 @@ tutao.entity.tutanota.SendMailReturn.prototype.setSentDate = function(sentDate) 
  */
 tutao.entity.tutanota.SendMailReturn.prototype.getSentDate = function() {
   if (isNaN(this._sentDate)) {
-    throw new tutao.entity.tutao.InvalidDataError('invalid time data: ' + this._sentDate);
+    throw new tutao.InvalidDataError('invalid time data: ' + this._sentDate);
   }
   return new Date(Number(this._sentDate));
 };
