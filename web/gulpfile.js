@@ -3,6 +3,7 @@ var path = require('path');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var manifest = require('gulp-appcache');
+var streamqueue = require('streamqueue');
 var es = require('event-stream');
 var clean = require('gulp-clean');
 var runSequence = require('run-sequence');
@@ -67,7 +68,7 @@ gulp.task('clean', function () {
 });
 
 gulp.task('minify', function () {
-    return es.merge(
+    return streamqueue({ objectMode: true },
         gulp.src("lib/*.js")
             .pipe(sourcemaps.init())
             .pipe(concat('lib.js'))
@@ -93,7 +94,7 @@ gulp.task('minify', function () {
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()),
 
-        gulp.src(['js/generated/entity/monitor/**/*.js', 'js/generated/entity/base/**/*.js'])
+        gulp.src(['js/generated/entity/base/**/*.js'])
             .pipe(sourcemaps.init())
             .pipe(concat('gen3.js'))
             .pipe(replace("\"use strict\";", ""))
@@ -103,15 +104,15 @@ gulp.task('minify', function () {
             .pipe(sourcemaps.init())
             .pipe(concat('js.js'))
             .pipe(replace("\"use strict\";", ""))
-            .pipe(uglify())
-    ).pipe(concat("app.min.js"))
+            .pipe(uglify()))
+    .pipe(concat("app.min.js"))
         .pipe(insert.append(env))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('build/'));
 });
 
 gulp.task('concat', function () {
-    return es.merge(
+    return streamqueue({ objectMode: true },
         gulp.src("lib/*.js")
             .pipe(sourcemaps.init())
             .pipe(concat('lib.js'))
@@ -169,7 +170,7 @@ gulp.task('less', function () {
 });
 
 gulp.task('copy', function () {
-    return es.merge(
+    return streamqueue({ objectMode: true },
         gulp.src('fonts/*')
             .pipe(gulpFilter(['icomoon.*']))
             .pipe(gulp.dest('./build/fonts')),
@@ -196,10 +197,10 @@ gulp.task('test', function(done) {
 });
 
 gulp.task('gzip', function () {
-    return gulp.src(['./build/*'])
+    return gulp.src(['./build/*', '!./build/*.map'])
         .pipe(gzip())
         .pipe(gulp.dest('build'));
-})
+});
 
 gulp.task('dist', ['clean'], function (cb) {
     // does not minify and is therefore faster

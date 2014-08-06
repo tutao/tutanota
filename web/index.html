@@ -100,6 +100,7 @@
 <script src="/lib/knockout-2.2.1.js"></script>
 <script src="/lib/path-2012-10-03.js"></script>
 <script src="/lib/swfobject-2.2.min.js"></script>
+<script src="/lib/worker/base.js"></script>
 <script src="/lib/worker/closure-library-base-2012-01-19.js"></script>
 <script src="/lib/worker/crypto-jsbn-2012-08-09_1.js"></script>
 <script src="/lib/worker/crypto-sjcl-2012-08-09_1.js"></script>
@@ -127,40 +128,6 @@
 <script src="/js/crypto/SjclSha256.js"></script>
 <script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/crypto/bCrypt.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
-<script src="/js/gui/BubbleInputGui.js"></script>
-<script src="/js/gui/ConfigView.js"></script>
-<script src="/js/gui/ContactView.js"></script>
-<script src="/js/gui/CustomerView.js"></script>
-<script src="/js/gui/DbView.js"></script>
-<script src="/js/gui/ExternalLoginView.js"></script>
-<script src="/js/gui/FastMessageView.js"></script>
-<script src="/js/gui/FileView.js"></script>
-<script src="/js/gui/LogView.js"></script>
-<script src="/js/gui/LoginView.js"></script>
-<script src="/js/gui/MailView.js"></script>
-<script src="/js/gui/MonitorView.js"></script>
-<script src="/js/gui/NotFoundView.js"></script>
-<script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
-<script src="/js/gui/RegistrationView.js"></script>
-<script src="/js/gui/SettingsView.js"></script>
-<script src="/js/gui/SwipeSlider.js"></script>
-<script src="/js/gui/gui.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
@@ -172,14 +139,10 @@
 <script src="/js/ctrl/ButtonBarViewModel.js"></script>
 <script src="/js/ctrl/ChangePasswordViewModel.js"></script>
 <script src="/js/ctrl/ComposingMail.js"></script>
-<script src="/js/ctrl/ConfigViewModel.js"></script>
 <script src="/js/ctrl/ContactCsvConverter.js"></script>
 <script src="/js/ctrl/ContactCsvHandler.js"></script>
 <script src="/js/ctrl/ContactListViewModel.js"></script>
 <script src="/js/ctrl/ContactViewModel.js"></script>
-<script src="/js/ctrl/CustomerListViewModel.js"></script>
-<script src="/js/ctrl/CustomerViewModel.js"></script>
-<script src="/js/ctrl/DbViewModel.js"></script>
 <script src="/js/ctrl/DisplayedMail.js"></script>
 <script src="/js/ctrl/DropDownViewModel.js"></script>
 <script src="/js/ctrl/ExternalLoginViewModel.js"></script>
@@ -190,13 +153,11 @@
 <script src="/js/ctrl/GroupData.js"></script>
 <script src="/js/ctrl/LanguageViewModel.js"></script>
 <script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
-<script src="/js/ctrl/LogViewModel.js"></script>
 <script src="/js/ctrl/LoginViewModel.js"></script>
 <script src="/js/ctrl/MailBoxController.js"></script>
 <script src="/js/ctrl/MailListViewModel.js"></script>
 <script src="/js/ctrl/MailViewModel.js"></script>
 <script src="/js/ctrl/ModalPageBackgroundViewModel.js"></script>
-<script src="/js/ctrl/MonitorViewModel.js"></script>
 <script src="/js/ctrl/Navigator.js"></script>
 <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
@@ -218,6 +179,35 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
+<script src="/js/gui/BubbleInputGui.js"></script>
+<script src="/js/gui/ContactView.js"></script>
+<script src="/js/gui/ExternalLoginView.js"></script>
+<script src="/js/gui/FastMessageView.js"></script>
+<script src="/js/gui/FileView.js"></script>
+<script src="/js/gui/LoginView.js"></script>
+<script src="/js/gui/MailView.js"></script>
+<script src="/js/gui/NotFoundView.js"></script>
+<script src="/js/gui/NotSupportedView.js"></script>
+<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
+<script src="/js/gui/RegistrationView.js"></script>
+<script src="/js/gui/SettingsView.js"></script>
+<script src="/js/gui/SwipeSlider.js"></script>
+<script src="/js/gui/gui.js"></script>
 <script src="/js/index/Indexer.js"></script>
 <script src="/js/legacy/FlashFileSaver.js"></script>
 <script src="/js/legacy/Legacy.js"></script>
@@ -227,6 +217,8 @@
 <script src="/js/rest/EntityRestInterface.js"></script>
 <script src="/js/rest/ResourceConstants.js"></script>
 <script src="/js/rest/RestClient.js"></script>
+<script src="/js/security/CajaSanitizer.js"></script>
+<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
@@ -245,23 +237,72 @@
 <script src="/js/util/StringUtils.js"></script>
 <script src="/js/util/bind.js"></script>
 <script src="/js/util/jquery.csv-0.71.js"></script>
-<script src="/js/security/CajaSanitizer.js"></script>
-<script src="/js/security/HtmlSanitizer.js"></script>
-<script src="/js/generated/model/MonitorModel.js"></script>
-<script src="/js/generated/model/SysModel.js"></script>
-<script src="/js/generated/model/TutanotaModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Bubble.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
-<script src="/js/generated/entity/monitor/CounterSnapshot.js"></script>
-<script src="/js/generated/entity/monitor/CounterSnapshotSeries.js"></script>
-<script src="/js/generated/entity/monitor/CreateCounterMonitor.js"></script>
-<script src="/js/generated/entity/monitor/CreateCounterSnapshotData.js"></script>
-<script src="/js/generated/entity/monitor/LogEntry.js"></script>
-<script src="/js/generated/entity/monitor/ReadCounterData.js"></script>
-<script src="/js/generated/entity/monitor/ReadCounterReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Attachment.js"></script>
+<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+<script src="/js/generated/entity/tutanota/Contact.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactList.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
+<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
+<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
+<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
+<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
+<script src="/js/generated/entity/tutanota/File.js"></script>
+<script src="/js/generated/entity/tutanota/FileData.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
+<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
+<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/Mail.js"></script>
+<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/MailBody.js"></script>
+<script src="/js/generated/entity/tutanota/MailBox.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Recipient.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
+<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
+<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
 <script src="/js/generated/entity/sys/Authentication.js"></script>
@@ -345,67 +386,6 @@
 <script src="/js/generated/entity/sys/VersionData.js"></script>
 <script src="/js/generated/entity/sys/VersionReturn.js"></script>
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
-<script src="/js/generated/entity/tutanota/Attachment.js"></script>
-<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
-<script src="/js/generated/entity/tutanota/Contact.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactList.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
-<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
-<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
-<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
-<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
-<script src="/js/generated/entity/tutanota/File.js"></script>
-<script src="/js/generated/entity/tutanota/FileData.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
-<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
-<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
-<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/Mail.js"></script>
-<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/MailBody.js"></script>
-<script src="/js/generated/entity/tutanota/MailBox.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
-<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Recipient.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
-<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
-<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -1415,407 +1395,6 @@
 			</div>
 		</div>
 
-		<div id="notFound" class="failContent" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
-			<div class="messageWrapperFail scrollable">
-				<div class="infoMessage">
-					<h1>404</h1>
-					<div data-bind="lang: 'notFound404_msg'"></div>
-				</div>
-			</div>
-		</div>
-
-		<div id="dbContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.dbView">
-			<div id="dbSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.dbViewModel">
-				<div id="dbSelectors">
-					<form data-bind="submit: function() { showSelected(); }">
-						<input class="dbSelector" type="text" placeholder="version" data-bind="value: version" /><br>
-						<select class="dbSelector" data-bind="options: applications, optionsText: 'name', value: application"></select><br>
-						<select class="dbSelector" data-bind="options: types, optionsText: 'name', value: type"></select><br>
-						<input class="dbSelector" type="text" placeholder="list id" data-bind="value: listId, visible: type().type == 'LIST_ELEMENT_TYPE'" /><br>
-						<input class="dbSelector" type="text" placeholder="id" data-bind="value: id" /><br>
-						<button class="dbSelector" data-bind="click: function() { showSelected(); }">show</button><br>
-						<button class="dbSelector" data-bind="visible: showRootButton(), click: function() { showRoot(); }">root</button><br>
-						<button class="dbSelector" data-bind="visible: showVersionsButton(), click: function() { showSelectedVersions() }">versions</button>
-					</form>
-					<button data-bind="click: function() { showLast(); }">back</button>
-					<button data-bind="visible: showMorePossible(), click: function() { showMore(); }">more</button>
-				</div>
-			</div>
-
-			<div id="dbInstancesColumn" class="viewColumn" data-bind="with: tutao.locator.dbViewModel">
-				<div id="dbInnerInstancesColumn">
-					<div id="dbInstances">
-						<!-- ko if: getCurrentInstance() -->
-							<!-- ko ifnot: getCurrentInstance().instance instanceof Array -->
-								<div class="instanceType" data-bind="text: getTypeAbbreviation(getCurrentInstance().type.type) + ' ' + getCurrentInstance().type.name + ((getCurrentInstance().version) ? (' version ' + getCurrentInstance().version) : '')"></div>
-								<div data-bind="template: { name: 'type-template', data: { instance: getCurrentInstance().instance, type: getCurrentInstance().type } }"></div>
-							<!-- /ko -->
-							<!-- ko if: getCurrentInstance().instance instanceof Array -->
-								<div class="instanceType" data-bind="text: getTypeAbbreviation(getCurrentInstance().type.type) + ' ' + getCurrentInstance().type.name + ' (' + getCurrentInstance().instance.length + ')'"></div>
-								<!-- ko foreach: getCurrentInstance().instance -->
-									<div data-bind="template: { name: 'type-template', data: { instance: $data, type: $parent.getCurrentInstance().type } }"></div>
-								<!-- /ko -->
-							<!-- /ko -->
-						<!-- /ko -->
-						<!-- ko ifnot: getCurrentInstance() -->
-							<br>
-							<div>no selection</div>
-						<!-- /ko -->
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div id="logContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.logView">
-			<div id="logSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.logViewModel">
-				<div id="logSelectors">
-					<fieldset>
-    					<legend>Visible Columns</legend>
-    						<label><input type="checkbox" data-bind="checked: showLevel"> Level</label>
-							<label><input type="checkbox" data-bind="checked: showDate"> Date</label>
-							<label><input type="checkbox" data-bind="checked: showServer"> Server</label>
-							<label><input type="checkbox" data-bind="checked: showUserId"> UserId</label>
-							<label><input type="checkbox" data-bind="checked: showUrl"> URL</label>
-							<label><input type="checkbox" data-bind="checked: showAgent"> Agent</label>
-							<label><input type="checkbox" data-bind="checked: showLogger"> Logger</label>
-							<label><input type="checkbox" data-bind="checked: showSource"> Source</label>
-							<label><input type="checkbox" data-bind="checked: showThread"> Thread</label>
-							<label><input type="checkbox" data-bind="checked: showMessage"> Message</label>
-					</fieldset>
-					<label>show current <input type="checkbox" data-bind="checked: showCurrent" /></label>
-					<br>
-					<input class="logSelector" type="date" data-bind="value: untilDate, enable: !showCurrent()" />
-					<input class="logSelector" type="text" data-bind="value: untilTime, enable: !showCurrent()" />
-					<br>
-					<button data-bind="enable: showNewerPossible(), click: showNewer">newer</button>
-					<button data-bind="enable: showOlderPossible(), click: showOlder">older</button>
-					<button data-bind="click: function() { showMore(); }">more</button>
-					<label>limit <input class="logSelector" type="text" data-bind="value: maxCount" /></label>
-				</div>
-			</div>
-
-			<div id="logEventsColumn" class="viewColumn" data-bind="with: tutao.locator.logViewModel">
-				<div id="logInnerEventsColumn">
-					<div id="logEvents">
-						<table>
-						   <thead>
-      							<tr>
-									<!-- ko if: showLevel --><th class="mini" title="Level">L</th><!-- /ko -->
-									<!-- ko if: showDate --><th class="medium">Date</th><!-- /ko -->
-									<!-- ko if: showServer --><th class="mini" title="Server">S</th><!-- /ko -->
-									<!-- ko if: showUserId --><th class="medium">UserId</th><!-- /ko -->
-									<!-- ko if: showUrl --><th class="medium">URL</th><!-- /ko -->
-									<!-- ko if: showAgent --><th class="medium">Agent</th><!-- /ko -->
-									<!-- ko if: showLogger --><th class="small">Logger</th><!-- /ko -->
-									<!-- ko if: showSource --><th class="medium">Source</th><!-- /ko -->
-									<!-- ko if: showThread --><th class="small">Thread</th><!-- /ko -->
-									<!-- ko if: showMessage --><th>Message</th><!-- /ko -->
-								</tr>
-   							</thead>
-   							<tbody data-bind="foreach: logEntries">
-      							<tr>
-								    <!-- ko if: $parent.showLevel --><td class="center" data-bind="text: getLevel(), css: getLevel()"></td><!-- /ko -->
-								    <!-- ko if: $parent.showDate --><td class="center" data-bind="text: tutao.tutanota.util.Formatter.formatTimeMillis(getDate())"></td><!-- /ko -->
-									<!-- ko if: $parent.showServer --><td class="center" data-bind="text: getServer()"></td><!-- /ko -->
-									<!-- ko if: $parent.showUserId --><td class="center" data-bind="text: getUserId()"></td><!-- /ko -->
-									<!-- ko if: $parent.showUrl --><td class="medium" data-bind="text: getUrl(), attr: { title: getUrl() }"></td><!-- /ko -->
-									<!-- ko if: $parent.showAgent --><td class="medium" data-bind="text: getAgent(), attr: { title: getAgent() }"></td><!-- /ko -->
-									<!-- ko if: $parent.showLogger --><td class="small" data-bind="text: getLogger(), attr: { title: getLogger() }"></td><!-- /ko -->
-									<!-- ko if: $parent.showSource --><td class="medium" data-bind="text: getSource(), attr: { title: getSource() }"></td><!-- /ko -->
-									<!-- ko if: $parent.showThread --><td class="small" data-bind="text: getThread(), attr: { title: getThread() }"></td><!-- /ko -->
-									<!-- ko if: $parent.showMessage --><td class="message"><pre data-bind="text: getMessage()"></pre></td><!-- /ko -->
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div id="monitorContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.monitorView">
-			<div id="monitorSelectionColumn" class="viewColumn" data-bind="with: tutao.locator.monitorViewModel">
-				<div id="monitorSelectors">
-					<form data-bind="submit: refreshVisibleCounters">
-						<select class="monitorSelector" data-bind="options: diagramViews, optionsText: 'name', value: diagramView"></select><br>
-						<input class="monitorSelector" type="text" placeholder="owner id" data-bind="value: owner, visible: (diagramView().name != 'none' && diagramView().name != 'global')" /><br>
-					</form>
-				</div>
-			</div>
-
-			<div id="monitorCountersColumn" class="viewColumn" data-bind="with: tutao.locator.monitorViewModel">
-				<div id="monitorInnerCountersColumn">
-					<div id="monitorCountersData">
-						<!-- ko if: diagramView().name != "none" -->
-							<div id="monitorCounters">
-								<!-- ko foreach: diagramView().groups -->
-									<div class="row" data-bind="click: function() { tutao.locator.monitorViewModel.showDiagram($data); }">
-										<div class="heading cell" data-bind="text: name"></div>
-										<div class="cell"></div>
-										<div class="cell"></div>
-									</div>
-									<!-- ko foreach: monitors -->
-										<!-- ko if: owner != 'servers' -->
-											<div class="row" data-bind="click: function() { tutao.locator.monitorViewModel.showDiagram($parent); }">
-												<div class="cell" data-bind="text: monitor"></div>
-												<div class="cell" data-bind="text: owner"></div>
-												<div class="cell" data-bind="text: counter"></div>
-											</div>
-										<!-- /ko -->
-										<!-- ko if: owner == 'servers' -->
-											<!-- ko foreach: tutao.locator.monitorViewModel.serverIds -->
-												<div class="row" data-bind="click: function() { tutao.locator.monitorViewModel.showDiagram($parents[1]); }">
-													<div class="cell" data-bind="text: $parent.monitor"></div>
-													<div class="cell" data-bind="text: 'server_' + $data.index"></div>
-													<div class="cell" data-bind="text: $parent.counter"></div>
-												</div>
-											<!-- /ko -->
-										<!-- /ko -->
-									<!-- /ko -->
-								<!-- /ko -->
-							</div>
-							<button class="refreshCounters" data-bind="fastClick: refreshVisibleCounters">refresh</button>
-						<!-- /ko -->
-					</div>
-				</div>
-			</div>
-
-			<div id="monitorDiagramColumn" class="viewColumn" data-bind="with: tutao.locator.monitorViewModel">
-				<div id="monitorInnerDiagramColumn">
-					<div id="monitorDiagramData">
-						<!-- ko if: diagramGroup -->
-							<div id="monitorDiagram"></div>
-							<div id="monitorTable">
-								<div class="tableMonitorRow">
-									<div class="tableHeading tableCell">Monitor</div>
-									<div class="tableHeading tableCell">Count</div>
-									<div class="tableHeading tableCell">Avg</div>
-									<div class="tableHeading tableCell">Min</div>
-									<div class="tableHeading tableCell">Max</div>
-									<!-- ko if: tableRows().length > 0 && tableRows()[0].valid != null -->
-										<div class="tableHeading tableCell">Valid %</div>
-									<!-- /ko -->
-								</div>
-								<!-- ko foreach: tableRows -->
-									<div class="tableMonitorRow">
-										<div class="tableCell" data-bind="text: name"></div>
-										<div class="tableCell" data-bind="text: count"></div>
-										<div class="tableCell" data-bind="text: avg"></div>
-										<div class="tableCell" data-bind="text: min"></div>
-										<div class="tableCell" data-bind="text: max"></div>
-										<!-- ko if: valid != null -->
-											<div class="tableCell" data-bind="text: valid"></div>
-										<!-- /ko -->
-									</div>
-								<!-- /ko -->
-							</div>
-							<label>current <input type="checkbox" data-bind="checked: showCurrent" /></label>
-    						<input class="monitorSelector" placeholder="end date" type="date" data-bind="value: untilDate, enable: !showCurrent()" />
-							<input class="monitorSelector" placeholder="end time" type="text" data-bind="value: untilTime, enable: !showCurrent()" />
-							<select class="monitorSelector" data-bind="options: ranges, optionsText: 'name', value: range"></select>
-							<button class="refreshDiagram" data-bind="fastClick: refreshDiagram">refresh</button>
-						<!-- /ko -->
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div id="configContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.configView">
-			<div id="configColumn" class="viewColumn" data-bind="with: tutao.locator.configViewModel">
-				<div id="configInnerColumn">
-					<div id="configData">
-						<!-- ko if: config() -->
-							<h1>Config</h1>
-							<div id="configValues">
-								<!-- ko foreach: getSortedLongValues() -->
-									<div>
-										<span data-bind="text: getName()"></span>
-										<span data-bind="text: getValue()"></span>
-										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
-									</div>
-								<!-- /ko -->
-								<!-- ko foreach: getSortedStringValues() -->
-									<div>
-										<span data-bind="text: getName()"></span>
-										<span data-bind="text: getValue()"></span>
-										<div class="simplebutton" data-bind="click: function() { $parent.editValue(getName(), getValue()); }">edit</div>
-									</div>
-								<!-- /ko -->
-								<!-- ko foreach: getSortedTimeRangeLists() -->
-									<div>
-										<span data-bind="text: getName()"></span>
-										<div>
-											<div class="innerTable">
-												<!-- ko foreach: getTimeRanges() -->
-													<div>
-														<span data-bind="text: getIdentifier()"></span>
-														<span data-bind="simpleDate: getStart(), default: '\u221E'"></span>
-														<span data-bind="simpleDate: getEnd(), default: '\u221E'"></span>
-														<div class="simplebutton" data-bind="click: function() { tutao.locator.configViewModel.editValue($parent.getName(), getIdentifier(), getStart(), getEnd()); }">edit</div>
-									</div>
-								<!-- /ko -->
-							</div>
-										</div>
-									</div>
-								<!-- /ko -->
-							</div>
-							<button data-bind="fastClick: loadConfig">reload</button>
-							<h1 class="marginTop">set/add/delete value</h1>
-							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { storeConfig(); }, 0); }, form: true">
-								<div class="record">
-									<label for="configName" class="recordName">name</label>
-									<div class="recordData">
-										<div class="recordValue">
-											<input class="inputField wide" id="configName" type="text" data-bind="value: configName" />
-										</div>
-									</div>
-								</div>
-								<div class="record">
-									<label for="configValue" class="recordName">value</label>
-									<div class="recordData">
-										<div class="recordValue">
-											<input class="inputField wide" id="configValue" type="text" data-bind="enable: (isConfigName()), value: configValue" />
-										</div>
-									</div>
-								</div>
-								<div class="record">
-									<label for="configStart" class="recordName">start date</label>
-									<div class="recordData">
-										<div class="recordValue">
-											<input class="inputField wide" id="configStart" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configStart" />
-										</div>
-										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
-									</div>
-								</div>
-								<div class="record">
-									<label for="configEnd" class="recordName">end date</label>
-									<div class="recordData">
-										<div class="recordValue">
-											<input class="inputField wide" id="configEnd" type="date" data-bind="enable: (isTimeRangeConfigName()), value: configEnd" />
-										</div>
-										<div class="recordInfo">Empty for unlimited. Time is 0:00, UTC. Same non-null start and end date to delete entry.</div>
-									</div>
-								</div>
-								<div class="record">
-									<div class="recordName"></div>
-									<div class="formAction">
-										<button id="submitConfig" type="submit">store</button>
-										<label for="submitConfig" class="recordStatus" data-bind="text: submitStatus"></label>
-									</div>
-								</div>
-							</form>
-						<!-- /ko -->
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div id="customerContent" class="content" data-bind="slideView: tutao.locator.customerViewModel.visible, with: tutao.locator.customerViewModel">
-			<div id="customerMenuColumn" class="viewColumn">
-				<div id="customerMenuData">
-					<div>
-						<div class="menuItem" data-bind="css: {active: displayed() == 'listFreeCustomers' }, fastClick: listFreeCustomers">list free customers</div>
-						<div class="menuItem" data-bind="css: {active: displayed() == 'listStarterCustomers' }, fastClick: listStarterCustomers">list starter customers</div>
-						<div class="menuItem" data-bind="css: {active: displayed() == 'listPremiumCustomers' },fastClick: listPremiumCustomers">list premium customers</div>
-						<div class="menuItem" data-bind="css: {active: displayed() == 'listRegistrationData' },fastClick: listRegistrationData">list registrationData</div>
-					</div>
-				</div>
-			</div>
-			<div id="customerListColumn" class="viewColumn">
-			<!-- ko if: (displayed() == 'listFreeCustomers') || (displayed() == 'listStarterCustomers') || (displayed() == 'listPremiumCustomers') -->
-				<div id="customerListInnerColumn" data-bind="with: customerListViewModel">
-					<div id="customers">
-						<table>
-						   <thead>
-      							<tr>
-									<th class="small">ID</th>
-									<th class="medium">Name</th>
-									<th class="small">Domain</th>
-                                    <th class="medium">Email address</th>
-									<th class="small">Creation time</th>
-									<th class="medium">Test end time</th>
-									<th class="medium">Activation time</th>
-								</tr>
-   							</thead>
-   							<tbody data-bind="foreach: editableCustomerInfos">
-      							<tr>
-								    <td class="small" data-bind="text: getCustomerInfo().getCustomer()"></td>
-									<td class="medium" data-bind="text: company, attr: {title: company}"></td>
-									<td class="small" data-bind="text: domain, attr: {title: domain}"></td>
-                                    <td class="medium" data-bind="text: registrationMailAddress, attr: {title: registrationMailAddress}"></td>
-									<td class="small" data-bind="simpleDate: creationTime"></td>
-									<td class="medium">
-										<input type="date" data-bind="dateInput: testEndTime" />
-										<div class="simplebutton" data-bind="click: function() { $parent.updateTestEndTime($data); }">update</div>
-									</td>
-									<td class="medium">
-										<input type="date" data-bind="dateInput: activationTime" />
-										<div class="simplebutton" data-bind="click: function() { $parent.updateActivationTime($data); }">update</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-                    <button data-bind="lang: 'loadMore_action', visible: moreAvailable, click: loadMore"></button>
-				</div>
-			<!-- /ko -->
-
-			<!-- ko if: displayed() == 'listRegistrationData' -->
-				<div id="registrationDataInnerColumn" data-bind="with: registrationDataListViewModel">
-					<div id="registrationData">
-						<table>
-						   <thead>
-      							<tr>
-									<th class="small">ID</th>
-                                    <th class="small">sent</th>
-									<th class="medium">company</th>
-                                    <th class="medium">lang</th>
-									<th class="medium">type</th>
-									<th class="medium">state</th>
-									<th class="medium">email user name</th>
-									<th class="medium">mobile number</th>
-									<th class="medium">domain</th>
-									<th class="medium">mail address</th>
-									<th class="mini" title="Action">A</th>
-								</tr>
-   							</thead>
-   							<tbody>
-								<!-- ko foreach: registrationDataList -->
-      							<tr>
-								    <td class="small"><a target="_blank" data-bind="attr: {href: $parent.getUrl(getId()[1])}">Link</a></td>
-                                    <td class="small" data-bind="attr: {title: getDomainVerificationMailSentOn() != null ? tutao.tutanota.util.Formatter.formatDateTime(getDomainVerificationMailSentOn()) : ''}"><a data-bind="click: $parent.sentDomainVerificationMail, text: getDomainVerificationMailSentOn() != null"></a></td>
-									<td class="medium" data-bind="text: getCompany()"></td>
-                                    <td class="medium" data-bind="text: getLanguage()"></td>
-									<td class="medium" data-bind="text: $parent.getAccountTypeName(getAccountType())"></td>
-									<td class="medium" data-bind="text: $parent.getStateName(getState())"></td>
-									<td class="medium" data-bind="text: getGroupName()"></td>
-									<td class="medium" data-bind="text: getMobilePhoneNumber()"></td>
-									<td class="medium" data-bind="text: getDomain()"></td>
-									<td class="medium" data-bind="text: getMailAddress()"></td>
-									<td class="mini"><a data-bind="click: $parent.remove">D</a></td>
-								</tr>
-								<!-- /ko -->
-								<tr>
-								    <td class="small"></td>
-                                    <td class="small"></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: company" /></td>
-                                    <td class="small"><select class="inputField" data-bind="options: ['de', 'en'], value: language"></select></td>
-									<td class="medium"><select class="inputField" data-bind="options: accountTypes, optionsText: 'name', optionsValue: 'id', value: selectedAccountType"></select></td>
-									<td class="medium">initial</td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: groupName" /></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: mobilePhoneNumber" /></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: domain" /></td>
-									<td class="medium"><input class="inputField" type="text" data-bind="value: mailAddress" /></td>
-									<td class="mini"><a data-bind="click: add">A</a></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-                    <button data-bind="lang: 'loadMore_action', visible: moreAvailable, click: loadMore"></button>
-				</div>
-			<!-- /ko -->
-			</div>
-		</div>
-
 		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView, if: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
 				<div id="settingsInnerColumn" class="scrollable">
@@ -2252,89 +1831,5 @@
 			</div>
 	</script>
 
-	<script type="text/html"  id="type-template">
-		<div class="instance">
-			<!-- ko if: type.versioned -->
-				<div class="attribute">
-					<div class="attributeType"></div>
-					<div class="attributeName">_versions</div>
-					<div class="attributeValue reference" data-bind="text: ((instance._id instanceof Array) ? instance._id[1] : instance._id), click: function() { tutao.locator.dbViewModel.showVersionInfosByInstance(type, instance); }"></div>
-				</div>
-			<!-- /ko -->
-			<!-- ko foreach: { data: type.values } -->
-				<div class="attribute">
-					<div class="attributeType" data-bind="text: tutao.locator.dbViewModel.getTypeAbbreviation(type) + ' (' + tutao.locator.dbViewModel.getTypeAbbreviation(cardinality) + ')'"></div>
-					<div class="attributeName" data-bind="text: name"></div>
-					<!-- ko if: name == '_id' && $parent.instance[name] instanceof Array -->
-						<div class="attributeValue">
-							<span class="reference" data-bind="text: $parent.instance[name][0], click: function() { tutao.locator.dbViewModel.showInstance($parent.type, $parent.instance[name][0], null); }"></span>,<span data-bind="text: $parent.instance[name][1]"></span>
-						</div>
-					<!-- /ko -->
-					<!-- ko if: name == '_permissions' -->
-						<div class="attributeValue reference" data-bind="text: $parent.instance[name], click: function() { tutao.locator.dbViewModel.showInstance(tutao.locator.dbViewModel.getType(tutao.locator.dbViewModel.applications()[0], 'Permission'), $parent.instance[name], null); }"></div>
-					<!-- /ko -->
-					<!-- ko if: (name == 'versionData' && $parent.type.name == "VersionInfo" && $parent.instance[name] != "") -->
-						<div class="attributeValue reference" data-bind="text: $parent.instance[name], click: function() { tutao.locator.dbViewModel.showVersion($parent.instance); }"></div>
-					<!-- /ko -->
-					<!-- ko if: name != '_permissions' && !(name == '_id' && $parent.instance[name] instanceof Array) && !(name == 'versionData' && $parent.type.name == "VersionInfo" && $parent.instance[name] != "") -->
-						<div class="attributeValue" data-bind="text: $parent.instance[name]"></div>
-					<!-- /ko -->
-				</div>
-			<!-- /ko -->
-			<!-- ko foreach: { data: type.associations } -->
-				<div class="attribute">
-					<div class="attributeType" data-bind="text: tutao.locator.dbViewModel.getTypeAbbreviation(type) + ' (' + tutao.locator.dbViewModel.getTypeAbbreviation(cardinality) + ')'"></div>
-					<div class="attributeName" data-bind="text: name"></div>
-					<!-- ko if: type == 'AGGREGATION' -->
-						<!-- ko if: cardinality == 'ZeroOrOne' || cardinality == 'One' -->
-							<!-- ko if: $parent.instance[name] == null -->
-								<div class="attributeValue"></div>
-							<!-- /ko -->
-							<!-- ko if: $parent.instance[name] != null -->
-								<div class="attributeValue" data-bind="template: { name: 'type-template', data: { instance: $parent.instance[name], type: tutao.locator.dbViewModel.getType(tutao.locator.dbViewModel.getCurrentInstance().type.app, refType) } }"></div>
-							<!-- /ko -->
-						<!-- /ko -->
-						<!-- ko if: cardinality == 'Any' -->
-							<div class="attributeValue" data-bind="foreach: $parent.instance[name]">
-								<div data-bind="template: { name: 'type-template', data: { instance: $data, type: tutao.locator.dbViewModel.getType(tutao.locator.dbViewModel.getCurrentInstance().type.app, $parent.refType) } }"></div>
-							</div>
-						<!-- /ko -->
-					<!-- /ko -->
-					<!-- ko if: type == 'ELEMENT_ASSOCIATION' -->
-						<!-- ko if: cardinality == 'ZeroOrOne' || cardinality == 'One' -->
-							<div class="attributeValue reference" data-bind="text: $parent.instance[name], click: function() { tutao.locator.dbViewModel.showReference(refType, null, $parent.instance[name]); }"></div>
-						<!-- /ko -->
-						<!-- ko if: cardinality == 'Any' -->
-							<div class="attributeValue">
-								<!-- ko foreach: $parent.instance[name] -->
-									<div class="reference" data-bind="text: $data, click: function() { tutao.locator.dbViewModel.showReference($parent.refType, null, $data); }"></div>
-								<!-- /ko -->
-							</div>
-						<!-- /ko -->
-					<!-- /ko -->
-					<!-- ko if: type == 'LIST_ELEMENT_ASSOCIATION' -->
-						<!-- ko if: cardinality == 'ZeroOrOne' || cardinality == 'One' -->
-							<!-- ko if: $parent.instance[name] == null -->
-								<div class="attributeValue"></div>
-							<!-- /ko -->
-							<!-- ko if: $parent.instance[name] != null -->
-								<div class="attributeValue reference" data-bind="text: $parent.instance[name][0] + ',' + $parent.instance[name][1], click: function() { tutao.locator.dbViewModel.showReference(refType, $parent.instance[name][0], $parent.instance[name][1]); }"></div>
-							<!-- /ko -->
-						<!-- /ko -->
-						<!-- ko if: cardinality == 'Any' -->
-							<div class="attributeValue">
-								<!-- ko foreach: $parent.instance[name] -->
-									<div class="reference" data-bind="text: $data[0] + ',' + $data[1], click: function() { tutao.locator.dbViewModel.showReference($parent.refType, $data[0], $data[1]); }"></div>
-								<!-- /ko -->
-							</div>
-						<!-- /ko -->
-					<!-- /ko -->
-					<!-- ko if: type == 'LIST_ASSOCIATION' -->
-						<div class="attributeValue reference" data-bind="text: $parent.instance[name], click: function() { tutao.locator.dbViewModel.showReference(refType, $parent.instance[name], null); }"></div>
-					<!-- /ko -->
-				</div>
-			<!-- /ko -->
-		</div>
-	</script>
 </body>
 </html>

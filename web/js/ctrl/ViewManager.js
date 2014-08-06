@@ -35,32 +35,18 @@ tutao.tutanota.ctrl.ViewManager.prototype.getLoggedInUserAccountType = function(
     return null;
 };
 
+/**
+ * @return {Array.<tutao.tutanota.ctrl.View>} views All the views of this ViewManager.
+ */
+tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
+    return [tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.settingsView,tutao.locator.registrationVerifyDomainView];
+};
 
 /**
- * Initializes the ViewManager and all views.
- * @param {Array.<tutao.tutanota.ctrl.View>} views All the views this ViewManager shall handle.
- * @param {Boolean} external True if the views shall be loaded for an external user, false for an internal user.
+ * @return {Array.<tutao.tutanota.ctrl.Button>} views All the views of this ViewManager.
  */
-tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
-	for (var i = 0; i < views.length; i++) {
-		views[i].init(external);
-	}
-
+tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
     var self = this;
-
-    // If these widths are changed, we have to update them in header.less, too.
-    var menuItemWidth = 80;
-    var menuItemWidthSmall= 45;
-    var measureNavButton = function() {
-        if (window.innerWidth >= 720) {
-            return menuItemWidth;
-        } else {
-            return menuItemWidthSmall;
-        }
-    };
-    var adminViewVisible = function() {
-        return self.getActiveView() == tutao.locator.dbView || self.getActiveView() == tutao.locator.monitorView || self.getActiveView() == tutao.locator.logView  || self.getActiveView() == tutao.locator.configView  || self.getActiveView() == tutao.locator.customerView;
-    };
     var internalNonStarterUser = function() {
         if (tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn()) {
             return tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
@@ -69,13 +55,6 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
         }
     };
     var buttons = [
-        // admin
-        new tutao.tutanota.ctrl.Button("logs_label", 40, tutao.locator.navigator.logs, adminViewVisible, false, "menu_logs", "search"),
-        new tutao.tutanota.ctrl.Button("db_label", 41, tutao.locator.navigator.db, adminViewVisible, false, "menu_db", "search"),
-        new tutao.tutanota.ctrl.Button("monitor_label", 42, tutao.locator.navigator.monitor, adminViewVisible, false, "menu_monitor", "search"),
-        new tutao.tutanota.ctrl.Button("config_label", 43, tutao.locator.navigator.config, adminViewVisible, false, "menu_config", "search"),
-        new tutao.tutanota.ctrl.Button("customers_label", 44, tutao.locator.navigator.customer, adminViewVisible, false, "menu_customers", "search"),
-
         // internalUsers
         new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
             return internalNonStarterUser() && self.getActiveView() == tutao.locator.mailView;
@@ -115,7 +94,33 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(views, external) {
             tutao.locator.navigator.logout(false, true);
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt'),
     ];
-    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(buttons, "more_label", measureNavButton);
+
+    return buttons;
+};
+
+/**
+ * Initializes the ViewManager and all views.
+ * @param {Boolean} external True if the views shall be loaded for an external user, false for an internal user.
+ */
+tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
+    var views = this.getViews();
+	for (var i = 0; i < views.length; i++) {
+		views[i].init(external);
+	}
+
+    var self = this;
+
+    // If these widths are changed, we have to update them in header.less, too.
+    var menuItemWidth = 80;
+    var menuItemWidthSmall= 45;
+    var measureNavButton = function() {
+        if (window.innerWidth >= 720) {
+            return menuItemWidth;
+        } else {
+            return menuItemWidthSmall;
+        }
+    };
+    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.getButtons(), "more_label", measureNavButton);
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.feedbackSupported = function() {

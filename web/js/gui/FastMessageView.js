@@ -8,13 +8,13 @@ goog.provide('tutao.tutanota.gui.FastMessageView');
  */
 tutao.tutanota.gui.FastMessageView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**
  * @inherit
  */
 tutao.tutanota.gui.FastMessageView.prototype.init = function() {
-    this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 
 /**

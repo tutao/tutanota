@@ -9,73 +9,69 @@ goog.provide("tutao.tutanota.Bootstrap");
  */
 tutao.tutanota.Bootstrap.init = function () {
     var launch = function () {
-    // disable all registered event handlers on the document and the window
-    $(document).off();
-    $(window).off();
+        // disable all registered event handlers on the document and the window
+        $(document).off();
+        $(window).off();
 
-    if (tutao.tutanota.util.ClientDetector.isSupported()) {
-        $(window).unload(function () {
-            tutao.locator.eventBus.close(); // close the socket in non legacy-mode
-        });
-    }
-
-    if (tutao.locator && tutao.locator.eventBus) {
-        tutao.locator.eventBus.close();
-    }
-
-    tutao.tutanota.Bootstrap.initControllers();
-    Promise.longStackTraces();
-    Promise.onPossiblyUnhandledRejection(function(e) {
-        if (e instanceof tutao.ConnectionError) {
-            tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
-        } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
-            tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
-        } else {
-            if (tutao.locator.viewManager.feedbackSupported()) {
-                // only logged in users can report errors
-                tutao.locator.feedbackViewModel.open(e.stack);
-            } else {
-                tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
-            }
+        if (tutao.tutanota.util.ClientDetector.isSupported()) {
+            $(window).unload(function () {
+                tutao.locator.eventBus.close(); // close the socket in non legacy-mode
+            });
         }
-        console.log(e.stack);
-    });
 
-    if (!tutao.tutanota.app) {
-        tutao.tutanota.app = ko.observable(true);
-    } else {
-        tutao.tutanota.app(!tutao.tutanota.app());
-    }
-    tutao.locator.viewManager.select(tutao.locator.fastMessageView);
-    setTimeout(function () {
-        tutao.locator.navigator.setup();
-        tutao.locator.entropyCollector.start();
+        if (tutao.locator && tutao.locator.eventBus) {
+            tutao.locator.eventBus.close();
+        }
 
-    }, 0);
+        tutao.tutanota.Bootstrap.initControllers();
+        Promise.longStackTraces();
+        Promise.onPossiblyUnhandledRejection(function (e) {
+            if (e instanceof tutao.ConnectionError) {
+                tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+            } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
+                tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
+            } else {
+                if (tutao.locator.viewManager.feedbackSupported()) {
+                    // only logged in users can report errors
+                    tutao.locator.feedbackViewModel.open(e.stack);
+                } else {
+                    tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
+                }
+            }
+            console.log(e.stack);
+        });
 
-    if (window.applicationCache) {
-        var listener = new tutao.tutanota.ctrl.AppCacheListener();
-    }
+        if (!tutao.tutanota.app) {
+            tutao.tutanota.app = ko.observable(true);
+        } else {
+            tutao.tutanota.app(!tutao.tutanota.app());
+        }
+        tutao.locator.viewManager.select(tutao.locator.fastMessageView);
+        setTimeout(function () {
+            tutao.locator.navigator.setup();
+            tutao.locator.entropyCollector.start();
 
-    // only for testing
-	//	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
-	//	tutao.locator.loginViewModel.passphrase("arm");
-	//	tutao.locator.loginViewModel.login();
-    //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
+        }, 0);
+
+        if (window.applicationCache) {
+            var listener = new tutao.tutanota.ctrl.AppCacheListener();
+        }
+
+        // only for testing
+        //	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
+        //	tutao.locator.loginViewModel.passphrase("arm");
+        //	tutao.locator.loginViewModel.login();
+        //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
 
         tutao.tutanota.gui.initKnockout();
     };
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         launch();
     });
 };
 
-/**
- * @export
- */
-tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
+tutao.tutanota.Bootstrap.getSingletons = function() {
     var singletons = {
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.AesWorkerProxy,
@@ -111,16 +107,6 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         registrationVerifyDomainViewModel: tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel,
         registrationView: tutao.tutanota.gui.RegistrationView,
         registrationViewModel: tutao.tutanota.ctrl.RegistrationViewModel,
-        logView: tutao.tutanota.gui.LogView,
-        logViewModel: tutao.tutanota.ctrl.LogViewModel,
-        dbView: tutao.tutanota.gui.DbView,
-        dbViewModel: tutao.tutanota.ctrl.DbViewModel,
-        monitorView: tutao.tutanota.gui.MonitorView,
-        monitorViewModel: tutao.tutanota.ctrl.MonitorViewModel,
-        configView: tutao.tutanota.gui.ConfigView,
-        configViewModel: tutao.tutanota.ctrl.ConfigViewModel,
-        customerView: tutao.tutanota.gui.CustomerView,
-        customerViewModel: tutao.tutanota.ctrl.CustomerViewModel,
         settingsView: tutao.tutanota.gui.SettingsView,
         settingsViewModel: tutao.tutanota.ctrl.SettingsViewModel,
         entropyCollector: tutao.crypto.EntropyCollector,
@@ -140,8 +126,17 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     }
     tutao.tutanota.legacy.Legacy.setup(singletons);
 
+    return singletons;
+};
+
+tutao.tutanota.Bootstrap.initControllers = function () {
+    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
+
     // @type {tutao.Locator}
-    tutao.locator = new tutao.Locator(singletons);
+    tutao.locator = new tutao.Locator(tutao.tutanota.Bootstrap.getSingletons());
+
+    var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
+    tutao.locator.viewManager.init(external);
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
@@ -151,10 +146,10 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         //viewport.setAttribute('content', 'initial-scale=0.85, maximum-scale=0.85, user-scalable=no');
     }
 
-	// indexing is disabled currently
-   // if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-        tutao.locator.replace('dao', new tutao.db.DummyDb);
-   // }
+    // indexing is disabled currently
+    // if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+    tutao.locator.replace('dao', new tutao.db.DummyDb);
+    // }
 
     // add a cache to the rest entity chain
     var cache = new tutao.rest.EntityRestCache();
@@ -173,9 +168,6 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     tutao.tutanota.gui.initEvents();
 
-    var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
-    tutao.locator.viewManager.init([tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.logView, tutao.locator.dbView, tutao.locator.monitorView, tutao.locator.configView, tutao.locator.settingsView, tutao.locator.customerView, tutao.locator.registrationVerifyDomainView], external);
-
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
         // notify the active view and the swipe recognizer
         if (tutao.locator.viewManager.getActiveView() != null) {
@@ -186,17 +178,3 @@ tutao.tutanota.Bootstrap.initControllers = function () {
         }
     });
 };
-
-/* html code for file menu icon
- <li>
- <div class="menu_link" data-bind="fastClick: function(data, event) { setTimeout(function() { select(tutao.locator.fileView); }, 0); }">
- <!-- ko if: getActiveView() == tutao.locator.fileView -->
- <div class="menu_image"><div class="file-new" data-bind="attr: {title: tutao.lang('newFolder_alt')}"></div></div>
- <div class="menu_text" data-bind="lang: 'new_label'"></div>
- <!-- /ko -->
- <!-- ko ifnot: getActiveView() == tutao.locator.fileView -->
- <div class="menu_image"><div class="file" data-bind="attr: {title: tutao.lang('files_alt')}"></div></div>
- <div class="menu_text" data-bind="lang: 'files_label'"></div>
- <!-- /ko -->
- </div>
- </li>*/

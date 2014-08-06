@@ -87,15 +87,30 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	// in private browsing mode in mobile safari local storage is not available and throws an exception
 	this.passphraseFieldFocused(false);
 	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
-	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function() {
-		return tutao.locator.mailBoxController.initForUser();
-	}).then(function() {
-        return self.loadEntropy();
+	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function () {
+        self.passphrase("");
     }).then(function() {
+        return self.postLoginActions();
+    }).caught(tutao.AccessBlockedError, function() {
+        self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
+    }).caught(tutao.NotAuthenticatedError, function(exception) {
+        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+    }).caught(tutao.AccessDeactivatedError, function() {
+        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+    }).lastly(function() {
+        self.loginOngoing(false);
+    });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
+    var self = this;
+    return tutao.locator.mailBoxController.initForUser().then(function() {
         // this should be the user id instead of the name later
         return new Promise(function(resolve, reject) {
             tutao.locator.dao.init("Tutanota_" + self.mailAddress(), resolve);
         });
+    }).then(function () {
+        return self.loadEntropy();
     }).then(function() {
         // load all contacts to have them available in cache, e.g. for RecipientInfos
         return tutao.locator.contactListViewModel.init();
@@ -107,15 +122,6 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
         } else {
             tutao.locator.navigator.mail();
         }
-        self.passphrase("");
-    }).caught(tutao.AccessBlockedError, function() {
-        self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
-    }).caught(tutao.NotAuthenticatedError, function(exception) {
-        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
-    }).caught(tutao.AccessDeactivatedError, function() {
-        self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
-    }).lastly(function() {
-        self.loginOngoing(false);
     });
 };
 

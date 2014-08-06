@@ -340,18 +340,6 @@ tutao.tutanota.gui.initKnockout = function() {
 };
 
 /**
- * Cleans and re-applies all bindings to the logo-node which is only partially managed by knockout (because it is shown .
- */
-tutao.tutanota.gui.resetLogoBindings = function() {
-	var logo = $('div#logo');
-	ko.cleanNode(logo[0]);
-	logo.children().each(function() {
-		ko.cleanNode(this);
-	});
-	ko.applyBindings(logo);
-};
-
-/**
  * Initializes all global events for the gui.
  */
 tutao.tutanota.gui.initEvents = function() {

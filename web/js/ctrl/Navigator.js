@@ -86,26 +86,6 @@ tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
 	this.contact();
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.logs = function() {
-	location.replace("#logs");
-};
-
-tutao.tutanota.ctrl.Navigator.prototype.db = function() {
-	location.replace("#db");
-};
-
-tutao.tutanota.ctrl.Navigator.prototype.monitor = function() {
-	location.replace("#monitor");
-};
-
-tutao.tutanota.ctrl.Navigator.prototype.config = function() {
-	location.replace("#config");
-};
-
-tutao.tutanota.ctrl.Navigator.prototype.customer = function() {
-	location.replace("#customer");
-};
-
 tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
 	location.replace("#settings");
 };
@@ -163,7 +143,6 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
         tutao.locator.navigator.mailRef = null;
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
-			tutao.tutanota.gui.resetLogoBindings();
 		}
 		if (self.verifyClientSupported()) {
 			// provide allowAutoLogin to loginViewModel here as soon as device management is running
@@ -178,7 +157,6 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 	Path.map("#mail/:mailRef").to(function() {
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
-            tutao.tutanota.gui.resetLogoBindings();
 		}
 		if (self.verifyExternalClientSupported()) {
 			// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
@@ -207,26 +185,6 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 		self.authenticateAndSwitchToView(tutao.locator.fileView);
 	});
 	
-	Path.map("#db").to(function() {
-		self.authenticateAndSwitchToView(tutao.locator.dbView);
-	});
-	
-	Path.map("#logs").to(function() {
-		self.authenticateAndSwitchToView(tutao.locator.logView);
-	});
-	
-	Path.map("#monitor").to(function() {
-		self.authenticateAndSwitchToView(tutao.locator.monitorView);
-	});
-	
-	Path.map("#config").to(function() {
-		self.authenticateAndSwitchToView(tutao.locator.configView);
-	});
-	
-	Path.map("#customer").to(function() {
-		self.authenticateAndSwitchToView(tutao.locator.customerView);
-	});
-
 	Path.map("#settings").to(function() {
 		self.authenticateAndSwitchToView(tutao.locator.settingsView);
 	});
