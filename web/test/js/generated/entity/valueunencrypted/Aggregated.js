@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.valueunencrypted.Aggregated');
+tutao.provide('tutao.entity.valueunencrypted.Aggregated');
 
 /**
  * @constructor

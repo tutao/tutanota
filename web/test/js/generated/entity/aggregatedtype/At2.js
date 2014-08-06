@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.aggregatedtype.At2');
+tutao.provide('tutao.entity.aggregatedtype.At2');
 
 /**
  * @constructor
