@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.base.PersistenceResourcePostReturn');
+tutao.provide('tutao.entity.base.PersistenceResourcePostReturn');
 
 /**
  * @constructor

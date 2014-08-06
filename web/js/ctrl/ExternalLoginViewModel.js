@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ExternalLoginViewModel');
+tutao.provide('tutao.tutanota.ctrl.ExternalLoginViewModel');
 
 /**
  * The ViewModel for the externalLogin-template.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactExtension');
+tutao.provide('tutao.entity.tutanota.ContactExtension');
 
 /**
  * Adds extended functionality to the given editable contact.

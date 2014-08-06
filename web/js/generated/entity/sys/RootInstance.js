@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.RootInstance');
+tutao.provide('tutao.entity.sys.RootInstance');
 
 /**
  * @constructor

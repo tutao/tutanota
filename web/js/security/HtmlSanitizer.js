@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.security.HtmlSanitizer');
+tutao.provide('tutao.tutanota.security.HtmlSanitizer');
 
 /**
  * This Interface provides an abstraction of a Html sanitizer.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.security.CajaSanitizer');
+tutao.provide('tutao.tutanota.security.CajaSanitizer');
 
 /**
  * Uses the sanitizer of google-caja.

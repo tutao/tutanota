@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.SwipeSlider');
+tutao.provide('tutao.tutanota.gui.SwipeSlider');
 
 /**
  * Connects the view slider of a div with the swipe recognition.

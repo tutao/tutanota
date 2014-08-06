@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.ctrl.UserController');
+tutao.provide('tutao.ctrl.UserController');
 
 /**
  * Allows logging in an internal user.

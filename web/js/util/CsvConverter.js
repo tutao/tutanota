@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.CsvConverter');
+tutao.provide('tutao.tutanota.util.CsvConverter');
 
 /**
  * Converts a CSV string to a two-dimensional array.

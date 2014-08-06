@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ComposingMail');
+tutao.provide('tutao.tutanota.ctrl.ComposingMail');
 
 /**
  * This class represents a mail that is currently written. It contains mail, body and other editing fields.

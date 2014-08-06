@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ConversationEntry');
+tutao.provide('tutao.entity.tutanota.ConversationEntry');
 
 /**
  * @constructor

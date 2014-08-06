@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.RandomizerInterface');
+tutao.provide('tutao.crypto.RandomizerInterface');
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.LanguageViewModel');
+tutao.provide('tutao.tutanota.ctrl.LanguageViewModel');
 
 /**
  * Provides all localizations of strings on our gui.

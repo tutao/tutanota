@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.index.Indexer');
+tutao.provide('tutao.tutanota.index.Indexer');
 
 /**
  * Is responsible for indexing elements and performing searches on the index.

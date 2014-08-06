@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.RegistrationVerifyDomainDataPut');
+tutao.provide('tutao.entity.sys.RegistrationVerifyDomainDataPut');
 
 /**
  * @constructor

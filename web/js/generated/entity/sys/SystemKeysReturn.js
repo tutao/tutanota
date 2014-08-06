@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SystemKeysReturn');
+tutao.provide('tutao.entity.sys.SystemKeysReturn');
 
 /**
  * @constructor

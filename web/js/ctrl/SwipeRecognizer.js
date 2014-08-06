@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.SwipeRecognizer');
+tutao.provide('tutao.tutanota.ctrl.SwipeRecognizer');
 
 /**
  * @constructor

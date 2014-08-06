@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.Oaep');
+tutao.provide('tutao.crypto.Oaep');
 
 /**
  * @constructor

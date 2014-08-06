@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Bucket');
+tutao.provide('tutao.entity.sys.Bucket');
 
 /**
  * @constructor

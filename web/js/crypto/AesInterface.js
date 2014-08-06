@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.AesInterface');
+tutao.provide('tutao.crypto.AesInterface');
 
 /**
  * This Interface provides an abstraction of the AES cryptographic implementation.

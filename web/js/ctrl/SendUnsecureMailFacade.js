@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
+tutao.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
 
 /**
  * Sends a mail to tutanota and external recipients.

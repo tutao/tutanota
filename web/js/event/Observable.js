@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.Observable');
+tutao.provide('tutao.event.Observable');
 
 /**
  * The subject of the Observable pattern

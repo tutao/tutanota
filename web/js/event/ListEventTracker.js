@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.ListEventTracker');
+tutao.provide('tutao.event.ListEventTracker');
 //import('tutao.event.Observable');
 
 

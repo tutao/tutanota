@@ -1,7 +1,7 @@
 "use strict";
 
-goog.provide('tutao.locator');
-goog.provide("tutao.tutanota.Bootstrap");
+tutao.provide('tutao.locator');
+tutao.provide("tutao.tutanota.Bootstrap");
 
 /**
  * Executes all initializations needed for the live one-and-only tutanota website.

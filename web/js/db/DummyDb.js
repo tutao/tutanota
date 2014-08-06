@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.db.DummyDb');
+tutao.provide('tutao.db.DummyDb');
 //import('tutao.db.DbInterface');
 
 /**

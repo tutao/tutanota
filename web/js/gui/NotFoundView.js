@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.NotFoundView');
+tutao.provide('tutao.tutanota.gui.NotFoundView');
 
 /**
  * @constructor

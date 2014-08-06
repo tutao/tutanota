@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.ObservableInterface');
+tutao.provide('tutao.event.ObservableInterface');
 
 /**
  * The subject of the Observable pattern

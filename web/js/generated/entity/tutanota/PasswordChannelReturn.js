@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.PasswordChannelReturn');
+tutao.provide('tutao.entity.tutanota.PasswordChannelReturn');
 
 /**
  * @constructor

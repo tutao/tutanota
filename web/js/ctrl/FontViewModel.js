@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.FontViewModel');
+tutao.provide('tutao.tutanota.ctrl.FontViewModel');
 
 tutao.tutanota.ctrl.FontViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);

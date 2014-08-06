@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.ArrayUtils');
+tutao.provide('tutao.util.ArrayUtils');
 
 /**
  * Provides an array containing all elements that are in all of the provided arrays. duplicates and empty elements are removed.

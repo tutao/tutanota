@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.LoginViewModel');
+tutao.provide('tutao.tutanota.ctrl.LoginViewModel');
 
 /**
  * The ViewModel for the Login template.

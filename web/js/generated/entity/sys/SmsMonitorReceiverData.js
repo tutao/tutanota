@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SmsMonitorReceiverData');
+tutao.provide('tutao.entity.sys.SmsMonitorReceiverData');
 
 /**
  * @constructor

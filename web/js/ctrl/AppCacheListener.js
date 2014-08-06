@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.c');
+tutao.provide('tutao.tutanota.ctrl.c');
 
 /**
  * @constructor

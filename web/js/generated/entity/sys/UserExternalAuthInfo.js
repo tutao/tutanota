@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.UserExternalAuthInfo');
+tutao.provide('tutao.entity.sys.UserExternalAuthInfo');
 
 /**
  * @constructor

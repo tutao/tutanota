@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ContactCsvHandler');
+tutao.provide('tutao.tutanota.ctrl.ContactCsvHandler');
 
 /**
  * @interface

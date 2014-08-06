@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.SendMailFacade');
+tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
 
 /**
  * Sends a secure mail to internal and external recipients. For external recipients the password and password channels must be set.

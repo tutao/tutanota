@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.bubbleinput.BubbleHandler');
+tutao.provide('tutao.tutanota.ctrl.bubbleinput.BubbleHandler');
 
 
 /**

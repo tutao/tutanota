@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.StateMachine');
+tutao.provide('tutao.tutanota.util.StateMachine');
 
 tutao.tutanota.util.StateMachine = function() {
 	this._states = {}; // stateName: { trigger: function, transitions: { eventName: nextState }, properties: { propertyName: propertyValue } }

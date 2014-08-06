@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.ClientWorkerProxy');
+tutao.provide('tutao.crypto.ClientWorkerProxy');
 
 /**
  * The worker proxy acts as a proxy to a worker. It is responsible for creating the worker and may receive arbitrary commands for the worker. The worker
@@ -43,7 +43,7 @@ tutao.crypto.ClientWorkerProxy.initWorkerFileNames = function(srcPath, libsPath)
     if (tutao.env.type === tutao.Env.LOCAL) {
         tutao.crypto.ClientWorkerProxy.WORKER_FILE = srcPath + 'crypto/ClientWorker.js';
         tutao.crypto.ClientWorkerProxy.WORKER_IMPORTS = [
-                libsPath + 'closure-library-base-2012-01-19.js',
+                libsPath + 'base.js',
                 libsPath + 'crypto-jsbn-2012-08-09_1.js',
                 libsPath + 'crypto-sjcl-2012-08-09_1.js',
                 srcPath + 'crypto/AesInterface.js',

@@ -1,22 +1,22 @@
 "use strict";
 
-goog.provide('tutao.util.ErrorFactory');
+tutao.provide('tutao.util.ErrorFactory');
 
-goog.provide('tutao.AccessBlockedError');
-goog.provide('tutao.AccessDeactivatedError');
-goog.provide('tutao.AccessExpiredError');
-goog.provide('tutao.BadRequestError');
-goog.provide('tutao.InvalidDataError');
-goog.provide('tutao.InvalidSoftwareVersionError');
-goog.provide('tutao.LimitReachedError');
-goog.provide('tutao.MethodNotAllowedError');
-goog.provide('tutao.NotAuthenticatedError');
-goog.provide('tutao.NotAuthorizedError');
-goog.provide('tutao.NotFoundError');
-goog.provide('tutao.ResourceError');
-goog.provide('tutao.TechnicalError');
-goog.provide('tutao.TooManyRequestsError');
-goog.provide('tutao.ConnectionError');
+tutao.provide('tutao.AccessBlockedError');
+tutao.provide('tutao.AccessDeactivatedError');
+tutao.provide('tutao.AccessExpiredError');
+tutao.provide('tutao.BadRequestError');
+tutao.provide('tutao.InvalidDataError');
+tutao.provide('tutao.InvalidSoftwareVersionError');
+tutao.provide('tutao.LimitReachedError');
+tutao.provide('tutao.MethodNotAllowedError');
+tutao.provide('tutao.NotAuthenticatedError');
+tutao.provide('tutao.NotAuthorizedError');
+tutao.provide('tutao.NotFoundError');
+tutao.provide('tutao.ResourceError');
+tutao.provide('tutao.TechnicalError');
+tutao.provide('tutao.TooManyRequestsError');
+tutao.provide('tutao.ConnectionError');
 
 tutao.util.ErrorFactory = function () {
 };

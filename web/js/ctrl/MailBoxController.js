@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.MailBoxController');
+tutao.provide('tutao.tutanota.ctrl.MailBoxController');
 
 /**
  * The MailBoxController is responsible for caching the user's mail list id in

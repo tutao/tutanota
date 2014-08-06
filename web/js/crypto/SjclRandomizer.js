@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.SjclRandomizer');
+tutao.provide('tutao.crypto.SjclRandomizer');
 
 /**
  * This random number implementation uses the sjcl random number generator internally. It is the Fortuna algorithm with small modifications to suite to the JavaScript environment.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.SendMailFromExternalData');
+tutao.provide('tutao.entity.tutanota.SendMailFromExternalData');
 
 /**
  * @constructor

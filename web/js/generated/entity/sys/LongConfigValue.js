@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.LongConfigValue');
+tutao.provide('tutao.entity.sys.LongConfigValue');
 
 /**
  * @constructor

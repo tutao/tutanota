@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SmsMonitorTriggerData');
+tutao.provide('tutao.entity.sys.SmsMonitorTriggerData');
 
 /**
  * @constructor

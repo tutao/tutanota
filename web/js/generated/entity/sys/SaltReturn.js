@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SaltReturn');
+tutao.provide('tutao.entity.sys.SaltReturn');
 
 /**
  * @constructor

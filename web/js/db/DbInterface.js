@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.db.DbInterface');
+tutao.provide('tutao.db.DbInterface');
 /**
  * The interface to the DB
  * @interface

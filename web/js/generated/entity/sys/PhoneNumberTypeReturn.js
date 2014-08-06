@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.PhoneNumberTypeReturn');
+tutao.provide('tutao.entity.sys.PhoneNumberTypeReturn');
 
 /**
  * @constructor

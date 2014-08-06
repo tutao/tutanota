@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.PasswordAutoAuthenticationReturn');
+tutao.provide('tutao.entity.tutanota.PasswordAutoAuthenticationReturn');
 
 /**
  * @constructor

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.SettingsViewModel');
+tutao.provide('tutao.tutanota.ctrl.SettingsViewModel');
 
 /**
  * Handles the user settings in Tutanota.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.FileData');
+tutao.provide('tutao.entity.tutanota.FileData');
 
 /**
  * @constructor

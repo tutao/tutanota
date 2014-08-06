@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.db.WebSqlDb');
+tutao.provide('tutao.db.WebSqlDb');
 //import('tutao.db.DbInterface');
 //import('tutao.entity.Mail');
 

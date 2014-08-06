@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.KnockoutObservableAdapter');
+tutao.provide('tutao.util.KnockoutObservableAdapter');
 
 /**
  * This adapter creates knockout observables from our entity classes 

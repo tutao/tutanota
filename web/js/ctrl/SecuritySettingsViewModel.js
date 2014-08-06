@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.SecuritySettingsViewModel');
+tutao.provide('tutao.tutanota.ctrl.SecuritySettingsViewModel');
 
 /**
  * Displays the security settings. This view model is created dynamically.

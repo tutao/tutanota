@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactWrapper');
+tutao.provide('tutao.entity.tutanota.ContactWrapper');
 
 /**
  * Provides additional methods on a contact.

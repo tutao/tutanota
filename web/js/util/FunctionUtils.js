@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.FunctionUtils');
+tutao.provide('tutao.util.FunctionUtils');
 
 /**
  * Rebinds all methods defined on a prototype to this. This is useful for methods that

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactSocialIdEditable');
+tutao.provide('tutao.entity.tutanota.ContactSocialIdEditable');
 
 /**
  * Provides a knockout observable mechanism for a ContactSocialId.

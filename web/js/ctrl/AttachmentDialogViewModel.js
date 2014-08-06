@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.AttachmentDialogViewModel');
+tutao.provide('tutao.tutanota.ctrl.AttachmentDialogViewModel');
 
 /**
  * The ViewModel for the safari legacy download.

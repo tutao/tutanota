@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.FeedbackData');
+tutao.provide('tutao.entity.tutanota.FeedbackData');
 
 /**
  * @constructor

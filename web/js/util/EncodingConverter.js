@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.EncodingConverter');
+tutao.provide('tutao.util.EncodingConverter');
 
 /**
  * Converts a hex coded string into a base64 coded string.

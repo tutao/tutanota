@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.EventBusClient');
+tutao.provide('tutao.event.EventBusClient');
 
 /**
  * The EventBus encapsulates the WebSocket connection to the server. It currently only forwards messages to observers.

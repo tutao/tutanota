@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.AdminNewUser');
+tutao.provide('tutao.tutanota.ctrl.AdminNewUser');
 
 /**
  * A new user that should be added to an existing customer

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.legacy.FlashFileSaver');
+tutao.provide('tutao.tutanota.legacy.FlashFileSaver');
 
 /**
  * The FlashFileSaver is a fallback for older browsers (IE < 10) and is used in order to save data on the client.

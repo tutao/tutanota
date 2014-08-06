@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.FileFacade');
+tutao.provide('tutao.tutanota.ctrl.FileFacade');
 
 /**
  * Creates a new file on the server in the user file system.

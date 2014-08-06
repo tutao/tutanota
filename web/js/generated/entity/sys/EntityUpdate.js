@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.EntityUpdate');
+tutao.provide('tutao.entity.sys.EntityUpdate');
 
 /**
  * @constructor

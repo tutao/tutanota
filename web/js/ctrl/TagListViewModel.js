@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.TagListViewModel');
+tutao.provide('tutao.tutanota.ctrl.TagListViewModel');
 
 /**
  * The view model for the tag list.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.ClientDetector');
+tutao.provide('tutao.tutanota.util.ClientDetector');
 
 /** Chrome browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_CHROME = "Chrome";

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.RegistrationVerifyDomainView');
+tutao.provide('tutao.tutanota.gui.RegistrationVerifyDomainView');
 
 /**
  * @constructor

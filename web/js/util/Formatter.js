@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.Formatter');
+tutao.provide('tutao.tutanota.util.Formatter');
 
 /**
  * @param {Date} date The date to format.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel');
+tutao.provide('tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel');
 
 /**
  * The ViewModel for the pre-registration template.

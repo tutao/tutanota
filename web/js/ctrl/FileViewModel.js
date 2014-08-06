@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.FileViewModel');
+tutao.provide('tutao.tutanota.ctrl.FileViewModel');
 
 /**
  * The view model for the file system.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ContactListViewModel');
+tutao.provide('tutao.tutanota.ctrl.ContactListViewModel');
 
 /**
  * The list of contact headers on the left.

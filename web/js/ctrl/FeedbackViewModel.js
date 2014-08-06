@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.FeedbackViewModel');
+tutao.provide('tutao.tutanota.ctrl.FeedbackViewModel');
 
 /**
  * The ViewModel for the feedback wizard.

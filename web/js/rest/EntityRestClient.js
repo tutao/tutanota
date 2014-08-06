@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.rest.EntityRestClient');
+tutao.provide('tutao.rest.EntityRestClient');
 
 /**
  * The EntityRestClient provides a convenient interface for invoking server side REST services.

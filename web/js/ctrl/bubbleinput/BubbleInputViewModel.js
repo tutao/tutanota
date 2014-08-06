@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel');
+tutao.provide('tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel');
 
 /**
  * Displays a BubbleInputField. A BubbleInputField is an input field that converts text to bubbles

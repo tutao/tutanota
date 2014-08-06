@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SendRegistrationCodeReturn');
+tutao.provide('tutao.entity.sys.SendRegistrationCodeReturn');
 
 /**
  * @constructor

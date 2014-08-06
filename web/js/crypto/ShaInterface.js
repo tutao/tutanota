@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.ShaInterface');
+tutao.provide('tutao.crypto.ShaInterface');
 
 /**
  * This Interface provides an abstraction of SHA hashing algorithm.

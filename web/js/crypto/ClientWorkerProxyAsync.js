@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.ClientWorkerProxyAsync');
+tutao.provide('tutao.crypto.ClientWorkerProxyAsync');
 
 /**
  * The worker proxy acts as a proxy to a worker. It is responsible for creating the worker and may receive arbitrary commands for the worker. The worker

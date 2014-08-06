@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.bubbleinput.Bubble');
+tutao.provide('tutao.tutanota.ctrl.bubbleinput.Bubble');
 
 /**
  * Creates a new Bubble from the following args:

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.rest.EntityRestCache');
+tutao.provide('tutao.rest.EntityRestCache');
 
 /**
  * This implementation of the EntityRestInterface provides a caching mechanism to the entity rest chain.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.RegistrationViewModel');
+tutao.provide('tutao.tutanota.ctrl.RegistrationViewModel');
 
 /**
  * The ViewModel for the registration template.

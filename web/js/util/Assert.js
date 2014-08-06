@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.Assert');
+tutao.provide('tutao.util.Assert');
 
 /**
  * Throws an exception if the given object is null or undefined;

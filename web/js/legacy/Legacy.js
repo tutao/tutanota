@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.legacy.Legacy');
+tutao.provide('tutao.tutanota.legacy.Legacy');
 
 /**
  * Handles settings for the legacy support and not supported browsers.

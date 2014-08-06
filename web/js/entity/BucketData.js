@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.BucketData');
+tutao.provide('tutao.entity.BucketData');
 
 /**
  * BucketData encapsulates the reference and the key of a Bucket.

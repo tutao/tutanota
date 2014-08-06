@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.WorkerRandomizer');
+tutao.provide('tutao.crypto.WorkerRandomizer');
 
 /**
  * This randomizer does not generate random numbers itself but acts as a proxy. It only provides random numbers if it was feeded with values via setNextRandomBytes().

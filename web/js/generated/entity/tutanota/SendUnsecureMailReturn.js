@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.SendUnsecureMailReturn');
+tutao.provide('tutao.entity.tutanota.SendUnsecureMailReturn');
 
 /**
  * @constructor

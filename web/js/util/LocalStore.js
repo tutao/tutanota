@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.LocalStore');
+tutao.provide('tutao.tutanota.util.LocalStore');
 
 /**
  * Stores some data in the local storage.

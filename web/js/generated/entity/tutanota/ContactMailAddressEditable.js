@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactMailAddressEditable');
+tutao.provide('tutao.entity.tutanota.ContactMailAddressEditable');
 
 /**
  * Provides a knockout observable mechanism for a ContactMailAddress.

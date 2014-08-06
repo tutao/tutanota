@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.ExternalLoginView');
+tutao.provide('tutao.tutanota.gui.ExternalLoginView');
 
 /**
  * @constructor

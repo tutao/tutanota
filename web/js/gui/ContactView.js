@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.ContactView');
+tutao.provide('tutao.tutanota.gui.ContactView');
 
 /**
  * @constructor

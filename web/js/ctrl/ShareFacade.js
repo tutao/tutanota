@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ShareFacade');
+tutao.provide('tutao.tutanota.ctrl.ShareFacade');
 
 /**
  * Share a functional area with someone else.

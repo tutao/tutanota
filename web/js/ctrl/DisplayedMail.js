@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.DisplayedMail');
+tutao.provide('tutao.tutanota.ctrl.DisplayedMail');
 
 /**
  * This class represents a mail that is currently displayed.

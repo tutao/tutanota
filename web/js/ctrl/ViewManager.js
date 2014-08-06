@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ViewManager');
+tutao.provide('tutao.tutanota.ctrl.ViewManager');
 
 /**
  * The ViewManager is responsible for activating and deactivating views.

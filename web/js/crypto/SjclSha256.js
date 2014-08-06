@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.SjclSha256');
+tutao.provide('tutao.crypto.SjclSha256');
 
 /**
  * Sha256 implementation from the Sjcl library.

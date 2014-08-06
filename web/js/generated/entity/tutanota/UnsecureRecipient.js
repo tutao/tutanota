@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.UnsecureRecipient');
+tutao.provide('tutao.entity.tutanota.UnsecureRecipient');
 
 /**
  * @constructor

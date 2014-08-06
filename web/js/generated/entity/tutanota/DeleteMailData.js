@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.DeleteMailData');
+tutao.provide('tutao.entity.tutanota.DeleteMailData');
 
 /**
  * @constructor

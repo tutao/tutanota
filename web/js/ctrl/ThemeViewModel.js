@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ThemeViewModel');
+tutao.provide('tutao.tutanota.ctrl.ThemeViewModel');
 
 tutao.tutanota.ctrl.ThemeViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);

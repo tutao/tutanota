@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.DropDownViewModel');
+tutao.provide('tutao.tutanota.ctrl.DropDownViewModel');
 
 /**
  * Displays a drop down with a custom value. If the custom value is selected, the drop down is replaced by a text field.

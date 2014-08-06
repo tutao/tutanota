@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.Exporter');
+tutao.provide('tutao.tutanota.util.Exporter');
 
 /**
  * Converts a mail into the plain text EML format.

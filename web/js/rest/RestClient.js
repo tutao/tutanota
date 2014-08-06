@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.rest.RestClient');
+tutao.provide('tutao.rest.RestClient');
 
 /**
  * The RestClient class is a facade to jquery's ajax implementation. It provides operations

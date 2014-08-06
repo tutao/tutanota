@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ContactViewModel');
+tutao.provide('tutao.tutanota.ctrl.ContactViewModel');
 
 /**
  * The contact on the right.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.MembershipAddData');
+tutao.provide('tutao.entity.sys.MembershipAddData');
 
 /**
  * @constructor

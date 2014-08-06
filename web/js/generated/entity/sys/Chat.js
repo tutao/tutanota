@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Chat');
+tutao.provide('tutao.entity.sys.Chat');
 
 /**
  * @constructor

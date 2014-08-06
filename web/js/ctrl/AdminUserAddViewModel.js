@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.AdminUserAddViewModel');
+tutao.provide('tutao.tutanota.ctrl.AdminUserAddViewModel');
 
 /**
  * Shows a list of all users of a company

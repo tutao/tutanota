@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.SecondFactorAuthAllowedReturn');
+tutao.provide('tutao.entity.sys.SecondFactorAuthAllowedReturn');
 
 /**
  * @constructor

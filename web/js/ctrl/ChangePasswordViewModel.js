@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ChangePasswordViewModel');
+tutao.provide('tutao.tutanota.ctrl.ChangePasswordViewModel');
 
 /**
  * Handles changing the users password. This view model is created dynamically.

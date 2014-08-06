@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.GroupData');
+tutao.provide('tutao.tutanota.ctrl.GroupData');
 
 /**
  * @param {string} name

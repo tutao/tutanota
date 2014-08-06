@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.EventBusListener');
+tutao.provide('tutao.event.EventBusListener');
 
 /**
  * Interface for receiving EventBusClient events.

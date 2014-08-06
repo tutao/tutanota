@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.CustomerInfoEditable');
+tutao.provide('tutao.entity.sys.CustomerInfoEditable');
 
 /**
  * Provides a knockout observable mechanism for a CustomerInfo.

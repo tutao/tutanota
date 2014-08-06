@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.RecipientsNotFoundError');
+tutao.provide('tutao.RecipientsNotFoundError');
 
 /**
  * Indicates that the email could not be sent because some of the recipients could not be found.

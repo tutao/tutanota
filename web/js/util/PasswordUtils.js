@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.PasswordUtils');
+tutao.provide('tutao.tutanota.util.PasswordUtils');
 
 /**
  * Generates a password that can be used to derive a key and encrypt a message to an external recipient.

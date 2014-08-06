@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.AdminEditUserViewModel');
+tutao.provide('tutao.tutanota.ctrl.AdminEditUserViewModel');
 
 /**
  * Allows the admin to edit an existing user

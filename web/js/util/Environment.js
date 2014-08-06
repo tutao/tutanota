@@ -1,8 +1,8 @@
 "use strict";
 
-goog.provide("tutao.Environment");
-goog.provide("tutao.Env");
-goog.provide("tutao.env");
+tutao.provide("tutao.Environment");
+tutao.provide("tutao.Env");
+tutao.provide("tutao.env");
 
 /**
  * @enum {number}

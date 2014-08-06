@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.Button');
+tutao.provide('tutao.tutanota.ctrl.Button');
 
 /**
  * Defines a button.

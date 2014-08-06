@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.event.PushListEventTracker');
+tutao.provide('tutao.event.PushListEventTracker');
 
 /**
  * The PushListEventTracker uses the EventBusClient to fetch information about

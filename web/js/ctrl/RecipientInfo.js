@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.RecipientInfo');
+tutao.provide('tutao.tutanota.ctrl.RecipientInfo');
 
 /**
  * A recipient bubble represents a recipient from a contact or from a pure email address.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.KdfInterface');
+tutao.provide('tutao.crypto.KdfInterface');
 
 /**
  * This Interface provides an abstraction of a key derivation function implementation.

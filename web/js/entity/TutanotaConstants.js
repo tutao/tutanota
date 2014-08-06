@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.TutanotaConstants');
+tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
 tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_CREATE = "0";
 tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_UPDATE = "1";

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.TimeRangeConfigValue');
+tutao.provide('tutao.entity.sys.TimeRangeConfigValue');
 
 /**
  * @constructor

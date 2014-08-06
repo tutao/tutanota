@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.PasswordChannelViewModel');
+tutao.provide('tutao.tutanota.ctrl.PasswordChannelViewModel');
 
 /**
  * The configuration for the password message for secure external recipients.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Login');
+tutao.provide('tutao.entity.sys.Login');
 
 /**
  * @constructor

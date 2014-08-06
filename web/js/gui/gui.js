@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui');
+tutao.provide('tutao.tutanota.gui');
 
 /**
  * The static id of the text node type.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.MigrateToV5Data');
+tutao.provide('tutao.entity.tutanota.MigrateToV5Data');
 
 /**
  * @constructor

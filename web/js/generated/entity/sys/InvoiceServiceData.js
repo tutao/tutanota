@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.InvoiceServiceData');
+tutao.provide('tutao.entity.sys.InvoiceServiceData');
 
 /**
  * @constructor

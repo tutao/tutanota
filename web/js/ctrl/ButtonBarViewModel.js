@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
+tutao.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
 
 // - move gui part to custom binding
 // - width adaption when scrollbar appears/disappears

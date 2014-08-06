@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.CryptoError');
+tutao.provide('tutao.crypto.CryptoError');
 
 /**
  * A crypto exception is thrown whenever an encryption/decryption or conversion of keys fails.
@@ -19,4 +19,5 @@ tutao.crypto.CryptoError = function(message, error) {
 	this.error = error;
 };
 
-goog.inherits(tutao.crypto.CryptoError, Error);
+tutao.crypto.CryptoError.prototype = Object.create(Error.prototype);
+tutao.crypto.CryptoError.prototype.constructor = tutao.crypto.CryptoError;

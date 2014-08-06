@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactSocialId');
+tutao.provide('tutao.entity.tutanota.ContactSocialId');
 
 /**
  * @constructor

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.ChangePasswordData');
+tutao.provide('tutao.entity.sys.ChangePasswordData');
 
 /**
  * @constructor

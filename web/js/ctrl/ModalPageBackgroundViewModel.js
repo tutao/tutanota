@@ -3,7 +3,7 @@
  */
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ModalPageBackgroundViewModel');
+tutao.provide('tutao.tutanota.ctrl.ModalPageBackgroundViewModel');
 
 /**
  * The ViewModel for the feedback wizard.

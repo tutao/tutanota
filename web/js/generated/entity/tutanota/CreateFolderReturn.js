@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.CreateFolderReturn');
+tutao.provide('tutao.entity.tutanota.CreateFolderReturn');
 
 /**
  * @constructor

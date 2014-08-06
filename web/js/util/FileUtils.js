@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.FileUtils');
+tutao.provide('tutao.tutanota.util.FileUtils');
 
 /**
  * Shows a file chooser and lets the user select multiple files.

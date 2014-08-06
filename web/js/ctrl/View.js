@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.View');
+tutao.provide('tutao.tutanota.ctrl.View');
 
 /**
  * A View represents the canvas on which type of functionality is provided in Tutanota. The content of a view

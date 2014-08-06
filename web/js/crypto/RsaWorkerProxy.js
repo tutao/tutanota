@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.RsaWorkerProxy');
+tutao.provide('tutao.crypto.RsaWorkerProxy');
 
 /**
  * An RsaWorkerProxy is a proxy for an actual RSA implementation that executes the encryption and decryption in the worker.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.Locator');
+tutao.provide('tutao.Locator');
 
 /**
  * The Locator is our central instance cache. It is a "singleton store"

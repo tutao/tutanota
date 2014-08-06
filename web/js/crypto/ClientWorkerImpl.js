@@ -4,7 +4,7 @@ if (typeof tutao === "undefined") {
     this['tutao'] = {};
     tutao.crypto = {};
 } else {
-    goog.provide('tutao.crypto.ClientWorkerImpl');
+    tutao.provide('tutao.crypto.ClientWorkerImpl');
 }
 
 /**

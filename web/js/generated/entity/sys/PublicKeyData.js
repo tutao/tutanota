@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.PublicKeyData');
+tutao.provide('tutao.entity.sys.PublicKeyData');
 
 /**
  * @constructor

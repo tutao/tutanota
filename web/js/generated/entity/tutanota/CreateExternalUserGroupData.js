@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.CreateExternalUserGroupData');
+tutao.provide('tutao.entity.tutanota.CreateExternalUserGroupData');
 
 /**
  * @constructor

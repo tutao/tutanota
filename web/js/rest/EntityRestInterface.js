@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.rest.EntityRestInterface');
+tutao.provide('tutao.rest.EntityRestInterface');
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.EntityHelper');
+tutao.provide('tutao.entity.EntityHelper');
 
 /**
  * Entity helper instances exist for each instance.

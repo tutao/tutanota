@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.JsbnRsa');
+tutao.provide('tutao.crypto.JsbnRsa');
 
 // private key format:
 // [ n, d, p, q, pe, qe, c ]

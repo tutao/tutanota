@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.WebsocketWrapper');
+tutao.provide('tutao.entity.sys.WebsocketWrapper');
 
 /**
  * @constructor

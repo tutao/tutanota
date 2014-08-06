@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.RegistrationDataListViewModel');
+tutao.provide('tutao.tutanota.ctrl.RegistrationDataListViewModel');
 
 /**
  * Handles the registration data in Tutanota.

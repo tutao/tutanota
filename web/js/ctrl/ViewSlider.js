@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ViewSlider');
+tutao.provide('tutao.tutanota.ctrl.ViewSlider');
 
 /**
  * Represents a view with multiple view columns. Depending on the screen width and the view columns configurations, the actual widths and positions of the view

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.PhoneNumber');
+tutao.provide('tutao.entity.sys.PhoneNumber');
 
 /**
  * @constructor

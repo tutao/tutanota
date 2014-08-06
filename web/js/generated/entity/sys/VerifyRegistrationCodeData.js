@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.VerifyRegistrationCodeData');
+tutao.provide('tutao.entity.sys.VerifyRegistrationCodeData');
 
 /**
  * @constructor

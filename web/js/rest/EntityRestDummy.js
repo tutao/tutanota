@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.rest.EntityRestDummy');
+tutao.provide('tutao.rest.EntityRestDummy');
 
 /**
  * The EntityRestDummy is an implementation of the EntityRestInterface that does nothing. It does neither return

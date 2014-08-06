@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.DomainMailAddressAvailabilityData');
+tutao.provide('tutao.entity.sys.DomainMailAddressAvailabilityData');
 
 /**
  * @constructor

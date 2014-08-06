@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ProgressDialogModel');
+tutao.provide('tutao.tutanota.ctrl.ProgressDialogModel');
 
 /**
  * The Model for the progress dialog. Only one progress dialog can be shown at any time because this view model is defined as singleton in the Locator.

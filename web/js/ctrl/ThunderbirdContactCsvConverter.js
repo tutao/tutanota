@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.ThunderbirdContactCsvConverter');
+tutao.provide('tutao.tutanota.util.ThunderbirdContactCsvConverter');
 
 /**
  * @constructor

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.MailViewModel');
+tutao.provide('tutao.tutanota.ctrl.MailViewModel');
 
 /**
  * The mails in the conversation on the right.

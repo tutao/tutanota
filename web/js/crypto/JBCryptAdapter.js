@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.JBCryptAdapter');
+tutao.provide('tutao.crypto.JBCryptAdapter');
 
 /**
  * @constructor

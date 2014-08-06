@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Version');
+tutao.provide('tutao.entity.sys.Version');
 
 /**
  * @constructor

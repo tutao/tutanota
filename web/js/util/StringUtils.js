@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.util.StringUtils');
+tutao.provide('tutao.util.StringUtils');
 
 /**
  * Returns a string which contains the given number padded with 0s.

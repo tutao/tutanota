@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Group');
+tutao.provide('tutao.entity.sys.Group');
 
 /**
  * @constructor

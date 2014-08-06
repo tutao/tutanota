@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.EntropyCollector');
+tutao.provide('tutao.crypto.EntropyCollector');
 
 /**
  * Automatically collects entropy and feeds it into the Randomizer.

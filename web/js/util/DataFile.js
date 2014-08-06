@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.util.DataFile');
+tutao.provide('tutao.tutanota.util.DataFile');
 
 /**
  * A data file contains the file name, the content of the file (unencrypted) and the session key.

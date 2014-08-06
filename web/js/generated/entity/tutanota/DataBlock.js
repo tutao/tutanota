@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.DataBlock');
+tutao.provide('tutao.entity.tutanota.DataBlock');
 
 /**
  * @constructor

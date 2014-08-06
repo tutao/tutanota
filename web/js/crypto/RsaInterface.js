@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.RsaInterface');
+tutao.provide('tutao.crypto.RsaInterface');
 
 /**
  * This Interface provides an abstraction of the RSA cryptographic implementation.

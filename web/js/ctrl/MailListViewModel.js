@@ -1,6 +1,6 @@
 //"use strict";
 
-goog.provide('tutao.tutanota.ctrl.MailListViewModel');
+tutao.provide('tutao.tutanota.ctrl.MailListViewModel');
 
 /**
  * The list of mail headers on the left.

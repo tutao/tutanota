@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.gui.BubbleInputGui');
+tutao.provide('tutao.tutanota.gui.BubbleInputGui');
 
 /**
  * Resizes the input field to be maximized in the last line if there is enough space (at least more than 15px)

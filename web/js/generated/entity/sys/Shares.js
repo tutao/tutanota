@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.Shares');
+tutao.provide('tutao.entity.sys.Shares');
 
 /**
  * @constructor

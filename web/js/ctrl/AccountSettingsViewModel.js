@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.AccountSettingsViewModel');
+tutao.provide('tutao.tutanota.ctrl.AccountSettingsViewModel');
 
 /**
  * Displays the account settings. This view model is created dynamically.

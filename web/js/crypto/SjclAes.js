@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.SjclAes');
+tutao.provide('tutao.crypto.SjclAes');
 
 /**
  * @constructor

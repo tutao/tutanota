@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.LegacyDownloadViewModel');
+tutao.provide('tutao.tutanota.ctrl.LegacyDownloadViewModel');
 
 /**
  * The ViewModel for the safari legacy download.

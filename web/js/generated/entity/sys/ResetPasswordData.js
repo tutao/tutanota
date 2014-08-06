@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.sys.ResetPasswordData');
+tutao.provide('tutao.entity.sys.ResetPasswordData');
 
 /**
  * @constructor

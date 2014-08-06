@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide("tutao.rest.ResourceConstants");
+tutao.provide("tutao.rest.ResourceConstants");
 
 /**
  * @const

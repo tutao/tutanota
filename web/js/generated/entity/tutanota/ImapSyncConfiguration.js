@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ImapSyncConfiguration');
+tutao.provide('tutao.entity.tutanota.ImapSyncConfiguration');
 
 /**
  * @constructor

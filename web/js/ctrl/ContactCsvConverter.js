@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.tutanota.ctrl.ContactCsvConverter');
+tutao.provide('tutao.tutanota.ctrl.ContactCsvConverter');
 
 /**
  * Converts a csv string into an array of contacts.

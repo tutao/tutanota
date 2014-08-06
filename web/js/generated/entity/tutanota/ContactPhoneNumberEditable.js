@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ContactPhoneNumberEditable');
+tutao.provide('tutao.entity.tutanota.ContactPhoneNumberEditable');
 
 /**
  * Provides a knockout observable mechanism for a ContactPhoneNumber.

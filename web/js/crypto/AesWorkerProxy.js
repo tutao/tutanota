@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.crypto.AesWorkerProxy');
+tutao.provide('tutao.crypto.AesWorkerProxy');
 
 /**
  * @constructor

@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('tutao.entity.tutanota.ImapFolder');
+tutao.provide('tutao.entity.tutanota.ImapFolder');
 
 /**
  * @constructor
