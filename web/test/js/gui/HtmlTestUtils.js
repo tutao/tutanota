@@ -1,5 +1,5 @@
 
-goog.provide('HtmlTestUtils');
+tutao.provide('HtmlTestUtils');
 
 /**
  * Compares two dom elements for equality. This is needed because a string

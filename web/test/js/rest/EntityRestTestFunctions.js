@@ -1,6 +1,6 @@
 "use strict";
 
-goog.provide('EntityRestTestFunctions');
+tutao.provide('EntityRestTestFunctions');
 
 var assert = chai.assert;
 

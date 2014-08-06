@@ -29,8 +29,11 @@ describe("ViewManagerTest", function () {
         when(view2.isForInternalUserOnly)().thenReturn(false);
 
         // activate default view1
+        tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
+            return [view1, view2];
+        };
         var vm = new tutao.tutanota.ctrl.ViewManager();
-        vm.init([view1, view2], false);
+        vm.init(false);
         verify(view1.init)();
         verify(view2.init)();
         verify(view1, noMoreInteractions());

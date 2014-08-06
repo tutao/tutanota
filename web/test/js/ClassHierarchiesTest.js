@@ -34,7 +34,7 @@ describe("ClassHierarchiesTest", function () {
 
 });
 
-goog.provide('ClassHierarchiesTest');
+tutao.provide('ClassHierarchiesTest');
 
 /**
  * Checks that theObject implements all functions defined in theInterface.
