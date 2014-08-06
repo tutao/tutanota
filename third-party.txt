@@ -1,0 +1,46 @@
+This document contains a list of all third party libraries used by Tutanota, including their licences .
+
+Bluebird - https://github.com/petkaantonov/bluebird
+License: MIT
+Reference: https://github.com/petkaantonov/bluebird/blob/master/LICENSE
+
+Google FastButton - https://github.com/alexblack/google-fastbutton
+License: MIT
+Reference: https://github.com/alex-tan/google-fastbutton/blob/master/LICENSE
+
+Html-Css-Sanitizer - https://code.google.com/p/google-caja
+License: Apache 2
+Reference: https://code.google.com/p/google-caja
+
+jQuery - http://http://jquery.com
+License: MIT
+Reference: https://jquery.org/license
+
+jQuery Transit - https://github.com/rstacruz/jquery.transit
+License: MIT
+Reference: https://jquery.org/license
+
+JSBN - http://www-cs-students.stanford.edu/~tjw/jsbn
+License: BSD
+Reference: http://www-cs-students.stanford.edu/~tjw/jsbn/LICENSE
+
+Knockout - http://knockoutjs.com
+License: MIT
+Reference: https://github.com/knockout/knockout/blob/master/LICENSE
+
+LESS - http://lesscss.org
+License: Apache 2
+Reference: http://lesscss.org/#license-faqs
+
+PathJS - https://github.com/mtrpcic/pathjs
+License: MIT
+Reference: https://github.com/mtrpcic/pathjs
+
+Stanford Javascript Crypto Library (SJCL) - https://github.com/bitwiseshiftleft/sjcl
+License: BSD
+Reference: http://bitwiseshiftleft.github.io/sjcl
+
+SWFObject - https://code.google.com/p/swfobject
+License: MIT
+Reference: https://code.google.com/p/swfobject
+
