@@ -139,6 +139,9 @@ tutao.tutanota.gui.MailView.prototype.showPasswordChannelColumn = function() {
  */
 tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 	var composeBody = $(".conversation").find(".composeBody");
+    if (composeBody.length == 0) {
+        throw new Error("no composing mail created");
+    }
     composeBody.append(tutao.locator.htmlSanitizer.sanitize(text));
     this.addSubmitCheckToDivs(composeBody);
 

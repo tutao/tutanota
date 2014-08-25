@@ -6,11 +6,10 @@ tutao.provide('tutao.tutanota.ctrl.ComposingMail');
  * This class represents a mail that is currently written. It contains mail, body and other editing fields.
  * @param {string} conversationType The conversationType.
  * @param {string?} previousMessageId The message id of the mail that the new mail is a reply to or that is forwarded. Null if this is a new mail.
- * @param {string} bodyText The unsanitized body text. May be an empty string.
  * @constructor
  * @implements {tutao.tutanota.ctrl.bubbleinput.BubbleHandler}
  */
-tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId, bodyText) {
+tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.composerSubject = ko.observable("");
@@ -38,7 +37,6 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.directSwitchActive = true;
 
 	this.mailBodyLoaded = ko.observable(true);
-    tutao.locator.mailView.setComposingBody(bodyText);
 
     var self = this;
     var notBusy = function() {
@@ -61,6 +59,13 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
  * The maximum attachments size for unsecure external recipients.
  */
 tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE = 26214400;
+
+/**
+ * @param {string} bodyText The unsanitized body text. May be an empty string.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype.setBody = function(bodyText) {
+    tutao.locator.mailView.setComposingBody(bodyText);
+};
 
 /**
  * Provides the information if this composing mail shall be switched away directly without sliding animation.
