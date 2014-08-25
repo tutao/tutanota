@@ -11,6 +11,7 @@ tutao.provide('tutao.rest.RestClient');
  */
 tutao.rest.RestClient = function() {
     this._errorFactory = new tutao.util.ErrorFactory();
+    this.url = tutao.env.getHttpOrigin();
 };
 
 /**
@@ -23,6 +24,7 @@ tutao.rest.RestClient = function() {
  */
 tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
     var self = this;
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         var contentType = (json) ? "application/x-www-form-urlencoded; charset=UTF-8" : null;
         json = json ? tutao.rest.ResourceConstants.GET_BODY_PARAM + "=" + encodeURIComponent(json) : "";
@@ -47,6 +49,7 @@ tutao.rest.RestClient.prototype.getElement = function(path, headers, json) {
  */
 tutao.rest.RestClient.prototype.postElement = function(path, headers, json) {
     var self = this;
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "POST", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
@@ -69,6 +72,7 @@ tutao.rest.RestClient.prototype.postElement = function(path, headers, json) {
  */
 tutao.rest.RestClient.prototype.putElement = function(path, headers, json) {
     var self = this;
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "PUT", url: path, contentType: tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8, data: json, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
@@ -90,6 +94,7 @@ tutao.rest.RestClient.prototype.putElement = function(path, headers, json) {
  */
 tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
     var self = this;
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         var contentType = (json) ? tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 : null;
         json = json ? json : "";
@@ -113,6 +118,7 @@ tutao.rest.RestClient.prototype.deleteElement = function(path, headers, json) {
  */
 tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
     var self = this;
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         jQuery.ajax({ type: "PUT", url: path, contentType: 'application/octet-stream', data: data, processData: false, async: true, headers: headers,
             success: function(data, textStatus, jqXHR) {
@@ -133,6 +139,7 @@ tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
  */
 tutao.rest.RestClient.prototype.getBinary = function(path, headers) {
     var self = this;
+
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         // use the same trick to avoid caching (actually only needed for IE) like jquery: append a unique timestamp

@@ -329,5 +329,6 @@ EntityRestTestFunctions.addFunctions = function () {
             });
         });
     });
+
 };
 

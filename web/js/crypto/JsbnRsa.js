@@ -159,22 +159,3 @@ tutao.crypto.JsbnRsa.prototype.decryptAesKey = function(privateKey, base64, call
 		callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
 	}
 };
-
-/**
- * Adapter from the jsbn library to our RandomizerInterface
- * @constructor
- */
-function SecureRandom() {
-
-}
-
-/**
- * Only this function is used by jsbn for getting random bytes. Each byte is a value between 0 and 255.
- * @param {Array} array An array to fill with random bytes. The length of the array defines the number of bytes to create.
- */
-SecureRandom.prototype.nextBytes = function(array) {
-	var hexString = tutao.locator.randomizer.generateRandomData(array.length);
-	for (var i = 0; i < array.length; i++) {
-		array[i] = parseInt(hexString.substring(i * 2, (i + 1) * 2), 16);
-	}
-};

@@ -9,7 +9,8 @@ describe("RsaTest", function () {
     var _rsa;
     var getFacade = function () {
         if (!_rsa) {
-            _rsa = new tutao.crypto.RsaWorkerProxy();
+            //_rsa = new tutao.crypto.RsaWorkerProxy();
+            _rsa = new tutao.native.RsaInterfaceAdapter();
         }
         return _rsa;
     }
@@ -63,7 +64,7 @@ describe("RsaTest", function () {
     });
 
     it("rsa key roundtrip", function(done) {
-        this.timeout(300000); // 5 min
+        //this.timeout(300000); // 5 min
         if (tutao.supportsRsaKeyGeneration()) {
 
             var facade = getFacade();
@@ -90,6 +91,15 @@ describe("RsaTest", function () {
     it("test randomizer adapter", function() {
         var a = new Array();
         a.length = 100;
+
+        var seed = new Uint8Array(a.length);
+        window.crypto.getRandomValues(seed);
+
+        var random = [];
+        for (var i = 0; i < seed.length; i++) {
+            random.push(seed[i]);
+        }
+        SecureRandom.setNextRandomBytes(random);
         new SecureRandom().nextBytes(a);
         for (var i=0; i<a.length; i++) {
             assert.isTrue(a[i] >= 0);

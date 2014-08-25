@@ -113,39 +113,58 @@ gulp.task('minify', function () {
 
 gulp.task('concat', function () {
     return streamqueue({ objectMode: true },
-        gulp.src("lib/*.js")
-            .pipe(sourcemaps.init())
-            .pipe(concat('lib.js'))
-            .pipe(insert.prepend("if (typeof importScripts !== 'function') {"))
-            .pipe(insert.append("}")),
-
         gulp.src("lib/worker/*.js")
-            .pipe(sourcemaps.init())
-            .pipe(concat('lib.js')),
+            .pipe(concat('workerLib.js')),
 
-        gulp.src(['js/**/*.js', '!js/util/init.js'])
-            .pipe(sourcemaps.init())
-            .pipe(concat('app.min.js'))
-            .pipe(replace("\"use strict\";", ""))
-            .pipe(insert.prepend("\"use strict\";"))
-    )
-        .pipe(concat("app.min.js"))
+        gulp.src(['lib/*.js'])
+            .pipe(concat("lib.js"))
+            .pipe(insert.prepend("if (typeof importScripts !== 'function') {\n"))
+            .pipe(insert.append("}\n")),
+
+
+        gulp.src(['js/**/*.js', "!js/util/init.js"])
+            .pipe(concat("app.js"))
+    ).pipe(concat("app.min.js"))
         .pipe(insert.append(env))
-        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('build/'));
+});
+
+gulp.task('concatTest', function () {
+    return streamqueue({ objectMode: true },
+        gulp.src("lib/worker/*.js")
+            .pipe(concat('workerLib.js')),
+
+        gulp.src(['lib/*.js', 'test/lib/*.js'])
+            .pipe(concat("lib.js"))
+            .pipe(insert.prepend("if (typeof importScripts !== 'function') {\n"))
+            .pipe(insert.append("\nmocha.setup('bdd');\n"))
+            .pipe(insert.append("}\n")),
+
+
+        gulp.src(['js/**/*.js', "!js/util/init.js", "!js/Bootstrap.js"])
+            .pipe(concat("app.js")),
+
+        gulp.src(['test/js/rest/EntityRestTestFunctions.js', 'test/js/**/*.js'])
+            .pipe(concat("test.js"))
+            .pipe(insert.prepend("if (typeof importScripts !== 'function') {\n"))
+            .pipe(insert.append("}\n"))
+            .pipe(insert.append(env))
+
+    ).pipe(concat("app.min.js"))
+        .pipe(gulp.dest('build/test/'));
 });
 
 gulp.task('index.html', function () {
     return gulp.src('./index.html')
-        .pipe(inject(gulp.src(['lib/*.js', 'lib/worker/*.js', 'lib/dev/*.js', "js/**/*.js", "!js/util/init.js"], {read: false})))
+        .pipe(inject(gulp.src(['lib/**/*.js', "js/**/*.js", "!js/util/init.js"], {read: false})))
         .pipe(gulp.dest('./'));
 });
 
 gulp.task('test.html', function () {
     return gulp.src('./test/index.html')
+        .pipe(inject(gulp.src([ 'lib/**/*.js', 'test/lib/*.js'], {read: false}), {starttag: '<!-- inject:lib:{{ext}} -->'}))
         .pipe(inject(gulp.src([
-            'lib/**/*.js', 'test/lib/*.js', "!test/lib/mocha.js",
-            'js/**/*.js', "!js/util/init.js",
+            'js/**/*.js', "!js/util/init.js", "!js/Bootstrap.js",
             'test/js/rest/EntityRestTestFunctions.js', 'test/js/**/*.js'
         ], {read: false})))
         .pipe(gulp.dest('./test'));
@@ -154,19 +173,27 @@ gulp.task('test.html', function () {
 gulp.task('processHtml', function () {
     return gulp.src('./index.html')
         .pipe(htmlreplace({
-            'css': 'main.css',
-            'js': ['app.min.js']
+            'css': 'css/main.css',
+            'js': ['cordova.js', 'app.min.js']
         }))
         .pipe(gulp.dest('./build'));
 });
 
+gulp.task('processTestHtml', function () {
+    return gulp.src('./test/index.html')
+        .pipe(htmlreplace({
+            'js': ['app.min.js']
+        }))
+        .pipe(gulp.dest('./build/test'));
+});
+
 gulp.task('less', function () {
     return gulp.src('less/main.less')
-        .pipe(sourcemaps.init())
+        //.pipe(sourcemaps.init())
         .pipe(less())
         .pipe(minifyCSS())
-        .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest('./build'));
+        //.pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest('./build/css/'));
 });
 
 gulp.task('copy', function () {
@@ -180,12 +207,12 @@ gulp.task('copy', function () {
 });
 
 gulp.task('manifest', function () {
-    return gulp.src(['./build/**/*', '!build/fonts/icomoon.+(eot|svg|ttf)', '!build/*.map'])
+    return gulp.src(['./build/**/*', '!build/fonts/icomoon.+(eot|svg|ttf)', '!build/*.map', "!build/test/**"])
         .pipe(manifest({
             timestamp: true,
             network: ['*'],
             filename: 'tutanota.appcache',
-            exclude: ['build/tutanota.appcache', 'build/test.html']
+            exclude: ['build/tutanota.appcache']
         }))
         .pipe(gulp.dest('build'));
 });
@@ -205,7 +232,7 @@ gulp.task('gzip', function () {
 gulp.task('dist', ['clean'], function (cb) {
     // does not minify and is therefore faster
     env = local_compiled;
-    return runSequence(['copy', 'less', 'concat', 'processHtml'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'concat', 'processHtml', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
 });
 
 function dist(cb) {

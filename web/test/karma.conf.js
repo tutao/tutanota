@@ -16,13 +16,14 @@ module.exports = function(config) {
             './test/js/Bootstrap.js',
             './test/js/generated/**',
             './test/js/rest/EntityRestTestFunctions.js',
+            './test/js/util/BucketTestUtils.js',
             './test/js/**/*.js',
         ],
 
         exclude: [
             './js/util/init.js',
             './lib/dev/**',
-            'test/js/crypto/**'
+            //'test/js/crypto/**',
         ],
 
         // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'

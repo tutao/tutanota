@@ -19,6 +19,17 @@ tutao.Locator = function(services, initializer) {
 	this._initializer = initializer ? initializer : function() {};
 	this._replacedStaticMethods = [];
 
+    // @type {tutao.native.CryptoInterface}
+    this.crypto = null;
+    // @type {tutao.native.PhoneInterface}
+    this.phone = null;
+    // @type {tutao.native.NotificationInterface}
+    this.notification = null;
+    // @type {tutao.native.ContactInterface}
+    this.contacts = null;
+    // @type {tutao.native.FileTransferInterface}
+    this.fileTransfer = null;
+
     // @type {tutao.crypto.SjclRandomizer}
     this.randomizer= null;
     // @type {tutao.crypto.AesWorkerProxy}

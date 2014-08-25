@@ -185,7 +185,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			} else {
 				$(element).transition({ y: '-100%' }, function () { $(this).hide(); });
 			}
-			
+
 		}
 	};
 	$.fx.speeds._default = 600;

@@ -1,4 +1,4 @@
-var tutao = {};
+var tutao = typeof tutao != 'undefined' ? tutao : {};
 
 tutao.global = this;
 

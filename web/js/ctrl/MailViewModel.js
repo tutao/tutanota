@@ -329,6 +329,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 
 
         // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
+        //self.editor = new Quill('div.composeBody', {theme: 'snow'});
+        //self.editor.addModule('toolbar', {
+        //    container: '#toolbar-toolbar'     // Selector for toolbar container
+        //});
         ////TODO (story send html email): test on mobiles and move to view
         //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
         //		toolbar:      null, // id of toolbar element

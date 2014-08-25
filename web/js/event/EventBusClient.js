@@ -47,9 +47,7 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
  */
 tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 	var self = this;
-	var protocol = document.location.protocol === 'http:' ? 'ws' : 'wss';
-    var port = document.location.port === '' ? '' : ':' + document.location.port;
-    var url = protocol + "://" + document.location.hostname + port + "/event/";
+	var url = tutao.env.getWebsocketOrigin() + "/event/";
 	this._socket = new WebSocket(url);
 	this._socket.onopen = function() {
 		console.log("ws open: ", new Date());

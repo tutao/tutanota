@@ -68,7 +68,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
     var aes = tutao.locator.aesCrypter;
     if (dataFile instanceof tutao.entity.tutanota.File) {
-        var fileSessionKey = dataFile._entityHelper.getSessionKey()
+        var fileSessionKey = dataFile._entityHelper.getSessionKey();
         attachment.setFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
     } else if (dataFile instanceof tutao.tutanota.util.DataFile) {

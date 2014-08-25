@@ -1,6 +1,7 @@
 "use strict";
 
-describe("CsvConverterTest", function () {
+// the jquery csv is currently on the lib path
+describe.skip("CsvConverterTest", function () {
 
     var assert = chai.assert;
 
