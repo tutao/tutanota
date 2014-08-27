@@ -45,7 +45,7 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
 }\n";
 
 var dev = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.DEV, true, 'tutao.tutanota.de', 9025);\n\
+    tutao.env = new tutao.Environment(tutao.Env.DEV, true, 'tutanota.tutao.de', 9025);\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
