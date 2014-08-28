@@ -24,7 +24,7 @@ module.exports = function(config) {
             './js/Bootstrap.js',
             //'./js/util/init.js',
             './lib/dev/**',
-            //'test/js/crypto/**',
+            'test/js/crypto/**',
         ],
 
         // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'

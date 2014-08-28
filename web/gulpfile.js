@@ -17,6 +17,9 @@ var gulpFilter = require('gulp-filter');
 var insert = require('gulp-insert');
 var gzip = require('gulp-gzip');
 var karma = require('karma').server;
+var shell = require('gulp-shell')
+
+var package = require('./package.json')
 
 var fs = require('fs');
 
@@ -106,7 +109,6 @@ gulp.task('minify', function () {
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()))
     .pipe(concat("app.min.js"))
-        .pipe(insert.append(env))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('build/'));
 });
@@ -125,7 +127,6 @@ gulp.task('concat', function () {
         gulp.src(['js/**/*.js', "!js/util/init.js"])
             .pipe(concat("app.js"))
     ).pipe(concat("app.min.js"))
-        .pipe(insert.append(env))
         .pipe(gulp.dest('build/'));
 });
 
@@ -148,7 +149,6 @@ gulp.task('concatTest', function () {
             .pipe(concat("test.js"))
             .pipe(insert.prepend("if (typeof importScripts !== 'function') {\n"))
             .pipe(insert.append("}\n"))
-            .pipe(insert.append(env))
 
     ).pipe(concat("app.min.js"))
         .pipe(gulp.dest('build/test/'));
@@ -174,7 +174,7 @@ gulp.task('processHtml', function () {
     return gulp.src('./index.html')
         .pipe(htmlreplace({
             'css': 'css/main.css',
-            'js': ['app.min.js'] // 'cordova.js'
+            'js': ['app.min.js', 'init.js'] // 'cordova.js'
         }))
         .pipe(gulp.dest('./build'));
 });
@@ -183,7 +183,7 @@ gulp.task('processHtmlCordova', function () {
     return gulp.src('./index.html')
         .pipe(htmlreplace({
             'css': 'css/main.css',
-            'js': ['cordova.js', 'app.min.js'] //
+            'js': ['cordova.js', 'app.min.js', 'init.js'] //
         }))
         .pipe(gulp.dest('./build'));
 });
@@ -191,7 +191,7 @@ gulp.task('processHtmlCordova', function () {
 gulp.task('processTestHtml', function () {
     return gulp.src('./test/index.html')
         .pipe(htmlreplace({
-            'js': ['app.min.js']
+            'js': ['app.min.js', 'init.js']
         }))
         .pipe(gulp.dest('./build/test'));
 });
@@ -238,32 +238,26 @@ gulp.task('gzip', function () {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('dist', ['clean'], function (cb) {
+gulp.task('distCordova', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
     env = local_compiled;
+    fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
 });
 
-function dist(cb) {
-    return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
-}
-
-gulp.task('distLocal', ['clean'], function (cb) {
+gulp.task('dist', ['clean'], function (cb) {
     env = local_compiled;
-    return dist(cb);
+    fs.writeFileSync("build/init.js", env);
+    return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
 });
 
-gulp.task('distDev', ['clean'], function (cb) {
-    env = dev;
-    return dist(cb);
+gulp.task('release', ['dist', 'tagRelease'], function (cb) {
+    env = local_compiled;
+    return gulp.src('build/**')
+        .pipe(gulp.dest('/opt/releases/tutanota-' + package.version ));
 });
 
-gulp.task('distTest', ['clean'], function (cb) {
-    env = test;
-    return dist(cb);
-});
-
-gulp.task('distProd', ['clean'], function (cb) {
-    env = prod;
-    return dist(cb);
-});
+gulp.task('tagRelease' , shell.task([
+    "git tag -a " + package.name + "-release-" + package.version + " -m ''",
+    "git push origin " + package.name + "-release-" + package.version
+]));
