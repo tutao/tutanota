@@ -12,8 +12,8 @@ module.exports = function(config) {
             './test/lib/jshamcrest-0.6.7.js',
             './lib/*.js',
             './lib/worker/*.js',
-            './js/**/*.js',
             './test/js/Bootstrap.js',
+            './js/**/*.js',
             './test/js/generated/**',
             './test/js/rest/EntityRestTestFunctions.js',
             './test/js/util/BucketTestUtils.js',
@@ -21,7 +21,8 @@ module.exports = function(config) {
         ],
 
         exclude: [
-            './js/util/init.js',
+            './js/Bootstrap.js',
+            //'./js/util/init.js',
             './lib/dev/**',
             //'test/js/crypto/**',
         ],

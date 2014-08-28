@@ -174,7 +174,16 @@ gulp.task('processHtml', function () {
     return gulp.src('./index.html')
         .pipe(htmlreplace({
             'css': 'css/main.css',
-            'js': ['cordova.js', 'app.min.js']
+            'js': ['app.min.js'] // 'cordova.js'
+        }))
+        .pipe(gulp.dest('./build'));
+});
+
+gulp.task('processHtmlCordova', function () {
+    return gulp.src('./index.html')
+        .pipe(htmlreplace({
+            'css': 'css/main.css',
+            'js': ['cordova.js', 'app.min.js'] //
         }))
         .pipe(gulp.dest('./build'));
 });
@@ -230,9 +239,9 @@ gulp.task('gzip', function () {
 });
 
 gulp.task('dist', ['clean'], function (cb) {
-    // does not minify and is therefore faster
+    // does not minify and is therefore faster, used for app builds
     env = local_compiled;
-    return runSequence(['copy', 'less', 'concat', 'processHtml', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
 });
 
 function dist(cb) {
