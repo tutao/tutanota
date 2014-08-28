@@ -1224,171 +1224,100 @@
 					<div class="content scrollable">
 						<h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
-							<!-- ko if: (getSendSmsState() != tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-                                <!-- ko if: getRegistrationType() == 'Free' -->
-                                <h2 data-bind="lang: 'registrationSubHeadlineFree1_msg'"></h2>
-                                <!-- /ko -->
+                            <!-- ko if: getRegistrationType() != 'Free' -->
+                            <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
+                            <!-- /ko -->
+                            <form class="recordContainer wide" data-bind="submit: createAccount, form: true">
                                 <!-- ko if: getRegistrationType() != 'Free' -->
-                                <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
-                                <!-- /ko -->
-								<form class="recordContainer wide" data-bind="submit: sendSms, form: true">
-									<!-- ko if: getRegistrationType() != 'Free' -->
-									<div class="record">
-										<label class="recordName" data-bind="lang: 'company_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-                                                <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName" />
-											</div>
-										</div>
-									</div>
-									<div class="record">
-										<label class="recordName" data-bind="lang: 'domain_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<div data-bind="text: domain"></div>
-											</div>
-										</div>
-									</div>
-									<!-- /ko -->
-									<div class="record">
-                                        <!-- ko if: getRegistrationType() != 'Free' -->
-                                        <label for="registrationMailName" class="recordName" data-bind="lang: 'nameAdmin_label'"></label>
-                                        <!-- /ko -->
-                                        <!-- ko if: getRegistrationType() == 'Free' -->
-										<label for="registrationMailName" class="recordName" data-bind="lang: 'name_label'"></label>
-                                        <!-- /ko -->
-										<div class="recordData">
-											<div class="recordValue">
-												<input class="inputField wide" id="registrationMailName" type="text" data-bind="enable: isFormEditable(), value: name, valueUpdate: 'input'" />
-											</div>
-                                            <!-- ko if: getRegistrationType() != 'Free' -->
-                                            <label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfo_msg'"></label>
-                                            <!-- /ko -->
-                                            <!-- ko if: getRegistrationType() == 'Free' -->
-											<label for="registrationMailName" class="recordInfo" data-bind="lang: 'loginNameInfoFree_msg'"></label>
-                                            <!-- /ko -->
-										</div>
-									</div>
-									<div class="record">
-										<label for="mobileNumber" class="recordName" data-bind="lang: 'mobileNumber_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input class="inputField wide" id="mobileNumber" type="tel" data-bind="enable: isFormEditable(), css: mobileNumberStatus().type, value: mobileNumber" />
-											</div>
-											<label for="mobileNumber" class="recordStatus" data-bind="css: mobileNumberStatus().type, lang: mobileNumberStatus().text"></label>
-											<label for="mobileNumber" class="recordInfo" data-bind="html: tutao.lang('mobileNumberInfo_msg')"></label>
-										</div>
-									</div>
-                                    <!-- ko if: getRegistrationType() != 'Free' -->
-                                    <div class="record">
-                                        <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue">
-                                                <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
-                                            </div>
-                                            <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-                                            <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
+                                <div class="record">
+                                    <label class="recordName" data-bind="lang: 'company_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName" />
                                         </div>
                                     </div>
-                                    <!-- /ko -->
-                                    <!-- ko if: getRegistrationType() == 'Free' -->
-									<div class="record">
-										<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
-											</div>
-											<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-											<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
-										</div>
-									</div>
-                                    <!-- /ko -->
-									<div class="record">
-										<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
-											</div>
-											<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
-												<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-													<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
-												</div>
-                                                <div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
-											</label>
-                                            <label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
-                                            <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
-										</div>
-									</div>
-									<div class="record">
-										<label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
-											</div>
-											<label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
-										</div>
-									</div>
-									<div class="record">
-										<label for="termsInput" class="recordName" data-bind="lang: 'terms_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-                                                <!-- ko if: getRegistrationType() == 'Free' -->
-                                                <label data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
-                                                <!-- /ko -->
-                                                <!-- ko if: getRegistrationType() == 'Starter' -->
-                                                <label data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
-                                                <!-- /ko -->
-											</div>
-											<label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
-										</div>
-									</div>
-
-									<div class="record">
-										<div class="recordName"></div>
-										<div class="formAction">
-											<button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isSendSmsPossible() }, lang: 'join_action'"></button>
-											<label for="submitRegistration1" class="recordStatus" data-bind="css: joinStatus().type, lang: joinStatus().text"></label>
-										</div>
-									</div>
-								</form>
-							<!-- /ko -->
-
-							<!-- ko if: (getSendSmsState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED) -->
-                                <!-- ko if: getRegistrationType() == 'Free' -->
-                                <h2 data-bind="lang: 'registrationSubHeadlineFree2_msg'"></h2>
+                                </div>
+                                <div class="record">
+                                    <label class="recordName" data-bind="lang: 'domain_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <div data-bind="text: domain"></div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <!-- /ko -->
                                 <!-- ko if: getRegistrationType() != 'Free' -->
-                                <h2 data-bind="lang: 'registrationSubHeadline3_msg'"></h2>
+                                <div class="record">
+                                    <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+                                        </div>
+                                        <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+                                        <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
+                                    </div>
+                                </div>
                                 <!-- /ko -->
-								<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
-									<div class="record">
-										<label for="registrationCodeInput" class="recordName" data-bind="lang: 'registrationCodeInput_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input id="registrationCodeInput" class="inputField wide" type="number" data-bind="enable: (getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING), css: { invalid: codeInputStatus().type == 'invalid' }, value: code, valueUpdate: 'input'"/>
-											</div>
-											<label for="registrationCodeInput" class="recordStatus", data-bind="css: codeInputStatus().type, lang: codeInputStatus().text"></label>
-											<label for="registrationCodeInput" class="recordInfo", data-bind="lang: 'codeInputInfo_msg', params: { '$': mobileNumber() }"></label>
-										</div>
-									</div>
+                                <!-- ko if: getRegistrationType() == 'Free' -->
+                                <div class="record">
+                                    <label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+                                        </div>
+                                        <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+                                        <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
+                                    </div>
+                                </div>
+                                <!-- /ko -->
+                                <div class="record">
+                                    <label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+                                        </div>
+                                        <label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
+                                            <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                                <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+                                            </div>
+                                            <div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
+                                        </label>
+                                        <label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
+                                        <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+                                    </div>
+                                </div>
+                                <div class="record">
+                                    <label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+                                        </div>
+                                        <label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+                                    </div>
+                                </div>
+                                <div class="record">
+                                    <label for="termsInput" class="recordName" data-bind="lang: 'terms_label'"></label>
+                                    <div class="recordData">
+                                        <div class="recordValue">
+                                            <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
+                                            <!-- ko if: getRegistrationType() == 'Free' -->
+                                            <label data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
+                                            <!-- /ko -->
+                                            <!-- ko if: getRegistrationType() == 'Starter' -->
+                                            <label data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
+                                            <!-- /ko -->
+                                        </div>
+                                        <label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
+                                    </div>
+                                </div>
 
-									<div class="record">
-										<div class="recordName"></div>
-										<div class="formAction">
-											<button id="submitRegistration2" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
-                                            <button class="minimal" data-bind="css: { disabled: !isBackPossible() }, click: backToStartPage, lang: 'back_action'"></button>
-											<label for="submitRegistration2" class="recordStatus" data-bind="css: createAccountStatus().type">
-												<div class="progressBg defaultMargin dataField">
-													<div class="progressFg" data-bind="style: { width: (100 - getKeyGenerationProgress()) + '%' }"></div>
-												</div>
-												<div class="createAccountStatus" data-bind="lang: createAccountStatus().text"></div>
-											</label>
-											<label for="submitRegistration2" class="recordInfo" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? 'createAccountInfoMobile_msg' : 'createAccountInfo_msg'"></label>
-										</div>
-									</div>
-								</form>
-							<!-- /ko -->
+                                <div class="record">
+                                    <div class="recordName"></div>
+                                    <div class="formAction">
+                                        <button id="submitRegistration1" type="submit" data-bind="css: { fadeVisible: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                    </div>
+                                </div>
+                            </form>
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
                             <div class="smallInfoMessage">
@@ -1511,15 +1440,6 @@
                                                         <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
                                                     </div>
                                                     <label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
-                                                </div>
-                                            </div>
-                                            <div class="record" data-bind="visible: codeNeeded">
-                                                <label for="passwordVerificationCode" class="recordName" data-bind="lang: 'code_label'"></label>
-                                                <div class="recordData">
-                                                    <div class="recordValue">
-                                                        <input id="passwordVerificationCode" class="inputField wide" type="number" data-bind="enable: (state.getState() == 'EnterCode'), css: { invalid: state.getState() == 'VerifyCodeFailed' }, value: code, valueUpdate: 'input'" />
-                                                    </div>
-                                                    <label id="passwordVerificationCode" class="recordStatus" data-bind="css: codeStatus().type, lang: codeStatus().text"></label>
                                                 </div>
                                             </div>
                                             <div class="record">

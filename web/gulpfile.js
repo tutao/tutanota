@@ -17,9 +17,9 @@ var gulpFilter = require('gulp-filter');
 var insert = require('gulp-insert');
 var gzip = require('gulp-gzip');
 var karma = require('karma').server;
-var shell = require('gulp-shell')
+var shell = require('gulp-shell');
 
-var package = require('./package.json')
+var package = require('./package.json');
 
 var fs = require('fs');
 
@@ -253,7 +253,7 @@ gulp.task('dist', ['clean'], function (cb) {
 
 gulp.task('release', ['dist', 'tagRelease'], function (cb) {
     return gulp.src('build/**')
-        .pipe(gulp.dest('/opt/releases/tutanota-' + package.version ));
+        .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version ));
 });
 
 gulp.task('tagRelease' , shell.task([
