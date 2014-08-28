@@ -246,13 +246,12 @@ gulp.task('distCordova', ['clean'], function (cb) {
 });
 
 gulp.task('dist', ['clean'], function (cb) {
-    env = local_compiled;
+    env = prod;
     fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('release', ['dist', 'tagRelease'], function (cb) {
-    env = local_compiled;
     return gulp.src('build/**')
         .pipe(gulp.dest('/opt/releases/tutanota-' + package.version ));
 });
