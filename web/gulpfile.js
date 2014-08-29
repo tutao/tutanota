@@ -211,7 +211,9 @@ gulp.task('copy', function () {
             .pipe(gulpFilter(['icomoon.*']))
             .pipe(gulp.dest('./build/fonts')),
         gulp.src('graphics/**/*')
-            .pipe(gulp.dest('./build/graphics'))
+            .pipe(gulp.dest('./build/graphics')),
+        gulp.src('messages.html')
+            .pipe(gulp.dest('./build/')),
     );
 });
 

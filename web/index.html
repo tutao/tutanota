@@ -1317,14 +1317,14 @@
                                             <label data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
                                             <!-- /ko -->
                                         </div>
-                                        <label for="termsInput" class="recordStatus", data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
+                                        <label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
                                     </div>
                                 </div>
 
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                        <button id="submitRegistration1" type="submit" data-bind="css: { disabled: isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                     </div>
                                 </div>
                             </form>
