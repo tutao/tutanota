@@ -1227,7 +1227,12 @@
 			<div class="welcomeContainer">
 				<div class="panel">
 					<div class="content scrollable">
-						<h1 data-bind="lang: 'registrationHeadline_msg', params: { '$': getRegistrationType() }"></h1>
+                        <!-- ko if: getRegistrationType() == 'Starter' -->
+                        <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
+                        <!-- /ko -->
+                        <!-- ko if: getRegistrationType() == 'Free' -->
+                        <h1 data-bind="lang: 'registrationHeadlineBeta_msg'"></h1>
+                        <!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
                             <!-- ko if: getRegistrationType() != 'Free' -->
                             <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
@@ -1319,7 +1324,7 @@
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button id="submitRegistration1" type="submit" data-bind="css: { fadeVisible: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                        <button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                     </div>
                                 </div>
                             </form>
