@@ -221,7 +221,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                     tutao.tutanota.gui.alert( tutao.lang("invalidRecipients_msg") + "\n" + recipientList );
                     console.log("recipients not found", exception);
                 }).lastly(function() {
-
+                    self.busy(false);
                 });
 
             });
