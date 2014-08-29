@@ -213,7 +213,7 @@ gulp.task('copy', function () {
         gulp.src('graphics/**/*')
             .pipe(gulp.dest('./build/graphics')),
         gulp.src('messages.html')
-            .pipe(gulp.dest('./build/')),
+            .pipe(gulp.dest('./build/'))
     );
 });
 
