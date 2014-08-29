@@ -233,7 +233,7 @@ gulp.task('test', function(done) {
 });
 
 gulp.task('gzip', function () {
-    return gulp.src(['./build/*', '!./build/*.map'])
+    return gulp.src(['./build/**', '!./build/*.map', , '!./build/fonts/**', , '!./build/graphics/**'])
         .pipe(gzip())
         .pipe(gulp.dest('build'));
 });
