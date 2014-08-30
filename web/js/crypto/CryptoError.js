@@ -9,7 +9,20 @@ tutao.provide('tutao.crypto.CryptoError');
  * @constructor
  */
 tutao.crypto.CryptoError = function(message, error) {
-	this.stack = new Error().stack;
+    if (Error.captureStackTrace) {
+        Error.captureStackTrace(this, tutao.crypto.CryptoError);
+    } else {
+        var error = new Error();
+        if (!error.stack){
+            // fill the stack trace on ios devices
+            try {
+                throw error;
+            } catch (e) {
+            }
+        }
+        this.stack = this.name + ". " + this.message + "\n" + error.stack.split("\n").slice(1).join("\n"); // removes first line from stack
+    }
+
 	if (!error) {
 		this.message = message;
 	} else {

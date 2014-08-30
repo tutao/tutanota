@@ -74,13 +74,21 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
             if (Error.captureStackTrace) {
                 Error.captureStackTrace(this, RestError);
             } else {
-                this.stack = this.name + ". " + this.message + "\n" + new Error().stack.split("\n").slice(1).join("\n"); // removes first line from stack
+                var error = new Error();
+                if (!error.stack){
+                    // fill the stack trace on ios devices
+                    try {
+                        throw error;
+                    } catch (e) {
+                    }
+                }
+                this.stack = this.name + ". " + this.message + "\n" + error.stack.split("\n").slice(1).join("\n"); // removes first line from stack
             }
-        };
+        }
         RestError.prototype = Object.create(Error.prototype);
         RestError.prototype.constructor = RestError;
         return RestError;
-    };
+    }
 
     tutao.AccessBlockedError = createCustomError(472, "AccessBlockedError");
     tutao.AccessDeactivatedError = createCustomError(470, "AccessDeactivatedError");
