@@ -9,6 +9,12 @@ tutao.provide('tutao.crypto.CryptoError');
  * @constructor
  */
 tutao.crypto.CryptoError = function(message, error) {
+	if (!error) {
+		this.message = message;
+	} else {
+		this.message = message + ", original message: " + error.message;
+	}
+
     if (Error.captureStackTrace) {
         Error.captureStackTrace(this, tutao.crypto.CryptoError);
     } else {
@@ -23,11 +29,6 @@ tutao.crypto.CryptoError = function(message, error) {
         this.stack = this.name + ". " + this.message + "\n" + error.stack.split("\n").slice(1).join("\n"); // removes first line from stack
     }
 
-	if (!error) {
-		this.message = message;
-	} else {
-		this.message = message + ", original message: " + error.message;
-	}
 	this.name = "CryptoError";
 	this.error = error;
 };
