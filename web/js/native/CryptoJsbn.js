@@ -107,6 +107,7 @@ tutao.native.CryptoJsbn.initWorkerFileNames = function(basePath) {
     if (tutao.env.type === tutao.Env.LOCAL) {
         tutao.native.CryptoJsbn.DEPENDENCIES = [
                 libsPath + 'base.js',
+                libsPath + 'base64shim.js',
                 libsPath + 'crypto-jsbn-2012-08-09_1.js',
                 libsPath + 'crypto-sjcl-2012-08-09_1.js',
                 srcPath + 'crypto/SecureRandom.js',

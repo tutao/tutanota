@@ -165,13 +165,9 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
         new tutao.entity.sys.UserDataDelete()
             .setUser(group.getUser())
             .setRestore(restore)
-            .erase({}, null, function(deleteUserReturn, exception) {
-                if (exception) {
-                    console.log(exception);
-                } else {
-                    self.adminUserListViewModel.updateUserGroupInfo();
-                    tutao.locator.settingsView.showChangeSettingsColumn();
-                }
+            .erase({}, null).then(function(deleteUserReturn) {
+                self.adminUserListViewModel.updateUserGroupInfo();
+                tutao.locator.settingsView.showChangeSettingsColumn();
             });
     });
 };

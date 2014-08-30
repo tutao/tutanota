@@ -108,7 +108,7 @@ gulp.task('minify', function () {
             .pipe(concat('js.js'))
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()))
-    .pipe(concat("app.min.js"))
+        .pipe(concat("app.min.js"))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('build/'));
 });
@@ -207,6 +207,8 @@ gulp.task('less', function () {
 
 gulp.task('copy', function () {
     return streamqueue({ objectMode: true },
+        gulp.src('messages.html')
+            .pipe(gulp.dest('./build/')),
         gulp.src('fonts/*')
             .pipe(gulpFilter(['icomoon.*']))
             .pipe(gulp.dest('./build/fonts')),
@@ -257,6 +259,6 @@ gulp.task('release', ['dist', 'tagRelease'], function (cb) {
 });
 
 gulp.task('tagRelease' , shell.task([
-    "git tag -a " + package.name + "-release-" + package.version + " -m ''",
-    "git push origin " + package.name + "-release-" + package.version
+        "git tag -a " + package.name + "-release-" + package.version + " -m ''",
+        "git push origin " + package.name + "-release-" + package.version
 ]));
