@@ -71,10 +71,8 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     if (tutao.env.mode == tutao.Mode.App) {
-        console.log("found cordova -> app mode");
         document.addEventListener("deviceready", launch, false);
     } else {
-        console.log("web mode");
         $(document).ready(function () {
             launch();
         });

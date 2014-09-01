@@ -58,7 +58,7 @@ EntityRestTestFunctions.addFunctions = function () {
     it("test an empty db should throw an error on requests for an element", function () {
         return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, "-0DGl4rds--F", null, EntityRestTestFunctions.getVersionParams(), tutao.entity.EntityHelper.createAuthHeaders()).then(function () {
             assert.fail("no error occured");
-        }).catch(function (exception) {
+        }).caught(function (exception) {
             assert.instanceOf(exception, tutao.NotFoundError);
         });
     });

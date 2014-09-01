@@ -167,7 +167,7 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
         return tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo())
     }).then(function (groupInfo) {
         self._userGroupInfo = groupInfo;
-    }).catch(function (e) {
+    }).caught(function (e) {
         self.reset();
         throw e;
     });
@@ -234,7 +234,7 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
                 self._mailAddress = groupInfo.getMailAddress();
             });
         });
-    }).catch(function(e) {
+    }).caught(function(e) {
         self.reset();
         throw e;
     });

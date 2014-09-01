@@ -36,3 +36,14 @@ tutao.provide = function(name) {
         }
     }
 };
+
+if (!Object.create) {
+    Object.create = function(proto, props) {
+        if (typeof props !== "undefined") {
+            throw "The multiple-argument version of Object.create is not provided by this browser and cannot be shimmed.";
+        }
+        function F() { }
+        F.prototype = proto;
+        return new F();
+    };
+}
