@@ -32,7 +32,7 @@ tutao.tutanota.legacy.FlashFileSaver = function(id, parentDomElement, width, hei
 	$(parentDomElement).append(placeholder);
     var params = { allowScriptAccess: 'always', wmode: 'transparent'};
     return new Promise(function(resolve, reject) {
-        swfobject.embedSWF('js/legacy/FlashFileSaver.swf', id, width, height, "10", null, null, params, null, function(e) {
+        swfobject.embedSWF('legacy/FlashFileSaver.swf', id, width, height, "10", null, null, params, null, function(e) {
             tutao.tutanota.legacy.FlashFileSaver.wait(downloadedData, filename, e.ref, resolve);
         });
     });

@@ -201,6 +201,8 @@ gulp.task('copy', function () {
     return streamqueue({ objectMode: true },
         gulp.src('messages.html')
             .pipe(gulp.dest('./build/')),
+        gulp.src('legacy/*')
+            .pipe(gulp.dest('./build/legacy')),
         gulp.src('lib/operative-0.3.1.js')
             .pipe(gulp.dest('./build/')),
         gulp.src('fonts/*')
