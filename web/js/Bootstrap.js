@@ -82,6 +82,8 @@ tutao.tutanota.Bootstrap.init = function () {
 };
 
 tutao.tutanota.Bootstrap.getSingletons = function() {
+    operative.setSelfURL("operative-0.3.1.js");
+
     //override native implementation with device specific one, if available
     var cryptoImpl = tutao.native.CryptoJsbn;
     var phoneImpl = tutao.native.Phone;

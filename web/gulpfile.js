@@ -211,6 +211,8 @@ gulp.task('copy', function () {
     return streamqueue({ objectMode: true },
         gulp.src('messages.html')
             .pipe(gulp.dest('./build/')),
+        gulp.src('lib/operative-0.3.1.js')
+            .pipe(gulp.dest('./build/')),
         gulp.src('fonts/*')
             .pipe(gulpFilter(['icomoon.*']))
             .pipe(gulp.dest('./build/fonts')),
@@ -247,6 +249,12 @@ gulp.task('distCordova', ['clean'], function (cb) {
     env = local_compiled;
     fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+});
+
+gulp.task('distLocal', ['clean'], function (cb) {
+    env = local_compiled;
+    fs.writeFileSync("build/init.js", env);
+    return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('dist', ['clean'], function (cb) {

@@ -44,3 +44,10 @@ SWFObject - https://code.google.com/p/swfobject
 License: MIT
 Reference: https://code.google.com/p/swfobject
 
+Operative - http://github.com/padolsey/operative
+License: MIT
+Reference: http://github.com/padolsey/operative
+
+base64shim - https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
+License: This library is free.  You can redistribute it and/or modify it.
+https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
