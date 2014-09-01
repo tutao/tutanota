@@ -15,9 +15,9 @@ Build steps:
 1. Checkout the repository: `clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
 3. Install dependencies: `npm install`
-4. Build Tutanota: `gulp distProd`
+4. Build Tutanota: `gulp dist`
 5. Switch into the build directory: `cd build`
-6. Open the index.html with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument "--allow-file-access-from-files".
+6. Open the index.html with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
 
 ## Tests
 
