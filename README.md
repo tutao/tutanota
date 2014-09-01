@@ -1,5 +1,4 @@
 # Tutanota makes encryption easy
-========
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
@@ -12,6 +11,7 @@ Pre-requisites:
 * An up-to-date version of node js is installed
 
 Build steps:
+
 1. Checkout the repository: `clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
 3. Install dependencies: `npm install`
