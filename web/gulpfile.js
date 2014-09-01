@@ -48,16 +48,6 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
-var dev = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.DEV, true, 'tutanota.tutao.de', 9025);\n\
-    tutao.tutanota.Bootstrap.init();\n\
-}\n";
-
-var test = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null);\n\
-    tutao.tutanota.Bootstrap.init();\n\
-}\n";
-
 var prod = "if (typeof importScripts !== 'function') {\n\
     tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'tutanota.de', null);\n\
     tutao.tutanota.Bootstrap.init();\n\
