@@ -107,7 +107,7 @@
         return out;
     }
 
-    if (! typeof btoa == 'undefined') btoa = base64encode;
-    if (! typeof atob == 'undefined') atob = base64decode;
+    if (typeof btoa == 'undefined') btoa = base64encode;
+    if (typeof atob == 'undefined') atob = base64decode;
 
 })();
