@@ -2,7 +2,6 @@
 
 tutao.provide('tutao.tutanota.ctrl.Navigator');
 
-// TODO (before release) check if switching to http://oscar.finnsson.nu/pagerjs/ is an alternative:
 // written for knockout and more active. Page bindings and params come into index.html
 tutao.tutanota.ctrl.Navigator = function() {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);

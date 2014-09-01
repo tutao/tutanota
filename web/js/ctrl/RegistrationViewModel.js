@@ -449,7 +449,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 
                                 resolve(customerService.setup({}, null).then(function(adminUserData) {
                                     return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                        //TODO (before release) create root instances and welcome mail before login
+                                        //TODO (before release) create root instances and welcome mail before next login if it failed here
                                         return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
                                             if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
                                                 new tutao.entity.tutanota.WelcomeMailData()
