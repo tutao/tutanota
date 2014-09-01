@@ -1,5 +1,4 @@
 # Tutanota makes encryption easy
-========
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
