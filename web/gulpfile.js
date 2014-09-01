@@ -18,6 +18,7 @@ var insert = require('gulp-insert');
 var gzip = require('gulp-gzip');
 var karma = require('karma').server;
 var shell = require('gulp-shell');
+var mkdirp = require('mkdirp');
 
 var package = require('./package.json');
 
@@ -65,6 +66,7 @@ var prod = "if (typeof importScripts !== 'function') {\n\
 var env = local_compiled;
 
 gulp.task('clean', function () {
+    mkdirp("build")
     return gulp.src(["build/*"], {read: false})
         .pipe(clean({force: true}));
 
