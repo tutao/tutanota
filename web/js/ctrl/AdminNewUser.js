@@ -18,7 +18,7 @@ tutao.tutanota.ctrl.AdminNewUser = function () {
 
 tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(newValue) {
     var self = this;
-    var cleanedValue = newValue.toLowerCase();
+    var cleanedValue = newValue.toLowerCase().trim();
     if (self.mailAddressPrefix().length < 1) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;

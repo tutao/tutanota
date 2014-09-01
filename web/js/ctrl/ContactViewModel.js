@@ -183,9 +183,10 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
  * Deletes the currently shown contact.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
+    var self = this;
     if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteContact_msg"))) {
         this.contactWrapper().getContact().erase().then(function() {
-            this.removeContact();
+            self.removeContact();
         });
     }
 };
@@ -198,7 +199,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.sendMail = function (contactMailA
     var recipient = new tutao.tutanota.ctrl.RecipientInfo(contactMailAddress.getAddress(), this.contactWrapper().getFullName(), this.contactWrapper());
     recipient.resolveType().caught(tutao.ConnectionError, function(e) {
         // we are offline but we want to show the dialog only when we click on send.
-    });;
+    });
     tutao.locator.navigator.newMail(recipient);
 };
 

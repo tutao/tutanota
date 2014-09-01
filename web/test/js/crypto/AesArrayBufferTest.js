@@ -4,7 +4,7 @@ describe("AesArrayBufferTest", function () {
 
     var assert = chai.assert;
 
-    this.timeout(5000);
+    this.timeout(8000);
 
     var _getFacade = function () {
         return tutao.locator.aesCrypter;

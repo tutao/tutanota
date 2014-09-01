@@ -249,5 +249,11 @@ tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {
     for (var i = 0; i < len; i++) {
         binary += String.fromCharCode( bytes[ i ] );
     }
-    return window.btoa(binary);
+    return btoa(binary);
+};
+
+tutao.util.EncodingConverter.base64ToArray = function(base64) {
+    return new Uint8Array(atob(base64).split("").map(function(c) {
+        return c.charCodeAt(0);
+    }));
 };

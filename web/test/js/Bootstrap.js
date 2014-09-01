@@ -1,26 +1,41 @@
 "use strict";
 
+tutao.provide('tutao.locator');
+tutao.provide("tutao.tutanota.Bootstrap");
+
 /**
  * Executes all initializations needed for the unit tests to run.
  */
-var setupLocator = function() {
-    tutao.env = new tutao.Environment(tutao.Env.LOCAL, location.protocol == 'https:' ? true : false, location.hostname, location.port === '' ? '' : location.port);
+tutao.tutanota.Bootstrap.init = function() {
+    if (typeof tutao.env.type == 'undefined') {
+        // test distribution already sets the environment (see gulpfile -> concatTest
+        tutao.env = new tutao.Environment(tutao.Env.LOCAL, location.protocol == 'https:' ? true : false, location.hostname, location.port === '' ? '' : location.port);
+    }
 
     Promise.longStackTraces();
     if (typeof window.parent.karma != 'undefined') {
         // karma
+        tutao.native.CryptoJsbn.initWorkerFileNames("/base/");
         tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/worker/');
     } else {
         // mocha standalone
+        tutao.native.CryptoJsbn.initWorkerFileNames("../");
         tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
     }
 
+    var cryptoImpl = tutao.native.CryptoJsbn;
+    if (tutao.env.mode == tutao.Mode.App) {
+        console.log("overriding native interfaces");
+        cryptoImpl = tutao.native.device.Crypto;
+    }
+
 	var singletons = {
+        crypto: cryptoImpl,
 		randomizer: tutao.crypto.SjclRandomizer,
 		entropyCollector: tutao.crypto.EntropyCollector,
 		clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
 		aesCrypter: tutao.crypto.AesWorkerProxy,
-		rsaCrypter: tutao.crypto.RsaWorkerProxy,
+		rsaCrypter: tutao.native.RsaInterfaceAdapter,
 		kdfCrypter: tutao.crypto.JBCryptAdapter,
 		shaCrypter: tutao.crypto.SjclSha256,
 		userController: tutao.ctrl.UserController,
@@ -51,8 +66,6 @@ var setupLocator = function() {
     eval("tutao.locator = new tutao.Locator(singletons, initializer);")
 
 };
-
-setupLocator();
 
 /**
  * Only returns false if the browser is Safari.

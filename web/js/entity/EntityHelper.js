@@ -194,7 +194,6 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		}
 		if (bucketPermission == null) {
 			throw new Error("no corresponding bucket permission found");
-			return;
 		}
 		var sessionKey;
         var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());

@@ -2,6 +2,7 @@
 
 tutao.provide("tutao.Environment");
 tutao.provide("tutao.Env");
+tutao.provide("tutao.Mode");
 tutao.provide("tutao.env");
 
 /**
@@ -13,6 +14,14 @@ tutao.Env = {
     DEV: 2,
     TEST: 3,
     PROD: 4
+};
+
+/**
+ * @enum {number}
+ */
+tutao.Mode = {
+    Browser: 0,
+    App: 1
 };
 
 /**
@@ -32,6 +41,7 @@ tutao.Environment = function (type, ssl, server, port) {
     this.ssl = ssl;
     this.server = server;
     this.port = port;
+    this.mode = tutao.Mode.Browser;
 };
 
 tutao.Environment.prototype.getWebsocketOrigin = function () {
@@ -39,5 +49,5 @@ tutao.Environment.prototype.getWebsocketOrigin = function () {
 };
 
 tutao.Environment.prototype.getHttpOrigin = function () {
-    return (this.ssl ? 'https' : 'http') + "://" + this.server + ":" + (this.port ? ":" + this.port : "");
+    return (this.ssl ? 'https' : 'http') + "://" + this.server + (this.port ? ":" + this.port : "");
 };

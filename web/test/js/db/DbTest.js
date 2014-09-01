@@ -6,7 +6,9 @@ describe("DbTest", function () {
 
     before(function () {
         this.dbUnderTest = new tutao.db.WebSqlDb();
-    })
+    });
+
+    this.timeout(5000);
 
     it(" that elements with same words are found", function (done) {
         var self = this;

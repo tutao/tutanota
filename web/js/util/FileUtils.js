@@ -23,17 +23,19 @@ tutao.tutanota.util.FileUtils.showFileChooser = function() {
 	fileInput.setAttribute("multiple", "multiple");
 	fileInput.setAttribute("id", "hiddenFileChooser");
 
+    var promise = new Promise(function(resolve, reject) {
+        $(fileInput).bind("change", function(e) {
+            resolve(e.originalEvent.target.files);
+        });
+    });
+
     // the file input must be put into the dom, otherwise it does not work in IE
     $("body").get(0).appendChild(fileInput);
     if (!tutao.tutanota.util.FileUtils.WATIR_MODE) {
         fileInput.click();
     }
 
-    return new Promise(function(resolve, reject) {
-        $(fileInput).bind("change", function(e) {
-            resolve(e.originalEvent.target.files);
-        });
-    });
+    return promise
 };
 
 // this flag disables showing the file chooser when running with watir as watir handles file uploads in another way

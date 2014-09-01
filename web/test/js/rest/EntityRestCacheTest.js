@@ -1,6 +1,7 @@
 "use strict";
 
-describe("EntityRestCacheTest", function () {
+// TODO skipped, as chrome chrashes if all testcases including the EntityRestCacheTest is executed (which is no prob for firefox)
+describe.skip("EntityRestCacheTest", function () {
 
     var assert = chai.assert;
 

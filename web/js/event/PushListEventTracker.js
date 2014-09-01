@@ -61,7 +61,7 @@ tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
 tutao.event.PushListEventTracker.prototype._handleEventBusNotification = function(update) {
 	var self = this;
 	if (update.getType() === this._typeName && update.getInstanceListId() === this._listId && update.getOperation() == tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_CREATE) {
-		return tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(instance, exception) {
+		return tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(instance) {
             return instance._entityHelper.loadSessionKey().then(function(instance) {
                 self.notifyObservers([instance]);
                 self._highestElementId = instance.getId()[1];

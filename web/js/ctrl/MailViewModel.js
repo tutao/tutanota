@@ -308,11 +308,13 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
             console.log("could not load conversation entry", e);
         }).then(function() {
             // the conversation key may be null if the mail was e.g. received from an external via smtp
-            self.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId)]);
+            var mail = new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId);
+            self.conversation([mail]);
+            mail.setBody(bodyText);
         });
 	} else {
         mailCreatedPromise = Promise.resolve();
-		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null, "")]);
+		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null)]);
 	}
 
     return mailCreatedPromise.then(function() {
@@ -329,6 +331,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 
 
         // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
+        //self.editor = new Quill('div.composeBody', {theme: 'snow'});
+        //self.editor.addModule('toolbar', {
+        //    container: '#toolbar-toolbar'     // Selector for toolbar container
+        //});
         ////TODO (story send html email): test on mobiles and move to view
         //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
         //		toolbar:      null, // id of toolbar element

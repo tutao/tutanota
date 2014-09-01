@@ -116,12 +116,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         return tutao.locator.contactListViewModel.init();
     }).then(function() {
         tutao.locator.eventBus.connect(false);
-        if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
-            // Starter users may only use settings
-            tutao.locator.navigator.settings();
-        } else {
-            tutao.locator.navigator.mail();
-        }
+        tutao.locator.navigator.mail();
     });
 };
 

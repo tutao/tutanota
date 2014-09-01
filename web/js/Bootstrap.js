@@ -66,16 +66,47 @@ tutao.tutanota.Bootstrap.init = function () {
         tutao.tutanota.gui.initKnockout();
     };
 
-    $(document).ready(function () {
-        launch();
-    });
+    if (typeof cordova != 'undefined') {
+        tutao.env.mode = tutao.Mode.App;
+    }
+
+    if (tutao.env.mode == tutao.Mode.App) {
+        console.log("found cordova -> app mode");
+        document.addEventListener("deviceready", launch, false);
+    } else {
+        console.log("web mode");
+        $(document).ready(function () {
+            launch();
+        });
+    }
 };
 
 tutao.tutanota.Bootstrap.getSingletons = function() {
+    //override native implementation with device specific one, if available
+    var cryptoImpl = tutao.native.CryptoJsbn;
+    var phoneImpl = tutao.native.Phone;
+    var notificationImpl = tutao.native.NotificationBrowser;
+    var contactImpl = tutao.native.ContactBrowser;
+    var fileTransferImpl = tutao.native.FileTransferBrowser;
+    if (tutao.env.mode == tutao.Mode.App) {
+        console.log("overriding native interfaces");
+        cryptoImpl = tutao.native.device.Crypto;
+        //phoneImpl = tutao.native.device.Phone;
+        //notificationImpl = tutao.native.NotificationApp;
+        //contactImpl = tutao.native.ContactApp;
+        //fileTransferImpl = tutao.native.FileTransferApp;
+    }
+
     var singletons = {
+        crypto: cryptoImpl,
+        phone: phoneImpl,
+        notification: notificationImpl,
+        contacts: contactImpl,
+        fileTransfer: fileTransferImpl,
+
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.AesWorkerProxy,
-        rsaCrypter: tutao.crypto.RsaWorkerProxy,
+        rsaCrypter: tutao.native.RsaInterfaceAdapter,
         kdfCrypter: tutao.crypto.JBCryptAdapter,
         shaCrypter: tutao.crypto.SjclSha256,
         userController: tutao.ctrl.UserController,
@@ -130,6 +161,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
 };
 
 tutao.tutanota.Bootstrap.initControllers = function () {
+    tutao.native.CryptoJsbn.initWorkerFileNames("");
     tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
 
     // @type {tutao.Locator}

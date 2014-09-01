@@ -265,3 +265,8 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonClick = function() {
 	this.bubbleInputViewModel.inputValue("");
 	this.search();
 };
+
+/** @inheritDoc */
+tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonCss = function() {
+    return null;
+};

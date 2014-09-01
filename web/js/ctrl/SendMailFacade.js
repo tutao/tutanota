@@ -19,7 +19,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
  */
 tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();
-	if ((accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM)) {
+	if ((accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER)) {
 		return Promise.reject(new Error("invalid account type"));
 	}
 
@@ -68,7 +68,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
     var aes = tutao.locator.aesCrypter;
     if (dataFile instanceof tutao.entity.tutanota.File) {
-        var fileSessionKey = dataFile._entityHelper.getSessionKey()
+        var fileSessionKey = dataFile._entityHelper.getSessionKey();
         attachment.setFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
     } else if (dataFile instanceof tutao.tutanota.util.DataFile) {

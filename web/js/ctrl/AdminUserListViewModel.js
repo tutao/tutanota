@@ -47,20 +47,16 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
     if (this.editing()) {
         // update the saved instance in our list
         var self = this;
-        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId(), function(updatedUserGroupInfo, exception) {
-            if (exception) {
-                console.log(exception);
-            } else {
-                var savedIndex = self.userGroups.indexOf(self.editing().userGroupInfo);
-                self.userGroups.splice(savedIndex, 1);
-                self.userGroups.splice(savedIndex, 0, updatedUserGroupInfo);
+        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId()).then(function(updatedUserGroupInfo) {
+            var savedIndex = self.userGroups.indexOf(self.editing().userGroupInfo);
+            self.userGroups.splice(savedIndex, 1);
+            self.userGroups.splice(savedIndex, 0, updatedUserGroupInfo);
 
-                // Update user group info for the logged in user.
-                if (tutao.util.ArrayUtils.arrayEquals( tutao.locator.userController.getUserGroupInfo().getId(),updatedUserGroupInfo.getId()) ){
-                    tutao.locator.userController._userGroupInfo = updatedUserGroupInfo;
-                }
-                self.editing(null);
+            // Update user group info for the logged in user.
+            if (tutao.util.ArrayUtils.arrayEquals( tutao.locator.userController.getUserGroupInfo().getId(),updatedUserGroupInfo.getId()) ){
+                tutao.locator.userController._userGroupInfo = updatedUserGroupInfo;
             }
+            self.editing(null);
         })
     }
 };

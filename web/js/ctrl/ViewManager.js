@@ -47,27 +47,23 @@ tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
  */
 tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
     var self = this;
-    var internalNonStarterUser = function() {
-        if (tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn()) {
-            return tutao.locator.userController.getLoggedInUser().getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
-        } else {
-            return false;
-        }
+    var internalUser = function() {
+        return tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn();
     };
     var buttons = [
         // internalUsers
         new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
-            return internalNonStarterUser() && self.getActiveView() == tutao.locator.mailView;
+            return internalUser() && self.getActiveView() == tutao.locator.mailView;
         }, false, "menu_mail_new", "mail-new", 'newMail_alt'),
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
-            return internalNonStarterUser() && self.getActiveView() != tutao.locator.mailView;
+            return internalUser() && self.getActiveView() != tutao.locator.mailView;
         }, false, "menu_mail", "mail", 'emails_alt'),
 
         new tutao.tutanota.ctrl.Button('new_label', 29, tutao.locator.navigator.newContact, function () {
-            return internalNonStarterUser() && self.getActiveView() == tutao.locator.contactView;
+            return internalUser() && self.getActiveView() == tutao.locator.contactView;
         }, false, "menu_contact_new", "contact-new", 'newContact_alt'),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
-            return internalNonStarterUser() && self.getActiveView() != tutao.locator.contactView;
+            return internalUser() && self.getActiveView() != tutao.locator.contactView;
         }, false, "menu_contact", "contact", 'contacts_alt'),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
