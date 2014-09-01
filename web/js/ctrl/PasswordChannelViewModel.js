@@ -151,6 +151,16 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.isAutoTransmitPasswordAll
     return tutao.locator.viewManager.getLoggedInUserAccountType() === tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM;
 };
 
+
+/**
+ * Checks if the auto transmition of the password is deactivated for the logged in user
+ * @return {boolean} True if the auto transmition is deactivated.
+ */
+tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.isAutoTransmitPasswordDeactivated = function() {
+    // Get the account type from the ViewManager because the login state is a ko observable to get notfied when the logged in user changes.
+    return tutao.locator.viewManager.getLoggedInUserAccountType() === tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
+};
+
 /**
  * Returns a translatable description of the password channel for the logged in user.
  *
@@ -160,7 +170,11 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordChannelDescrip
     if (this.isAutoTransmitPasswordAllowed()){
         return tutao.locator.languageViewModel.get('atLeastOneMobileNumber_label',[]);
     }else{
-        return tutao.locator.languageViewModel.get('preSharedPasswordNeeded_label',[]);
+        var text = tutao.locator.languageViewModel.get('preSharedPasswordNeeded_label',[]);
+        if ( this.isAutoTransmitPasswordDeactivated()){
+            text += " " + tutao.locator.languageViewModel.get('autoTransmitPasswordDeactivated_label',[]);
+        }
+        return text;
     }
 };
 

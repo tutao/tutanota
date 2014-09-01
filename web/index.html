@@ -672,61 +672,19 @@
 											<span class="emphasizedText" data-bind="text: getMailAddress()"></span><br>
 										<!-- /ko -->
 									</div>
-									<div class="recordContainer wide" data-bind="visible: getEditableContact().presharedPassword() === null, form: true">
-										<!-- ko foreach: getEditableContact().phoneNumbers -->
-											<!-- ko if: tutao.locator.passwordChannelViewModel.isSavedMobileNumber($data, $parent) -->
-												<div class="record">
-													<div class="row">
-														<div class="recordData" data-bind="text: tutao.lang('fromAddressBook_label') + number()"></div>
-														<div class="recordAction"></div>
-													</div>
-												</div>
-											<!-- /ko -->
-										<!-- /ko -->
-										<!-- ko foreach: getEditableContact().phoneNumbers -->
-											<!-- ko if: tutao.locator.passwordChannelViewModel.isNotSavedNumber($data, $parent) -->
-												<div class="record">
-													<div class="recordData">
-														<div class="row">
-															<input type="tel" class="recordValue inputField wide" data-bind="value: number, css: { invalid: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number()) }"/>
-															<div class="recordAction" data-bind="fastClick: function() { $parent.getEditableContact().phoneNumbers.remove($data) }">
-																<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
-															</div>
-														</div>
-														<label class="recordStatus invalid" data-bind="lang: 'mobileNumberNotValid_msg', visible: !tutao.tutanota.ctrl.RecipientInfo.isValidMobileNumber(number())"></label>
-													</div>
-												</div>
-											<!-- /ko -->
-										<!-- /ko -->
-										<div class="record">
-											<div class="recordData">
-												<div class="row">
-													<input type="tel" class="recordValue inputField wide" data-bind="value: getEditableContact().newMobileContactPhoneNumber().number, event: { blur: getEditableContact().newMobileContactPhoneNumberUpdated }, css: { invalid: !isSecure() }"/>
-													<div class="recordAction"></div>
-												</div>
-												<label class="recordInfo" data-bind="lang: 'addMobileNumber_msg'"></label>
-											</div>
-										</div>
-										<button class="setPresharedPasswordButton" data-bind="lang: 'setPresharedPassword_action', fastClick: function() { setTimeout(function() { $parent.defineManualPassword($data); }, 0); }"></button>
-									</div>
-									<div class="recordContainer wide" data-bind="visible: getEditableContact().presharedPassword() !== null, form: getEditableContact().presharedPassword() !== null">
-										<div class="record">
-											<div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
-											<div class="recordData">
-												<div class="row">
-													<input type="text" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
-													<div class="recordAction" data-bind="attr:{id: 'removePasswordAction_' + getMailAddress()}, fastClick: function() { $parent.removePresharedPassword($data) }, visible: !tutao.locator.userController.isLoggedInUserFreeAccount() ">
-														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
-													</div>
-												</div>
-												<div class="recordStatus">
-													<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, $parent.getPasswordStrength($data))) + '%' }"></div>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
+                                    <div class="record">
+                                        <div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
+                                        <div class="recordData">
+                                            <div class="row">
+                                                <input type="text" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+                                            </div>
+                                            <div class="recordStatus">
+                                                <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                                    <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, $parent.getPasswordStrength($data))) + '%' }"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 									<br>
 								</div>
 							<!-- /ko -->
