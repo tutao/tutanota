@@ -1604,7 +1604,7 @@
 			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: title"></h2>
             <div class="modalDialogInfo" data-bind="visible: !isErrorDialog(), html: tutao.lang('faq_msg')"></div>
-            <div class="description" data-bind="visible: isErrorDialog, lang: 'errorReportDescription_msg'"></div>
+            <div class="descriptionFont" data-bind="visible: isErrorDialog, lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
             <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
             <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>

@@ -874,7 +874,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
 	// feedback
 	errorReport_label: "Oh nein!",
-    errorReportDescription_msg: "Es ist ein unerwarteter Fehler aufgetreten. Wir würden uns freuen, wenn Sie uns über die von Ihnen ausgeführten Schritte informieren, damit wir das Problem so schnell wie möglich beheben können.",
+    errorReportDescription_msg: "Ein unerwarteter Fehler ist aufgetreten. Bitte beschreiben Sie die von Ihnen ausgeführten Schritte und wir werden das Problem so schnell wie möglich beheben.",
 	screenshot_label: "Screenshot mitsenden",
     feedbackInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung verschlüsselt an support@tutao.de gesendet.",
     feedbackErrorInfo_msg: "Die Nachricht wird zusammen mit der Browser-Kennung und Fehlerdetails verschlüsselt an support@tutao.de gesendet.",
