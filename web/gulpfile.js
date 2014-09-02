@@ -49,7 +49,7 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
 }\n";
 
 var prod = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'tutanota.de', null);\n\
+    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null);\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
