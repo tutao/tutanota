@@ -81,7 +81,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	sent_action: "Sent",
 	sentMail_alt: "Sent email",
 	sentMails_alt: "Sent emails",
-	trash_action: "Delete",
+	trash_action: "Trash",
 	trashedMail_alt: "Deleted email",
 	trashedMails_alt: "Deleted emails",
 	mailWithAttachment_alt: "Email with attachment",
