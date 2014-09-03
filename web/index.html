@@ -986,7 +986,7 @@
 					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
 
-						<form class="recordContainer wide" data-bind="submit: login, form: true">
+						<form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
 							<div class="record">
 								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
 								<div class="recordData">
@@ -999,7 +999,7 @@
 								<label for="loginPassphrase" class="recordName" data-bind="lang: 'password_label'"></label>
 								<div class="recordData">
 									<div class="recordValue">
-										<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused" />
+										<input   class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused" />
 									</div>
 								</div>
 							</div>
