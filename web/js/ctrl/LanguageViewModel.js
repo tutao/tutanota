@@ -154,8 +154,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     confirmDeleteTrash_msg: "Do you really want to delete all mails from the trash?",
 
     //invitation
-    invitationMailSubject_msg: "Your invitation to Tutanota Free",
-    invitationMailBody_msg: "Hello!<br><br>I would like to invite you to Tutanota. Tutanota is a free email service that encrypts emails automatically. This way others cannot eavesdrop on us and we can communicate confidentially.<br><br>Please take a minute to sign up:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>I am looking forward to receiving your first encrypted email!<br><br>Cheers,<br>$",
+    invitationMailSubject_msg: "Your invitation to Tutanota",
+    invitationMailBody_msg: "Hello!<br><br>I would like to invite you to Tutanota. Tutanota is a free email service from Germany that encrypts emails and attachments automatically. Let’s protect our emails from prying eyes. Together we can take back our privacy!<br><br>Simply sign up here:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>I am looking forward to receiving your first encrypted email.<br><br>Cheers,<br>$",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -585,8 +585,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     confirmDeleteTrash_msg: "Möchtest du wirklich alle E-Mails aus dem Papierkorb löschen?",
 
     //invitation
-    invitationMailSubject_msg: "Einladung zu Tutanota Free",
-    invitationMailBody_msg: "Hallo!<br><br>Ich möchte dich gern zu Tutanota einladen. Tutanota ist ein kostenloser E-Mail-Service, mit dem wir automatisch verschlüsselt kommunizieren können. So haben Dritte keine Möglichkeit uns zu belauschen und wir können vertraulich miteinander kommunizieren.<br><br>In einer Minute hast Du Dich hier registriert:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Ich freue mich auf deine erste verschlüsselte E-Mail!<br><br>Liebe Grüße<br>$",
+    invitationMailSubject_msg: "Einladung zu Tutanota",
+    invitationMailBody_msg: "Hallo!<br><br>Ich möchte dich gern zu Tutanota einladen. Tutanota ist ein kostenloser E-Mail-Service, der unsere E-Mails samt Anhängen automatisch verschlüsselt. So haben Dritte keine Möglichkeit uns zu belauschen und wir können vertraulich miteinander kommunizieren. Gemeinsam holen wir uns unsere Privatsphäre zurück!<br><br>Melde dich einfach hier an:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Ich freue mich auf deine erste verschlüsselte E-Mail.<br><br>Viele Grüße<br>$",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
