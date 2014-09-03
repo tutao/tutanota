@@ -197,20 +197,33 @@ gulp.task('less', function () {
         .pipe(gulp.dest('./build/css/'));
 });
 
-gulp.task('copy', function () {
-    return streamqueue({ objectMode: true },
-        gulp.src('messages.html')
-            .pipe(gulp.dest('./build/')),
-        gulp.src('legacy/*')
-            .pipe(gulp.dest('./build/legacy')),
-        gulp.src('lib/operative-0.3.1.js')
-            .pipe(gulp.dest('./build/')),
-        gulp.src('fonts/*')
-            .pipe(gulpFilter(['icomoon.*']))
-            .pipe(gulp.dest('./build/fonts')),
-        gulp.src('graphics/**/*')
-            .pipe(gulp.dest('./build/graphics'))
-    );
+gulp.task('copyLegacy', function () {
+    return gulp.src('legacy/*')
+        .pipe(gulp.dest('./build/legacy'));
+});
+
+gulp.task('copyMessages', function () {
+    return gulp.src('messages.html')
+        .pipe(gulp.dest('./build/'));
+});
+
+gulp.task('copyOperative', function () {
+    return gulp.src('lib/operative-0.3.1.js')
+        .pipe(gulp.dest('./build/'));
+});
+
+gulp.task('copyFonts', function () {
+    return gulp.src('fonts/*')
+        .pipe(gulpFilter(['icomoon.*']))
+        .pipe(gulp.dest('./build/fonts'));
+});
+
+gulp.task('copyGraphics', function () {
+    return gulp.src('graphics/**/*')
+        .pipe(gulp.dest('./build/graphics'));
+});
+
+gulp.task('copy', ['copyLegacy', 'copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics' ], function () {
 });
 
 gulp.task('manifest', function () {
