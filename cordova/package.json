@@ -10,7 +10,9 @@
   "license": "Copyright Tutao GmbH",
   "devDependencies": {
     "gulp": "~3.8.6",
-    "gulp-shell": "^0.2.9"
+    "gulp-shell": "^0.2.9",
+    "q": "^1.0.1",
+    "shelljs": "^0.3.0"
   },
   "dependencies": {}
 }
