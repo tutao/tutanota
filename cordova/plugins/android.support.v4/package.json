@@ -1,0 +1,14 @@
+{
+    "version": "1.0.0",
+    "name": "android.support.v4",
+    "cordova_name": "Android Support v4",
+    "platforms": [
+        "android"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=3.0.0"
+        }
+    ]
+}

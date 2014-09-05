@@ -1,0 +1,6 @@
+# view AndroidManifest.xml #generated:12
+-keep class android.support.v4.content.FileProvider { <init>(...); }
+
+# view AndroidManifest.xml #generated:6
+-keep class de.tutao.tutanota.tutanota { <init>(...); }
+

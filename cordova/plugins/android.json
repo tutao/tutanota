@@ -1,0 +1,53 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {
+            "res/xml/config.xml": {
+                "parents": {
+                    "/*": [
+                        {
+                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
+                            "count": 1
+                        }
+                    ]
+                }
+            },
+            "AndroidManifest.xml": {
+                "parents": {
+                    "/manifest": [
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
+                            "count": 1
+                        }
+                    ],
+                    "/manifest/application": [
+                        {
+                            "xml": "<provider android:authorities=\"de.tutao.fileprovider\" android:exported=\"false\" android:grantUriPermissions=\"true\" android:name=\"android.support.v4.content.FileProvider\"><meta-data android:name=\"android.support.FILE_PROVIDER_PATHS\" android:resource=\"@xml/paths\" /></provider>",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "installed_plugins": {
+        "android.support.v4": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        }
+    },
+    "dependent_plugins": {}
+}

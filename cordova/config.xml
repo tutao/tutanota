@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="de.tutao.tutanota" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+  <name>tutanota</name>
+  <description>
+    Tutanota is the secure client for end-to-end encrypted mail.
+  </description>
+  <author email="support@tutao.de" href="http://tutanota.de">
+    Tutao GmbH
+  </author>
+  <content src="index.html"/>
+  <access origin="*"/>
+  <!-- See:
+         * http://cordova.apache.org/docs/en/edge/config_ref_images.md.html
+         * https://gist.github.com/LinusU/7515016
+         -->
+  <platform name="android">
+    <icon src="www/graphics/app/android/icon-36-ldpi.png" density="ldpi"/>
+    <icon src="www/graphics/app/android/icon-48-mdpi.png" density="mdpi"/>
+    <icon src="www/graphics/app/android/icon-72-hdpi.png" density="hdpi"/>
+    <icon src="www/graphics/app/android/icon-96-xhdpi.png" density="xhdpi"/>
+  </platform>
+
+  <preference name="AndroidLaunchMode" value="singleTop"/>
+  <preference name="AndroidPersistentFileLocation" value="Internal"/>
+  <preference name="iosPersistentFileLocation" value="Library"/>
+</widget>

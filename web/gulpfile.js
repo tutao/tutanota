@@ -141,7 +141,6 @@ gulp.task('concatTest', function () {
             .pipe(concat("test.js"))
             .pipe(insert.prepend("if (typeof importScripts !== 'function') {\n"))
             .pipe(insert.append("}\n"))
-
     ).pipe(concat("app.min.js"))
         .pipe(gulp.dest('build/test/'));
 });
@@ -237,7 +236,7 @@ gulp.task('manifest', function () {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('test', function(done) {
+gulp.task('test', function (done) {
     karma.start({configFile: path.resolve('test/karma-ci.conf.js')}, function (error) {
         done(error);
     });
@@ -270,10 +269,18 @@ gulp.task('dist', ['clean'], function (cb) {
 
 gulp.task('release', ['dist', 'tagRelease'], function (cb) {
     return gulp.src('build/**')
-        .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version ));
+        .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version));
 });
 
-gulp.task('tagRelease' , shell.task([
+gulp.task('tagRelease', shell.task([
         "git tag -a " + package.name + "-release-" + package.version + " -m ''",
         "git push origin " + package.name + "-release-" + package.version
 ]));
+
+gulp.task('default', ['clean', 'distCordova'], function () {
+    gulp.watch('graphics/**/*', ['copyGraphics']);
+    gulp.watch('fonts/*', ['copyFonts']);
+    gulp.watch(['lib/**', 'js/**'], ['concat']);
+    gulp.watch('./index.html', ['processHtmlCordova']);
+    gulp.watch("less/*", ['less']);
+});

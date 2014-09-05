@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-pre-compile">
+        <!-- Fix library references due to bug in build.xml: See: https://groups.google.com/forum/#!topic/android-developers/0ivH-YqCjzg -->
+        <pathconvert property="fixedJarsPath" refid="project.all.jars.path">
+          <filtermapper>
+            <replacestring from="/bin/" to="/ant-build/"/>
+            <replacestring from="\bin\" to="\ant-build\"/>
+          </filtermapper>
+        </pathconvert>
+        <path id="project.all.jars.path">
+          <pathelement path="${fixedJarsPath}"/>
+        </path>
+        <echo message="Set jars path to: ${toString:project.all.jars.path}"/>
+    </target>
+    <target name="-post-build">
+        <move file="ant-build/AndroidManifest.xml" tofile="ant-build/AndroidManifest.cordova.xml" failonerror="false" overwrite="true" />
+        <move file="CordovaLib/ant-build/AndroidManifest.xml" tofile="CordovaLib/ant-build/AndroidManifest.cordova.xml" failonerror="false" overwrite="true" />
+    </target>
+</project>
+

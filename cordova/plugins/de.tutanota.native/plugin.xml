@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        id="de.tutanota.native" version="0.0.1">
+  <name>tutanota-native</name>
+  <description>Native implementation of various tutanota features</description>
+  <license>Copyright 2014 Tutao GmbH</license>
+  <keywords>tutanota</keywords>
+  <js-module src="www/telephone.js" name="telephone">
+    <clobbers target="tutao.native.device.Phone" />
+  </js-module>
+  <js-module src="www/crypto.js" name="crypto">
+    <clobbers target="tutao.native.device.Crypto" />
+  </js-module>
+  <js-module src="www/fileUtil.js" name="fileUtil">
+    <clobbers target="tutao.native.device.FileUtil" />
+  </js-module>
+  <platform name="android">
+    <source-file src="src/android/de/tutao/plugin/Telephone.java" target-dir="src/de/tutao/plugin" />
+    <source-file src="src/android/de/tutao/plugin/Crypto.java" target-dir="src/de/tutao/plugin" />
+    <source-file src="src/android/de/tutao/plugin/PRNGFixes.java" target-dir="src/de/tutao/plugin" />
+    <source-file src="src/android/de/tutao/file/FileUtil.java" target-dir="src/de/tutao/file" />
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="Telephone" >
+        <param name="android-package" value="de.tutao.plugin.Telephone"/>
+      </feature>
+      <feature name="Crypto" >
+        <param name="android-package" value="de.tutao.plugin.Crypto"/>
+      </feature>
+      <feature name="FileUtil" >
+        <param name="android-package" value="de.tutao.file.FileUtil"/>
+      </feature>
+    </config-file>
+
+    <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    </config-file>
+	<config-file target="AndroidManifest.xml" parent="/manifest/application">
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="de.tutao.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+                <meta-data
+        			android:name="android.support.FILE_PROVIDER_PATHS"
+        			android:resource="@xml/paths" />
+        </provider>
+	</config-file>
+	<resource-file src="res/android/xml/paths.xml" target="res/xml/paths.xml" />
+  </platform>
+</plugin>

@@ -149,10 +149,10 @@ tutao.native.RsaInterfaceAdapter.prototype.encryptAesKey = function (publicKey, 
         tutao.locator.crypto.rsaEncrypt(this._convertToPublicKey(publicKey), bytes).then(function (/*Uint8Array*/bytes) {
             callback(tutao.util.EncodingConverter.arrayBufferToBase64(bytes));
         }).caught(function (e) {
-            callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
+            callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
         });
     } catch (e) {
-        callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
+        callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
     }
 };
 
@@ -165,9 +165,9 @@ tutao.native.RsaInterfaceAdapter.prototype.decryptAesKey = function (privateKey,
         tutao.locator.crypto.rsaDecrypt(this._convertToPrivateKey(privateKey), bytes).then(function (/*Uint8Array*/bytes) {
             callback(tutao.util.EncodingConverter.bytesToHex(bytes));
         }).caught(function (e) {
-            callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
+            callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
         });
     } catch (e) {
-        callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
+        callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
     }
 };

@@ -1,0 +1,5 @@
+int drawable icon 0x7f020000
+int drawable screen 0x7f020001
+int string app_name 0x7f040000
+int xml config 0x7f030000
+int xml paths 0x7f030001
