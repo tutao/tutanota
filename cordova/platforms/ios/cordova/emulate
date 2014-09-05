@@ -1,0 +1,59 @@
+#! /bin/bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#  KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+SDK=`xcodebuild -showsdks | grep Sim | tail -1 | awk '{print $6}'`
+
+CORDOVA_PATH=$( cd "$( dirname "$0" )" && pwd -P)
+PROJECT_PATH="$(dirname "$CORDOVA_PATH")"
+XCODEPROJ=$( ls "$PROJECT_PATH" | grep .xcodeproj  )
+PROJECT_NAME=$(basename "$XCODEPROJ" .xcodeproj)
+
+source "$CORDOVA_PATH/check_reqs"
+
+APP_PATH=${1:-$PROJECT_PATH/build/emulator/$(xcodebuild -project "$PROJECT_PATH/$PROJECT_NAME.xcodeproj" -arch i386 -target "$PROJECT_NAME" -configuration Debug -sdk $SDK -showBuildSettings | grep FULL_PRODUCT_NAME | awk -F ' = ' '{print $2}')}
+
+DEVICE_FAMILY=${2:-${DEVICE_FAMILY:-iphone}}
+
+IOS_SIM_MIN_VERSION="1.7"
+IOS_SIM_LOCATION=$(which ios-sim)
+if [ $? != 0 ]; then
+    echo -e "\033[31mError: ios-sim was not found. Please download, build and install version $IOS_SIM_MIN_VERSION or greater from https://github.com/phonegap/ios-sim into your path. Or 'npm install -g ios-sim' using node.js: http://nodejs.org/\033[m" 1>&2; 
+	exit 1;
+fi
+
+IOS_SIM_VERSION=$(ios-sim --version)
+
+if [[ "$IOS_SIM_VERSION" < "$IOS_SIM_MIN_VERSION" ]]; then
+	echo "Cordova needs ios-sim version $IOS_SIM_MIN_VERSION or greater, you have version $IOS_SIM_VERSION." 1>&2;
+	exit 1
+fi
+
+if [ ! -d "$APP_PATH" ]; then
+	echo "Project '$APP_PATH' is not built. Building."
+    "$CORDOVA_PATH/build" || exit $?
+fi
+
+if [ ! -d "$APP_PATH" ]; then
+	echo "$APP_PATH not found to emulate." 1>&2;
+	exit 1
+fi
+
+# launch using ios-sim
+ios-sim launch "$APP_PATH" --family "$DEVICE_FAMILY" --stderr "$CORDOVA_PATH/console.log" --stdout "$CORDOVA_PATH/console.log" --exit

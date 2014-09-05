@@ -1,0 +1,18 @@
+{
+    "prepare_queue": {
+        "installed": [],
+        "uninstalled": []
+    },
+    "config_munge": {
+        "files": {}
+    },
+    "installed_plugins": {
+        "android.support.v4": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        }
+    },
+    "dependent_plugins": {}
+}

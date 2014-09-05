@@ -26,6 +26,9 @@ var fs = require('fs');
 
 function getIpAddress() {
     var os = require('os');
+    if ( os.type() == "Darwin"){
+        return "192.168.178.51"; //bed
+    }
     var ifaces = os.networkInterfaces();
     for (var dev in ifaces) {
         var details = ifaces[dev];
@@ -47,6 +50,12 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
     tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000);\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
+
+var osx_compiled = "if (typeof importScripts !== 'function') {\n\
+    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000);\n\
+    tutao.tutanota.Bootstrap.init();\n\
+}\n";
+
 
 var prod = "if (typeof importScripts !== 'function') {\n\
     tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null);\n\
