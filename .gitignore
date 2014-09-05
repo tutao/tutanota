@@ -9,4 +9,4 @@ node_modules/
 cordova/platforms/**/ant-build
 cordova/platforms/**/ant-gen
 cordova/platforms/**/bin
-cordova/platforms/android/assets
+cordova/platforms/android/assets/www/**
