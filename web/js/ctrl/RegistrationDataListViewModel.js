@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
  */
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.remove = function(element) {
 	if (tutao.tutanota.gui.confirm("Really delete?")) {
-		element.erase(function() {});
+		element.erase();
 		this.registrationDataList.remove(element);
 	}
 	return false;

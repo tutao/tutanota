@@ -1,6 +1,6 @@
 {
   "name": "tutanota",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "secure mail client",
   "main": "gulpfile.js",
   "scripts": {
