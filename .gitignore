@@ -6,4 +6,8 @@ node_modules/
 */.idea/
 .idea/
 
-tutanota/cordova/platforms/android/
+cordova/platforms/android/CordovaLib
+cordova/platforms/android/ant-build
+cordova/platforms/android/ant-gen
+cordova/platforms/android/bin
+cordova/platforms/android/assets
