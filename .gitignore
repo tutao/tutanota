@@ -6,8 +6,7 @@ node_modules/
 */.idea/
 .idea/
 
-cordova/platforms/android/CordovaLib
-cordova/platforms/android/ant-build
-cordova/platforms/android/ant-gen
-cordova/platforms/android/bin
+cordova/platforms/**/ant-build
+cordova/platforms/**/ant-gen
+cordova/platforms/**/bin
 cordova/platforms/android/assets
