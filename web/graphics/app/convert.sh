@@ -30,4 +30,4 @@ inkscape -z -e ios/icon-50-2x.png -w 100 -h 100 $ICON
 inkscape -z -e ios/icon-57-2x.png -w 114 -h 114 $ICON
 inkscape -z -e ios/icon-60-2x.png -w 120 -h 120 $ICON
 inkscape -z -e ios/icon-72-2x.png -w 144 -h 144 $ICON
-inkscape -z -e ios/icon-152-2x.png -w 152 -h 152 $ICON
+inkscape -z -e ios/icon-76-2x.png -w 152 -h 152 $ICON
