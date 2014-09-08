@@ -32,6 +32,9 @@
     <feature name="FileUtil">
         <param name="android-package" value="de.tutao.file.FileUtil" />
     </feature>
+    <feature name="StatusBar">
+        <param name="android-package" onload="true" value="org.apache.cordova.statusbar.StatusBar" />
+    </feature>
     <icon density="ldpi" src="www/graphics/app/android/icon-36-ldpi.png" />
     <icon density="mdpi" src="www/graphics/app/android/icon-48-mdpi.png" />
     <icon density="hdpi" src="www/graphics/app/android/icon-72-hdpi.png" />
@@ -45,6 +48,7 @@
   </author>
     <content src="index.html" />
     <access origin="*" />
+    <preference name="StatusBarHide" value="true" />
     <preference name="AndroidLaunchMode" value="singleTop" />
     <preference name="AndroidPersistentFileLocation" value="Internal" />
     <preference name="iosPersistentFileLocation" value="Library" />

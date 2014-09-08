@@ -12,7 +12,11 @@ tutao.tutanota.Bootstrap.init = function () {
         // disable all registered event handlers on the document and the window
         $(document).off();
         $(window).off();
-
+        
+        if (typeof StatusBar != 'undefined') {
+            StatusBar.hide(true);
+        }
+   
         if (tutao.tutanota.util.ClientDetector.isSupported()) {
             $(window).unload(function () {
                 tutao.locator.eventBus.close(); // close the socket in non legacy-mode
