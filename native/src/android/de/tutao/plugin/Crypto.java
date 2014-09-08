@@ -1,28 +1,18 @@
 package de.tutao.plugin;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPrivateCrtKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -58,11 +48,11 @@ public class Crypto extends CordovaPlugin {
 			return true;
 		} else if (action.equals("rsaEncrypt")) {
 			byte[] encryptedKey = this.encryptAesKey(args.getJSONObject(0), Base64.decode(args.getString(1), Base64.DEFAULT));
-			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Base64.encode(encryptedKey, Base64.DEFAULT)));
+			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Base64.encodeToString(encryptedKey, Base64.DEFAULT)));
 			return true;
 		} else if (action.equals("rsaDecrypt")) {
 			byte[] key = this.decryptAesKey(args.getJSONObject(0), Base64.decode(args.getString(1), Base64.DEFAULT));
-			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Base64.encode(key, Base64.DEFAULT)));
+			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Base64.encodeToString(key, Base64.DEFAULT)));
 			return true;
 		} else if (action.equals("random")) {
 			this.random(callbackContext, args.getInt(0));
@@ -80,8 +70,7 @@ public class Crypto extends CordovaPlugin {
 					KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", PROVIDER);
 					generator.initialize(KEY_LENGTH_IN_BITS, randomizer);
 					KeyPair keyPair = generator.generateKeyPair();
-					// TODO switch to bytes
-					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Crypto.this.privateKeyToJson((RSAPrivateCrtKey)keyPair.getPrivate())));
+					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Crypto.this.keyPairToJson(keyPair)));
 				} catch (Exception e) {
 					Log.e(TAG, "Could not generate keys", e);
 					throw new RuntimeException(e);
@@ -93,25 +82,32 @@ public class Crypto extends CordovaPlugin {
 	private JSONObject privateKeyToJson(RSAPrivateCrtKey key) throws JSONException {
 		JSONObject json = new JSONObject();
 		json.put("version", 0);
-		json.put("modulus", key.getModulus().toString());
-		json.put("privateExponent", key.getPrivateExponent().toString());
-		json.put("primeP", key.getPrimeP().toString());
-		json.put("primeQ", key.getPrimeQ().toString());
-		json.put("primeExponentP", key.getPrimeExponentP().toString());
-		json.put("primeExponentQ", key.getPrimeExponentQ().toString());
-		json.put("crtCoefficient", key.getCrtCoefficient().toString());
+		json.put("modulus", Base64.encodeToString(key.getModulus().toByteArray(), Base64.DEFAULT));
+		json.put("privateExponent", Base64.encodeToString(key.getPrivateExponent().toByteArray(), Base64.DEFAULT));
+		json.put("primeP", Base64.encodeToString(key.getPrimeP().toByteArray(), Base64.DEFAULT));
+		json.put("primeQ", Base64.encodeToString(key.getPrimeQ().toByteArray(), Base64.DEFAULT));
+		json.put("primeExponentP", Base64.encodeToString(key.getPrimeExponentP().toByteArray(), Base64.DEFAULT));
+		json.put("primeExponentQ", Base64.encodeToString(key.getPrimeExponentQ().toByteArray(), Base64.DEFAULT));
+		json.put("crtCoefficient", Base64.encodeToString(key.getCrtCoefficient().toByteArray(), Base64.DEFAULT));
 		return json;
 	}
 	
-	private JSONObject publicKeyToJson(RSAPrivateCrtKey key) throws JSONException {
+	private JSONObject publicKeyToJson(RSAPublicKey key) throws JSONException {
 		JSONObject json = new JSONObject();
 		json.put("version", 0);
-		json.put("modulus", key.getModulus().toString());
+		json.put("modulus", Base64.encodeToString(key.getModulus().toByteArray(), Base64.DEFAULT));
+		return json;
+	}
+	
+	private JSONObject keyPairToJson(KeyPair keyPair) throws JSONException {
+		JSONObject json = new JSONObject();
+		json.put("publicKey", publicKeyToJson((RSAPublicKey) keyPair.getPublic()));
+		json.put("privateKey", privateKeyToJson((RSAPrivateCrtKey) keyPair.getPrivate()));
 		return json;
 	}
 	
 	private PublicKey jsonToPublicKey(JSONObject json) throws JSONException {
-		BigInteger modulus = new BigInteger(json.getString("modulus"));
+		BigInteger modulus = new BigInteger(Base64.decode(json.getString("modulus"), Base64.DEFAULT));
 		
 		try {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -122,13 +118,8 @@ public class Crypto extends CordovaPlugin {
 	}
 	
 	private PrivateKey jsonToPrivateKey(JSONObject json) throws JSONException {
-		BigInteger modulus = new BigInteger(json.getString("modulus"));
-		BigInteger privateExponent = new BigInteger(json.getString("privateExponent"));
-//		BigInteger primeP = new BigInteger(json.getString("primeP"));
-//		BigInteger primeQ = new BigInteger(json.getString("primeQ"));
-//		BigInteger primeExponentP = new BigInteger(json.getString("primeExponentP"));
-//		BigInteger primeExponentQ = new BigInteger(json.getString("primeExponentQ"));
-//		BigInteger crtCoefficient = new BigInteger(json.getString("crtCoefficient"));
+		BigInteger modulus = new BigInteger(Base64.decode(json.getString("modulus"), Base64.DEFAULT));
+		BigInteger privateExponent = new BigInteger(Base64.decode(json.getString("privateExponent"), Base64.DEFAULT));
 		
 		try {
 			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -136,39 +127,6 @@ public class Crypto extends CordovaPlugin {
 		} catch(Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	/**
-	 * Format: (2 byte length of number + n bytes BigInteger)
-	 * 
-	 * @param key
-	 * @return
-	 */
-	private byte[] privateKeyToBytes(RSAPrivateCrtKey key) {
-		byte[] modulus = key.getModulus().toByteArray();
-		byte[] privateExponent = key.getPrivateExponent().toByteArray();
-		byte[] primeP = key.getPrimeP().toByteArray();
-		byte[] primeQ = key.getPrimeQ().toByteArray();
-		byte[] primeExponentP = key.getPrimeExponentP().toByteArray();
-		byte[] primeExponentQ = key.getPrimeExponentQ().toByteArray();
-		byte[] crtCoefficient = key.getCrtCoefficient().toByteArray();
-		ByteBuffer b = ByteBuffer.allocate(2 + modulus.length + 2
-				+ privateExponent.length + 2 + primeP.length + 2
-				+ primeQ.length + 2 + primeExponentP.length + 2
-				+ primeExponentQ.length + 2 + crtCoefficient.length);
-		addParamToBuffer(modulus, b);
-		addParamToBuffer(privateExponent, b);
-		addParamToBuffer(primeP, b);
-		addParamToBuffer(primeQ, b);
-		addParamToBuffer(primeExponentP, b);
-		addParamToBuffer(primeExponentQ, b);
-		addParamToBuffer(crtCoefficient, b);
-		return b.array();
-	}
-	
-	private static void addParamToBuffer(byte[] modulus, ByteBuffer b) {
-		b.putShort((short) modulus.length);
-		b.put(modulus);
 	}
 	
 	private void random(final CallbackContext callbackContext, int nbrOfBytes) {

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        id="de.appplant.cordova.plugin.local-notification"
+        version="0.8.0dev">
+
+    <name>LocalNotification</name>
+
+    <description>The purpose of the plugin is to create an platform independent javascript interface for Cordova based mobile applications to access the specific Notification API on each platform.</description>
+    <repo>https://github.com/katzer/cordova-plugin-local-notifications.git</repo>
+    <keywords>notification, local notification, alarm, scheduler, tile, live tiles, ios, android, windows phone 8, wp8</keywords>
+    <license>Apache 2.0</license>
+
+    <author>Sebastián Katzer</author>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <dependency id="org.apache.cordova.device" url="https://github.com/apache/cordova-plugin-device" />
+
+    <js-module src="www/local-notification.js" name="LocalNotification">
+        <clobbers target="plugin.notification.local" />
+    </js-module>
+
+    <!-- ios -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="LocalNotification">
+                <param name="ios-package" value="APPLocalNotification" onload="true" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <header-file src="src/ios/APPLocalNotification.h" />
+        <source-file src="src/ios/APPLocalNotification.m" />
+    </platform>
+
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="LocalNotification">
+                <param name="android-package" value="de.appplant.cordova.plugin.localnotification.LocalNotification"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <!--
+             * The alarm receiver is triggered when a scheduled alarm is fired. This class
+             * reads the information in the intent and displays this information in the
+             * Android notification bar. The notification uses the default notification
+             * sound and it vibrates the phone.
+            -->
+            <receiver android:name="de.appplant.cordova.plugin.localnotification.Receiver" />
+
+            <!--
+             * This class is triggered upon reboot of the device. It needs to re-register
+             * the alarms with the AlarmManager since these alarms are lost in case of
+             * reboot.
+             -->
+            <receiver android:name="de.appplant.cordova.plugin.localnotification.Restore" >
+                <intent-filter>
+                    <action android:name="android.intent.action.BOOT_COMPLETED" />
+                </intent-filter>
+            </receiver>
+
+            <!--
+             * The receiver activity is triggered when a notification is clicked by a user.
+             * The activity calls the background callback and brings the launch inten
+             * up to foreground.
+            -->
+            <activity android:name="de.appplant.cordova.plugin.localnotification.ReceiverActivity" android:launchMode="singleInstance" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+        </config-file>
+
+        <lib-file src="libs/android/android-support-v4.jar" />
+
+        <source-file src="src/android/LocalNotification.java" target-dir="src/de/appplant/cordova/plugin/localnotification" />
+        <source-file src="src/android/Receiver.java"          target-dir="src/de/appplant/cordova/plugin/localnotification" />
+        <source-file src="src/android/Options.java"           target-dir="src/de/appplant/cordova/plugin/localnotification" />
+        <source-file src="src/android/Restore.java"           target-dir="src/de/appplant/cordova/plugin/localnotification" />
+        <source-file src="src/android/ReceiverActivity.java"  target-dir="src/de/appplant/cordova/plugin/localnotification" />
+    </platform>
+
+    <!-- wp8 -->
+    <platform name="wp8">
+        <config-file target="config.xml" parent="/*">
+            <feature name="LocalNotification">
+                <param name="wp-package" value="LocalNotification"/>
+            </feature>
+        </config-file>
+
+        <source-file src="src/wp8/LocalNotification.cs" />
+        <source-file src="src/wp8/Options.cs" />
+    </platform>
+
+</plugin>

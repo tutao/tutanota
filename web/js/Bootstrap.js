@@ -58,6 +58,7 @@ tutao.tutanota.Bootstrap.init = function () {
         }
 
         // only for testing
+        tutao.locator.developerViewModel.open();
         //	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
         //	tutao.locator.loginViewModel.passphrase("arm");
         //	tutao.locator.loginViewModel.login();
@@ -95,10 +96,10 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
             cryptoImpl = tutao.native.device.Crypto;
         }
         
-        //phoneImpl = tutao.native.device.Phone;
-        //notificationImpl = tutao.native.NotificationApp;
-        //contactImpl = tutao.native.ContactApp;
-        //fileTransferImpl = tutao.native.FileTransferApp;
+        phoneImpl = tutao.native.device.Phone;
+        notificationImpl = tutao.native.NotificationApp;
+        contactImpl = tutao.native.ContactApp;
+        fileTransferImpl = tutao.native.FileTransferApp;
     }
 
     var singletons = {
@@ -129,6 +130,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         contactListViewModel: tutao.tutanota.ctrl.ContactListViewModel,
         contactViewModel: tutao.tutanota.ctrl.ContactViewModel,
         feedbackViewModel: tutao.tutanota.ctrl.FeedbackViewModel,
+        developerViewModel: tutao.tutanota.ctrl.DeveloperViewModel,
         fontViewModel: tutao.tutanota.ctrl.FontViewModel,
         themeViewModel: tutao.tutanota.ctrl.ThemeViewModel,
         loginView: tutao.tutanota.gui.LoginView,

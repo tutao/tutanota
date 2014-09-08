@@ -89,6 +89,13 @@ tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
             tutao.locator.navigator.logout(false, true);
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt'),
+
+        // all logged in
+        new tutao.tutanota.ctrl.Button('dev_label', 25, function () {
+            tutao.locator.developerViewModel.open();
+        }, function() {
+            return tutao.env.type == tutao.Env.LOCAL || tutao.env.type == tutao.Env.LOCAL_COMPILED;
+        }, false, "menu_dev", "star", 'dev_label'),
     ];
 
     return buttons;

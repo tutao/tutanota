@@ -1,7 +1,7 @@
 .classpath
 .project
 build/
-*/bin/
+bin/
 node_modules/
 */.idea/
 .idea/

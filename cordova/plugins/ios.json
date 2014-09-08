@@ -4,15 +4,77 @@
         "uninstalled": []
     },
     "config_munge": {
-        "files": {}
+        "files": {
+            "config.xml": {
+                "parents": {
+                    "/*": [
+                        {
+                            "xml": "<feature name=\"Device\"><param name=\"ios-package\" value=\"CDVDevice\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"LocalNotification\"><param name=\"ios-package\" onload=\"true\" value=\"APPLocalNotification\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Badge\"><param name=\"ios-package\" value=\"APPBadge\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"File\"><param name=\"ios-package\" value=\"CDVFile\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"FileTransfer\"><param name=\"ios-package\" value=\"CDVFileTransfer\" /></feature>",
+                            "count": 1
+                        }
+                    ]
+                }
+            },
+            "framework": {
+                "parents": {
+                    "AssetsLibrary.framework": [
+                        {
+                            "xml": "false",
+                            "count": 2
+                        }
+                    ],
+                    "MobileCoreServices.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
     },
     "installed_plugins": {
+        "de.appplant.cordova.plugin.local-notification": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "android.support.v4": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "de.appplant.cordova.plugin.badge": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.file-transfer": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
-    "dependent_plugins": {}
+    "dependent_plugins": {
+        "org.apache.cordova.device": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.file": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        }
+    }
 }

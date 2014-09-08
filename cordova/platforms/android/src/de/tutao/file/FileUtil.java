@@ -42,7 +42,7 @@ public class FileUtil extends CordovaPlugin {
 			java.io.File file = new java.io.File(fileName);
 			
 			if (file.exists()) {
-				Uri path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "me.mizz.fileprovider", file);
+				Uri path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "de.tutao.fileprovider", file);
 				Intent intent = new Intent(Intent.ACTION_VIEW);
 				intent.setData(path);
 				intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

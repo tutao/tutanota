@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Hello World</title>
+    </head>
+    <body>
+        <div id="log">waiting...</div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script>
+
+          function loadScript(url, callback) {
+            var head = document.getElementsByTagName('head')[0];
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+            script.onload = callback;
+            head.appendChild(script);
+          }
+
+          function init() {
+            
+            // load socket.io after all cordova plugins are loaded
+            loadScript('js/socket.io.js', function () {
+
+              var socket = io.connect("http://10.0.2.2:8080");
+
+              document.getElementById('log').innerHTML = "connecting";
+
+              socket.on('ping', function (data) {
+                document.getElementById('log').innerHTML = data.message;
+                socket.emit('pong', { message: 'Hello from client!' });
+              });
+
+              socket.on('connect', function () {
+                 document.getElementById('log').innerHTML = "connected";
+              });
+
+              socket.on('reconnect', function () {
+                document.getElementById('log').innerHTML = "reconnected";
+              });
+
+              socket.on('disconnect', function () {
+                document.getElementById('log').innerHTML = "disconnected";
+              });
+
+              socket.on('reconnecting', function () {
+                document.getElementById('log').innerHTML = "reconnecting...";
+              });
+
+              socket.on('error', function () {
+                document.getElementById('log').innerHTML = "error";
+              });
+            });
+          }
+
+          document.addEventListener("deviceready", init, false);
+
+        </script>
+    </body>
+</html>

@@ -66,6 +66,7 @@ tutao.native.RsaInterfaceAdapter.prototype._convertToPrivateKey = function (priv
     return {
         version: 0,
         keyLength: self.keyLengthInBits,
+        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[0].toByteArray())),
         privateExponent: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[1].toByteArray())),
         primeP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[2].toByteArray())),
         primeQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[3].toByteArray())),

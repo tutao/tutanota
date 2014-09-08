@@ -11,7 +11,9 @@ tutao.provide('tutao.crypto.CryptoError');
 tutao.crypto.CryptoError = function(message, error) {
 	if (!error) {
 		this.message = message;
-	} else {
+	} else if (typeof error == "string") {
+        this.message = error;
+    } else {
 		this.message = message + ", original message: " + error.message;
 	}
 

@@ -26,6 +26,7 @@ tutao.native.CryptoJsbn = function () {
                     privateKey: {
                         version: 0,
                         keyLength: keyLengthInBits,
+                        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.n.toByteArray())),
                         privateExponent: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.d.toByteArray())),
                         primeP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.p.toByteArray())),
                         primeQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.q.toByteArray())),
@@ -64,6 +65,7 @@ tutao.native.CryptoJsbn = function () {
             try {
                 var rsa = new RSAKey();
                 // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+                rsa.n = new BigInteger(new Int8Array(this.base64ToArray(privateKey.modulus)));
                 rsa.d = new BigInteger(new Int8Array(this.base64ToArray(privateKey.privateExponent)));
                 rsa.p = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeP)));
                 rsa.q = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeQ)));

@@ -19,6 +19,23 @@
     <feature name="LocalStorage">
         <param name="ios-package" value="CDVLocalStorage" />
     </feature>
+    <feature name="Device">
+        <param name="ios-package" value="CDVDevice" />
+    </feature>
+    <feature name="LocalNotification">
+        <param name="ios-package" onload="true" value="APPLocalNotification" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="Badge">
+        <param name="ios-package" value="APPBadge" />
+    </feature>
+    <feature name="File">
+        <param name="ios-package" value="CDVFile" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="FileTransfer">
+        <param name="ios-package" value="CDVFileTransfer" />
+    </feature>
     <icon height="60" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="60" />
     <icon height="120" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="120" />
     <icon height="76" src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="76" />

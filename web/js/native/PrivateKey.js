@@ -13,6 +13,8 @@ tutao.native.PrivateKey = function (key) {
     // @type {number} In Bits
     this.keyLength = key.keyLength;
     // @type {string} Base64 encoded
+    this.modulus = key.modulus;
+    // @type {string} Base64 encoded
     this.privateExponent = key.privateExponent;
     // @type {string} Base64 encoded
     this.primeP = key.primeP;

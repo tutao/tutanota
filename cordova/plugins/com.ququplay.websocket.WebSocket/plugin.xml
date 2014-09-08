@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
+      id="com.ququplay.websocket.WebSocket"
+      version="0.1.0">
+
+    <name>WebSocket</name>
+    
+    <keywords>phonegap,websocket,android</keywords>
+    
+    <description>
+      Phonegap plugin which adds support for websockets under Android. 
+    </description>
+    
+    <license>MIT</license>
+
+    <author>Michal Kuklis</author>
+
+    <engines>
+        <engine name="cordova" version=">=3.0" />
+    </engines>
+
+    <!-- android -->
+    <platform name="android">
+       <js-module src="www/phonegap-websocket.js" name="websocket">
+          <clobbers target="WebSocket" />
+       </js-module>
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="WebSocket">
+                <param name="android-package" value="com.ququplay.websocket.WebSocket" />
+            </feature>
+        </config-file>
+        
+        <source-file src="src/org/java_websocket/AbstractWrappedByteChannel.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/SocketChannelIOHelper.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/SSLSocketChannel2.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WebSocket.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WebSocketAdapter.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WebSocketFactory.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WebSocketImpl.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WebSocketListener.java" target-dir="src/org/java_websocket" />
+        <source-file src="src/org/java_websocket/WrappedByteChannel.java" target-dir="src/org/java_websocket" />
+
+        <source-file src="src/org/java_websocket/client/AbstractClientProxyChannel.java" target-dir="src/org/java_websocket/client" />
+        <source-file src="src/org/java_websocket/client/WebSocketClient.java" target-dir="src/org/java_websocket/client" />
+        
+        <source-file src="src/org/java_websocket/drafts/Draft.java" target-dir="src/org/java_websocket/drafts" />
+        <source-file src="src/org/java_websocket/drafts/Draft_10.java" target-dir="src/org/java_websocket/drafts" />
+        <source-file src="src/org/java_websocket/drafts/Draft_17.java" target-dir="src/org/java_websocket/drafts" />
+        <source-file src="src/org/java_websocket/drafts/Draft_75.java" target-dir="src/org/java_websocket/drafts" />
+        <source-file src="src/org/java_websocket/drafts/Draft_76.java" target-dir="src/org/java_websocket/drafts" />
+
+        <source-file src="src/org/java_websocket/exceptions/IncompleteHandshakeException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/InvalidDataException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/InvalidFrameException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/InvalidHandshakeException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/LimitExedeedException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/NotSendableException.java" target-dir="src/org/java_websocket/exceptions" />
+        <source-file src="src/org/java_websocket/exceptions/WebsocketNotConnectedException.java" target-dir="src/org/java_websocket/exceptions" />
+
+        <source-file src="src/org/java_websocket/framing/CloseFrame.java" target-dir="src/org/java_websocket/framing" />
+        <source-file src="src/org/java_websocket/framing/CloseFrameBuilder.java" target-dir="src/org/java_websocket/framing" />
+        <source-file src="src/org/java_websocket/framing/FrameBuilder.java" target-dir="src/org/java_websocket/framing" />
+        <source-file src="src/org/java_websocket/framing/Framedata.java" target-dir="src/org/java_websocket/framing" />
+        <source-file src="src/org/java_websocket/framing/FramedataImpl1.java" target-dir="src/org/java_websocket/framing" />
+        
+        <source-file src="src/org/java_websocket/handshake/ClientHandshake.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/ClientHandshakeBuilder.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/HandshakeBuilder.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/Handshakedata.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/HandshakedataImpl1.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/HandshakeImpl1Client.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/HandshakeImpl1Server.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/ServerHandshake.java" target-dir="src/org/java_websocket/handshake" />
+        <source-file src="src/org/java_websocket/handshake/ServerHandshakeBuilder.java" target-dir="src/org/java_websocket/handshake" />
+
+        <source-file src="src/org/java_websocket/server/DefaultSSLWebSocketServerFactory.java" target-dir="src/org/java_websocket/server" />
+        <source-file src="src/org/java_websocket/server/DefaultWebSocketServerFactory.java" target-dir="src/org/java_websocket/server" />
+        <source-file src="src/org/java_websocket/server/WebSocketServer.java" target-dir="src/org/java_websocket/server" />
+
+        <source-file src="src/org/java_websocket/util/Base64.java" target-dir="src/org/java_websocket/util" />
+        <source-file src="src/org/java_websocket/util/Charsetfunctions.java" target-dir="src/org/java_websocket/util" />
+        
+        <source-file src="src/com/ququplay/websocket/CordovaClient.java" target-dir="src/com/ququplay/websocket" />
+        <source-file src="src/com/ququplay/websocket/InsecureX509TrustManager.java" target-dir="src/com/ququplay/websocket" />
+        <source-file src="src/com/ququplay/websocket/WebSocket.java" target-dir="src/com/ququplay/websocket" />
+        <source-file src="src/com/ququplay/websocket/Utils.java" target-dir="src/com/ququplay/websocket" />
+    </platform>
+</plugin>

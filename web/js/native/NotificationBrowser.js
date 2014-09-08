@@ -32,7 +32,7 @@ tutao.native.NotificationBrowser.prototype.updateBadge = function(number) {
 
 tutao.native.NotificationBrowser.prototype._showIfGranted = function(title, message, resolve) {
     if (Notification.permission === "granted") {
-        var notification = new Notification(title, {body: message, icon: 'images/apple-touch-icon-114x114-precomposed.png'});
+        var notification = new Notification(title, {body: message, icon: 'graphics/apple-touch-icon-114x114-precomposed.png'});
         notification.onshow = function () {
             setTimeout(function() { notification.close(); }, 5000);
         };
