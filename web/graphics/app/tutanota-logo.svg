@@ -2,7 +2,7 @@
 <!-- Generator: Adobe Illustrator 16.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 
 <svg
-   xmlns:i="&amp;ns_ai;"
+   xmlns:i="&amp;#38;ns_ai;"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -15,216 +15,164 @@
    id="Ebene_1"
    x="0px"
    y="0px"
-   width="1280px"
-   height="800px"
-   viewBox="0 0 1280 800"
+   width="1280"
+   height="2280"
+   viewBox="0 0 1280 2280"
    enable-background="new 0 0 1280 800"
    xml:space="preserve"
-   inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="Tutanota-Logo (2014).svg"><metadata
-   id="metadata128"><rdf:RDF><cc:Work
-       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
-   id="defs126" /><sodipodi:namedview
-   pagecolor="#ffffff"
-   bordercolor="#666666"
-   borderopacity="1"
-   objecttolerance="10"
-   gridtolerance="10"
-   guidetolerance="10"
-   inkscape:pageopacity="0"
-   inkscape:pageshadow="2"
-   inkscape:window-width="1920"
-   inkscape:window-height="1024"
-   id="namedview124"
-   showgrid="false"
-   inkscape:zoom="0.64523494"
-   inkscape:cx="893.11342"
-   inkscape:cy="418.62179"
-   inkscape:window-x="1366"
-   inkscape:window-y="27"
-   inkscape:window-maximized="1"
-   inkscape:current-layer="Ebene_1"
-   showguides="true"
-   inkscape:guide-bbox="true"><sodipodi:guide
-     orientation="1,0"
-     position="1177.8655,612.18012"
-     id="guide3883" /></sodipodi:namedview>
-<flowRoot
-   xml:space="preserve"
-   id="flowRoot3105"
-   style="font-size:40px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:BentonSans-Regular;-inkscape-font-specification:BentonSans-Regular"
-   transform="translate(68.192215,-111.58727)"
-   inkscape:export-filename="/home/amoehle/g33.png"
-   inkscape:export-xdpi="17.785954"
-   inkscape:export-ydpi="17.785954"><flowRegion
-     id="flowRegion3107"><rect
-       id="rect3109"
-       width="1182.515"
-       height="184.42894"
-       x="55.793633"
-       y="589.22406" /></flowRegion><flowPara
-     id="flowPara3111"
-     style="font-size:105px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:13.56px;word-spacing:26.56003571000000107px;writing-mode:lr-tb;text-anchor:start;font-family:BentonSans;-inkscape-font-specification:BentonSans Light">mail. done. right.</flowPara></flowRoot><switch
-   id="switch3"
-   inkscape:export-filename="/home/amoehle/g33.png"
-   inkscape:export-xdpi="17.785954"
-   inkscape:export-ydpi="17.785954">
-	<foreignObject
-   requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
-   x="0"
-   y="0"
-   width="1"
-   height="1"
-   id="foreignObject5">
-		<i:pgfRef
-   xlink:href="#adobe_illustrator_pgf">
-		</i:pgfRef>
-	</foreignObject>
-	<g
-   i:extraneous="self"
-   id="g7">
-		<g
-   id="g9"
-   inkscape:export-filename="/home/amoehle/g33.png"
-   inkscape:export-xdpi="58.449978"
-   inkscape:export-ydpi="58.449978">
-			<path
-   d="M494.016,299.858H451.32v-8.082h94.178v8.082h-42.696v121.939h-8.785V299.858z"
-   id="path11" />
-			<path
-   d="M543.209,396.496v-66.943h8.434v65.889c0,14.057,6.15,20.908,20.206,20.908c12.827,0,23.544-6.676,34.965-17.57v-69.228     h8.434v92.245h-8.434v-15.285c-10.191,9.662-22.139,17.219-35.668,17.219C551.994,423.73,543.209,413.188,543.209,396.496z"
-   id="path13" />
-			<path
-   d="M652.319,401.24v-64.133h-16.165v-7.555h16.165v-33.56h8.434v33.56h24.071v7.555h-24.071v62.902     c0,9.84,3.339,15.463,14.935,15.463c3.515,0,7.028-0.352,9.664-1.23v7.906c-2.987,0.527-6.501,0.879-10.366,0.879     C659.699,423.027,652.319,416.877,652.319,401.24z"
-   id="path15" />
-			<path
-   d="M703.27,400.537c0-17.57,14.935-30.749,63.43-38.831v-5.623c0-14.056-7.38-21.084-20.03-21.084     c-15.287,0-25.478,5.974-35.845,15.287l-4.919-5.271c11.421-10.542,23.192-17.395,40.938-17.395     c19.152,0,28.289,10.894,28.289,27.937v43.399c0,11.246,0.703,18.097,2.636,22.841h-8.961c-1.23-3.865-2.108-8.434-2.108-13.705     c-11.245,9.664-23.545,15.287-37.426,15.287C712.406,423.379,703.27,414.594,703.27,400.537z M766.699,399.834v-31.803     c-44.98,7.907-54.996,18.976-54.996,31.978c0,10.367,6.853,15.99,18.273,15.99C743.682,416,756.156,410.025,766.699,399.834z"
-   id="path17" />
-		</g>
-		<g
-   id="g19"
-   inkscape:export-filename="/home/amoehle/g33.png"
-   inkscape:export-xdpi="58.449978"
-   inkscape:export-ydpi="58.449978">
-			<path
-   d="M803.951,421.797v-92.772h15.286v13.881c8.083-7.907,19.68-15.813,34.79-15.813c17.746,0,27.41,10.191,27.41,27.762     v66.943h-15.111v-63.604c0-12.299-5.271-18.098-17.043-18.098c-11.069,0-20.382,5.798-30.046,14.935v66.768H803.951z"
-   id="path21" />
-			<path
-   d="M903.572,375.411c0-31.978,20.382-48.319,43.224-48.319c22.666,0,43.048,16.341,43.048,48.319     c0,31.802-20.382,48.319-43.048,48.319S903.572,407.213,903.572,375.411z M974.558,375.411c0-19.328-9.313-35.316-27.762-35.316     c-17.746,0-27.937,14.408-27.937,35.316c0,19.679,9.137,35.493,27.937,35.493C964.366,410.904,974.558,396.671,974.558,375.411z"
-   id="path23" />
-			<path
-   d="M1019.535,399.307V341.5h-16.165v-12.475h16.165v-33.032h15.11v33.032h24.072V341.5h-24.072v54.469     c0,9.84,3.163,14.76,14.408,14.76c3.338,0,7.028-0.527,9.488-1.23v12.475c-2.636,0.527-8.435,1.055-13.178,1.055     C1025.86,423.027,1019.535,415.473,1019.535,399.307z"
-   id="path25" />
-			<path
-   d="M1075.057,399.834c0-18.801,15.988-32.154,62.023-38.655v-4.217c0-11.597-6.149-17.219-17.57-17.219     c-14.057,0-24.423,6.15-33.56,14.056l-7.907-9.488c10.718-9.839,24.599-17.219,43.048-17.219     c22.139,0,30.924,11.597,30.924,30.924v40.939c0,11.246,0.703,18.097,2.636,22.841h-15.462     c-1.229-3.865-2.108-7.555-2.108-12.826c-10.366,9.664-21.963,14.232-35.844,14.232     C1085.247,423.203,1075.057,414.77,1075.057,399.834z M1137.08,397.726v-26.004c-35.316,5.623-47.089,14.232-47.089,25.829     c0,8.961,5.974,13.706,15.638,13.706C1117.928,411.256,1128.471,406.16,1137.08,397.726z"
-   id="path27" />
-		</g>
-		<g
-   id="g29"
-   inkscape:export-filename="/home/amoehle/g33.png"
-   inkscape:export-xdpi="58.449978"
-   inkscape:export-ydpi="58.449978"
-   transform="matrix(0.77690465,0,0,0.78886888,256.31268,66.319241)">
-			<path
-   d="m 1148.893,294.804 c 0,-10.646 8.5,-19.228 19.145,-19.228 10.645,0 19.063,8.582 19.063,19.228 0,10.728 -8.418,19.31 -19.063,19.31 -10.645,0 -19.145,-8.583 -19.145,-19.31 z m 35.978,0 c 0,-9.325 -7.51,-17.082 -16.834,-17.082 -9.324,0 -16.834,7.757 -16.834,17.082 0,9.407 7.51,17.081 16.834,17.081 9.324,0 16.834,-7.674 16.834,-17.081 z m -23.766,-11.058 h 7.18 c 4.785,0 7.426,2.146 7.426,5.776 0,3.466 -1.897,5.198 -4.785,5.776 l 5.445,9.902 h -2.723 l -5.281,-9.572 h -4.869 v 9.572 h -2.393 v -21.454 z m 7.097,9.654 c 3.136,0 5.116,-0.907 5.116,-3.796 0,-2.641 -1.98,-3.548 -5.199,-3.548 h -4.621 v 7.344 h 4.704 z"
-   id="path31"
-   inkscape:connector-curvature="0" />
-		</g>
-		<g
-   id="g33"
-   inkscape:export-xdpi="58.449978"
-   inkscape:export-ydpi="58.449978">
-			<defs
-   id="defs35">
-				<path
-   id="SVGID_1_"
-   d="M155.503,222.799c-12.64,0-22.875,10.246-22.875,22.872v211.23c0,0.801,0.046,1.608,0.123,2.388      c8.5-3.167,17.524-6.629,27.054-10.436c66.336-26.48,120.569-48.994,120.618-74.415c0-0.814-0.056-1.636-0.172-2.458      c-3.43-25.098-63.407-32.879-63.324-44.381c0.007-0.611,0.18-1.25,0.548-1.889c7.205-12.619,35.743-12.015,46.253-12.907      c10.519-0.913,35.206-0.724,36.399-8.244c0.035-0.232,0.057-0.463,0.057-0.695c0.028-6.987-16.977-9.726-16.977-9.726      s20.635,3.083,20.579,11.11c0,0.393-0.048,0.8-0.158,1.214c-2.222,8.624-20.379,10.246-32.386,10.835      c-11.356,0.569-28.648,1.861-28.707,7.408c-0.007,0.323,0.049,0.66,0.165,1.004c2.71,8.11,66.09,12.015,106.64,33.061      c23.335,12.099,34.94,32.422,40.263,53.418v-166.52c0-12.626-10.243-22.872-22.869-22.872H155.503z" />
-			</defs>
-			<clipPath
-   id="SVGID_2_">
-				<use
-   xlink:href="#SVGID_1_"
-   overflow="visible"
-   id="use39" />
-			</clipPath>
-			
-				<linearGradient
-   id="SVGID_3_"
-   gradientUnits="userSpaceOnUse"
-   x1="348.5039"
-   y1="820.4141"
-   x2="355.6965"
-   y2="820.4141"
-   gradientTransform="matrix(0 -53.148 -53.148 0 43864.5 19039.8438)">
-				<stop
-   offset="0"
-   style="stop-color:#6F1E22"
-   id="stop42" />
-				<stop
-   offset="1"
-   style="stop-color:#E52625"
-   id="stop44" />
-			</linearGradient>
-			<rect
-   x="132.627"
-   y="222.799"
-   clip-path="url(#SVGID_2_)"
-   width="256.975"
-   height="236.49"
-   id="rect46"
-   fill="url(#SVGID_3_)" />
-		</g>
-		
-		<g
-   id="g94">
-		</g>
-		<g
-   id="g96">
-		</g>
-		<g
-   id="g98">
-		</g>
-		<g
-   id="g100">
-		</g>
-		<g
-   id="g102">
-		</g>
-		<g
-   id="g104">
-		</g>
-		<g
-   id="g106">
-		</g>
-		<g
-   id="g108">
-		</g>
-		<g
-   id="g110">
-		</g>
-		<g
-   id="g112">
-		</g>
-		<g
-   id="g114">
-		</g>
-		<g
-   id="g116">
-		</g>
-		<g
-   id="g118">
-		</g>
-		<g
-   id="g120">
-		</g>
-		<g
-   id="g122">
-		</g>
-	</g>
-</switch>
-<i:pgf
-   id="adobe_illustrator_pgf">
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="tutanota-logo.svg"><metadata
+     id="metadata128"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+     id="defs126" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1172"
+     id="namedview124"
+     showgrid="false"
+     inkscape:zoom="0.64523494"
+     inkscape:cx="697.83571"
+     inkscape:cy="1224.5298"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Ebene_1"
+     showguides="true"
+     inkscape:guide-bbox="true"><sodipodi:guide
+       orientation="1,0"
+       position="1177.8655,612.18012"
+       id="guide3883" /><sodipodi:guide
+       orientation="0,1"
+       position="364.20842,1140"
+       id="guide3027" /></sodipodi:namedview><flowRoot
+     xml:space="preserve"
+     id="flowRoot3105"
+     style="font-size:40px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:BentonSans-Regular;-inkscape-font-specification:BentonSans-Regular"
+     transform="translate(13.695312,568.4127)"
+     inkscape:export-filename="/home/amoehle/g33.png"
+     inkscape:export-xdpi="17.785954"
+     inkscape:export-ydpi="17.785954"><flowRegion
+       id="flowRegion3107"><rect
+         id="rect3109"
+         width="1182.515"
+         height="184.42894"
+         x="55.793633"
+         y="589.22406" /></flowRegion><flowPara
+       id="flowPara3111"
+       style="font-size:105px;font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:13.56000042px;word-spacing:26.56003571px;writing-mode:lr-tb;text-anchor:start;font-family:BentonSans;-inkscape-font-specification:BentonSans Light">mail. done. right.</flowPara></flowRoot><switch
+     id="switch3"
+     inkscape:export-filename="/home/amoehle/g33.png"
+     inkscape:export-xdpi="17.785954"
+     inkscape:export-ydpi="17.785954"
+     transform="translate(0,680)"><foreignObject
+       requiredExtensions="http://ns.adobe.com/AdobeIllustrator/10.0/"
+       x="0"
+       y="0"
+       width="1"
+       height="1"
+       id="foreignObject5"><i:pgfRef
+         xlink:href="#adobe_illustrator_pgf" /></foreignObject><g
+       i:extraneous="self"
+       id="g7"><g
+         id="g9"
+         inkscape:export-filename="/home/amoehle/g33.png"
+         inkscape:export-xdpi="58.449978"
+         inkscape:export-ydpi="58.449978"><path
+           d="M 494.016,299.858 H 451.32 v -8.082 h 94.178 v 8.082 h -42.696 v 121.939 h -8.785 V 299.858 z"
+           id="path11"
+           inkscape:connector-curvature="0" /><path
+           d="m 543.209,396.496 v -66.943 h 8.434 v 65.889 c 0,14.057 6.15,20.908 20.206,20.908 12.827,0 23.544,-6.676 34.965,-17.57 v -69.228 h 8.434 v 92.245 h -8.434 v -15.285 c -10.191,9.662 -22.139,17.219 -35.668,17.219 -19.152,-10e-4 -27.937,-10.543 -27.937,-27.235 z"
+           id="path13"
+           inkscape:connector-curvature="0" /><path
+           d="m 652.319,401.24 v -64.133 h -16.165 v -7.555 h 16.165 v -33.56 h 8.434 v 33.56 h 24.071 v 7.555 h -24.071 v 62.902 c 0,9.84 3.339,15.463 14.935,15.463 3.515,0 7.028,-0.352 9.664,-1.23 v 7.906 c -2.987,0.527 -6.501,0.879 -10.366,0.879 -15.287,0 -22.667,-6.15 -22.667,-21.787 z"
+           id="path15"
+           inkscape:connector-curvature="0" /><path
+           d="m 703.27,400.537 c 0,-17.57 14.935,-30.749 63.43,-38.831 v -5.623 c 0,-14.056 -7.38,-21.084 -20.03,-21.084 -15.287,0 -25.478,5.974 -35.845,15.287 l -4.919,-5.271 c 11.421,-10.542 23.192,-17.395 40.938,-17.395 19.152,0 28.289,10.894 28.289,27.937 v 43.399 c 0,11.246 0.703,18.097 2.636,22.841 h -8.961 c -1.23,-3.865 -2.108,-8.434 -2.108,-13.705 -11.245,9.664 -23.545,15.287 -37.426,15.287 -16.868,0 -26.004,-8.785 -26.004,-22.842 z m 63.429,-0.703 v -31.803 c -44.98,7.907 -54.996,18.976 -54.996,31.978 0,10.367 6.853,15.99 18.273,15.99 13.706,10e-4 26.18,-5.974 36.723,-16.165 z"
+           id="path17"
+           inkscape:connector-curvature="0" /></g><g
+         id="g19"
+         inkscape:export-filename="/home/amoehle/g33.png"
+         inkscape:export-xdpi="58.449978"
+         inkscape:export-ydpi="58.449978"><path
+           d="m 803.951,421.797 v -92.772 h 15.286 v 13.881 c 8.083,-7.907 19.68,-15.813 34.79,-15.813 17.746,0 27.41,10.191 27.41,27.762 v 66.943 h -15.111 v -63.604 c 0,-12.299 -5.271,-18.098 -17.043,-18.098 -11.069,0 -20.382,5.798 -30.046,14.935 v 66.768 h -15.286 z"
+           id="path21"
+           inkscape:connector-curvature="0" /><path
+           d="m 903.572,375.411 c 0,-31.978 20.382,-48.319 43.224,-48.319 22.666,0 43.048,16.341 43.048,48.319 0,31.802 -20.382,48.319 -43.048,48.319 -22.666,0 -43.224,-16.517 -43.224,-48.319 z m 70.986,0 c 0,-19.328 -9.313,-35.316 -27.762,-35.316 -17.746,0 -27.937,14.408 -27.937,35.316 0,19.679 9.137,35.493 27.937,35.493 17.57,0 27.762,-14.233 27.762,-35.493 z"
+           id="path23"
+           inkscape:connector-curvature="0" /><path
+           d="M 1019.535,399.307 V 341.5 h -16.165 v -12.475 h 16.165 v -33.032 h 15.11 v 33.032 h 24.072 V 341.5 h -24.072 v 54.469 c 0,9.84 3.163,14.76 14.408,14.76 3.338,0 7.028,-0.527 9.488,-1.23 v 12.475 c -2.636,0.527 -8.435,1.055 -13.178,1.055 -19.503,-0.002 -25.828,-7.556 -25.828,-23.722 z"
+           id="path25"
+           inkscape:connector-curvature="0" /><path
+           d="m 1075.057,399.834 c 0,-18.801 15.988,-32.154 62.023,-38.655 v -4.217 c 0,-11.597 -6.149,-17.219 -17.57,-17.219 -14.057,0 -24.423,6.15 -33.56,14.056 l -7.907,-9.488 c 10.718,-9.839 24.599,-17.219 43.048,-17.219 22.139,0 30.924,11.597 30.924,30.924 v 40.939 c 0,11.246 0.703,18.097 2.636,22.841 h -15.462 c -1.229,-3.865 -2.108,-7.555 -2.108,-12.826 -10.366,9.664 -21.963,14.232 -35.844,14.232 -15.99,10e-4 -26.18,-8.432 -26.18,-23.368 z m 62.023,-2.108 v -26.004 c -35.316,5.623 -47.089,14.232 -47.089,25.829 0,8.961 5.974,13.706 15.638,13.706 12.299,-0.001 22.842,-5.097 31.451,-13.531 z"
+           id="path27"
+           inkscape:connector-curvature="0" /></g><g
+         id="g29"
+         inkscape:export-filename="/home/amoehle/g33.png"
+         inkscape:export-xdpi="58.449978"
+         inkscape:export-ydpi="58.449978"
+         transform="matrix(0.77690465,0,0,0.78886888,256.31268,66.319241)"><path
+           d="m 1148.893,294.804 c 0,-10.646 8.5,-19.228 19.145,-19.228 10.645,0 19.063,8.582 19.063,19.228 0,10.728 -8.418,19.31 -19.063,19.31 -10.645,0 -19.145,-8.583 -19.145,-19.31 z m 35.978,0 c 0,-9.325 -7.51,-17.082 -16.834,-17.082 -9.324,0 -16.834,7.757 -16.834,17.082 0,9.407 7.51,17.081 16.834,17.081 9.324,0 16.834,-7.674 16.834,-17.081 z m -23.766,-11.058 h 7.18 c 4.785,0 7.426,2.146 7.426,5.776 0,3.466 -1.897,5.198 -4.785,5.776 l 5.445,9.902 h -2.723 l -5.281,-9.572 h -4.869 v 9.572 h -2.393 v -21.454 z m 7.097,9.654 c 3.136,0 5.116,-0.907 5.116,-3.796 0,-2.641 -1.98,-3.548 -5.199,-3.548 h -4.621 v 7.344 h 4.704 z"
+           id="path31"
+           inkscape:connector-curvature="0" /></g><g
+         id="g33"
+         inkscape:export-xdpi="58.449978"
+         inkscape:export-ydpi="58.449978"><defs
+           id="defs35"><path
+             id="SVGID_1_"
+             d="m 155.503,222.799 c -12.64,0 -22.875,10.246 -22.875,22.872 v 211.23 c 0,0.801 0.046,1.608 0.123,2.388 8.5,-3.167 17.524,-6.629 27.054,-10.436 66.336,-26.48 120.569,-48.994 120.618,-74.415 0,-0.814 -0.056,-1.636 -0.172,-2.458 -3.43,-25.098 -63.407,-32.879 -63.324,-44.381 0.007,-0.611 0.18,-1.25 0.548,-1.889 7.205,-12.619 35.743,-12.015 46.253,-12.907 10.519,-0.913 35.206,-0.724 36.399,-8.244 0.035,-0.232 0.057,-0.463 0.057,-0.695 0.028,-6.987 -16.977,-9.726 -16.977,-9.726 0,0 20.635,3.083 20.579,11.11 0,0.393 -0.048,0.8 -0.158,1.214 -2.222,8.624 -20.379,10.246 -32.386,10.835 -11.356,0.569 -28.648,1.861 -28.707,7.408 -0.007,0.323 0.049,0.66 0.165,1.004 2.71,8.11 66.09,12.015 106.64,33.061 23.335,12.099 34.94,32.422 40.263,53.418 v -166.52 c 0,-12.626 -10.243,-22.872 -22.869,-22.872 H 155.503 z"
+             inkscape:connector-curvature="0" /></defs><clipPath
+           id="SVGID_2_"><use
+             xlink:href="#SVGID_1_"
+             overflow="visible"
+             id="use39"
+             style="overflow:visible"
+             x="0"
+             y="0"
+             width="1280"
+             height="800" /></clipPath><linearGradient
+           id="SVGID_3_"
+           gradientUnits="userSpaceOnUse"
+           x1="348.50391"
+           y1="820.41412"
+           x2="355.6965"
+           y2="820.41412"
+           gradientTransform="matrix(0,-53.148,-53.148,0,43864.5,19039.844)"><stop
+             offset="0"
+             style="stop-color:#6F1E22"
+             id="stop42" /><stop
+             offset="1"
+             style="stop-color:#E52625"
+             id="stop44" /></linearGradient><rect
+           x="132.627"
+           y="222.799"
+           clip-path="url(#SVGID_2_)"
+           width="256.97501"
+           height="236.49001"
+           id="rect46"
+           style="fill:url(#SVGID_3_)" /></g><g
+         id="g94" /><g
+         id="g96" /><g
+         id="g98" /><g
+         id="g100" /><g
+         id="g102" /><g
+         id="g104" /><g
+         id="g106" /><g
+         id="g108" /><g
+         id="g110" /><g
+         id="g112" /><g
+         id="g114" /><g
+         id="g116" /><g
+         id="g118" /><g
+         id="g120" /><g
+         id="g122" /></g></switch><i:pgf>
 	
 	eJzsvetyXceRJvpfEXqHfX50hN0zAldVrbr5TJwIAAS61W23HJbcl3FPKGASkjBNEhwQtEf9Mudh
 zoud/L7Muqy9N0iQonu6PcMVtriTdVlVqyorL19m/cX/9euvvzh9fvv76y/CybL7/LO/+Ivzu+ur
@@ -2162,5 +2110,4 @@ xUQ9AnoDhoPGH30pqiGwrP0Y/gEqCphEDcM/EV5jeVBWGtD7BNRUYHZR7A9Q3v7kuHPClTCzhBqH
 ZnPXFuzfnjAcAnkpvjbwSqxNodxZJgR9lQlBkqD3QsvhD+WmV7OcwQnsT2RueqCfdl8fTift7XD2
 B+3P6W74PyZ3w+VytR/uJ2vwCiwakx1o3ORu97P6D3wCPxI+ANZsjTH88/8CkCiegw==
 	
-</i:pgf>
-</svg>
+</i:pgf></svg>
