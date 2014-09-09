@@ -14,10 +14,10 @@
 SPLASH=tutanota-logo.svg
 
 mkdir android
-inkscape -b ffffff00 -z -e android/xlarge_xhdpi --export-area=0:660:1280:1620 -w 960 -h 720 $SPLASH # 1:0,75
-inkscape -b ffffff00 -z -e android/large_hdpi --export-area=0:660:1280:1620 -w 640 -h 480 $SPLASH # 1:0,75
-inkscape -b ffffff00 -z -e android/medium_mdpi --export-area=0:704:1280:1575 -w 470 -h 320 $SPLASH # 1:0,68
-inkscape -b ffffff00 -z -e android/small_ldpi --export-area=0:660:1280:1620 -w 426 -h 320 $SPLASH # 1:0,75
+inkscape -b ffffff00 -z -e android/xlarge_xhdpi.png --export-area=0:660:1280:1620 -w 960 -h 720 $SPLASH # 1:0,75
+inkscape -b ffffff00 -z -e android/large_hdpi.png --export-area=0:660:1280:1620 -w 640 -h 480 $SPLASH # 1:0,75
+inkscape -b ffffff00 -z -e android/medium_mdpi.png --export-area=0:704:1280:1575 -w 470 -h 320 $SPLASH # 1:0,68
+inkscape -b ffffff00 -z -e android/small_ldpi.png --export-area=0:660:1280:1620 -w 426 -h 320 $SPLASH # 1:0,75
 
 
 
