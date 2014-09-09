@@ -48,7 +48,6 @@
   </author>
     <content src="index.html" />
     <access origin="*" />
-    <preference name="StatusBarHide" value="true" />
     <preference name="AndroidLaunchMode" value="singleTop" />
     <preference name="AndroidPersistentFileLocation" value="Internal" />
     <preference name="iosPersistentFileLocation" value="Library" />

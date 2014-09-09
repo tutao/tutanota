@@ -12,5 +12,5 @@ cordova/platforms/**/ant-gen
 cordova/platforms/**/bin
 cordova/platforms/android/assets/www/**
 
-cordova/platforms/ios/www/**
+cordova/platforms/ios
 
