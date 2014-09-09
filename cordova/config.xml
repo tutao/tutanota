@@ -23,27 +23,27 @@
 <platform name="ios">
     <!-- iOS 7.0+ -->
     <!-- iPhone / iPod Touch  -->
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="60" height="60" />
-    <icon src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="120" height="120" />
+    <icon src="www/graphics/app/ios/icon-60.png" width="60" height="60" />
+    <icon src="www/graphics/app/ios/icon-60-2x.png" width="120" height="120" />
     <!-- iPad -->
-    <icon src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="76" height="76" />
-    <icon src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="152" height="152" />
+    <icon src="www/graphics/app/ios/icon-76.png" width="76" height="76" />
+    <icon src="www/graphics/app/ios/icon-76-2x.png" width="152" height="152" />
     <!-- iOS 6.1 -->
     <!-- Spotlight Icon -->
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="40" height="40" />
-    <icon src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="80" height="80" />
+    <icon src="www/graphics/app/ios/icon-40.png" width="40" height="40" />
+    <icon src="www/graphics/app/ios/icon-40-2x.png" width="80" height="80" />
     <!-- iPhone / iPod Touch -->
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="57" height="57" />
-    <icon src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="114" height="114" />
+    <icon src="www/graphics/app/ios/icon-57.png" width="57" height="57" />
+    <icon src="www/graphics/app/ios/icon-57-2x.png" width="114" height="114" />
     <!-- iPad -->
-    <icon src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="72" height="72" />
-    <icon src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="144" height="144" />
+    <icon src="www/graphics/app/ios/icon-72.png" width="72" height="72" />
+    <icon src="www/graphics/app/ios/icon-72-2x.png" width="144" height="144" />
     <!-- iPhone Spotlight and Settings Icon -->
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="29" height="29" />
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="58" height="58" />
+    <icon src="www/graphics/app/ios/icon-29.png" width="29" height="29" />
+    <icon src="www/graphics/app/ios/icon-29-2x.png" width="58" height="58" />
     <!-- iPad Spotlight and Settings Icon -->
-    <icon src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="50" height="50" />
-    <icon src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="100" height="100" />
+    <icon src="www/graphics/app/ios/icon-50.png" width="50" height="50" />
+    <icon src="www/graphics/app/ios/icon-50-2x.png" width="100" height="100" />
 </platform>
 
   <preference name="AndroidLaunchMode" value="singleTop"/>

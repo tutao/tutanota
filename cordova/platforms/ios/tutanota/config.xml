@@ -19,15 +19,15 @@
     <feature name="LocalStorage">
         <param name="ios-package" value="CDVLocalStorage" />
     </feature>
+    <feature name="Badge">
+        <param name="ios-package" value="APPBadge" />
+    </feature>
     <feature name="Device">
         <param name="ios-package" value="CDVDevice" />
     </feature>
     <feature name="LocalNotification">
         <param name="ios-package" onload="true" value="APPLocalNotification" />
         <param name="onload" value="true" />
-    </feature>
-    <feature name="Badge">
-        <param name="ios-package" value="APPBadge" />
     </feature>
     <feature name="File">
         <param name="ios-package" value="CDVFile" />
@@ -36,20 +36,26 @@
     <feature name="FileTransfer">
         <param name="ios-package" value="CDVFileTransfer" />
     </feature>
-    <icon height="60" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="60" />
-    <icon height="120" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="120" />
-    <icon height="76" src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="76" />
-    <icon height="152" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="152" />
-    <icon height="40" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="40" />
-    <icon height="80" src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="80" />
-    <icon height="57" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="57" />
-    <icon height="114" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="114" />
-    <icon height="72" src="www/graphics/apple-touch-icon-72x72-precomposed.png" width="72" />
-    <icon height="144" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="144" />
-    <icon height="29" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="29" />
-    <icon height="58" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="58" />
-    <icon height="50" src="www/graphics/apple-touch-icon-57x57-precomposed.png" width="50" />
-    <icon height="100" src="www/graphics/apple-touch-icon-114x114-precomposed.png" width="100" />
+    <feature name="StatusBar">
+        <param name="ios-package" onload="true" value="CDVStatusBar" />
+    </feature>
+    <preference name="StatusBarOverlaysWebView" value="true" />
+    <preference name="StatusBarBackgroundColor" value="#000000" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    <icon height="60" src="www/graphics/app/ios/icon-60.png" width="60" />
+    <icon height="120" src="www/graphics/app/ios/icon-60-2x.png" width="120" />
+    <icon height="76" src="www/graphics/app/ios/icon-76.png" width="76" />
+    <icon height="152" src="www/graphics/app/ios/icon-76-2x.png" width="152" />
+    <icon height="40" src="www/graphics/app/ios/icon-40.png" width="40" />
+    <icon height="80" src="www/graphics/app/ios/icon-40-2x.png" width="80" />
+    <icon height="57" src="www/graphics/app/ios/icon-57.png" width="57" />
+    <icon height="114" src="www/graphics/app/ios/icon-57-2x.png" width="114" />
+    <icon height="72" src="www/graphics/app/ios/icon-72.png" width="72" />
+    <icon height="144" src="www/graphics/app/ios/icon-72-2x.png" width="144" />
+    <icon height="29" src="www/graphics/app/ios/icon-29.png" width="29" />
+    <icon height="58" src="www/graphics/app/ios/icon-29-2x.png" width="58" />
+    <icon height="50" src="www/graphics/app/ios/icon-50.png" width="50" />
+    <icon height="100" src="www/graphics/app/ios/icon-50-2x.png" width="100" />
     <name>tutanota</name>
     <description>
     Tutanota is the secure client for end-to-end encrypted mail.
