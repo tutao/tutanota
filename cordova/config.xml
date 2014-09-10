@@ -18,9 +18,10 @@
     <icon src="www/graphics/app/android/icon-48-mdpi.png" density="mdpi"/>
     <icon src="www/graphics/app/android/icon-72-hdpi.png" density="hdpi"/>
     <icon src="www/graphics/app/android/icon-96-xhdpi.png" density="xhdpi"/>
+    <preference name="SplashScreen" value="screen" />
   </platform>
 
-<platform name="ios">
+  <platform name="ios">
     <!-- iOS 7.0+ -->
     <!-- iPhone / iPod Touch  -->
     <icon src="www/graphics/app/ios/icon-60.png" width="60" height="60" />
@@ -44,7 +45,7 @@
     <!-- iPad Spotlight and Settings Icon -->
     <icon src="www/graphics/app/ios/icon-50.png" width="50" height="50" />
     <icon src="www/graphics/app/ios/icon-50-2x.png" width="100" height="100" />
-</platform>
+  </platform>
 
   <preference name="AndroidLaunchMode" value="singleTop"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
