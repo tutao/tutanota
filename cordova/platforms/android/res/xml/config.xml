@@ -39,6 +39,7 @@
     <icon density="mdpi" src="www/graphics/app/android/icon-48-mdpi.png" />
     <icon density="hdpi" src="www/graphics/app/android/icon-72-hdpi.png" />
     <icon density="xhdpi" src="www/graphics/app/android/icon-96-xhdpi.png" />
+    <preference name="SplashScreen" value="screen" />
     <name>tutanota</name>
     <description>
     Tutanota is the secure client for end-to-end encrypted mail.
