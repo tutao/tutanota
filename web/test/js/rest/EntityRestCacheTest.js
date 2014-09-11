@@ -155,7 +155,7 @@ describe.skip("EntityRestCacheTest", function () {
                 assert.equal(10, loadedElements.length);
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, false);
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
-                checkEntityRestCache(localListId, 10, startElementId, getElementId(localMailElements[9]));
+                checkEntityRestCache(localListId, 10, startElementId, tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
             });
@@ -197,7 +197,7 @@ describe.skip("EntityRestCacheTest", function () {
                 assert.equal(10, loadedElements.length);
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, true);
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
-                checkEntityRestCache(localListId, 10, getElementId(localMailElements[0]), startElementId);
+                checkEntityRestCache(localListId, 10, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, startElementId);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
             });
@@ -250,7 +250,7 @@ describe.skip("EntityRestCacheTest", function () {
             var expectedTargetStartElementId = getLastCachedElementRangeId(localListId);
             return getElementRange(localListId, startElementId, 11, false).then(function (loadedElements) {
                 assert.equal(10, loadedElements.length);
-                checkEntityRestCache(localListId, 10, startElementId, getElementId(localMailElements[9]));
+                checkEntityRestCache(localListId, 10, startElementId, tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3, false);
@@ -262,7 +262,7 @@ describe.skip("EntityRestCacheTest", function () {
             var expectedTargetStartElementId = getLastCachedElementRangeId(localListId);
             return getElementRange(localListId, startElementId, 11, false).then(function (loadedElements) {
                 assert.equal(10, loadedElements.length);
-                checkEntityRestCache(localListId, 10, startElementId, getElementId(localMailElements[9]));
+                checkEntityRestCache(localListId, 10, startElementId, tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, false);
@@ -320,7 +320,7 @@ describe.skip("EntityRestCacheTest", function () {
             return getElementRange(localListId, startElementId, 11, false).then(function (loadedElements) {
                 assert.equal(8, loadedElements.length); // only 8 elements are loaded because start element is not returned
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3, false);
-                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), getElementId(localMailElements[9]));  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
+                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), tutao.rest.EntityRestInterface.GENERATED_MAX_ID);  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
                 assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
@@ -332,7 +332,7 @@ describe.skip("EntityRestCacheTest", function () {
             return getElementRange(localListId, startElementId, 11, false).then(function (loadedElements) {
                 assert.equal(9, loadedElements.length);
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, false);
-                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), getElementId(localMailElements[9]));  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
+                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), tutao.rest.EntityRestInterface.GENERATED_MAX_ID);  // Requested start element is the first element from cache therefore range size differ from loaded element size (see step 1)
                 assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
@@ -389,7 +389,7 @@ describe.skip("EntityRestCacheTest", function () {
             return getElementRange(localListId, startElementId, 11, true).then(function (loadedElements, e) {
                 assert.equal(8, loadedElements.length); // only 8 elements are available because start element does not return
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3, true);
-                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), getElementId(localMailElements[9]));
+                checkEntityRestCache(localListId, 9, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, getElementId(localMailElements[9]));
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
@@ -401,7 +401,7 @@ describe.skip("EntityRestCacheTest", function () {
             return getElementRange(localListId, startElementId, 11, true).then(function (loadedElements, e) {
                 assert.equal(9, loadedElements.length);
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 2, true);
-                checkEntityRestCache(localListId, 9, getElementId(localMailElements[0]), getElementId(localMailElements[9]));
+                checkEntityRestCache(localListId, 9, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, getElementId(localMailElements[9]));
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
@@ -525,7 +525,7 @@ describe.skip("EntityRestCacheTest", function () {
             var expectedTargetStartElementId = getFirstCachedElementRangeId(localListId);
             return getElementRange(localListId, startElementId, 11, true).then(function (loadedElements) {
                 assert.equal(10, loadedElements.length);
-                checkEntityRestCache(localListId, 10, getElementId(localMailElements[0]), startElementId);
+                checkEntityRestCache(localListId, 10, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, startElementId);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 3, true);
@@ -537,7 +537,7 @@ describe.skip("EntityRestCacheTest", function () {
             var expectedTargetStartElementId = getFirstCachedElementRangeId(localListId);
             return getElementRange(localListId, startElementId, 11, true).then(function (loadedElements) {
                 assert.equal(10, loadedElements.length);
-                checkEntityRestCache(localListId, 10, getElementId(localMailElements[0]), startElementId);
+                checkEntityRestCache(localListId, 10, tutao.rest.EntityRestInterface.GENERATED_MIN_ID, startElementId);
                 assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
                 assert.equal(getElementId(localMailElements[9]), getLastCachedElementRangeId(localListId));
                 verifyGetElementRange(JsMockito.Verifiers.once(), localListId, expectedTargetStartElementId, 1, true);

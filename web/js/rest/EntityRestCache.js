@@ -265,7 +265,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
                 listData.allRange = [];
                 listData.lowerRangeId = start;
                 listData.upperRangeId = start;
-                return self._handleElementRangeResult(path, listId, start, count, reverse, elements);
+                return self._handleElementRangeResult(path, listId, start, count, reverse, elements, count);
             }
             return [];
 		});
@@ -274,7 +274,7 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
         var result = this._getNumberOfElementsToRead(path, listId, start, count, reverse);
         if ( result.newCount > 0 ){
             return self._target.getElementRange(type, path, listId, result.newStart, result.newCount, reverse, parameters, headers).then(function(elements) {
-                return self._handleElementRangeResult(path, listId, start, count, reverse, elements);
+                return self._handleElementRangeResult(path, listId, start, count, reverse, elements, result.newCount);
             });
         } else {
             // all elements are located in cache.
@@ -287,18 +287,27 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
 };
 
 
-tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path, listId, start, count, reverse, elements) {
+tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path, listId, start, count, reverse, elements, targetCount) {
     var listData = this._getListData(path, listId);
     var elementsToAdd = elements;
-	if ( elements.length > 0){
+	if (elements.length > 0) {
 		// Ensure that elements are cached in ascending (not reverse) order
-		if (reverse){
-		    elementsToAdd = elements.reverse();
-		    // After reversing the list the first element in the list is the lower range limit
-	        listData.lowerRangeId = elements[0].__id[1];
-		} else{
+		if (reverse) {
+            elementsToAdd = elements.reverse();
+            if (elements.length < targetCount) {
+                listData.lowerRangeId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
+            } else {
+                // After reversing the list the first element in the list is the lower range limit
+                listData.lowerRangeId = elements[0].__id[1];
+            }
+		} else {
 		    // Last element in the list is the upper range limit
-	        listData.upperRangeId = elements[elements.length -1].__id[1];
+            if (elements.length < targetCount) {
+                // all elements have been loaded, so the upper range must be set to MAX_ID
+                listData.upperRangeId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            } else {
+	            listData.upperRangeId = elements[elements.length -1].__id[1];
+            }
 		}
 
 		for (var i = 0; i < elementsToAdd.length; i++) {
@@ -307,7 +316,14 @@ tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path,
 		    // add the elements to the range
 		    this._tryAddToRange(path, elementsToAdd[i]);
 		}
-	} 
+	} else {
+        // all elements have been loaded, so the range must be set to MAX_ID / MIN_ID
+        if (reverse) {
+            listData.lowerRangeId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
+        } else {
+            listData.upperRangeId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+        }
+    }
 	return this._provideFromCache(path, listId, start, count, reverse);
 };
 
