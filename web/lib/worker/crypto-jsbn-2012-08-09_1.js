@@ -1157,6 +1157,7 @@ function bnpMillerRabin(t) {
   var a = nbi();
   for(var i = 0; i < t; ++i) {
     //Pick bases at random, instead of starting at 2
+    // TUTAO: It is fine to use Math.random() instead secure random here because it is only used for checking if the number is a prime. The number itself is generated with the secure random number generator.
     a.fromInt(lowprimes[Math.floor(Math.random()*lowprimes.length)]);
     var y = a.modPow(r,this);
     if(y.compareTo(BigInteger.ONE) != 0 && y.compareTo(n1) != 0) {
@@ -1925,6 +1926,7 @@ function multMod(x,y,n) {
   return trim(ans,1);
 }
 
+/* TUTAO: not used
 //generate a k-bit true random prime using Maurer's algorithm,
 //and put it into ans.  The bigInt ans must be large enough to hold it.
 function randTruePrime_(ans,k) {
@@ -2057,6 +2059,7 @@ function randTruePrime_(ans,k) {
     }
   }
 }
+*/
 
 //Return an n-bit random BigInt (n>=1).  If s=1, then the most significant of those n bits is set to 1.
 function randBigInt(n,s) {
@@ -2067,6 +2070,7 @@ function randBigInt(n,s) {
   return b;
 }
 
+/* TUTAO: not used
 //Set b to an n-bit random BigInt.  If s=1, then the most significant of those n bits is set to 1.
 //Array b must be big enough to hold the result. Must have n>=1
 function randBigInt_(b,n,s) {
@@ -2081,6 +2085,7 @@ function randBigInt_(b,n,s) {
   if (s==1)
     b[a-1] |= (1<<((n-1)%bpe));
 }
+*/
 
 //Return the greatest common divisor of bigInts x and y (each with same number of elements).
 function GCD(x,y) {
