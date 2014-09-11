@@ -146,10 +146,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
     }
     this.loading(true);
     var tagId = self._currentActiveSystemTag();
-    var lowestId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
-    if (this.currentTagFilterResult[tagId].length > 0) {
-        lowestId = this.currentTagFilterResult[tagId][this.currentTagFilterResult[tagId].length -1];
-    }
+    var lowestId = self._getLowestMailId(tagId);
     //return Promise.delay(5000).then(function(){
         return self._loadMoreMails(0, lowestId, tagId).lastly(function(){
             self.loading(false);
@@ -166,10 +163,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alread
                 var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
                 self._insertTagFilterResult(tagId, elementId);
                 alreadyLoadedForTagCount++;
-                if (tagId == self._currentActiveSystemTag()) {
-					// Do not push elements to observable array to increase performance. ValueHasMutated is called later
-                    self.mails().push(mails[i]);
-                }
             }
             if (alreadyLoadedForTagCount == self.stepRangeCount) {
                 // we may have loaded more mails, but we have already added enough for the current tag list, so stop now
@@ -180,9 +173,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alread
             var startId = tutao.rest.EntityRestInterface.getElementId(mails[mails.length-1]);
             return self._loadMoreMails(alreadyLoadedForTagCount, startId, tagId);
         } else {
-			// Notify about list changes
-            self.mails.valueHasMutated();
-            return Promise.resolve();
+			return self._updateMailList();
         }
     });
 };
@@ -513,8 +504,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
                 // update the filter results
                 for (var tagId = 0; tagId < self.currentTagFilterResult.length; tagId++) {
                     if ((tagId == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID) == trash) {
-                        // we need to add the mail id if it is the correct state value
-                        if (mail[self.tagToMailAttributeMapping[tagId]] == self.tagToMailAttributeValueMapping[tagId]) {
+                        // we need to add the mail id if it is the correct state value and if the mail is in the loaded range or all mails have been loaded
+                        var lowestId = self._getLowestMailId(tagId);
+                        if (mail[self.tagToMailAttributeMapping[tagId]] == self.tagToMailAttributeValueMapping[tagId] &&
+                            (tutao.rest.EntityRestInterface.firstBiggerThanSecond(mail.getId()[1], lowestId) || !self._tagMoreAvailable[tagId]())) {
                             self._insertTagFilterResult(tagId, mail.getId()[1]);
                         }
                     } else {
@@ -559,6 +552,15 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
 		}
 	}
 };
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._getLowestMailId = function(tagId) {
+    var lowestId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+    if (this.currentTagFilterResult[tagId].length > 0) {
+        lowestId = this.currentTagFilterResult[tagId][this.currentTagFilterResult[tagId].length -1];
+    }
+    return lowestId;
+};
+
 
 /**
  * Requests for validity from the search field.
