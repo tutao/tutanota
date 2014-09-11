@@ -164,7 +164,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alread
         for (var i = 0; i < mails.length; i++) {
             if (tagId == self._getTagForMail(mails[i])) {
                 var elementId = tutao.rest.EntityRestInterface.getElementId(mails[i]);
-                self.currentTagFilterResult[tagId].push(elementId);
+                self._insertTagFilterResult(tagId, elementId);
                 alreadyLoadedForTagCount++;
                 if (tagId == self._currentActiveSystemTag()) {
 					// Do not push elements to observable array to increase performance. ValueHasMutated is called later
@@ -185,6 +185,16 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alread
             return Promise.resolve();
         }
     });
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._insertTagFilterResult = function(tagId, elementId){
+    if (!tutao.util.ArrayUtils.contains(this.currentTagFilterResult[tagId], elementId)) {
+        this.currentTagFilterResult[tagId].push(elementId);
+        // sort the array by mail id descending
+        this.currentTagFilterResult[tagId].sort(function(a, b) {
+            return (tutao.rest.EntityRestInterface.firstBiggerThanSecond(a, b)) ? -1 : 1;
+        });
+    }
 };
 
 
@@ -252,20 +262,8 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isDeleteTrashButtonVisible = fun
 tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function() {
 	var self = this;
 
-	// collect all id arrays that need to be combined to get the list of mails to show
-	var idsToCombine;
-	if (this.currentSearchResult == null) {
-		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag()]];
-	} else {
-		idsToCombine = [this.currentTagFilterResult[this._currentActiveSystemTag()], this.currentSearchResult];
-	}
+	var currentResult = this.currentTagFilterResult[this._currentActiveSystemTag()].slice();
 
-
-	var currentResult = tutao.util.ArrayUtils.getUniqueAndArray(idsToCombine);
-	// sort the array by mail id descending
-	currentResult.sort(function(a, b) {
-		return (tutao.rest.EntityRestInterface.firstBiggerThanSecond(a, b)) ? -1 : 1;
-	});
 	var loadedMails = [];
 
 	return self._loadMails(currentResult, loadedMails, 0).then(function() {
@@ -517,7 +515,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
                     if ((tagId == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID) == trash) {
                         // we need to add the mail id if it is the correct state value
                         if (mail[self.tagToMailAttributeMapping[tagId]] == self.tagToMailAttributeValueMapping[tagId]) {
-                            self.currentTagFilterResult[tagId].push(mail.getId()[1]);
+                            self._insertTagFilterResult(tagId, mail.getId()[1]);
                         }
                     } else {
                         // we need to remove the mail id
