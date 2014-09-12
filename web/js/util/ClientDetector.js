@@ -350,7 +350,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		}
 
 	} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
-        // homescreen detection is only available when in app mode otherwise it is deactivated because of problems (see: https: //next.tutao.de/confluence/display/next/Browser+support)
+        // homescreen detection is only available when in app mode otherwise it is deactivated because of problems in iOS
         if (tutao.env.mode == tutao.Mode.App) {
             // ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
             // after "OS" the iOS version is sent, so use that one
