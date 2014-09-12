@@ -348,17 +348,20 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		if (versionIndex != -1) {
 			versionIndex += 8;
 		}
-	/* homescreen detection currently deactivated because of problems (see: https: //next.tutao.de/confluence/display/next/Browser+support)*/
+
 	} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
-		// ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
-        // after "OS" the iOS version is sent, so use that one
-		versionIndex = userAgent.indexOf(" OS ");
-        if (versionIndex != -1) {
-		    info._browser = info.BROWSER_TYPE_SAFARI;
-            try {
-		        info._browserVersion = Number(userAgent.substring(versionIndex + 4, versionIndex + 5));
-            } catch (e) {}
-            return;
+        // homescreen detection is only available when in app mode otherwise it is deactivated because of problems (see: https: //next.tutao.de/confluence/display/next/Browser+support)
+        if (tutao.env.mode == tutao.Mode.App) {
+            // ipad and iphone do not send the Safari userAgent when HTML-apps are directly started from the homescreen; a browser version is sent neither
+            // after "OS" the iOS version is sent, so use that one
+            versionIndex = userAgent.indexOf(" OS ");
+            if (versionIndex != -1) {
+                info._browser = info.BROWSER_TYPE_SAFARI;
+                try {
+                    info._browserVersion = Number(userAgent.substring(versionIndex + 4, versionIndex + 5));
+                } catch (e) {}
+                return;
+            }
         }
 	} else if (ieIndex != -1) {
 		info._browser = info.BROWSER_TYPE_IE;
