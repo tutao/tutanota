@@ -104,10 +104,10 @@ tutao.tutanota.ctrl.SendMailFacade._handleRecipients = function(service, toRecip
 	//not found recipients are collected here. even if recipients are not found, all recipients are checked
 	var notFoundRecipients = [];
 
-    return Promise.map([{ 'recipientInfoList': toRecipients, 'serviceRecipientList': service.getToRecipients()},
+    return Promise.each([{ 'recipientInfoList': toRecipients, 'serviceRecipientList': service.getToRecipients()},
                  { 'recipientInfoList': ccRecipients, 'serviceRecipientList': service.getCcRecipients()},
                  { 'recipientInfoList': bccRecipients, 'serviceRecipientList': service.getBccRecipients()}],
-        function(recipientLists, index, arrayLength) {
+        function(recipientLists) {
         return Promise.each(recipientLists.recipientInfoList, function(recipientInfo) {
             var serviceRecipient = new tutao.entity.tutanota.Recipient(service);
             recipientLists.serviceRecipientList.push(serviceRecipient);
