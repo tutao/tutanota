@@ -62,12 +62,11 @@ tutao.tutanota.Bootstrap.init = function () {
         }
 
         // only for testing
-        tutao.locator.developerViewModel.open();
-        //	tutao.locator.loginViewModel.mailAddress("arne@tutanota.de");
-        //	tutao.locator.loginViewModel.passphrase("arm");
-        //	tutao.locator.loginViewModel.login();
+        //tutao.locator.developerViewModel.open();
+        //tutao.locator.loginViewModel.mailAddress("bernd@tutanota.de");
+        //tutao.locator.loginViewModel.passphrase("bed");
+        //tutao.locator.loginViewModel.login();
         //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
-
         tutao.tutanota.gui.initKnockout();
     };
 

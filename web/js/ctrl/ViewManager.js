@@ -91,11 +91,13 @@ tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt'),
 
         // all logged in
+        /* Just for local testing on mobile devices
         new tutao.tutanota.ctrl.Button('dev_label', 25, function () {
             tutao.locator.developerViewModel.open();
         }, function() {
             return tutao.env.type == tutao.Env.LOCAL || tutao.env.type == tutao.Env.LOCAL_COMPILED;
         }, false, "menu_dev", "star", 'dev_label'),
+        */
     ];
 
     return buttons;
