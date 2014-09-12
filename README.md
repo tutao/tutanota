@@ -2,11 +2,11 @@
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
-Official website: [https://tutanota.de]
+Official website: https://tutanota.de
 
 ## Building and running your own Tutanota web client
 
-Now you can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your own. If you want the auto-update feature, you can use [https://app.tutanota.de] directly and upon every update your browser will notify you that the updated app is being installed locally in your browser cache.
+Now you can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your own. If you want the auto-update feature, you can use https://app.tutanota.de directly and upon every update your browser will notify you that the updated app is being installed locally in your browser cache.
 
 Pre-requisites:
 * An up-to-date version of git is installed
