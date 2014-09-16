@@ -14,3 +14,11 @@ tutao.native.FileTransferInterface = function(){};
  * @return {Promise.<undefined, Error>}.
  */
 tutao.native.FileTransferInterface.prototype.downloadAndOpen = function(file) {};
+
+
+/**
+ * Opens a file
+ * @param {tutao.tutanota.util.DataFile} dataFile The file to open.
+ * @return {Promise.<undefined, Error>}.
+ */
+tutao.native.FileTransferInterface.prototype.open = function(dataFile) {};

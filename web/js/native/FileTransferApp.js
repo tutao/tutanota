@@ -55,37 +55,40 @@ tutao.native.FileTransferApp.prototype.downloadAndOpen = function(file) {
 
     } else {
         // download and decrypt file
-        return tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function (dataFile, exception) {
-			// store file
-			return new Promise(function(resolve, reject) {
-				window.requestFileSystem(LocalFileSystem.TEMPORARY, dataFile.getSize(), function(fs) {
-
-					var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");	
-					fs.root.getFile(fileName, {create: true}, function(fileEntry) {
-						// Create a FileWriter object for our FileEntry (log.txt).
-						fileEntry.createWriter(function(fileWriter) {
-							fileWriter.onwriteend = function(e) {
-								resolve(fileEntry);
-							};
-        
-							fileWriter.onerror = function(e) {
-								reject(e);
-							};
-	
-							// Create a new Blob and write it to log.txt.
-							var blob = new Blob([new DataView(dataFile.getData())], {type: dataFile.getMimeType()});
-							fileWriter.write(blob);
-						}, function(e) {
-							reject(e);
-						});
-					}, function(e) {
-						reject(e);
-					});
-				});
-			}).then(function(fileEntry) {
-				cordova.plugins.bridge.open(fileEntry.toURL(), Promise.resolve, Promise.reject);
-				// deleting the temp file would be nice here, but does not work currently because the success callback comes too early
-			});
+        var self = this;
+        return tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function (dataFile) {
+            return self.open(dataFile);
         });
 	}
+};
+
+tutao.native.FileTransferApp.prototype.open = function(dataFile) {
+    return new Promise(function(resolve, reject) {
+        window.requestFileSystem(LocalFileSystem.TEMPORARY, dataFile.getSize(), function(fs) {
+            var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
+            fs.root.getFile(fileName, {create: true}, function(fileEntry) {
+                // Create a FileWriter object for our FileEntry (log.txt).
+                fileEntry.createWriter(function(fileWriter) {
+                    fileWriter.onwriteend = function(e) {
+                        resolve(fileEntry);
+                    };
+
+                    fileWriter.onerror = function(e) {
+                        reject(e);
+                    };
+
+                    // Create a new Blob and write it to log.txt.
+                    var blob = new Blob([new DataView(dataFile.getData())], {type: dataFile.getMimeType()});
+                    fileWriter.write(blob);
+                }, function(e) {
+                    reject(e);
+                });
+            }, function(e) {
+                reject(e);
+            });
+        });
+    }).then(function(fileEntry) {
+        cordova.plugins.bridge.open(fileEntry.toURL(), Promise.resolve, Promise.reject);
+        // deleting the temp file would be nice here, but does not work currently because the success callback comes too early
+    });
 };

@@ -407,7 +407,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.containsExternalRecipients = functio
 
 /**
  * Offers the user to download the given data file which was added to this mail.
- * @param {tutao.tutanota.util.DataFile} dataFile The file to download.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File} dataFile The file to download.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dataFile) {
     if (this.busy()) {
@@ -419,9 +419,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
 		return;
 	}
 	this.currentlyDownloadingAttachment(dataFile);
-	tutao.tutanota.util.FileUtils.provideDownload(dataFile).then(function() {
-		self.currentlyDownloadingAttachment(null);
-	});
+
+    if (dataFile instanceof tutao.entity.tutanota.File){
+        tutao.locator.fileTransfer.downloadAndOpen(dataFile).then(function() {
+            self.currentlyDownloadingAttachment(null);
+        });
+    } else {
+        tutao.locator.fileTransfer.open(dataFile).then(function() {
+            self.currentlyDownloadingAttachment(null);
+        });
+    }
 };
 
 /**
