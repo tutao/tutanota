@@ -51,11 +51,6 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
-var osx_compiled = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000);\n\
-    tutao.tutanota.Bootstrap.init();\n\
-}\n";
-
 
 var prod = "if (typeof importScripts !== 'function') {\n\
     tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null);\n\
@@ -259,10 +254,17 @@ gulp.task('gzip', function () {
 
 gulp.task('distCordova', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
-    env = local_compiled;
+    env = prod;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
 });
+
+gulp.task('distCordovaLocal', ['clean'], function (cb) {
+          // does not minify and is therefore faster, used for app builds
+          env = local_compiled;
+          fs.writeFileSync("build/init.js", env);
+          return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+          });
 
 gulp.task('distLocal', ['clean'], function (cb) {
     env = local_compiled;
@@ -286,7 +288,7 @@ gulp.task('tagRelease', shell.task([
         "git push origin " + package.name + "-release-" + package.version
 ]));
 
-gulp.task('default', ['clean', 'distCordova'], function () {
+gulp.task('default', ['clean', 'distCordovaLocal'], function () {
     gulp.watch('graphics/**/*', ['copyGraphics']);
     gulp.watch('fonts/*', ['copyFonts']);
     gulp.watch(['lib/**', 'js/**'], ['concat']);
