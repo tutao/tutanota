@@ -139,7 +139,7 @@ tutao.rest.RestClient.prototype.putBinary = function(path, headers, data) {
  */
 tutao.rest.RestClient.prototype.getBinary = function(path, headers) {
     var self = this;
-
+    path = this.url + path;
     return new Promise(function(resolve, reject) {
         var xhr = new XMLHttpRequest();
         // use the same trick to avoid caching (actually only needed for IE) like jquery: append a unique timestamp
