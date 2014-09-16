@@ -10,6 +10,7 @@ tutao.native.FileTransferInterface = function(){};
 
 /**
  * Downloads and opens a file
+ * @param {tutao.entity.tutanota.File} file The file to download.
  * @return {Promise.<undefined, Error>}.
  */
-tutao.native.FileTransferInterface.prototype.downloadAndOpen = function(url) {};
+tutao.native.FileTransferInterface.prototype.downloadAndOpen = function(file) {};
