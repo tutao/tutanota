@@ -35,6 +35,9 @@
     <feature name="StatusBar">
         <param name="android-package" onload="true" value="org.apache.cordova.statusbar.StatusBar" />
     </feature>
+    <feature name="Contacts">
+        <param name="android-package" value="org.apache.cordova.contacts.ContactManager" />
+    </feature>
     <icon density="ldpi" src="www/graphics/app/android/icon-36-ldpi.png" />
     <icon density="mdpi" src="www/graphics/app/android/icon-48-mdpi.png" />
     <icon density="hdpi" src="www/graphics/app/android/icon-72-hdpi.png" />
@@ -52,4 +55,13 @@
     <preference name="AndroidLaunchMode" value="singleTop" />
     <preference name="AndroidPersistentFileLocation" value="Internal" />
     <preference name="iosPersistentFileLocation" value="Library" />
+    <feature name="Notification">
+        <param name="android-package" value="org.apache.cordova.dialogs.Notification" />
+    </feature>
+    <feature name="Vibration">
+        <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
+    </feature>
+    <feature name="Open">
+        <param name="android-package" value="com.bridge.Open" />
+    </feature>
 </widget>

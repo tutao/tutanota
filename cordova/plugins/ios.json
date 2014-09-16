@@ -5,9 +5,65 @@
     },
     "config_munge": {
         "files": {
+            "framework": {
+                "parents": {
+                    "QuickLook.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "Foundation.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "AddressBook.framework": [
+                        {
+                            "xml": "true",
+                            "count": 1
+                        }
+                    ],
+                    "AddressBookUI.framework": [
+                        {
+                            "xml": "true",
+                            "count": 1
+                        }
+                    ],
+                    "CoreGraphics.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ],
+                    "AudioToolbox.framework": [
+                        {
+                            "xml": "true",
+                            "count": 2
+                        }
+                    ],
+                    "AssetsLibrary.framework": [
+                        {
+                            "xml": "false",
+                            "count": 2
+                        }
+                    ],
+                    "MobileCoreServices.framework": [
+                        {
+                            "xml": "false",
+                            "count": 1
+                        }
+                    ]
+                }
+            },
             "config.xml": {
                 "parents": {
                     "/*": [
+                        {
+                            "xml": "<feature name=\"Open\"><param name=\"ios-package\" value=\"Open\" /></feature>",
+                            "count": 1
+                        },
                         {
                             "xml": "<feature name=\"Badge\"><param name=\"ios-package\" value=\"APPBadge\" /></feature>",
                             "count": 1
@@ -18,6 +74,14 @@
                         },
                         {
                             "xml": "<feature name=\"LocalNotification\"><param name=\"ios-package\" onload=\"true\" value=\"APPLocalNotification\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Contacts\"><param name=\"ios-package\" value=\"CDVContacts\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Notification\"><param name=\"ios-package\" value=\"CDVNotification\" /></feature>",
                             "count": 1
                         },
                         {
@@ -43,21 +107,9 @@
                         {
                             "xml": "<preference name=\"StatusBarStyle\" value=\"lightcontent\" />",
                             "count": 1
-                        }
-                    ]
-                }
-            },
-            "framework": {
-                "parents": {
-                    "AssetsLibrary.framework": [
+                        },
                         {
-                            "xml": "false",
-                            "count": 2
-                        }
-                    ],
-                    "MobileCoreServices.framework": [
-                        {
-                            "xml": "false",
+                            "xml": "<feature name=\"Vibration\"><param name=\"ios-package\" value=\"CDVVibration\" /></feature>",
                             "count": 1
                         }
                     ]
@@ -67,6 +119,9 @@
     },
     "installed_plugins": {
         "android.support.v4": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.bridge.open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.ququplay.websocket.WebSocket": {
@@ -81,6 +136,12 @@
         "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
+        "org.apache.cordova.contacts": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.dialogs": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "org.apache.cordova.file": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
@@ -88,6 +149,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.statusbar": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.vibration": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },

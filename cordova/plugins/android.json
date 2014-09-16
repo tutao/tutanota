@@ -47,6 +47,22 @@
                         {
                             "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Contacts\"><param name=\"android-package\" value=\"org.apache.cordova.contacts.ContactManager\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Notification\"><param name=\"android-package\" value=\"org.apache.cordova.dialogs.Notification\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Open\"><param name=\"android-package\" value=\"com.bridge.Open\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -60,6 +76,10 @@
                         },
                         {
                             "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
                             "count": 1
                         }
                     ],
@@ -89,6 +109,18 @@
                         {
                             "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
                             "count": 2
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.READ_CONTACTS\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.WRITE_CONTACTS\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\" />",
+                            "count": 1
                         }
                     ]
                 }
@@ -115,6 +147,18 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.statusbar": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.contacts": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.dialogs": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.vibration": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.bridge.open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
