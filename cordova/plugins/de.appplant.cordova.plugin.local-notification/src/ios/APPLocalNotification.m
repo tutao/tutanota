@@ -568,8 +568,9 @@
 
     for (UILocalNotification* notification in notifications)
     {
-        NSString* notId = [notification.userInfo objectForKey:@"id"];
-
+        // TUTAO: fix for iOS 7.1
+        //NSString* notId = [notification.userInfo objectForKey:@"id"];
+        NSString* notId =[NSString stringWithFormat:@"%@", [notification.userInfo objectForKey:@"id"]];
         if ([notId isEqualToString:id]) {
             return notification;
         }
