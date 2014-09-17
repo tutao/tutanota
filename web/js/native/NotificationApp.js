@@ -9,8 +9,8 @@ tutao.native.NotificationApp = function(){
     this.currentId = 0;
 };
 
-tutao.native.NotificationApp.prototype.add = function(title, message, badge) {
-    window.plugin.notification.local.add({id: String(this.currentId++), title: title, message: message, badge: badge, autoCancel: true});
+tutao.native.NotificationApp.prototype.add = function(message) {
+    window.plugin.notification.local.add({ message: message, autoCancel: true});
     navigator.notification.beep(1);
     navigator.notification.vibrate(300);
 };

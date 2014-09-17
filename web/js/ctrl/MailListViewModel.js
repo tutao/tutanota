@@ -303,6 +303,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMails = function(mailIds, l
  * @param {Array.<Mail>} mails The mails that are new.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mails) {
+	tutao.locator.notification.add(tutao.lang("newMails_msg"));
 	for (var i = 0; i < mails.length; i++) {
         var mailTagId = this._getTagForMail(mails[i]);
         this.currentTagFilterResult[mailTagId].unshift(mails[i].getId()[1]);

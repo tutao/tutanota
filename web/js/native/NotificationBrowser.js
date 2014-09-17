@@ -7,7 +7,7 @@ tutao.provide('tutao.native.NotificationBrowser');
  */
 tutao.native.NotificationBrowser = function(){};
 
-tutao.native.NotificationBrowser.prototype.add = function(title, message) {
+tutao.native.NotificationBrowser.prototype.add = function(message) {
     var self = this;
     return new Promise(function (resolve, reject) {
         if ("Notification" in window) {
@@ -17,10 +17,10 @@ tutao.native.NotificationBrowser.prototype.add = function(title, message) {
                     if (!('permission' in Notification)) {
                         Notification.permission = permission;
                     }
-                    self._showIfGranted(title, message, resolve);
+                    self._showIfGranted(message, resolve);
                 });
             } else {
-                self._showIfGranted(title, message, resolve);
+                self._showIfGranted(message, resolve);
             }
         }
     });
@@ -30,9 +30,9 @@ tutao.native.NotificationBrowser.prototype.updateBadge = function(number) {
     // no badge available
 };
 
-tutao.native.NotificationBrowser.prototype._showIfGranted = function(title, message, resolve) {
+tutao.native.NotificationBrowser.prototype._showIfGranted = function(message, resolve) {
     if (Notification.permission === "granted") {
-        var notification = new Notification(title, {body: message, icon: 'graphics/apple-touch-icon-114x114-precomposed.png'});
+        var notification = new Notification("Tutanota", {body: message, icon: 'graphics/apple-touch-icon-114x114-precomposed.png'});
         notification.onshow = function () {
             setTimeout(function() { notification.close(); }, 5000);
         };
