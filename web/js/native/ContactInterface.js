@@ -10,6 +10,6 @@ tutao.native.ContactInterface = function(){};
 
 /**
  * Returns the contacts of this device.
- * @return {Promise.<string, Error>} Called with the phone number.
+ * @return {Promise.<Array,<tutao.entity.tutanota.Contact>, Error>} Called with the phone number.
  */
-tutao.native.ContactInterface.prototype.getAllContacts = function() {};
+tutao.native.ContactInterface.prototype.find = function(text) {};

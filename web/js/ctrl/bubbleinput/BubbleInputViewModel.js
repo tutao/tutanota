@@ -45,6 +45,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
 	// true if the BubbleInputField is active (currently always when the input field is active)
 	this.active = this.inputActive;
 
+    this.loading = ko.observable(false);
 	// the current value of the input field
 	this.inputValue = ko.observable("");
 	this.inputValue.subscribe(function(newValue) {
@@ -53,9 +54,25 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
 	this.bubbles = ko.observableArray();
 	// The dom element representing the input field. This is used for gui actions like resizing the input field to the correct size (see tutao.tutanota.gui.BubbleInputGui)
 	this.inputDomField = null;
-	this.suggestions = ko.computed(function() {
-		return this.bubbleHandler.getSuggestions(this.inputValue());
-	}, this);
+    this._latestSearchText = "";
+    this.inputValue.subscribe(function() {
+        var self = this;
+        // Disable search if the last search result was already empty and only characters has been appended to the last result's search text.
+        if (this._latestSearchText.length != 0 && tutao.util.StringUtils.startsWith(this.inputValue(), this._latestSearchText) && this.suggestions().length == 0 && !this.loading()) {
+            return;
+        }
+        this.loading(true);
+        this._latestSearchText = this.inputValue();
+        var currentSearchText = this.inputValue();
+        this.bubbleHandler.getSuggestions(this.inputValue(), function(suggestions) {
+            // Only update search result if search text has not been changed during search.
+            if (currentSearchText == self.inputValue()) {
+                self.suggestions(suggestions);
+                self.loading(false);
+            }
+        });
+    }, this);
+	this.suggestions = ko.observableArray();
 	this.selectedSuggestion = ko.observable(null);
 	this.suggestions.subscribe(function(newSuggestions) {
 		if (newSuggestions.length > 0 && (this.selectedSuggestion() == null || !tutao.util.ArrayUtils.contains(this.suggestions(), this.selectedSuggestion()))) {

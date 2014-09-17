@@ -8,20 +8,6 @@ tutao.provide('tutao.native.ContactBrowser');
  */
 tutao.native.ContactBrowser = function(){};
 
-/**
- * Returns the contacts of this device.
- * @return {Promise.<string, Error>} Called with the phone number.
- */
-tutao.native.ContactBrowser.prototype.getAllContacts = function() {
-    return new Promise(function (resolve, reject) {
-        resolve([
-            new mizz.entity.Contact(
-                {name: "none",
-                    statusMessage: "-",
-                    phoneNumbers: [
-                        {type: "work", value: "none", preferred: "true"},
-                    ],
-                    photos: []})
-        ]);
-    });
+tutao.native.ContactBrowser.prototype.find = function(text) {
+    return Promise.resolve([]);
 };

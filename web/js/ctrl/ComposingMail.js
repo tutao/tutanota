@@ -517,12 +517,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getAttachmentImage = function(dataFi
 /************** implementation of tutao.tutanota.ctrl.bubbleinput.BubbleHandler **************/
 
 /** @inheritDoc */
-tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text) {
+tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text, callback) {
 	text = text.trim().toLowerCase();
 	var contactWrappers = tutao.tutanota.ctrl.ComposingMail._getContacts();
 	var sugs = [];
 	if (text === "") { // do not display any suggestions when nothing has been entered
-		return sugs;
+        callback(sugs);
+		return;
 	}
 	for (var i = 0; i < contactWrappers.length; i++) {
 		var contact = contactWrappers[i].getContact();
@@ -538,7 +539,25 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text) {
 			}
 		}
 	}
-	return sugs;
+
+    tutao.locator.contacts.find(text).then(function(contacts){
+        for (var i = 0; i < contacts.length; i++) {
+            var contact = contacts[i];
+            var addAllMailAddresses = (text == "" ||
+                tutao.util.StringUtils.startsWith(contact.getFirstName().toLowerCase(), text) ||
+                tutao.util.StringUtils.startsWith(contact.getLastName().toLowerCase(), text) ||
+                tutao.util.StringUtils.startsWith(contactWrappers[i].getFullName().toLowerCase(), text));
+            for (var a = 0; a < contact.getMailAddresses().length; a++) {
+                var mailAddress = contact.getMailAddresses()[a].getAddress().toLowerCase();
+                if (addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text)) {
+                    var suggestionText = contactWrappers[i].getFullName() + " <" + mailAddress + ">";
+                    sugs.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrappers[i], mailAddress: mailAddress }, suggestionText));
+                }
+            }
+        }
+    }).finally(function(){
+        callback(sugs);
+    });
 };
 
 /** @inheritDoc */

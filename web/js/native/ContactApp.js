@@ -8,14 +8,10 @@ tutao.provide('tutao.native.ContactApp');
  */
 tutao.native.ContactApp = function(){};
 
-/**
- * Returns the contacts of this device.
- * @return {Promise.<Array.<mizz.entity.Contact>, Error>} Called with the phone number.
- */
-tutao.native.ContactApp.prototype.getAllContacts = function() {
+tutao.native.ContactApp.prototype.find = function(text) {
     return new Promise(function (resolve, reject) {
         var options      = new ContactFindOptions();
-        options.filter   = "";
+        options.filter   = text;
         options.multiple = true;
         var fields       = ["*"];
 
@@ -24,19 +20,13 @@ tutao.native.ContactApp.prototype.getAllContacts = function() {
                 var contacts = [];
                 for(var i=0;i < nativeContacts.length; i++) {
                     var nativeContact = nativeContacts[i];
-                    var contact = new mizz.entity.Contact({
-                        name: nativeContact.displayName,
-                        phoneNumbers: nativeContact.phoneNumbers
-                    });
-                    if (contact.name) {
-                        contacts.push(contact);
-                    }
+                    var contact = new tutao.entity.tutanota.Contact();
+                    contacts.push(contact);
                 }
-                resolve(contacts.sort(function(a,b) {return a.name < b.name ? -1 : 1}));
+                resolve(contacts);
             } catch(e) {
                 reject(e);
             }
         }, reject, options);
-
     });
 };

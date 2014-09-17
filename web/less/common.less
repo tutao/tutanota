@@ -791,7 +791,6 @@ div.bubbleInput {
     left: 40px;
     right: 2px;
     border: 1px solid @grey;
-    background: @white;
     border-top: 0;
     padding-top: 0px;
     background: rgba(254, 254, 254, 0.75);
@@ -816,6 +815,19 @@ div.bubbleInput {
         background: rgba(red(@light-blue), green(@light-blue), blue(@light-blue), 0.5);
       }
     }
+  }
+
+  > div.autocomplete-loading {
+    z-index: 1;
+    position: absolute;
+    left: 0px;
+    border: 1px solid @grey;
+    border-top: 0;
+    padding-top: 5px;
+    background: rgba(254, 254, 254, 0.75);
+    width: 35px;
+    height: 35px;
+    padding-left: 8px;
   }
 }
 
