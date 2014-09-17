@@ -14,7 +14,7 @@ tutao.tutanota.Bootstrap.init = function () {
         $(window).off();
         
         if (typeof StatusBar != 'undefined') {
-            StatusBar.hide(true);
+			StatusBar.overlaysWebView(false);
         }
    
         if (tutao.tutanota.util.ClientDetector.isSupported()) {
