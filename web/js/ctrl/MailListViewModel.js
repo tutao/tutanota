@@ -150,6 +150,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadMoreMails = function() {
     //return Promise.delay(5000).then(function(){
         return self._loadMoreMails(0, lowestId, tagId).lastly(function(){
             self.loading(false);
+            self._updateNumberOfUnreadMails();
         });
     //});
 };
@@ -303,14 +304,21 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMails = function(mailIds, l
  * @param {Array.<Mail>} mails The mails that are new.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.updateOnNewMails = function(mails) {
-	tutao.locator.notification.add(tutao.lang("newMails_msg"));
+    var mailReceived = false;
 	for (var i = 0; i < mails.length; i++) {
+        if (mails[i].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED) {
+            mailReceived = true;
+        }
         var mailTagId = this._getTagForMail(mails[i]);
         this.currentTagFilterResult[mailTagId].unshift(mails[i].getId()[1]);
         if (this._currentActiveSystemTag() == mailTagId) {
             this.mails.unshift(mails[i]);
         }
 	}
+    if (mailReceived) {
+        tutao.locator.notification.add(tutao.lang("newMails_msg"));
+        this._updateNumberOfUnreadMails();
+    }
 };
 
 tutao.tutanota.ctrl.MailListViewModel.prototype._getTagForMail = function(mail) {
@@ -371,6 +379,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, dom
 	if (mail.getUnread()) {
 		mail.setUnread(false);
 		mail.update();
+        this._updateNumberOfUnreadMails();
 	}
 
 	if (this._multiSelect) {
@@ -580,6 +589,27 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.hideSearchBar = function() {
     this.searchBarVisible(false);
 };
 
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._updateNumberOfUnreadMails = function() {
+    var mailIdList = this.currentTagFilterResult[tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID];
+    var unreadMails = 0;
+    var mailListId = tutao.locator.mailBoxController.getUserMailBox().getMails();
+    return Promise.each(mailIdList, function(mailElementId) {
+        return tutao.entity.tutanota.Mail.load([mailListId, mailElementId]).then(function(mail) {
+            if (mail.getUnread()) {
+                unreadMails++;
+            }
+        });
+    }).then(function() {
+        var buttons = tutao.locator.viewManager.getButtons();
+        for (var i=0; i< buttons.length; i++) {
+            if (buttons[i].getId() == "menu_mail" || buttons[i].getId() == "menu_mail_new") {
+                buttons[i].setBadgeNumber(unreadMails);
+            }
+        }
+        tutao.locator.notification.updateBadge(unreadMails);
+    });
+};
 
 
 

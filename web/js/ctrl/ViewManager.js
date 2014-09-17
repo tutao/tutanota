@@ -24,6 +24,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 480);
         self.windowWidthObservable(width);
 	});
+	this._buttons = [];
 };
 
 
@@ -43,9 +44,9 @@ tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
 };
 
 /**
- * @return {Array.<tutao.tutanota.ctrl.Button>} views All the views of this ViewManager.
+ * @return {Array.<tutao.tutanota.ctrl.Button>} views The buttons of the navigation bar.
  */
-tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
+tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
     var self = this;
     var internalUser = function() {
         return tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn();
@@ -125,7 +126,12 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
             return menuItemWidthSmall;
         }
     };
-    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.getButtons(), "more_label", measureNavButton);
+    this._buttons = this._createButtons();
+    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", measureNavButton);
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
+    return this._buttons;
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.feedbackSupported = function() {

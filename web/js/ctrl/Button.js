@@ -27,6 +27,7 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
     };
     this.imageClass = imageClass;
     this.imageAltTextId = imageAltTextId;
+    this.badge = ko.observable(0);
 };
 
 /**
@@ -62,5 +63,17 @@ tutao.tutanota.ctrl.Button.prototype.getImageAltTextId = function () {
 
 tutao.tutanota.ctrl.Button.prototype.getLabelTextId = function () {
     return this.labelTextId;
+};
+
+tutao.tutanota.ctrl.Button.prototype.getId = function () {
+    return this.id;
+};
+
+/**
+ * Sets the number that shall appear in the badge of this button. No badge is shown if the number is 0.
+ * @param number The number to display.
+ */
+tutao.tutanota.ctrl.Button.prototype.setBadgeNumber = function (number) {
+    this.badge(number);
 };
 

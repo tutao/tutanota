@@ -1743,7 +1743,11 @@
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
-                            <div class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></div>
+                            <div class="menu_image">
+                                <div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
+                                    <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
+                                </div>
+                            </div>
                             <div class="menu_text" data-bind="lang: getLabelTextId()"></div>
                         </li>
                     <!-- /ko -->
