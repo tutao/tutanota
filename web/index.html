@@ -1821,6 +1821,9 @@
 			<div class="autocompletebox" data-bind="foreach: vm.suggestions, css: {hidden: vm.suggestions().length === 0 || !vm.active()}">
 				<div class="autocompleteEntry" data-bind="text: text, fastClick: $parent.vm.acceptSuggestion, event: {mousedown: $parent.vm.suggestionMousedownFired}, css: {selected: $parent.vm.selectedSuggestion() == $data}"></div>
 			</div>
+            <div class="autocomplete-loading" data-bind="visible: vm.loading">
+                <img src="graphics/busy.gif" />
+            </div>
 		</div>
 	</script>
 
