@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="de.tutao.tutanota" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-  <name>tutanota</name>
+  <name>Tutanota</name>
   <description>
     Tutanota is the secure client for end-to-end encrypted mail.
   </description>
