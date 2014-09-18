@@ -9,14 +9,17 @@ tutao.provide("tutao.tutanota.Bootstrap");
  */
 tutao.tutanota.Bootstrap.init = function () {
     var launch = function () {
+
         // disable all registered event handlers on the document and the window
         $(document).off();
         $(window).off();
-        
+		
         if (typeof StatusBar != 'undefined') {
 			StatusBar.overlaysWebView(false);
+			StatusBar.backgroundColorByHexString('#f8f8f8');
+			StatusBar.styleDefault();
         }
-   
+		
         if (tutao.tutanota.util.ClientDetector.isSupported()) {
             $(window).unload(function () {
                 tutao.locator.eventBus.close(); // close the socket in non legacy-mode
@@ -63,9 +66,9 @@ tutao.tutanota.Bootstrap.init = function () {
 
         // only for testing
         //tutao.locator.developerViewModel.open();
-        //tutao.locator.loginViewModel.mailAddress("bernd@tutanota.de");
-        //tutao.locator.loginViewModel.passphrase("bed");
-        //tutao.locator.loginViewModel.login();
+		//tutao.locator.loginViewModel.mailAddress("bernd@tutanota.de");
+		//tutao.locator.loginViewModel.passphrase("bed");
+		//tutao.locator.loginViewModel.login();
         //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
         tutao.tutanota.gui.initKnockout();
     };
