@@ -76,8 +76,6 @@ tutao.native.FileTransferApp.prototype.open = function(dataFile) {
                     fileWriter.onerror = function(e) {
                         reject(e);
                     };
-
-                    // Create a new Blob and write it to log.txt.
                     var blob = new Blob([new DataView(dataFile.getData())], {type: dataFile.getMimeType()});
                     fileWriter.write(blob);
                 }, function(e) {
