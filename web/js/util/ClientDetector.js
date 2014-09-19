@@ -237,7 +237,11 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     } else if (info._device == info.DEVICE_TYPE_ANDROID &&
             info._browser == info.BROWSER_TYPE_ANDROID &&
             info._browserVersion >= 4) {
-        info._supported = info.SUPPORTED_TYPE_LEGACY_ANDROID;
+        if (tutao.env.mode == tutao.Mode.App) {
+            info._supported = info.SUPPORTED_TYPE_SUPPORTED;
+        } else {
+            info._supported = info.SUPPORTED_TYPE_LEGACY_ANDROID;
+        }
     }
 };
 
