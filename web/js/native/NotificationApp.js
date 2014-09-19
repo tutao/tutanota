@@ -17,4 +17,4 @@ tutao.native.NotificationApp.prototype.add = function(message) {
 
 tutao.native.NotificationApp.prototype.updateBadge = function(number) {
     cordova.plugins.notification.badge.set(number);
-}
+};

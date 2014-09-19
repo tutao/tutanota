@@ -591,13 +591,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.createBubblesFromText = function(tex
             continue;
         }
         var recipientInfo = this.getRecipientInfoFromText(part);
-        recipientInfo.resolveType().caught(tutao.ConnectionError, function(e) {
-            // we are offline but we want to show the dialog only when we click on send.
-        });
         if (!recipientInfo) {
             // if one recipient is invalid, we do not return any valid ones because all invalid text would be deleted
             return [];
         }
+        recipientInfo.resolveType().caught(tutao.ConnectionError, function(e) {
+            // we are offline but we want to show the dialog only when we click on send.
+        });
         bubbles.push(this._createBubbleFromRecipientInfo(recipientInfo));
     }
 	return bubbles;
@@ -624,7 +624,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = fun
 /**
  * Retrieves a RecipientInfo instance from a text. The text may be a contact name, contact mail address or other mail address.
  * @param {string} text The text to create a RecipientInfo from.
- * @return {tutao.tutanota.ctrl.RecipientInfo} The recipient info or null if the text is not valid data.
+ * @return {?tutao.tutanota.ctrl.RecipientInfo} The recipient info or null if the text is not valid data.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.getRecipientInfoFromText = function(text) {
 	text = text.trim();

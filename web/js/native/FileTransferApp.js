@@ -11,8 +11,8 @@ tutao.native.FileTransferApp = function() {
 };
 
 tutao.native.FileTransferApp.prototype.downloadAndOpen = function(file) {
+    var self = this;
     if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
-        var self = this;
         var filename = url.split('/')[url.split('/').length - 1];
         return new Promise(function (resolve, reject) {
                            
@@ -55,7 +55,6 @@ tutao.native.FileTransferApp.prototype.downloadAndOpen = function(file) {
 
     } else {
         // download and decrypt file
-        var self = this;
         return tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function (dataFile) {
             return self.open(dataFile);
         });
