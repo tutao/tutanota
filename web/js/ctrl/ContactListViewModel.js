@@ -240,8 +240,8 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.validateBubbleText = function
 /************** implementation of tutao.tutanota.ctrl.bubbleinput.BubbleHandler **************/
 
 /** @inheritDoc */
-tutao.tutanota.ctrl.ContactListViewModel.prototype.getSuggestions = function(text) {
-	return [];
+tutao.tutanota.ctrl.ContactListViewModel.prototype.getSuggestions = function(text, callback) {
+	callback([]);
 };
 
 /** @inheritDoc */

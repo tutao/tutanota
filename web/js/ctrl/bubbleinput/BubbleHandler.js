@@ -15,9 +15,9 @@ tutao.tutanota.ctrl.bubbleinput.BubbleHandler = function() {};
 
 /**
  * @param {string} text The text to filter for.
- * @return {Array.<tutao.tutanota.ctrl.bubbleinput.Suggestion>} suggestions that are valid for text.
+ * @param {function(Array.<tutao.tutanota.ctrl.bubbleinput.Suggestion>)} callback Called with a list of suggestions.
  */
-tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.getSuggestions = function(text) {};
+tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.getSuggestions = function(text, callback) {};
 
 /**
  * Creates a new bubble for a suggestion.

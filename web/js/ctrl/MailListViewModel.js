@@ -616,8 +616,8 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateNumberOfUnreadMails = fun
 /************** implementation of tutao.tutanota.ctrl.bubbleinput.BubbleHandler **************/
 
 /** @inheritDoc */
-tutao.tutanota.ctrl.MailListViewModel.prototype.getSuggestions = function(text) {
-	return [];
+tutao.tutanota.ctrl.MailListViewModel.prototype.getSuggestions = function(text, callback) {
+	callback([]);
 };
 
 /** @inheritDoc */

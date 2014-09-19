@@ -34,6 +34,49 @@ tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper = function() {
 };
 
 /**
+ * Creates a contact with an email address and a name.
+ * @param {string} mailAddress The mail address of the contact. Type is OTHER.
+ * @param {string} name The name of the contact. If an empty string is provided, the name is parsed from the mail address.
+ * @return {tutao.entity.tutanota.ContactWrapper} The wrapped contact.
+ */
+tutao.entity.tutanota.ContactWrapper.createContactWrapper = function(mailAddress, name) {
+		var contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
+
+		// prepare some contact information. it is only saved if the mail is sent securely
+		// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
+		var nameData = [];
+        var addr = mailAddress.substring(0, mailAddress.indexOf("@"));
+        if (name != "") {
+            nameData = name.split(" ");
+        } else if (addr.indexOf(".") != -1) {
+            nameData = addr.split(".");
+        } else if (addr.indexOf("_") != -1) {
+            nameData = addr.split("_");
+        } else if (addr.indexOf("-") != -1) {
+            nameData = addr.split("-");
+        } else {
+            nameData = [addr];
+        }
+        // first character upper case
+        for (var i = 0; i < nameData.length; i++) {
+            if (nameData[i].length > 0) {
+                nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1);
+            }
+        }
+
+        contactWrapper.getContact().setFirstName(nameData[0]);
+        contactWrapper.getContact().setLastName(nameData.slice(1).join(" ")); // all parts of the name except the first part are regarded as lastname
+
+        var newma = new tutao.entity.tutanota.ContactMailAddress(contactWrapper.getContact());
+        newma.setAddress(mailAddress);
+        newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_OTHER);
+        newma.setCustomTypeName("");
+        contactWrapper.getContact().getMailAddresses().push(newma);
+		return contactWrapper;
+};
+
+
+/**
  * Provides the wrapped contact.
  * @return {tutao.entity.tutanota.Contact} The contact.
  */

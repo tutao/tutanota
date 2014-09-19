@@ -21,7 +21,7 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
         this._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
 	}
 	if (!contactWrapper) {
-		this._contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
+		this._contactWrapper = tutao.entity.tutanota.ContactWrapper.createContactWrapper(mailAddress, name);
 	} else {
 		this._contactWrapper = contactWrapper;
 	}
@@ -29,10 +29,7 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
     this._deleted = false;
     this._editableContact = null;
 
-    this._createEditingContact();
-
-    // query the server to find the recipient type
-    var self = this;
+	this._editableContact = this._contactWrapper.startEditingContact(this);
 };
 
 /**
@@ -50,46 +47,6 @@ tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL = 1;
  * @type {number}
  */
 tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL = 2;
-
-tutao.tutanota.ctrl.RecipientInfo.prototype._createEditingContact = function() {
-    this._editableContact = this._contactWrapper.startEditingContact(this);
-    if (!this.isExistingContact()) {
-        // prepare some contact information. it is only saved if the mail is sent securely
-        // use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
-        var nameData = [];
-        var addr = this._mailAddress.substring(0, this._mailAddress.indexOf("@"));
-        if (this._name != "") {
-            nameData = this._name.split(" ");
-        } else if (addr.indexOf(".") != -1) {
-            nameData = addr.split(".");
-        } else if (addr.indexOf("_") != -1) {
-            nameData = addr.split("_");
-        } else if (addr.indexOf("-") != -1) {
-            nameData = addr.split("-");
-        } else {
-            nameData = [addr];
-        }
-        // first character upper case
-        for (var i = 0; i < nameData.length; i++) {
-            if (nameData[i].length > 0) {
-                nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1);
-            }
-        }
-
-        this._editableContact.firstName(nameData[0]);
-        this._editableContact.lastName(nameData.slice(1).join(" "));
-
-        var newma = new tutao.entity.tutanota.ContactMailAddress(this._contactWrapper.getContact());
-        newma.setAddress(this._mailAddress);
-        newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_OTHER);
-        newma.setCustomTypeName("");
-        this._editableContact.mailAddresses.push(new tutao.entity.tutanota.ContactMailAddressEditable(newma));
-    }
-    // Ensure that external users always have a pre shared password to avoid using of automatic transfer password in SendMailFacade
-    if ( tutao.locator.userController.isLoggedInUserFreeAccount() && this._editableContact.presharedPassword() == null){
-        this._editableContact.presharedPassword("");
-    }
-};
 
 /**
  * Must be called before this recipient info is deleted. Stops editing the contact.

@@ -518,6 +518,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getAttachmentImage = function(dataFi
 
 /** @inheritDoc */
 tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text, callback) {
+	var MAX_NBR_OF_SUGGESTIONS = 10;
+
+	var self = this;
 	text = text.trim().toLowerCase();
 	var contactWrappers = tutao.tutanota.ctrl.ComposingMail._getContacts();
 	var sugs = [];
@@ -526,38 +529,46 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text, call
 		return;
 	}
 	for (var i = 0; i < contactWrappers.length; i++) {
-		var contact = contactWrappers[i].getContact();
-		var addAllMailAddresses = (text == "" ||
-				tutao.util.StringUtils.startsWith(contact.getFirstName().toLowerCase(), text) ||
-				tutao.util.StringUtils.startsWith(contact.getLastName().toLowerCase(), text) ||
-				tutao.util.StringUtils.startsWith(contactWrappers[i].getFullName().toLowerCase(), text));
-		for (var a = 0; a < contact.getMailAddresses().length; a++) {
-			var mailAddress = contact.getMailAddresses()[a].getAddress().toLowerCase();
-			if (addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text)) {
-				var suggestionText = contactWrappers[i].getFullName() + " <" + mailAddress + ">";
-				sugs.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrappers[i], mailAddress: mailAddress }, suggestionText));
-			}
+		this._addSuggetionsFromContact(text, MAX_NBR_OF_SUGGESTIONS, sugs, contactWrappers[i]);
+		if (sugs.length >= MAX_NBR_OF_SUGGESTIONS){
+			break;
 		}
 	}
 
-    tutao.locator.contacts.find(text).then(function(contacts){
-        for (var i = 0; i < contacts.length; i++) {
-            var contact = contacts[i];
-            var addAllMailAddresses = (text == "" ||
-                tutao.util.StringUtils.startsWith(contact.getFirstName().toLowerCase(), text) ||
-                tutao.util.StringUtils.startsWith(contact.getLastName().toLowerCase(), text) ||
-                tutao.util.StringUtils.startsWith(contactWrappers[i].getFullName().toLowerCase(), text));
-            for (var a = 0; a < contact.getMailAddresses().length; a++) {
-                var mailAddress = contact.getMailAddresses()[a].getAddress().toLowerCase();
-                if (addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text)) {
-                    var suggestionText = contactWrappers[i].getFullName() + " <" + mailAddress + ">";
-                    sugs.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrappers[i], mailAddress: mailAddress }, suggestionText));
-                }
-            }
-        }
-    }).finally(function(){
-        callback(sugs);
-    });
+	if (sugs.length < MAX_NBR_OF_SUGGESTIONS) {
+		tutao.locator.contacts.findRecipients(text, MAX_NBR_OF_SUGGESTIONS, sugs).finally(function() {
+			callback(sugs);
+		});
+	} else {
+		callback(sugs);
+	}
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._addSuggetionsFromContact = function(text, maxNumberOfSuggestions, suggestions, contactWrapper) {
+	var contact = contactWrapper.getContact();
+	var addAllMailAddresses = (text == "" ||
+			tutao.util.StringUtils.startsWith(contact.getFirstName().toLowerCase(), text) ||
+			tutao.util.StringUtils.startsWith(contact.getLastName().toLowerCase(), text) ||
+			tutao.util.StringUtils.startsWith(contactWrapper.getFullName().toLowerCase(), text));
+	for (var a = 0; a < contact.getMailAddresses().length; a++) {
+		var mailAddress = contact.getMailAddresses()[a].getAddress().toLowerCase();
+		if ((addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text)) && !this._containsSuggestionForMailAddress(suggestions, mailAddress)) {
+			var suggestionText = contactWrapper.getFullName() + " <" + mailAddress + ">";
+			suggestions.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrapper, mailAddress: mailAddress }, suggestionText));
+			if (suggestions.length >= maxNumberOfSuggestions){
+				break;
+			}
+		}
+	}
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._containsSuggestionForMailAddress = function(suggestions, mailAddress) {
+	for( var i=0; i<suggestions.length; i++){
+		if(suggestions[i].id.mailAddress == mailAddress){
+			return true;
+		}
+	}
+	return false;
 };
 
 /** @inheritDoc */

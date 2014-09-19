@@ -58,7 +58,7 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel = function(bubbleHandler) {
     this.inputValue.subscribe(function() {
         var self = this;
         // Disable search if the last search result was already empty and only characters has been appended to the last result's search text.
-        if (this._latestSearchText.length != 0 && tutao.util.StringUtils.startsWith(this.inputValue(), this._latestSearchText) && this.suggestions().length == 0 && !this.loading()) {
+        if ((this._latestSearchText.length != 0 && tutao.util.StringUtils.startsWith(this.inputValue(), this._latestSearchText) && this.suggestions().length == 0 && !this.loading()) || this._latestSearchText == this.inputValue()) {
             return;
         }
         this.loading(true);
