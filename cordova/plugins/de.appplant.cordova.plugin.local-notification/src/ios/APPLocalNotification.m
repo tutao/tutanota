@@ -413,6 +413,12 @@
  */
 - (void) pluginInitialize
 {
+	// TUTAO: Requst for permission to update badge.
+	if ( IsAtLeastiOSVersion(@"8.0") ){
+		UIUserNotificationSettings* notificationSettings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound categories:nil];
+		[[UIApplication sharedApplication] registerUserNotificationSettings:notificationSettings];
+	}
+
     NSNotificationCenter* notificationCenter = [NSNotificationCenter
                                                 defaultCenter];
 
