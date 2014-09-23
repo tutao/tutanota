@@ -1,0 +1,26 @@
+{
+    "version": "0.3.10",
+    "name": "org.apache.cordova.vibration",
+    "cordova_name": "Vibration",
+    "description": "Cordova Vibration Plugin",
+    "license": "Apache 2.0",
+    "repo": "https://git-wip-us.apache.org/repos/asf/cordova-plugin-vibration.git",
+    "issue": "https://issues.apache.org/jira/browse/CB/component/12320639",
+    "keywords": [
+        "cordova",
+        "vibration"
+    ],
+    "platforms": [
+        "firefoxos",
+        "wp7",
+        "wp8",
+        "android",
+        "amazon-fireos",
+        "ubuntu",
+        "ios",
+        "blackberry10",
+        "tizen"
+    ],
+    "engines": [],
+    "englishdoc": "<!---\n    Licensed to the Apache Software Foundation (ASF) under one\n    or more contributor license agreements.  See the NOTICE file\n    distributed with this work for additional information\n    regarding copyright ownership.  The ASF licenses this file\n    to you under the Apache License, Version 2.0 (the\n    \"License\"); you may not use this file except in compliance\n    with the License.  You may obtain a copy of the License at\n\n      http://www.apache.org/licenses/LICENSE-2.0\n\n    Unless required by applicable law or agreed to in writing,\n    software distributed under the License is distributed on an\n    \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n    KIND, either express or implied.  See the License for the\n    specific language governing permissions and limitations\n    under the License.\n-->\n\n# org.apache.cordova.vibration\n\nThis plugin provides a way to vibrate the device.\n\n## Installation\n\n    cordova plugin add org.apache.cordova.vibration\n\n## Supported Platforms\n\nnavigator.notification.vibrate\n- Amazon Fire OS\n- Android\n- BlackBerry 10\n- Firefox OS\n- iOS\n- Windows Phone 7 and 8\n\nnavigator.notification.vibrateWithPattern,<br />navigator.notification.cancelVibration\n- Android\n\n## notification.vibrate\n\nVibrates the device for a given amount of time.\n\n    navigator.notification.vibrate(time)\n\n- __time__: Milliseconds to vibrate the device. _(Number)_\n\n### Example\n\n    // Vibrate for 2.5 seconds\n    navigator.notification.vibrate(2500);\n\n### iOS Quirks\n\n- __time__: Ignores the specified time and vibrates for a pre-set amount of time.\n\n        navigator.notification.vibrate();\n        navigator.notification.vibrate(2500);   // 2500 is ignored\n\n## notification.vibrateWithPattern\n\nVibrates the device with a given pattern.\n\n    navigator.notification.vibrateWithPattern(pattern, repeat)\n\n- __pattern__: Sequence of durations (in milliseconds) for which to turn on or off the vibrator. _(Array of Numbers)_\n- __repeat__: Optional index into the pattern array at which to start repeating (will repeat until canceled), or -1 for no repetition (default). _(Number)_\n\n### Example\n\n    // Immediately start vibrating\n    // vibrate for 100ms,\n    // wait for 100ms,\n    // vibrate for 200ms,\n    // wait for 100ms,\n    // vibrate for 400ms,\n    // wait for 100ms,\n    // vibrate for 800ms,\n    // (do not repeat)\n    navigator.notification.vibrateWithPattern([0, 100, 100, 200, 100, 400, 100, 800]);\n\n## notification.cancelVibration\n\nImmediately cancels any currently running vibration.\n\n    navigator.notification.cancelVibration()\n"
+}
