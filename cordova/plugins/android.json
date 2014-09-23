@@ -33,22 +33,6 @@
                             "count": 1
                         },
                         {
-                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
-                            "count": 1
-                        },
-                        {
                             "xml": "<feature name=\"Contacts\"><param name=\"android-package\" value=\"org.apache.cordova.contacts.ContactManager\" /></feature>",
                             "count": 1
                         },
@@ -63,6 +47,22 @@
                         {
                             "xml": "<feature name=\"Open\"><param name=\"android-package\" value=\"com.bridge.Open\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -75,11 +75,11 @@
                             "count": 1
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
                             "count": 1
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
                             "count": 1
                         }
                     ],
@@ -143,12 +143,6 @@
         "org.apache.cordova.file-transfer": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.tutanota.native": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.statusbar": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "org.apache.cordova.contacts": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
@@ -159,6 +153,12 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.bridge.open": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.statusbar": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
