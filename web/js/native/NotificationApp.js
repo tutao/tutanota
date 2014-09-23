@@ -11,7 +11,6 @@ tutao.native.NotificationApp = function(){
 
 tutao.native.NotificationApp.prototype.add = function(message) {
     window.plugin.notification.local.add({ message: message, autoCancel: true});
-    navigator.notification.beep(1);
     navigator.notification.vibrate(300);
 };
 
