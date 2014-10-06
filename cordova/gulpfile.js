@@ -10,5 +10,5 @@ gulp.task('default', shell.task([
 gulp.task('ios', shell.task([
     'cordova plugins remove de.tutanota.native',
     'cordova plugins add ../native/',
-    'cordova run ios'
+   
 ]));

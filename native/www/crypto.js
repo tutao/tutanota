@@ -31,8 +31,8 @@ Crypto.prototype.rsaEncrypt = function (publicKey, bytes) {
 
 /**
  * Decrypt bytes with the provided privateKey
- * @param {Object} privateKey
- * @param {Array.<number>} bytes
+ * @param {tutao.native.PrivateKey} privateKey
+ * @param {Uint8Array} bytes
  * @return {Promise.<Array.<number>, Error>} will return the decrypted bytes.
  */
 Crypto.prototype.rsaDecrypt = function (privateKey, bytes) {

@@ -16,7 +16,7 @@
                     "Foundation.framework": [
                         {
                             "xml": "false",
-                            "count": 1
+                            "count": 2
                         }
                     ],
                     "AddressBook.framework": [
@@ -74,6 +74,10 @@
                         },
                         {
                             "xml": "<feature name=\"LocalNotification\"><param name=\"ios-package\" onload=\"true\" value=\"APPLocalNotification\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Crypto\"><param name=\"ios-package\" value=\"Crypto\" /></feature>",
                             "count": 1
                         },
                         {
