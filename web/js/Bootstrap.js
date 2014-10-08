@@ -97,11 +97,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     var fileTransferImpl = tutao.native.FileTransferBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
-        
-        if (cordova.platformId != "ios"){
-            cryptoImpl = tutao.native.device.Crypto;
-        }
-        
+        cryptoImpl = tutao.native.device.Crypto;
         phoneImpl = tutao.native.device.Phone;
         notificationImpl = tutao.native.NotificationApp;
         contactImpl = tutao.native.ContactApp;

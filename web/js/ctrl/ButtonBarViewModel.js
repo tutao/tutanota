@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.init = function() {
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._initWidth = function() {
     this.maxWidth = $(this.domButtonBar()).width();
     if (this.maxWidth == 0) {
-        setTimeout(this._initWidth, 10);
+        setTimeout(this._initWidth, 100);
     } else {
         this.updateVisibleButtons();
     }
