@@ -17,8 +17,8 @@
 #import <openssl/err.h>
 #import <openssl/evp.h>
 #import "rsa_oaep_sha256.h"
-
 #import <openssl/bn.h>
+#import <openssl/rand.h>
 
 @implementation Crypto
 
@@ -31,6 +31,13 @@
 		NSString * publicExponent = @"65537";
 		BIGNUM * e = BN_new();
 		BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
+		
+		// seeds the PRNG (pseudorandom number generator)
+		NSString * base64Seed = [command.arguments objectAtIndex:1];
+		NSData * seed = [NSData dataFromBase64String:base64Seed];
+		RAND_seed([seed bytes], [seed length]);
+
+		// generate rsa key
 		int status = RSA_generate_key_ex(rsaKey, keyLengthInt, e, NULL);
 		if ( status > 0 ){
 			NSMutableDictionary* keyPair = [Crypto createRSAKeyPair:rsaKey keyLength:keyLength version:[NSNumber numberWithInt:0]];
@@ -39,6 +46,8 @@
 			[Crypto logError:@"Error while generating rsa key"];
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
 		}
+		BN_free(e);
+		RSA_free(rsaKey);
 	} else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     }
@@ -78,6 +87,7 @@
 		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
 	}
    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	RSA_free(publicRsaKey);
 }
 
 - (void)rsaDecrypt:(CDVInvokedUrlCommand*)command{
@@ -123,6 +133,7 @@
 		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
 	}
 	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	RSA_free(privateRsaKey);
 }
 
 
