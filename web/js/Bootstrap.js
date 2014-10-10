@@ -64,8 +64,20 @@ tutao.tutanota.Bootstrap.init = function () {
             var listener = new tutao.tutanota.ctrl.AppCacheListener();
         }
 
+
+		// open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
+		$(document).on("click", "a", function(e){
+			if (tutao.env.mode == tutao.Mode.App) {
+				window.open(this.href, "_system");
+				return false; // Prevent execution of the default onClick handler
+			}else{
+				return true;
+			}
+		});
+
+
         // only for testing
-        //tutao.locator.developerViewModel.open();
+		//tutao.locator.developerViewModel.open();
 		//tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
 		//tutao.locator.loginViewModel.passphrase("map");
 		//tutao.locator.loginViewModel.login();
@@ -97,11 +109,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     var fileFacadeImpl = tutao.native.FileFacadeBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
-        
-        if (cordova.platformId != "ios"){
-            cryptoImpl = tutao.native.device.Crypto;
-        }
-        
+        cryptoImpl = tutao.native.device.Crypto;
         phoneImpl = tutao.native.device.Phone;
         notificationImpl = tutao.native.NotificationApp;
         contactImpl = tutao.native.ContactApp;

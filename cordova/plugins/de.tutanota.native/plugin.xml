@@ -52,4 +52,20 @@
 	</config-file>
 	<resource-file src="res/android/xml/paths.xml" target="res/xml/paths.xml" />
   </platform>
+  <platform name="ios">
+    <config-file parent="/*" target="config.xml">
+      <feature name="Crypto">
+        <param name="ios-package" value="Crypto"/>
+      </feature>
+    </config-file>
+    <framework src="Foundation.framework"/>
+	<source-file src="src/ios/Crypto.m"/>
+    <header-file src="src/ios/Crypto.h"/>
+	<header-file src="src/ios/rsa_oaep_sha256.h"/>
+	<source-file src="src/ios/rsa_oaep_sha256.c"/>
+	<source-file src="lib/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
+	<header-file src="src/ios/JFBCrypt.h"/>
+	<source-file src="src/ios/JFBCrypt.m"/>
+	<header-file src="src/ios/JFGC.h"/>
+  </platform>
 </plugin>

@@ -77,7 +77,7 @@ tutao.native.RsaInterfaceAdapter.prototype._convertToPrivateKey = function (priv
 };
 
 tutao.native.RsaInterfaceAdapter.prototype._base64ToBigInt = function (base64) {
-    return new BigInteger(new Int8Array(tutao.util.EncodingConverter.base64ToArray(base64)));
+    return parseBigInt(tutao.util.EncodingConverter.base64ToHex(base64),16);
 };
 
 /**

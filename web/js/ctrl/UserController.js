@@ -148,7 +148,7 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
     self._mailAddress = mailAddress.toLowerCase().trim();
     return tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(self.getMailAddress()), {}, null).then(function (saltData) {
         self._hexSalt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
-        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, self._hexSalt);
+        return tutao.locator.crypto.generateKeyFromPassphrase(passphrase, self._hexSalt);
     }).then(function (hexKey) {
         // the verifier is always sent as url parameter, so it must be url encoded
         self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
@@ -214,7 +214,7 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
     var self = this;
     this.reset();
 
-    return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex).then(function (hexKey) {
+    return tutao.locator.crypto.generateKeyFromPassphrase(password, saltHex).then(function (hexKey) {
         // the verifier is always sent as url parameter, so it must be url encoded
         self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
         self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(saltHex));

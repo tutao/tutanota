@@ -17,6 +17,14 @@ tutao.native.CryptoInterface = function(){};
 tutao.native.CryptoInterface.prototype.generateRsaKey = function(keyLength) {};
 
 /**
+ * Create a 128 bit symmetric key from the given passphrase.
+ * @param {string} passphrase The passphrase to use for key generation as utf8 string.
+ * @param {string} salt 128 bit of random data, encoded as a hex string.
+ * @return {Promise.<string>} Resolved with the hex codec key
+ */
+tutao.native.CryptoInterface.prototype.generateKeyFromPassphrase = function(passphrase, salt) {};
+
+/**
  * Encrypt bytes with the provided publicKey
  * @param {tutao.native.PublicKey} publicKey
  * @param {Uint8Array} bytes

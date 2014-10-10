@@ -262,6 +262,10 @@ tutao.native.CryptoBrowser.prototype.generateRsaKey = function (keyLength) {
     });
 };
 
+tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
+    return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
+};
+
 tutao.native.CryptoBrowser.prototype.rsaEncrypt = function (publicKey, bytes) {
     var self = this;
     var random = this._random(32);
