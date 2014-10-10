@@ -34,7 +34,7 @@
                     "CoreGraphics.framework": [
                         {
                             "xml": "false",
-                            "count": 1
+                            "count": 2
                         }
                     ],
                     "AudioToolbox.framework": [
@@ -97,6 +97,10 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"InAppBrowser\"><param name=\"ios-package\" value=\"CDVInAppBrowser\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"StatusBar\"><param name=\"ios-package\" onload=\"true\" value=\"CDVStatusBar\" /></feature>",
                             "count": 1
                         },
@@ -150,6 +154,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.file-transfer": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.inappbrowser": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.statusbar": {

@@ -49,6 +49,14 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"InAppBrowser\"><param name=\"android-package\" value=\"org.apache.cordova.inappbrowser.InAppBrowser\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
                             "count": 1
                         },
@@ -58,10 +66,6 @@
                         },
                         {
                             "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
                             "count": 1
                         }
                     ]
@@ -155,10 +159,13 @@
         "com.bridge.open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.tutanota.native": {
+        "org.apache.cordova.statusbar": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "org.apache.cordova.statusbar": {
+        "org.apache.cordova.inappbrowser": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
