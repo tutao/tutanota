@@ -4,7 +4,7 @@ describe("RsaTest", function () {
 
     var assert = chai.assert;
 
-    this.timeout(1000 * 60); // 1 min
+    this.timeout(1000 * 60 *3); // 3 min
 
     var _rsa;
     var getFacade = function () {

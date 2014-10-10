@@ -28,7 +28,8 @@
  *  returns Cordova entry
  */
 
-var info = require("org.apache.cordova.file.bb10FileSystemInfo");
+var info = require('org.apache.cordova.file.bb10FileSystemInfo'),
+    fileSystems = require('org.apache.cordova.file.fileSystems');
 
 module.exports = function (native) {
     var entry = {
@@ -56,6 +57,10 @@ module.exports = function (native) {
     } else if (entry.filesystemName === 'local__0:Temporary' || entry.fullPath.indexOf(temporaryPath) !== -1) {
         entry.filesystemName = 'temporary';
     }
+    //add file system property (will be called sync)
+    fileSystems.getFs(entry.filesystemName, function (fs) {
+        entry.filesystem = fs;
+    });
     //set root on fullPath for persistent / temporary locations
     entry.fullPath = entry.fullPath.replace(persistentPath, "");
     entry.fullPath = entry.fullPath.replace(temporaryPath, "");

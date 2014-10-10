@@ -11,13 +11,22 @@ describe("ClassHierarchiesTest", function () {
 
         // crypto
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes, tutao.crypto.AesInterface));
-        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.AesWorkerProxy, tutao.crypto.AesInterface));
-        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JsbnRsa, tutao.crypto.RsaInterface));
-        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.RsaWorkerProxy, tutao.crypto.RsaInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclRandomizer, tutao.crypto.RandomizerInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.WorkerRandomizer, tutao.crypto.RandomizerInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JBCryptAdapter, tutao.crypto.KdfInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclSha256, tutao.crypto.ShaInterface));
+
+        // native
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.ContactApp, tutao.native.ContactInterface));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.ContactBrowser, tutao.native.ContactInterface));
+
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.CryptoBrowser, tutao.native.CryptoInterface));
+
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.FileFacadeAndroidApp, tutao.native.FileFacade));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.FileFacadeBrowser, tutao.native.FileFacade));
+
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.NotificationApp, tutao.native.NotificationInterface));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.NotificationBrowser, tutao.native.NotificationInterface));
 
         // entity rest
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.rest.EntityRestClient, tutao.rest.EntityRestInterface));

@@ -22,7 +22,7 @@
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="org.apache.cordova.contacts"
-    version="0.2.12">
+    version="0.2.13">
 
     <name>Contacts</name>
     <description>Cordova Contacts Plugin</description>
@@ -64,7 +64,7 @@
     </js-module>
 
     <js-module src="www/ContactFieldType.js" name="ContactFieldType">
-            <merge target="" />
+        <merges target="" />
     </js-module>
 
     <!-- android -->
@@ -216,6 +216,13 @@
     <!-- Windows 8 -->
     <platform name="windows8">
         <js-module src="src/windows8/ContactProxy.js" name="ContactProxy">
+            <merges target="" />
+        </js-module>
+    </platform>
+
+    <!-- Windows -->
+    <platform name="windows">
+        <js-module src="src/windows/ContactProxy.js" name="ContactProxy">
             <merges target="" />
         </js-module>
     </platform>

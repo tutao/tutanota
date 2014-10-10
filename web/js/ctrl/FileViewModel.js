@@ -41,8 +41,8 @@ tutao.tutanota.ctrl.FileViewModel.prototype.downloadFile = function(file) {
 		return;
 	}
 	this.currentlyDownloadingFile(file);
-	tutao.tutanota.ctrl.FileFacade.readFileData(file).then(function(dataFile) {
-		return tutao.tutanota.util.FileUtils.provideDownload(dataFile);
+    tutao.locator.fileFacade.readFileData(file).then(function(dataFile) {
+		return tutao.locator.fileFacade.open(dataFile);
 	}).lastly(function() {
         self.currentlyDownloadingFile(null);
     });

@@ -110,19 +110,12 @@
 <script src="/js/Bootstrap.js"></script>
 <script src="/js/Locator.js"></script>
 <script src="/js/crypto/AesInterface.js"></script>
-<script src="/js/crypto/AesWorkerProxy.js"></script>
-<script src="/js/crypto/ClientWorker.js"></script>
-<script src="/js/crypto/ClientWorkerImpl.js"></script>
-<script src="/js/crypto/ClientWorkerProxy.js"></script>
 <script src="/js/crypto/CryptoError.js"></script>
 <script src="/js/crypto/EntropyCollector.js"></script>
 <script src="/js/crypto/JBCryptAdapter.js"></script>
-<script src="/js/crypto/JsbnRsa.js"></script>
 <script src="/js/crypto/KdfInterface.js"></script>
 <script src="/js/crypto/Oaep.js"></script>
 <script src="/js/crypto/RandomizerInterface.js"></script>
-<script src="/js/crypto/RsaInterface.js"></script>
-<script src="/js/crypto/RsaWorkerProxy.js"></script>
 <script src="/js/crypto/SecureRandom.js"></script>
 <script src="/js/crypto/ShaInterface.js"></script>
 <script src="/js/crypto/SjclAes.js"></script>
@@ -138,6 +131,26 @@
 <script src="/js/entity/EntityHelper.js"></script>
 <script src="/js/entity/TutanotaConstants.js"></script>
 <script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
+<script src="/js/gui/BubbleInputGui.js"></script>
+<script src="/js/gui/ContactView.js"></script>
+<script src="/js/gui/ExternalLoginView.js"></script>
+<script src="/js/gui/FastMessageView.js"></script>
+<script src="/js/gui/FileView.js"></script>
+<script src="/js/gui/LoginView.js"></script>
+<script src="/js/gui/MailView.js"></script>
+<script src="/js/gui/NotFoundView.js"></script>
+<script src="/js/gui/NotSupportedView.js"></script>
+<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
+<script src="/js/gui/RegistrationView.js"></script>
+<script src="/js/gui/SettingsView.js"></script>
+<script src="/js/gui/SwipeSlider.js"></script>
+<script src="/js/gui/gui.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
@@ -158,7 +171,6 @@
 <script src="/js/ctrl/DropDownViewModel.js"></script>
 <script src="/js/ctrl/ExternalLoginViewModel.js"></script>
 <script src="/js/ctrl/FeedbackViewModel.js"></script>
-<script src="/js/ctrl/FileFacade.js"></script>
 <script src="/js/ctrl/FileViewModel.js"></script>
 <script src="/js/ctrl/FontViewModel.js"></script>
 <script src="/js/ctrl/GroupData.js"></script>
@@ -190,37 +202,17 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
-<script src="/js/index/Indexer.js"></script>
-<script src="/js/gui/BubbleInputGui.js"></script>
-<script src="/js/gui/ContactView.js"></script>
-<script src="/js/gui/ExternalLoginView.js"></script>
-<script src="/js/gui/FastMessageView.js"></script>
-<script src="/js/gui/FileView.js"></script>
-<script src="/js/gui/LoginView.js"></script>
-<script src="/js/gui/MailView.js"></script>
-<script src="/js/gui/NotFoundView.js"></script>
-<script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
-<script src="/js/gui/RegistrationView.js"></script>
-<script src="/js/gui/SettingsView.js"></script>
-<script src="/js/gui/SwipeSlider.js"></script>
-<script src="/js/gui/gui.js"></script>
 <script src="/js/legacy/FlashFileSaver.js"></script>
 <script src="/js/legacy/Legacy.js"></script>
+<script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ContactApp.js"></script>
 <script src="/js/native/ContactBrowser.js"></script>
 <script src="/js/native/ContactInterface.js"></script>
+<script src="/js/native/CryptoBrowser.js"></script>
 <script src="/js/native/CryptoInterface.js"></script>
-<script src="/js/native/CryptoJsbn.js"></script>
-<script src="/js/native/FileTransferApp.js"></script>
-<script src="/js/native/FileTransferBrowser.js"></script>
-<script src="/js/native/FileTransferInterface.js"></script>
+<script src="/js/native/FileFacade.js"></script>
+<script src="/js/native/FileFacadeAndroidApp.js"></script>
+<script src="/js/native/FileFacadeBrowser.js"></script>
 <script src="/js/native/KeyPair.js"></script>
 <script src="/js/native/NotificationApp.js"></script>
 <script src="/js/native/NotificationBrowser.js"></script>
@@ -236,6 +228,7 @@
 <script src="/js/rest/EntityRestInterface.js"></script>
 <script src="/js/rest/ResourceConstants.js"></script>
 <script src="/js/rest/RestClient.js"></script>
+<script src="/js/index/Indexer.js"></script>
 <script src="/js/security/CajaSanitizer.js"></script>
 <script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
@@ -1620,71 +1613,6 @@
                     <h2 data-bind="text: title"></h2>
                     <div data-bind="html: details"></div>
                 </li>
-                <!--
-                <li data-bind="click: createNotification">
-                    <div class="icon"></div>
-                    <div class="details">
-                        <div>
-                            <div class="heading">createNotification</div>
-                        </div>
-                        <div class="info"></div>
-                    </div>
-                </li>
-                <li data-bind="click: increaseBadge">
-                    <div class="icon"></div>
-                    <div class="details">
-                        <div>
-                            <div class="heading">increase Badge</div>
-                        </div>
-                        <div class="info"></div>
-                    </div>
-                </li>
-                <li data-bind="click: decreaseBadge">
-                    <div class="icon"></div>
-                    <div class="details">
-                        <div>
-                            <div class="heading">decrease Badge</div>
-                        </div>
-                        <div class="info"></div>
-                    </div>
-                </li>
-                <li data-bind="click: toggleWebSocket">
-                    <div class="icon"></div>
-                    <div class="details">
-                        <div>
-                            <div class="heading">toggle WebSocket</div>
-                        </div>
-                        <div class="info" data-bind="text: mizz.l.eventBus.state"></div>
-                    </div>
-                </li>
-                <li>
-                    <div class="icon"></div>
-                    <div class="details">
-                        <div>
-                            <div class="heading">
-                                <div class="btn-group" data-bind="click: toggleDownload, css: {open: downloadDropdownOpen}">
-                                    <button type="button" class="btn btn-default dropdown-toggle">Download<span class="caret"></span>
-                                    </button>
-                                    <ul class="dropdown-menu" role="menu" data-bind="foreach: files">
-                                        <li data-bind="text: $data, click: $parent.downloadAndOpen"></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info" data-bind="text: downloadResult"></div>
-                    </div>
-                </li>
-                <li>
-                    <a href="test.html">
-                        <div class="icon"></div>
-                        <div class="details">
-                            <div>
-                                <div class="heading">run unit tests</div>
-                            </div>
-                        </div>
-                    </a>
-                </li>
-                -->
             </ul>
         </div>
     </div>

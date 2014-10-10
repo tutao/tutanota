@@ -141,7 +141,9 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     }
     var self = this;
     this.currentlyDownloadingAttachment(file);
-    tutao.locator.fileTransfer.downloadAndOpen(file).lastly(function (e) {
+    tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
+        tutao.locator.fileFacade.open(dataFile);
+    }).lastly(function (e) {
         self.currentlyDownloadingAttachment(null);
     });
 };

@@ -68,12 +68,14 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
     var aes = tutao.locator.aesCrypter;
     if (dataFile instanceof tutao.entity.tutanota.File) {
+        // forwarded attachment
         var fileSessionKey = dataFile._entityHelper.getSessionKey();
         attachment.setFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
-    } else if (dataFile instanceof tutao.tutanota.util.DataFile) {
+    } else if (dataFile instanceof tutao.tutanota.util.DataFile || dataFile instanceof tutao.native.AndroidFile) {
+        // user added attachment
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
+        return tutao.locator.fileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
             attachment.setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
                 .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setFileData(fileDataId);
@@ -85,7 +87,7 @@ tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataF
 };
 
 tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData = function(dataFile, sessionKey) {
-    return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
+    return tutao.locator.fileFacade.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
         return tutao.entity.tutanota.FileData.load(fileDataId);
     });
 };

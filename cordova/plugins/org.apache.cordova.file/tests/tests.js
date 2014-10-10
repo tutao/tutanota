@@ -249,11 +249,7 @@ exports.defineAutoTests = function () {
                         expect(fileEntry).toBeDefined();
                         expect(fileEntry.name).toCanonicallyMatch(fileName);
                         expect(fileEntry.toURL()).not.toMatch(/^cdvfile:/, 'should not use cdvfile URL');
-                        if (cordova.platformId === 'windowsphone') {
-                            expect(fileEntry.toURL()).not.toMatch(/\/$/, 'URL end with a slash');
-                        } else {
-                            expect(fileEntry.toURL()).toMatch(/\/$/, 'URL end with a slash');
-                        }
+                        expect(fileEntry.toURL()).toMatch(/\/$/, 'URL end with a slash');
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -750,8 +746,8 @@ exports.defineAutoTests = function () {
                 // remove root file system
                 root.removeRecursively(succeed.bind(null, done, 'root.removeRecursively - Unexpected success callback, root cannot be removed'), remove);
             });
-        });
-        describe('DirectoryReader interface', function () {
+        }); 
+        describe('DirectoryReader interface', function () {  
             describe("readEntries", function () {
                 it("file.spec.37 should read contents of existing directory", function (done) {
                     var reader,
@@ -998,7 +994,6 @@ exports.defineAutoTests = function () {
                 // create a new directory entry
                 createDirectory(dirName, function (entry) {
                     entry.getParent(function (parent) {
-                        //alert("parent: "+JSON.stringify(parent));
                         expect(parent).toBeDefined();
                         expect(parent.fullPath).toCanonicallyMatch(rootPath);
                         // cleanup
@@ -2627,10 +2622,7 @@ exports.defineAutoTests = function () {
              */
             it("file.spec.109 should be able to resolve a file:/// URL", function (done) {
                 var localFilename = 'file.txt';
-                var originalEntry,
-                unsupportedOperation = function () {
-                    return true;
-                };
+                var originalEntry;
                 root.getFile(localFilename, {
                     create : true
                 }, function (entry) {
@@ -2647,11 +2639,8 @@ exports.defineAutoTests = function () {
                             deleteFile(localFilename);
                             done();
                         }, failed.bind(null, done, 'window.resolveLocalFileSystemURL - Error resolving URI: file://' + encodeURI(localPath)));
-                    }, unsupportedOperation, 'File', '_getLocalFilesystemPath', [entry.toURL()]);
+                    }, done, 'File', '_getLocalFilesystemPath', [entry.toURL()]);
                 }, failed.bind(null, done, 'root.getFile - Error creating file: ' + localFilename));
-                if (unsupportedOperation) {
-                    done();
-                }
             });
         });
         //Backwards Compatibility
@@ -2685,7 +2674,7 @@ exports.defineAutoTests = function () {
                     }, function (fileEntry) {
                         expect(fileEntry).toBeDefined();
                         expect(fileEntry.name).toBe(fileName);
-                        expect(fileEntry.fullPath).toBe('/' + fileName);
+                        expect(fileEntry.fullPath).toCanonicallyMatch('/' + fileName);
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -2704,7 +2693,7 @@ exports.defineAutoTests = function () {
                         }, function (fileEntry) {
                             expect(fileEntry).toBeDefined();
                             expect(fileEntry.name).toBe(fileName);
-                            expect(fileEntry.fullPath).toBe('/' + fileName);
+                            expect(fileEntry.fullPath).toCanonicallyMatch('/' + fileName);
                             // cleanup
                             deleteEntry(fileName);
                             deleteEntry(dirName);
@@ -2832,7 +2821,7 @@ exports.defineAutoTests = function () {
                 // create a new file entry
                 createFile(fileName, function (entry) {
                     resolveLocalFileSystemURL(entry.toNativeURL(), function (fileEntry) {
-                        expect(fileEntry.fullPath).toEqual("/" + fileName);
+                        expect(fileEntry.fullPath).toCanonicallyMatch("/" + fileName);
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -2846,7 +2835,7 @@ exports.defineAutoTests = function () {
                     var url = entry.toNativeURL();
                     url = url.replace("///", "//localhost/");
                     resolveLocalFileSystemURL(url, function (fileEntry) {
-                        expect(fileEntry.fullPath).toEqual("/" + fileName);
+                        expect(fileEntry.fullPath).toCanonicallyMatch("/" + fileName);
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -2860,7 +2849,7 @@ exports.defineAutoTests = function () {
                     var url = entry.toNativeURL();
                     url = url + "?test/test";
                     resolveLocalFileSystemURL(url, function (fileEntry) {
-                        expect(fileEntry.fullPath).toEqual("/" + fileName);
+                        expect(fileEntry.fullPath).toCanonicallyMatch("/" + fileName);
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -2874,7 +2863,7 @@ exports.defineAutoTests = function () {
                     var url = entry.toNativeURL();
                     url = url.replace("///", "//localhost/") + "?test/test";
                     resolveLocalFileSystemURL(url, function (fileEntry) {
-                        expect(fileEntry.fullPath).toEqual("/" + fileName);
+                        expect(fileEntry.fullPath).toCanonicallyMatch("/" + fileName);
                         // cleanup
                         deleteEntry(fileName);
                         done();
@@ -2926,7 +2915,7 @@ exports.defineAutoTests = function () {
                 var file1 = "entry.copy.file1b",
                 file2 = "entry.copy.file2b",
                 sourceEntry,
-                fullPath = joinURL(root.fullPath, file2),
+                fullPath = joinURL(temp_root.fullPath, file2),
                 validateFile = function (entry) {
                     expect(entry).toBeDefined();
                     expect(entry.isFile).toBe(true);
@@ -2995,7 +2984,7 @@ exports.defineAutoTests = function () {
                 var file1 = "entry.copy.file1b",
                 file2 = "entry.copy.file2b",
                 sourceEntry,
-                fullPath = joinURL(root.fullPath, file2),
+                fullPath = joinURL(temp_root.fullPath, file2),
                 validateFile = function (entry) {
                     expect(entry).toBeDefined();
                     expect(entry.isFile).toBe(true);
@@ -3027,7 +3016,7 @@ exports.defineAutoTests = function () {
             });
             it("file.spec.129 cordova.file.*Directory are set", function () {
                 var expectedPaths = ['applicationDirectory', 'applicationStorageDirectory', 'dataDirectory', 'cacheDirectory'];
-                if (cordova.platformId == 'android') {
+                if (cordova.platformId == 'android' || cordova.platformId == 'amazon-fireos') {
                     expectedPaths.push('externalApplicationStorageDirectory', 'externalRootDirectory', 'externalCacheDirectory', 'externalDataDirectory');
                 } else if (cordova.platformId == 'blackberry10') {
                     expectedPaths.push('externalRootDirectory', 'sharedDirectory');
@@ -3049,11 +3038,123 @@ exports.defineAutoTests = function () {
     //File API describe
 
 };
-/*
+//******************************************************************************************
+//***************************************Manual Tests***************************************
+//******************************************************************************************
+
 exports.defineManualTests = function (contentEl, createActionButton) {
-createActionButton('Dump device', function () {
-console.log(JSON.stringify(window.device, null, '\t'));
-});
+
+    function resolveFs(fsname) {
+        var fsURL = "cdvfile://localhost/" + fsname + "/";
+        logMessage("Resolving URL: " + fsURL);
+        resolveLocalFileSystemURL(fsURL, function (entry) {
+            logMessage("Success", 'green');
+            logMessage(entry.toURL(), 'blue');
+            logMessage(entry.toInternalURL(), 'blue');
+            logMessage("Resolving URL: " + entry.toURL());
+            resolveLocalFileSystemURL(entry.toURL(), function (entry2) {
+                logMessage("Success", 'green');
+                logMessage(entry2.toURL(), 'blue');
+                logMessage(entry2.toInternalURL(), 'blue');
+            }, logError("resolveLocalFileSystemURL"));
+        }, logError("resolveLocalFileSystemURL"));
+    }
+
+    function testPrivateURL() {
+        requestFileSystem(TEMPORARY, 0, function (fileSystem) {
+            logMessage("Temporary root is at " + fileSystem.root.toNativeURL());
+            fileSystem.root.getFile("testfile", {
+                create : true
+            }, function (entry) {
+                logMessage("Temporary file is at " + entry.toNativeURL());
+                if (entry.toNativeURL().substring(0, 12) == "file:///var/") {
+                    logMessage("File starts with /var/, trying /private/var");
+                    var newURL = "file://localhost/private/var/" + entry.toNativeURL().substring(12) + "?and=another_thing";
+                    //var newURL = entry.toNativeURL();
+                    logMessage(newURL, 'blue');
+                    resolveLocalFileSystemURL(newURL, function (newEntry) {
+                        logMessage("Successfully resolved.", 'green');
+                        logMessage(newEntry.toURL(), 'blue');
+                        logMessage(newEntry.toNativeURL(), 'blue');
+                    }, logError("resolveLocalFileSystemURL"));
+                }
+            }, logError("getFile"));
+        }, logError("requestFileSystem"));
+    }
+
+    function clearLog() {
+        var log = document.getElementById("info");
+        log.innerHTML = "";
+    }
+
+    function logMessage(message, color) {
+        var log = document.getElementById("info");
+        var logLine = document.createElement('div');
+        if (color) {
+            logLine.style.color = color;
+        }
+        logLine.innerHTML = message;
+        log.appendChild(logLine);
+    }
+
+    function logError(serviceName) {
+        return function (err) {
+            logMessage("ERROR: " + serviceName + " " + JSON.stringify(err), "red");
+        };
+    }
+
+    var fsRoots = {
+        "ios" : "library,library-nosync,documents,documents-nosync,cache,bundle,root,private",
+        "android" : "files,files-external,documents,sdcard,cache,cache-external,root",
+        "amazon-fireos" : "files,files-external,documents,sdcard,cache,cache-external,root"
+    };
+
+    //Add title and align to content
+    var div = document.createElement('h2');
+    div.appendChild(document.createTextNode('File Systems'));
+    div.setAttribute("align", "center");
+    contentEl.appendChild(div);
+
+    div = document.createElement('h3');
+    div.appendChild(document.createTextNode('Results are displayed in yellow status box below with expected results noted under that'));
+    div.setAttribute("align", "center");
+    contentEl.appendChild(div);
+    
+    div = document.createElement('div');
+    div.setAttribute("id", "button");
+    div.setAttribute("align", "center");
+    contentEl.appendChild(div);
+    if (fsRoots.hasOwnProperty(cordova.platformId)) {
+        (fsRoots[cordova.platformId].split(',')).forEach(function (fs) {
+            if (cordova.platformId === 'ios' && fs === 'private') {
+                createActionButton("Test private URL (iOS)", function () {
+                    clearLog();
+                    testPrivateURL();
+                }, 'button');
+            } else {
+                createActionButton(fs, function () {
+                    clearLog();
+                    resolveFs(fs);
+                }, 'button');
+            }
+        });
+    }
+    
+    
+    div = document.createElement('div');
+    div.setAttribute("id", "info");
+    div.setAttribute("align", "center");
+    contentEl.appendChild(div);
+
+    div = document.createElement('h3');
+    div.appendChild(document.createTextNode('For each test above, file or directory should be successfully found. ' +
+        'Status box should say Resolving URL was Success. The first URL resolved is the internal URL. ' +
+        'The second URL resolved is the absolute URL. Blue URLs must match.'));
+    contentEl.appendChild(div);
+
+    div = document.createElement('h3');
+    div.appendChild(document.createTextNode('For Test private URL (iOS), the private URL (first blue URL in status box) ' +
+        'should be successfully resolved. Status box should say Successfully resolved. Both blue URLs below ' +
+        'that should match.'));
+    contentEl.appendChild(div);
 };
-});
-*/

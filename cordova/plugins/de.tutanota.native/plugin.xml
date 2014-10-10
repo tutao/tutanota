@@ -15,6 +15,10 @@
     <clobbers target="tutao.native.device.FileUtil" />
   </js-module>
   <platform name="android">
+    <source-file src="libs/android/commons-io-2.4.jar" target-dir="libs" />
+    <source-file src="src/android/com/ipaulpro/afilechooser/utils/FileUtils.java" target-dir="src/com/ipaulpro/afilechooser/utils" />
+    <source-file src="src/android/de/tutao/crypto/TutaoCipherInputStream.java" target-dir="src/de/tutao/crypto" />
+    <source-file src="src/android/de/tutao/plugin/Utils.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Telephone.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Crypto.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/PRNGFixes.java" target-dir="src/de/tutao/plugin" />
@@ -33,6 +37,7 @@
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
       <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+      <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     </config-file>
 	<config-file target="AndroidManifest.xml" parent="/manifest/application">
         <provider

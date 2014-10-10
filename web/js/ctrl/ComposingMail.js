@@ -420,15 +420,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
 	}
 	this.currentlyDownloadingAttachment(dataFile);
 
+    var promise = Promise.resolve(dataFile);
     if (dataFile instanceof tutao.entity.tutanota.File){
-        tutao.locator.fileTransfer.downloadAndOpen(dataFile).then(function() {
-            self.currentlyDownloadingAttachment(null);
-        });
-    } else {
-        tutao.locator.fileTransfer.open(dataFile).then(function() {
-            self.currentlyDownloadingAttachment(null);
-        });
+        promise = tutao.locator.fileFacade.readFileData(dataFile);
     }
+    promise.then(function (dataFile) {
+        return tutao.locator.fileFacade.open(dataFile);
+    }).lastly(function () {
+        self.currentlyDownloadingAttachment(null);
+    });
+
 };
 
 /**
@@ -462,12 +463,17 @@ tutao.tutanota.ctrl.ComposingMail.prototype.handleDragOver = function(data, e) {
  * @param {Event} e The event.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachDroppedFiles = function(data, e) {
+    var self = this;
+
     if (this.busy()) {
         return;
     }
     e.originalEvent.stopPropagation();
     e.originalEvent.preventDefault();
-    this.attachFiles(e.originalEvent.dataTransfer.files);
+    var files = tutao.tutanota.util.FileUtils.fileListToArray(e.originalEvent.dataTransfer.files);
+    Promise.map(files, tutao.locator.fileFacade.readLocalFile).then(function(files) {
+        self.attachFiles(files);
+    });
 };
 
 /**
@@ -475,28 +481,25 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachDroppedFiles = function(data, 
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 	var self = this;
-	tutao.tutanota.util.FileUtils.showFileChooser().then(function(fileList) {
+	tutao.locator.fileFacade.showFileChooser().then(function(fileList) {
 		self.attachFiles(fileList);
-	});
+	}).caught(function(error) {
+        tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        console.log(error);
+    });
 };
 
 /**
- * Attaches the files in the given FileList.
- * @param {FileList} fileList The files to attach.
+ * Attaches the files to this mail.
+ * @param {Array.<tutao.tutanota.util.DataFile|tutao.native.AndroidFile>} fileList The files to attach.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 	var tooBigFiles = [];
 	var self = this;
 	for (var i = 0; i < fileList.length; i++) {
-		if (fileList[i].size > tutao.entity.tutanota.TutanotaConstants.MAX_ATTACHMENT_SIZE) {
-			tooBigFiles.push(fileList[i].name);
-		} else {
-			tutao.tutanota.util.FileUtils.readLocalFile(fileList[i]).then(function(dataFile, exception) {
-				self._attachments.push(dataFile);
-			}).caught(function(exception) {
-                tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
-                console.log(exception);
-            });
+        self._attachments.push(fileList[i]);
+		if (fileList[i].getSize() > tutao.entity.tutanota.TutanotaConstants.MAX_ATTACHMENT_SIZE) {
+			tooBigFiles.push(fileList[i].getName());
 		}
 	}
 	if (tooBigFiles.length > 0) {
@@ -506,7 +509,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 
 /**
  * Provides the image that shall be shown in the attachment.
- * @param {tutao.tutanota.util.DataFile} dataFile The file.
+ * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} dataFile The file.
  * @return {String} The name of the image.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.getAttachmentImage = function(dataFile) {

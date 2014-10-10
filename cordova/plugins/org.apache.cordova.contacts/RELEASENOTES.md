@@ -104,3 +104,22 @@
 * Removing a stray unicode character
 * CB-6127 Updated translations for docs
 * CB-5698 ios: Check to see if photoData exists before using
+
+### 0.2.13 (Sep 17, 2014)
+* CB-7546 [Contacts][iOS] pickContact shows exception in the console log
+* CB-6374 Fix iOS 6 deprecation warnings in Contacts
+* CB-7544 [Contacts][iOS 8] Contact picker is read-only in iOS 8
+* CB-7523 Fixing "ContactFieldType" error in the config.xml
+* CB-6724 Empty may be expected.
+* CB-7249 cordova-plugin-contacts documentation translation
+* Add missing test, skip some specs on wp
+* rm old test folder and merged with renamed tests folder
+* CB-7290 Adds support for universal Windows platform.
+* Renamed test dir, added nested plugin.xml
+* CB-7148 Added manual tests
+* Removed js-module for tests from plugin.xml
+* Changing cdvtest format to use module exports
+* register tests using new style
+* convert test to new style
+* added documentation for manual tests
+* merged changes for test framework plugin

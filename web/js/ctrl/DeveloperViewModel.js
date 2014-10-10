@@ -24,6 +24,9 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.showDialog = ko.observable(false);
+    this.badge = 0;
+
+    var self = this;
 
     this.tests = [
         new tutao.tutanota.ctrl.DeveloperTest("Get phone number", function () {
@@ -58,30 +61,19 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
             });
         }),
         new tutao.tutanota.ctrl.DeveloperTest("Increase Badge", function () {
-            var self = this;
-            tutao.locator.notification.updateBadge(this.badge++);
+            tutao.locator.notification.updateBadge(self.badge++);
         }),
         new tutao.tutanota.ctrl.DeveloperTest("Decrease Badge", function () {
-            var self = this;
-            tutao.locator.notification.updateBadge(this.badge--);
+            tutao.locator.notification.updateBadge(self.badge--);
         }),
 
-        new tutao.tutanota.ctrl.DeveloperTest("Download and open image", function () {
+        new tutao.tutanota.ctrl.DeveloperTest("run tests", function () {
             var self = this;
-            self.details("started...");
-            var start = new Date().getTime();
-
-            tutao.locator.fileTransfer.downloadAndOpen(tutao.env.getHttpOrigin() + "/" + "graphics/beach_1000.jpg")
-                .then(function () {
-                    console.log("finished");
-                    var time = new Date().getTime() - start;
-                    self.details("took " + time);
-                })
-                .catch(function (e) {
-                    console.log(e);
-                    self.details("error: could not download and decrypt");
-                });
-        }),
+            self.details("forwarding...");
+            var locationArray = location.href.split('/')
+            var rootFolder = locationArray.slice(0, locationArray.length - 1).join('/') + ('/');
+            location.href = rootFolder + "test/index.html";
+        })
     ];
 };
 

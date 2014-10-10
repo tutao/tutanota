@@ -36,7 +36,6 @@ Dieses Plugin definiert eine globale `device` -Objekt, das des Geräts Hard- und
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@ Rufen Sie die Version von Cordova, die auf dem Gerät ausgeführt.
 *   Amazon Fire OS
 *   Android
 *   BlackBerry 10
+*   Browser
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -64,17 +64,23 @@ Die `device.model` gibt den Namen der Modell- oder des Geräts zurück. Der Wert
 
 *   Android
 *   BlackBerry 10
+*   Browser
 *   iOS
 *   Tizen
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
-    / / Android: Nexus One gibt "Passion" (Nexus One Codename) / / Motorola Droid returns "Wühlmäuse" / / BlackBerry: Torch 9800 gibt "9800" / / iOS: für das iPad Mini gibt iPad2, 5; iPhone 5 ist iPhone 5,1. Finden Sie unter http://theiphonewiki.com/wiki/index.php?title=Models / / Var-Modell = device.model;
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Finden Sie unter http://theiphonewiki.com/wiki/index.php?title=Models / / Var-Modell = device.model;
     
 
-### Android Macken
+### Android Eigenarten
 
 *   Ruft den [Produktname][1] anstelle des [Modellnamens][2], das ist oft der Codename für die Produktion. Beispielsweise das Nexus One gibt `Passion` , und Motorola Droid gibt`voles`.
 
@@ -85,13 +91,9 @@ Die `device.model` gibt den Namen der Modell- oder des Geräts zurück. Der Wert
 
 *   Gibt z. B. das Gerätemodell von dem Kreditor zugeordnet,`TIZEN`
 
-### Windows Phone 7 und 8 Macken
+### Windows Phone 7 und 8 Eigenarten
 
 *   Gibt das vom Hersteller angegebenen Gerätemodell zurück. Beispielsweise gibt der Samsung-Fokus`SGH-i917`.
-
-## device.name
-
-**Warnung**: `device.name` ist ab Version 2.3.0 veraltet. Verwendung `device.model` statt.
 
 ## device.platform
 
@@ -104,17 +106,20 @@ Name des Betriebssystems des Geräts zu erhalten.
 
 *   Android
 *   BlackBerry 10
+*   Browser4
 *   Firefox OS
 *   iOS
 *   Tizen
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -151,7 +156,7 @@ Die Details wie eine UUID generiert wird werden vom Gerätehersteller und bezieh
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     / / Android: wird eine zufällige 64-Bit-Ganzzahl (als Zeichenfolge, wieder!) / / die ganze Zahl wird beim ersten Start des Geräts erzeugt / / / / BlackBerry: gibt die PIN-Nummer des Gerätes / / Dies ist eine neunstellige eindeutige Ganzzahl (als String, obwohl!) / / / / iPhone: (paraphrasiert aus der Dokumentation zur UIDevice-Klasse) / / liefert eine Reihe von Hash-Werte, die aus mehreren Hardware erstellt identifiziert.
     / / Es ist gewährleistet, dass für jedes Gerät eindeutig sein und kann nicht gebunden werden / / an den Benutzer weitergeleitet.
@@ -161,11 +166,11 @@ Die Details wie eine UUID generiert wird werden vom Gerätehersteller und bezieh
 
 ### iOS Quirk
 
-Die `uuid` auf iOS ist nicht eindeutig auf ein Gerät, aber für jede Anwendung, für jede Installation variiert. Es ändert sich, wenn Sie löschen und neu die app installieren, und möglicherweise auch beim iOS zu aktualisieren, oder auch ein Upgrade möglich die app pro Version (scheinbaren in iOS 5.1). Die `uuid` ist kein zuverlässiger Wert.
+Die `uuid` auf iOS ist nicht eindeutig zu einem Gerät, aber für jede Anwendung, für jede Installation variiert. Es ändert sich, wenn Sie löschen und neu die app installieren, und möglicherweise auch beim iOS zu aktualisieren, oder auch ein Upgrade möglich die app pro Version (scheinbaren in iOS 5.1). Die `uuid` ist kein zuverlässiger Wert.
 
-### Windows Phone 7 und 8 Macken
+### Windows Phone 7 und 8 Eigenarten
 
-Die `uuid` für Windows Phone 7 die Berechtigung erfordert `ID_CAP_IDENTITY_DEVICE` . Microsoft wird diese Eigenschaft wahrscheinlich bald abzuschaffen. Wenn die Funktion nicht verfügbar ist, generiert die Anwendung eine persistente Guid, die für die Dauer der Installation der Anwendung auf dem Gerät verwaltet wird.
+Die `uuid` für Windows Phone 7 die Berechtigung erfordert `ID_CAP_IDENTITY_DEVICE` . Microsoft wird diese Eigenschaft wahrscheinlich bald abzuschaffen. Wenn die Funktion nicht verfügbar ist, generiert die Anwendung eine persistente Guid, die für die Dauer der Installation der Anwendung auf dem Gerät gewährleistet ist.
 
 ## device.version
 
@@ -178,13 +183,24 @@ Version des Betriebssystems zu erhalten.
 
 *   Android 2.1 +
 *   BlackBerry 10
+*   Browser
 *   iOS
 *   Tizen
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
-    / / Android: Froyo OS würde "2.2" zurück / / Eclair OS zurückkehren würde, "2.1", "2.0.1" oder "2.0" / / Version kann auch zurückgeben update Level "2.1-update1" / / / / BlackBerry: Torch 9800 mit OS 6.0 würde zurückgeben "6.0.0.600" / / / / iPhone: iOS 3.2 gibt "3.2" / / / / Windows Phone 7: liefert aktuelle OS-Versionsnummer, ex. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

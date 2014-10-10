@@ -88,9 +88,9 @@ Anche se tecnicamente un dettaglio di implementazione, può essere molto utile p
 
 | Percorso dispositivo                         | `Cordova.file.*`            | `iosExtraFileSystems` | r/w? | persistente? | OS cancella | sincronizzazione | privato |
 |:-------------------------------------------- |:--------------------------- |:--------------------- |:----:|:------------:|:-----------:|:----------------:|:-------:|
-| `/ var/mobile/Applications/< UUID > /` | applicationStorageDirectory | -                     | r/o  |     N/A      |     N/A     |       N/A        |   Sì    |
-|    `appname.app/`                            | applicationDirectory        | bundle                | r/o  |     N/A      |     N/A     |       N/A        |   Sì    |
-|       `www/`                                 | -                           | -                     | r/o  |     N/A      |     N/A     |       N/A        |   Sì    |
+| `/ var/mobile/Applications/< UUID > /` | applicationStorageDirectory | -                     |  r   |     N/A      |     N/A     |       N/A        |   Sì    |
+|    `appname.app/`                            | applicationDirectory        | bundle                |  r   |     N/A      |     N/A     |       N/A        |   Sì    |
+|       `www/`                                 | -                           | -                     |  r   |     N/A      |     N/A     |       N/A        |   Sì    |
 |    `Documents/`                              | documentsDirectory          | documenti             | r/w  |      Sì      |     No      |        Sì        |   Sì    |
 |       `NoCloud/`                             | -                           | nosync-documenti      | r/w  |      Sì      |     No      |        No        |   Sì    |
 |    `Library`                                 | -                           | libreria              | r/w  |      Sì      |     No      |       Sì?        |   Sì    |
@@ -109,7 +109,7 @@ Anche se tecnicamente un dettaglio di implementazione, può essere molto utile p
 
 | Percorso dispositivo              | `Cordova.file.*`                    | `AndroidExtraFileSystems` | r/w? | persistente? | OS cancella | privato |
 |:--------------------------------- |:----------------------------------- |:------------------------- |:----:|:------------:|:-----------:|:-------:|
-| `File:///android_asset/`          | applicationDirectory                |                           | r/o  |     N/A      |     N/A     |   Sì    |
+| `File:///android_asset/`          | applicationDirectory                |                           |  r   |     N/A      |     N/A     |   Sì    |
 | `< app-id > /dati/dati / /` | applicationStorageDirectory         | -                         | r/w  |     N/A      |     N/A     |   Sì    |
 |    `cache`                        | cacheDirectory                      | cache                     | r/w  |      Sì      |    Sì *     |   Sì    |
 |    `files`                        | dataDirectory                       | file                      | r/w  |      Sì      |     No      |   Sì    |
@@ -129,8 +129,8 @@ Anche se tecnicamente un dettaglio di implementazione, può essere molto utile p
 
 | Percorso dispositivo                                | `Cordova.file.*`            | r/w? | persistente? | OS cancella | privato |
 |:--------------------------------------------------- |:--------------------------- |:----:|:------------:|:-----------:|:-------:|
-| `File:///accounts/1000/AppData/ < id app > /` | applicationStorageDirectory | r/o  |     N/A      |     N/A     |   Sì    |
-|    `app/native`                                     | applicationDirectory        | r/o  |     N/A      |     N/A     |   Sì    |
+| `File:///accounts/1000/AppData/ < id app > /` | applicationStorageDirectory |  r   |     N/A      |     N/A     |   Sì    |
+|    `app/native`                                     | applicationDirectory        |  r   |     N/A      |     N/A     |   Sì    |
 |    `data/webviews/webfs/temporary/local__0`         | cacheDirectory              | r/w  |      No      |     Sì      |   Sì    |
 |    `data/webviews/webfs/persistent/local__0`        | dataDirectory               | r/w  |      Sì      |     No      |   Sì    |
 | `File:///accounts/1000/Removable/sdcard`            | externalRemovableDirectory  | r/w  |      Sì      |     No      |   No    |

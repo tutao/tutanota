@@ -137,27 +137,10 @@ tutao.crypto.AesInterface.prototype.encryptPrivateRsaKey = function(key, hexRsaP
 tutao.crypto.AesInterface.prototype.decryptPrivateRsaKey = function(key, base64) {};
 
 /**
- * Encrypts the content of an array buffer with AES in CBC mode.
- * @param {Object} key The key to use for the encryption.
- * @param {ArrayBuffer} arrayBuffer The plain text data.
- * @param {function(?ArrayBuffer,tutao.crypto.CryptoError=)} callback Called when finished receiving the encrypted array buffer. Receives an exception if the encryption failed.
- */
-tutao.crypto.AesInterface.prototype.encryptArrayBuffer = function(key, arrayBuffer, callback) {};
-
-/**
- * Decrypts the content of an array buffer with AES in CBC mode.
- * @param {Object} key The key to use for the decryption.
- * @param {ArrayBuffer} arrayBuffer The encrypted data.
- * @param {number} decryptedSize The number of bytes the decrypted data.
- * @param {function(?ArrayBuffer,tutao.crypto.CryptoError=)} callback Called when finished receiving the decrypted array buffer. Receives an exception if the decryption failed.
- */
-tutao.crypto.AesInterface.prototype.decryptArrayBuffer = function(key, arrayBuffer, decryptedSize, callback) {};
-
-/**
  * LEGACY: Decrypts the content of base64 coded binary data in CBC mode and provides the decrypted data as base64.
  * @param {Object} key The key to use for the decryption.
  * @param {String} srcBase64 The encrypted data, base64 coded.
  * @param {number} decryptedSize The number of bytes the decrypted data.
- * @param {function(?String,tutao.crypto.CryptoError=)} callback Called when finished receiving the decrypted base64 data. Receives an exception if the decryption failed.
+ * @return {Promise.<?String,tutao.crypto.CryptoError=>} Promise with the decrypted base64 data. Rejected with an exception if the decryption failed.
  */
-tutao.crypto.AesInterface.prototype.decryptBase64 = function(key, srcBase64, decryptedSize, callback) {};
+tutao.crypto.AesInterface.prototype.decryptBase64 = function(key, srcBase64, decryptedSize) {};

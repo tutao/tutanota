@@ -4,25 +4,15 @@ describe("AesArrayBufferTest", function () {
 
     var assert = chai.assert;
 
-    this.timeout(8000);
-
     var _getFacade = function () {
-        return tutao.locator.aesCrypter;
+        return tutao.locator.crypto;
     };
 
-    var _arrayBufferRoundtrip = function (key, arrayBuffer, callback) {
+    var _arrayRoundtrip = function (key, plainText) {
         var facade = _getFacade();
-        facade.encryptArrayBuffer(key, arrayBuffer, function (encrypted, exception) {
-            assert.isUndefined(exception);
-            facade.decryptArrayBuffer(key, encrypted, arrayBuffer.byteLength, function (decrypted, exception) {
-                assert.isUndefined(exception);
-                assert.equal(arrayBuffer.byteLength, decrypted.byteLength);
-                var view = new Uint8Array(arrayBuffer);
-                var view2 = new Uint8Array(decrypted);
-                for (var i = 0; i < arrayBuffer.byteLength; i++) {
-                    assert.equal(view[i], view2[i]);
-                }
-                callback();
+        return facade.aesEncrypt(key, plainText).then(function(encrypted) {
+            return facade.aesDecrypt(key, encrypted, plainText.length).then(function(decrypted) {
+                assert.deepEqual(plainText, decrypted);
             });
         });
     };
@@ -77,50 +67,45 @@ describe("AesArrayBufferTest", function () {
         return out;
     };
 
-    var _createArrayBuffer = function (len) {
-        var arrayBuffer = new ArrayBuffer(len);
-        var view = new Uint8Array(arrayBuffer);
+    var _createArray = function (len) {
+        var view = new Uint8Array(len);
         for (var i = 0; i < len; i++) {
             view[i] = tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(1));
         }
-        return arrayBuffer;
+        return view;
     };
 
-    var _getEncryptedArrayBuffer = function (key, bufferLen, callback) {
-        var facade = tutao.locator.aesCrypter;
-        var arrayBuffer = _createArrayBuffer(bufferLen);
-        facade.encryptArrayBuffer(key, arrayBuffer, function (encrypted, exception) {
-            assert.isUndefined(exception);
-            callback(encrypted);
-        });
+    var _getEncryptedArrayBuffer = function (key, bufferLen) {
+        var facade = tutao.locator.crypto;
+        var arrayBuffer = _createArray(bufferLen);
+        return facade.aesEncrypt(key, arrayBuffer);
     };
 
-    var _base64Roundtrip = function (facade, key, arrayBuffer) {
-        var unencryptedBits = _arrayBufferToBitArray(arrayBuffer);
+    var _base64Roundtrip = function (facade, key, plainText) {
+        var unencryptedBits = _arrayBufferToBitArray(plainText);
         var unencryptedBytes = sjcl.codec.bytes.fromBits(unencryptedBits);
         var unencryptedBase64 = sjcl.codec.base64.fromBits(unencryptedBits);
-        return new Promise(function (resolve, reject) {
-            facade.encryptArrayBuffer(key, arrayBuffer, function (encrypted, exception) {
-                var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-                facade.decryptBase64(key, encryptedBase64, arrayBuffer.byteLength, function (decryptedBase64, exception) {
-                    assert.isUndefined(exception);
-                    assert.equal(unencryptedBase64, decryptedBase64);
-                    resolve();
-                });
+        return facade.aesEncrypt(key, plainText).then(function (encrypted) {
+            var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
+            var oldFacade = new tutao.crypto.SjclAes();
+            return oldFacade.decryptBase64(oldFacade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, plainText.length).then(function (decryptedBase64) {
+                assert.equal(unencryptedBase64, decryptedBase64);
             });
         });
     };
 
 
-    it("ArrayBufferRoundtrip ", function (done) {
+    it("ArrayRoundtrip ", function () {
+        this.timeout(24000);
+
         var facade = _getFacade();
-        var key = facade.generateRandomKey();
-        _arrayBufferRoundtrip(key, _createArrayBuffer(0), function () {
-            _arrayBufferRoundtrip(key, _createArrayBuffer(1), function () {
-                _arrayBufferRoundtrip(key, _createArrayBuffer(15), function () {
-                    _arrayBufferRoundtrip(key, _createArrayBuffer(16), function () {
-                        _arrayBufferRoundtrip(key, _createArrayBuffer(17), function () {
-                            _arrayBufferRoundtrip(key, _createArrayBuffer(12345), done);
+        var key = facade.generateAesKey();
+        return _arrayRoundtrip(key, _createArray(0)).then(function () {
+            return _arrayRoundtrip(key, _createArray(1)).then(function () {
+                return _arrayRoundtrip(key, _createArray(15)).then(function () {
+                    return _arrayRoundtrip(key, _createArray(16)).then(function () {
+                        return _arrayRoundtrip(key, _createArray(17)).then(function () {
+                            return _arrayRoundtrip(key, _createArray(12345));
                         });
                     });
                 });
@@ -128,111 +113,109 @@ describe("AesArrayBufferTest", function () {
         });
     });
 
-    it("ArrayBufferImplementationCompatibility ", function (done) {
-        var facade = _getFacade();
-        var key = facade.generateRandomKey();
-        var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(16));
-        _encryptArrayBuffer(key, iv, _createArrayBuffer(0), function () {
-            _encryptArrayBuffer(key, iv, _createArrayBuffer(1), function () {
-                _encryptArrayBuffer(key, iv, _createArrayBuffer(15), function () {
-                    _encryptArrayBuffer(key, iv, _createArrayBuffer(16), function () {
-                        _encryptArrayBuffer(key, iv, _createArrayBuffer(17), function () {
-                            _encryptArrayBuffer(key, iv, _createArrayBuffer(12345), done);
-                        });
-                    });
-                });
-            });
+    it("ArrayBufferImplementationCompatibility ", function () {
+        var plainText = new Uint8Array([3, 240, 19]);
+        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+        var cipherText = new Uint8Array([255, 223, 151, 34, 157, 32, 197, 116, 80, 245, 27, 255, 230, 26, 233, 238, 179, 27, 47, 148, 75, 41, 233, 210, 185, 108, 45, 109, 3, 227, 75, 10]);
+        var facade = tutao.locator.crypto;
+        return facade.aesDecrypt(key, cipherText, plainText.length).then(function (decrypted) {
+            assert.deepEqual(plainText, decrypted);
         });
     });
 
-    it("EncryptInvalidIvLength ", function (done) {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(15));
-        var arrayBuffer = _createArrayBuffer(10);
-        facade._encryptArrayBuffer(key, arrayBuffer, iv, function (encrypted, exception) {
-            assert.isNull(encrypted);
-            assert.isNotNull(exception);
-            assert.instanceOf(exception, tutao.crypto.CryptoError);
-            done();
+    it("Android decrypt file compatibility", function () {
+        // only run on android
+        if (typeof cordova == 'undefined' || cordova.platformId != 'android') {
+            return;
+        }
+        var plainText = new Uint8Array([3, 240, 19]);
+        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+        var cipherText = new Uint8Array([255, 223, 151, 34, 157, 32, 197, 116, 80, 245, 27, 255, 230, 26, 233, 238, 179, 27, 47, 148, 75, 41, 233, 210, 185, 108, 45, 109, 3, 227, 75, 10]);
+
+        var fileUtil = new tutao.native.device.FileUtil();
+        var file = cordova.file.dataDirectory + "test/encrypted.bin";
+
+        var facade = tutao.locator.crypto;
+        return fileUtil.write(file, cipherText).then(function () {
+            return facade.aesDecryptFile(key, file);
+        }).then(function (decryptedFile) {
+            return fileUtil.read(decryptedFile);
+        }).then(function (fileContents) {
+            assert.deepEqual(fileContents, plainText);
         });
     });
 
-    it("EncryptInvalidKey ", function (done) {
-        var facade = tutao.locator.aesCrypter;
-        var key = facade.generateRandomKey().slice(0, 3);
-        var arrayBuffer = _createArrayBuffer(10);
-        facade.encryptArrayBuffer(key, arrayBuffer, function (encrypted, exception) {
-            assert.isNull(encrypted);
-            assert.isNotNull(exception);
-            assert.instanceOf(exception, tutao.crypto.CryptoError);
-            done();
+    it("android file roundtrip", function () {
+        // only run on android
+        if (typeof cordova == 'undefined' || cordova.platformId != 'android') {
+            return;
+        }
+        var plainText = new Uint8Array([3, 240, 19]);
+        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+
+        var fileUtil = new tutao.native.device.FileUtil();
+        var file = cordova.file.dataDirectory + "test/plain.bin";
+
+        var facade = tutao.locator.crypto;
+        return fileUtil.write(file, plainText).then(function () {
+            return facade.aesEncryptFile(key, file);
+        }).then(function (encryptedFile) {
+            return facade.aesDecryptFile(key, encryptedFile);
+        }).then(function (decryptedFile) {
+            return fileUtil.read(decryptedFile);
+        }).then(function (fileContents) {
+            assert.deepEqual(fileContents, plainText);
         });
     });
 
-    it("DecryptInvalidKey ", function (done) {
-        var facade = tutao.locator.aesCrypter;
-        var key = facade.generateRandomKey().slice(0, 3);
-        var arrayBuffer = _createArrayBuffer(10);
-        facade.decryptArrayBuffer(key, arrayBuffer, 10, function (encrypted, exception) {
-            assert.isNull(encrypted);
-            assert.isNotNull(exception);
-            assert.instanceOf(exception, tutao.crypto.CryptoError);
-            done();
-        });
+    it("EncryptInvalidKey ", function () {
+        var facade = tutao.locator.crypto;
+        var key = new Uint8Array([1, 2, 3]);
+        var arrayBuffer = _createArray(10);
+
+        return assert.isRejected(facade.aesEncrypt(key, arrayBuffer), tutao.crypto.CryptoError);
     });
 
-    it("DecryptInvalidSrcBufferLen ", function (done) {
-        var facade = tutao.locator.aesCrypter;
-        var key = facade.generateRandomKey();
-        var encrypted = _createArrayBuffer(33); // 33 is no valid encrypted size
-        facade.decryptArrayBuffer(key, encrypted, 2, function (decrypted, exception) {
-            assert.isNull(decrypted);
-            assert.isNotNull(exception);
-            assert.instanceOf(exception, tutao.crypto.CryptoError);
-            done();
-        });
+    it("DecryptInvalidKey ", function () {
+        var facade = tutao.locator.crypto;
+        var key = new Uint8Array([1, 2, 3]);
+        var arrayBuffer = _createArray(10);
+
+        return assert.isRejected(facade.aesDecrypt(key, arrayBuffer, 10), tutao.crypto.CryptoError);
     });
 
-    it("DecryptInvalidDstBufferLen ", function (done) {
-        var facade = tutao.locator.aesCrypter;
-        var key = facade.generateRandomKey();
-        var encrypted = _createArrayBuffer(48); // encrypted 48 bytes it too big for 4 plain text bytes
-        facade.decryptArrayBuffer(key, encrypted, 4, function (decrypted, exception) {
-            assert.isNull(decrypted);
-            assert.isNotNull(exception);
-            assert.instanceOf(exception, tutao.crypto.CryptoError);
-            done();
-        });
+    it("DecryptInvalidSrcBufferLen ", function () {
+        var facade = tutao.locator.crypto;
+        var key = facade.generateAesKey();
+        var encrypted = _createArray(33); // 33 is no valid encrypted size
+
+        return assert.isRejected(facade.aesDecrypt(key, encrypted, 2), tutao.crypto.CryptoError);
     });
 
-    it("DecryptInvalidEncrypted ", function (done) {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        _getEncryptedArrayBuffer(key, 10, function (encrypted) {
-            var view = new Uint8Array(encrypted);
+    it("DecryptInvalidDstBufferLen ", function () {
+        var facade = tutao.locator.crypto;
+        var key = facade.generateAesKey();
+        var encrypted = _createArray(48); // encrypted 48 bytes it too big for 4 plain text bytes
+
+        return assert.isRejected(facade.aesDecrypt(key, encrypted, 4), tutao.crypto.CryptoError);
+    });
+
+    it("DecryptInvalidEncrypted ", function () {
+        var facade = tutao.locator.crypto;
+        var key = facade.generateAesKey();
+        return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // change the last byte
-            view[encrypted.byteLength - 1] = view[encrypted.byteLength - 1] + 1;
-            facade.decryptArrayBuffer(key, encrypted, 10, function (decrypted, exception) {
-                assert.isNull(decrypted);
-                assert.isNotNull(exception);
-                assert.instanceOf(exception, tutao.crypto.CryptoError);
-                done();
-            });
+            encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1;
+            return assert.isRejected(facade.aesDecrypt(key, encrypted, 10), tutao.crypto.CryptoError);
         });
     });
 
-    it("DecryptInvalidDecryptedSize ", function (done) {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        _getEncryptedArrayBuffer(key, 10, function (encrypted) {
+    it("DecryptInvalidDecryptedSize ", function () {
+        var facade = tutao.locator.crypto;
+        var key = facade.generateAesKey();
+        return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // use 11 instead of 10
-            facade.decryptArrayBuffer(key, encrypted, 11, function (decrypted, exception) {
-                assert.isNull(decrypted);
-                assert.isNotNull(exception);
-                assert.instanceOf(exception, tutao.crypto.CryptoError);
-                done();
-            });
+            return assert.isRejected(facade.aesDecrypt(key, encrypted, 11), tutao.crypto.CryptoError);
         });
     });
 
@@ -258,121 +241,86 @@ describe("AesArrayBufferTest", function () {
 
     });
 
-    it("DecryptBase64InvalidBase64 ", function (done) {
+    it("DecryptBase64InvalidBase64 ", function () {
         var facade = new tutao.crypto.SjclAes();
         var key = facade.generateRandomKey();
-        facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh&=", 6, function (decryptedBase64, exception) {
-            assert.isNotNull(exception);
-            assert.equal("error during base64 decryption, original message: this isn't base64!", exception.message);
-            assert.isNull(decryptedBase64);
-            done();
-        });
+        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh&=", 6), /error during base64 decryption, original message: this isn't base64!/);
     });
 
-    it("DecryptBase64InvalidKey ", function (done) {
+    it("DecryptBase64InvalidKey ", function () {
         var facade = new tutao.crypto.SjclAes();
-        facade.decryptBase64([1, 2], "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 6, function (decryptedBase64, exception) {
-            assert.isNotNull(exception);
-            assert.equal("invalid key length: 64", exception.message);
-            assert.isNull(decryptedBase64);
-            done();
-        });
+        return assert.isRejected(facade.decryptBase64([1, 2], "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 6), /invalid key length: 64/);
     });
 
-    it("DecryptBase64InvalidSrcBuffer ", function (done) {
+    it("DecryptBase64InvalidSrcBuffer ", function () {
         var facade = new tutao.crypto.SjclAes();
         var key = facade.generateRandomKey();
-        facade.decryptBase64(key, "AAECA", 6, function (decryptedBase64, exception) {
-            assert.isNotNull(exception);
-            assert.equal("invalid src buffer len: 3.75", exception.message);
-            assert.isNull(decryptedBase64);
-            done();
-        });
+        return assert.isRejected(facade.decryptBase64(key, "AAECA", 6), /invalid src buffer len: 3.75/);
     });
 
-    it("DecryptBase64TooSmallSrcBuffer ", function (done) {
+    it("DecryptBase64TooSmallSrcBuffer ", function () {
         var facade = new tutao.crypto.SjclAes();
         var key = facade.generateRandomKey();
-        facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODA==", 6, function (decryptedBase64, exception) {
-            assert.isNotNull(exception);
-            assert.equal("invalid src buffer len: 16", exception.message);
-            assert.isNull(decryptedBase64);
-            done();
-        });
+        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODA==", 6), /invalid src buffer len: 16/);
     });
 
-    it("DecryptBase64InvalidPadding ", function (done) {
+    it("DecryptBase64InvalidPadding ", function () {
         var facade = new tutao.crypto.SjclAes();
         var key = facade.hexToKey("a8db9ef70c44dc8acce26e9f44ca2f37"); // use a fixed key here to avoid that the padding value might accidentally be correct
-        facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 17, function (decryptedBase64, exception) {
-            assert.isNotNull(exception);
-            assert.equal("invalid padding value: 243", exception.message);
-            assert.isNull(decryptedBase64);
-            done();
-        });
+        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 17), /invalid padding value: 243/);
     });
 
-    it("DecryptBase64InvalidDecryptedSize ", function (done) {
+    it("DecryptBase64InvalidDecryptedSize ", function () {
         var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        facade.encryptArrayBuffer(key, _createArrayBuffer(64), function (encrypted, exception) {
+        var key = tutao.locator.crypto.generateAesKey();
+        return tutao.locator.crypto.aesEncrypt(key, _createArray(64)).then(function (encrypted) {
             var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-            facade.decryptBase64(key, encryptedBase64, 65, function (decryptedBase64, exception) {
-                assert.isNotNull(exception);
-                assert.equal("invalid decrypted size: 65, expected: 64", exception.message);
-                assert.isNull(decryptedBase64);
-                done();
-            });
+            return assert.isRejected(facade.decryptBase64(facade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, 65), /invalid decrypted size: 65, expected: 64/);
         });
     });
 
-    it("DecryptBase64InvalidDstLen ", function (done) {
+    it("DecryptBase64InvalidDstLen ", function () {
         var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        facade.encryptArrayBuffer(key, _createArrayBuffer(64), function (encrypted, exception) {
+        var key = tutao.locator.crypto.generateAesKey();
+        return tutao.locator.crypto.aesEncrypt(key, _createArray(64)).then(function (encrypted) {
             var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-            facade.decryptBase64(key, encryptedBase64, 63, function (decryptedBase64, exception) {
-                assert.isNotNull(exception);
-                assert.equal("invalid dst buffer len: 63, src buffer len: 96", exception.message);
-                assert.isNull(decryptedBase64);
-                done();
-            });
+            return assert.isRejected(facade.decryptBase64(facade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, 63), /invalid dst buffer len: 63, src buffer len: 96/);
         });
     });
 
-    it("DecryptBase64Roundtrip ", function (done) {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        return _base64Roundtrip(facade, key, _createArrayBuffer(0)).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(1));
+    it("DecryptBase64Roundtrip ", function () {
+        this.timeout(60000);
+
+        var facade = tutao.locator.crypto;
+        var key = facade.generateAesKey();
+        return _base64Roundtrip(facade, key, _createArray(0)).then(function () {
+            return _base64Roundtrip(facade, key, _createArray(1));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(15));
+            return _base64Roundtrip(facade, key, _createArray(15));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(16));
+            return _base64Roundtrip(facade, key, _createArray(16));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(17));
+            return _base64Roundtrip(facade, key, _createArray(17));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(31));
+            return _base64Roundtrip(facade, key, _createArray(31));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(32));
+            return _base64Roundtrip(facade, key, _createArray(32));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(32));
+            return _base64Roundtrip(facade, key, _createArray(32));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(33));
+            return _base64Roundtrip(facade, key, _createArray(33));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(33));
+            return _base64Roundtrip(facade, key, _createArray(33));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(33));
+            return _base64Roundtrip(facade, key, _createArray(33));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(63));
+            return _base64Roundtrip(facade, key, _createArray(63));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(64));
+            return _base64Roundtrip(facade, key, _createArray(64));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(12345));
+            return _base64Roundtrip(facade, key, _createArray(12345));
         }).then(function () {
-            return _base64Roundtrip(facade, key, _createArrayBuffer(120 * 1024)); // more than 100 KB to test the stTimeout
-        }).then(function () {
-            done();
+            return _base64Roundtrip(facade, key, _createArray(120 * 1024)); // more than 100 KB to test the stTimeout
         });
 
     });

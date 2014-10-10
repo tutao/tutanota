@@ -88,9 +88,9 @@ Chociaż technicznie implementacyjnym, może być bardzo przydatne wiedzieć, ja
 
 | Ścieżka urządzenia                           | `Cordova.File.*`            | `iosExtraFileSystems` | r/w? | trwałe? |  Czyści OS  | Synchronizacja | prywatne |
 |:-------------------------------------------- |:--------------------------- |:--------------------- |:----:|:-------:|:-----------:|:--------------:|:--------:|
-| `/ var/mobile/Applications/< UUID > /` | applicationStorageDirectory | -                     | r/o  |  N/D!   |    N/D!     |      N/D!      |   Tak    |
-|    `appname.app/`                            | applicationDirectory        | pakiet                | r/o  |  N/D!   |    N/D!     |      N/D!      |   Tak    |
-|       `www/`                                 | -                           | -                     | r/o  |  N/D!   |    N/D!     |      N/D!      |   Tak    |
+| `/ var/mobile/Applications/< UUID > /` | applicationStorageDirectory | -                     |  r   |  N/D!   |    N/D!     |      N/D!      |   Tak    |
+|    `appname.app/`                            | applicationDirectory        | pakiet                |  r   |  N/D!   |    N/D!     |      N/D!      |   Tak    |
+|       `www/`                                 | -                           | -                     |  r   |  N/D!   |    N/D!     |      N/D!      |   Tak    |
 |    `Documents/`                              | documentsDirectory          | dokumenty             | r/w  |   Tak   |     Nr      |      Tak       |   Tak    |
 |       `NoCloud/`                             | -                           | dokumenty nosync      | r/w  |   Tak   |     Nr      |       Nr       |   Tak    |
 |    `Library`                                 | -                           | Biblioteka            | r/w  |   Tak   |     Nr      |      Tak?      |   Tak    |
@@ -109,7 +109,7 @@ Chociaż technicznie implementacyjnym, może być bardzo przydatne wiedzieć, ja
 
 | Ścieżka urządzenia                      | `Cordova.File.*`                    | `AndroidExtraFileSystems`       | r/w? | trwałe? | Czyści OS | prywatne |
 |:--------------------------------------- |:----------------------------------- |:------------------------------- |:----:|:-------:|:---------:|:--------:|
-| `file:///android_asset/`                | applicationDirectory                |                                 | r/o  |  N/D!   |   N/D!    |   Tak    |
+| `file:///android_asset/`                | applicationDirectory                |                                 |  r   |  N/D!   |   N/D!    |   Tak    |
 | `/Data/danych/< Aplikacja id > /` | applicationStorageDirectory         | -                               | r/w  |  N/D!   |   N/D!    |   Tak    |
 |    `cache`                              | cacheDirectory                      | pamięci podręcznej              | r/w  |   Tak   |   Tak *   |   Tak    |
 |    `files`                              | dataDirectory                       | pliki                           | r/w  |   Tak   |    Nr     |   Tak    |
@@ -129,8 +129,8 @@ Chociaż technicznie implementacyjnym, może być bardzo przydatne wiedzieć, ja
 
 | Ścieżka urządzenia                                        | `Cordova.File.*`            | r/w? | trwałe? | Czyści OS | prywatne |
 |:--------------------------------------------------------- |:--------------------------- |:----:|:-------:|:---------:|:--------:|
-| `file:///accounts/1000/AppData/ < id aplikacji > /` | applicationStorageDirectory | r/o  |  N/D!   |   N/D!    |   Tak    |
-|    `app/native`                                           | applicationDirectory        | r/o  |  N/D!   |   N/D!    |   Tak    |
+| `file:///accounts/1000/AppData/ < id aplikacji > /` | applicationStorageDirectory |  r   |  N/D!   |   N/D!    |   Tak    |
+|    `app/native`                                           | applicationDirectory        |  r   |  N/D!   |   N/D!    |   Tak    |
 |    `data/webviews/webfs/temporary/local__0`               | cacheDirectory              | r/w  |   Nr    |    Tak    |   Tak    |
 |    `data/webviews/webfs/persistent/local__0`              | dataDirectory               | r/w  |   Tak   |    Nr     |   Tak    |
 | `file:///accounts/1000/Removable/sdcard`                  | externalRemovableDirectory  | r/w  |   Tak   |    Nr     |    Nr    |

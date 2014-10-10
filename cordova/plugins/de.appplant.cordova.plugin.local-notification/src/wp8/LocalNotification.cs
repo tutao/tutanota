@@ -84,7 +84,6 @@ namespace Cordova.Extension.Commands
             cancelAll(jsonArgs);
 
             FireEvent("cancel", notificationID, "");
-            DispatchCommandResult();
         }
 
         /// <summary>
@@ -133,18 +132,22 @@ namespace Cordova.Extension.Commands
             DispatchCommandResult();
         }
 
-        /// <summary>
-        /// Checks wether a notification with an ID was triggered
-        /// </summary>
-        public void isTriggered (string jsonArgs)
+        /// <summery>
+        /// Informs if the app has the permission to show notifications.
+        /// </summery>
+        public void hasPermission(string args)
         {
-            DispatchCommandResult();
+            PluginResult result;
+
+            result = new PluginResult(PluginResult.Status.OK, true);
+
+            DispatchCommandResult(result);
         }
 
-        /// <summary>
-        /// Retrieves a list with all currently triggered notifications
-        /// </summary>
-        public void getTriggeredIds (string jsonArgs)
+        /// <summery>
+        /// Ask for permission to show notifications.
+        /// </summery>
+        public void promptForPermission(string args)
         {
             DispatchCommandResult();
         }

@@ -27,7 +27,7 @@ Ten plugin określa globalne `device` obiekt, który opisuje urządzenia sprzęt
     }
     
 
-## Instalacji
+## Instalacja
 
     cordova plugin add org.apache.cordova.device
     
@@ -36,7 +36,6 @@ Ten plugin określa globalne `device` obiekt, który opisuje urządzenia sprzęt
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -47,9 +46,10 @@ Pobierz wersję Cordova działa na urządzeniu.
 
 ### Obsługiwane platformy
 
-*   Amazon ogień OS
+*   Amazon Fire OS
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
+*   Przeglądarka
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -63,7 +63,8 @@ Pobierz wersję Cordova działa na urządzeniu.
 ### Obsługiwane platformy
 
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
+*   Przeglądarka
 *   iOS
 *   Tizen
 *   Windows Phone 7 i 8
@@ -71,27 +72,28 @@ Pobierz wersję Cordova działa na urządzeniu.
 
 ### Szybki przykład
 
-    / / Android: Nexus One zwraca "Pasja" (nazwa kodowa Nexus One) / / Motorola Droid zwraca "voles" / / BlackBerry: Torch 9800 zwraca "9800" / / iOS: iPad Mini, zwraca iPad2, 5; iPhone 5 jest iPhone 5,1. Zobacz http://theiphonewiki.com/wiki/index.php?title=Models / / modelu var = device.model;
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Zobacz http://theiphonewiki.com/wiki/index.php?title=Models / / modelu var = device.model;
     
 
-### Android dziwactwa
+### Dziwactwa Androida
 
 *   Pobiera [nazwę produktu][1] zamiast [nazwy modelu][2], który często jest nazwą kod produkcji. Na przykład, Nexus One zwraca `Passion` , i zwraca Motorola Droid`voles`.
 
  [1]: http://developer.android.com/reference/android/os/Build.html#PRODUCT
  [2]: http://developer.android.com/reference/android/os/Build.html#MODEL
 
-### Osobliwości Tizen
+### Dziwactwa Tizen
 
 *   Zwraca modelu urządzenia przypisane przez dostawcę, na przykład,`TIZEN`
 
 ### Windows Phone 7 i 8 dziwactwa
 
 *   Zwraca modelu urządzenia, określonej przez producenta. Na przykład Samsung ostrości zwraca`SGH-i917`.
-
-## device.name
-
-**Ostrzeżenie**: `device.name` jest przestarzała od wersji 2.3.0. Użycie `device.model` zamiast.
 
 ## device.platform
 
@@ -103,7 +105,8 @@ Uzyskać nazwę systemu operacyjnego urządzenia.
 ### Obsługiwane platformy
 
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
+*   Browser4
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -115,13 +118,15 @@ Uzyskać nazwę systemu operacyjnego urządzenia.
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
     var devicePlatform = device.platform;
     
 
-### Windows Phone 7 dziwactwa
+### Dziwactwa Windows Phone 7
 
 Urządzenia Windows Phone 7 raport platformy jako`WinCE`.
 
@@ -145,7 +150,7 @@ Szczegóły jak UUID jest generowane są określane przez producenta urządzenia
 ### Obsługiwane platformy
 
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
 *   iOS
 *   Tizen
 *   Windows Phone 7 i 8
@@ -165,7 +170,7 @@ Szczegóły jak UUID jest generowane są określane przez producenta urządzenia
 
 ### Windows Phone 7 i 8 dziwactwa
 
-`uuid`Dla Windows Phone 7 wymaga zgody `ID_CAP_IDENTITY_DEVICE` . Microsoft będzie prawdopodobnie potępiać ten wkrótce. Jeśli funkcja nie jest dostępna, aplikacja generuje trwałe identyfikator guid, który jest utrzymywany przez czas trwania instalacji aplikacji na urządzeniu.
+`uuid`Dla Windows Phone 7 wymaga uprawnień `ID_CAP_IDENTITY_DEVICE` . Microsoft będzie prawdopodobnie potępiać ten wkrótce. Jeśli funkcja nie jest dostępna, aplikacja generuje trwałe identyfikator guid, który jest utrzymywany przez czas trwania instalacji aplikacji na urządzeniu.
 
 ## device.version
 
@@ -177,7 +182,8 @@ Pobierz wersję systemu operacyjnego.
 ### Obsługiwane platformy
 
 *   Android 2.1 +
-*   Jeżyna 10
+*   BlackBerry 10
+*   Przeglądarka
 *   iOS
 *   Tizen
 *   Windows Phone 7 i 8
@@ -185,6 +191,16 @@ Pobierz wersję systemu operacyjnego.
 
 ### Szybki przykład
 
-    / / Android: Froyo OS zwróci "2.2" / / Eclair OS zwróci "2.1", "2.0.1" lub "2.0" / / wersji mogą również zwracać zaktualizować poziom "2.1-update1" / / / / BlackBerry: 9800 Torch za pomocą OS 6.0 zwróci "6.0.0.600" / / / / iPhone: iOS 3.2 zwraca "3.2" / / / / Windows Phone 7: Zwraca bieżący numer wersji systemu operacyjnego, ex. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

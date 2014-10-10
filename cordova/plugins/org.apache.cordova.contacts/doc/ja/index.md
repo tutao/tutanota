@@ -45,6 +45,10 @@
     }
     
 
+### Windows の癖
+
+返されるすべての連絡先 `find` および `pickContact` メソッドは、読み取り専用アプリケーションを変更することはできませんので。 `find`8.1 の Windows Phone デバイス上でのみ利用可能な方法。
+
 ### Windows 8 の癖
 
 Windows 8 の連絡先は、読み取り専用です。 コルドバ API コンタクトを介してされませんクエリ/検索可能で、ユーザーに通知する必要があります連絡先を選択 '人' アプリを開くことが contacts.pickContact への呼び出しとして、ユーザーが連絡先を選択する必要があります。 戻される連絡先は読み取り専用、アプリケーションを変更することはできません。
@@ -118,6 +122,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   Firefox の OS
 *   iOS
 *   Windows Phone 7 と 8
+*   Windows (Windows Phone 8.1 装置のみ）
 
 ### 例
 
@@ -138,6 +143,10 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
     navigator.contacts.find(fields, onSuccess, onError, options);
     
 
+### Windows の癖
+
+*   `__contactFields__`サポートされていないと無視されます。`find`メソッドは、常に名前、電子メール アドレス、または連絡先の電話番号に一致ましょう。
+
 ## navigator.contacts.pickContact
 
 `navigator.contacts.pickContact`メソッド連絡先ピッカーを起動します 1 つの連絡先を選択します。 結果として得られるオブジェクトに渡される、 `contactSuccess` 、 **contactSuccess**パラメーターで指定されたコールバック関数。
@@ -154,6 +163,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   iOS
 *   Windows Phone 8
 *   Windows 8
+*   Windows
 
 ### 例
 
@@ -217,6 +227,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   iOS
 *   Windows Phone 7 と 8
 *   Windows 8
+*   Windows
 
 ### 保存の例
 
@@ -314,6 +325,14 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 
 *   **カテゴリ**: サポートされていないを返す`null`.
 
+### Windows の癖
+
+*   **写真**： アプリケーションの一時ディレクトリに格納されているイメージへのファイルの URL を返します。
+
+*   **誕生日**: サポートされていないを返す`null`.
+
+*   **カテゴリ**: サポートされていないを返す`null`.
+
 ## ContactAddress
 
 `ContactAddress`オブジェクトの連絡先の 1 つのアドレスのプロパティが格納されます。 A `Contact` オブジェクトで 1 つ以上のアドレスを含めることができます、 `ContactAddress[]` 配列。
@@ -345,6 +364,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   iOS
 *   Windows Phone 7 と 8
 *   Windows 8
+*   Windows
 
 ### 例
 
@@ -412,6 +432,10 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 
 *   **県**: サポートされていません。
 
+### Windows の癖
+
+*   **県**: サポートされていません。
+
 ## ContactError
 
 `ContactError`オブジェクトを介してユーザーに返されます、 `contactError` コールバック関数でエラーが発生したとき。
@@ -453,6 +477,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   iOS
 *   Windows Phone 7 と 8
 *   Windows 8
+*   Windows
 
 ### 例
 
@@ -490,6 +515,10 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 
 *   **県**: サポートされていないを返す`false`.
 
+### Windows の癖
+
+*   **県**: サポートされていないを返す`false`.
+
 ## 得意先コード
 
 についての異なる種類情報にはが含まれています、 `Contact` オブジェクトの名前。
@@ -517,6 +546,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   iOS
 *   Windows Phone 7 と 8
 *   Windows 8
+*   Windows
 
 ### 例
 
@@ -581,6 +611,10 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 
 *   **honorificSuffix**: サポートされていません。
 
+### Windows の癖
+
+*   **フォーマット**： と同じです`displayName`
+
 ## ContactOrganization
 
 `ContactOrganization`オブジェクトは、連絡先の組織のプロパティを格納します。A `Contact` 1 つまたは複数のオブジェクトに格納されます `ContactOrganization` 配列内のオブジェクト。
@@ -604,6 +638,7 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   Firefox の OS
 *   iOS
 *   Windows Phone 7 と 8
+*   Windows (Windows 8.1 および Windows Phone 8.1 装置のみ）
 
 ### 例
 
@@ -666,3 +701,9 @@ Windows 8 の連絡先は、読み取り専用です。 コルドバ API コン�
 *   **部門**: 部分的にサポートされます。最初の部署名は iOS **kABPersonDepartmentProperty**フィールドに格納されます。
 
 *   **タイトル**: 部分的にサポートされます。最初のタイトルは、iOS **kABPersonJobTitleProperty**フィールドに格納されます。
+
+### Windows の癖
+
+*   **県**: サポートされていないを返す`false`.
+
+*   **タイプ**: サポートされていないを返す`null`.

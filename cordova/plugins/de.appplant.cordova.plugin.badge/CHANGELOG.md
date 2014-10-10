@@ -1,11 +1,19 @@
 ## ChangeLog
+#### Version 0.6.1 (03.10.2014)
+- [bugfix:] `hasPermission` and `promptForPermission` let the app crash on iOS7 and older.
 
-#### Version 0.6.0 (not yet released)
+#### Version 0.6.0 (29.09.2014)
+- [enhancement:] iOS 8 support
+- [enhancement:] All methods are asynchron now and do not block the main thread anymore.
+- [feature:] New method `hasPermission` to ask if the user has granted to display badge notifications.
+- [feature:] New method `promptForPermission` to promt the user to grant permission to display badge notifications.
 - [feature:] New method `configure` to configure badge properties.
 - [feature:] The small icon on Android can be changed through `configure`.
 - [**change**:] The namespace `plugin.notification.badge` will be removed with v0.6.1
 - [**change**:] `setTitle` is deprecated, please use `configure({ title: 'title' })`.
 - [**change**:] `clearOnTap` is deprecated, please use `configure({ autoClear: true })`.
+- [bugfix:] `getBadge` still returned the number when autoClear: was set and the notification was already cleared by the system (Android).
+- [bugfix:] `clean` was not working on Windows Phone.
 
 #### Version 0.5.3 (23.05.2014)
 - Added new namespace `cordova.plugins.notification.badge`<br>

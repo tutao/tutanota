@@ -45,6 +45,10 @@ Creare **www/manifest.webapp** come descritto nel [Manifesto Docs][1]. Aggiungi 
     }
     
 
+### Stranezze di Windows
+
+Eventuali contatti restituiti da `find` e `pickContact` metodi sono readonly, quindi l'applicazione non può modificarli. `find`Metodo disponibile solo sui dispositivi Windows Phone 8.1.
+
 ### Stranezze di Windows 8
 
 Windows 8 contatti sono readonly. Tramite i contatti di Cordova API non sono queryable/ricerche, si dovrebbe informare l'utente di scegliere un contatto come una chiamata a contacts.pickContact che aprirà l'app 'Persone' dove l'utente deve scegliere un contatto. Eventuali contatti restituiti sono readonly, quindi l'applicazione non può modificarli.
@@ -118,6 +122,7 @@ La stringa di **contactFindOptions.filter** può essere utilizzata come un filtr
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 e 8
+*   Windows (solo per dispositivi Windows Phone 8.1)
 
 ### Esempio
 
@@ -138,6 +143,10 @@ La stringa di **contactFindOptions.filter** può essere utilizzata come un filtr
     navigator.contacts.find(fields, onSuccess, onError, options);
     
 
+### Stranezze di Windows
+
+*   `__contactFields__`non è supportato, verrà ignorato. `find`metodo cercherà sempre di abbinare il nome, indirizzo email o numero di telefono di un contatto.
+
 ## navigator.contacts.pickContact
 
 Il `navigator.contacts.pickContact` Metodo lancia il contatto selettore per selezionare un singolo contatto. L'oggetto risultante è passato per la `contactSuccess` funzione di callback specificato dal parametro **contactSuccess** .
@@ -154,6 +163,7 @@ Il `navigator.contacts.pickContact` Metodo lancia il contatto selettore per sele
 *   iOS
 *   Windows Phone 8
 *   Windows 8
+*   Windows
 
 ### Esempio
 
@@ -217,6 +227,7 @@ Il `Contact` oggetto rappresenta il contatto di un utente. Contatti possono esse
 *   iOS
 *   Windows Phone 7 e 8
 *   Windows 8
+*   Windows
 
 ### Esempio di salvare
 
@@ -314,6 +325,14 @@ Il `Contact` oggetto rappresenta il contatto di un utente. Contatti possono esse
 
 *   **categorie**: non supportato, restituendo`null`.
 
+### Stranezze di Windows
+
+*   **foto**: restituisce un URL del File dell'immagine, che viene memorizzato nella directory temporanea dell'applicazione.
+
+*   **compleanni**: non supportato, restituendo`null`.
+
+*   **categorie**: non supportato, restituendo`null`.
+
 ## ContactAddress
 
 Il `ContactAddress` oggetto memorizza le proprietà di un singolo indirizzo di un contatto. A `Contact` oggetto può includere più di un indirizzo in un `ContactAddress[]` matrice.
@@ -345,6 +364,7 @@ Il `ContactAddress` oggetto memorizza le proprietà di un singolo indirizzo di u
 *   iOS
 *   Windows Phone 7 e 8
 *   Windows 8
+*   Windows
 
 ### Esempio
 
@@ -412,6 +432,10 @@ Il `ContactAddress` oggetto memorizza le proprietà di un singolo indirizzo di u
 
 *   **pref**: non supportato
 
+### Stranezze di Windows
+
+*   **pref**: non supportato
+
 ## ContactError
 
 Il `ContactError` oggetto viene restituito all'utente attraverso la `contactError` funzione di callback quando si verifica un errore.
@@ -453,6 +477,7 @@ Nella maggior parte dei casi, non esistono valori pre-determinati per un `Contac
 *   iOS
 *   Windows Phone 7 e 8
 *   Windows 8
+*   Windows
 
 ### Esempio
 
@@ -490,6 +515,10 @@ Nella maggior parte dei casi, non esistono valori pre-determinati per un `Contac
 
 *   **pref**: non supportato, restituendo`false`.
 
+### Stranezze di Windows
+
+*   **pref**: non supportato, restituendo`false`.
+
 ## ContactName
 
 Contiene diversi tipi di informazioni circa un `Contact` nome dell'oggetto.
@@ -517,6 +546,7 @@ Contiene diversi tipi di informazioni circa un `Contact` nome dell'oggetto.
 *   iOS
 *   Windows Phone 7 e 8
 *   Windows 8
+*   Windows
 
 ### Esempio
 
@@ -581,6 +611,10 @@ Contiene diversi tipi di informazioni circa un `Contact` nome dell'oggetto.
 
 *   **honorificSuffix**: non supportato
 
+### Stranezze di Windows
+
+*   **formattato**: esso è identico al`displayName`
+
 ## ContactOrganization
 
 Il `ContactOrganization` oggetto memorizza la proprietà di organizzazione di un contatto. A `Contact` oggetto memorizza uno o più `ContactOrganization` gli oggetti in una matrice.
@@ -604,6 +638,7 @@ Il `ContactOrganization` oggetto memorizza la proprietà di organizzazione di un
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 e 8
+*   Windows (solo dispositivi Windows 8.1 e 8.1 di Windows Phone)
 
 ### Esempio
 
@@ -666,3 +701,9 @@ Il `ContactOrganization` oggetto memorizza la proprietà di organizzazione di un
 *   **dipartimento**: parzialmente supportati. Il primo nome del dipartimento è memorizzato nel campo **kABPersonDepartmentProperty** iOS.
 
 *   **titolo**: parzialmente supportati. Il primo titolo è memorizzato nel campo **kABPersonJobTitleProperty** iOS.
+
+### Stranezze di Windows
+
+*   **pref**: non supportato, restituendo`false`.
+
+*   **tipo**: non supportato, restituendo`null`.

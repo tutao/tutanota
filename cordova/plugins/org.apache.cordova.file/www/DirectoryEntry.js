@@ -38,11 +38,11 @@ var argscheck = require('cordova/argscheck'),
 var DirectoryEntry = function(name, fullPath, fileSystem, nativeURL) {
 
     // add trailing slash if it is missing
-    if (!/\/$/.test(fullPath)) {
+    if ((fullPath) && !/\/$/.test(fullPath)) {
         fullPath += "/";
     }
     // add trailing slash if it is missing
-    if (!/\/$/.test(nativeURL)) {
+    if (nativeURL && !/\/$/.test(nativeURL)) {
         nativeURL += "/";
     }
     DirectoryEntry.__super__.constructor.call(this, false, true, name, fullPath, fileSystem, nativeURL);

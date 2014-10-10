@@ -8,10 +8,10 @@ describe("JavaCompatibilityTest", function () {
 
     var assert = chai.assert;
 
-    it("testJavaCompatibility", function (done) {
+    it("testJavaCompatibility", function () {
         this.timeout(5000);
         var aesFacade = tutao.locator.aesCrypter;
-        var rsaFacade = new tutao.crypto.RsaWorkerProxy();
+        var rsaAdapter = new tutao.native.RsaInterfaceAdapter();
 
         // this data is copied from the CompatibilityTest where it is generated
         var aesHexKey = "73f626436ac9a3d96a1e579aa340521d";
@@ -46,16 +46,15 @@ describe("JavaCompatibilityTest", function () {
         assert.equal(rsaPrivateHexKey, jsDecryptedPrivateRsaKey);
 
         // check that the java generated rsa keys work with js encryption/decryption
-        var rsaPrivateKey = rsaFacade.hexToKey(rsaPrivateHexKey);
-        var rsaPublicKey = rsaFacade.hexToKey(rsaPublicHexKey);
-        rsaFacade.encryptAesKey(rsaPublicKey, aesKeyData, function (jsEncryptedDummyKey) {
-            rsaFacade.decryptAesKey(rsaPrivateKey, jsEncryptedDummyKey, function (jsDecryptedDummyKey) {
-                assert.equal(aesKeyData, jsDecryptedDummyKey);
+        var rsaPrivateKey = rsaAdapter._convertToPrivateKey(rsaAdapter.hexToKey(rsaPrivateHexKey));
+        var rsaPublicKey = rsaAdapter._convertToPublicKey(rsaAdapter.hexToKey(rsaPublicHexKey));
+        return tutao.locator.crypto.rsaEncrypt(rsaPublicKey, new Uint8Array(tutao.util.EncodingConverter.hexToBytes(aesKeyData))).then(function (jsEncryptedDummyKey) {
+            return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, jsEncryptedDummyKey).then(function (jsDecryptedDummyKey) {
+                assert.equal(aesKeyData, tutao.util.EncodingConverter.bytesToHex(jsDecryptedDummyKey));
 
                 // check aes key decryption with rsa (check decryption, because encryption is done with random iv)
-                rsaFacade.decryptAesKey(rsaPrivateKey, encryptedAesKey, function (jsDecryptedAesKey) {
-                    assert.equal(aesHexKey, jsDecryptedAesKey);
-                    done();
+                return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, new Uint8Array(tutao.util.EncodingConverter.base64ToArray(encryptedAesKey))).then(function (jsDecryptedAesKey) {
+                    assert.equal(aesHexKey, tutao.util.EncodingConverter.bytesToHex(jsDecryptedAesKey));
                 });
             });
         });

@@ -243,3 +243,35 @@
 * CB-6922: Use getFileMetadata consistently to get metadata
 * changed fullPath to self.rootDocsPath
 * CB-6890: Fix pluginManager access for 4.0.x branch
+
+### 1.3.1 (Sep 17, 2014)
+* CB-7471 cordova-plugin-file documentation translation
+* CB-7272 Replace confusing "r/o" abbreviation with just "r"
+* CB-7423 encode path before attempting to resolve
+* CB-7375 Fix the filesystem name in resolveLocalFileSystemUri
+* CB-7445 [BlackBerry10] resolveLocalFileSystemURI - change DEFAULT_SIZE to MAX_SIZE
+* CB-7458 [BlackBerry10] resolveLocalFileSystemURL - add filesystem property
+* CB-7445 [BlackBerry10] Add default file system size to prevent quota exceeded error on initial install
+* CB-7431 Avoid calling done() twice in file.spec.109 test
+* CB-7413 Adds support of 'ms-appdata://' URIs
+* CB-7422 [File Tests] Use proper fileSystem to create fullPath
+* CB-7375 [Entry] get proper filesystem in Entry
+* Amazon related changes.
+* CB-7375 Remove leading slash statement from condition
+* Refactored much of the logic in FileMetadata constructor.  Directory.size will return 0
+* CB-7419 [WP8] Added support to get metada from dir
+* CB-7418 [DirectoryEntry] Added fullPath variable as part of condition
+* CB-7417 [File tests] added proper matcher to compare fullPath property
+* CB-7375 Partial revert to resolve WP8 failures
+* Overwrite existing file on getFile when create is true
+* CB-7375 CB-6148: Ensure that return values from copy and move operations reference the correct filesystem
+* CB-6724 changed style detail on documentation
+* Added new js files to amazon-fireos platform.
+* Adds Windows platform
+* Fixes multiple mobilespec tests errors
+* Removed test/tests.js module from main plugin.xml
+* CB-7094 renamed folder to tests + added nested plugin.xml
+* added documentation for manual tests
+* CB-6923 Adding support to handle relative paths
+* Style improvements on Manual tests
+* CB-7094 Ported File manual tests

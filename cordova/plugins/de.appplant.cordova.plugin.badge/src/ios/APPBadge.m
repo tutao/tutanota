@@ -20,8 +20,12 @@
  */
 
 #import "APPBadge.h"
+#import <Cordova/CDVAvailability.h>
 
 @implementation APPBadge
+
+#pragma mark -
+#pragma mark Plugin interface methods
 
 /**
  * Clears the badge of the app icon.
@@ -29,8 +33,10 @@
  */
 - (void) clearBadge:(CDVInvokedUrlCommand *)command
 {
-    [[UIApplication sharedApplication]
-     setApplicationIconBadgeNumber:0];
+    [self.commandDelegate runInBackground:^{
+        [[UIApplication sharedApplication]
+         setApplicationIconBadgeNumber:0];
+    }];
 }
 
 /**
@@ -41,11 +47,13 @@
  */
 - (void) setBadge:(CDVInvokedUrlCommand *)command
 {
-    NSArray* arguments = [command arguments];
-    int      badge     = [[arguments objectAtIndex:0] intValue];
+    NSArray* args = [command arguments];
+    int number    = [[args objectAtIndex:0] intValue];
 
-    [[UIApplication sharedApplication]
-     setApplicationIconBadgeNumber:badge];
+    [self.commandDelegate runInBackground:^{
+        [[UIApplication sharedApplication]
+         setApplicationIconBadgeNumber:number];
+    }];
 }
 
 /**
@@ -56,15 +64,78 @@
  */
 - (void) getBadge:(CDVInvokedUrlCommand *)command
 {
-    CDVPluginResult* result;
-    int badge = [[UIApplication sharedApplication]
-                 applicationIconBadgeNumber];
+    [self.commandDelegate runInBackground:^{
+        CDVPluginResult* result;
+        long badge = [[UIApplication sharedApplication]
+                      applicationIconBadgeNumber];
 
-    result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                 messageAsInt:badge];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                   messageAsDouble:badge];
 
-    [self.commandDelegate sendPluginResult:result
-                                callbackId:command.callbackId];
+        [self.commandDelegate sendPluginResult:result
+                                    callbackId:command.callbackId];
+    }];
+}
+
+/**
+ * Informs if the app has the permission to show badges.
+ *
+ * @param callback
+ *      The function to be exec as the callback
+ */
+- (void) hasPermission:(CDVInvokedUrlCommand *)command
+{
+    [self.commandDelegate runInBackground:^{
+        CDVPluginResult* result;
+        BOOL hasPermission = [self hasPermissionToSetBadges];
+
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                     messageAsBool:hasPermission];
+
+        [self.commandDelegate sendPluginResult:result
+                                    callbackId:command.callbackId];
+    }];
+}
+
+/**
+ * Ask for permission to show badges.
+ *
+ * @param callback
+ *      The function to be exec as the callback
+ */
+- (void) promptForPermission:(CDVInvokedUrlCommand *)command
+{
+    if (IsAtLeastiOSVersion(@"8.0")) {
+        UIUserNotificationSettings *settings;
+
+        settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge
+                                                     categories:nil];
+
+        [self.commandDelegate runInBackground:^{
+            [[UIApplication sharedApplication]
+             registerUserNotificationSettings:settings];
+        }];
+    }
+}
+
+#pragma mark -
+#pragma mark Plugin helper methods
+
+/**
+ * If the app has the permission to show badges.
+ */
+- (BOOL) hasPermissionToSetBadges
+{
+    if (IsAtLeastiOSVersion(@"8.0")) {
+        UIUserNotificationSettings *settings;
+
+        settings = [[UIApplication sharedApplication]
+                    currentUserNotificationSettings];
+
+        return (settings.types & UIUserNotificationTypeBadge);
+    } else {
+        return YES;
+    }
 }
 
 @end

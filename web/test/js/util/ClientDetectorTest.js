@@ -4,6 +4,16 @@ describe("ClientDetectorTest", function () {
 
     var assert = chai.assert;
 
+    var originalMode = tutao.env.mode;
+
+    before(function() {
+        tutao.env.mode = tutao.Mode.Browser;
+    });
+
+    after(function () {
+        tutao.env.mode = originalMode;
+    });
+
     beforeEach(function () {
         swfobject = {
             getFlashPlayerVersion: function () {

@@ -22,7 +22,6 @@
 package de.appplant.cordova.plugin.localnotification;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,7 +67,7 @@ public class LocalNotification extends CordovaPlugin {
     }
 
     @Override
-    public boolean execute (String action, final JSONArray args, final CallbackContext command) throws JSONException {
+    public boolean execute (String action, final JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equalsIgnoreCase("add")) {
             cordova.getThreadPool().execute( new Runnable() {
                 public void run() {
@@ -77,9 +76,10 @@ public class LocalNotification extends CordovaPlugin {
 
                     persist(options.getId(), args);
                     add(options, true);
-                    command.success();
                 }
             });
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("cancel")) {
@@ -89,9 +89,10 @@ public class LocalNotification extends CordovaPlugin {
 
                     cancel(id);
                     unpersist(id);
-                    command.success();
                 }
             });
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("cancelAll")) {
@@ -99,29 +100,33 @@ public class LocalNotification extends CordovaPlugin {
                 public void run() {
                     cancelAll();
                     unpersistAll();
-                    command.success();
                 }
             });
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("isScheduled")) {
             String id = args.optString(0);
 
-            isScheduled(id, command);
+            isScheduled(id, callbackContext);
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("getScheduledIds")) {
-            getScheduledIds(command);
+            getScheduledIds(callbackContext);
+
+            return true;
         }
 
-        if (action.equalsIgnoreCase("isTriggered")) {
-            String id = args.optString(0);
-
-            isTriggered(id, command);
+        if (action.equalsIgnoreCase("hasPermission")) {
+            hasPermission(callbackContext);
+            return true;
         }
 
-        if (action.equalsIgnoreCase("getTriggeredIds")) {
-            getTriggeredIds(command);
+        if (action.equalsIgnoreCase("promptForPermission")) {
+            return true;
         }
 
         if (action.equalsIgnoreCase("deviceready")) {
@@ -130,17 +135,24 @@ public class LocalNotification extends CordovaPlugin {
                     deviceready();
                 }
             });
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("pause")) {
             isInBackground = true;
+
+            return true;
         }
 
         if (action.equalsIgnoreCase("resume")) {
             isInBackground = false;
+
+            return true;
         }
 
-        return true;
+        // Returning false results in a "MethodNotFound" error.
+        return false;
     }
 
     /**
@@ -198,7 +210,7 @@ public class LocalNotification extends CordovaPlugin {
         Intent intent = new Intent(context, Receiver.class)
             .setAction("" + notificationId);
 
-        PendingIntent pi       = PendingIntent.getBroadcast(context, 0, intent, 0);
+        PendingIntent pi       = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager am        = getAlarmManager();
         NotificationManager nc = getNotificationManager();
 
@@ -233,19 +245,19 @@ public class LocalNotification extends CordovaPlugin {
     }
 
     /**
-     * Checks if a notification with an ID is scheduled.
+     * Checks wether a notification with an ID is scheduled.
      *
      * @param id
      *          The notification ID to be check.
      * @param callbackContext
      */
-    public static void isScheduled (String id, CallbackContext command) {
+    public static void isScheduled (String id, CallbackContext callbackContext) {
         SharedPreferences settings = getSharedPreferences();
         Map<String, ?> alarms      = settings.getAll();
         boolean isScheduled        = alarms.containsKey(id);
         PluginResult result        = new PluginResult(PluginResult.Status.OK, isScheduled);
 
-        command.sendPluginResult(result);
+        callbackContext.sendPluginResult(result);
     }
 
     /**
@@ -253,65 +265,32 @@ public class LocalNotification extends CordovaPlugin {
      *
      * @param callbackContext
      */
-    public static void getScheduledIds (CallbackContext command) {
+    public static void getScheduledIds (CallbackContext callbackContext) {
         SharedPreferences settings = getSharedPreferences();
         Map<String, ?> alarms      = settings.getAll();
         Set<String> alarmIds       = alarms.keySet();
-        JSONArray scheduledIds     = new JSONArray(alarmIds);
+        JSONArray pendingIds       = new JSONArray(alarmIds);
 
-        command.success(scheduledIds);
+        callbackContext.success(pendingIds);
     }
 
     /**
-     * Checks if a notification with an ID was triggered.
+     * Informs if the app has the permission to show notifications.
      *
-     * @param id
-     *          The notification ID to be check.
-     * @param callbackContext
+     * @param callback
+     *      The function to be exec as the callback
      */
-    public static void isTriggered (String id, CallbackContext command) {
-        SharedPreferences settings = getSharedPreferences();
-        Map<String, ?> alarms      = settings.getAll();
-        boolean isScheduled        = alarms.containsKey(id);
-        boolean isTriggered        = isScheduled;
+    private void hasPermission (final CallbackContext callback) {
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                PluginResult result;
 
-        if (isScheduled) {
-            JSONObject arguments = (JSONObject) alarms.get(id);
-            Options options      = new Options(context).parse(arguments);
-            Date fireDate        = new Date(options.getDate());
+                result = new PluginResult(PluginResult.Status.OK, true);
 
-            isTriggered = new Date().after(fireDate);
-        }
-
-        PluginResult result = new PluginResult(PluginResult.Status.OK, isTriggered);
-
-        command.sendPluginResult(result);
-    }
-
-    /**
-     * Retrieves a list with all currently triggered notifications.
-     *
-     * @param callbackContext
-     */
-    public static void getTriggeredIds (CallbackContext command) {
-        SharedPreferences settings = getSharedPreferences();
-        Map<String, ?> alarms      = settings.getAll();
-        Set<String> alarmIds       = alarms.keySet();
-        JSONArray scheduledIds     = new JSONArray();
-        Date now                   = new Date();
-
-        for (String id : alarmIds) {
-            JSONObject arguments = (JSONObject) alarms.get(id);
-            Options options      = new Options(context).parse(arguments);
-            Date fireDate        = new Date(options.getDate());
-            boolean isTriggered  = now.after(fireDate);
-
-            if (isTriggered == true) {
-                scheduledIds.put(id);
+                callback.sendPluginResult(result);
             }
-        }
-
-        command.success(scheduledIds);
+        });
     }
 
     /**

@@ -538,6 +538,8 @@ NSString* const kCDVFilesystemURLPrefix = @"cdvfile";
     // arguments
     NSString* localURIstr = [command.arguments objectAtIndex:0];
     CDVPluginResult* result;
+    
+    localURIstr = [self encodePath:localURIstr]; //encode path before resolving
     CDVFilesystemURL* inputURI = [self fileSystemURLforArg:localURIstr];
     
     if (inputURI == nil || inputURI.fileSystemName == nil) {
@@ -551,6 +553,13 @@ NSString* const kCDVFilesystemURLPrefix = @"cdvfile";
         }
     }
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+//encode path with percent escapes
+-(NSString *)encodePath:(NSString *)path
+{
+    NSString *decodedPath = [path stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //decode incase it's already encoded to avoid encoding twice
+    return [decodedPath stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 }
 
 

@@ -3,7 +3,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="de.appplant.cordova.plugin.badge"
-        version="0.6.0dev">
+        version="0.6.1">
 
     <name>Badge</name>
 
@@ -59,7 +59,9 @@
              * The launch activity is triggered when a notification is clicked by a user.
              * The activity launches the main activity.
             -->
-            <activity android:name="de.appplant.cordova.plugin.badge.LaunchActivity" android:launchMode="singleInstance" />
+            <activity android:name="de.appplant.cordova.plugin.badge.LaunchActivity"
+                      android:theme="@android:style/Theme.Black.NoTitleBar"
+                      android:launchMode="singleInstance" />
         </config-file>
 
         <source-file src="src/android/Badge.java"          target-dir="src/de/appplant/cordova/plugin/badge" />

@@ -82,6 +82,8 @@ describe("EntropyCollectorTest", function () {
     });
 
     it("FetchMissingUrlsAddEntropy ", function (done) {
+        this.timeout(4000);
+
         var alreadyInvoked = false;
         tutao.locator.randomizer.isReady = function () {
             if (alreadyInvoked) {

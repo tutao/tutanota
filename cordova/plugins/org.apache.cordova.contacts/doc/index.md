@@ -58,6 +58,11 @@ __WARNING__: All privileged apps enforce [Content Security Policy](https://devel
 		}
 	}
 
+### Windows Quirks
+
+Any contacts returned from `find` and `pickContact` methods are readonly, so your application cannot modify them.
+`find` method available only on Windows Phone 8.1 devices.
+
 ### Windows 8 Quirks
 
 Windows 8 Contacts are readonly. Via the Cordova API Contacts are not queryable/searchable, you should inform the user to pick a contact as a call to contacts.pickContact which will open the 'People' app where the user must choose a contact.
@@ -143,6 +148,7 @@ parameter to control which contact properties must be returned back.
 - Firefox OS
 - iOS
 - Windows Phone 7 and 8
+- Windows (Windows Phone 8.1 devices only)
 
 ### Example
 
@@ -162,6 +168,10 @@ parameter to control which contact properties must be returned back.
     var fields       = [navigator.contacts.fieldType.displayName, navigator.contacts.fieldType.name];
     navigator.contacts.find(fields, onSuccess, onError, options);
 
+### Windows Quirks
+
+- `__contactFields__` is not supported and will be ignored. `find` method will always attempt to match the name, email address, or phone number of a contact.
+
 ## navigator.contacts.pickContact
 
 The `navigator.contacts.pickContact` method launches the Contact Picker to select a single contact.
@@ -180,6 +190,7 @@ function specified by the __contactSuccess__ parameter.
 - iOS
 - Windows Phone 8
 - Windows 8
+- Windows
 
 ### Example
 
@@ -248,6 +259,7 @@ for details.
 - iOS
 - Windows Phone 7 and 8
 - Windows 8
+- Windows
 
 ### Save Example
 
@@ -344,6 +356,14 @@ for details.
 
 - __categories__: Not supported, returning `null`.
 
+### Windows Quirks
+
+- __photos__: Returns a File URL to the image, which is stored in the application's temporary directory.
+
+- __birthdays__: Not supported, returning `null`.
+
+- __categories__: Not supported, returning `null`.
+
 
 ## ContactAddress
 
@@ -379,6 +399,7 @@ a `ContactAddress[]` array.
 - iOS
 - Windows Phone 7 and 8
 - Windows 8
+- Windows
 
 ### Example
 
@@ -445,6 +466,10 @@ a `ContactAddress[]` array.
 
 - __pref__: Not supported
 
+### Windows Quirks
+
+- __pref__: Not supported
+
 
 ## ContactError
 
@@ -501,6 +526,7 @@ string.
 - iOS
 - Windows Phone 7 and 8
 - Windows 8
+- Windows
 
 ### Example
 
@@ -537,6 +563,10 @@ string.
 
 - __pref__: Not supported, returning `false`.
 
+### Windows Quirks
+
+- __pref__: Not supported, returning `false`.
+
 
 ## ContactName
 
@@ -565,6 +595,7 @@ Contains different kinds of information about a `Contact` object's name.
 - iOS
 - Windows Phone 7 and 8
 - Windows 8
+- Windows
 
 ### Example
 
@@ -629,6 +660,10 @@ Contains different kinds of information about a `Contact` object's name.
 
 - __honorificSuffix__: not supported
 
+### Windows Quirks
+
+- __formatted__: It is identical to `displayName`
+
 
 ## ContactOrganization
 
@@ -656,6 +691,7 @@ properties.  A `Contact` object stores one or more
 - Firefox OS
 - iOS
 - Windows Phone 7 and 8
+- Windows (Windows 8.1 and Windows Phone 8.1 devices only)
 
 ### Example
 
@@ -717,3 +753,9 @@ properties.  A `Contact` object stores one or more
 - __department__: Partially supported.  The first department name is stored in the iOS __kABPersonDepartmentProperty__ field.
 
 - __title__: Partially supported.  The first title is stored in the iOS __kABPersonJobTitleProperty__ field.
+
+### Windows Quirks
+
+- __pref__: Not supported, returning `false`.
+
+- __type__: Not supported, returning `null`.

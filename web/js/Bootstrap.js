@@ -66,8 +66,8 @@ tutao.tutanota.Bootstrap.init = function () {
 
         // only for testing
         //tutao.locator.developerViewModel.open();
-		//tutao.locator.loginViewModel.mailAddress("bernd@tutanota.de");
-		//tutao.locator.loginViewModel.passphrase("bed");
+		//tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
+		//tutao.locator.loginViewModel.passphrase("map");
 		//tutao.locator.loginViewModel.login();
         //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
         tutao.tutanota.gui.initKnockout();
@@ -90,11 +90,11 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     operative.setSelfURL("operative-0.3.1.js");
 
     //override native implementation with device specific one, if available
-    var cryptoImpl = tutao.native.CryptoJsbn;
+    var cryptoImpl = tutao.native.CryptoBrowser;
     var phoneImpl = tutao.native.Phone;
     var notificationImpl = tutao.native.NotificationBrowser;
     var contactImpl = tutao.native.ContactBrowser;
-    var fileTransferImpl = tutao.native.FileTransferBrowser;
+    var fileFacadeImpl = tutao.native.FileFacadeBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
         
@@ -105,7 +105,9 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         phoneImpl = tutao.native.device.Phone;
         notificationImpl = tutao.native.NotificationApp;
         contactImpl = tutao.native.ContactApp;
-        fileTransferImpl = tutao.native.FileTransferApp;
+        if (cordova.platformId == "android") {
+            fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
+        }
     }
 
     var singletons = {
@@ -113,15 +115,14 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         phone: phoneImpl,
         notification: notificationImpl,
         contacts: contactImpl,
-        fileTransfer: fileTransferImpl,
+        fileFacade: fileFacadeImpl,
 
         randomizer: tutao.crypto.SjclRandomizer,
-        aesCrypter: tutao.crypto.AesWorkerProxy,
+        aesCrypter: tutao.crypto.SjclAes,
         rsaCrypter: tutao.native.RsaInterfaceAdapter,
         kdfCrypter: tutao.crypto.JBCryptAdapter,
         shaCrypter: tutao.crypto.SjclSha256,
         userController: tutao.ctrl.UserController,
-        clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
         dao: tutao.db.WebSqlDb,
         restClient: tutao.rest.RestClient,
         entityRestClient: tutao.rest.EntityRestClient,
@@ -173,8 +174,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
 };
 
 tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.native.CryptoJsbn.initWorkerFileNames("");
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
+    tutao.native.CryptoBrowser.initWorkerFileNames("");
 
     // @type {tutao.Locator}
     tutao.locator = new tutao.Locator(tutao.tutanota.Bootstrap.getSingletons());
