@@ -134,6 +134,29 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
                     self.details("could not decrypt data");
                 });
         }),
+
+        new tutao.tutanota.ctrl.DeveloperTest("bycrpt", function () {
+            var self = this;
+			var salt = tutao.locator.kdfCrypter.generateRandomSalt();
+            var start = new Date().getTime();
+			self.details("starting native bcrypt");
+			
+			tutao.locator.crypto.generateKeyFromPassphrase("arm", salt).then(function(nativeKey){
+                var time = new Date().getTime() - start;
+				self.details("starting browser bcrypt");
+				console.log("native took:" + time + "[ms]:" + nativeKey);
+				start = new Date().getTime();
+				tutao.locator.kdfCrypter.generateKeyFromPassphrase("arm", salt).then(function(browserKey){
+	                var browserTime = new Date().getTime() - start;
+					self.details("finished browser bcrypt");
+					console.log("browser took:" + browserTime + "[ms]:"+ browserKey);
+				});
+			})
+			.catch(function (e) {
+				console.log(e);
+                self.details("could not bcrypt data");
+            });
+        }),
 		
         new tutao.tutanota.ctrl.DeveloperTest("Create notification", function () {
             var self = this;

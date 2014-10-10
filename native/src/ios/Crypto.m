@@ -19,44 +19,47 @@
 #import "rsa_oaep_sha256.h"
 #import <openssl/bn.h>
 #import <openssl/rand.h>
+#import "JFBCrypt.h"
 
 @implementation Crypto
 
 - (void)generateRsaKey:(CDVInvokedUrlCommand*)command {
-	CDVPluginResult* pluginResult = nil;
-	if ([command.arguments objectAtIndex:0] != [NSNull null]) {
-	    NSNumber* keyLength = [command.arguments objectAtIndex:0];
-		RSA* rsaKey = RSA_new();
-		int keyLengthInt = [keyLength integerValue];
-		NSString * publicExponent = @"65537";
-		BIGNUM * e = BN_new();
-		BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
+	[self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		if ([command.arguments objectAtIndex:0] != [NSNull null]) {
+			NSNumber* keyLength = [command.arguments objectAtIndex:0];
+			RSA* rsaKey = RSA_new();
+			int keyLengthInt = [keyLength integerValue];
+			NSString * publicExponent = @"65537";
+			BIGNUM * e = BN_new();
+			BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
 		
-		// seeds the PRNG (pseudorandom number generator)
-		NSString * base64Seed = [command.arguments objectAtIndex:1];
-		NSData * seed = [NSData dataFromBase64String:base64Seed];
-		RAND_seed([seed bytes], [seed length]);
+			// seeds the PRNG (pseudorandom number generator)
+			NSString * base64Seed = [command.arguments objectAtIndex:1];
+			NSData * seed = [NSData dataFromBase64String:base64Seed];
+			RAND_seed([seed bytes], [seed length]);
 
-		// generate rsa key
-		int status = RSA_generate_key_ex(rsaKey, keyLengthInt, e, NULL);
-		if ( status > 0 ){
-			NSMutableDictionary* keyPair = [Crypto createRSAKeyPair:rsaKey keyLength:keyLength version:[NSNumber numberWithInt:0]];
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:keyPair];
+			// generate rsa key
+			int status = RSA_generate_key_ex(rsaKey, keyLengthInt, e, NULL);
+			if ( status > 0 ){
+				NSMutableDictionary* keyPair = [Crypto createRSAKeyPair:rsaKey keyLength:keyLength version:[NSNumber numberWithInt:0]];
+				pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:keyPair];
+			} else {
+				[Crypto logError:@"Error while generating rsa key"];
+				pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+			}
+			BN_free(e);
+			RSA_free(rsaKey);
 		} else {
-			[Crypto logError:@"Error while generating rsa key"];
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
 		}
-		BN_free(e);
-		RSA_free(rsaKey);
-	} else {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-    }
-   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	 }];
 }
 
 
 - (void)rsaEncrypt:(CDVInvokedUrlCommand*)command{
-	CDVPluginResult* pluginResult = nil;
+
 	NSObject* jsPublicKey = [command.arguments objectAtIndex:0];
     NSString* base64Data = [command.arguments objectAtIndex:1];
 	//convert json data to private key;
@@ -65,33 +68,36 @@
 	// convert base64 data to bytes.
 	NSData *decodedData = [NSData dataFromBase64String:base64Data];
 	
-	int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
 	
-	NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
+	[self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		int rsaSize = RSA_size(publicRsaKey); // should be 256 for a 2048 bit rsa key
+		NSMutableData *paddingBuffer = [NSMutableData dataWithLength:rsaSize];
 	
-	// add padding
-	int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], [paddingBuffer length], [decodedData bytes], [decodedData length], NULL, 0);
+		// add padding
+		int status = RSA_padding_add_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], [paddingBuffer length], [decodedData bytes], [decodedData length], NULL, 0);
 
-	NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
-	if ( status >= 0 ){
-		// encrypt
-		status = RSA_public_encrypt([paddingBuffer length], [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
-	}
-	if (status >= 0) {
-		// Success
-		NSString* encryptedBase64 = [encryptedData base64EncodedStringWithOptions:0];
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:encryptedBase64];
-	} else {
-		// Error handling
-		[Crypto logError:@"encryption failed"];
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-	}
-   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-	RSA_free(publicRsaKey);
+		NSMutableData *encryptedData = [NSMutableData dataWithLength:rsaSize];
+		if ( status >= 0 ){
+			// encrypt
+			status = RSA_public_encrypt([paddingBuffer length], [paddingBuffer bytes], [encryptedData mutableBytes], publicRsaKey,  RSA_NO_PADDING);
+		}
+		if (status >= 0) {
+			// Success
+			NSString* encryptedBase64 = [encryptedData base64EncodedStringWithOptions:0];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:encryptedBase64];
+		} else {
+			// Error handling
+			[Crypto logError:@"encryption failed"];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+		}
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		RSA_free(publicRsaKey);
+	}];
 }
 
 - (void)rsaDecrypt:(CDVInvokedUrlCommand*)command{
-	CDVPluginResult* pluginResult = nil;
+
     NSObject* jsPrivateKey = [command.arguments objectAtIndex:0];
     NSString* base64Data = [command.arguments objectAtIndex:1];
 	
@@ -109,32 +115,37 @@
 	int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
 	NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
 
-	// Decrypt
-	int status = RSA_private_decrypt([decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
 
-	NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
-	// decryption succesfull remove padding
-	if ( status >= 0 ){
-		// converstion to bn and back is necessary to prepare paremeter flen for RSA_padding_check. Passing 256 to flen does not work.
-		// see: http://marc.info/?l=openssl-users&m=108573630510562&w=2
-		BIGNUM *bn = BN_bin2bn([decryptedBuffer bytes], [decryptedBuffer length], NULL);
-		int flen = BN_bn2bin(bn, [decryptedBuffer mutableBytes]);
-		status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
-	}
+	[self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		// Decrypt
+		int status = RSA_private_decrypt([decodedData length], [decodedData bytes], [decryptedBuffer mutableBytes], privateRsaKey, RSA_NO_PADDING);
+
+		NSMutableData *paddingBuffer =[NSMutableData dataWithLength:rsaSize];
+		// decryption succesfull remove padding
+		if ( status >= 0 ){
+			// converstion to bn and back is necessary to prepare paremeter flen for RSA_padding_check. Passing 256 to flen does not work.
+			// see: http://marc.info/?l=openssl-users&m=108573630510562&w=2
+			BIGNUM *bn = BN_bin2bn([decryptedBuffer bytes], [decryptedBuffer length], NULL);
+			int flen = BN_bn2bin(bn, [decryptedBuffer mutableBytes]);
+			status = RSA_padding_check_PKCS1_OAEP_SHA256([paddingBuffer mutableBytes], [paddingBuffer length], [decryptedBuffer bytes], flen, rsaSize, NULL, 0);
+		}
 	
-	if (status > 0) {
-		// Success
-		NSData* decryptedData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
-		NSString* decryptedBase64 = [decryptedData base64EncodedStringWithOptions:0];
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:decryptedBase64];
-	} else {
-		// Error handling
-		[Crypto logError:@"decryption failed"];
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-	}
-	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-	RSA_free(privateRsaKey);
+		if (status > 0) {
+			// Success
+			NSData* decryptedData = [NSData dataWithBytes:[paddingBuffer bytes] length:status];
+			NSString* decryptedBase64 = [decryptedData base64EncodedStringWithOptions:0];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:decryptedBase64];
+		} else {
+			// Error handling
+			[Crypto logError:@"decryption failed"];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+		}
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		RSA_free(privateRsaKey);
+     }];
 }
+
 
 
 + (RSA *)createPrivateRSAKey:(NSObject*)key {
@@ -212,7 +223,6 @@
 
 
 + (NSMutableDictionary *)createRSAKeyPair:(RSA*)key keyLength:(NSNumber*)keyLength version:(NSNumber*)version {
-
 	NSMutableDictionary* publicKey= [NSMutableDictionary new];
 	[publicKey setObject: version forKey: @"version"];
 	[publicKey setObject: keyLength forKey: @"keyLength"];
@@ -234,6 +244,30 @@
 	[keyPair setObject: publicKey forKey: @"publicKey"];
 	[keyPair setObject: privateKey forKey: @"privateKey"];
     return keyPair;
+}
+
+
+
+- (void)generateKeyFromPassphrase:(CDVInvokedUrlCommand*)command{
+     [self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		NSString* base64Passphrase = [command.arguments objectAtIndex:0];
+		NSString* base64Salt = [command.arguments objectAtIndex:1];
+		NSNumber* rounds = [command.arguments objectAtIndex:2];
+	
+		NSData * saltData = [NSData dataFromBase64String:base64Salt];
+		NSData * passwordData = [NSData dataFromBase64String:base64Passphrase];
+		
+		JFBCrypt * bCrypt = [JFBCrypt new];
+		NSData* hashedData = [bCrypt hashPassword: passwordData withSalt: saltData rounds: [rounds intValue]];
+		// Only the first 16 bytes are needed for the generate key.
+		NSData* returnData = [NSData dataWithBytes:[hashedData bytes] length:16];
+
+		NSString * result = [returnData base64EncodedStringWithOptions:0];
+		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:result];
+	
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+     }];
 }
 
 

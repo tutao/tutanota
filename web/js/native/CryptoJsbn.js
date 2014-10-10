@@ -145,6 +145,13 @@ tutao.native.CryptoJsbn.prototype.rsaDecrypt = function (privateKey, bytes) {
     });
 };
 
+
+tutao.native.CryptoJsbn.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
+	return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
+};
+
+
+
 tutao.native.CryptoJsbn.prototype._unsign = function (signedArray) {
     var unsignedArray = [];
     for (var i = 0; i < signedArray.length; i++) {

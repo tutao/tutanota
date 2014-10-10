@@ -160,7 +160,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
         // TODO (story performance): make kdf async in worker
         return promise.then(function () {
-            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
+            return tutao.locator.crypto.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
                 var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
                 var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
                 return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {

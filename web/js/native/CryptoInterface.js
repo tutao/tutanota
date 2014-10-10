@@ -31,3 +31,13 @@ tutao.native.CryptoInterface.prototype.rsaEncrypt = function (publicKey, bytes) 
  * @return {Promise.<Uint8Array, Error>} will return the decrypted bytes.
  */
 tutao.native.CryptoInterface.prototype.rsaDecrypt = function (privateKey, bytes) {};
+
+
+
+/**
+ * Create a 128 bit symmetric key from the given passphrase.
+ * @param {string} passphrase The passphrase to use for key generation as utf8 string.
+ * @param {string} salt 128 bit of random data, encoded as a hex string.
+ * @return {Promise.<string>} Resolved with the hex codec key
+ */
+tutao.native.CryptoInterface.prototype.generateKeyFromPassphrase = function(passphrase, salt) {};

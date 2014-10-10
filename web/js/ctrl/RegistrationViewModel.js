@@ -263,7 +263,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKeyHex) {
+		return tutao.locator.crypto.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKeyHex) {
 			tutao.locator.progressDialogModel.progress(5);
 			var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 

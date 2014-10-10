@@ -59,5 +59,8 @@
 	<header-file src="src/ios/rsa_oaep_sha256.h"/>
 	<source-file src="src/ios/rsa_oaep_sha256.c"/>
 	<source-file src="lib/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
+	<header-file src="src/ios/JFBCrypt.h"/>
+	<source-file src="src/ios/JFBCrypt.m"/>
+	<header-file src="src/ios/JFGC.h"/>
   </platform>
 </plugin>

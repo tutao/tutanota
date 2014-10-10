@@ -113,7 +113,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
         }
 
         var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt).then(function (userPassphraseKeyHex) {
+        return tutao.locator.crypto.generateKeyFromPassphrase(self.password(), hexSalt).then(function (userPassphraseKeyHex) {
             var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
             var userGroupsListKey = null;
