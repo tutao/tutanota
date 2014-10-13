@@ -23,7 +23,7 @@
 
 @implementation Crypto
 
-- (void)rsaEncrypt:(CDVInvokedUrlCommand*)command{
+- (void)seed:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
 		if ([command.arguments objectAtIndex:0] != [NSNull null]) {

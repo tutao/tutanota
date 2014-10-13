@@ -153,6 +153,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	loadMoreMails_action: "Load more emails",
     confirmDeleteTrash_msg: "Do you really want to delete all mails from the trash?",
 	newMails_msg: "New Tutanota email received.",
+    newMailBadge_msg: "1 new email received",
     newMailsBadge_msg: "%d new emails received",
 
     //invitation
@@ -587,6 +588,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	loadMoreMails_action: "Weitere E-Mails laden",
     confirmDeleteTrash_msg: "Möchtest du wirklich alle E-Mails aus dem Papierkorb löschen?",
 	newMails_msg: "Neue Nachricht in Tutanota eingetroffen.",
+    newMailBadge_msg: "1 neue E-Mail empfangen",
     newMailsBadge_msg: "%d neue E-Mails empfangen",
 
     //invitation
