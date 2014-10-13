@@ -12,13 +12,7 @@ var FileUtil = function () {};
  */
 FileUtil.prototype.open = function(file) {
     return new Promise(function (resolve, reject) {
-        exec(function () {
-            console.log("opened");
-            resolve();
-        }, function (reason) {
-            console.log("rejected" , reason);
-            reject(reason);
-        },"FileUtil", "open",[file]);
+        exec(resolve, reject,"FileUtil", "open",[file]);
     });
 };
 

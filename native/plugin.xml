@@ -11,6 +11,9 @@
   <js-module src="www/crypto.js" name="crypto">
     <clobbers target="tutao.native.device.Crypto" />
   </js-module>
+  <js-module src="www/util.js" name="util">
+    <clobbers target="tutao.native.device.Util" />
+  </js-module>
   <js-module src="www/fileUtil.js" name="fileUtil">
     <clobbers target="tutao.native.device.FileUtil" />
   </js-module>
@@ -19,6 +22,7 @@
     <source-file src="src/android/com/ipaulpro/afilechooser/utils/FileUtils.java" target-dir="src/com/ipaulpro/afilechooser/utils" />
     <source-file src="src/android/de/tutao/crypto/TutaoCipherInputStream.java" target-dir="src/de/tutao/crypto" />
     <source-file src="src/android/de/tutao/plugin/Utils.java" target-dir="src/de/tutao/plugin" />
+    <source-file src="src/android/de/tutao/plugin/Util.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Telephone.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Crypto.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/PRNGFixes.java" target-dir="src/de/tutao/plugin" />
@@ -30,13 +34,18 @@
       <feature name="Crypto" >
         <param name="android-package" value="de.tutao.plugin.Crypto"/>
       </feature>
+      <feature name="Util" >
+        <param name="android-package" value="de.tutao.plugin.Util"/>
+      </feature>
       <feature name="FileUtil" >
         <param name="android-package" value="de.tutao.file.FileUtil"/>
       </feature>
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
+      <!-- currently not used
       <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+      -->
       <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     </config-file>
 	<config-file target="AndroidManifest.xml" parent="/manifest/application">

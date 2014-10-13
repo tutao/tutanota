@@ -72,11 +72,22 @@ tutao.tutanota.Bootstrap.init = function () {
 			if (tutao.env.mode == tutao.Mode.App) {
 				window.open(this.href, "_system");
 				return false; // Prevent execution of the default onClick handler
-			}else{
+			} else {
 				return true;
 			}
 		});
 
+        if (tutao.env.mode == tutao.Mode.App && cordova.platformId == "android") {
+            var util = new tutao.native.device.Util();
+            document.addEventListener("backbutton", function () {
+                var view = tutao.locator.viewManager.getActiveView();
+                if (view && view.isShowLeftNeighbourColumnPossible()) {
+                    view.getSwipeSlider().showLeftNeighbourColumn();
+                } else {
+                    util.switchToHomescreen();
+                }
+            }, false);
+        }
 
         // only for testing
 		//tutao.locator.developerViewModel.open();

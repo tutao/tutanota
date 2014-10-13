@@ -261,7 +261,7 @@ public class Crypto extends CordovaPlugin {
 				try {
 					File inputFile = Utils.uriToFile(webView.getContext(), fileUrl);
 					Context context = webView.getContext();
-					File encryptedDir = new File(context.getFilesDir(), TEMP_DIR_ENCRYPTED);
+					File encryptedDir = new File(Utils.getDir(context), TEMP_DIR_ENCRYPTED);
 					encryptedDir.mkdirs();
 					File outputFile = new File(encryptedDir, inputFile.getName());
 					
@@ -320,7 +320,7 @@ public class Crypto extends CordovaPlugin {
 				try {
 					File inputFile = Utils.uriToFile(webView.getContext(), fileUrl);
 					Context context = webView.getContext();
-					File decryptedDir = new File(context.getFilesDir(), TEMP_DIR_DECRYPTED);
+					File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
 					decryptedDir.mkdirs();
 					File outputFile = new File(decryptedDir, inputFile.getName());
 					

@@ -41,6 +41,9 @@
     <feature name="Crypto">
         <param name="android-package" value="de.tutao.plugin.Crypto" />
     </feature>
+    <feature name="Util">
+        <param name="android-package" value="de.tutao.plugin.Util" />
+    </feature>
     <feature name="FileUtil">
         <param name="android-package" value="de.tutao.file.FileUtil" />
     </feature>

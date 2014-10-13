@@ -91,4 +91,8 @@ public class Utils {
 		new Thread(runnable).start();
 	}
 
+	public static File getDir(Context context) {
+		return context.getFilesDir();
+	}
+
 }

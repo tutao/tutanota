@@ -89,7 +89,7 @@ public class FileUtil extends CordovaPlugin {
 				try {
 					Context context = webView.getContext();
 					File file = Utils.uriToFile(context, absolutePath);
-					if (!absolutePath.startsWith(Uri.fromFile(context.getFilesDir()).toString())) {
+					if (!absolutePath.startsWith(Uri.fromFile(Utils.getDir(context)).toString())) {
 						// we do not delete files that are not stored in our cache dir
 						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 					} else {
@@ -232,8 +232,8 @@ public class FileUtil extends CordovaPlugin {
 						con.connect();
 						
 						Context context = webView.getContext();
-						File filesDir = context.getFilesDir();
-						File encryptedFile = new File(new File(filesDir, Crypto.TEMP_DIR_ENCRYPTED), filename);
+						File dir = Utils.getDir(context);
+						File encryptedFile = new File(new File(dir, Crypto.TEMP_DIR_ENCRYPTED), filename);
 						
 						IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
 						

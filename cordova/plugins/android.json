@@ -57,6 +57,10 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"Util\"><param name=\"android-package\" value=\"de.tutao.plugin.Util\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
                             "count": 1
                         }
@@ -90,15 +94,7 @@
                     ],
                     "/manifest": [
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />",
-                            "count": 1
-                        },
-                        {
                             "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\" />",
                             "count": 1
                         },
                         {
@@ -109,14 +105,6 @@
                     "/*": [
                         {
                             "xml": "<uses-permission android:name=\"android.permission.READ_CONTACTS\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.WRITE_CONTACTS\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\" />",
                             "count": 1
                         },
                         {

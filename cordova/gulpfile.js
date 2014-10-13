@@ -24,12 +24,12 @@ gulp.task('androidProdDist', ['createWebRelease'], shell.task([
     'cordova build --release android'
 ]));
 
-gulp.task('tagAndroidRelease', shell.task([
+gulp.task('tagAndroidRelease', ['androidProdDist'], shell.task([
         "git tag -a " + package.name + "android-release-" + package.version + " -m ''",
         "git push origin " + package.name + "android-release-" + package.version
 ]));
 
-gulp.task('releaseAndroid', ['androidProdDist', 'tagAndroidRelease'], function (cb) {
-    return gulp.src('build/**')
+gulp.task('releaseAndroid', ['tagAndroidRelease'], function (cb) {
+    return gulp.src('platforms/android/ant-build/Tutanota-release.apk')
         .pipe(gulp.dest('/opt/releases/' + package.name + '-android-' + package.version));
 });
