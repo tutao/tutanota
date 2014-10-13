@@ -23,6 +23,23 @@
 
 @implementation Crypto
 
+- (void)rsaEncrypt:(CDVInvokedUrlCommand*)command{
+	[self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		if ([command.arguments objectAtIndex:0] != [NSNull null]) {
+			// seeds the PRNG (pseudorandom number generator)
+			NSString * base64Seed = [command.arguments objectAtIndex:0];
+			NSData * seed = [NSData dataFromBase64String:base64Seed];
+			RAND_seed([seed bytes], [seed length]);
+
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+		} else {
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+		}
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	 }];
+}
+
 - (void)generateRsaKey:(CDVInvokedUrlCommand*)command {
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
@@ -34,11 +51,6 @@
 			BIGNUM * e = BN_new();
 			BN_dec2bn(&e, [publicExponent UTF8String]); // public exponent <- 65537
 		
-			// seeds the PRNG (pseudorandom number generator)
-			NSString * base64Seed = [command.arguments objectAtIndex:1];
-			NSData * seed = [NSData dataFromBase64String:base64Seed];
-			RAND_seed([seed bytes], [seed length]);
-
 			// generate rsa key
 			int status = RSA_generate_key_ex(rsaKey, keyLengthInt, e, NULL);
 			if ( status > 0 ){
@@ -56,7 +68,6 @@
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
 }
-
 
 - (void)rsaEncrypt:(CDVInvokedUrlCommand*)command{
 

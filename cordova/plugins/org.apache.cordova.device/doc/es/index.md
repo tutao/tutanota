@@ -42,11 +42,11 @@ Este plugin define un global `device` objeto que describe del dispositivo hardwa
 
 ## device.cordova
 
-Obtener la versión de Cordova que se ejecuta en el dispositivo.
+Obtener la versión de Córdoba en el dispositivo.
 
 ### Plataformas soportadas
 
-*   Amazon fire OS
+*   Amazon fuego OS
 *   Android
 *   BlackBerry 10
 *   Explorador
@@ -58,7 +58,7 @@ Obtener la versión de Cordova que se ejecuta en el dispositivo.
 
 ## device.model
 
-El `device.model` devuelve el nombre de modelo del dispositivo o producto. El valor es fijado por el fabricante del dispositivo y puede ser diferente a través de versiones del mismo producto.
+El `device.model` devuelve el nombre del producto o modelo del dispositivo. El valor es fijado por el fabricante del dispositivo y puede variar entre versiones del mismo producto.
 
 ### Plataformas soportadas
 
@@ -84,18 +84,18 @@ El `device.model` devuelve el nombre de modelo del dispositivo o producto. El va
 
 ### Rarezas Android
 
-*   Obtiene el [nombre del producto][1] en lugar del [nombre de la modelo][2], que es a menudo el nombre de código de producción. Por ejemplo, el Nexus One devuelve `Passion` y Motorola Droid devuelve `voles`.
+*   Obtiene el [nombre del producto][1] en lugar del [nombre del modelo][2], que es a menudo el nombre de código de producción. Por ejemplo, el Nexus One devuelve `Passion` , y Motorola Droid devuelve`voles`.
 
  [1]: http://developer.android.com/reference/android/os/Build.html#PRODUCT
  [2]: http://developer.android.com/reference/android/os/Build.html#MODEL
 
 ### Rarezas Tizen
 
-*   Devuelve que el modelo de dispositivo asignado por el proveedor, por ejemplo, `TIZEN`
+*   Devuelve el modelo de dispositivo asignado por el proveedor, por ejemplo,`TIZEN`
 
 ### Windows Phone 7 y 8 rarezas
 
-*   Devuelve el modelo de dispositivo especificado por el fabricante. Por ejemplo, el Samsung Focus devuelve `SGH-i917`.
+*   Devuelve el modelo de dispositivo especificado por el fabricante. Por ejemplo, devuelve el Samsung Focus`SGH-i917`.
 
 ## device.platform
 
@@ -130,11 +130,11 @@ Obtener el nombre del sistema operativo del dispositivo.
 
 ### Windows Phone 7 rarezas
 
-Dispositivos Windows Phone 7 informe de la plataforma como `WinCE`.
+Dispositivos Windows Phone 7 informe de la plataforma`WinCE`.
 
 ### Windows Phone 8 rarezas
 
-Dispositivos Windows Phone 8 Informe la plataforma como `Win32NT`.
+Dispositivos Windows Phone 8 Informe la plataforma como`Win32NT`.
 
 ## device.uuid
 
@@ -160,21 +160,16 @@ Los detalles de cómo se genera un UUID son determinados por el fabricante del d
 
 ### Ejemplo rápido
 
-    // Android: devuelve un entero de 64 bits al azar (como una cadena, otra vez!) 
-    // el entero es generado en el primer arranque del dispositivo 
-    // 
-    // BlackBerry: devuelve el número PIN del dispositivo 
-    // este es un entero único de nueve dígitos (como una cadena, aunque!) 
-    // 
-    // iPhone: (parafraseado de la documentación de la clase UIDevice) 
-    // devuelve una cadena de valores hash creado a partir 
-    //  de múltiples hardware identifica.
+    // Android: Returns a random 64-bit integer (as a string, again!)
+    //          The integer is generated on the device's first boot
+    //
+    // BlackBerry: Returns the PIN number of the device
+    //             This is a nine-digit unique integer (as a string, though!)
+    //
+    // iPhone: (Paraphrased from the UIDevice Class documentation)
+    //         Returns a string of hash values created from multiple hardware identifies.
     / / Está garantizado para ser único para cada dispositivo y no puede ser atado / / a la cuenta de usuario.
-    // Windows Phone 7: devuelve un hash de dispositivo + usuario actual, 
-    // si el usuario no está definido, un guid generado y persistirá hasta que se desinstala la aplicación 
-    // 
-    // Tizen: devuelve el dispositivo IMEI (identidad de equipo móvil internacional o IMEI es un número 
-    // único para cada teléfono móvil GSM y UMTS.
+    / / Windows Phone 7: devuelve un hash de dispositivo + usuario actual, / / si el usuario no está definido, un guid se genera y persistirá hasta que se desinstala la aplicación / / Tizen: devuelve el dispositivo IMEI (identidad de equipo móvil internacional o IMEI es un número / / único para cada teléfono móvil GSM y UMTS.
     var deviceID = device.uuid;
     
 
@@ -184,11 +179,11 @@ El `uuid` en iOS no es exclusiva de un dispositivo, pero varía para cada aplica
 
 ### Windows Phone 7 y 8 rarezas
 
-El `uuid` para Windows Phone 7 requiere el permiso `ID_CAP_IDENTITY_DEVICE`. Microsoft pronto probablemente desaprueban esta propiedad. Si la capacidad no está disponible, la aplicación genera un guid persistente que se mantiene durante la duración de la instalación de la aplicación en el dispositivo.
+El `uuid` para Windows Phone 7 requiere el permiso `ID_CAP_IDENTITY_DEVICE` . Microsoft pronto probablemente descartan esta propiedad. Si la capacidad no está disponible, la aplicación genera un guid persistente que se mantiene durante la duración de la instalación de la aplicación en el dispositivo.
 
 ## device.version
 
-Obtener la versión del sistema operativo.
+Obtiene la versión del sistema operativo.
 
     var string = device.version;
     
@@ -215,6 +210,6 @@ Obtener la versión del sistema operativo.
     //
     // iPhone:     iOS 3.2 returns "3.2"
     //
-    // Windows Phone 7: returns current OS version number, ex. el Mango se vuelve 7.10.7720 
-    // Tizen: devuelve "TIZEN_20120425_2" 
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
+    // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

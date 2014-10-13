@@ -44,3 +44,10 @@
 * ios: Fix hide to adjust webview's frame only when status bar is not overlaying webview
 * CB-6127 Updated translations for docs
 * android: Fix StatusBar.initialize() not running on UI thread
+
+### 0.1.8 (Sep 17, 2014)
+* CB-7549 [StatusBar][iOS 8] Landscape issue
+* CB-7486 Remove StatusBarBackgroundColor intial preference (black background) so background will be initially transparent
+* Renamed test dir, added nested plugin.xml
+* added documentation for manual tests, moved background color test below overlay test
+* CB-7195 ported statusbar tests to framework

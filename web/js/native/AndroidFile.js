@@ -9,8 +9,8 @@ tutao.provide('tutao.native.AndroidFile');
  * @param {String} size The size of the file
  * @constructor
  */
-tutao.native.AndroidFile = function(location, mimeType, size) {
-    this._name = location.split("/").slice(-1)[0];
+tutao.native.AndroidFile = function(location, name, mimeType, size) {
+    this._name = name;
     this._location = location;
     if (mimeType && mimeType !== "") {
         this._mimeType = mimeType

@@ -27,7 +27,7 @@ Ten plugin określa globalne `device` obiekt, który opisuje urządzenia sprzęt
     }
     
 
-## Instalacja
+## Instalacji
 
     cordova plugin add org.apache.cordova.device
     
@@ -46,9 +46,9 @@ Pobierz wersję Cordova działa na urządzeniu.
 
 ### Obsługiwane platformy
 
-*   Amazon Fire OS
+*   Amazon ogień OS
 *   Android
-*   BlackBerry 10
+*   Jeżyna 10
 *   Przeglądarka
 *   Firefox OS
 *   iOS
@@ -63,7 +63,7 @@ Pobierz wersję Cordova działa na urządzeniu.
 ### Obsługiwane platformy
 
 *   Android
-*   BlackBerry 10
+*   Jeżyna 10
 *   Przeglądarka
 *   iOS
 *   Tizen
@@ -80,14 +80,14 @@ Pobierz wersję Cordova działa na urządzeniu.
     // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Zobacz http://theiphonewiki.com/wiki/index.php?title=Models / / modelu var = device.model;
     
 
-### Dziwactwa Androida
+### Android dziwactwa
 
 *   Pobiera [nazwę produktu][1] zamiast [nazwy modelu][2], który często jest nazwą kod produkcji. Na przykład, Nexus One zwraca `Passion` , i zwraca Motorola Droid`voles`.
 
  [1]: http://developer.android.com/reference/android/os/Build.html#PRODUCT
  [2]: http://developer.android.com/reference/android/os/Build.html#MODEL
 
-### Dziwactwa Tizen
+### Osobliwości Tizen
 
 *   Zwraca modelu urządzenia przypisane przez dostawcę, na przykład,`TIZEN`
 
@@ -105,7 +105,7 @@ Uzyskać nazwę systemu operacyjnego urządzenia.
 ### Obsługiwane platformy
 
 *   Android
-*   BlackBerry 10
+*   Jeżyna 10
 *   Browser4
 *   Firefox OS
 *   iOS
@@ -126,7 +126,7 @@ Uzyskać nazwę systemu operacyjnego urządzenia.
     var devicePlatform = device.platform;
     
 
-### Dziwactwa Windows Phone 7
+### Windows Phone 7 dziwactwa
 
 Urządzenia Windows Phone 7 raport platformy jako`WinCE`.
 
@@ -150,7 +150,7 @@ Szczegóły jak UUID jest generowane są określane przez producenta urządzenia
 ### Obsługiwane platformy
 
 *   Android
-*   BlackBerry 10
+*   Jeżyna 10
 *   iOS
 *   Tizen
 *   Windows Phone 7 i 8
@@ -182,7 +182,7 @@ Pobierz wersję systemu operacyjnego.
 ### Obsługiwane platformy
 
 *   Android 2.1 +
-*   BlackBerry 10
+*   Jeżyna 10
 *   Przeglądarka
 *   iOS
 *   Tizen

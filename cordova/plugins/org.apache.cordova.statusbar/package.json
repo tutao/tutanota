@@ -1,5 +1,5 @@
 {
-    "version": "0.1.7",
+    "version": "0.1.8",
     "name": "org.apache.cordova.statusbar",
     "cordova_name": "StatusBar",
     "description": "Cordova StatusBar Plugin",

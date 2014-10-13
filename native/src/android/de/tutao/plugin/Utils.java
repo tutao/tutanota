@@ -58,7 +58,7 @@ public class Utils {
 	}
 
 	public static String fileToUri(File file) {
-		return file.toURI().toString();
+		return Uri.fromFile(file).toString();
 	}
 
 	public static File uriToFile(Context context, String uri) {

@@ -12,7 +12,13 @@ var FileUtil = function () {};
  */
 FileUtil.prototype.open = function(file) {
     return new Promise(function (resolve, reject) {
-        exec(resolve,reject,"FileUtil", "open",[file]);
+        exec(function () {
+            console.log("opened");
+            resolve();
+        }, function (reason) {
+            console.log("rejected" , reason);
+            reject(reason);
+        },"FileUtil", "open",[file]);
     });
 };
 
@@ -55,7 +61,7 @@ FileUtil.prototype.read = function(file) {
 
 /**
  * Deletes the file.
- * @param {tutao.native.AndroidFile} file The file to delete.
+ * @param {string} file The uri of the file to delete.
  * @returns {Promise}
  */
 FileUtil.prototype.delete = function(file) {
@@ -65,8 +71,19 @@ FileUtil.prototype.delete = function(file) {
 };
 
 /**
+ * Returns the name of the file
+ * @param {string} file The uri of the file
+ * @returns {Promise.<string>}
+ */
+FileUtil.prototype.getName = function(file) {
+    return new Promise(function (resolve, reject) {
+        exec(resolve, reject,"FileUtil", "getName",[file]);
+    });
+};
+
+/**
  * Returns the mime type of the file
- * @param {tutao.native.AndroidFile} file
+ * @param {string} file The uri of the file
  * @returns {Promise.<string>}
  */
 FileUtil.prototype.getMimeType = function(file) {
@@ -77,7 +94,7 @@ FileUtil.prototype.getMimeType = function(file) {
 
 /**
  * Returns the byte size of a file
- * @param {tutao.native.AndroidFile} file
+ * @param {string} file The uri of the file
  * @returns {Promise.<string>}
  */
 FileUtil.prototype.getSize = function(file) {

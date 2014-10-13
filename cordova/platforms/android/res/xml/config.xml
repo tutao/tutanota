@@ -1,23 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.tutao.tutanota" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.tutao.tutanota" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <preference name="loglevel" value="DEBUG" />
     <feature name="App">
         <param name="android-package" value="org.apache.cordova.App" />
     </feature>
-    <feature name="WebSocket">
-        <param name="android-package" value="com.ququplay.websocket.WebSocket" />
-    </feature>
-    <feature name="Vibration">
-        <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
-    </feature>
-    <feature name="StatusBar">
-        <param name="android-package" onload="true" value="org.apache.cordova.statusbar.StatusBar" />
-    </feature>
     <feature name="Open">
         <param name="android-package" value="com.bridge.Open" />
     </feature>
-    <feature name="Contacts">
-        <param name="android-package" value="org.apache.cordova.contacts.ContactManager" />
+    <feature name="WebSocket">
+        <param name="android-package" value="com.ququplay.websocket.WebSocket" />
     </feature>
     <feature name="Badge">
         <param name="android-package" value="de.appplant.cordova.plugin.badge.Badge" />
@@ -27,6 +18,22 @@
     </feature>
     <feature name="LocalNotification">
         <param name="android-package" value="de.appplant.cordova.plugin.localnotification.LocalNotification" />
+    </feature>
+    <feature name="Contacts">
+        <param name="android-package" value="org.apache.cordova.contacts.ContactManager" />
+    </feature>
+    <feature name="File">
+        <param name="android-package" value="org.apache.cordova.file.FileUtils" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="InAppBrowser">
+        <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
+    </feature>
+    <feature name="StatusBar">
+        <param name="android-package" onload="true" value="org.apache.cordova.statusbar.StatusBar" />
+    </feature>
+    <feature name="Vibration">
+        <param name="android-package" value="org.apache.cordova.vibration.Vibration" />
     </feature>
     <feature name="Telephone">
         <param name="android-package" value="de.tutao.plugin.Telephone" />
@@ -46,7 +53,7 @@
     <description>
     Tutanota is the secure client for end-to-end encrypted mail.
   </description>
-    <author email="support@tutao.de" href="http://tutanota.de">
+    <author email="hello@tutao.de" href="http://tutanota.de">
     Tutao GmbH
   </author>
     <content src="index.html" />
@@ -54,8 +61,4 @@
     <preference name="AndroidLaunchMode" value="singleTop" />
     <preference name="AndroidPersistentFileLocation" value="Internal" />
     <preference name="iosPersistentFileLocation" value="Library" />
-    <feature name="File">
-        <param name="android-package" value="org.apache.cordova.file.FileUtils" />
-        <param name="onload" value="true" />
-    </feature>
 </widget>

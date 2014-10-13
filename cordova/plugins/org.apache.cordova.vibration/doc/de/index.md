@@ -19,6 +19,8 @@
 
 # org.apache.cordova.vibration
 
+Dieses Plugin richtet mit dem W3C Vibration Spezifikation http://www.w3.org/TR/vibration/
+
 Dieses Plugin bietet eine Möglichkeit, das Gerät zu vibrieren.
 
 ## Installation
@@ -28,12 +30,90 @@ Dieses Plugin bietet eine Möglichkeit, das Gerät zu vibrieren.
 
 ## Unterstützte Plattformen
 
+Navigator.Vibrate  
 Navigator.Notification.Vibrate - Amazon Fire OS - Android - BlackBerry 10 - Firefox OS - iOS - Windows Phone 7 und 8
 
 navigator.notification.vibrateWithPattern,  
 navigator.notification.cancelVibration - Android
 
-## Notification.Vibrate
+## vibrieren (empfohlen)
+
+Diese Funktion hat drei verschiedene Funktionalitäten, die auf der Grundlage von an sie übergebenen Parameter.
+
+### Standard vibrieren
+
+Vibriert das Gerät für einen bestimmten Zeitraum.
+
+    navigator.vibrate(time)
+    
+
+oder
+
+    navigator.vibrate([time])
+    
+
+-**Zeit**: Millisekunden das Gerät vibriert. *(Anzahl)*
+
+#### Beispiel
+
+    // Vibrate for 3 seconds
+    navigator.vibrate(3000);
+    
+    // Vibrate for 3 seconds
+    navigator.vibrate([3000]);
+    
+
+#### iOS Macken
+
+*   **Zeit**: ignoriert die angegebene Zeit und für eine voreingestellte Zeit vibriert.
+    
+    Navigator.Vibrate(3000); 3000 wird ignoriert
+
+#### Windows und Blackberry-Kniffe
+
+*   **Zeit**: Max. Zeit 5000ms (5 s) und min Zeit ist 1ms
+    
+    Navigator.Vibrate(8000); wird auf 5000 abgeschnitten
+
+### Vibrieren Sie mit einem Muster (Android und Windows nur)
+
+Vibriert das Gerät mit einem vorgegebenen Muster
+
+    navigator.vibrate(pattern);   
+    
+
+*   **Muster**: Folge von Dauer (in Millisekunden) für den ein-oder Ausschalten der Vibrator. *(Array von Zahlen)*
+
+#### Beispiel
+
+    // Vibrate for 1 second
+    // Wait for 1 second
+    // Vibrate for 3 seconds
+    // Wait for 1 second
+    // Vibrate for 5 seconds
+    navigator.vibrate([1000, 1000, 3000, 1000, 5000]);
+    
+
+### "Abbrechen" Vibration (nicht in iOS unterstützt)
+
+Sofort bricht alle derzeit ausgeführten Schwingungen.
+
+    navigator.vibrate(0)
+    
+
+oder
+
+    navigator.vibrate([])
+    
+
+oder
+
+    navigator.vibrate([0])
+    
+
+Übergabe eines Parameters 0, wird ein leeres Array, oder ein Array mit einem Element der Wert 0 auftretender Schwingungen abbrechen.
+
+## *Notification.Vibrate (veraltet)
 
 Vibriert das Gerät für einen bestimmten Zeitraum.
 
@@ -56,7 +136,7 @@ Vibriert das Gerät für einen bestimmten Zeitraum.
         navigator.notification.vibrate(2500);   // 2500 is ignored
         
 
-## notification.vibrateWithPattern
+## *Notification.vibrateWithPattern (veraltet)
 
 Vibriert das Gerät mit einem vorgegebenen Muster.
 
@@ -80,8 +160,11 @@ Vibriert das Gerät mit einem vorgegebenen Muster.
     navigator.notification.vibrateWithPattern([0, 100, 100, 200, 100, 400, 100, 800]);
     
 
-## notification.cancelVibration
+## *Notification.cancelVibration (veraltet)
 
 Sofort bricht alle derzeit ausgeführten Schwingungen.
 
     navigator.notification.cancelVibration()
+    
+
+* Note - durch Angleichung an die w3c-Spezifikation, die markierten Methoden abgeschafft werden wird

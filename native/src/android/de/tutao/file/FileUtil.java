@@ -50,6 +50,8 @@ public class FileUtil extends CordovaPlugin {
 				this.readFile(callbackContext, args.getString(0));
 			} else if (action.equals("delete")) {
 				this.delete(callbackContext, args.getString(0));
+			} else if (action.equals("getName")) {
+				this.getName(callbackContext, args.getString(0));
 			} else if (action.equals("getMimeType")) {
 				this.getMimeType(callbackContext, args.getString(0));
 			} else if (action.equals("getSize")) {
@@ -85,10 +87,17 @@ public class FileUtil extends CordovaPlugin {
 			@Override
 			public void run() {
 				try {
-					if (Utils.uriToFile(webView.getContext(), absolutePath).delete()) {
+					Context context = webView.getContext();
+					File file = Utils.uriToFile(context, absolutePath);
+					if (!absolutePath.startsWith(Uri.fromFile(context.getFilesDir()).toString())) {
+						// we do not delete files that are not stored in our cache dir
 						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 					} else {
-						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
+						if (file.delete()) {
+							callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+						} else {
+							callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
+						}
 					}
 				} catch(Exception e) {
 					Log.e(TAG, "error during delete of " + absolutePath, e);
@@ -114,7 +123,10 @@ public class FileUtil extends CordovaPlugin {
 		java.io.File file = Utils.uriToFile(webView.getContext(), fileName);
 
 		if (file.exists()) {
-			Uri path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "de.tutao.fileprovider", file);
+			Uri path = Uri.parse(fileName);
+			if (path.getAuthority().equals("")) {
+				path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "de.tutao.fileprovider", file);
+			}
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(path);
 			intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -136,9 +148,14 @@ public class FileUtil extends CordovaPlugin {
 			try {
                 String contentPath = uri.toString(); // uri that starts with content:/ and is not directly accessible as a file
 				Log.v(TAG, "uri of selected file: " + contentPath);
-                String file = Utils.uriToFile(webView.getContext(), uri.toString()).toURI().toString();
-                Log.i(TAG, "selected file: " + file);
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, file));
+                File file = Utils.uriToFile(webView.getContext(), uri.toString());
+                if (!file.exists()) {
+                	callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "File does not exist!"));
+                } else {
+                	String fileUri = file.toURI().toString();
+                	Log.i(TAG, "selected file: " + fileUri);
+                	callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, contentPath));
+                }
             } catch(Exception e) {
             	Log.e(TAG, "error during file selection of " + uri, e);
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));            	
@@ -160,7 +177,7 @@ public class FileUtil extends CordovaPlugin {
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, mimeType));
 	}
 	
-	private void getFilename(CallbackContext callbackContext, String absolutePath) {
+	private void getName(CallbackContext callbackContext, String absolutePath) {
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.uriToFile(webView.getContext(), absolutePath).getName()));
 	}
 	

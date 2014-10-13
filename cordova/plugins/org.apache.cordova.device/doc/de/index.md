@@ -70,7 +70,7 @@ Die `device.model` gibt den Namen der Modell- oder des Geräts zurück. Der Wert
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kurzes Beispiel
+### Kleines Beispiel
 
     // Android:    Nexus One       returns "Passion" (Nexus One code name)
     //             Motorola Droid  returns "voles"
@@ -80,7 +80,7 @@ Die `device.model` gibt den Namen der Modell- oder des Geräts zurück. Der Wert
     // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Finden Sie unter http://theiphonewiki.com/wiki/index.php?title=Models / / Var-Modell = device.model;
     
 
-### Android Eigenarten
+### Android Macken
 
 *   Ruft den [Produktname][1] anstelle des [Modellnamens][2], das ist oft der Codename für die Produktion. Beispielsweise das Nexus One gibt `Passion` , und Motorola Droid gibt`voles`.
 
@@ -91,7 +91,7 @@ Die `device.model` gibt den Namen der Modell- oder des Geräts zurück. Der Wert
 
 *   Gibt z. B. das Gerätemodell von dem Kreditor zugeordnet,`TIZEN`
 
-### Windows Phone 7 und 8 Eigenarten
+### Windows Phone 7 und 8 Macken
 
 *   Gibt das vom Hersteller angegebenen Gerätemodell zurück. Beispielsweise gibt der Samsung-Fokus`SGH-i917`.
 
@@ -113,7 +113,7 @@ Name des Betriebssystems des Geräts zu erhalten.
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kurzes Beispiel
+### Kleines Beispiel
 
     // Depending on the device, a few examples are:
     //   - "Android"
@@ -156,7 +156,7 @@ Die Details wie eine UUID generiert wird werden vom Gerätehersteller und bezieh
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kurzes Beispiel
+### Kleines Beispiel
 
     / / Android: wird eine zufällige 64-Bit-Ganzzahl (als Zeichenfolge, wieder!) / / die ganze Zahl wird beim ersten Start des Geräts erzeugt / / / / BlackBerry: gibt die PIN-Nummer des Gerätes / / Dies ist eine neunstellige eindeutige Ganzzahl (als String, obwohl!) / / / / iPhone: (paraphrasiert aus der Dokumentation zur UIDevice-Klasse) / / liefert eine Reihe von Hash-Werte, die aus mehreren Hardware erstellt identifiziert.
     / / Es ist gewährleistet, dass für jedes Gerät eindeutig sein und kann nicht gebunden werden / / an den Benutzer weitergeleitet.
@@ -168,7 +168,7 @@ Die Details wie eine UUID generiert wird werden vom Gerätehersteller und bezieh
 
 Die `uuid` auf iOS ist nicht eindeutig zu einem Gerät, aber für jede Anwendung, für jede Installation variiert. Es ändert sich, wenn Sie löschen und neu die app installieren, und möglicherweise auch beim iOS zu aktualisieren, oder auch ein Upgrade möglich die app pro Version (scheinbaren in iOS 5.1). Die `uuid` ist kein zuverlässiger Wert.
 
-### Windows Phone 7 und 8 Eigenarten
+### Windows Phone 7 und 8 Macken
 
 Die `uuid` für Windows Phone 7 die Berechtigung erfordert `ID_CAP_IDENTITY_DEVICE` . Microsoft wird diese Eigenschaft wahrscheinlich bald abzuschaffen. Wenn die Funktion nicht verfügbar ist, generiert die Anwendung eine persistente Guid, die für die Dauer der Installation der Anwendung auf dem Gerät gewährleistet ist.
 
@@ -189,7 +189,7 @@ Version des Betriebssystems zu erhalten.
 *   Windows Phone 7 und 8
 *   Windows 8
 
-### Kurzes Beispiel
+### Kleines Beispiel
 
     // Android:    Froyo OS would return "2.2"
     //             Eclair OS would return "2.1", "2.0.1", or "2.0"

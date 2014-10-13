@@ -1,9 +1,10 @@
 package de.tutao.plugin;
 
+import static de.tutao.plugin.Utils.bytesToBase64;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,9 +42,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 import de.tutao.crypto.TutaoCipherInputStream;
-import static de.tutao.plugin.Utils.bytesToBase64;
 
 public class Crypto extends CordovaPlugin {
 	public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
@@ -68,12 +69,13 @@ public class Crypto extends CordovaPlugin {
 	}
 	
 	public Crypto() {
-		this.randomizer = new SecureRandom();
 	}
 	
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		try {
-			if (action.equals("generateRsaKey")) {
+			if (action.equals("seed")) {
+				this.seed(callbackContext, de.tutao.plugin.Utils.base64ToBytes(args.getString(0)));
+			} else if (action.equals("generateRsaKey")) {
 				this.generateRsaKey(callbackContext);
 			} else if (action.equals("rsaEncrypt")) {
 				rsaEncrypt(callbackContext, args.getJSONObject(0), de.tutao.plugin.Utils.base64ToBytes(args.getString(1)));
@@ -99,6 +101,10 @@ public class Crypto extends CordovaPlugin {
 			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
 			return false;
 		}
+	}
+
+	private void seed(CallbackContext callbackContext, byte[] seed) {
+		this.randomizer = new SecureRandom(seed);
 	}
 
 	private void generateRsaKey(final CallbackContext callbackContext) {
@@ -259,7 +265,7 @@ public class Crypto extends CordovaPlugin {
 					encryptedDir.mkdirs();
 					File outputFile = new File(encryptedDir, inputFile.getName());
 					
-					InputStream in = new FileInputStream(inputFile);
+					InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
 					OutputStream out = new FileOutputStream(outputFile);
 					aesEncrypt(key, in, out);
 					
@@ -318,7 +324,7 @@ public class Crypto extends CordovaPlugin {
 					decryptedDir.mkdirs();
 					File outputFile = new File(decryptedDir, inputFile.getName());
 					
-					InputStream in = new FileInputStream(inputFile);
+					InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
 					OutputStream out = new FileOutputStream(outputFile);
 					aesDecrypt(key, in, out);
 					

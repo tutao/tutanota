@@ -13,6 +13,7 @@
 
 @interface Crypto : CDVPlugin
 
+- (void)seed:(CDVInvokedUrlCommand*)command;
 - (void)generateRsaKey:(CDVInvokedUrlCommand*)command;
 - (void)rsaEncrypt:(CDVInvokedUrlCommand*)command;
 - (void)rsaDecrypt:(CDVInvokedUrlCommand*)command;

@@ -8,11 +8,23 @@ var argscheck = require('cordova/argscheck'),
  */
 var Crypto = function () {};
 
+Crypto.prototype.seed = function() {
+    return new Promise(function (resolve, reject) {
+        var seed = tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(512));
+        exec(resolve, reject,"Crypto", "seed", [seed]);
+    });
+};
+
+Crypto.prototype.generateRsaKey = function(keyLength) {
+    return new Promise(function (resolve, reject) {
+        exec(resolve, reject,"Crypto", "generateRsaKey", [keyLength]);
+    });
+};
+
 Crypto.prototype.generateRsaKey = function(keyLength) {
     return new Promise(function (resolve, reject) {
 		var seed = tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(512));
         exec(resolve, reject,"Crypto", "generateRsaKey", [keyLength, seed]);
-        },"Crypto", "generateRsaKey", [keyLength]);
     });
 };
 

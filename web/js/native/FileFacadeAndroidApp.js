@@ -24,8 +24,8 @@ tutao.native.FileFacadeAndroidApp.prototype.createFile = function(file, sessionK
 tutao.native.FileFacadeAndroidApp.prototype.showFileChooser = function() {
     var self = this;
     return self.fileUtil.openFileChooser().then(function (uri) {
-        return Promise.join(self.fileUtil.getMimeType(uri), self.fileUtil.getSize(uri), function (mimeType, size) {
-            return [new tutao.native.AndroidFile(uri, mimeType, size)];
+        return Promise.join(self.fileUtil.getName(uri), self.fileUtil.getMimeType(uri), self.fileUtil.getSize(uri), function (name, mimeType, size) {
+            return [new tutao.native.AndroidFile(uri, name, mimeType, size)];
         });
     });
 };
@@ -79,7 +79,7 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
     return self.fileUtil.download(path, file.getName(), headers).then(function (downloadedFileUri) {
         var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(file._entityHelper._sessionKey));
         return tutao.locator.crypto.aesDecryptFile(byteSessionKey, downloadedFileUri).then(function(decryptedFileUri) {
-            return new tutao.native.AndroidFile(decryptedFileUri, file.getMimeType(), file.getSize());
+            return new tutao.native.AndroidFile(decryptedFileUri, file.getName(), file.getMimeType(), file.getSize());
         }).lastly(function () {
             self.fileUtil.delete(downloadedFileUri);
         });

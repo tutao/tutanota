@@ -57,7 +57,9 @@ tutao.tutanota.Bootstrap.init = function () {
         setTimeout(function () {
             tutao.locator.navigator.setup();
             tutao.locator.entropyCollector.start();
-
+            if (tutao.env.mode == tutao.Mode.App) {
+                tutao.locator.crypto.seed();
+            }
         }, 0);
 
         if (window.applicationCache) {
