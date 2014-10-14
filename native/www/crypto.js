@@ -6,7 +6,9 @@ var argscheck = require('cordova/argscheck'),
  * @implements mizz.native.CryptoInterface
  * @constructor
  */
-var Crypto = function () {};
+var Crypto = function () {
+	this.delegate = new tutao.native.CryptoBrowser();
+};
 
 Crypto.prototype.seed = function() {
     return new Promise(function (resolve, reject) {
@@ -77,15 +79,19 @@ Crypto.prototype.generateAesKey = function() {
  * @return {Promise.<Uint8Array, Error>} will return the encrypted bytes.  Resolves to an exception if the encryption failed.
  */
 Crypto.prototype.aesEncrypt = function (key, bytes) {
-    return new Promise(function (resolve, reject) {
-        var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
-        var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
-        exec(function(result) {
-            resolve(tutao.util.EncodingConverter.base64ToArray(result));
-        }, function (error) {
-            reject(new tutao.crypto.CryptoError(error));
-        },"Crypto", "aesEncrypt", [encodedKey, encodedBytes]);
-    });
+	if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
+		return new Promise(function (resolve, reject) {
+			var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
+			var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+			exec(function(result) {
+				resolve(tutao.util.EncodingConverter.base64ToArray(result));
+			}, function (error) {
+				reject(new tutao.crypto.CryptoError(error));
+			},"Crypto", "aesEncrypt", [encodedKey, encodedBytes]);
+		});
+	}else{
+		return this.delegate.aesEncrypt(key, bytes);
+	}
 };
 
 /**
@@ -112,20 +118,24 @@ Crypto.prototype.aesEncryptFile = function (key, fileUrl) {
  * @return {Promise.<Uint8Array, Error>} will return the decrypted bytes. Resolves to an exception if the encryption failed.
  */
 Crypto.prototype.aesDecrypt = function (key, bytes, decryptedBytesLength) {
-    return new Promise(function (resolve, reject) {
-        var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
-        var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
-        exec(function(result) {
-            var resultArray = tutao.util.EncodingConverter.base64ToArray(result);
-            if (resultArray.length == decryptedBytesLength) {
-                resolve(resultArray);
-            } else {
-                reject(new tutao.crypto.CryptoError("length was: " + resultArray.length + ", but expected: " + decryptedBytesLength));
-            }
-        }, function (error) {
-            reject(new tutao.crypto.CryptoError(error));
-        },"Crypto", "aesDecrypt", [encodedKey, encodedBytes]);
-    });
+	if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
+		return new Promise(function (resolve, reject) {
+			var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
+			var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+			exec(function(result) {
+				var resultArray = tutao.util.EncodingConverter.base64ToArray(result);
+				if (resultArray.length == decryptedBytesLength) {
+					resolve(resultArray);
+				} else {
+					reject(new tutao.crypto.CryptoError("length was: " + resultArray.length + ", but expected: " + decryptedBytesLength));
+				}
+			}, function (error) {
+				reject(new tutao.crypto.CryptoError(error));
+			},"Crypto", "aesDecrypt", [encodedKey, encodedBytes]);
+		});
+	}else{
+		return this.delegate.aesDecrypt(key, bytes, decryptedBytesLength);
+	}
 };
 
 /**
