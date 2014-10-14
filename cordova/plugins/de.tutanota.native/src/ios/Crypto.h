@@ -17,6 +17,8 @@
 - (void)generateRsaKey:(CDVInvokedUrlCommand*)command;
 - (void)rsaEncrypt:(CDVInvokedUrlCommand*)command;
 - (void)rsaDecrypt:(CDVInvokedUrlCommand*)command;
+- (void)generateKeyFromPassphrase:(CDVInvokedUrlCommand*)command;
+
 
 @end
 
