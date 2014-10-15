@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.cordova.CordovaInterface;
 
 import android.content.Context;
 import android.net.Uri;
@@ -86,9 +87,10 @@ public class Utils {
 		return merged;
 	}
 	
-	public static void run(Runnable runnable) {
+	public static void run(CordovaInterface cordova, Runnable runnable) {
+		cordova.getThreadPool().execute(runnable);
 		// currently creating a new Thread because cordova.getThreadPool().execute is too slow (takes 3 times as long).
-		new Thread(runnable).start();
+		//new Thread(runnable).start();
 	}
 
 	public static File getDir(Context context) {

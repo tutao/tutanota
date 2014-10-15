@@ -83,7 +83,7 @@ public class FileUtil extends CordovaPlugin {
 	}
 	
 	private void delete(final CallbackContext callbackContext, final String absolutePath) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -182,7 +182,7 @@ public class FileUtil extends CordovaPlugin {
 	}
 	
 	private void upload(final CallbackContext callbackContext, final String absolutePath, final String targetUrl, final JSONObject headers) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			
 			@Override
 			public void run() {
@@ -216,7 +216,7 @@ public class FileUtil extends CordovaPlugin {
 	
 	
 	private void download(final CallbackContext callbackContext, final String sourceUrl, final String filename, final JSONObject headers) throws MalformedURLException, IOException, JSONException {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			
 			@Override
 			public void run() {
