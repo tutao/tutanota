@@ -19,6 +19,7 @@
     <icon src="www/graphics/app/android/icon-72-hdpi.png" density="hdpi"/>
     <icon src="www/graphics/app/android/icon-96-xhdpi.png" density="xhdpi"/>
     <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="10000" />
   </platform>
 
   <platform name="ios">

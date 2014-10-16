@@ -49,6 +49,10 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"SplashScreen\"><param name=\"android-package\" value=\"org.apache.cordova.splashscreen.SplashScreen\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
                             "count": 1
                         },
@@ -116,6 +120,11 @@
                         }
                     ]
                 }
+            },
+            "config.xml": {
+                "parents": {
+                    "/*": []
+                }
             }
         }
     },
@@ -148,6 +157,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.vibration": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "org.apache.cordova.splashscreen": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "de.tutanota.native": {
