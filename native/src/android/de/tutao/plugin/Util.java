@@ -10,7 +10,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class Util extends CordovaPlugin {
-	private final static String TAG = "Crypto";
+	private final static String TAG = "tutao.Crypto";
 	
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		try {

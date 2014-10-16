@@ -31,7 +31,7 @@ import de.tutao.plugin.Crypto;
 import de.tutao.plugin.Utils;
 
 public class FileUtil extends CordovaPlugin {
-	private final static String TAG = "FileUtil";
+	private final static String TAG = "tutao.FileUtil";
 	static final int SHOW_FILE_REQUEST = 24325;
 	static final int PICK_FILE_REQUEST = SHOW_FILE_REQUEST + 1; 
 	private static final int HTTP_TIMEOUT = 15 * 1000;

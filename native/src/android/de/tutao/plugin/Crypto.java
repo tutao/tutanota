@@ -59,7 +59,7 @@ public class Crypto extends CordovaPlugin {
 	public static final int AES_KEY_LENGTH = 128;
 	public static final int AES_KEY_LENGTH_BYTES = AES_KEY_LENGTH / 8;
 	
-	private final static String TAG = "Crypto";
+	private final static String TAG = "tutao.Crypto";
 	private SecureRandom randomizer;
 	
 	
