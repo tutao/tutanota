@@ -1,0 +1,26 @@
+{
+    "version": "0.3.3",
+    "name": "org.apache.cordova.splashscreen",
+    "cordova_name": "Splashscreen",
+    "description": "Cordova Splashscreen Plugin",
+    "license": "Apache 2.0",
+    "repo": "https://git-wip-us.apache.org/repos/asf/cordova-plugin-splashscreen.git",
+    "issue": "https://issues.apache.org/jira/browse/CB/component/12320653",
+    "keywords": [
+        "cordova",
+        "splashscreen"
+    ],
+    "platforms": [
+        "android",
+        "amazon-fireos",
+        "ubuntu",
+        "ios",
+        "blackberry10",
+        "wp7",
+        "wp8",
+        "windows8",
+        "tizen"
+    ],
+    "engines": [],
+    "englishdoc": "<!---\n    Licensed to the Apache Software Foundation (ASF) under one\n    or more contributor license agreements.  See the NOTICE file\n    distributed with this work for additional information\n    regarding copyright ownership.  The ASF licenses this file\n    to you under the Apache License, Version 2.0 (the\n    \"License\"); you may not use this file except in compliance\n    with the License.  You may obtain a copy of the License at\n\n      http://www.apache.org/licenses/LICENSE-2.0\n\n    Unless required by applicable law or agreed to in writing,\n    software distributed under the License is distributed on an\n    \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n    KIND, either express or implied.  See the License for the\n    specific language governing permissions and limitations\n    under the License.\n-->\n\n# org.apache.cordova.splashscreen\n\nThis plugin displays and hides a splash screen during application launch.\n\n## Installation\n\n    cordova plugin add org.apache.cordova.splashscreen\n\n\n## Supported Platforms\n\n- Amazon Fire OS\n- Android\n- BlackBerry 10\n- iOS\n- Windows Phone 7 and 8\n- Windows 8\n\n\n## Methods\n\n- splashscreen.show\n- splashscreen.hide\n\n### Android Quirks\n\nIn your config.xml, you need to add the following preferences:\n\n`<preference name=\"SplashScreen\" value=\"foo\" />`\n`<preference name=\"SplashScreenDelay\" value=\"10000\" />`\n\nWhere foo is the name of the splashscreen file, preferably a 9 patch file. Make sure to add your splashcreen files to your res/xml directory under the appropriate folders. The second parameter represents how long the splashscreen will appear in milliseconds. It defaults to 3000 ms. See [Icons and Splash Screens](http://cordova.apache.org/docs/en/edge/config_ref_images.md.html)\nfor more information.\n\n## splashscreen.hide\n\nDismiss the splash screen.\n\n    navigator.splashscreen.hide();\n\n\n### BlackBerry 10, WP8, iOS Quirk\n\nThe `config.xml` file's `AutoHideSplashScreen` setting must be\n`false`. To delay hiding the splash screen for two seconds, add a\ntimer such as the following in the `deviceready` event handler:\n\n        setTimeout(function() {\n            navigator.splashscreen.hide();\n        }, 2000);\n\n## splashscreen.show\n\nDisplays the splash screen.\n\n    navigator.splashscreen.show();\n\n\nYour application cannot call `navigator.splashscreen.show()` until the app has\nstarted and the `deviceready` event has fired. But since typically the splash\nscreen is meant to be visible before your app has started, that would seem to\ndefeat the purpose of the splash screen.  Providing some configuration in\n`config.xml` will automatically `show` the splash screen immediately after your\napp launch and before it has fully started and received the `deviceready`\nevent. See [Icons and Splash Screens](http://cordova.apache.org/docs/en/edge/config_ref_images.md.html)\nfor more information on doing this configuration. For this reason, it is\nunlikely you need to call `navigator.splashscreen.show()` to make the splash\nscreen visible for app startup.\n\n"
+}
