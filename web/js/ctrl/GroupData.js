@@ -17,34 +17,28 @@ tutao.provide('tutao.tutanota.ctrl.GroupData');
  */
 tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userKey, adminGroupKey, listKey) {
 	var symGroupKey = tutao.locator.aesCrypter.generateRandomKey();
-    return new Promise(function(resolve, reject) {
-        tutao.locator.rsaCrypter.generateKeyPair(function(keyPair, exception) {
-            if (exception) {
-                reject(exception);
-            } else {
-                var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
+    return tutao.locator.crypto.generateRsaKey().then(function (keyPair) {
+        var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
-                var groupData = new tutao.entity.sys.CreateGroupData()
-                    .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(sessionKey, name))
-                    .setMailAddress(mailAddr)
-                    .setPubKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.rsaCrypter.keyToHex(keyPair.publicKey)))
-                    .setSymEncPrivKey(tutao.locator.aesCrypter.encryptPrivateRsaKey(symGroupKey, tutao.locator.rsaCrypter.keyToHex(keyPair.privateKey)));
+        var groupData = new tutao.entity.sys.CreateGroupData()
+            .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(sessionKey, name))
+            .setMailAddress(mailAddr)
+            .setPubKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.rsaUtil.publicKeyToHex(keyPair.publicKey)))
+            .setSymEncPrivKey(tutao.locator.aesCrypter.encryptPrivateRsaKey(symGroupKey, tutao.locator.rsaUtil.privateKeyToHex(keyPair.privateKey)));
 
-                if (userKey != null) {
-                    groupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userKey, symGroupKey));
-                }
-                if (adminGroupKey != null) {
-                    groupData.setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, symGroupKey));
-                } else {
-                    // this is the adminGroup
-                    groupData.setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(symGroupKey, symGroupKey));
-                }
+        if (userKey != null) {
+            groupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userKey, symGroupKey));
+        }
+        if (adminGroupKey != null) {
+            groupData.setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, symGroupKey));
+        } else {
+            // this is the adminGroup
+            groupData.setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(symGroupKey, symGroupKey));
+        }
 
-                groupData.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
+        groupData.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
 
-                resolve([groupData, symGroupKey]);
-            }
-        });
+        return [groupData, symGroupKey];
     });
 
 };

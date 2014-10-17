@@ -144,7 +144,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
 
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.SjclAes,
-        rsaCrypter: tutao.native.RsaInterfaceAdapter,
+        rsaUtil: tutao.native.RsaUtils,
         kdfCrypter: tutao.crypto.JBCryptAdapter,
         shaCrypter: tutao.crypto.SjclSha256,
         userController: tutao.ctrl.UserController,

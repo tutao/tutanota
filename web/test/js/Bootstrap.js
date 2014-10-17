@@ -40,7 +40,7 @@ tutao.tutanota.Bootstrap.init = function() {
 		randomizer: tutao.crypto.SjclRandomizer,
 		entropyCollector: tutao.crypto.EntropyCollector,
 		aesCrypter: tutao.crypto.SjclAes,
-		rsaCrypter: tutao.native.RsaInterfaceAdapter,
+		rsaUtil: tutao.native.RsaUtils,
 		kdfCrypter: tutao.crypto.JBCryptAdapter,
 		shaCrypter: tutao.crypto.SjclSha256,
 		userController: tutao.ctrl.UserController,

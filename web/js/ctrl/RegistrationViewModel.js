@@ -286,60 +286,54 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 
 						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(self._getAccountGroupKey(keyData))));
 
-						var systemAdminPubKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
+						var systemAdminPubKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
-                        return new Promise(function(resolve, reject) {
-                            tutao.locator.rsaCrypter.encryptAesKey(systemAdminPubKey, tutao.locator.aesCrypter.keyToHex(accountingInfoBucketKey), function(systemAdminPubEncCustomerBucketKey, exception) {
-                                tutao.locator.progressDialogModel.progress(97);
-                                if (exception) {
-                                    reject(exception);
-                                    return;
-                                }
+                        return tutao.locator.crypto.rsaEncrypt(systemAdminPubKey, new Uint8Array(sjcl.codec.bytes.fromBits(accountingInfoBucketKey))).then(function(systemAdminPubEncCustomerBucketKey) {
+                            tutao.locator.progressDialogModel.progress(97);
 
-                                var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
+                            var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
 
-                                var customerService = new tutao.entity.sys.CustomerData();
-                                customerService.setAuthToken(self.authToken())
-                                    .setCompany(self.companyName())
-                                    .setDomain(self.domain())
-                                    .setAdminGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
-                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
-                                        .setCreateGroupData(adminGroupData))
-                                    .setUserGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
-                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
-                                        .setCreateGroupData(userGroupData))
-                                    .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
-                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
-                                        .setCreateGroupData(customerGroupData))
-                                    .setTeamGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                        .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
-                                        .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
+                            var customerService = new tutao.entity.sys.CustomerData();
+                            customerService.setAuthToken(self.authToken())
+                                .setCompany(self.companyName())
+                                .setDomain(self.domain())
+                                .setAdminGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
+                                    .setCreateGroupData(adminGroupData))
+                                .setUserGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
+                                    .setCreateGroupData(userGroupData))
+                                .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
+                                    .setCreateGroupData(customerGroupData))
+                                .setTeamGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
+                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
+                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
 
-                                    .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
-                                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
-                                    .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
-                                    .setSystemCustomerPubEncAccountingInfoBucketKey(systemAdminPubEncCustomerBucketKey)
-                                    .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
-                                    .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
-                                    .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
-                                    .setSymEncAccountGroupKey(symEncAccountGroupKey);
+                                .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
+                                .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
+                                .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
+                                .setSystemCustomerPubEncAccountingInfoBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(systemAdminPubEncCustomerBucketKey))
+                                .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
+                                .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
+                                .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                                .setSymEncAccountGroupKey(symEncAccountGroupKey);
 
-                                resolve(customerService.setup({}, null).then(function(adminUserData) {
-                                    return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                        //TODO (before release) create root instances and welcome mail before next login if it failed here
-                                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
-                                            if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                                                new tutao.entity.tutanota.WelcomeMailData()
-                                                    .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                                    .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-                                            }
-                                            tutao.locator.progressDialogModel.progress(100);
-                                        });
+                            return customerService.setup({}, null).then(function(adminUserData) {
+                                return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
+                                    //TODO (before release) create root instances and welcome mail before next login if it failed here
+                                    return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
+                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                                            new tutao.entity.tutanota.WelcomeMailData()
+                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+                                        }
+                                        tutao.locator.progressDialogModel.progress(100);
                                     });
-                                }));
+                                });
                             });
                         });
 

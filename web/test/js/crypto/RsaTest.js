@@ -10,7 +10,7 @@ describe("RsaTest", function () {
     var getFacade = function () {
         if (!_rsa) {
             //_rsa = new tutao.crypto.RsaWorkerProxy();
-            _rsa = new tutao.native.RsaInterfaceAdapter();
+            _rsa = new tutao.native.RsaUtils();
         }
         return _rsa;
     }

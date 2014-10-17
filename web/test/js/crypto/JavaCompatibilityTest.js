@@ -11,7 +11,7 @@ describe("JavaCompatibilityTest", function () {
     it("testJavaCompatibility", function () {
         this.timeout(5000);
         var aesFacade = tutao.locator.aesCrypter;
-        var rsaAdapter = new tutao.native.RsaInterfaceAdapter();
+        var rsaAdapter = new tutao.native.RsaUtils();
 
         // this data is copied from the CompatibilityTest where it is generated
         var aesHexKey = "73f626436ac9a3d96a1e579aa340521d";
@@ -46,8 +46,8 @@ describe("JavaCompatibilityTest", function () {
         assert.equal(rsaPrivateHexKey, jsDecryptedPrivateRsaKey);
 
         // check that the java generated rsa keys work with js encryption/decryption
-        var rsaPrivateKey = rsaAdapter._convertToPrivateKey(rsaAdapter.hexToKey(rsaPrivateHexKey));
-        var rsaPublicKey = rsaAdapter._convertToPublicKey(rsaAdapter.hexToKey(rsaPublicHexKey));
+        var rsaPrivateKey = rsaAdapter._arrayToPrivateKey(rsaAdapter.hexToKey(rsaPrivateHexKey));
+        var rsaPublicKey = rsaAdapter._arrayToPublicKey(rsaAdapter.hexToKey(rsaPublicHexKey));
         return tutao.locator.crypto.rsaEncrypt(rsaPublicKey, new Uint8Array(tutao.util.EncodingConverter.hexToBytes(aesKeyData))).then(function (jsEncryptedDummyKey) {
             return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, jsEncryptedDummyKey).then(function (jsDecryptedDummyKey) {
                 assert.equal(aesKeyData, tutao.util.EncodingConverter.bytesToHex(jsDecryptedDummyKey));

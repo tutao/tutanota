@@ -205,18 +205,11 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		var parameters = {};
 		return tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(recipientInfo.getMailAddress()), parameters, null).then(function(publicKeyData) {
             if (notFoundRecipients.length == 0) {
-				var publicKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
-				var hexBucketKey = tutao.locator.aesCrypter.keyToHex(bucketKey);
-                return new Promise(function(resolve, reject) {
-                    return tutao.locator.rsaCrypter.encryptAesKey(publicKey, hexBucketKey, function(encrypted, exception) {
-                        if (exception) {
-                            reject(exception);
-                        } else {
-                            recipient.setPubEncBucketKey(encrypted);
-                            recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
-                            resolve();
-                        }
-                    });
+				var publicKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
+				var hexBucketKey = new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.aesCrypter.keyToHex(bucketKey)));
+                return tutao.locator.crypto.rsaEncrypt(publicKey, hexBucketKey).then(function(encrypted) {
+                    recipient.setPubEncBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(encrypted));
+                    recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
                 });
 			}
 		}).caught(tutao.NotFoundError, function(exception) {

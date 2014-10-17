@@ -37,7 +37,7 @@ tutao.Locator = function(services, initializer) {
     // @type {tutao.crypto.AesWorkerProxy}
     this.aesCrypter= null;
     // @type {tutao.crypto.RsaWorkerProxy}
-    this.rsaCrypter= null;
+    this.rsaUtil= null;
     // @type {tutao.crypto.JBCryptAdapter}
     this.kdfCrypter= null;
     // @type {tutao.crypto.SjclSha256}
