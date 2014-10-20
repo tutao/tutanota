@@ -144,8 +144,9 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 			tutao.tutanota.Bootstrap.init();
 		}
 		if (self.verifyClientSupported()) {
-			// provide allowAutoLogin to loginViewModel here as soon as device management is running
-			tutao.locator.viewManager.select(tutao.locator.loginView);
+            tutao.locator.loginViewModel.setup(self._allowAutoLogin).then(function () {
+                tutao.locator.viewManager.select(tutao.locator.loginView);
+            });
 		}
 	});
 

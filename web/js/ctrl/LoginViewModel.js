@@ -26,6 +26,7 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	var emptyString = "\u2008"; // an empty string or normal whitespace makes the label collapse, so enter this invisible character
 	this.loginStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
 	this.loginOngoing = ko.observable(false);
+    this.storePassword = ko.observable(false);
 
 	this.mailAddress.subscribe(function(newValue) {
 	    this.loginStatus({ type: "neutral", text: "emptyString_msg" });
@@ -37,6 +38,9 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	this.loginPossible = ko.computed(function() {
 		return (!this.loginOngoing());
 	}, this);
+
+    this.config = new tutao.native.DeviceConfig();
+    this.autoLoginActive = false;
 };
 
 /**
@@ -70,6 +74,26 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
 };
 
 /**
+ * Logs the user in, if allowAutoLogin is true and the user has stored a password
+ * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
+    var self = this;
+    return tutao.locator.configFacade.read().then(function (config) {
+        if (config) {
+            self.config = config;
+            if (allowAutoLogin && self.config.encryptedPassword) {
+                return self._tryAutoLogin();
+            } else if (!allowAutoLogin) {
+                // remove authentication data
+                self.config.encryptedPassword = null;
+                return tutao.locator.configFacade.write(self.config);
+            }
+        }
+    });
+};
+
+/**
  * Logs a user into the system:
  * <ul>
  *   <li>Sets the logged in user on the UserController
@@ -81,14 +105,16 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
 tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	var self = this;
 	if (!this.loginPossible()) {
-		return;
+		Promise.reject();
 	}
 	this.loginOngoing(true);
 	// in private browsing mode in mobile safari local storage is not available and throws an exception
 	this.passphraseFieldFocused(false);
 	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
 	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function () {
-        self.passphrase("");
+        return self._storePassword().then(function () {
+            self.passphrase("");
+        });
     }).then(function() {
         return self.postLoginActions();
     }).caught(tutao.AccessBlockedError, function() {
@@ -156,4 +182,89 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
     tutao.locator.navigator.register();
+};
+
+/**
+ * Stores the password locally if chosen by user.
+ * @param {string} password The password to store.
+ * @return {Promise.<>} Resolved when finished, rejected if failed.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
+    var self = this;
+    // if auto login is active, the password is already stored and valid
+    if (self.storePassword()) {
+        var promise = null;
+        if (!self.config.deviceToken) {
+            // register the device and store the encrypted password
+            var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
+            var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
+            deviceService.setDeviceKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.aesCrypter.keyToHex(deviceKey)));
+            promise = deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
+                self.config.deviceToken = autoLoginPostReturn.getDeviceToken();
+                var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
+                self.config.encryptedPassword = deviceEncPassword;
+            });
+        } else {
+            // the device is already registered, so only store the encrypted password
+            promise = self._loadDeviceKey().then(function(deviceKey) {
+                var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
+                self.config.encryptedPassword = deviceEncPassword;
+            });
+        }
+        return promise.then(function () {
+            self.config.userId = tutao.locator.userController.getUserId();
+            tutao.locator.configFacade.write(self.config);
+        });
+    } else if (!self.autoLoginActive && !self.storePassword()) {
+        // delete any stored password
+        if (self.config.deviceToken || self.config.encryptedPassword) {
+            self.config.deviceToken = null;
+            self.config.encryptedPassword = null;
+            tutao.locator.configFacade.write(self.config);
+        }
+        return Promise.resolve();
+    } else {
+        return Promise.resolve();
+    }
+};
+
+/**
+ * Tries to login the user automatically.
+ * @return {Promise.<>} Resolved when finished, rejected if auto login failed.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
+    var self = this;
+    if (this.config.deviceToken == null || this.config.encryptedPassword == null) {
+        return Promise.reject(new Error("no device token or password available"));
+    }
+    return this._loadDeviceKey().then(function(deviceKey) {
+        var password = null;
+        try {
+            password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, self.config.encryptedPassword);
+        } catch (e) { //tutao.tutadb.crypto.CryptoException
+            return Promise.reject(e);
+        }
+        self.passphrase(password);
+        self.autoLoginActive = true;
+        return self.login().then(function () {
+            self.autoLoginActive = false;
+        });
+    });
+};
+
+
+/**
+ * Loads the device key.
+ * @return {Promise.<Object>} Resolves to the device key, rejected if loading the device key failed.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function() {
+    var params = {};
+    // use the userId of the currently logged in user, if a user is logged in. If not, use the one from our config.
+    var userId = tutao.locator.userController.getUserId() ? tutao.locator.userController.getUserId() : this.config.userId;
+    return tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
+        .setUserId(userId)
+        .setDeviceToken(this.config.deviceToken), params, null).then(function(autoLoginDataReturn) {
+        var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(autoLoginDataReturn.getDeviceKey()));
+        return deviceKey;
+    });
 };
