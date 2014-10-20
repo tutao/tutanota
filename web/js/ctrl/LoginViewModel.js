@@ -249,6 +249,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
         return self.login().then(function () {
             self.autoLoginActive = false;
         });
+    }).caught(tutao.NotFoundError, function (e) {
+        console.log("configured user does not exist: ", e);
+        // suppress login error, if the user does not exist (should only occur during testing)
     });
 };
 
