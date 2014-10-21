@@ -675,3 +675,15 @@ tutao.tutanota.gui.showTooltip = function(item, event) {
     });
     return false;
 };
+
+/**
+ * Opens a link in a new browser window
+ * @param {string} href
+ */
+tutao.tutanota.gui.openLink = function(href) {
+    if (tutao.env.mode == tutao.Mode.App) {
+        window.open(href, "_system");
+    } else {
+        window.open(href, "_blank");
+    }
+};
