@@ -7,10 +7,4 @@ node_modules/
 .idea/
 .DS_Store
 
-cordova/platforms/**/ant-build
-cordova/platforms/**/ant-gen
-cordova/platforms/**/bin
-cordova/platforms/android/assets/www/**
-
-cordova/platforms/ios
-
+cordova/platforms/**

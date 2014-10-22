@@ -12,30 +12,35 @@ tutao.tutanota.Bootstrap.init = function() {
         tutao.env = new tutao.Environment(tutao.Env.LOCAL, location.protocol == 'https:' ? true : false, location.hostname, location.port === '' ? '' : location.port);
     }
 
+    if (typeof cordova != 'undefined') {
+        tutao.env.mode = tutao.Mode.App;
+    }
+
     Promise.longStackTraces();
     if (typeof window.parent.karma != 'undefined') {
         // karma
-        tutao.native.CryptoJsbn.initWorkerFileNames("/base/");
-        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/base/js/', '/base/lib/worker/');
+        tutao.native.CryptoBrowser.initWorkerFileNames("/base/");
     } else {
         // mocha standalone
-        tutao.native.CryptoJsbn.initWorkerFileNames("../");
-        tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
+        tutao.native.CryptoBrowser.initWorkerFileNames("../");
     }
 
-    var cryptoImpl = tutao.native.CryptoJsbn;
+    var cryptoImpl = tutao.native.CryptoBrowser;
+    var notificationImpl = tutao.native.NotificationBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
         cryptoImpl = tutao.native.device.Crypto;
+        notificationImpl = tutao.native.NotificationApp;
     }
 
 	var singletons = {
         crypto: cryptoImpl,
+        notification: notificationImpl,
+
 		randomizer: tutao.crypto.SjclRandomizer,
 		entropyCollector: tutao.crypto.EntropyCollector,
-		clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
-		aesCrypter: tutao.crypto.AesWorkerProxy,
-		rsaCrypter: tutao.native.RsaInterfaceAdapter,
+		aesCrypter: tutao.crypto.SjclAes,
+		rsaUtil: tutao.native.RsaUtils,
 		kdfCrypter: tutao.crypto.JBCryptAdapter,
 		shaCrypter: tutao.crypto.SjclSha256,
 		userController: tutao.ctrl.UserController,
@@ -64,6 +69,8 @@ tutao.tutanota.Bootstrap.init = function() {
         this.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
     };
     eval("tutao.locator = new tutao.Locator(singletons, initializer);")
+    // shortcuts
+    tutao.lang = tutao.locator.languageViewModel.get;
 
 };
 

@@ -112,9 +112,9 @@ the `cordova.file.*` properties map to physical paths on a real device.
 
 | Device Path                                    | `cordova.file.*`            | `iosExtraFileSystems` | r/w? | persistent? | OS clears | sync | private |
 |:-----------------------------------------------|:----------------------------|:----------------------|:----:|:-----------:|:---------:|:----:|:-------:|
-| `/var/mobile/Applications/<UUID>/`             | applicationStorageDirectory | -                     | r/o  |     N/A     |     N/A   | N/A  |   Yes   |
-| &nbsp;&nbsp;&nbsp;`appname.app/`               | applicationDirectory        | bundle                | r/o  |     N/A     |     N/A   | N/A  |   Yes   |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`www/`     | -                           | -                     | r/o  |     N/A     |     N/A   | N/A  |   Yes   |
+| `/var/mobile/Applications/<UUID>/`             | applicationStorageDirectory | -                     | r    |     N/A     |     N/A   | N/A  |   Yes   |
+| &nbsp;&nbsp;&nbsp;`appname.app/`               | applicationDirectory        | bundle                | r    |     N/A     |     N/A   | N/A  |   Yes   |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`www/`     | -                           | -                     | r    |     N/A     |     N/A   | N/A  |   Yes   |
 | &nbsp;&nbsp;&nbsp;`Documents/`                 | documentsDirectory          | documents             | r/w  |     Yes     |     No    | Yes  |   Yes   |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`NoCloud/` | -                           | documents-nosync      | r/w  |     Yes     |     No    | No   |   Yes   |
 | &nbsp;&nbsp;&nbsp;`Library`                    | -                           | library               | r/w  |     Yes     |     No    | Yes? |   Yes   |
@@ -141,7 +141,7 @@ the `cordova.file.*` properties map to physical paths on a real device.
 
 | Device Path                                     | `cordova.file.*`            | `AndroidExtraFileSystems` | r/w? | persistent? | OS clears | private |
 |:------------------------------------------------|:----------------------------|:--------------------------|:----:|:-----------:|:---------:|:-------:|
-| `file:///android_asset/`                        | applicationDirectory        |                           | r/o  |     N/A     |     N/A   |   Yes   |
+| `file:///android_asset/`                        | applicationDirectory        |                           | r    |     N/A     |     N/A   |   Yes   |
 | `/data/data/<app-id>/`                          | applicationStorageDirectory | -                         | r/w  |     N/A     |     N/A   |   Yes   |
 | &nbsp;&nbsp;&nbsp;`cache`                       | cacheDirectory              | cache                     | r/w  |     Yes     |     Yes\* |   Yes   |
 | &nbsp;&nbsp;&nbsp;`files`                       | dataDirectory               | files                     | r/w  |     Yes     |     No    |   Yes   |
@@ -166,8 +166,8 @@ properties are `null`.
 
 | Device Path                                                  | `cordova.file.*`            | r/w? | persistent? | OS clears | private |
 |:-------------------------------------------------------------|:----------------------------|:----:|:-----------:|:---------:|:-------:|
-| `file:///accounts/1000/appdata/<app id>/`                    | applicationStorageDirectory | r/o  |     N/A     |     N/A   |   Yes   |
-| &nbsp;&nbsp;&nbsp;`app/native`                               | applicationDirectory        | r/o  |     N/A     |     N/A   |   Yes   |
+| `file:///accounts/1000/appdata/<app id>/`                    | applicationStorageDirectory | r    |     N/A     |     N/A   |   Yes   |
+| &nbsp;&nbsp;&nbsp;`app/native`                               | applicationDirectory        | r    |     N/A     |     N/A   |   Yes   |
 | &nbsp;&nbsp;&nbsp;`data/webviews/webfs/temporary/local__0`   | cacheDirectory              | r/w  |     No      |     Yes   |   Yes   |
 | &nbsp;&nbsp;&nbsp;`data/webviews/webfs/persistent/local__0`  | dataDirectory               | r/w  |     Yes     |     No    |   Yes   |
 | `file:///accounts/1000/removable/sdcard`                     | externalRemovableDirectory  | r/w  |     Yes     |     No    |   No    |

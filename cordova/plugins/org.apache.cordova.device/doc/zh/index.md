@@ -36,7 +36,6 @@
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,9 +49,10 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   黑莓 10
-*   火狐瀏覽器作業系統
+*   瀏覽器
+*   火狐瀏覽器的作業系統
 *   iOS
-*   Tizen
+*   泰
 *   Windows Phone 7 和 8
 *   Windows 8
 
@@ -64,14 +64,20 @@
 
 *   Android 系統
 *   黑莓 10
+*   瀏覽器
 *   iOS
-*   Tizen
+*   泰
 *   Windows Phone 7 和 8
 *   Windows 8
 
 ### 快速的示例
 
-    / / Android： Nexus 返回"激情"（Nexus One 代碼名稱） / / 摩托羅拉 Droid 返回"田鼠"/ / 黑莓手機： 火炬 9800 返回"9800"/ / iOS： 迷你 ipad，返回與 iPad2，5 ；iPhone 5 是 iPhone 5，1。 請參閱 HTTP://theiphonewiki.com/wiki/index.php?title=Models / / var 模型 = device.model ；
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. 請參閱 HTTP://theiphonewiki.com/wiki/index.php?title=Models / / var 模型 = device.model ；
     
 
 ### Android 的怪癖
@@ -89,13 +95,9 @@
 
 *   返回由製造商指定的設備模型。例如，三星焦點返回`SGH-i917`.
 
-## device.name
-
-**警告**： `device.name` 從版 2.3.0 已被否決。使用 `device.model` 相反。
-
 ## device.platform
 
-獲取該設備的作業系統名稱。
+獲取設備的作業系統名稱。
 
     var string = device.platform;
     
@@ -104,9 +106,10 @@
 
 *   Android 系統
 *   黑莓 10
-*   火狐瀏覽器作業系統
+*   Browser4
+*   火狐瀏覽器的作業系統
 *   iOS
-*   Tizen
+*   泰
 *   Windows Phone 7 和 8
 *   Windows 8
 
@@ -115,6 +118,8 @@
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -140,7 +145,7 @@ Windows Phone 8 設備報告作為平臺`Win32NT`.
 
 ### 說明
 
-UUID 如何生成的詳細資訊由設備製造商和特定于設備的平臺或模型。
+如何生成一個 UUID 的細節由設備製造商和特定于設備的平臺或模型。
 
 ### 支援的平臺
 
@@ -161,11 +166,11 @@ UUID 如何生成的詳細資訊由設備製造商和特定于設備的平臺或
 
 ### iOS 怪癖
 
-`uuid`在 iOS 上不是獨有的一種設備，但對於每個應用程式，為每個安裝各不相同。 如果您刪除並重新安裝應用程式，它會更改和可能還當你升級 iOS，或甚至升級每個版本 (明顯在 iOS 5.1 中) 的應用程式。 `uuid`不是一個可靠的值。
+`uuid`在 iOS 不是唯一的一種裝置，但對於每個應用程式，為每個安裝而異。 如果您刪除並重新安裝該應用程式，它更改和可能還當你升級 iOS，或甚至升級每個版本 （iOS 5.1 中存在明顯的） 的應用程式。 `uuid`不是一個可靠的值。
 
 ### Windows Phone 7 和 8 怪癖
 
-`uuid`為 Windows Phone 7 需要許可權 `ID_CAP_IDENTITY_DEVICE` 。 Microsoft 可能會很快就棄用此屬性。 如果能力不是可用的應用程式將生成一個持久性的 guid 並保持應用程式的安裝在設備上的持續時間。
+`uuid`為 Windows Phone 7 須經許可 `ID_CAP_IDENTITY_DEVICE` 。 Microsoft 可能會很快棄用此屬性。 如果沒有可用的能力，應用程式將生成設備上應用程式的安裝過程中保持持續的 guid。
 
 ## device.version
 
@@ -178,13 +183,24 @@ UUID 如何生成的詳細資訊由設備製造商和特定于設備的平臺或
 
 *   Android 2.1 +
 *   黑莓 10
+*   瀏覽器
 *   iOS
-*   Tizen
+*   泰
 *   Windows Phone 7 和 8
 *   Windows 8
 
 ### 快速的示例
 
-    / / Android： Froyo OS 將返回"2.2"/ / Eclair OS 將返回"2.1"、"2.0.1"2.0"/ / 版本，也可以返回更新級別"2.1 update1"/ / / / 黑莓手機： 火炬 9800 使用 OS 6.0 將返回"6.0.0.600"/ / / / iPhone： iOS 3.2 返回"3.2"/ / / / Windows Phone 7： 返回當前 OS 版本數，。 on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

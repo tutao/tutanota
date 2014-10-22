@@ -48,7 +48,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
         // @type {Array.<tutao.entity.tutanota.File>}
         var attachments = displayedMail.attachments();
         resolve(Promise.map(attachments, function(attachment) {
-            return tutao.tutanota.ctrl.FileFacade.readFileData(attachment).then(function(dataFile) {
+            return tutao.locator.fileFacade.readFileData(attachment).then(function(dataFile) {
                 var base64Filename = "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(attachment.getName())) + "?=";
                 emlArray = emlArray.concat([
                     "--------------79Bu5A16qPEYcVIZL@tutanota",

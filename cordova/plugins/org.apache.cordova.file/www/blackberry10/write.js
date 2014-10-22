@@ -50,6 +50,8 @@ module.exports = function (success, fail, args) {
             if (typeof fail === 'function') {
                 if (error && error.code) {
                     fail(error.code);
+                } else if (error && error.target && error.target.code) {
+                    fail(error.target.code);
                 } else {
                     fail(error);
                 }

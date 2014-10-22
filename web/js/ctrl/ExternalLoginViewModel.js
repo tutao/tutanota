@@ -243,7 +243,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	this.sentSmsNumberId(phoneNumber.getId());
 	this.state.event("sendSms");
 	this.sendSmsStatus({ type: "neutral", text: "sendingSms_msg" });
-	service.setup(map, this._getAuthHeaders()).then(function(passwordMessagingReturn, exception) {
+	service.setup(map, this._getAuthHeaders()).then(function(passwordMessagingReturn) {
         self.autoAuthenticationId(passwordMessagingReturn.getAutoAuthenticationId());
         self.sendSmsStatus({ type: "valid", text: "smsSent_msg" });
         self.passphraseFieldFocused(true);
@@ -341,7 +341,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
             });
 		} else {
 			// the device is already registered, so only store the encrypted password
-			return self._loadDeviceKey().then(function(deviceKey, exception) {
+			return self._loadDeviceKey().then(function(deviceKey) {
 				var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
 				tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
 			}).caught(function (e) {

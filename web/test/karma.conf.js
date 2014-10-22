@@ -4,7 +4,7 @@ module.exports = function(config) {
     config.set({
         basePath: '../',
 
-        frameworks: ['mocha', 'chai'],
+        frameworks: ['mocha', 'chai', 'chai-as-promised'],
 
         files: [
             './test/lib/sinon-1.4.2.js',

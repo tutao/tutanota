@@ -35,7 +35,6 @@ Although the object is in the global scope, it is not available until after the 
 
 - device.cordova
 - device.model
-- device.name
 - device.platform
 - device.uuid
 - device.version
@@ -94,10 +93,6 @@ different across versions of the same product.
 ### Windows Phone 7 and 8 Quirks
 
 - Returns the device model specified by the manufacturer. For example, the Samsung Focus returns `SGH-i917`.
-
-## device.name
-
-__WARNING__: `device.name` is deprecated as of version 2.3.0. Use `device.model` instead.
 
 ## device.platform
 

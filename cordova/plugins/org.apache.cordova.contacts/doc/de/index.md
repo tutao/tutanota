@@ -45,6 +45,10 @@ Erstellen Sie **www/manifest.webapp** , wie in [Docs Manifest][1]beschrieben. F�
     }
     
 
+### Windows-Eigenheiten
+
+Alle Kontakte von zurückgegebenen `find` und `pickContact` Methoden sind schreibgeschützt, so dass sie von die Anwendung nicht geändert werden kann. `find`Methode nur auf Windows Phone 8.1-Geräten verfügbar.
+
 ### Windows 8 Macken
 
 Windows 8 Kontakte sind Readonly. Über die Cordova-API-Kontakte nicht abgefragt werden/können durchsucht werden, Sie sollten den Benutzer informieren, wählen Sie einen Kontakt als Aufruf an contacts.pickContact, die 'People'-app öffnet, wo muss der Benutzer einen Kontakt auswählen. Alle zurückgegebenen Kontakte sind Readonly, so dass sie von die Anwendung nicht geändert werden kann.
@@ -118,6 +122,7 @@ Die **contactFindOptions.filter** -Zeichenfolge kann als einen Suchfilter verwen
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 und 8
+*   Windows (nur Windows Phone 8.1-Geräte)
 
 ### Beispiel
 
@@ -138,6 +143,10 @@ Die **contactFindOptions.filter** -Zeichenfolge kann als einen Suchfilter verwen
     navigator.contacts.find(fields, onSuccess, onError, options);
     
 
+### Windows-Eigenheiten
+
+*   `__contactFields__`wird nicht unterstützt und wird ignoriert. `find`Methode wird immer versucht, die Namen, e-Mail-Adresse oder Telefonnummer eines Kontakts übereinstimmen.
+
 ## navigator.contacts.pickContact
 
 Die `navigator.contacts.pickContact` -Methode startet im Kontakt Farbwähler wählen Sie einen einzigen Ansprechpartner. Das resultierende Objekt wird übergeben, um die `contactSuccess` Callback-Funktion, die durch den **ContactSuccess** -Parameter angegeben.
@@ -154,6 +163,7 @@ Die `navigator.contacts.pickContact` -Methode startet im Kontakt Farbwähler wä
 *   iOS
 *   Windows Phone 8
 *   Windows 8
+*   Windows
 
 ### Beispiel
 
@@ -217,6 +227,7 @@ Das `Contact` -Objekt repräsentiert einen Benutzer Kontakt. Kontakte können er
 *   iOS
 *   Windows Phone 7 und 8
 *   Windows 8
+*   Windows
 
 ### Speichern Sie Beispiel
 
@@ -314,6 +325,14 @@ Das `Contact` -Objekt repräsentiert einen Benutzer Kontakt. Kontakte können er
 
 *   **Kategorien**: nicht unterstützt, Rückgabe`null`.
 
+### Windows-Eigenheiten
+
+*   **Fotos**: gibt einen Datei-URL auf das Bild, das im temporären Verzeichnis der Anwendung gespeichert ist.
+
+*   **Geburtstage**: nicht unterstützt, Rückgabe`null`.
+
+*   **Kategorien**: nicht unterstützt, Rückgabe`null`.
+
 ## ContactAddress
 
 Das `ContactAddress` -Objekt speichert die Eigenschaften einer einzelnen Adresse eines Kontakts. A `Contact` Objekt gehören mehr als eine Adresse in ein `ContactAddress[]` Array.
@@ -345,6 +364,7 @@ Das `ContactAddress` -Objekt speichert die Eigenschaften einer einzelnen Adresse
 *   iOS
 *   Windows Phone 7 und 8
 *   Windows 8
+*   Windows
 
 ### Beispiel
 
@@ -412,6 +432,10 @@ Das `ContactAddress` -Objekt speichert die Eigenschaften einer einzelnen Adresse
 
 *   **Pref**: nicht unterstützt
 
+### Windows-Eigenheiten
+
+*   **Pref**: nicht unterstützt
+
 ## ContactError
 
 Das `ContactError` -Objekt wird zurückgegeben, die der Benutzer über die `contactError` Callback-Funktion, wenn ein Fehler auftritt.
@@ -453,6 +477,7 @@ In den meisten Fällen gibt es keine vorher festgelegten Werte für ein `Contact
 *   iOS
 *   Windows Phone 7 und 8
 *   Windows 8
+*   Windows
 
 ### Beispiel
 
@@ -490,6 +515,10 @@ In den meisten Fällen gibt es keine vorher festgelegten Werte für ein `Contact
 
 *   **Pref**: nicht unterstützt, Rückgabe`false`.
 
+### Windows-Eigenheiten
+
+*   **Pref**: nicht unterstützt, Rückgabe`false`.
+
 ## ContactName
 
 Enthält verschiedene Arten von Informationen über ein `Contact` Name des Objekts.
@@ -517,6 +546,7 @@ Enthält verschiedene Arten von Informationen über ein `Contact` Name des Objek
 *   iOS
 *   Windows Phone 7 und 8
 *   Windows 8
+*   Windows
 
 ### Beispiel
 
@@ -581,6 +611,10 @@ Enthält verschiedene Arten von Informationen über ein `Contact` Name des Objek
 
 *   **HonorificSuffix**: nicht unterstützt
 
+### Windows-Eigenheiten
+
+*   **formatiert**: Er ist identisch mit`displayName`
+
 ## ContactOrganization
 
 Das `ContactOrganization` -Objekt speichert Organisationseigenschaften eines Kontakts. A `Contact` -Objekt speichert eine oder mehrere `ContactOrganization` Objekte in einem Array.
@@ -604,6 +638,7 @@ Das `ContactOrganization` -Objekt speichert Organisationseigenschaften eines Kon
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 und 8
+*   Windows (nur Windows-8.1 und Windows Phone 8.1-Geräte)
 
 ### Beispiel
 
@@ -666,3 +701,9 @@ Das `ContactOrganization` -Objekt speichert Organisationseigenschaften eines Kon
 *   **Abteilung**: teilweise unterstützt. Die Abteilungsnamen der erste ist im Feld **kABPersonDepartmentProperty** iOS gespeichert.
 
 *   **Titel**: teilweise unterstützt. Der erste Titel wird im Feld **kABPersonJobTitleProperty** iOS gespeichert.
+
+### Windows-Eigenheiten
+
+*   **Pref**: nicht unterstützt, Rückgabe`false`.
+
+*   **Typ**: nicht unterstützt, Rückgabe`null`.

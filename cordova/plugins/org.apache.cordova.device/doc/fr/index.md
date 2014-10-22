@@ -36,7 +36,6 @@ Ce plugin définit un global `device` objet qui décrit le matériel et les logi
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@ Retourne la version de Cordova en cours d'exécution sur l'appareil.
 *   Amazon Fire OS
 *   Android
 *   BlackBerry 10
+*   Navigateur
 *   Firefox OS
 *   iOS
 *   Paciarelli
@@ -64,6 +64,7 @@ L'objet `device.model` retourne le nom du modèle de l'appareil/produit. Cette v
 
 *   Android
 *   BlackBerry 10
+*   Navigateur
 *   iOS
 *   Paciarelli
 *   Windows Phone 7 et 8
@@ -71,10 +72,12 @@ L'objet `device.model` retourne le nom du modèle de l'appareil/produit. Cette v
 
 ### Petit exemple
 
-    // Android : pour un Nexus One, la valeur retournée est "Passion" (le nom de code du Nexus One)
-    // pour un Motorola Droid, la valeur retournée est "voles"
-    // BlackBerry : pour un Torch 9800, la valeur retournée est "9800"
-    // iOS : pour un iPad Mini et un iPhone 5, les valeurs retournées sont "iPad2,5" et "iPhone 5,1" respectivement. Voir http://theiphonewiki.com/wiki/index.php?title=Models
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Voir http://theiphonewiki.com/wiki/index.php?title=Models
     //
     var model = device.model;
     
@@ -94,13 +97,9 @@ L'objet `device.model` retourne le nom du modèle de l'appareil/produit. Cette v
 
 *   Retourne le modèle de l'appareil spécifié par le fabricant. Par exemple `SGH-i917` pour le Samsung Focus.
 
-## device.name
-
-**Avertissement**: `device.name` est obsolète depuis la version 2.3.0. Utilisation `device.model` à la place.
-
 ## device.platform
 
-Retourne le nom du système d'exploitation de l'appareil.
+Obtenir le nom de système d'exploitation de l'appareil.
 
     var string = device.platform;
     
@@ -109,6 +108,7 @@ Retourne le nom du système d'exploitation de l'appareil.
 
 *   Android
 *   BlackBerry 10
+*   Browser4
 *   Firefox OS
 *   iOS
 *   Paciarelli
@@ -120,6 +120,8 @@ Retourne le nom du système d'exploitation de l'appareil.
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -128,15 +130,15 @@ Retourne le nom du système d'exploitation de l'appareil.
 
 ### Windows Phone 7 Quirks
 
-Le nom de plate-forme retourné pour les appareils sous Windows Phone 7 est `WinCE`.
+Appareils Windows Phone 7 rapport de la plate-forme comme`WinCE`.
 
 ### Notes au sujet de Windows Phone 8
 
-Le nom de plate-forme retourné pour les appareils sous Windows Phone 8 est `Win32NT`.
+Appareils Windows Phone 8 rapport de la plate-forme comme`Win32NT`.
 
 ## device.uuid
 
-Retourne l'Identifiant Unique Universel de l'appareil ([UUID][3]).
+Obtenir Universally Unique Identifier de l'appareil ([UUID][3]).
 
  [3]: http://en.wikipedia.org/wiki/Universally_Unique_Identifier
 
@@ -145,7 +147,7 @@ Retourne l'Identifiant Unique Universel de l'appareil ([UUID][3]).
 
 ### Description
 
-La façon dont est généré l'UUID est déterminée par le fabricant et est spécifique à la plate-forme ou le modèle de l'appareil.
+Les détails de comment un UUID généré sont déterminées par le fabricant du périphérique et sont spécifiques à la plate-forme ou le modèle de l'appareil.
 
 ### Plates-formes prises en charge
 
@@ -176,15 +178,15 @@ La façon dont est généré l'UUID est déterminée par le fabricant et est sp�
 
 ### Spécificités iOS
 
-Sur iOS, l'`uuid` n'est pas propre à un appareil mais varie pour chaque application et pour chaque installation d'une même application. Elle change si vous supprimez, puis réinstallez l'application, et éventuellement aussi quand vous mettre à jour d'iOS, ou même mettre à jour le soft par version (apparent dans iOS 5.1). Par conséquent, l'`uuid` n'est pas considéré comme fiable.
+Le `uuid` sur iOS n'est pas propre à un périphérique, mais varie pour chaque application, pour chaque installation. Elle change si vous supprimez, puis réinstallez l'application, et éventuellement aussi quand vous mettre à jour d'iOS, ou même mettre à jour le soft par version (apparent dans iOS 5.1). Le `uuid` n'est pas une valeur fiable.
 
 ### Windows Phone 7 et 8 Quirks
 
-Sous Windows Phone 7, l'autorisation `ID_CAP_IDENTITY_DEVICE` est requise afin d'accéder à l'`uuid`. Microsoft va probablement bientôt rendre cette propriété obsolète. Si la fonctionnalité n'est pas accessible, un guid persistant (maintenu pendant toute la durée de l'installation de l'application sur l'appareil) est généré.
+Le `uuid` pour Windows Phone 7 requiert l'autorisation `ID_CAP_IDENTITY_DEVICE` . Microsoft va probablement bientôt obsolète de cette propriété. Si la capacité n'est pas disponible, l'application génère un guid persistant qui est maintenu pendant toute la durée de l'installation de l'application sur le périphérique.
 
 ## device.version
 
-Retourne la version du système d'exploitation de l'appareil.
+Téléchargez la version de système d'exploitation.
 
     var string = device.version;
     
@@ -193,6 +195,7 @@ Retourne la version du système d'exploitation de l'appareil.
 
 *   Android 2.1+
 *   BlackBerry 10
+*   Navigateur
 *   iOS
 *   Paciarelli
 *   Windows Phone 7 et 8
@@ -200,14 +203,16 @@ Retourne la version du système d'exploitation de l'appareil.
 
 ### Petit exemple
 
-    // Android : Froyo OS renvoie "2.2"
-    // Eclair OS renvoie "2.1", "2.0.1", ou "2.0"
-    // Peut également renvoyer par exemple "2.1-update1"
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
     //
-    // BlackBerry : Torch 9800 sous OS 6.0 renvoie "6.0.0.600"
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
     //
-    // iPhone : iOS 3.2 renvoie "3.2"
+    // Browser:    Returns version number for the browser
     //
-    // Windows Phone 7 : renvoie la version actuelle de l'OS, par exemple on Mango returns 7.10.7720
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

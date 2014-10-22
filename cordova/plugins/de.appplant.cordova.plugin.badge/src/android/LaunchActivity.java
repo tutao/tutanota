@@ -24,14 +24,24 @@ package de.appplant.cordova.plugin.badge;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 public class LaunchActivity extends Activity {
 
-    /** Called when the activity is first created. */
+    /**
+     * Clears the badge and moves the launch intent
+     * (web view) back to front.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Intent intent  = getIntent();
+        boolean cancel = intent.getBooleanExtra(Badge.EXTRA_AUTO_CANCEL, false);
+
+        if (cancel)
+            clearBagde();
 
         launchMainIntent();
     }
@@ -40,12 +50,34 @@ public class LaunchActivity extends Activity {
      * Launch main intent for package.
      */
     private void launchMainIntent () {
-        Context context     = getApplicationContext();
-        String packageName  = context.getPackageName();
-        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        Context context = getApplicationContext();
+        String pkgName  = context.getPackageName();
+        Intent intent   = context.getPackageManager()
+                .getLaunchIntentForPackage(pkgName);
 
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.addFlags(
+                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        context.startActivity(launchIntent);
+        context.startActivity(intent);
+    }
+
+    /**
+     * Removes the badge of the app icon so that `getBadge`
+     * will return 0 back to the client.
+     */
+    private void clearBagde () {
+        SharedPreferences.Editor editor = getSharedPreferences().edit();
+
+        editor.putInt(Badge.KEY, 0);
+        editor.apply();
+    }
+
+    /**
+     * The Local storage for the application.
+     */
+    private SharedPreferences getSharedPreferences () {
+        Context context = getApplicationContext();
+
+        return context.getSharedPreferences(Badge.KEY, Context.MODE_PRIVATE);
     }
 }

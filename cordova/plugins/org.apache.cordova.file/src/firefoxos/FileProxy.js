@@ -136,7 +136,19 @@ QUIRKS:
                 idb_.put(newFileEntry, path.storagePath, successCallback, errorCallback);
             } else if (options.create === true && fileEntry) {
                 if (fileEntry.isFile) {
-                    successCallback(fileEntryFromIdbEntry(fileEntry));
+                    // Overwrite file, delete then create new.
+                    idb_['delete'](path.storagePath, function() {
+                        var newFileEntry = new FileEntry(path.fileName, path.fullPath, new FileSystem(path.fsName, fs_.root));
+
+                        newFileEntry.file_ = new MyFile({
+                            size: 0,
+                            name: newFileEntry.name,
+                            lastModifiedDate: new Date(),
+                            storagePath: path.storagePath
+                        });
+
+                        idb_.put(newFileEntry, path.storagePath, successCallback, errorCallback);
+                    }, errorCallback);
                 } else {
                     if (errorCallback) {
                         errorCallback(FileError.INVALID_MODIFICATION_ERR);

@@ -168,7 +168,6 @@ static const void *kStatusBarStyle = &kStatusBarStyle;
 - (void) initializeStatusBarBackgroundView
 {
     CGRect statusBarFrame = [UIApplication sharedApplication].statusBarFrame;
-	// TUTAO: Add bugfix for "CB-7549 - [StatusBar][iOS 8] Landscape issue" to version org.apache.cordova.statusbar 0.1.7
     if (UIDeviceOrientationIsLandscape(self.viewController.interfaceOrientation) && !IsAtLeastiOSVersion(@"8.0")) {
         // swap width and height. set origin to zero
         statusBarFrame = CGRectMake(0, 0, statusBarFrame.size.height, statusBarFrame.size.width);
@@ -205,8 +204,7 @@ static const void *kStatusBarStyle = &kStatusBarStyle;
         [self initializeStatusBarBackgroundView];
 
         CGRect frame = self.webView.frame;
-		
-		// TUTAO: Add bugfix for "CB-7549 - [StatusBar][iOS 8] Landscape issue" to version org.apache.cordova.statusbar 0.1.7
+
         if (UIDeviceOrientationIsLandscape(self.viewController.interfaceOrientation) && !IsAtLeastiOSVersion(@"8.0")) {
             frame.origin.y = statusBarFrame.size.width;
             frame.size.height -= statusBarFrame.size.width;

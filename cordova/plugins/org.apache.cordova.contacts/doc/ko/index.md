@@ -45,6 +45,10 @@
     }
     
 
+### 윈도우 특수
+
+모든 연락처에서 반환 된 `find` 및 `pickContact` 메서드는 읽기 전용 응용 프로그램을 수정할 수 없습니다. `find`Windows Phone 8.1 장치에만 사용할 수 있는 방법.
+
 ### 윈도우 8 단점
 
 윈도우 8 연락처는 읽기 전용입니다. 코르 도우 바 API 연락처를 통해 하지 쿼리/검색할 수 있습니다, 사용자 알려 '사람' 애플 리 케이 션을 열 것 이다 contacts.pickContact에 대 한 호출으로 연락처를 선택 하 여 사용자 연락처를 선택 해야 합니다. 반환 된 연락처는 읽기 전용 응용 프로그램을 수정할 수 없습니다.
@@ -118,6 +122,7 @@
 *   Firefox 운영 체제
 *   iOS
 *   Windows Phone 7과 8
+*   윈도우 (Windows Phone 8.1 소자만 해당)
 
 ### 예를 들어
 
@@ -138,6 +143,10 @@
     navigator.contacts.find(fields, onSuccess, onError, options);
     
 
+### 윈도우 특수
+
+*   `__contactFields__`지원 되지 않으며 무시 됩니다. `find`메서드가 항상 이름, 이메일 주소 또는 연락처의 전화 번호를 일치 하도록 시도 합니다.
+
 ## navigator.contacts.pickContact
 
 `navigator.contacts.pickContact`메서드가 단일 연락처 선택 문의 선택 시작. 결과 개체에 전달 되는 `contactSuccess` **contactSuccess** 매개 변수로 지정 된 콜백 함수.
@@ -154,6 +163,7 @@
 *   iOS
 *   Windows Phone 8
 *   윈도우 8
+*   윈도우
 
 ### 예를 들어
 
@@ -217,6 +227,7 @@
 *   iOS
 *   Windows Phone 7과 8
 *   윈도우 8
+*   윈도우
 
 ### 예를 들어 저장
 
@@ -314,6 +325,14 @@
 
 *   **카테고리**: 지원 되지 않는 반환`null`.
 
+### 윈도우 특수
+
+*   **사진**: 응용 프로그램의 임시 디렉터리에 저장 된 이미지 파일 URL을 반환 합니다.
+
+*   **생일**: 지원 되지 않는 반환`null`.
+
+*   **카테고리**: 지원 되지 않는 반환`null`.
+
 ## ContactAddress
 
 `ContactAddress`개체는 연락처의 단일 주소 속성을 저장 합니다. A `Contact` 개체에 하나 이상의 주소가 포함 될 수 있습니다는 `ContactAddress[]` 배열.
@@ -345,6 +364,7 @@
 *   iOS
 *   Windows Phone 7과 8
 *   윈도우 8
+*   윈도우
 
 ### 예를 들어
 
@@ -412,6 +432,10 @@
 
 *   **pref**: 지원 되지 않음
 
+### 윈도우 특수
+
+*   **pref**: 지원 되지 않음
+
 ## ContactError
 
 `ContactError`개체를 통해 사용자에 게 반환 되는 `contactError` 콜백 함수는 오류가 발생 한 경우.
@@ -453,6 +477,7 @@
 *   iOS
 *   Windows Phone 7과 8
 *   윈도우 8
+*   윈도우
 
 ### 예를 들어
 
@@ -490,6 +515,10 @@
 
 *   **pref**: 지원 되지 않는 반환`false`.
 
+### 윈도우 특수
+
+*   **pref**: 지원 되지 않는 반환`false`.
+
 ## 담당자 이름
 
 에 대 한 다양 한 정보를 포함 한 `Contact` 개체의 이름.
@@ -517,6 +546,7 @@
 *   iOS
 *   Windows Phone 7과 8
 *   윈도우 8
+*   윈도우
 
 ### 예를 들어
 
@@ -581,6 +611,10 @@
 
 *   **honorificSuffix**: 지원 되지 않음
 
+### 윈도우 특수
+
+*   **형식**: 그것은 동일`displayName`
+
 ## ContactOrganization
 
 `ContactOrganization`개체를 연락처의 조직 속성을 저장 합니다. A `Contact` 개체 저장 하나 이상의 `ContactOrganization` 개체 배열에.
@@ -604,6 +638,7 @@
 *   Firefox 운영 체제
 *   iOS
 *   Windows Phone 7과 8
+*   윈도우 (Windows 8.1와 Windows Phone 8.1 소자만 해당)
 
 ### 예를 들어
 
@@ -666,3 +701,9 @@
 *   **부서**: 부분적으로 지원 합니다. 첫 번째 부서 이름은 iOS **kABPersonDepartmentProperty** 필드에 저장 됩니다.
 
 *   **제목**: 부분적으로 지원 합니다. 첫 번째 타이틀 iOS **kABPersonJobTitleProperty** 필드에 저장 됩니다.
+
+### 윈도우 특수
+
+*   **pref**: 지원 되지 않는 반환`false`.
+
+*   **형식**: 지원 되지 않는 반환`null`.

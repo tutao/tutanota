@@ -110,7 +110,7 @@ function resolveLocal(success, fail, request, options) {
 //validate parameters and set sandbox
 function resolve(success, fail, path, fsType, sandbox, options, size) {
     options = options || { create: false };
-    size = size || 0;
+    size = size || info.MAX_SIZE;
     if (size > info.MAX_SIZE) {
         //bb10 does not respect quota; fail at unreasonably large size
         fail(FileError.QUOTA_EXCEEDED_ERR);

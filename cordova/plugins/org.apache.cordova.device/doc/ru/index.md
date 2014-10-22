@@ -36,7 +36,6 @@
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@
 *   Amazon Fire ОС
 *   Android
 *   BlackBerry 10
+*   Обозреватель
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -64,6 +64,7 @@
 
 *   Android
 *   BlackBerry 10
+*   Обозреватель
 *   iOS
 *   Tizen
 *   Windows Phone 7 и 8
@@ -74,6 +75,8 @@
     // Android:    Nexus One       returns "Passion" (Nexus One code name)
     //             Motorola Droid  returns "voles"
     // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
     // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. See http://theiphonewiki.com/wiki/index.php?title=Models
     //
     var model = device.model;
@@ -94,10 +97,6 @@
 
 *   Возвращает модель устройства, указанной заводом-изготовителем. Например Samsung Focus возвращает `SGH-i917`.
 
-## device.name
-
-**ПРЕДУПРЕЖДЕНИЕ**: `device.name` является устаревшим свойством начиная с версии 2.3.0. Используйте `device.model` вместо этогого свойства.
-
 ## device.platform
 
 Получите имя операционной системы устройства.
@@ -109,6 +108,7 @@
 
 *   Android
 *   BlackBerry 10
+*   Браузером4
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -120,6 +120,8 @@
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -128,15 +130,15 @@
 
 ### Особенности Windows Phone 7
 
-Windows Phone 7 устройства сообщают платформу как `WinCE`.
+Windows Phone 7 устройства сообщают платформе как`WinCE`.
 
 ### Особенности Windows Phone 8
 
-Устройства Windows Phone 8 сообщают платформу как `Win32NT`.
+Устройства Windows Phone 8 сообщают платформе как`Win32NT`.
 
 ## device.uuid
 
-Возвращает универсальный уникального идентификатора ([UUID][3] устройства).
+Получить универсального уникального идентификатора ([UUID][3] устройства).
 
  [3]: http://en.wikipedia.org/wiki/Universally_Unique_Identifier
 
@@ -145,7 +147,7 @@ Windows Phone 7 устройства сообщают платформу как 
 
 ### Описание
 
-Подробная информация о том как UUID генерируется, определяются изготовителем устройства и являются специфическими для платформы или модели устройства.
+Подробная информация о том, как UUID генерируется определяются изготовителем устройства и являются специфическими для платформы или модель устройства.
 
 ### Поддерживаемые платформы
 
@@ -177,15 +179,15 @@ Windows Phone 7 устройства сообщают платформу как 
 
 ### Особенности iOS
 
-На iOS `uuid` не является уникальным для устройства, но варьируется для каждого приложения, и для каждой установки. Значение меняется, если удалить и повторно установить приложение, и возможно также когда вы обновите iOS, или даже обновить приложение до следующей версии (очевидно в iOS 5.1). Значение `uuid` не является надежным.
+`uuid`На iOS не является уникальным для устройства, но различается для каждого приложения, для каждой установки. Она меняется, если удалить и повторно установить приложение, и возможно также когда вы обновить iOS, или даже обновить приложение в версии (явно в iOS 5.1). `uuid`Не является надежным.
 
 ### Особенности Windows Phone 7 и 8
 
-Для Windows Phone 7 `uuid` требует разрешения `ID_CAP_IDENTITY_DEVICE` . Microsoft скорее всего скоро сделает это свойство устаревшим. Если возможность недоступна, приложение создает постоянные guid, который сохраняется на все время установки приложения на устройстве.
+`uuid`Для Windows Phone 7 требует разрешения `ID_CAP_IDENTITY_DEVICE` . Microsoft будет скорее всего скоро Опознайте это свойство. Если возможности не предоставляется, приложение создает постоянный идентификатор guid, который поддерживается на время установки приложения на устройстве.
 
 ## device.version
 
-Возвращает версию операционной системы.
+Получите версию операционной системы.
 
     var string = device.version;
     
@@ -194,6 +196,7 @@ Windows Phone 7 устройства сообщают платформу как 
 
 *   Android 2.1 +
 *   BlackBerry 10
+*   Обозреватель
 *   iOS
 *   Tizen
 *   Windows Phone 7 и 8
@@ -201,14 +204,16 @@ Windows Phone 7 устройства сообщают платформу как 
 
 ### Краткий пример
 
-    // Android: Froyo ОС будет возвращать «2.2» 
-    // Eclair OS будет возвращать «2.1», «2.0.1» или «2.0» 
-    // версия также может возвращать информацию об обновлении «2.1-update1» 
-    // 
-    // BlackBerry: Torch 9800, используя OS 6.0 будет возвращатся «6.0.0.600» 
-    // 
-    // iPhone: iOS 3.2 возвращает «3.2» 
-    // 
-    // Windows Phone 7: Возвращает номер текущей версии ОС. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

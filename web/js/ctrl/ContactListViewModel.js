@@ -184,7 +184,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.unselectAll = function() {
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCsv = function() {
-	tutao.tutanota.util.FileUtils.showFileChooser().then(function(files) {
+	tutao.locator.fileFacade.showFileChooser().then(function(files) {
 		if (files && files.length == 1 && tutao.util.StringUtils.endsWith(files.item(0).name, ".csv")) {
 			tutao.tutanota.util.FileUtils.readLocalFileContentAsUtf8(files.item(0)).then(function(csv, exception) {
 				var contacts = new tutao.tutanota.ctrl.ThunderbirdContactCsvConverter().csvToContacts(csv);

@@ -132,7 +132,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function()
     return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
         var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
         var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), hexSalt).then(function(userPassphraseKeyHex) {
+        return tutao.locator.crypto.generateKeyFromPassphrase(self.password(), hexSalt).then(function(userPassphraseKeyHex) {
             var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
             var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey);
             var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);

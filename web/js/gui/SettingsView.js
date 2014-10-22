@@ -17,10 +17,10 @@ tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS = null;
 /**
  * @inherit
  */
-tutao.tutanota.gui.SettingsView.prototype.init = function(external) {
-	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, 'settingsContent');
-    tutao.tutanota.gui.SettingsView.COLUMN_SETTINGS = this._swipeSlider.addViewColumn(0, 150, 200, 'settingsColumn');
-    tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsColumn');
+tutao.tutanota.gui.SettingsView.prototype.init = function(external, updateColumnTitleCallback) {
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, 'settingsContent', updateColumnTitleCallback);
+    tutao.tutanota.gui.SettingsView.COLUMN_SETTINGS = this._swipeSlider.addViewColumn(0, 150, 200, 'settingsColumn', "settings_label");
+    tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsColumn', tutao.locator.settingsViewModel.getActiveSettingTextId);
     tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsDetailsColumn');
 };
 

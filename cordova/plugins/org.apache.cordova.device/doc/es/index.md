@@ -36,7 +36,6 @@ Este plugin define un global `device` objeto que describe del dispositivo hardwa
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@ Obtener la versión de Córdoba en el dispositivo.
 *   Amazon fuego OS
 *   Android
 *   BlackBerry 10
+*   Explorador
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -64,6 +64,7 @@ El `device.model` devuelve el nombre del producto o modelo del dispositivo. El v
 
 *   Android
 *   BlackBerry 10
+*   Explorador
 *   iOS
 *   Tizen
 *   Windows Phone 7 y 8
@@ -74,6 +75,8 @@ El `device.model` devuelve el nombre del producto o modelo del dispositivo. El v
     // Android:    Nexus One       returns "Passion" (Nexus One code name)
     //             Motorola Droid  returns "voles"
     // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
     // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. See http://theiphonewiki.com/wiki/index.php?title=Models
     //
     var model = device.model;
@@ -94,10 +97,6 @@ El `device.model` devuelve el nombre del producto o modelo del dispositivo. El v
 
 *   Devuelve el modelo de dispositivo especificado por el fabricante. Por ejemplo, devuelve el Samsung Focus`SGH-i917`.
 
-## device.name
-
-**ADVERTENCIA**: `device.name` es obsoleto desde la versión 2.3.0. Uso `device.model` en su lugar.
-
 ## device.platform
 
 Obtener el nombre del sistema operativo del dispositivo.
@@ -109,6 +108,7 @@ Obtener el nombre del sistema operativo del dispositivo.
 
 *   Android
 *   BlackBerry 10
+*   Browser4
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -120,6 +120,8 @@ Obtener el nombre del sistema operativo del dispositivo.
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -136,7 +138,7 @@ Dispositivos Windows Phone 8 Informe la plataforma como`Win32NT`.
 
 ## device.uuid
 
-Obtener identificador universal única del dispositivo ([UUID][3]).
+Obtener identificador universalmente única del dispositivo ([UUID][3]).
 
  [3]: http://en.wikipedia.org/wiki/Universally_Unique_Identifier
 
@@ -173,7 +175,7 @@ Los detalles de cómo se genera un UUID son determinados por el fabricante del d
 
 ### iOS chanfle
 
-El `uuid` en iOS no es exclusiva de un dispositivo, pero varía para cada aplicación, para cada instalación. Cambia si borrar y volver a instalar la aplicación, y posiblemente también cuándo actualizar iOS, o incluso mejorar la aplicación por la versión (evidente en iOS 5.1). El `uuid` no es un valor confiable.
+El `uuid` en iOS no es exclusiva de un dispositivo, pero varía para cada aplicación, para cada instalación. Cambia si puedes borrar y volver a instalar la aplicación, y posiblemente también cuándo actualizar iOS, o incluso mejorar la aplicación por la versión (evidente en iOS 5.1). El `uuid` no es un valor confiable.
 
 ### Windows Phone 7 y 8 rarezas
 
@@ -190,6 +192,7 @@ Obtiene la versión del sistema operativo.
 
 *   Android 2.1 +
 *   BlackBerry 10
+*   Explorador
 *   iOS
 *   Tizen
 *   Windows Phone 7 y 8
@@ -197,6 +200,16 @@ Obtiene la versión del sistema operativo.
 
 ### Ejemplo rápido
 
-    / / Android: Froyo OS volvería "2.2" / / Eclair OS volvería "2.1", "2.0.1" o "2.0" / / versión puede también devolver actualizar nivel "2.1-update1" / / / / BlackBerry: Torch 9800 OS 6.0 usando volvería "6.0.0.600" / / / / iPhone: iOS 3.2 devuelve "3.2" / / / / Windows Phone 7: devuelve el número de versión de sistema operativo actual, ex. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

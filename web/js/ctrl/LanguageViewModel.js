@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// mail
 	deleteMail_msg:	"Delete new email without saving?",
 	tooBigAttachment_msg: "The following files could not be attached because their size exceeds 25 MB: ",
-	received_action: "Received",
+	received_action: "Inbox",
 	receivedMail_alt: "Received email",
 	receivedMails_alt: "Received emails",
 	sent_action: "Sent",
@@ -153,6 +153,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	loadMoreMails_action: "Load more emails",
     confirmDeleteTrash_msg: "Do you really want to delete all mails from the trash?",
 	newMails_msg: "New Tutanota email received.",
+    newMailBadge_msg: "1 new email received",
+    newMailsBadge_msg: "%d new emails received",
 
     //invitation
     invitationMailSubject_msg: "Join Tutanota and fight for privacy!",
@@ -310,10 +312,10 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	showMail_action: "Show mailbox",
 	chooseNumber_msg: "Please click on one of the \"Send SMS\" buttons below. The Tutanota password for your mailbox will be sent to the given number (maximum of three text messages).",
 	clickNumber_msg: "Please click on the \"Send SMS\" button below. The Tutanota password for your mailbox will be sent to the given number (maximum of three text messages).",
-	storePassword_action: "Store password in browser",
+	storePassword_action: "Store password",
 	enterPresharedPassword_msg: "Please enter the password which you have agreed upon with the sender.",
 	sendingSms_msg: "Sending SMS...",
-	onlyPrivateComputer_msg: "Only choose this option if you are using a private computer. Otherwise the password is requested with each access.",
+	onlyPrivateComputer_msg: "Only choose this option if you are using a private device. Otherwise the password is requested with each access.",
 	loadingMail_msg: "Loading mailbox...",
 	enterSmsPassword_msg: "Please enter the password that has been transmitted via text message here or click on the link within the text message.",
 
@@ -357,6 +359,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
+    folderTitle_label: "Folder",
+    contactsTitle_label: "All contacts",
 
     //admin
     logs_label: "logs",
@@ -509,7 +513,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// mail
 	deleteMail_msg:	"Neue E-Mail verwerfen ohne zu speichern?",
 	tooBigAttachment_msg: "Die folgenden Dateien konnten nicht angehängt werden, da sie größer als 25 MB sind: ",
-	received_action: "Empfangen",
+	received_action: "Posteingang",
 	receivedMail_alt: "Empfangene E-Mail",
 	receivedMails_alt: "Empfangene E-Mails",
 	sent_action: "Gesendet",
@@ -587,6 +591,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	loadMoreMails_action: "Weitere E-Mails laden",
     confirmDeleteTrash_msg: "Möchtest du wirklich alle E-Mails aus dem Papierkorb löschen?",
 	newMails_msg: "Neue Nachricht in Tutanota eingetroffen.",
+    newMailBadge_msg: "1 neue E-Mail empfangen",
+    newMailsBadge_msg: "%d neue E-Mails empfangen",
 
     //invitation
     invitationMailSubject_msg: "Sei dabei: Mit Tutanota holen wir uns unsere Privatsphäre zurück!",
@@ -744,10 +750,10 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	showMail_action: "Mailbox anzeigen",
 	chooseNumber_msg: "Bitte klicken Sie auf einen der \"Sende SMS\"-Buttons. Das Tutanota-Passwort für Ihre Mailbox wird an die angegebene Mobilfunknummer versendet (maximal drei SMS).",
 	clickNumber_msg: "Bitte klicken Sie auf den \"Sende SMS\"-Button. Das Tutanota-Passwort für Ihre Mailbox wird an die angegebene Mobilfunknummer versendet (maximal drei SMS).",
-	storePassword_action: "Passwort im Browser speichern",
+	storePassword_action: "Passwort speichern",
 	enterPresharedPassword_msg: "Bitte geben Sie das mit dem Absender vereinbarte Passwort ein.",
 	sendingSms_msg: "SMS wird gesendet...",
-	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie einen privaten Computer verwenden. Ansonsten wird das Passwort bei jedem Zugriff abgefragt.",
+	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie ein privates Gerät verwenden. Ansonsten wird das Passwort bei jedem Zugriff abgefragt.",
 	loadingMail_msg: "Lade Mailbox...",
 	enterSmsPassword_msg: "Bitte geben Sie hier das per SMS übertragene Passwort ein oder klicken Sie auf den Link in der SMS.",
 
@@ -791,6 +797,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     invite_alt: "Einladen",
     more_label: "Mehr",
     dots_label: "...",
+    folderTitle_label: "Ordner",
+    contactsTitle_label: "Alle Kontakte",
 
     //admin
     logs_label: "logs",

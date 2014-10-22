@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 xmlns:android="http://schemas.android.com/apk/res/android"
            id="org.apache.cordova.file"
-      version="1.3.0">
+      version="1.3.1">
     <name>File</name>
     <description>Cordova File Plugin</description>
     <license>Apache 2.0</license>
@@ -171,6 +171,13 @@ xmlns:android="http://schemas.android.com/apk/res/android"
         <js-module src="www/android/FileSystem.js" name="androidFileSystem">
             <merges target="window.FileSystem" />
         </js-module>
+        <js-module src="www/fileSystems-roots.js" name="fileSystems-roots">
+            <runs/>
+        </js-module>
+        <js-module src="www/fileSystemPaths.js" name="fileSystemPaths">
+            <merges target="cordova" />
+            <runs/>
+        </js-module>
     </platform>
 
     <!-- ubuntu -->
@@ -307,6 +314,13 @@ xmlns:android="http://schemas.android.com/apk/res/android"
     <!-- windows8 -->
     <platform name="windows8">
         <js-module src="src/windows8/FileProxy.js" name="FileProxy">
+            <merges target="" />
+        </js-module>
+    </platform>
+
+    <!-- windows -->
+    <platform name="windows">
+        <js-module src="src/windows/FileProxy.js" name="FileProxy">
             <merges target="" />
         </js-module>
     </platform>

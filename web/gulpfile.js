@@ -20,7 +20,7 @@ var karma = require('karma').server;
 var shell = require('gulp-shell');
 var mkdirp = require('mkdirp');
 
-var package = require('./package.json');
+var package = require('../package.json');
 
 var fs = require('fs');
 
@@ -186,7 +186,8 @@ gulp.task('processHtmlCordova', function () {
 gulp.task('processTestHtml', function () {
     return gulp.src('./test/index.html')
         .pipe(htmlreplace({
-            'js': ['app.min.js', 'init.js']
+            'js': ['../cordova.js', 'app.min.js', '../init.js'],
+            'css' : ['mocha.css']
         }))
         .pipe(gulp.dest('./build/test'));
 });
@@ -226,7 +227,12 @@ gulp.task('copyGraphics', function () {
         .pipe(gulp.dest('./build/graphics'));
 });
 
-gulp.task('copy', ['copyLegacy', 'copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics' ], function () {
+gulp.task('copyMochaStylesheet', function () {
+    return gulp.src('test/lib/mocha.css')
+        .pipe(gulp.dest('./build/test/'));
+});
+
+gulp.task('copy', ['copyLegacy', 'copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics', 'copyMochaStylesheet'], function () {
 });
 
 gulp.task('manifest', function () {
@@ -260,11 +266,11 @@ gulp.task('distCordova', ['clean'], function (cb) {
 });
 
 gulp.task('distCordovaLocal', ['clean'], function (cb) {
-          // does not minify and is therefore faster, used for app builds
-          env = local_compiled;
-          fs.writeFileSync("build/init.js", env);
-          return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
-          });
+    // does not minify and is therefore faster, used for app builds
+    env = local_compiled;
+    fs.writeFileSync("build/init.js", env);
+    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+});
 
 gulp.task('distLocal', ['clean'], function (cb) {
     env = local_compiled;
@@ -292,6 +298,7 @@ gulp.task('default', ['clean', 'distCordovaLocal'], function () {
     gulp.watch('graphics/**/*', ['copyGraphics']);
     gulp.watch('fonts/*', ['copyFonts']);
     gulp.watch(['lib/**', 'js/**'], ['concat']);
+    gulp.watch(['lib/**', 'js/**', 'test/**'], ['concatTest']);
     gulp.watch('./index.html', ['processHtmlCordova']);
     gulp.watch("less/*", ['less']);
 });

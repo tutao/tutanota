@@ -268,7 +268,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
         tmpFile.setName(filename + ".eml");
         tmpFile.setMimeType("message/rfc822");
         tmpFile.setSize(String(buffer.byteLength));
-        tutao.tutanota.util.FileUtils.provideDownload(new tutao.tutanota.util.DataFile(buffer, tmpFile));
+        tutao.locator.fileFacade.open(new tutao.tutanota.util.DataFile(buffer, tmpFile));
     });
 };
 

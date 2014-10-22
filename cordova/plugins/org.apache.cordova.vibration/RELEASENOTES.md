@@ -72,3 +72,33 @@
 * ubuntu: Implemented vibrateWithPattern/cancelVibration
 * **FFOS** update VibrationProxy.js
 * CB-6127 Updated translations for docs
+
+### 0.3.11 (Sep 17, 2014)
+* CB-7249 cordova-plugin-vibration documentation translation
+* CB-6724 documented Windows support for vibrate with pattern and cancel vibrate in manual test doc and moved tests to tests dir
+* add longer pattern sequence for testing, change expected result for old vibrate with pattern test
+* added more test cases, changed vibrate with pattern durations, changed where vibrateOn is set to true
+* clear settimeout when user cancels vibration
+* add setTimeout function to update vibrateOn var if user doesn't cancel vibrate, add note about iOS
+* on/off button for cancel tests, add results box and msgs
+* added tests for old vibrateWithPattern and cancelVibration calls
+* added 'Android only' to buttons for specific tests, changed where console.log is executed for user to see earlier
+* added tests to ensure compliance with w3c spec
+* CB-6963 ported vibration automated & manual tests
+* CB-6966 renamed folder to tests + added nested plugin.xml
+* CB-6966 Ported Vibration automated & manual tests
+* removed duplicate messaging
+* CB-5459 slight change to the vibration documentation for pattern due to merge issue
+* changes to how 0 is getting added to array in order to align with w3c spec
+* changes to vibration.java to align with w3c, changes to vibration.js for backwards compatibility
+* changes made to align with w3c spec
+* Updated doc with Windows support for vibrate with pattern
+* Added note to doc about w3c alignment and min time for Windows
+* update doc with another way to cancel vibration
+* update doc to show vibrate([num]) is a standard vibrate
+* vibrate([num]) is treated as a vibrate not vibrate with pattern
+* added new example to documentation
+* updated doc for w3c alignment
+* changes to how 0 is getting added to array in order to align with w3c spec
+* changes to vibration.java to align with w3c, changes to vibration.js for backwards compatibility
+* changes made to align with w3c spec

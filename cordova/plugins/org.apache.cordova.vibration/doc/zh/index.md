@@ -19,7 +19,9 @@
 
 # org.apache.cordova.vibration
 
-這個外掛程式提供了一種方法，振動設備。
+這個外掛程式將對齊與 W3C 振動規範 HTTP://www.w3.org/TR/vibration/
+
+這個外掛程式提供了方法振動設備。
 
 ## 安裝
 
@@ -28,12 +30,90 @@
 
 ## 支援的平臺
 
+navigator.vibrate  
 navigator.notification.vibrate-亞馬遜火 OS-Android-黑莓 10-火狐瀏覽器作業系統 — — iOS-Windows Phone 7 和 8
 
 navigator.notification.vibrateWithPattern，  
 navigator.notification.cancelVibration-安卓系統
 
-## notification.vibrate
+## 震動 (推薦)
+
+此函數具有三個不同的功能，基於參數傳遞給它。
+
+### 標準振動
+
+為給定時間振動設備。
+
+    navigator.vibrate(time)
+    
+
+或
+
+    navigator.vibrate([time])
+    
+
+-**時間**： 毫秒以振動裝置。*（人數）*
+
+#### 示例
+
+    // Vibrate for 3 seconds
+    navigator.vibrate(3000);
+    
+    // Vibrate for 3 seconds
+    navigator.vibrate([3000]);
+    
+
+#### iOS 的怪癖
+
+*   **時間**： 忽略指定的時間和震動的一個預先設定的時間。
+    
+    navigator.vibrate(3000) ；3000 將被忽略
+
+#### Windows 和黑莓的怪癖
+
+*   **時間**： 最長時間是 5000ms (5s) 和最小時間為 1ms
+    
+    navigator.vibrate(8000) ；將被截斷為 5000
+
+### 以一種模式 （安卓系統和僅限 Windows） 振動
+
+振動具有給定模式的設備
+
+    navigator.vibrate(pattern);   
+    
+
+*   **模式**： 序列的持續時間 （以毫秒為單位） 為其打開或關閉振動器。*（數位陣列）*
+
+#### 示例
+
+    // Vibrate for 1 second
+    // Wait for 1 second
+    // Vibrate for 3 seconds
+    // Wait for 1 second
+    // Vibrate for 5 seconds
+    navigator.vibrate([1000, 1000, 3000, 1000, 5000]);
+    
+
+### 取消振動 （iOS 中不支援）
+
+立即取消任何當前正在運行的振動。
+
+    navigator.vibrate(0)
+    
+
+或
+
+    navigator.vibrate([])
+    
+
+或
+
+    navigator.vibrate([0])
+    
+
+在一個為 0 的參數中傳遞，空陣列或陣列的一個元素的值為 0 將取消任何振動。
+
+## *notification.vibrate (已棄用)
 
 為給定時間振動設備。
 
@@ -56,7 +136,7 @@ navigator.notification.cancelVibration-安卓系統
         navigator.notification.vibrate(2500);   // 2500 is ignored
         
 
-## notification.vibrateWithPattern
+## *notification.vibrateWithPattern (已棄用)
 
 振動具有給定模式的設備。
 
@@ -80,8 +160,11 @@ navigator.notification.cancelVibration-安卓系統
     navigator.notification.vibrateWithPattern([0, 100, 100, 200, 100, 400, 100, 800]);
     
 
-## notification.cancelVibration
+## *notification.cancelVibration (已棄用)
 
 立即取消任何當前正在運行的振動。
 
     navigator.notification.cancelVibration()
+    
+
+* 請注意--對齊方式與 w3c 規範，因出演的方法將被淘汰

@@ -36,7 +36,6 @@
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@
 *   アマゾン火 OS
 *   アンドロイド
 *   ブラックベリー 10
+*   ブラウザー
 *   Firefox の OS
 *   iOS
 *   Tizen
@@ -64,6 +64,7 @@
 
 *   アンドロイド
 *   ブラックベリー 10
+*   ブラウザー
 *   iOS
 *   Tizen
 *   Windows Phone 7 と 8
@@ -71,7 +72,12 @@
 
 ### 簡単な例
 
-    //アンドロイド： ネクサス 1 つは「情熱」(ネクサス 1 つはコード名) を返します//モトローラドロイド「ハタネズミ」を返します。//ブラックベリー： トーチ 9800 を返します「9800」//iOS: iPad のミニ 5; iPad2 を返します。iPhone 5 は iPhone 5, 1 です。 Http://theiphonewiki.com/wiki/index.php?title=Models を参照してください//var モデル = device.model;
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Http://theiphonewiki.com/wiki/index.php?title=Models を参照してください//var モデル = device.model;
     
 
 ### Android の癖
@@ -89,10 +95,6 @@
 
 *   製造元によって指定されたデバイスのモデルを返します。たとえば、三星フォーカスを返します`SGH-i917`.
 
-## device.name
-
-**警告**: `device.name` バージョン 2.3.0 は推奨されません。使用 `device.model` 代わりに。
-
 ## device.platform
 
 デバイスのオペレーティング システム名を取得します。
@@ -104,6 +106,7 @@
 
 *   アンドロイド
 *   ブラックベリー 10
+*   Browser4
 *   Firefox の OS
 *   iOS
 *   Tizen
@@ -115,6 +118,8 @@
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -161,7 +166,7 @@ UUID を生成する方法の詳細は、デバイスの製造元によって決
 
 ### iOS の気まぐれ
 
-`uuid`IOS で、デバイスに固有はありませんインストールごと、アプリケーションごとに異なります。 削除、アプリを再インストールした場合に変更と多分またときアップグレード iOS の, またはもアップグレードするアプリ (iOS の 5.1 で明らかに） バージョンごと。 `uuid`は信頼性の高い値ではありません。
+`uuid`IOS で、デバイスに固有ではないインストールごと、アプリケーションごとに異なります。 削除、アプリを再インストールした場合に変更と多分またときアップグレード iOS の, またはもアップグレードするアプリ (iOS の 5.1 で明らかに） バージョンごと。 `uuid`は信頼性の高い値ではありません。
 
 ### Windows Phone 7 と 8 癖
 
@@ -178,6 +183,7 @@ UUID を生成する方法の詳細は、デバイスの製造元によって決
 
 *   アンドロイド 2.1 +
 *   ブラックベリー 10
+*   ブラウザー
 *   iOS
 *   Tizen
 *   Windows Phone 7 と 8
@@ -185,6 +191,16 @@ UUID を生成する方法の詳細は、デバイスの製造元によって決
 
 ### 簡単な例
 
-    //アンドロイド： フローズン ヨーグルト OS は「2.2」を返します/エクレア OS は「2.1」、「2.0.1」、または「2.0」を返します//バージョンも返すことができます/レベル"2.1 update1"を更新////ブラックベリー: トーチ 9800 OS 6.0 を使用しては「6.0.0.600」を返します////iPhone: iOS 3.2 返します「3.2」////Windows Phone 7: ex 現在の OS のバージョン番号を返します。 on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

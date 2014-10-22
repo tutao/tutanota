@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+
+-->
+
+
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,height=device-height,user-scalable=no,maximum-scale=1.0,initial-scale=1.0" />
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"> <!-- ISO-8859-1 -->
+    <title>IAB test page</title>
+    <script type="text/javascript" charset="utf-8" src="../../cordova-incl.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      function onDeviceReady() {
+          document.getElementById("hint").textContent = "Running CordovaWebView, deviceVersion=" + device.version + ", no toolbar should be present, Back link should work, logcat should NOT have failed 'gap:' calls.";
+      }
+      document.addEventListener("deviceready", onDeviceReady, false);
+    </script>
+    <style>
+        body {background-color: #ffffff;}
+    </style>
+  </head>
+  <body id="stage" class="theme">
+    <h1>Local URL</h1>
+    <div id="info">
+        You have successfully loaded a local URL:
+        <script>document.write(location.href)</script>
+    </div>
+    <hr />
+    <div>User-Agent = <span id="u-a"></span></div>
+    <hr />
+    <div id="hint">Likely running inAppBrowser: Device version from Cordova=not found, Back link should not work, toolbar may be present, logcat should show failed 'gap:' calls.</div>
+    <hr />
+    <div><a href="http://www.google.com">Visit Google</a> (whitelisted)</div>
+    <div><a href="http://www.yahoo.com">Visit Yahoo</a> (not whitelisted)</div>
+    <div><a href="http://www.stluciadance.com/prospectus_file/sample.pdf">Check out my remote PDF</a></div>
+    <div><a href="local.pdf">Check out my local PDF</a></div>
+    <p /><a href="javascript:;" onclick="history.back();">Back</a>
+    <p />
+    <a name="anchor2"></a>
+    <div style="height: 1000px;border:1px solid red;">tall div with border</div>
+  </body>
+  <script>
+      function updateUserAgent() {
+          document.getElementById("u-a").textContent = navigator.userAgent;
+      }
+      updateUserAgent();
+      window.setInterval(updateUserAgent, 1500);
+  </script>
+</html>

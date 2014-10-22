@@ -88,9 +88,9 @@ V1.2.0, 현재 중요 한 파일 시스템 디렉터리에 Url도 제공 됩니�
 
 | 장치 경로                                | `cordova.file.*`            | `iosExtraFileSystems` | r/w? |  영구?   |  OS 지웁니다  | 동기화 | 개인 |
 |:------------------------------------ |:--------------------------- |:--------------------- |:----:|:------:|:---------:|:---:|:--:|
-| `/ var/모바일/응용 프로그램/< UUID > /` | applicationStorageDirectory | -                     | r/o  |  N/A   |    N/A    | N/A | 예  |
-|    `appname.app/`                    | applicationDirectory        | 번들                    | r/o  |  N/A   |    N/A    | N/A | 예  |
-|       `www/`                         | -                           | -                     | r/o  |  N/A   |    N/A    | N/A | 예  |
+| `/ var/모바일/응용 프로그램/< UUID > /` | applicationStorageDirectory | -                     |  r   |  N/A   |    N/A    | N/A | 예  |
+|    `appname.app/`                    | applicationDirectory        | 번들                    |  r   |  N/A   |    N/A    | N/A | 예  |
+|       `www/`                         | -                           | -                     |  r   |  N/A   |    N/A    | N/A | 예  |
 |    `Documents/`                      | documentsDirectory          | 문서                    | r/w  |   예    |    없음     |  예  | 예  |
 |       `NoCloud/`                     | -                           | 문서 nosync             | r/w  |   예    |    없음     | 없음  | 예  |
 |    `Library`                         | -                           | 라이브러리                 | r/w  |   예    |    없음     | 그래? | 예  |
@@ -109,7 +109,7 @@ V1.2.0, 현재 중요 한 파일 시스템 디렉터리에 Url도 제공 됩니�
 
 | 장치 경로                             | `cordova.file.*`                    | `AndroidExtraFileSystems` | r/w? | 영구? | OS 지웁니다 | 개인 |
 |:--------------------------------- |:----------------------------------- |:------------------------- |:----:|:---:|:-------:|:--:|
-| `file:///android_asset/`          | applicationDirectory                |                           | r/o  | N/A |   N/A   | 예  |
+| `file:///android_asset/`          | applicationDirectory                |                           |  r   | N/A |   N/A   | 예  |
 | `/data/데이터/< app id > /`    | applicationStorageDirectory         | -                         | r/w  | N/A |   N/A   | 예  |
 |    `cache`                        | cacheDirectory                      | 캐시                        | r/w  |  예  |   예 *   | 예  |
 |    `files`                        | dataDirectory                       | 파일                        | r/w  |  예  |   없음    | 예  |
@@ -129,8 +129,8 @@ V1.2.0, 현재 중요 한 파일 시스템 디렉터리에 Url도 제공 됩니�
 
 | 장치 경로                                               | `cordova.file.*`            | r/w? | 영구? | OS 지웁니다 | 개인 |
 |:--------------------------------------------------- |:--------------------------- |:----:|:---:|:-------:|:--:|
-| `file:///accounts/1000/appdata/ < app id > /` | applicationStorageDirectory | r/o  | N/A |   N/A   | 예  |
-|    `app/native`                                     | applicationDirectory        | r/o  | N/A |   N/A   | 예  |
+| `file:///accounts/1000/appdata/ < app id > /` | applicationStorageDirectory |  r   | N/A |   N/A   | 예  |
+|    `app/native`                                     | applicationDirectory        |  r   | N/A |   N/A   | 예  |
 |    `data/webviews/webfs/temporary/local__0`         | cacheDirectory              | r/w  | 없음  |    예    | 예  |
 |    `data/webviews/webfs/persistent/local__0`        | dataDirectory               | r/w  |  예  |   없음    | 예  |
 | `file:///accounts/1000/removable/sdcard`            | externalRemovableDirectory  | r/w  |  예  |   없음    | 없음 |

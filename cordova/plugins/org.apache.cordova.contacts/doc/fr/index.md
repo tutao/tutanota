@@ -45,6 +45,10 @@ Créez **www/manifest.webapp** comme décrit dans [Les Docs manifeste][1]. Ajout
     }
     
 
+### Bizarreries de Windows
+
+Contacts éventuellement retournés par `find` et `pickContact` méthodes sont en lecture seule, afin que votre application ne puisse les modifier. `find`méthode disponible uniquement sur les appareils Windows Phone 8.1.
+
 ### Bizarreries de Windows 8
 
 Windows 8 Contacts sont en lecture seule. Via les Contacts d'API Cordova ne sont pas queryable/consultables, vous devez en informer l'utilisateur de choisir un contact comme un appel à contacts.pickContact qui va ouvrir l'application « People » où l'utilisateur doit choisir un contact. Les contacts retournés sont en lecture seule, afin que votre application ne puisse les modifier.
@@ -118,6 +122,7 @@ La chaîne **contactFindOptions.filter** peut servir comme un filtre de recherch
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 et 8
+*   Windows (Windows Phone 8.1 dispositifs seulement)
 
 ### Exemple
 
@@ -138,6 +143,10 @@ La chaîne **contactFindOptions.filter** peut servir comme un filtre de recherch
     navigator.contacts.find(fields, onSuccess, onError, options);
     
 
+### Bizarreries de Windows
+
+*   `__contactFields__`n'est pas prise en charge et sera ignorée. `find`méthode toujours tenter de faire correspondre le nom, adresse e-mail ou numéro de téléphone d'un contact.
+
 ## navigator.contacts.pickContact
 
 La `navigator.contacts.pickContact` méthode lance le sélecteur de Contact pour sélectionner un contact unique. L'objet qui en résulte est passé à la `contactSuccess` la fonction de rappel spécifiée par le paramètre **contactSuccess** .
@@ -154,6 +163,7 @@ La `navigator.contacts.pickContact` méthode lance le sélecteur de Contact pour
 *   iOS
 *   Windows Phone 8
 *   Windows 8
+*   Windows
 
 ### Exemple
 
@@ -217,6 +227,7 @@ Le `Contact` objet représente le contact de l'utilisateur. Contacts peuvent êt
 *   iOS
 *   Windows Phone 7 et 8
 *   Windows 8
+*   Windows
 
 ### Enregistrez l'exemple
 
@@ -314,6 +325,14 @@ Le `Contact` objet représente le contact de l'utilisateur. Contacts peuvent êt
 
 *   **catégories**: ne pas pris en charge, retour`null`.
 
+### Bizarreries de Windows
+
+*   **photos**: retourne une URL de fichier de l'image, qui est stocké dans le répertoire temporaire de l'application.
+
+*   **anniversaires**: ne pas pris en charge, retour`null`.
+
+*   **catégories**: ne pas pris en charge, retour`null`.
+
 ## ContactAddress
 
 Le `ContactAddress` objet Stocke les propriétés d'une seule adresse d'un contact. A `Contact` objet peut inclure plusieurs adresses dans un `ContactAddress[]` tableau.
@@ -345,6 +364,7 @@ Le `ContactAddress` objet Stocke les propriétés d'une seule adresse d'un conta
 *   iOS
 *   Windows Phone 7 et 8
 *   Windows 8
+*   Windows
 
 ### Exemple
 
@@ -412,6 +432,10 @@ Le `ContactAddress` objet Stocke les propriétés d'une seule adresse d'un conta
 
 *   **pref**: non pris en charge
 
+### Bizarreries de Windows
+
+*   **pref**: non pris en charge
+
 ## ContactError
 
 Le `ContactError` objet est retourné à l'utilisateur via le `contactError` fonction de rappel lorsqu'une erreur survient.
@@ -453,6 +477,7 @@ Dans la plupart des cas, il n'y a pas de valeurs prédéterminées pour une `Con
 *   iOS
 *   Windows Phone 7 et 8
 *   Windows 8
+*   Windows
 
 ### Exemple
 
@@ -490,6 +515,10 @@ Dans la plupart des cas, il n'y a pas de valeurs prédéterminées pour une `Con
 
 *   **pref**: ne pas pris en charge, retour`false`.
 
+### Bizarreries de Windows
+
+*   **pref**: ne pas pris en charge, retour`false`.
+
 ## ContactName
 
 Contient différents types d'informations sur un `Contact` nom de l'objet.
@@ -517,6 +546,7 @@ Contient différents types d'informations sur un `Contact` nom de l'objet.
 *   iOS
 *   Windows Phone 7 et 8
 *   Windows 8
+*   Windows
 
 ### Exemple
 
@@ -581,6 +611,10 @@ Contient différents types d'informations sur un `Contact` nom de l'objet.
 
 *   **honorificSuffix**: non pris en charge
 
+### Bizarreries de Windows
+
+*   **mise en forme**: il est identique à`displayName`
+
 ## ContactOrganization
 
 Le `ContactOrganization` objet Stocke des propriétés un contact de l'organisation. A `Contact` objet contient un ou plusieurs `ContactOrganization` des objets dans un tableau.
@@ -604,6 +638,7 @@ Le `ContactOrganization` objet Stocke des propriétés un contact de l'organisat
 *   Firefox OS
 *   iOS
 *   Windows Phone 7 et 8
+*   Windows (Windows 8.1 et Windows Phone 8.1 dispositifs seulement)
 
 ### Exemple
 
@@ -666,3 +701,9 @@ Le `ContactOrganization` objet Stocke des propriétés un contact de l'organisat
 *   **Département**: partiellement pris en charge. Le premier nom de département est stocké dans le champ de **kABPersonDepartmentProperty** iOS.
 
 *   **titre**: partiellement pris en charge. Le premier titre est stocké dans le champ de **kABPersonJobTitleProperty** iOS.
+
+### Bizarreries de Windows
+
+*   **pref**: ne pas pris en charge, retour`false`.
+
+*   **type**: ne pas pris en charge, retour`null`.

@@ -19,10 +19,10 @@ The purpose of the plugin is to create an platform independent javascript interf
 
 
 ## Supported Platforms
-- **iOS**<br>
+- **iOS** *(including iOS8)*<br>
 See [Local and Push Notification Programming Guide][ios_notification_guide] for detailed informations and screenshots.
 
-- **Android** *(SDK >=7)*<br>
+- **Android** *(SDK >=11)*<br>
 See [Notification Guide][android_notification_guide] for detailed informations and screenshots.
 
 - **WP8**<br>
@@ -35,19 +35,19 @@ See [Local notifications for Windows Phone][wp8_notification_guide] for detailed
 - [org.apache.cordova.device][apache_device_plugin] *(since v0.6.0)*
 
 
-## Installation
+# Installation
 The plugin can either be installed into the local development environment or cloud based through [PhoneGap Build][PGB].
 
 ### Adding the Plugin to your project
 Through the [Command-line Interface][CLI]:
 ```bash
 # ~~ from master ~~
-cordova plugin add https://github.com/katzer/cordova-plugin-local-notifications.git && cordova prepare
+cordova plugin add https://github.com/katzer/cordova-plugin-local-notifications.git
 ```
 or to use the last stable version:
 ```bash
 # ~~ stable version ~~
-cordova plugin add de.appplant.cordova.plugin.local-notification && cordova prepare
+cordova plugin add de.appplant.cordova.plugin.local-notification@0.7.6
 ```
 
 ### Removing the Plugin from your project
@@ -63,40 +63,30 @@ Add the following xml to your config.xml to always use the latest version of thi
 ```
 or to use an specific version:
 ```xml
-<gap:plugin name="de.appplant.cordova.plugin.local-notification" version="0.7.2" />
+<gap:plugin name="de.appplant.cordova.plugin.local-notification" version="0.7.6" />
 ```
 More informations can be found [here][PGB_plugin].
 
 
 ## ChangeLog
-#### Version 0.8.0 (not yet released)
-- [enhancement:] Android 2.x (SDK >= 7) support (Thanks to **khizarsonu**)
-- [enhancement:] Scope parameter for `isScheduled` and `getScheduledIds`
-- [enhancement:] Callbacks for `add`, `cancel` & `cancelAll`
-- [enhancement:] `image:` accepts remote URLs and local URIs (Android)
-- [feature:] New Android specific `led:` flag
-- [feature:] Add `isTriggered` & `getTriggeredIds` methods.
+
+#### Version 0.7.6 (03.10.2014)
+- [bugfix:] `hasPermission` and `promptForPermission` let the app crash on iOS7 and older.
+- [bugfix:] Convert the id value to a String before comparison.
+- [bugfix:] Prevent possible crash when calling `cancelAll`.
+- [enhancement:] Do not inherit any notification defaults.
+
+#### Version 0.7.5 (29.09.2014)
+- [enhancement:] __iOS8 Support__
+- [feature:] New method `hasPermission` to ask if the user has granted to display local notifications.
+- [feature:] New method `promptForPermission` to promt the user to grant permission to display local notifications.
 
 #### Further informations
 - See [CHANGELOG.md][changelog] to get the full changelog for the plugin.
-- See the [v0.8.x TODO List][todo_list] for upcomming changes and other things.
 
 
 ## Using the plugin
 The plugin creates the object ```window.plugin.notification.local``` with the following methods:
-
-1. [notification.local.add][add]
-2. [notification.local.cancel][cancel]
-3. [notification.local.cancelAll][cancelall]
-4. [notification.local.isScheduled][isscheduled]
-5. [notification.local.getScheduledIds][getscheduledids]
-6. [notification.local.isTriggered][istriggered]
-7. [notification.local.getDefaults][getdefaults]
-8. [notification.local.setDefaults][setDefaults]
-9. [notification.local.onadd][onadd]
-10. [notification.local.ontrigger][ontrigger]
-11. [notification.local.onclick][onclick]
-12. [notification.local.oncancel][oncancel]
 
 ### Plugin initialization
 The plugin and its methods are not available before the *deviceready* event has been fired.
@@ -105,6 +95,30 @@ The plugin and its methods are not available before the *deviceready* event has 
 document.addEventListener('deviceready', function () {
     // window.plugin.notification.local is now available
 }, false);
+```
+
+### Determine if the app does have the permission to show local notifications
+If the permission has been granted through the user can be retrieved through the `notification.local.hasPermission` interface.<br/>
+The method takes a callback function as its argument which will be called with a boolean value. Optional the scope of the callback function ca be defined through a second argument.
+
+#### Further informations
+- The method is supported on each platform, however its only relevant for iOS8 and above.
+
+```javascript
+window.plugin.notification.local.hasPermission(function (granted) {
+    // console.log('Permission has been granted: ' + granted);
+});
+```
+
+### Prompt the user to grant permission for local notifications
+The user can be prompted to grant the required permission through the `notification.local.promptForPermission` interface.
+
+#### Further informations
+- The method is supported on each platform, however its only relevant for iOS8 and above.
+- The user will only get a prompt dialog for the first time. Later its only possible to change the setting via the notification center.
+
+```javascript
+window.plugin.notification.local.promptForPermission();
 ```
 
 ### Schedule local notifications
@@ -117,6 +131,7 @@ All properties are optional. If no date object is given, the notification pops-u
 If the ID has an invalid format, it will be ignored, but canceling the notification will fail.
 
 #### Further informations
+- The notification can only be scheduled if the user has previously granted the [required permission][prompt_permission].
 - See the [onadd][onadd] event of how a listener can be registered to be notified when a local notification has been scheduled.
 - See the [ontrigger][ontrigger] event of how a listener can be registered to be notified when a local notification has been triggered.
 - See the [onclick][onclick] event of how a listener can be registered to be notified when the user has been clicked on a local notification.
@@ -136,7 +151,7 @@ window.plugin.notification.local.add({
     json:       String,  // Data to be passed through the notification
     autoCancel: Boolean, // Setting this flag and the notification is automatically canceled when the user clicks it
     ongoing:    Boolean, // Prevent clearing of notification (Android only)
-}, callback, scope);
+});
 ```
 
 ### Cancel scheduled local notifications
@@ -148,9 +163,7 @@ Note that only local notifications with an ID can be canceled.
 - See [getScheduledIds][getscheduledids] of how to retrieve a list of IDs of all scheduled local notifications.
 
 ```javascript
-window.plugin.notification.local.cancel(ID, function () {
-    // The notification has been canceled
-}, scope);
+window.plugin.notification.local.cancel(ID);
 ```
 
 ### Cancel all scheduled local notifications
@@ -161,14 +174,12 @@ The method cancels all local notifications even if they have no ID.
 - See the [oncancel][oncancel] event of how a listener can be registered to be notified when a local notification has been canceled.
 
 ```javascript
-window.plugin.notification.local.cancelAll(function () {
-    // All notifications have been canceled
-}, scope);
+window.plugin.notification.local.cancelAll();
 ```
 
 ### Check wether a notification with an ID is scheduled
 To check if a notification with an ID is scheduled, the `notification.local.isScheduled` interface can be used.<br>
-The method takes the ID of the local notification as an argument and a callback function to be called with the result. Optional the scope of the callback can be assigned too.
+The method takes the ID of the local notification as an argument and a callback function to be called with the result.
 
 #### Further informations
 - See [getScheduledIds][getscheduledids] of how to retrieve a list of IDs of all scheduled local notifications.
@@ -176,40 +187,17 @@ The method takes the ID of the local notification as an argument and a callback 
 ```javascript
 window.plugin.notification.local.isScheduled(id, function (isScheduled) {
     // console.log('Notification with ID ' + id + ' is scheduled: ' + isScheduled);
-}, scope);
+});
 ```
 
 ### Retrieve the IDs from all currently scheduled local notifications
-To retrieve the IDs from all currently scheduled local notifications, the `notification.local.getScheduledIds` interface can be used.<br>
-The method takes a callback function to be called with the result as an array of IDs. Optional the scope of the callback can be assigned too.
+To retrieve the IDs from all currently scheduled local notifications, the `notification.local.isScheduled` interface can be used.<br>
+The method takes a callback function to be called with the result as an array of IDs.
 
 ```javascript
-window.plugin.notification.local.getScheduledIds(function (scheduledIds) {
+window.plugin.notification.local.getScheduledIds( function (scheduledIds) {
     // alert('Scheduled IDs: ' + scheduledIds.join(' ,'));
-}, scope);
-```
-
-### Check wether a notification with an ID was triggered
-To check if a notification with an ID was triggered, the `notification.local.isTriggered` interface can be used.<br>
-The method takes the ID of the local notification as an argument and a callback function to be called with the result. Optional the scope of the callback can be assigned too.
-
-#### Further informations
-- See [getTriggeredIds][gettriggeredIds] of how to retrieve a list of IDs of all scheduled local notifications.
-
-```javascript
-window.plugin.notification.local.isTriggered(id, function (isTriggered) {
-    // console.log('Notification with ID ' + id + ' is triggered: ' + isTriggered);
-}, scope);
-```
-
-### Retrieve the IDs from all currently triggered local notifications
-To retrieve the IDs from all currently triggered local notifications, the `notification.local.getTriggeredIds` interface can be used.<br>
-The method takes a callback function to be called with the result as an array of IDs. Optional the scope of the callback can be assigned too.
-
-```javascript
-window.plugin.notification.local.getTriggeredIds(function (triggeredIds) {
-    // alert('Triggered IDs: ' + triggeredIds.join(' ,'));
-}, scope);
+});
 ```
 
 ### Get the default values of the local notification properties
@@ -322,6 +310,8 @@ window.plugin.notification.local.add({
 });
 ```
 
+__Note:__ The notification can only be scheduled if the user has granted the [required permission][prompt_permission].
+
 ### Scheduling an immediately triggered local notification
 The example below shows how to schedule a local notification which will be triggered immediatly.
 
@@ -364,31 +354,16 @@ window.plugin.notification.local.setDefaults({ autoCancel: true });
 ### Small and large icons on Android
 By default all notifications will display the app icon. But an specific icon can be defined through the `icon` and `smallIcon` properties.
 
-#### Resource icons
-The following example shows how to display the `<package.name>.R.drawable.ic_launcher`icon as the notifications icon.
-
 ```javascript
+/**
+ * Displays the <package.name>.R.drawable.ic_launcher icon
+ */
 window.plugin.notification.local.add({ icon: 'ic_launcher' });
-```
 
-See below how to use the `android.R.drawable.ic_dialog_email` icon as the notifications small icon.
-
-```javascript
+/**
+ * Displays the android.R.drawable.ic_dialog_email icon
+ */
 window.plugin.notification.local.add({ smallIcon: 'ic_dialog_email' });
-```
-
-#### Local icons
-The `icon` property also accepts local file URIs. The URI points to a relative path within the www folder.
-
-```javascript
-window.plugin.notification.local.add({ icon: 'file://img/logo.png' }); //=> /assets/www/img/logo.png
-```
-
-#### Remote icons
-The `icon` property also accepts remote URLs. If the device cannot download the image, it will fallback to the app icon.
-
-```javascript
-window.plugin.notification.local.add({ icon: 'https://cordova.apache.org/images/cordova_bot.png' });
 ```
 
 ### Notification sound on Android
@@ -458,13 +433,6 @@ To specify a custom interval, the `repeat` property can be assigned with an numb
 window.plugin.notification.local.add({ repeat: 15 });
 ```
 
-### Change the LED color on Android devices
-The LED color can be specified through the `led` property. By default the color value is white (FFFFFF). Its possible to change that value by setting another hex code.
-
-```javascript
-window.plugin.notification.local.add({ led: 'A0FF05' });
-```
-
 
 ## Quirks
 
@@ -511,7 +479,7 @@ The launch mode for the main activity has to be set to `singleInstance`
 
 ## License
 
-This software is released under the [Apache 2.0 License][apache2_license].
+This software is released under the [Apache 2.0 License](http://opensource.org/licenses/Apache-2.0).
 
 © 2013-2014 appPlant UG, Inc. All rights reserved
 
@@ -523,9 +491,10 @@ This software is released under the [Apache 2.0 License][apache2_license].
 [apache_device_plugin]: https://github.com/apache/cordova-plugin-device
 [CLI]: http://cordova.apache.org/docs/en/3.0.0/guide_cli_index.md.html#The%20Command-line%20Interface
 [PGB]: http://docs.build.phonegap.com/en_US/3.3.0/index.html
-[PGB_plugin]: https://build.phonegap.com/plugins/413
+[PGB_plugin]: https://build.phonegap.com/plugins/1196
 [changelog]: CHANGELOG.md
-[todo_list]: ../../issues/164
+[has_permission]: #determine-if-the-app-does-have-the-permission-to-show-local-notifications
+[prompt_permission]: #prompt-the-user-to-grant-permission-for-local-notifications
 [onadd]: #get-notified-when-a-local-notification-has-been-scheduled
 [onclick]: #get-notified-when-the-user-has-been-clicked-on-a-local-notification
 [oncancel]: #get-notified-when-a-local-notification-has-been-canceled
@@ -537,9 +506,6 @@ This software is released under the [Apache 2.0 License][apache2_license].
 [getdefaults]: #get-the-default-values-of-the-local-notification-properties
 [setdefaults]: #set-the-default-values-of-the-local-notification-properties
 [getscheduledids]: #retrieve-the-ids-from-all-currently-scheduled-local-notifications
-[gettriggeredids]: #retrieve-the-ids-from-all-currently-triggered-local-notifications
 [isscheduled]: #check-wether-a-notification-with-an-id-is-scheduled
-[istriggered]: #check-wether-a-notification-with-an-id-was-triggered
 [examples]: #examples
 [setdefaults-example]: #change-the-default-value-of-local-notification-properties
-[apache2_license]: http://opensource.org/licenses/Apache-2.0

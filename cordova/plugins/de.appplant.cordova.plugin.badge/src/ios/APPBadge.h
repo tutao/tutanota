@@ -30,5 +30,9 @@
 - (void) setBadge:(CDVInvokedUrlCommand *)command;
 // Gets the badge of the app icon
 - (void) getBadge:(CDVInvokedUrlCommand *)command;
+// Informs if the app has the permission to show badges
+- (void) hasPermission:(CDVInvokedUrlCommand *)command;
+// Ask for permission to show badges
+- (void) promptForPermission:(CDVInvokedUrlCommand *)command;
 
 @end

@@ -22,7 +22,7 @@
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="org.apache.cordova.statusbar"
-    version="0.1.7">
+    version="0.1.8">
     <name>StatusBar</name>
     <description>Cordova StatusBar Plugin</description>
     <license>Apache 2.0</license>
@@ -54,7 +54,6 @@
                 <param name="ios-package" value="CDVStatusBar" onload="true" />
             </feature>
             <preference name="StatusBarOverlaysWebView" value="true" />
-            <preference name="StatusBarBackgroundColor" value="#000000" />
             <preference name="StatusBarStyle" value="lightcontent" />
         </config-file>
 

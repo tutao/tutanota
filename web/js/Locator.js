@@ -29,21 +29,23 @@ tutao.Locator = function(services, initializer) {
     this.contacts = null;
     // @type {tutao.native.FileTransferInterface}
     this.fileTransfer = null;
+    // @type {tutao.native.FileFacade}
+    this.fileFacade = null;
+    // @type {tutao.native.ConfigFacade}
+    this.configFacade = null;
 
     // @type {tutao.crypto.SjclRandomizer}
     this.randomizer= null;
     // @type {tutao.crypto.AesWorkerProxy}
     this.aesCrypter= null;
     // @type {tutao.crypto.RsaWorkerProxy}
-    this.rsaCrypter= null;
+    this.rsaUtil= null;
     // @type {tutao.crypto.JBCryptAdapter}
     this.kdfCrypter= null;
     // @type {tutao.crypto.SjclSha256}
     this.shaCrypter= null;
     // @type {tutao.ctrl.UserController}
     this.userController= null;
-    // @type {tutao.crypto.ClientWorkerProxy}
-    this.clientWorkerProxy= null;
     // @type {tutao.db.WebSqlDb}
     this.dao= null;
     // @type {tutao.rest.RestClient}

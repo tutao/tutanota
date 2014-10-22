@@ -192,7 +192,7 @@
 - (void)pickContact:(CDVInvokedUrlCommand *)command
 {
     // mimic chooseContact method call with required for us parameters
-    NSArray* desiredFields = [command.arguments objectAtIndex:0 withDefault:[NSNull null]];
+    NSArray* desiredFields = [command.arguments objectAtIndex:0 withDefault:[NSArray array]];
     if (desiredFields == nil || desiredFields.count == 0) {
         desiredFields = [NSArray arrayWithObjects:@"*", nil];
     }
@@ -215,30 +215,7 @@
 - (BOOL)peoplePickerNavigationController:(ABPeoplePickerNavigationController*)peoplePicker
       shouldContinueAfterSelectingPerson:(ABRecordRef)person
 {
-    CDVContactsPicker* picker = (CDVContactsPicker*)peoplePicker;
-    NSNumber* pickedId = [NSNumber numberWithInt:ABRecordGetRecordID(person)];
-
-    if (picker.allowsEditing) {
-        ABPersonViewController* personController = [[ABPersonViewController alloc] init];
-        personController.displayedPerson = person;
-        personController.personViewDelegate = self;
-        personController.allowsEditing = picker.allowsEditing;
-        // store id so can get info in peoplePickerNavigationControllerDidCancel
-        picker.pickedContactDictionary = [NSDictionary dictionaryWithObjectsAndKeys:pickedId, kW3ContactId, nil];
-
-        [peoplePicker pushViewController:personController animated:YES];
-    } else {
-        // Retrieve and return pickedContact information
-        CDVContact* pickedContact = [[CDVContact alloc] initFromABRecord:(ABRecordRef)person];
-        NSArray* fields = [picker.options objectForKey:@"fields"];
-        NSDictionary* returnFields = [[CDVContact class] calcReturnFields:fields];
-        picker.pickedContactDictionary = [pickedContact toDictionary:returnFields];
-
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:picker.pickedContactDictionary];
-        [self.commandDelegate sendPluginResult:result callbackId:picker.callbackId];
-
-        [[picker presentingViewController] dismissViewControllerAnimated:YES completion:nil];
-    }
+    [self peoplePickerNavigationController:peoplePicker didSelectPerson:person];
     return NO;
 }
 
@@ -270,6 +247,41 @@
     [self.commandDelegate sendPluginResult:result callbackId:picker.callbackId];
 
     [[peoplePicker presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+}
+
+// Called after a person has been selected by the user.
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController*)peoplePicker didSelectPerson:(ABRecordRef)person
+{
+    CDVContactsPicker* picker = (CDVContactsPicker*)peoplePicker;
+    NSNumber* pickedId = [NSNumber numberWithInt:ABRecordGetRecordID(person)];
+    
+    if (picker.allowsEditing) {
+        ABPersonViewController* personController = [[ABPersonViewController alloc] init];
+        personController.displayedPerson = person;
+        personController.personViewDelegate = self;
+        personController.allowsEditing = picker.allowsEditing;
+        // store id so can get info in peoplePickerNavigationControllerDidCancel
+        picker.pickedContactDictionary = [NSDictionary dictionaryWithObjectsAndKeys:pickedId, kW3ContactId, nil];
+        
+        [peoplePicker pushViewController:personController animated:YES];
+    } else {
+        // Retrieve and return pickedContact information
+        CDVContact* pickedContact = [[CDVContact alloc] initFromABRecord:(ABRecordRef)person];
+        NSArray* fields = [picker.options objectForKey:@"fields"];
+        NSDictionary* returnFields = [[CDVContact class] calcReturnFields:fields];
+        picker.pickedContactDictionary = [pickedContact toDictionary:returnFields];
+        
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:picker.pickedContactDictionary];
+        [self.commandDelegate sendPluginResult:result callbackId:picker.callbackId];
+        
+        [[picker presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+    }
+}
+
+// Called after a property has been selected by the user.
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController*)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier
+{
+    // not implemented
 }
 
 - (void)search:(CDVInvokedUrlCommand*)command

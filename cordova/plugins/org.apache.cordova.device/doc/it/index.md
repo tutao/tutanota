@@ -36,7 +36,6 @@ Questo plugin definisce un global `device` oggetto che descrive il dispositivo h
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@ Ottenere la versione di Cordova in esecuzione nel dispositivo.
 *   Amazon fuoco OS
 *   Android
 *   BlackBerry 10
+*   Browser
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -64,6 +64,7 @@ Il `device.model` restituisce il nome del modello del dispositivo o del prodotto
 
 *   Android
 *   BlackBerry 10
+*   Browser
 *   iOS
 *   Tizen
 *   Windows Phone 7 e 8
@@ -71,7 +72,12 @@ Il `device.model` restituisce il nome del modello del dispositivo o del prodotto
 
 ### Esempio rapido
 
-    / / Android: Nexus One restituisce "Passione" (nome in codice Nexus One) / / Motorola Droid restituisce "arvicole" / / BlackBerry: Torch 9800 restituisce "9800" / / iOS: per l'iPad Mini, restituisce iPad2, 5; iPhone 5 è iPhone 5,1. Vedi http://theiphonewiki.com/wiki/index.php?title=Models / / modello var = device.model;
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Vedi http://theiphonewiki.com/wiki/index.php?title=Models / / modello var = device.model;
     
 
 ### Stranezze Android
@@ -89,10 +95,6 @@ Il `device.model` restituisce il nome del modello del dispositivo o del prodotto
 
 *   Restituisce il modello di dispositivo specificato dal produttore. Ad esempio, restituisce il Samsung Focus`SGH-i917`.
 
-## device.name
-
-**Attenzione**: `device.name` è obsoleto a partire dalla versione 2.3.0. Uso `device.model` invece.
-
 ## device.platform
 
 Ottenere il nome del sistema operativo del dispositivo.
@@ -104,6 +106,7 @@ Ottenere il nome del sistema operativo del dispositivo.
 
 *   Android
 *   BlackBerry 10
+*   Browser4
 *   Firefox OS
 *   iOS
 *   Tizen
@@ -115,6 +118,8 @@ Ottenere il nome del sistema operativo del dispositivo.
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -178,6 +183,7 @@ Ottenere la versione del sistema operativo.
 
 *   Android 2.1 +
 *   BlackBerry 10
+*   Browser
 *   iOS
 *   Tizen
 *   Windows Phone 7 e 8
@@ -185,6 +191,16 @@ Ottenere la versione del sistema operativo.
 
 ### Esempio rapido
 
-    / / Android: Froyo OS sarebbe tornato "2.2" / / OS Eclair restituirebbe "2.1", "2.0.1" o "2.0" / / versione può restituire anche aggiornare il livello "2.1-update1" / / / / BlackBerry: Torch 9800 con OS 6.0 restituirebbe "6.0.0.600" / / / / iPhone: iOS 3.2 restituisce "3.2" / / / / Windows Phone 7: restituisce il numero di versione corrente del sistema operativo, es. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

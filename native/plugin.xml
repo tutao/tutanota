@@ -11,10 +11,18 @@
   <js-module src="www/crypto.js" name="crypto">
     <clobbers target="tutao.native.device.Crypto" />
   </js-module>
+  <js-module src="www/util.js" name="util">
+    <clobbers target="tutao.native.device.Util" />
+  </js-module>
   <js-module src="www/fileUtil.js" name="fileUtil">
     <clobbers target="tutao.native.device.FileUtil" />
   </js-module>
   <platform name="android">
+    <source-file src="libs/android/commons-io-2.4.jar" target-dir="libs" />
+    <source-file src="src/android/com/ipaulpro/afilechooser/utils/FileUtils.java" target-dir="src/com/ipaulpro/afilechooser/utils" />
+    <source-file src="src/android/de/tutao/crypto/TutaoCipherInputStream.java" target-dir="src/de/tutao/crypto" />
+    <source-file src="src/android/de/tutao/plugin/Utils.java" target-dir="src/de/tutao/plugin" />
+    <source-file src="src/android/de/tutao/plugin/Util.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Telephone.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/Crypto.java" target-dir="src/de/tutao/plugin" />
     <source-file src="src/android/de/tutao/plugin/PRNGFixes.java" target-dir="src/de/tutao/plugin" />
@@ -26,13 +34,19 @@
       <feature name="Crypto" >
         <param name="android-package" value="de.tutao.plugin.Crypto"/>
       </feature>
+      <feature name="Util" >
+        <param name="android-package" value="de.tutao.plugin.Util"/>
+      </feature>
       <feature name="FileUtil" >
         <param name="android-package" value="de.tutao.file.FileUtil"/>
       </feature>
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
+      <!-- currently not used
       <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+      -->
+      <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     </config-file>
 	<config-file target="AndroidManifest.xml" parent="/manifest/application">
         <provider
@@ -46,5 +60,21 @@
         </provider>
 	</config-file>
 	<resource-file src="res/android/xml/paths.xml" target="res/xml/paths.xml" />
+  </platform>
+  <platform name="ios">
+    <config-file parent="/*" target="config.xml">
+      <feature name="Crypto">
+        <param name="ios-package" value="Crypto"/>
+      </feature>
+    </config-file>
+    <framework src="Foundation.framework"/>
+	<source-file src="src/ios/Crypto.m"/>
+    <header-file src="src/ios/Crypto.h"/>
+	<header-file src="src/ios/rsa_oaep_sha256.h"/>
+	<source-file src="src/ios/rsa_oaep_sha256.c"/>
+	<source-file src="lib/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
+	<header-file src="src/ios/JFBCrypt.h"/>
+	<source-file src="src/ios/JFBCrypt.m"/>
+	<header-file src="src/ios/JFGC.h"/>
   </platform>
 </plugin>

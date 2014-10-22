@@ -88,9 +88,9 @@
 
 | Путь к устройству                              | `Cordova.File.*`            | `iosExtraFileSystems` | r/w? | стойкие? | Очищает ОС | Синхронизация | частные |
 |:---------------------------------------------- |:--------------------------- |:--------------------- |:----:|:--------:|:----------:|:-------------:|:-------:|
-| `/ var/мобильного/применения/< UUID > /` | applicationStorageDirectory | -                     | r/o  |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
-|    `appname.app/`                              | applicationDirectory        | расслоение            | r/o  |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
-|       `www/`                                   | -                           | -                     | r/o  |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
+| `/ var/мобильного/применения/< UUID > /` | applicationStorageDirectory | -                     |  r   |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
+|    `appname.app/`                              | applicationDirectory        | расслоение            |  r   |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
+|       `www/`                                   | -                           | -                     |  r   |   Н/Д    |    Н/Д     |      Н/Д      |   Да    |
 |    `Documents/`                                | documentsDirectory          | документы             | r/w  |    Да    |    Нет     |      Да       |   Да    |
 |       `NoCloud/`                               | -                           | документы nosync      | r/w  |    Да    |    Нет     |      Нет      |   Да    |
 |    `Library`                                   | -                           | Библиотека            | r/w  |    Да    |    Нет     |      Да?      |   Да    |
@@ -109,7 +109,7 @@
 
 | Путь к устройству                 | `Cordova.File.*`                    | `AndroidExtraFileSystems` | r/w? | стойкие? | Очищает ОС | частные |
 |:--------------------------------- |:----------------------------------- |:------------------------- |:----:|:--------:|:----------:|:-------:|
-| `File:///android_asset/`          | applicationDirectory                |                           | r/o  |   Н/Д    |    Н/Д     |   Да    |
+| `File:///android_asset/`          | applicationDirectory                |                           |  r   |   Н/Д    |    Н/Д     |   Да    |
 | `/ Data/data/< app-id > /`  | applicationStorageDirectory         | -                         | r/w  |   Н/Д    |    Н/Д     |   Да    |
 |    `cache`                        | cacheDirectory                      | кэш                       | r/w  |    Да    |    Да *    |   Да    |
 |    `files`                        | dataDirectory                       | файлы                     | r/w  |    Да    |    Нет     |   Да    |
@@ -129,8 +129,8 @@
 
 | Путь к устройству                                   | `Cordova.File.*`            | r/w? | стойкие? | Очищает ОС | частные |
 |:--------------------------------------------------- |:--------------------------- |:----:|:--------:|:----------:|:-------:|
-| `File:///Accounts/1000/AppData/ < app id > /` | applicationStorageDirectory | r/o  |   Н/Д    |    Н/Д     |   Да    |
-|    `app/native`                                     | applicationDirectory        | r/o  |   Н/Д    |    Н/Д     |   Да    |
+| `File:///Accounts/1000/AppData/ < app id > /` | applicationStorageDirectory |  r   |   Н/Д    |    Н/Д     |   Да    |
+|    `app/native`                                     | applicationDirectory        |  r   |   Н/Д    |    Н/Д     |   Да    |
 |    `data/webviews/webfs/temporary/local__0`         | cacheDirectory              | r/w  |   Нет    |     Да     |   Да    |
 |    `data/webviews/webfs/persistent/local__0`        | dataDirectory               | r/w  |    Да    |    Нет     |   Да    |
 | `File:///Accounts/1000/Removable/SDCard`            | externalRemovableDirectory  | r/w  |    Да    |    Нет     |   Нет   |

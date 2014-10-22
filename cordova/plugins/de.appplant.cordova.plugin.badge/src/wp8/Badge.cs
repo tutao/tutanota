@@ -41,15 +41,15 @@ namespace Cordova.Extension.Commands
         /// <summary>
         /// Clears the count property of the live tile
         /// </summary>
-        public void clearBadge()
+        public void clearBadge(string args)
         {
-            setBadge(0);
+            setBadge(args);
         }
 
         /// <summary>
         /// Sets the count property of the live tile
         /// </summary>
-        public void setBadge(string badgeNumber)
+        public void setBadge(string args)
         {
             // Application Tile is always the first Tile, even if it is not pinned to Start.
             ShellTile tile = ShellTile.ActiveTiles.First();
@@ -57,18 +57,26 @@ namespace Cordova.Extension.Commands
             // Application should always be found
             if (tile != null)
             {
-                string[] args = JsonHelper.Deserialize<string[]>(badgeNumber);
+                string[] ary = JsonHelper.Deserialize<string[]>(args);
                 int count = 0;
+                string title = "";
 
                 try
                 {
-                    count = int.Parse(args[0]);
+                    count = int.Parse(ary[0]);
                 }
                 catch (FormatException) { };
 
+                if (ary.Length > 1)
+                {
+                    title = ary[1].Replace("%d", "{0}");
+                    title = String.Format(title, count);
+                }
+
                 StandardTileData TileData = new StandardTileData
                 {
-                    Count = count
+                    Count = count,
+                    BackTitle = title
                 };
 
                 SaveBadge(count);
@@ -101,8 +109,28 @@ namespace Cordova.Extension.Commands
 
                 result = new PluginResult(PluginResult.Status.OK, badge);
 
-                DispatchCommandResult(result, "");
+                DispatchCommandResult(result);
             }
+        }
+
+        /// <summery>
+        /// Informs if the app has the permission to show badges.
+        /// </summery>
+        public void hasPermission(string args)
+        {
+            PluginResult result;
+
+            result = new PluginResult(PluginResult.Status.OK, true);
+
+            DispatchCommandResult(result);
+        }
+
+        /// <summery>
+        /// Ask for permission to show badges.
+        /// </summery>
+        public void promptForPermission(string args)
+        {
+            DispatchCommandResult();
         }
 
         /// <summary>

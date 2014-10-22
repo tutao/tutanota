@@ -68,12 +68,14 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
     var aes = tutao.locator.aesCrypter;
     if (dataFile instanceof tutao.entity.tutanota.File) {
+        // forwarded attachment
         var fileSessionKey = dataFile._entityHelper.getSessionKey();
         attachment.setFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
-    } else if (dataFile instanceof tutao.tutanota.util.DataFile) {
+    } else if (dataFile instanceof tutao.tutanota.util.DataFile || dataFile instanceof tutao.native.AndroidFile) {
+        // user added attachment
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-        return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
+        return tutao.locator.fileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
             attachment.setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
                 .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setFileData(fileDataId);
@@ -85,7 +87,7 @@ tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataF
 };
 
 tutao.tutanota.ctrl.SendMailFacade._uploadAttachmentData = function(dataFile, sessionKey) {
-    return tutao.tutanota.ctrl.FileFacade.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
+    return tutao.locator.fileFacade.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
         return tutao.entity.tutanota.FileData.load(fileDataId);
     });
 };
@@ -160,7 +162,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
         // TODO (story performance): make kdf async in worker
         return promise.then(function () {
-            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
+            return tutao.locator.crypto.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
                 var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
                 var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
                 return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
@@ -203,18 +205,11 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		var parameters = {};
 		return tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(recipientInfo.getMailAddress()), parameters, null).then(function(publicKeyData) {
             if (notFoundRecipients.length == 0) {
-				var publicKey = tutao.locator.rsaCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
-				var hexBucketKey = tutao.locator.aesCrypter.keyToHex(bucketKey);
-                return new Promise(function(resolve, reject) {
-                    return tutao.locator.rsaCrypter.encryptAesKey(publicKey, hexBucketKey, function(encrypted, exception) {
-                        if (exception) {
-                            reject(exception);
-                        } else {
-                            recipient.setPubEncBucketKey(encrypted);
-                            recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
-                            resolve();
-                        }
-                    });
+				var publicKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
+				var hexBucketKey = new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.aesCrypter.keyToHex(bucketKey)));
+                return tutao.locator.crypto.rsaEncrypt(publicKey, hexBucketKey).then(function(encrypted) {
+                    recipient.setPubEncBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(encrypted));
+                    recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
                 });
 			}
 		}).caught(tutao.NotFoundError, function(exception) {

@@ -19,6 +19,8 @@
 
 # org.apache.cordova.vibration
 
+이 플러그인에 W3C 진동 사양 http://www.w3.org/TR/vibration/ 정렬
+
 이 플러그인에는 장치를 진동 하는 방법을 제공 합니다.
 
 ## 설치
@@ -28,12 +30,90 @@
 
 ## 지원 되는 플랫폼
 
+navigator.vibrate  
 navigator.notification.vibrate-아마존 화재 OS-안 드 로이드-블랙베리 10-파이어 폭스 OS-iOS-Windows Phone 7과 8
 
 navigator.notification.vibrateWithPattern,  
 navigator.notification.cancelVibration-안 드 로이드
 
-## notification.vibrate
+## 진동 (권장)
+
+이 함수는 전달 된 매개 변수에 따라 세 가지 다른 기능.
+
+### 기준 진동
+
+주어진 시간 동안 장치를 진동.
+
+    navigator.vibrate(time)
+    
+
+또는
+
+    navigator.vibrate([time])
+    
+
+-**시간**: 진동 장치 (밀리초)입니다. *(수)*
+
+#### 예를 들어
+
+    // Vibrate for 3 seconds
+    navigator.vibrate(3000);
+    
+    // Vibrate for 3 seconds
+    navigator.vibrate([3000]);
+    
+
+#### iOS 단점
+
+*   **시간**: 지정 된 시간을 무시 하 고 미리 설정 된 시간 동안 진동.
+    
+    navigator.vibrate(3000); 3000 무시
+
+#### 윈도 즈와 블랙베리 단점
+
+*   **시간**: 최대 시간은 2000ms (5s) 이며 최소 시간 1ms
+    
+    navigator.vibrate(8000); 5000 잘립니다.
+
+### (안 드 로이드와 Windows에만 해당) 패턴으로 진동
+
+지정 된 패턴으로 장치를 진동
+
+    navigator.vibrate(pattern);   
+    
+
+*   **패턴**:의 기간 (밀리초)에서 진동을 켜거나 끌 수 있는 순서. *(숫자의 배열)*
+
+#### 예를 들어
+
+    // Vibrate for 1 second
+    // Wait for 1 second
+    // Vibrate for 3 seconds
+    // Wait for 1 second
+    // Vibrate for 5 seconds
+    navigator.vibrate([1000, 1000, 3000, 1000, 5000]);
+    
+
+### 진동 (iOS에서 지원 되지 않음) 취소
+
+즉시 모든 현재 실행 중인 진동을 취소합니다.
+
+    navigator.vibrate(0)
+    
+
+또는
+
+    navigator.vibrate([])
+    
+
+또는
+
+    navigator.vibrate([0])
+    
+
+0의 매개 변수 전달, 빈 배열, 또는 0 값의 한 요소 배열은 어떤 진동을 취소할 것 이다.
+
+## *notification.vibrate (사용 되지 않음)
 
 주어진 시간 동안 장치를 진동.
 
@@ -56,7 +136,7 @@ navigator.notification.cancelVibration-안 드 로이드
         navigator.notification.vibrate(2500);   // 2500 is ignored
         
 
-## notification.vibrateWithPattern
+## *notification.vibrateWithPattern (사용 되지 않음)
 
 지정 된 패턴으로 장치 진동.
 
@@ -80,8 +160,11 @@ navigator.notification.cancelVibration-안 드 로이드
     navigator.notification.vibrateWithPattern([0, 100, 100, 200, 100, 400, 100, 800]);
     
 
-## notification.cancelVibration
+## *notification.cancelVibration (사용 되지 않음)
 
 즉시 모든 현재 실행 중인 진동을 취소합니다.
 
     navigator.notification.cancelVibration()
+    
+
+* 참고-때문에 w3c 사양 가진 줄 맞춤, 별표 메서드 밖으로 단계별로 됩니다.

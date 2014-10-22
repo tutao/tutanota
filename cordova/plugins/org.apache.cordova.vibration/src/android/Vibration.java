@@ -51,9 +51,11 @@ public class Vibration extends CordovaPlugin {
         else if (action.equals("vibrateWithPattern")) {
             JSONArray pattern = args.getJSONArray(0);
             int repeat = args.getInt(1);
-            long[] patternArray = new long[pattern.length()];
+            //add a 0 at the beginning of pattern to align with w3c
+            long[] patternArray = new long[pattern.length()+1];
+            patternArray[0] = 0;
             for (int i = 0; i < pattern.length(); i++) {
-                patternArray[i] = pattern.getLong(i);
+                patternArray[i+1] = pattern.getLong(i);
             }
             this.vibrateWithPattern(patternArray, repeat);
         }

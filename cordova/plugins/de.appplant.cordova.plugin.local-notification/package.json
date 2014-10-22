@@ -1,0 +1,32 @@
+{
+    "version": "0.7.6",
+    "name": "de.appplant.cordova.plugin.local-notification",
+    "cordova_name": "LocalNotification",
+    "description": "A bunch of local-notification plugins for Cordova 3.x.x",
+    "license": "Apache 2.0",
+    "repo": "https://github.com/katzer/cordova-plugin-local-notifications/tree/0.7",
+    "keywords": [
+        "notification",
+        " local notification",
+        " alarm",
+        " scheduler",
+        " tile",
+        " live tiles",
+        " ios",
+        " android",
+        " windows phone 8",
+        " wp8",
+        " iOS8"
+    ],
+    "platforms": [
+        "ios",
+        "android",
+        "wp8"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=3.0.0"
+        }
+    ]
+}

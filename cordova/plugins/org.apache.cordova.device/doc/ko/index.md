@@ -36,7 +36,6 @@
 
 *   device.cordova
 *   device.model
-*   device.name
 *   device.platform
 *   device.uuid
 *   device.version
@@ -50,6 +49,7 @@
 *   아마존 화재 운영 체제
 *   안 드 로이드
 *   블랙베리 10
+*   브라우저
 *   Firefox 운영 체제
 *   iOS
 *   Tizen
@@ -64,6 +64,7 @@
 
 *   안 드 로이드
 *   블랙베리 10
+*   브라우저
 *   iOS
 *   Tizen
 *   Windows Phone 7과 8
@@ -71,7 +72,12 @@
 
 ### 빠른 예제
 
-    / / 안 드 로이드: 넥서스 하나는 "열정" (넥서스 하나의 코드 이름)를 반환 합니다 / 모토로라 Droid 반환 "밭" / / / 블랙베리: 토치 9800 반환 "9800" / / iOS: iPad 미니, 반환 iPad2, 5; 아이폰 5 아이폰 5, 1 이다입니다. Http://theiphonewiki.com/wiki/index.php?title=Models 참조 / / var 모델 = device.model;
+    // Android:    Nexus One       returns "Passion" (Nexus One code name)
+    //             Motorola Droid  returns "voles"
+    // BlackBerry: Torch 9800      returns "9800"
+    // Browser:    Google Chrome   returns "Chrome"
+    //             Safari          returns "Safari"
+    // iOS:     for the iPad Mini, returns iPad2,5; iPhone 5 is iPhone 5,1. Http://theiphonewiki.com/wiki/index.php?title=Models 참조 / / var 모델 = device.model;
     
 
 ### 안 드 로이드 단점
@@ -89,10 +95,6 @@
 
 *   제조업체에서 지정 하는 장치 모델을 반환 합니다. 예를 들어 삼성 포커스를 반환 합니다.`SGH-i917`.
 
-## device.name
-
-**경고**: `device.name` 버전 2.3.0는 사용 되지 않습니다. 사용 `device.model` 대신.
-
 ## device.platform
 
 장치의 운영 체제 이름을 얻을.
@@ -104,6 +106,7 @@
 
 *   안 드 로이드
 *   블랙베리 10
+*   Browser4
 *   Firefox 운영 체제
 *   iOS
 *   Tizen
@@ -115,6 +118,8 @@
     // Depending on the device, a few examples are:
     //   - "Android"
     //   - "BlackBerry 10"
+    //   - Browser:         returns "MacIntel" on Mac
+    //                      returns "Win32" on Windows
     //   - "iOS"
     //   - "WinCE"
     //   - "Tizen"
@@ -178,6 +183,7 @@ UUID 생성 방법의 자세한 내용은 장치 제조업체에 의해 결정 �
 
 *   안 드 로이드 2.1 +
 *   블랙베리 10
+*   브라우저
 *   iOS
 *   Tizen
 *   Windows Phone 7과 8
@@ -185,6 +191,16 @@ UUID 생성 방법의 자세한 내용은 장치 제조업체에 의해 결정 �
 
 ### 빠른 예제
 
-    / / 안 드 로이드: Froyo OS "2.2" 반환 / Eclair OS "2.1", "2.0.1", 또는 "2.0" 돌려보낼 것입니다 / / 버전 반환할 수 있습니다 / 업데이트 수준 "2.1 update1" / / / / 블랙베리: 토치 9800 OS 6.0을 사용 하 여 "6.0.0.600"를 반환 / / / / 아이폰: iOS 3.2 반환 "3.2" / / / / Windows Phone 7: 전 현재 운영 체제 버전 번호를 반환 합니다. on Mango returns 7.10.7720
+    // Android:    Froyo OS would return "2.2"
+    //             Eclair OS would return "2.1", "2.0.1", or "2.0"
+    //             Version can also return update level "2.1-update1"
+    //
+    // BlackBerry: Torch 9800 using OS 6.0 would return "6.0.0.600"
+    //
+    // Browser:    Returns version number for the browser
+    //
+    // iPhone:     iOS 3.2 returns "3.2"
+    //
+    // Windows Phone 7: returns current OS version number, ex. on Mango returns 7.10.7720
     // Tizen: returns "TIZEN_20120425_2"
     var deviceVersion = device.version;

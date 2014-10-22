@@ -57,17 +57,42 @@ tutao.tutanota.Bootstrap.init = function () {
         setTimeout(function () {
             tutao.locator.navigator.setup();
             tutao.locator.entropyCollector.start();
-
+            if (tutao.env.mode == tutao.Mode.App) {
+                tutao.locator.crypto.seed();
+            }
         }, 0);
 
         if (window.applicationCache) {
             var listener = new tutao.tutanota.ctrl.AppCacheListener();
         }
 
+
+		// open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
+		$(document).on("click", "a", function(e){
+			if (tutao.env.mode == tutao.Mode.App) {
+				window.open(this.href, "_system");
+				return false; // Prevent execution of the default onClick handler
+			} else {
+				return true;
+			}
+		});
+
+        if (tutao.env.mode == tutao.Mode.App && cordova.platformId == "android") {
+            var util = new tutao.native.device.Util();
+            document.addEventListener("backbutton", function () {
+                var view = tutao.locator.viewManager.getActiveView();
+                if (view && view.isShowLeftNeighbourColumnPossible()) {
+                    view.getSwipeSlider().showLeftNeighbourColumn();
+                } else {
+                    util.switchToHomescreen();
+                }
+            }, false);
+        }
+
         // only for testing
-        //tutao.locator.developerViewModel.open();
-		//tutao.locator.loginViewModel.mailAddress("bernd@tutanota.de");
-		//tutao.locator.loginViewModel.passphrase("bed");
+		//tutao.locator.developerViewModel.open();
+		//tutao.locator.loginViewModel.mailAddress("matthias@tutanota.de");
+		//tutao.locator.loginViewModel.passphrase("map");
 		//tutao.locator.loginViewModel.login();
         //setTimeout(function() {        tutao.locator.navigator.customer();}, 1000);
         tutao.tutanota.gui.initKnockout();
@@ -78,11 +103,15 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     if (tutao.env.mode == tutao.Mode.App) {
-        document.addEventListener("deviceready", launch, false);
-    } else {
-        $(document).ready(function () {
+        document.addEventListener("deviceready", function () {
             launch();
-        });
+            // hide the splashscreen after a short delay, as slower android phones would show the loading screen otherwise
+            setTimeout(function () {
+                navigator.splashscreen.hide();
+            }, 200);
+        }, false);
+    } else {
+        $(document).ready(launch);
     }
 };
 
@@ -90,22 +119,22 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     operative.setSelfURL("operative-0.3.1.js");
 
     //override native implementation with device specific one, if available
-    var cryptoImpl = tutao.native.CryptoJsbn;
+    var cryptoImpl = tutao.native.CryptoBrowser;
     var phoneImpl = tutao.native.Phone;
     var notificationImpl = tutao.native.NotificationBrowser;
     var contactImpl = tutao.native.ContactBrowser;
-    var fileTransferImpl = tutao.native.FileTransferBrowser;
+    var fileFacadeImpl = tutao.native.FileFacadeBrowser;
+    var configFacadeImpl = tutao.native.ConfigBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
-        
-        if (cordova.platformId != "ios"){
-            cryptoImpl = tutao.native.device.Crypto;
-        }
-        
+        cryptoImpl = tutao.native.device.Crypto;
         phoneImpl = tutao.native.device.Phone;
         notificationImpl = tutao.native.NotificationApp;
         contactImpl = tutao.native.ContactApp;
-        fileTransferImpl = tutao.native.FileTransferApp;
+        if (cordova.platformId == "android") {
+            fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
+            configFacadeImpl = tutao.native.ConfigApp;
+        }
     }
 
     var singletons = {
@@ -113,15 +142,15 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         phone: phoneImpl,
         notification: notificationImpl,
         contacts: contactImpl,
-        fileTransfer: fileTransferImpl,
+        fileFacade: fileFacadeImpl,
+        configFacade: configFacadeImpl,
 
         randomizer: tutao.crypto.SjclRandomizer,
-        aesCrypter: tutao.crypto.AesWorkerProxy,
-        rsaCrypter: tutao.native.RsaInterfaceAdapter,
+        aesCrypter: tutao.crypto.SjclAes,
+        rsaUtil: tutao.native.RsaUtils,
         kdfCrypter: tutao.crypto.JBCryptAdapter,
         shaCrypter: tutao.crypto.SjclSha256,
         userController: tutao.ctrl.UserController,
-        clientWorkerProxy: tutao.crypto.ClientWorkerProxy,
         dao: tutao.db.WebSqlDb,
         restClient: tutao.rest.RestClient,
         entityRestClient: tutao.rest.EntityRestClient,
@@ -173,8 +202,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
 };
 
 tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.native.CryptoJsbn.initWorkerFileNames("");
-    tutao.crypto.ClientWorkerProxy.initWorkerFileNames('/js/', '/lib/worker/');
+    tutao.native.CryptoBrowser.initWorkerFileNames("");
 
     // @type {tutao.Locator}
     tutao.locator = new tutao.Locator(tutao.tutanota.Bootstrap.getSingletons());
@@ -213,10 +241,8 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.tutanota.gui.initEvents();
 
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
-        // notify the active view and the swipe recognizer
-        if (tutao.locator.viewManager.getActiveView() != null) {
-            tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
-        }
+        // notify the view manager and the swipe recognizer
+        tutao.locator.viewManager.windowSizeChanged(width, height);
         if (tutao.locator.swipeRecognizer) {
             tutao.locator.swipeRecognizer.setScreenSize(width, height);
         }

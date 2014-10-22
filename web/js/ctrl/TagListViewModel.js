@@ -67,3 +67,22 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.activateTrashedTag = function() {
 	this.activeSystemTag(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID);
 	tutao.locator.mailListViewModel.systemTagActivated(this.activeSystemTag());
 };
+
+tutao.tutanota.ctrl.TagListViewModel.prototype.getTagTextId = function(tagId) {
+    if ( tagId == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID){
+        return  "sent_action";
+    }
+    if ( tagId == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID){
+        return  "trash_action";
+    }
+    if ( tagId == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID){
+        return  "received_action";
+    }
+    throw new Error("No text id for tag");
+};
+
+tutao.tutanota.ctrl.TagListViewModel.prototype.getActiveTagTextId = function() {
+    return this.getTagTextId(this.activeSystemTag());
+};
+
+

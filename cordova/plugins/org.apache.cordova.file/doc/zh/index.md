@@ -95,9 +95,9 @@
 
 | 設備路徑                            | `cordova.file.*`            | `iosExtraFileSystems` | r/w 嗎？ | 持續性嗎？  |   OS 清除    | 同步  | 私人 |
 |:------------------------------- |:--------------------------- |:--------------------- |:------:|:------:|:----------:|:---:|:--:|
-| `/ 無功/移動/應用程式/< UUID > /` | applicationStorageDirectory | -                     |  r/o   |  不適用   |    不適用     | 不適用 | 是啊 |
-|    `appname.app/`               | applicationDirectory        | 束                     |  r/o   |  不適用   |    不適用     | 不適用 | 是啊 |
-|       `www/`                    | -                           | -                     |  r/o   |  不適用   |    不適用     | 不適用 | 是啊 |
+| `/ 無功/移動/應用程式/< UUID > /` | applicationStorageDirectory | -                     |   r    |  不適用   |    不適用     | 不適用 | 是啊 |
+|    `appname.app/`               | applicationDirectory        | 束                     |   r    |  不適用   |    不適用     | 不適用 | 是啊 |
+|       `www/`                    | -                           | -                     |   r    |  不適用   |    不適用     | 不適用 | 是啊 |
 |    `Documents/`                 | documentsDirectory          | 檔                     |  r/w   |   是啊   |     無      | 是啊  | 是啊 |
 |       `NoCloud/`                | -                           | 檔 nosync              |  r/w   |   是啊   |     無      |  無  | 是啊 |
 |    `Library`                    | -                           | 圖書館                   |  r/w   |   是啊   |     無      | 是嗎？ | 是啊 |
@@ -116,7 +116,7 @@
 
 | 設備路徑                              | `cordova.file.*`                    | `AndroidExtraFileSystems` | r/w 嗎？ | 持續性嗎？ | OS 清除  | 私人 |
 |:--------------------------------- |:----------------------------------- |:------------------------- |:------:|:-----:|:------:|:--:|
-| `file:///android_asset/`          | applicationDirectory                |                           |  r/o   |  不適用  |  不適用   | 是啊 |
+| `file:///android_asset/`          | applicationDirectory                |                           |   r    |  不適用  |  不適用   | 是啊 |
 | `/ 資料資料/< 應用程式 id > /`      | applicationStorageDirectory         | -                         |  r/w   |  不適用  |  不適用   | 是啊 |
 |    `cache`                        | cacheDirectory                      | 快取記憶體                     |  r/w   |  是啊   |  是啊 *  | 是啊 |
 |    `files`                        | dataDirectory                       | 檔                         |  r/w   |  是啊   |   無    | 是啊 |
@@ -136,8 +136,8 @@
 
 | 設備路徑                                                 | `cordova.file.*`            | r/w 嗎？ | 持續性嗎？ | OS 清除 | 私人 |
 |:---------------------------------------------------- |:--------------------------- |:------:|:-----:|:-----:|:--:|
-| `file:///accounts/1000/appdata/ < 應用程式 id > /` | applicationStorageDirectory |  r/o   |  不適用  |  不適用  | 是啊 |
-|    `app/native`                                      | applicationDirectory        |  r/o   |  不適用  |  不適用  | 是啊 |
+| `file:///accounts/1000/appdata/ < 應用程式 id > /` | applicationStorageDirectory |   r    |  不適用  |  不適用  | 是啊 |
+|    `app/native`                                      | applicationDirectory        |   r    |  不適用  |  不適用  | 是啊 |
 |    `data/webviews/webfs/temporary/local__0`          | cacheDirectory              |  r/w   |   無   |  是啊   | 是啊 |
 |    `data/webviews/webfs/persistent/local__0`         | dataDirectory               |  r/w   |  是啊   |   無   | 是啊 |
 | `file:///accounts/1000/removable/sdcard`             | externalRemovableDirectory  |  r/w   |  是啊   |   無   | 無  |

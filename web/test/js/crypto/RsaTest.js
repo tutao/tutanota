@@ -4,13 +4,13 @@ describe("RsaTest", function () {
 
     var assert = chai.assert;
 
-    this.timeout(1000 * 60); // 1 min
+    this.timeout(1000 * 60 *3); // 3 min
 
     var _rsa;
     var getFacade = function () {
         if (!_rsa) {
             //_rsa = new tutao.crypto.RsaWorkerProxy();
-            _rsa = new tutao.native.RsaInterfaceAdapter();
+            _rsa = new tutao.native.RsaUtils();
         }
         return _rsa;
     }

@@ -22,7 +22,7 @@
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="org.apache.cordova.device.tests"
-    version="0.2.11-dev">
+    version="0.2.12">
     <name>Cordova Device Plugin Tests</name>
     <license>Apache 2.0</license>
 
