@@ -391,3 +391,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getMailAddress = function ()
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isFormEditable = function() {
     return (this.getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
 };
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {
+    tutao.locator.navigator.logout(false, false);
+};

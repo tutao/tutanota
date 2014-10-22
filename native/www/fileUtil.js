@@ -7,7 +7,7 @@ var FileUtil = function () {};
 
 /**
  * Open the file
- * @param {tutao.native.AndroidFile} file The file to open.
+ * @param {string} file The uri of the file
  * @return {Promise.<undefined, Error>}.
  */
 FileUtil.prototype.open = function(file) {
@@ -29,7 +29,7 @@ FileUtil.prototype.openFileChooser = function() {
 /**
  * ONLY FOR TESTING
  * Write a file.
- * @param {tutao.native.AndroidFile} file The file to write.
+ * @param {string} file The uri of the file
  * @param {Uint8Array} bytes
  * @returns {Promise}
  */

@@ -31,6 +31,8 @@ tutao.Locator = function(services, initializer) {
     this.fileTransfer = null;
     // @type {tutao.native.FileFacade}
     this.fileFacade = null;
+    // @type {tutao.native.ConfigFacade}
+    this.configFacade = null;
 
     // @type {tutao.crypto.SjclRandomizer}
     this.randomizer= null;

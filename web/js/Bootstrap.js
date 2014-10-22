@@ -124,6 +124,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     var notificationImpl = tutao.native.NotificationBrowser;
     var contactImpl = tutao.native.ContactBrowser;
     var fileFacadeImpl = tutao.native.FileFacadeBrowser;
+    var configFacadeImpl = tutao.native.ConfigBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
         cryptoImpl = tutao.native.device.Crypto;
@@ -132,6 +133,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         contactImpl = tutao.native.ContactApp;
         if (cordova.platformId == "android") {
             fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
+            configFacadeImpl = tutao.native.ConfigApp;
         }
     }
 
@@ -141,6 +143,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         notification: notificationImpl,
         contacts: contactImpl,
         fileFacade: fileFacadeImpl,
+        configFacade: configFacadeImpl,
 
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.SjclAes,

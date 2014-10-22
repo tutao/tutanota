@@ -213,8 +213,11 @@ tutao.tutanota.gui.initKnockout = function() {
 			if (previousView != newView) {
 				var finishedHandler = function () {
 					// TODO remove, after https://github.com/rstacruz/jquery.transit/issues/158 has been fixed
-					$(newView).css({'-webkit-transform': ''}, {'-ms-transform': ''}, {'-moz-transform': ''}, {'transform': ''});
-					
+                    var views = $([newView, previousView]);
+					views.css('-webkit-transform', '');
+                    views.css('-ms-transform', '');
+                    views.css('transform', '');
+
 					ko.bindingHandlers.slideView.previousView = newView;
 					slideViewQueue.shift();
 					if (slideViewQueue.length > 0) {
@@ -225,7 +228,7 @@ tutao.tutanota.gui.initKnockout = function() {
 					$(previousView).hide();
 					$(newView).show();
 					finishedHandler();
-					
+
 				} else {
 					$(previousView).transition({ y: '-100%' }).transition({display: "none"}, 0);
 					$(newView).transition({ y: '100%' },0).transition({display: ""}, 0).transition({ y: '0%' }, finishedHandler);
