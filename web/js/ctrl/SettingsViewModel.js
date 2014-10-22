@@ -56,3 +56,8 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
 	this.displayed(settings);
 	tutao.locator.settingsView.showChangeSettingsColumn();
 };
+
+
+tutao.tutanota.ctrl.SettingsViewModel.prototype.getActiveSettingTextId = function() {
+    return this.getSettingsTextId(this.displayed());
+};

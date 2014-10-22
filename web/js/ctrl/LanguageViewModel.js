@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// mail
 	deleteMail_msg:	"Delete new email without saving?",
 	tooBigAttachment_msg: "The following files could not be attached because their size exceeds 25 MB: ",
-	received_action: "Received",
+	received_action: "Inbox",
 	receivedMail_alt: "Received email",
 	receivedMails_alt: "Received emails",
 	sent_action: "Sent",
@@ -360,6 +360,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
+    folderTitle_label: "Folder",
+    contactsTitle_label: "All contacts",
 
     //admin
     logs_label: "logs",
@@ -484,7 +486,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	sending_msg: 'Your message is being encrypted and sent.',
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
-	outlookVersionNotSupported_msg: 'Unfortunately, Tutanota does not support this version of Outlook. Please use Oulook 2010 or Outlook 2013.',
+	outlookVersionNotSupported_msg: 'Unfortunately, Tutanota does not support this version of Outlook. Please use Outlook 2010 or Outlook 2013.',
 	invalidAttachment_msg: "This email can not be sent via Tutanota because it contains an unsupported attachment.",
 	showInAddressBook_alt: "Edit contact",
 	testPhaseExpired_msg: "The free testing phase has expired and the sending of confidential emails has been deactivated. Please contact your administrator.",
@@ -504,14 +506,15 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     notificationMailSignatureSubject_msg: "Confidential email from $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/#!info'>Tutanota</a>, the reviewed and certified service from Germany for encrypted emails. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
     signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
-    unsupportedMailFeature_msg: "You have selected a read receipt, voting options or a deferred delivery time. Unfortunately, these functions are not yet supported by Tutanota. Would you like to send the email anyway?"
+    unsupportedMailFeature_msg: "You have selected voting options or a deferred delivery time. Unfortunately these functions are not yet supported by Tutanota. Would you like to send the email anyway?",
+    readOrTransmissionReceiptWithInternals_msg: "You have selected a transmission or read receipt for your email. Unfortunately, these functions are only supported for external recipients. Would you like to send the email anyway?"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// mail
 	deleteMail_msg:	"Neue E-Mail verwerfen ohne zu speichern?",
 	tooBigAttachment_msg: "Die folgenden Dateien konnten nicht angehängt werden, da sie größer als 25 MB sind: ",
-	received_action: "Empfangen",
+	received_action: "Posteingang",
 	receivedMail_alt: "Empfangene E-Mail",
 	receivedMails_alt: "Empfangene E-Mails",
 	sent_action: "Gesendet",
@@ -796,6 +799,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     invite_alt: "Einladen",
     more_label: "Mehr",
     dots_label: "...",
+    folderTitle_label: "Ordner",
+    contactsTitle_label: "Alle Kontakte",
 
     //admin
     logs_label: "logs",
@@ -940,6 +945,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/#!info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
     signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?",
-    unsupportedMailFeature_msg: "Sie haben eine Lesebestätigung, Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?"
+    unsupportedMailFeature_msg: "Sie haben Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?",
+    readOrTransmissionReceiptWithInternals_msg: "Sie haben eine Übermittlungs- oder Lesebestätigung ausgewählt. Diese Funktionen sind leider nur für externe Empfänger verfügbar. Wollen Sie die E-Mail trotzdem senden?"
 };
 

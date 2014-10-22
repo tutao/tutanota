@@ -668,7 +668,9 @@ tutao.tutanota.gui.showTooltip = function(item, event) {
     $(document).trigger("click.tooltip"); // hide other tooltips
     $(element).children(".tooltip").show().transition({ opacity: 0.9 });
     $(document).on("click.tooltip", function (e) {
-        if (e.timeStamp !== event.timeStamp) { // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately
+        // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately, therefore check the timestamp
+        // do not close the tooltip if the user clicks on it to allow selecting the tooltip text
+        if (e.timeStamp !== event.timeStamp && !$(".tooltip").is($(e.target.parentElement))) {
             $(document).off("click.tooltip");
             $(element).children(".tooltip").transition({ opacity: 0 }).hide();
         }
