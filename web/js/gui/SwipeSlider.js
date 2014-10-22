@@ -7,8 +7,9 @@ tutao.provide('tutao.tutanota.gui.SwipeSlider');
  * @constructor
  * @param {tutao.tutanota.ctrl.View} view The view that is slided.
  * @param {string} contentDivId The name of the content div this SwipeSlider is responsible for.
+ * @param {function()} updateColumnCallback Callback funciton to notify the receiver about visible column changes
  */
-tutao.tutanota.gui.SwipeSlider = function(view, contentDivId) {
+tutao.tutanota.gui.SwipeSlider = function(view, contentDivId, updateColumnCallback) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._view = view;
@@ -20,7 +21,7 @@ tutao.tutanota.gui.SwipeSlider = function(view, contentDivId) {
     if (view) {
         var self = this;
         // configure view slider
-        this._viewSlider = new tutao.tutanota.ctrl.ViewSlider();
+        this._viewSlider = new tutao.tutanota.ctrl.ViewSlider(updateColumnCallback);
         this._viewSlider.setScreenWidth(tutao.tutanota.gui.getWindowWidth());
         this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
             self._leftmostVisibleColumn(self._viewSlider.getLeftmostVisibleColumnId());
@@ -35,10 +36,17 @@ tutao.tutanota.gui.SwipeSlider.none = function() {
     return new tutao.tutanota.gui.SwipeSlider(null, null);
 };
 
-tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, columnDivId) {
+tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, columnDivId, titleTextIdProvider) {
+    var titleTextIdProviderFunction = titleTextIdProvider;
+    if ( titleTextIdProvider == null) {
+        titleTextIdProvider = "emptyString_msg";
+    }
+    if (typeof titleTextIdProvider  == "string"){
+        titleTextIdProviderFunction = function(){return titleTextIdProvider;};
+    }
     return this._viewSlider.addViewColumn(prio, minWidth, maxWidth, function(x, width) {
         $('#' + columnDivId).css("width", width + "px");
-    });
+    }, titleTextIdProviderFunction);
 };
 
 tutao.tutanota.gui.SwipeSlider.prototype.activate = function() {

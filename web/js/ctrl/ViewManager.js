@@ -25,6 +25,12 @@ tutao.tutanota.ctrl.ViewManager = function() {
         self.windowWidthObservable(width);
 	});
 	this._buttons = [];
+    this.onlyOneColumnVisible = ko.observable(true);
+    this.currentColumnTitle = ko.observable("emptyString_msg");
+    this.previousColumnTitle = ko.observable("emptyString_msg");
+    this._activeView.subscribe(function(){
+        this._updateColumnState();
+    },this);
 };
 
 
@@ -53,18 +59,11 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
     };
     var buttons = [
         // internalUsers
-        new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
-            return internalUser() && self.getActiveView() == tutao.locator.mailView;
-        }, false, "menu_mail_new", "mail-new", 'newMail_alt'),
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
-            return internalUser() && self.getActiveView() != tutao.locator.mailView;
+            return internalUser();
         }, false, "menu_mail", "mail", 'emails_alt'),
-
-        new tutao.tutanota.ctrl.Button('new_label', 29, tutao.locator.navigator.newContact, function () {
-            return internalUser() && self.getActiveView() == tutao.locator.contactView;
-        }, false, "menu_contact_new", "contact-new", 'newContact_alt'),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
-            return internalUser() && self.getActiveView() != tutao.locator.contactView;
+            return internalUser();
         }, false, "menu_contact", "contact", 'contacts_alt'),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
@@ -110,7 +109,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
 tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     var views = this.getViews();
 	for (var i = 0; i < views.length; i++) {
-		views[i].init(external);
+		views[i].init(external, this._updateColumnTitle);
 	}
 
     var self = this;
@@ -194,3 +193,32 @@ tutao.tutanota.ctrl.ViewManager.prototype.showHomeView = function() {
 		this.select(tutao.locator.mailView);
 	}
 };
+
+
+tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, height) {
+    if (this.getActiveView() != null) {
+        this.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
+        this._updateColumnState();
+    }
+};
+
+
+tutao.tutanota.ctrl.ViewManager.prototype._updateColumnState = function() {
+    var viewSlider = this.getActiveView().getSwipeSlider()._viewSlider;
+    // Can be null e.g. in loginView
+    if ( viewSlider != null){
+        // update column state.
+        this.onlyOneColumnVisible(viewSlider.getLeftmostVisibleColumnId() == viewSlider.getRightmostVisibleColumnId());
+    } else {
+        this.onlyOneColumnVisible(true);
+    }
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
+    this.currentColumnTitle(currentTitle);
+    this.previousColumnTitle(previousTitle);
+};
+
+
+
+

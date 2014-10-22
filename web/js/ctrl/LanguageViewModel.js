@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// mail
 	deleteMail_msg:	"Delete new email without saving?",
 	tooBigAttachment_msg: "The following files could not be attached because their size exceeds 25 MB: ",
-	received_action: "Received",
+	received_action: "Inbox",
 	receivedMail_alt: "Received email",
 	receivedMails_alt: "Received emails",
 	sent_action: "Sent",
@@ -359,6 +359,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
+    folderTitle_label: "Folder",
+    contactsTitle_label: "All contacts",
 
     //admin
     logs_label: "logs",
@@ -510,7 +512,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// mail
 	deleteMail_msg:	"Neue E-Mail verwerfen ohne zu speichern?",
 	tooBigAttachment_msg: "Die folgenden Dateien konnten nicht angehängt werden, da sie größer als 25 MB sind: ",
-	received_action: "Empfangen",
+	received_action: "Posteingang",
 	receivedMail_alt: "Empfangene E-Mail",
 	receivedMails_alt: "Empfangene E-Mails",
 	sent_action: "Gesendet",
@@ -794,6 +796,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     invite_alt: "Einladen",
     more_label: "Mehr",
     dots_label: "...",
+    folderTitle_label: "Ordner",
+    contactsTitle_label: "Alle Kontakte",
 
     //admin
     logs_label: "logs",

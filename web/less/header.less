@@ -1,10 +1,12 @@
 @left-navbar-width: 230px;
 @left-navbar-width-small: 80px;
-@nav-icon-width: 45px;
-@nav-icon-width-small: 37px;
-@indicator-width: 35px;
+@indicator-width: 37px;
 @indicator-width-small: 27px;
-@indicator-side-margin: 5px;
+@indicator-side-margin: 8px;
+@indicator-side-margin-small:6px;
+@nav-icon-width: @indicator-width + @indicator-side-margin;
+@nav-icon-width-small: @indicator-width-small + @indicator-side-margin-small;
+
 
 // If these widths are changed, we have to update the measure function in ViewManager!
 @menuItemWidth: 80px;
@@ -26,31 +28,40 @@ header#main {
     background-clip: padding-box;
 
     @media @mobile {
-      > div#right-navbar {
-        margin-left: @left-navbar-width-small;
-      }
       > div#left-navbar {
         width: @left-navbar-width-small;
+        margin-top: 6px;
+        left: -@nav-icon-width-small;
+
+        &.showNavButton {
+          left: -5px;
+        }
 
         > div.leftViewButton {
-          margin-right: @indicator-side-margin;
-          margin-left: @indicator-side-margin;
+          left: @indicator-side-margin;
           font-size: @indicator-width-small;
         }
 
         > div#logo {
-
+          left: @nav-icon-width-small + @indicator-side-margin-small;;
           > div.path {
-            margin-top: 6px;
             width: 30px;
             height: 27px;
           }
 
           > div.tutanota {
-            margin-top: 6px;
             display: none;
           }
         }
+
+        > div.previousLocation {
+          top: 0px;
+          left:@nav-icon-width-small;
+        }
+      }
+      > div#title {
+        margin-top: 6px;
+        visibility: visible;
       }
     }
   }
@@ -60,33 +71,37 @@ header#main {
     float: left;
     height: 100%;
     left: -@nav-icon-width;
-    @media @mobile {
-      left: -@nav-icon-width-small;
-    }
+    margin-top: 8px;
+
     transition: left 0.5s;
     width: @left-navbar-width;
 
     &.showNavButton {
-      left: 0;
+      left: -5px;
     }
 
     > div.leftViewButton {
-      position: relative;
-      display: inline-block;
-      margin-right: @indicator-side-margin;
-      margin-left: @indicator-side-margin;
+      position: absolute  ;
+      top:0px;
+      left: @indicator-side-margin;
       font-size: @indicator-width;
       opacity: 0.8;
       cursor: pointer;
       overflow: hidden;
     }
 
+    > div.previousLocation {
+        position: absolute;
+        left:@nav-icon-width;
+        top:5px;
+        height:27px;
+    }
+
     > div#logo {
       display: inline-block;
-      margin-left: 5px;
-
+      position: absolute;
+      left: @nav-icon-width + @indicator-side-margin;
       > div.path {
-        margin-top: 8px;
         position: relative;
         display: inline-block;
         width: 41px;
@@ -109,10 +124,9 @@ header#main {
       }
 
       > div.tutanota {
-        margin-top: 8px;
         position: relative;
         display: inline-block;
-        height: 37px;
+        height: 35px;
       }
 
       img {
@@ -145,46 +159,31 @@ header#main {
     font-size: 10px;
   }
 
+  > div#title {
+    visibility: hidden;
+    margin-top: 8px;
+    text-align: center;
+    margin: 0 auto;
+    position: relative;
+    width: 30%;
+    left: 0;
+    right: 0;
+  }
+
   > div#right-navbar {
-    margin-left: @left-navbar-width;
     position: relative;
     height: 100%;
-    right: -@nav-icon-width;
+
+    right:0;
+    margin-left: @left-navbar-width;
     @media @mobile {
-      right: -@nav-icon-width-small;
-    }
-    transition: right 0.5s;
-
-    &.showNavButton {
-      right: 0;
-    }
-
-    > div.rightViewButton {
-      position: relative;
-      display: inline-block;
-      float: right;
-      top: 10px;
-      margin-right: @indicator-side-margin;
-      margin-left: @indicator-side-margin;
-      font-size: @indicator-width;
-      opacity: 0.8;
-      cursor: pointer;
-
-      @media @mobile {
-        top: 6px;
-        margin-right: @indicator-side-margin;
-        margin-left: @indicator-side-margin;
-        font-size: @indicator-width-small;
-      }
+      width: 50px;
+      float:right;
+      margin-left: 0;
     }
 
     > menu {
       height: 100%;
-      margin-right: @indicator-side-margin * 2 + @indicator-width;
-
-      @media @mobile {
-        margin-right: @indicator-side-margin * 2 + @indicator-width-small;
-      }
 
       > ul#menu_list {
         list-style-type: none;

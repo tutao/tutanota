@@ -238,10 +238,8 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.tutanota.gui.initEvents();
 
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
-        // notify the active view and the swipe recognizer
-        if (tutao.locator.viewManager.getActiveView() != null) {
-            tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
-        }
+        // notify the view manager and the swipe recognizer
+        tutao.locator.viewManager.windowSizeChanged(width, height);
         if (tutao.locator.swipeRecognizer) {
             tutao.locator.swipeRecognizer.setScreenSize(width, height);
         }
