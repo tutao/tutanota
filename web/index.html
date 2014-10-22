@@ -498,13 +498,14 @@
 				<div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
 					<img src="graphics/busy.gif" />
 				</div>
-				<div id="noMail" class="infoMessage" data-bind="visible: (conversation().length == 0 && !tutao.locator.mailListViewModel.isMailSelected())">
+				<div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !tutao.locator.mailListViewModel.isMailSelected())">
 					<div data-bind="lang: 'noMail_msg'"></div><br>
 				</div>
-				<div id="innerConversationColumn" class="scrollable">
-					<section class="conversation" data-bind="foreach: { data: conversation }">
+				<div id="innerConversationColumn">
+                    <!-- ko if: mail -->
+                    <div class="actions" data-bind='template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
-							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
 							<div id="readMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="click: $parent.selectMail">
 									<header>
@@ -566,21 +567,10 @@
 							</div>
 						<!-- /ko -->
 						<!-- ko if: $parent.isComposingState() -->
-							<div class="actions">
-								<div class="confidentialAction">
-									<button class="switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
-									</button>
-								</div>
-								<div class="otherActions">
-									<div data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-								</div>
-							</div>
                             <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: busy" />
 							<div id="composeMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
-                                        <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"'></div>
 										<div class="headerTable">
 											<!-- ko if: tutao.locator.userController.isInternalUserLoggedIn() -->
 												<div class="headerLine">
@@ -618,6 +608,20 @@
 													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()" tabindex="20" />
 												</div>
 											</div>
+                                            <div class="headerLine" data-bind="fadeVisible: containsExternalRecipients()">
+                                                <div class="name edit" data-bind="lang: 'confidential_label'"></div>
+                                                <div class="value edit" id="composer_confidential">
+                                                    <button class="confidentialButton switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+                                                        <div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="headerLine">
+                                                <div class="name"></div>
+                                                <div class="value" >
+                                                    <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"></div>
+                                                </div>
+                                            </div>
 										</div>
 										<div class="attachments">
 											<!-- ko foreach: { data: _attachments } -->
@@ -641,6 +645,7 @@
 							</div>
 						<!-- /ko -->
 					</section>
+                    <!-- /ko -->
 				</div>
 			</div>
 			<div id="passwordChannelColumn" class="viewColumn" data-bind="with: tutao.locator.passwordChannelViewModel">
@@ -1630,6 +1635,10 @@
                     <div data-bind="html: details"></div>
                 </li>
             </ul>
+            <h2>icons</h2>
+            <div class="icons">
+                <span class="imgButton cancel"></span><span class="imgButton confirm"></span><span class="imgButton send"></span><span class="imgButton trash"></span><span class="imgButton restore"></span><span class="imgButton reply"></span><span class="imgButton reply-all"></span><span class="imgButton export"></span><span class="imgButton attachment"></span>
+            </div>
         </div>
     </div>
 
@@ -1722,7 +1731,7 @@
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar" data-bind="domInit: domButtonBar">
             <!-- ko foreach: visibleButtons() -->
-            <button data-bind="lang: getLabelTextId(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <button class="imgButton" data-bind="css: imageClass, fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
         <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">

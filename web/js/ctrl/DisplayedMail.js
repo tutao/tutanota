@@ -50,7 +50,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         // external
         new tutao.tutanota.ctrl.Button("replyConfidential_action", 10, function () {
             tutao.locator.mailViewModel.replyMail(self);
-        }, isExternalAnswerPossible, false, "replyConfidentialAction"),
+        }, isExternalAnswerPossible, false, "replyConfidentialAction", "reply"),
 
         new tutao.tutanota.ctrl.Button("export_action", 7, function () {
             tutao.locator.mailViewModel.exportMail(self);
@@ -59,28 +59,28 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         // internal
         new tutao.tutanota.ctrl.Button("reply_action", 10, function () {
             tutao.locator.mailViewModel.replyMail(self);
-        }, isInternalUserLoggedIn, false, "replyAction"),
+        }, isInternalUserLoggedIn, false, "replyAction", "reply"),
 
         new tutao.tutanota.ctrl.Button("replyAll_action", 7, function () {
             tutao.locator.mailViewModel.replyAllMail(self);
-        }, showReplyAll, false, "replayAllAction"),
+        }, showReplyAll, false, "replayAllAction", "reply-all"),
 
         new tutao.tutanota.ctrl.Button("forward_action", 6, function () {
             tutao.locator.mailViewModel.forwardMail(self);
-        }, isInternalUserLoggedIn, false, "forwardAction"),
+        }, isInternalUserLoggedIn, false, "forwardAction", "forward"),
 
         // all
         new tutao.tutanota.ctrl.Button("undelete_action", 9, function () {
             tutao.locator.mailViewModel.deleteMail(self);
-        }, trashed, false, "undeleteMailAction"),
+        }, trashed, false, "undeleteMailAction", "restore"),
 
 		new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
             tutao.locator.mailViewModel.finalDeleteMail(self);
-        }, trashed, false, "finalDeleteMailAction"),
+        }, trashed, false, "finalDeleteMailAction", "trash"),
 		
 		new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
             tutao.locator.mailViewModel.deleteMail(self);
-        }, untrashed, false, "deleteMailAction"),
+        }, untrashed, false, "deleteMailAction", "trash"),
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
     this.buttonBarViewModel.init();

@@ -9,18 +9,14 @@ tutao.provide('tutao.tutanota.ctrl.MailViewModel');
 tutao.tutanota.ctrl.MailViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.conversation = ko.observableArray();
+	this.mail = ko.observable();
 	this.showSpinner = ko.observable(false);
-	this.conversationLoaded = ko.computed(function() {
-		for (var i = 0; i < this.conversation().length; i++) {
-			if (!this.conversation()[i].mailBodyLoaded()) {
-				return false;
-			}
-		}
-		return (this.conversation().length > 0);
+	this.mailLoaded = ko.computed(function() {
+        var mail = this.mail();
+        return mail != null && mail.mailBodyLoaded();
 	}, this);
 	this.oldState = null;
-	this.conversationLoaded.subscribe(function(loaded) {
+	this.mailLoaded.subscribe(function(loaded) {
 		if (this.oldState && this.oldState == loaded) {
 			return;
 		} else {
@@ -36,37 +32,14 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 };
 
 /**
- * Shows the given mail in its conversation.
+ * Shows the given mail
  * @param {tutao.entity.tutanota.Mail} mail The mail to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
 	var self = this;
 	var mails = [];
-	this._setConversation([mail]);
+	this._setMail(mail);
     mail.loadConversationEntry();
-    /* We currently don't display the whole conversation but will do this later
-	// we just load the conversation because we need it later (to get it synchronous)
-	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
-		if (exception) {
-			console.log("conversation could not be loaded");
-		}
-	});
-	tutao.entity.tutanota.ConversationEntry.loadRange(mail.getConversationEntry()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID, tutao.rest.EntityRestInterface.MAX_RANGE_COUNT, false, function(conversationEntries, exception) {
-		if (exception) {
-			console.log("conversation could not be loaded");
-			self._setConversation([mail]);
-		} else {
-			mail.loadConversationEntry(function(ce, exception) {
-				if (!exception) {
-					self._loadNextMails(ce, mails, function() {
-						self._setConversation(mails);
-					});
-				} else {
-					console.log(exception);
-				}
-			});
-		}
-	});*/
 };
 
 /**
@@ -115,45 +88,32 @@ tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMailsLoadPrevious = functio
  * Hides any visible conversation.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.hideConversation = function() {
-	this.conversation.removeAll();
+	this.mail(null);
 };
 
 /**
  * Removes the first mail from the conversation.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.removeFirstMailFromConversation = function() {
-	this.conversation.shift();
-};
-
-/**
- * Adds a mail to the conversation as first mail.
- * @param {tutao.tutanota.ctrl.DisplayedMail|tutao.tutanota.ctrl.ComposingMail} mail The mail to insert.
- */
-tutao.tutanota.ctrl.MailViewModel.prototype.addFirstMailToConversation = function(mail) {
-	this.conversation.unshift(mail);
+	this.mail(null);
 };
 
 /**
  * Shows the conversation in the mail view. Loads the mail body text asynchronously.
- * @param {Array.<tutao.tutanot.entity.Mail>} conversation The list of mails to show.
+ * @param {tutao.tutanot.entity.Mail} conversation The list of mails to show.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype._setConversation = function(conversation) {
+tutao.tutanota.ctrl.MailViewModel.prototype._setMail = function(mail) {
 	var self = this;
-	self.conversation.removeAll();
+	self.mail(null);
 
     // only show the spinner after 200ms if the conversation has not been loaded till then
     setTimeout(function() {
-        if (!self.conversationLoaded()) {
+        if (!self.mailLoaded()) {
             self.showSpinner(true);
         }
     }, 200);
 
-    return Promise.map(conversation, function(mail) {
-        self.conversation.push(new tutao.tutanota.ctrl.DisplayedMail(mail));
-        return new Promise(function(resolve, reject) {
-            setTimeout(resolve, 0); // pause after decrypting each mail for rotating the spinner (won't do this otherwise).
-        });
-    });
+    this.mail(new tutao.tutanota.ctrl.DisplayedMail(mail));
 };
 
 /**
@@ -294,13 +254,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 
     var mailCreatedPromise;
 	if (previousMail) {
-		for (var i = 0; i < this.conversation().length; i++) {
-			if (this.conversation()[i] == previousMail) {
-				this.conversation.splice(0, i); // remove all mails up to the selected
-				break;
-			}
-		}
-
         var previousMessageId = null;
 		mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
             previousMessageId = ce.getMessageId();
@@ -308,13 +261,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
             console.log("could not load conversation entry", e);
         }).then(function() {
             // the conversation key may be null if the mail was e.g. received from an external via smtp
-            var mail = new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId);
-            self.conversation([mail]);
-            mail.setBody(bodyText);
+            self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
+            self.mail().setBody(bodyText);
         });
 	} else {
         mailCreatedPromise = Promise.resolve();
-		this.conversation([new tutao.tutanota.ctrl.ComposingMail(conversationType, null)]);
+		this.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null));
 	}
 
     return mailCreatedPromise.then(function() {
@@ -372,7 +324,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail)
  * @return {boolean} True if no composing mail is open any more, false otherwise.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = function() {
-	if (this.conversation().length == 0) {
+	if (!this.mail) {
 		return true;
 	} else if (this.isComposingState()) {
 		return (this.getComposingMail().cancelMail(true));
@@ -386,7 +338,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = functio
  * @return {Boolean} True, if we are composing an E-Mail right now.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.isComposingState = function() {
-	return (this.conversation().length > 0 && this.conversation()[0] instanceof tutao.tutanota.ctrl.ComposingMail);
+    var mail = this.mail();
+    return mail && mail instanceof tutao.tutanota.ctrl.ComposingMail;
 };
 
 /**
@@ -395,9 +348,9 @@ tutao.tutanota.ctrl.MailViewModel.prototype.isComposingState = function() {
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.getComposingMail = function() {
 	if (!this.isComposingState()) {
-		throw new Error("RuntimeException: not in composing state");
+		throw new Error("Not in composing state");
 	}
-	return this.conversation()[0];
+	return this.mail();
 };
 
 /**
@@ -413,7 +366,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.isComposingMailToSecureExternals = f
  * @return {Boolean} True if no conversation is shown, false otherwise.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.isConversationEmpty = function() {
-	return (this.conversation().length == 0);
+	return this.mail() == null;
 };
 
 /**
