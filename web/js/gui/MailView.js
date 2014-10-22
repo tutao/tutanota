@@ -154,7 +154,9 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
 	// sibling blockquotes on top level are not merged if separated by user
-	return tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    var text = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    text = tutao.tutanota.util.Formatter.urlify(text);
+	return text;
 };
 
 /**

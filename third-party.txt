@@ -1,5 +1,9 @@
 This document contains a list of all third party libraries used by Tutanota, including their licences .
 
+Autolinker - https://github.com/gregjacobs/Autolinker.js
+License: MIT
+Reference: https://github.com/gregjacobs/Autolinker.js/blob/master/LICENSE
+
 Bluebird - https://github.com/petkaantonov/bluebird
 License: MIT
 Reference: https://github.com/petkaantonov/bluebird/blob/master/LICENSE

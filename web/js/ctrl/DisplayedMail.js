@@ -97,7 +97,9 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function () {
     var self = this;
 //	setTimeout(function() {
     self.mail.loadBody().then(function (body) {
-        self.bodyText(tutao.locator.htmlSanitizer.sanitize(body.getText()));
+        var text = tutao.locator.htmlSanitizer.sanitize(body.getText());
+        text = tutao.tutanota.util.Formatter.urlify(text);
+        self.bodyText(text);
         var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
         self.bodyTextWithoutQuotation(split.text);
         self.mailBodyLoaded(true);
