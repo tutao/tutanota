@@ -424,7 +424,6 @@
 
 <script type="text/html"  id="tutanota-template">
 	<input type="text" id="hiddenInput"/>
-	<button id="measureButton"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
 	<div id="viewContainer">
@@ -448,21 +447,9 @@
 				</section>
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
+                <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
 				<div id="searchAndMailList" >
-                    <div class="actions" data-bind="visible: actionBarVisible">
-                        <div id="searchAction" data-bind="visible: searchButtonVisible">
-                            <button data-bind="click: showSearchBar, attr: {title: tutao.lang('search_title')}">
-                                <div class="imgButton search"></div>
-                            </button>
-                        </div>
-                        <div class="search" data-bind="fadeVisible: searchBarVisible">
-                            <div class="searchForm">
-                                <div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-                            </div>
-                        </div>
-                        <div class="otherActions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-                    </div>
-					<section id="mailList" class="list scrollable" data-bind="css: { belowSearch: actionBarVisible }">
+					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
@@ -1696,7 +1683,7 @@
 
 
         <div id="right-navbar" >
-            <menu data-bind="with: headerBarViewModel, domInit: headerBarViewModel.domButtonBar">
+            <menu data-bind="with: headerBarViewModel">
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
@@ -1736,7 +1723,7 @@
 	</script>
 
 	<script type="text/html" id="buttonBar-template">
-		<div class="buttonBar" data-bind="domInit: domButtonBar">
+		<div class="buttonBar">
             <!-- ko foreach: visibleButtons() -->
             <button class="imgButton" data-bind="css: imageClass, fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->

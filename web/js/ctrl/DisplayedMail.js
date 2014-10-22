@@ -83,7 +83,6 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         }, untrashed, false, "deleteMailAction", "trash"),
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    this.buttonBarViewModel.init();
 };
 
 tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function () {

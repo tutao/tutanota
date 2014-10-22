@@ -278,6 +278,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	print_action: "Print",
 	back_action: "Back",
 	ok_action: "Ok",
+    newMail_action: "New email",
 	monthNames_label: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 	weekDays_label: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
 	yesterday_label: "yesterday",
@@ -333,7 +334,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// header
 	logo_alt: "Tutanota logo",
 	featureNotAvailable_msg: "This feature will be available in 2014!",
-	new_label: "New",
 	emails_label: "Emails",
 	emails_alt: "Emails",
 	newMail_alt: "New Email",
@@ -717,6 +717,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	print_action: "Drucken",
 	back_action: "Zurück",
 	ok_action: "OK",
+    newMail_action: "Neue E-Mail",
 	monthNames_label: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
 	weekDays_label: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
 	yesterday_label: "gestern",
@@ -772,7 +773,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// header
 	logo_alt: "Tutanota-Logo",
 	featureNotAvailable_msg: "Diese Funktion wird in 2014 verfügbar sein!",
-	new_label: "Neu",
 	emails_label: "E-Mails",
 	emails_alt: "E-Mails",
 	newMail_alt: "Neue E-Mail",

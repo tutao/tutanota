@@ -50,7 +50,6 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
                     }, notBusy, false, "composer_cancel", "cancel")
 			        ];
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    this.buttonBarViewModel.init();
 
     tutao.locator.passwordChannelViewModel.init();
 };

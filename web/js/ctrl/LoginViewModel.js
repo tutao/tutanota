@@ -142,6 +142,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         return tutao.locator.contactListViewModel.init();
     }).then(function() {
         tutao.locator.eventBus.connect(false);
+        tutao.locator.mailListViewModel.loadInitial();
         tutao.locator.navigator.mail();
     });
 };

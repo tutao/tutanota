@@ -16,7 +16,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
 	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 480);
-    this.windowWidthObservable = ko.observable(0);
+    this.windowWidthObservable = ko.observable(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
     this.headerBarViewModel = null;
 
 	// if the window width is small, just show the logo without "Tutanota" to save space
@@ -127,7 +127,16 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
         }
     };
     this._buttons = this._createButtons();
+    var getRightNavbarSize = function () {
+        return $(document.getElementById("right-navbar")).innerWidth();
+    };
     this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", measureNavButton);
+    setTimeout(function () {
+        self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
+    }, 0);
+    this.windowWidthObservable.subscribe(function () {
+        self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
+    });
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
@@ -160,8 +169,8 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		} else if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			this._externalUserLoggedIn(true);
 		}
-		this._activeView(view);
-		this._activeView().activate(params);
+        this._activeView(view);
+        view.activate(params);
         tutao.tutanota.gui.adjustPanelHeight();
 	}
 };

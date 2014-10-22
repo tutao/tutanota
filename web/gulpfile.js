@@ -217,8 +217,8 @@ gulp.task('copyOperative', function () {
 });
 
 gulp.task('copyFonts', function () {
-    return gulp.src('fonts/*')
-        .pipe(gulpFilter(['icomoon.*']))
+    return gulp.src('fonts/**')
+        .pipe(gulpFilter(['icomoon.*', 'ionicons/*']))
         .pipe(gulp.dest('./build/fonts'));
 });
 
@@ -296,7 +296,7 @@ gulp.task('tagRelease', shell.task([
 
 gulp.task('default', ['clean', 'distCordovaLocal'], function () {
     gulp.watch('graphics/**/*', ['copyGraphics']);
-    gulp.watch('fonts/*', ['copyFonts']);
+    gulp.watch('fonts/**', ['copyFonts']);
     gulp.watch(['lib/**', 'js/**'], ['concat']);
     gulp.watch(['lib/**', 'js/**', 'test/**'], ['concatTest']);
     gulp.watch('./index.html', ['processHtmlCordova']);

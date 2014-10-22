@@ -29,6 +29,23 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 			tutao.locator.mailView.hideConversation();
 		}
 	}, this);
+
+    this.width = 0;
+};
+
+tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
+    var self = this;
+    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
+        self.width = width;
+        if (self.mail()) {
+            self.mail().buttonBarViewModel.setButtonBarWidth(self.width);
+        }
+    });
+    this.mail.subscribe(function (newMail) {
+        if (newMail) {
+            self.mail().buttonBarViewModel.setButtonBarWidth(self.width);
+        }
+    });
 };
 
 /**

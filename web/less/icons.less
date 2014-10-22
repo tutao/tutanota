@@ -13,9 +13,9 @@
   font-family: @ionicons-font-family;
   src:url("@{ionicons-font-path}/ionicons.eot");
   src:url("@{ionicons-font-path}/ionicons.eot?#iefix") format("embedded-opentype"),
-  url("@{ionicons-font-path}/ionicons.ttf") format("truetype"),
   url("@{ionicons-font-path}/ionicons.woff") format("woff"),
-  url("@{ionicons-font-path}/ionicons.svg?#iefix") format("svg");
+  url("@{ionicons-font-path}/ionicons.ttf") format("truetype"),
+  url("@{ionicons-font-path}/ionicons.svg?#ionicon") format("svg");
   font-weight: normal;
   font-style: normal;
 }
@@ -84,12 +84,9 @@
     content: "\e1b7";
   }
 
-  &.mail-new {
-    //background-image: url("data:image/svg+xml,@{mail}");
-    &:before {
-      content: "\e0ec";
-    }
-    .new;
+  &.mail-new:before {
+    .ion;
+    content: @ionicon-var-compose;
   }
 
   &.mail:before {

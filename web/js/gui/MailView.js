@@ -31,8 +31,6 @@ tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitl
 	if (!external) {
         tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = this._swipeSlider.addViewColumn(3, 300, 800, 'passwordChannelColumn');
 	}
-
-	this._firstActivation = true;
 };
 
 /**
@@ -47,10 +45,6 @@ tutao.tutanota.gui.MailView.prototype.isForInternalUserOnly = function() {
  */
 tutao.tutanota.gui.MailView.prototype.activate = function() {
     this._swipeSlider.activate();
-	if (this._firstActivation) {
-		this._firstActivation = false;
-		tutao.locator.mailListViewModel.init();
-	}
 };
 
 /**

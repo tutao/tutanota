@@ -205,6 +205,8 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
+    tutao.locator.mailListViewModel.init();
+    tutao.locator.mailViewModel.init();
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
