@@ -1678,7 +1678,7 @@
             <menu data-bind="with: headerBarViewModel">
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
-                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
+                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
                             <div class="menu_image">
                                 <div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
                                     <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>

@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
-    this.maxWidth = width;
+    this.maxWidth = width - 10; // we reduce the max width by 10 px which are used in our css for paddings + borders
     this.updateVisibleButtons();
 };
 

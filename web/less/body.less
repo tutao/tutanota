@@ -101,6 +101,12 @@ body {
           font-size: 22px;
           width: @button-bar-button-width;
           padding: 0;
+          -webkit-tap-highlight-color: @highlight-color;
+
+          &:active {
+            background-color: @highlight-color;
+            border: 0;
+          }
         }
       }
 

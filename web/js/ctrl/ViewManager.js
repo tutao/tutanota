@@ -57,13 +57,17 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         // internalUsers
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
             return internalUser();
-        }, false, "menu_mail", "mail", 'emails_alt'),
+        }, false, "menu_mail", "mail", 'emails_alt', function () {
+            return tutao.locator.navigator.hash() == '#box'
+        }),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
             return internalUser();
-        }, false, "menu_contact", "contact", 'contacts_alt'),
+        }, false, "menu_contact", "contact", 'contacts_alt', function () {
+            return tutao.locator.navigator.hash() == '#contact'
+        }),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
-            tutao.tutanota.ctrl.Navigator.prototype.newMail().then(function () {
+            tutao.locator.navigator.newMail().then(function () {
                 var mail = tutao.locator.mailViewModel.getComposingMail();
                 mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
                 mail.secure(false);
@@ -73,7 +77,9 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
 
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
 
-        new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),
+        new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt', function () {
+            return tutao.locator.navigator.hash() == '#settings'
+        }),
 
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, tutao.locator.navigator.register, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),

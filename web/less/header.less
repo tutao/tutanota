@@ -7,8 +7,8 @@
 @indicator-side-margin-small:6px;
 @nav-icon-width: @indicator-width + @indicator-side-margin;
 @nav-icon-width-small: @indicator-width-small + @indicator-side-margin-small;
-@header-hight:55px;
-@header-hight-small:40px;
+@header-height:55px;
+@header-height-small:40px;
 
 
 // If these widths are changed, we have to update the measure function in ViewManager!
@@ -20,9 +20,9 @@ header#main {
   left: 0px;
   top: 0px;
   right: 0px;
-  height: @header-hight;
+  height: @header-height;
   @media @mobile {
-    height: @header-hight-small
+    height: @header-height-small;
   }
 
   &.loggedIn {
@@ -236,9 +236,9 @@ div#modalMoreMenu {
     > #menu_more {
       position: absolute;
       right: @indicator-side-margin;
-      top: @header-hight - 10px;
+      top: @header-height - 10px;
       @media @mobile {
-        top: @header-hight-small - 10px;
+        top: @header-height-small - 10px;
         @indicator-side-margin-small:6px;
       }
       border: 0px;
@@ -280,6 +280,17 @@ div#modalMoreMenu {
 // also used in mail and contact view if no entities is shown
 .menu_link {
   width: @menuItemWidth; // defines the width of each menu item (+ margin)
+  -webkit-tap-highlight-color: @highlight-color;
+
+  height: @header-height - 1;
+  @media @mobile {
+    height: @header-height-small - 1;
+  }
+
+  &:active, &.selected {
+    background-color: @highlight-color;
+    border: 0;
+  }
 
   @media @mobile {
     width: @menuItemWidthSmall;
