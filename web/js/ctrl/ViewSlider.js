@@ -36,7 +36,7 @@ tutao.tutanota.ctrl.ViewSlider = function(updateColumnTitleCallback) {
  */
 tutao.tutanota.ctrl.ViewSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, widthReceiver, titleProvider) {
 	// 0 is a dummy width until showDefault is called the first time
-	this._viewColumns.push({ prio: prio, minWidth: minWidth, maxWidth: maxWidth, widthReceiver: widthReceiver, width: null, getTitle: titleProvider});
+	this._viewColumns.push({ prio: prio, minWidth: minWidth, maxWidth: maxWidth, widthReceiver: widthReceiver, width: null, getTitle: titleProvider, observable: new tutao.event.Observable()});
 	return this._viewColumns.length - 1;
 };
 
@@ -87,6 +87,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype._initColumns = function() {
 	for (var i = 0; i < this._viewColumns.length; i++) {
 		// notify the view column via the setter function
 		this._viewColumns[i].widthReceiver(posX, this._viewColumns[i].width);
+        this._viewColumns[i].observable.notifyObservers(this._viewColumns[i].width);
 		posX += this._viewColumns[i].width;
 	}
 };
@@ -294,6 +295,15 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 		this.notifyViewPosition(initial);
 	}
     this._notifyColumnChange();
+};
+
+/**
+ * Adds an observer that is notified if the width of the provided column changes
+ * @param {number} viewColumnId The id of the view columns that shall be made visible.
+ * @param {function(number)} widthObserver Called with the updated width
+ */
+tutao.tutanota.ctrl.ViewSlider.prototype.addWidthObserver = function(viewColumnId, widthObserver) {
+    this._viewColumns[viewColumnId].observable.addObserver(widthObserver);
 };
 
 /**

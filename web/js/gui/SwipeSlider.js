@@ -44,9 +44,10 @@ tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth
     if (typeof titleTextIdProvider  == "string"){
         titleTextIdProviderFunction = function(){return titleTextIdProvider;};
     }
-    return this._viewSlider.addViewColumn(prio, minWidth, maxWidth, function(x, width) {
+    var columnId = this._viewSlider.addViewColumn(prio, minWidth, maxWidth, function(x, width) {
         $('#' + columnDivId).css("width", width + "px");
-    }, titleTextIdProviderFunction);
+    }, titleTextIdProviderFunction)
+    return columnId;
 };
 
 tutao.tutanota.gui.SwipeSlider.prototype.activate = function() {

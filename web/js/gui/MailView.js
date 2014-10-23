@@ -31,8 +31,6 @@ tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitl
 	if (!external) {
         tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = this._swipeSlider.addViewColumn(3, 300, 800, 'passwordChannelColumn');
 	}
-
-	this._firstActivation = true;
 };
 
 /**
@@ -47,10 +45,6 @@ tutao.tutanota.gui.MailView.prototype.isForInternalUserOnly = function() {
  */
 tutao.tutanota.gui.MailView.prototype.activate = function() {
     this._swipeSlider.activate();
-	if (this._firstActivation) {
-		this._firstActivation = false;
-		tutao.locator.mailListViewModel.init();
-	}
 };
 
 /**
@@ -154,7 +148,9 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
 	// sibling blockquotes on top level are not merged if separated by user
-	return tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    var text = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    text = tutao.tutanota.util.Formatter.urlify(text);
+	return text;
 };
 
 /**

@@ -68,7 +68,7 @@ body, input, button, select, textarea {
 @background: #ffffff;
 @background-dark: #f8f8f8;
 // lighten(#738398, 45%)
-@background-buttonBar: #efefef;
+@background-alternate: #efefef;
 // lighten(#738398, 41%)
 @border-dark: #b2b2b2;
 @border: #c7c7c7;
@@ -193,7 +193,7 @@ hr {
 }
 
 .infoMessage {
-  background-color: @background-buttonBar;
+  background-color: @background-dark;
   .light;
   margin: 10%;
   padding: @padding;
@@ -707,7 +707,6 @@ div.bubble {
   line-height: 24px;
   cursor: pointer;
   border-radius: 5px;
-  .nonSelectable;
   margin-bottom: 2px;
 
   > div.bubbleText {

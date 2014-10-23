@@ -69,12 +69,8 @@ tutao.tutanota.Bootstrap.init = function () {
 
 		// open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
 		$(document).on("click", "a", function(e){
-			if (tutao.env.mode == tutao.Mode.App) {
-				window.open(this.href, "_system");
-				return false; // Prevent execution of the default onClick handler
-			} else {
-				return true;
-			}
+			tutao.tutanota.gui.openLink(this.href);
+            return false;
 		});
 
         if (tutao.env.mode == tutao.Mode.App && cordova.platformId == "android") {
@@ -209,6 +205,8 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
+    tutao.locator.mailListViewModel.init();
+    tutao.locator.mailViewModel.init();
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;

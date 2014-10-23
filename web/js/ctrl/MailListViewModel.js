@@ -69,25 +69,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.searchBarVisible = ko.observable(false);
     this.searchButtonVisible = ko.observable(false);
 
-    this.actionBarVisible = ko.computed( function() {
-        return !this.deleting() && (this.isDeleteTrashButtonVisible() || this.searchButtonVisible());
-    },this);
-
-    this.buttons = [];
-    this.buttons.push(new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction"));
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    // this is a workaround:
-    // the action bar visibility depends on the visibility of the delete trash button
-    // the visible buttons in the button bar view model can only be calculated if the action bar is visible and in the dom
-    // to make sure the button bar view model gets notified as late as possible, notify it when the action bar is made visible with a timeout
-    this.actionBarVisible.subscribe(function(value) {
-        if (value) {
-            var self = this;
-            setTimeout(function() {
-                self.buttonBarViewModel.updateVisibleButtons();
-            }, 0);
-        }
-    }, this);
+    this.buttonBarViewModel = null;
 
     this.showSpinner = ko.computed(function () {
         return this.deleting();
@@ -102,13 +84,29 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 
 
 /**
+ * Creates the buttons
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
+    var internalUser = function() {
+        return tutao.locator.userController.isInternalUserLoggedIn();
+    };
+    this.buttons = [
+        new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction", "trash"),
+        new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, internalUser, false, "newMailAction", "mail-new")
+    ];
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, this.buttonBarViewModel.setButtonBarWidth);
+};
+
+
+/**
  * Initialize the MailListViewModel:
  * <ul>
  *   <li>Load the Mails to display from the server
  *   <li>register as an observer to the mail list
  * </ul>
  */
-tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
+tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
     var self = this;
     if (tutao.tutanota.util.ClientDetector.isMobileDevice()){
         this.stepRangeCount = 25;

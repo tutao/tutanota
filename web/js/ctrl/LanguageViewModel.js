@@ -120,6 +120,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	by_label: "by",
 	date_label: "Date",
 	subject_label: "Subject",
+    confidential_label: "Confidential",
 	showQuotation_action: "+ Quotes",
 	hideQuotation_action: "- Quotes",
 	legacyNoReplyIe_msg: "This Internet Explorer is an old version and does not support replying to or exporting of emails. If you need this feature, please update or use one of the following browsers:",
@@ -277,6 +278,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	print_action: "Print",
 	back_action: "Back",
 	ok_action: "Ok",
+    newMail_action: "New email",
 	monthNames_label: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 	weekDays_label: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
 	yesterday_label: "yesterday",
@@ -332,7 +334,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// header
 	logo_alt: "Tutanota logo",
 	featureNotAvailable_msg: "This feature will be available in 2014!",
-	new_label: "New",
 	emails_label: "Emails",
 	emails_alt: "Emails",
 	newMail_alt: "New Email",
@@ -484,7 +485,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	sending_msg: 'Your message is being encrypted and sent.',
 	sendingFailed_msg: 'Could not send the message. Please try again later.',
 	savingFailed_msg: 'The message has been sent successfully but could not be stored into your sent messages folder.',
-	outlookVersionNotSupported_msg: 'Unfortunately, Tutanota does not support this version of Outlook. Please use Oulook 2010 or Outlook 2013.',
+	outlookVersionNotSupported_msg: 'Unfortunately, Tutanota does not support this version of Outlook. Please use Outlook 2010 or Outlook 2013.',
 	invalidAttachment_msg: "This email can not be sent via Tutanota because it contains an unsupported attachment.",
 	showInAddressBook_alt: "Edit contact",
 	testPhaseExpired_msg: "The free testing phase has expired and the sending of confidential emails has been deactivated. Please contact your administrator.",
@@ -504,7 +505,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     notificationMailSignatureSubject_msg: "Confidential email from $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Hello,</p><p style=\"font-family:'Calibri',sans-serif\">I have sent a confidential email to you. For that I am using <a href='https://tutanota.de/#!info'>Tutanota</a>, the reviewed and certified service from Germany for encrypted emails. You can read this email - and all already exchanged ones - by simply clicking the following link:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Show email</a></p><p style=\"font-family:'Calibri',sans-serif\">This email was automatically generated for sending the link. The link stays valid until you receive a new confidential email from me.</p><p style=\"font-family:'Calibri',sans-serif\">Kind regards<br/>$2</p>",
     signatureConfigFailure_msg: "There is no valid email signature configuration for notification emails to external recipients. Would you like to send the notification email without a signature?",
-    unsupportedMailFeature_msg: "You have selected a read receipt, voting options or a deferred delivery time. Unfortunately, these functions are not yet supported by Tutanota. Would you like to send the email anyway?"
+    unsupportedMailFeature_msg: "You have selected voting options or a deferred delivery time. Unfortunately these functions are not yet supported by Tutanota. Would you like to send the email anyway?",
+    readOrTransmissionReceiptWithInternals_msg: "You have selected a transmission or read receipt for your email. Unfortunately, these functions are only supported for external recipients. Would you like to send the email anyway?"
 };
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
@@ -556,6 +558,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	by_label: "von",
 	date_label: "Datum",
 	subject_label: "Betreff",
+    confidential_label: "Vertraulich",
 	showQuotation_action: "+ Details",
 	hideQuotation_action: "- Details",
 	legacyNoReplyIe_msg: "Dies ist eine alte Version des Internet Explorer und unterstützt nicht das Antworten auf oder das Exportieren von E-Mails. Falls Sie diese Funktionalität benötigen, aktualisieren Sie Ihren Browser oder verwenden Sie einen der folgenden:",
@@ -713,6 +716,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	print_action: "Drucken",
 	back_action: "Zurück",
 	ok_action: "OK",
+    newMail_action: "Neue E-Mail",
 	monthNames_label: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"],
 	weekDays_label: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
 	yesterday_label: "gestern",
@@ -768,7 +772,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// header
 	logo_alt: "Tutanota-Logo",
 	featureNotAvailable_msg: "Diese Funktion wird in 2014 verfügbar sein!",
-	new_label: "Neu",
 	emails_label: "E-Mails",
 	emails_alt: "E-Mails",
 	newMail_alt: "Neue E-Mail",
@@ -940,6 +943,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     notificationMailSignatureSubject_msg: "Vertrauliche Nachricht von $1",
     notificationMailSignatureMessage_msg: "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe Ihnen gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/#!info'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen Sie ganz einfach &uuml;ber den folgenden Link abrufen:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='$1'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>$2</p>",
     signatureConfigFailure_msg: "Es ist keine gültige E-Mail-Signatur für die Benachrichtigungs-E-Mails an externe Empfänger konfiguriert. Wollen Sie die Benachrichtigungs-E-Mail ohne Signatur senden?",
-    unsupportedMailFeature_msg: "Sie haben eine Lesebestätigung, Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?"
+    unsupportedMailFeature_msg: "Sie haben Abstimmungsschaltflächen oder eine verzögerte Übermittlung der E-Mail ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Wollen Sie die E-Mail trotzdem senden?",
+    readOrTransmissionReceiptWithInternals_msg: "Sie haben eine Übermittlungs- oder Lesebestätigung ausgewählt. Diese Funktionen sind leider nur für externe Empfänger verfügbar. Wollen Sie die E-Mail trotzdem senden?"
 };
 

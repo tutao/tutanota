@@ -13,8 +13,9 @@ tutao.provide('tutao.tutanota.ctrl.Button');
  * @param {string=} id The id to set for the button.
  * @param {string=} imageClass If set, the according image will be displayed
  * @param {string=} imageAltTextId alt text for the optional image
+ * @param {function=} isSelected Returns true, if the current button is selected
  */
-tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId) {
+tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.labelTextId = labelTextId;
 
@@ -28,6 +29,7 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
     this.imageClass = imageClass;
     this.imageAltTextId = imageAltTextId;
     this.badge = ko.observable(0);
+    this._isSelected = isSelected;
 };
 
 /**
@@ -77,3 +79,10 @@ tutao.tutanota.ctrl.Button.prototype.setBadgeNumber = function (number) {
     this.badge(number);
 };
 
+tutao.tutanota.ctrl.Button.prototype.isSelected = function () {
+    if (this._isSelected) {
+        return this._isSelected();
+    } else {
+        return false;
+    }
+};
