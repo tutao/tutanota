@@ -43,11 +43,11 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
         return !self.busy();
     };
 	this.buttons = [
-			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
-			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send"),
-			        new tutao.tutanota.ctrl.Button("dismiss_action", 8, function () {
+                    new tutao.tutanota.ctrl.Button("dismiss_action", 8, function () {
                         self.cancelMail(false);
-                    }, notBusy, false, "composer_cancel", "cancel")
+                    }, notBusy, false, "composer_cancel", "cancel"),
+			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
+			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
 			        ];
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 
