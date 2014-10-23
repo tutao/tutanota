@@ -1,5 +1,6 @@
+@title-width:35%;
 @left-navbar-width: 230px;
-@left-navbar-width-small: 80px;
+@left-navbar-width-small: 30%;
 @indicator-width: 37px;
 @indicator-width-small: 27px;
 @indicator-side-margin: 8px;
@@ -54,7 +55,7 @@ header#main {
           }
         }
 
-        > div.previousLocation {
+        > div#previousLocation {
           top: 0px;
           left:@nav-icon-width-small;
         }
@@ -90,11 +91,15 @@ header#main {
       overflow: hidden;
     }
 
-    > div.previousLocation {
+    > div#previousLocation {
+        .light;
         position: absolute;
         left:@nav-icon-width;
+        right:0px;
         top:5px;
         height:27px;
+        overflow:hidden;
+        text-overflow: ellipsis;
     }
 
     > div#logo {
@@ -160,12 +165,14 @@ header#main {
   }
 
   > div#title {
+    .light;
     visibility: hidden;
     margin-top: 8px;
     text-align: center;
+    white-space: nowrap;
     margin: 0 auto;
     position: relative;
-    width: 30%;
+    width: @title-width;
     left: 0;
     right: 0;
   }

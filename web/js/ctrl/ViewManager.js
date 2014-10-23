@@ -25,12 +25,8 @@ tutao.tutanota.ctrl.ViewManager = function() {
         self.windowWidthObservable(width);
 	});
 	this._buttons = [];
-    this.onlyOneColumnVisible = ko.observable(true);
     this.currentColumnTitle = ko.observable("emptyString_msg");
     this.previousColumnTitle = ko.observable("emptyString_msg");
-    this._activeView.subscribe(function(){
-        this._updateColumnState();
-    },this);
 };
 
 
@@ -125,6 +121,9 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
         }
     };
     this._buttons = this._createButtons();
+
+
+
     this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", measureNavButton);
 };
 
@@ -198,27 +197,15 @@ tutao.tutanota.ctrl.ViewManager.prototype.showHomeView = function() {
 tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, height) {
     if (this.getActiveView() != null) {
         this.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
-        this._updateColumnState();
-    }
-};
-
-
-tutao.tutanota.ctrl.ViewManager.prototype._updateColumnState = function() {
-    var viewSlider = this.getActiveView().getSwipeSlider()._viewSlider;
-    // Can be null e.g. in loginView
-    if ( viewSlider != null){
-        // update column state.
-        this.onlyOneColumnVisible(viewSlider.getLeftmostVisibleColumnId() == viewSlider.getRightmostVisibleColumnId());
-    } else {
-        this.onlyOneColumnVisible(true);
     }
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);
+    if ( tutao.lang(currentTitle).trim().length == 0 ){
+        $("#previousLocation").css("overflow", "visible" );
+    }else{
+        $("#previousLocation").css("overflow", "hidden" );
+    }
 };
-
-
-
-

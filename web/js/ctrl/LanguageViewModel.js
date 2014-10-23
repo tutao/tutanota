@@ -360,7 +360,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     more_label: "More",
     dots_label: "...",
     folderTitle_label: "Folder",
-    contactsTitle_label: "All contacts",
 
     //admin
     logs_label: "logs",
@@ -797,7 +796,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     more_label: "Mehr",
     dots_label: "...",
     folderTitle_label: "Ordner",
-    contactsTitle_label: "Alle Kontakte",
 
     //admin
     logs_label: "logs",
