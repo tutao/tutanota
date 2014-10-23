@@ -171,32 +171,31 @@
   }
 
   &.leftIndicator:before {
-    content: "\e3b3";
+    content: "\e601";
     //.ion;
     //content: @ionicon-var-chevron-left;
     //font-size: 120%;
   }
 
   &.trash:before {
-    .ion;
-    content: @ionicon-var-ios7-trash-outline;
+    content: "\e24f";
   }
 
   &.restore {
-    .ion;
+
     &:before {
-      content: @ionicon-var-ios7-trash;
-      position: relative;
-      color: @new-color;
+      content: "\e24f";
     }
     &:after {
-      content: @ionicon-var-ios7-close-empty;
-      position: relative;
-      left: -14px;
-      top: 10px;
-      font-size: 200%;
+      .ion;
+      content: @ionicon-var-close;
+      //content: @ionicon-var-ios7-close-empty;
+      position: absolute;
+      left: 12px;
+      font-size: 125%;
+      color: @new-color;
     }
-  }
+}
 
   &.more:before {
     content: "\e600";
@@ -236,6 +235,10 @@
 
   &.register:before {
     content: "\e185";
+  }
+
+  &.add:before {
+    content: "\e376";
   }
 
   .new {
