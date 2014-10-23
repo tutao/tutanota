@@ -40,7 +40,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
     };
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("edit_action", 10, self.editContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "editContact", "mail-new" ),
+        new tutao.tutanota.ctrl.Button("edit_action", 10, self.editContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "editContact", "edit" ),
         new tutao.tutanota.ctrl.Button("delete_action", 9, self._deleteContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "deleteContact", "trash"),
 
 

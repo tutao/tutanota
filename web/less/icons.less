@@ -238,8 +238,16 @@
   }
 
   &.add:before {
-    content: "\e376";
+    .ion;
+    content: @ionicon-var-android-add;
+    font-size: 110%;
   }
+
+  &.edit:before {
+    .ion;
+    content: @ionicon-var-edit;
+  }
+
 
   .new {
     &:after {
