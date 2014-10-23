@@ -7,6 +7,8 @@
 @indicator-side-margin-small:6px;
 @nav-icon-width: @indicator-width + @indicator-side-margin;
 @nav-icon-width-small: @indicator-width-small + @indicator-side-margin-small;
+@header-hight:55px;
+@header-hight-small:40px;
 
 
 // If these widths are changed, we have to update the measure function in ViewManager!
@@ -18,9 +20,9 @@ header#main {
   left: 0px;
   top: 0px;
   right: 0px;
-  height: 55px;
+  height: @header-hight;
   @media @mobile {
-    height: 40px;
+    height: @header-hight-small
   }
 
   &.loggedIn {
@@ -223,29 +225,54 @@ header#main {
     }
   }
 
-  > menu#menu_more {
-    position: absolute;
-    right: 10px;
-    top: 100%;
-    background-color: @background-dark;
-    border: 1px solid @border-dark;
-    border-bottom: 0px;
-    z-index: 4;
-    min-width: 200px;
 
-    ul {
-      list-style-type: none;
-      padding: 0px;
+}
 
-      li {
-        cursor: pointer;
-        .light;
-        //height: 35px;
-        padding: @padding;
-        border-bottom: 1px solid @border-dark;
+
+div#modalMoreMenu {
+  > div {
+    display:block;
+    > #menu_more {
+      position: absolute;
+      right: @indicator-side-margin;
+      top: @header-hight - 10px;
+      @media @mobile {
+        top: @header-hight-small - 10px;
+        @indicator-side-margin-small:6px;
+      }
+      border: 0px;
+      z-index: 4;
+      min-width: 200px;
+
+      >div#triangle-up {
+        position:absolute;
+        right: 5px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px  solid @background-dark;
+      }
+
+      ul {
+        border-radius:5px;
+        position:absolute;
+        width:100%;
+        top: 10px;
+        right:0px;
+        background-color: @background-dark;
+        list-style-type: none;
+        padding: 0px;
+
+        li {
+          cursor: pointer;
+          .light;
+          //height: 35px;
+          padding: @padding;
+          border-bottom: 1px solid @border-dark;
+        }
       }
     }
-
   }
 }
 

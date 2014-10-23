@@ -1699,18 +1699,24 @@
         </div>
 
         <div id="title" data-bind="lang:currentColumnTitle()"></div>
-
-        <menu id="menu_more" data-bind="visible: headerBarViewModel.moreVisible">
-            <ul >
-                <!-- ko foreach: headerBarViewModel.moreButtons() -->
-                <li data-bind="fastClick: click, attr: {'id': id}">
-                    <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
-                    <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
-                </li>
-                <!-- /ko -->
-            </ul>
-        </menu>
 	</header>
+
+    <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
+        <div class="modalDialog" data-bind="click: function(){ if(moreVisible()){hideMore();}}, visible:moreVisible()">
+            <menu id="menu_more">
+                <div id="triangle-up"></div>
+                <ul>
+                    <!-- ko foreach: tutao.locator.viewManager.headerBarViewModel.moreButtons() -->
+                    <li data-bind="fastClick: click, attr: {'id': id}">
+                        <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
+                        <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
+                    </li>
+                    <!-- /ko -->
+                </ul>
+            </menu>
+        </div>
+    </div>
+
 </script>
 
 	<script type="text/html" id="displayedRecord-template">
