@@ -216,12 +216,6 @@ body {
 			.searchAndList;
 
 			section#contactList {
-				position: absolute;
-				left: 0px;
-				top: 0px;
-				right: 0px;
-				bottom: 0px;
-
 				> div#emptyContactList {
 					margin-top: 10px;
 					text-align: center;
@@ -271,24 +265,32 @@ body {
 		}
 	
 		> div#innerContactColumn {
-			position: relative;
-			height: 100%;
+			position: absolute;
+            left: 0;
+            right:0;
+
+            @media @desktop {
+              top: @button-bar-height;
+              bottom: 0;
+            }
+
+            @media @mobile {
+              top: 0;
+              bottom: @button-bar-height;
+            }
+
 
 			> div#contactWrapper {
 				position: absolute;
 				right: 0px;
 				left: 0px;
 				top: 0px;
-				padding-bottom: 45px; // enough space for the button bar
+				padding-bottom: @button-bar-height; // enough space for the button bar
 				
 				> section#contact {
 					position: relative;
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
 					
-					> header {
-						width: 100%;
-						border-bottom: 1px solid @blue;
-					}
 					
 					> div.contactBody {
 						position: relative;

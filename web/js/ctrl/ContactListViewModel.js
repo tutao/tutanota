@@ -24,6 +24,8 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
 	// the current search string
 	this.searchString = ko.observable("");
 
+	this.buttonBarViewModel = null;
+
 	// ===== SEARCH ========
 
 	this.bubbleInputViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
@@ -47,6 +49,16 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
     // @type {?Array.<tutao.entity.tutanota.ContactWrapper>}
     this._rawContacts = [];
 
+};
+
+tutao.tutanota.ctrl.ContactListViewModel.prototype.initButtonBar = function() {
+    // button bar
+    this.buttons = [
+        //function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected) {
+        new tutao.tutanota.ctrl.Button("newContact_action", 10,  tutao.locator.navigator.newContact, function(){return true;}, false, "newContactAction", "mail-new")
+    ];
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST, this.buttonBarViewModel.setButtonBarWidth);
 };
 
 /**
