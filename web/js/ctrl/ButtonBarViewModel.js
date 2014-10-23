@@ -36,6 +36,13 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 
         });
     });
+
+    //  Decorate the click listener of all buttons to close the more menu
+    var self = this;
+    for( var i=0; i< buttons.length; i++){
+        buttons[i].setHideButtonsHandler(this.hideMore);
+    }
+
 	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
 	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
     this.moreVisible = ko.observable(false);

@@ -30,6 +30,7 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
     this.imageAltTextId = imageAltTextId;
     this.badge = ko.observable(0);
     this._isSelected = isSelected;
+    this._hideButtonsHandler = undefined;
 };
 
 /**
@@ -47,15 +48,25 @@ tutao.tutanota.ctrl.Button.prototype.getPriority = function () {
  */
 tutao.tutanota.ctrl.Button.prototype.click = function (vm, event) {
     if (this._directClick) {
+        if (this._hideButtonsHandler != undefined){
+            this._hideButtonsHandler();
+        }
         // needed e.g. for opening a file chooser because a setTimeout in between would not work
         this._clickListener();
     } else {
         var self = this;
         // setTimeout because otherwise problems with alert/confirm dialogs appear
         setTimeout(function () {
+            if (self._hideButtonsHandler != undefined){
+                self._hideButtonsHandler();
+            }
             self._clickListener();
         }, 0);
     }
+};
+
+tutao.tutanota.ctrl.Button.prototype.setHideButtonsHandler = function (hideButtonsHandler) {
+    return this._hideButtonsHandler = hideButtonsHandler
 };
 
 
