@@ -492,6 +492,9 @@
 				<div id="innerConversationColumn">
                     <!-- ko if: mail -->
                     <div class="actions" data-bind='template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+                    <!-- ko if: isComposingState() -->
+                    <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: mail().busy" />
+                    <!-- /ko -->
 					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
 							<div id="readMailWrapper" class="mailWrapper">
@@ -555,7 +558,6 @@
 							</div>
 						<!-- /ko -->
 						<!-- ko if: $parent.isComposingState() -->
-                            <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: busy" />
 							<div id="composeMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>

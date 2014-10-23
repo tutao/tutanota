@@ -622,6 +622,17 @@ body {
 			position: relative;
 			height: 100%;
 
+          > img#sendMailBusyImg {
+            position: absolute;
+            left: 50%;
+            @media @desktop {
+              top: 10px;
+            }
+            @media @mobile {
+              bottom: 10px;
+            }
+          }
+
 			> section.conversation {
 				.fill;
                 top: @button-bar-height;
@@ -634,19 +645,6 @@ body {
                     position: relative;
                 }
 
-                > img#sendMailBusyImg {
-                  // z-index must be increased because div.actions z-index is also increased
-                  z-index: 2;
-                  display: block;
-                  position:absolute;
-                  top: 15px;
-                  left: 0px;
-                  right: 0px;
-                  width: 16px;
-                  margin-left: auto;
-                  margin-right: auto;
-                }
-	
 				// mail is used here
 			}
 		}

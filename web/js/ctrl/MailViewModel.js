@@ -263,7 +263,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 	var self = this;
 
 	if (!self.tryCancelAllComposingMails()) {
-		return false;
+		return Promise.reject("could not cancel composing");
 	}
 
 	// any selected mails in the mail list shall be deselected
