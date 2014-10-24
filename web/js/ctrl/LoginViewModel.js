@@ -41,6 +41,8 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 
     this.config = new tutao.native.DeviceConfig();
     this.autoLoginActive = false;
+    this.loginFinished = ko.observable(false);
+
 };
 
 /**
@@ -144,6 +146,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         tutao.locator.eventBus.connect(false);
         tutao.locator.mailListViewModel.loadInitial();
         tutao.locator.navigator.mail();
+        self.loginFinished(true);
     });
 };
 

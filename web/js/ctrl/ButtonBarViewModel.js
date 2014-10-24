@@ -20,7 +20,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     if(!moreButtonText) {
         moreButtonText = "dots_label";
     }
-    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, null, false, "moreAction",  "more", moreButtonText);
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
     if (measureFunction) {
         this._getSingleButtonWidth = measureFunction;
     }
@@ -60,6 +60,14 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(wi
     this.maxWidth = width - 10; // we reduce the max width by 10 px which are used in our css for paddings + borders
     this.updateVisibleButtons();
 };
+
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.isMoreVisible = function() {
+    if (tutao.locator.viewManager.isUserLoggedIn){
+        return this.moreVisible();
+    }
+    return false;
+};
+
 
 
 /**
