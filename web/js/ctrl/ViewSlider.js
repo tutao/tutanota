@@ -201,7 +201,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showDefault = function() {
 		this._maxVisibleColumn = this._defaultViewEndIndex;
 		this.notifyViewPosition(initial);
 	}
-    this._notifyColumnChange();
+    this.notifyColumnChange();
 };
 
 /**
@@ -294,7 +294,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 		this._minVisibleColumn = index + 1;
 		this.notifyViewPosition(initial);
 	}
-    this._notifyColumnChange();
+    this.notifyColumnChange();
 };
 
 /**
@@ -345,15 +345,14 @@ tutao.tutanota.ctrl.ViewSlider.prototype._getViewWidth = function() {
 	return viewWidth;
 };
 
-
-tutao.tutanota.ctrl.ViewSlider.prototype._notifyColumnChange = function() {
+tutao.tutanota.ctrl.ViewSlider.prototype.notifyColumnChange = function() {
     if ( this._updateColumnTitleCallback != undefined){
-        var currentTitle = "emptyString_msg";
+        var currentTitle = null;
         if ( this._minVisibleColumn >= 0){
             currentTitle = this._viewColumns[this._minVisibleColumn].getTitle();
         }
         var previousColumnId = this._minVisibleColumn -1;
-        var previousTitle = "emptyString_msg";
+        var previousTitle = null;
         if (previousColumnId >=0 ){
             previousTitle = this._viewColumns[previousColumnId].getTitle();
         }

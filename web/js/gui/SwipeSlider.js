@@ -38,15 +38,13 @@ tutao.tutanota.gui.SwipeSlider.none = function() {
 
 tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, columnDivId, titleTextIdProvider) {
     var titleTextIdProviderFunction = titleTextIdProvider;
-    if ( titleTextIdProvider == null) {
-        titleTextIdProvider = "emptyString_msg";
-    }
-    if (typeof titleTextIdProvider  == "string"){
+
+    if (typeof titleTextIdProvider  == "string" || titleTextIdProvider == null){
         titleTextIdProviderFunction = function(){return titleTextIdProvider;};
     }
     var columnId = this._viewSlider.addViewColumn(prio, minWidth, maxWidth, function(x, width) {
         $('#' + columnDivId).css("width", width + "px");
-    }, titleTextIdProviderFunction)
+    }, titleTextIdProviderFunction);
     return columnId;
 };
 

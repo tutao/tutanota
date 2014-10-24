@@ -215,8 +215,21 @@ tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, he
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
+
+    if ( currentTitle == null){
+        currentTitle = "emptyString_msg";
+    }
+    if ( previousTitle == null){
+         previousTitle = "back_action";
+    }
+
+    if (!this.getActiveView().isShowLeftNeighbourColumnPossible()){
+        previousTitle = "emptyString_msg";
+    }
+
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);
+
     if ( tutao.lang(currentTitle).trim().length == 0 ){
         $("#previousLocation").css("overflow", "visible" );
     }else{

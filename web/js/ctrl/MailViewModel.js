@@ -30,6 +30,11 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 		}
 	}, this);
 
+    this.mail.subscribe(function(){
+        // Propagate a columnChange event when the mail changes (e,g. forward an email) to update the column title in the navigation bar.
+        tutao.locator.mailView.getSwipeSlider().getViewSlider().notifyColumnChange();
+    }, this);
+
     this.width = 0;
 };
 
@@ -399,4 +404,25 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getLabel = function(mailAddress, meI
     } else {
         return mailAddress.getName();
     }
+};
+
+/**
+ * Retuns a textId for the current conversation type.
+ * @returns {string} The textId
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype.getConversationTypeTextId = function(){
+    var textId = "emptyString_msg";
+    if(!this.isConversationEmpty()){
+        if (typeof this.mail().conversationType != "undefined"){
+            var type = this.mail().conversationType;
+            if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW){
+                textId = "newMail_action";
+            }else if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY){
+                textId = "reply_action";
+            }else if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD){
+                textId = "forward_action";
+            }
+        }
+    }
+    return textId;
 };
