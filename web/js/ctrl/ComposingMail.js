@@ -93,6 +93,20 @@ tutao.tutanota.ctrl.ComposingMail.prototype.switchSecurity = function() {
 };
 
 /**
+ * Makes sure that the password channel column is visible.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype.showPasswordChannelColumn = function() {
+    tutao.locator.mailView.showPasswordChannelColumn();
+};
+
+/**
+ * Makes sure that the password channel column is visible.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = function() {
+    return tutao.locator.mailView.isPasswordChannelColumnVisible();
+};
+
+/**
  * Sends the new mail.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {

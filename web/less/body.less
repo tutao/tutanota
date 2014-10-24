@@ -693,14 +693,39 @@ body {
 							max-width: 100%;
 						}
 
-                      div.confidentialButton {
-                        padding-left: 4px;
-                      }
+                        button.confidentialButton {
+                            padding-left: 17px;
+                        }
 
-                      > div.confidentialStateMessage {
-                        font-size: 12px;
-                        color: @dark-grey;
-                      }
+                        button.showPasswordChannelColumn {
+                            float: right;
+                            border: 0;
+                            border-radius: 5px;
+                            position: relative;
+                            padding-right: 35px;
+
+                            &:focus, &.focus {
+                                box-shadow: none !important;
+                            }
+
+                            > .showPasswordChannelColumnText {
+                              display: inline-block;
+                              position: relative;
+                            }
+                            > .showPasswordChannelColumnIcon {
+                                display: inline-block;
+                                position: absolute;
+                                top: 0px;
+                                right: 0px;
+                                line-height: 35px;
+                                font-size: 35px;
+                            }
+                        }
+
+                        > div.confidentialStateMessage {
+                            font-size: 12px;
+                            color: @dark-grey;
+                        }
 					}
 				}
 			}

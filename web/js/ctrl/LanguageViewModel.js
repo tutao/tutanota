@@ -156,6 +156,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	newMails_msg: "New Tutanota email received.",
     newMailBadge_msg: "1 new email received",
     newMailsBadge_msg: "%d new emails received",
+    passwords_label: "Passwords",
+    showPasswordChannelColumn_title: "Enter passwords for external recipients.",
 
     //invitation
     invitationMailSubject_msg: "Join Tutanota and fight for privacy!",
@@ -594,6 +596,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	newMails_msg: "Neue Nachricht in Tutanota eingetroffen.",
     newMailBadge_msg: "1 neue E-Mail empfangen",
     newMailsBadge_msg: "%d neue E-Mails empfangen",
+    passwords_label: "Passwörter",
+    showPasswordChannelColumn_title: "Passwörter für externe Empfänger eingeben.",
 
     //invitation
     invitationMailSubject_msg: "Sei dabei: Mit Tutanota holen wir uns unsere Privatsphäre zurück!",

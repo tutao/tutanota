@@ -597,10 +597,14 @@
 												</div>
 											</div>
                                             <div class="headerLine" data-bind="fadeVisible: containsExternalRecipients()">
-                                                <div class="name edit" data-bind="lang: 'confidential_label'"></div>
+                                                <div class="name edit"></div>
                                                 <div class="value edit" id="composer_confidential">
                                                     <button class="confidentialButton switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-                                                        <div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
+                                                        <div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
+                                                    </button>
+                                                    <button class="showPasswordChannelColumn" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
+                                                        <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
+                                                        <div class="showPasswordChannelColumnIcon imgButton rightIndicator">
                                                     </button>
                                                 </div>
                                             </div>

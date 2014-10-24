@@ -55,7 +55,7 @@ body, input, button, select, textarea {
 @dark-grey: #555555;
 @light-grey: #F6F7F9;
 // synchronize with index.html styling of body (for loading screen)
-@red: #FFCCCC;
+@red: #F5AEAE;
 // rgb(235, 147, 147)
 @positive: #006400;
 @negative: #8B0000;
@@ -425,12 +425,19 @@ button {
   }
 
   &.switch {
+    border: 0;
+    border-radius: 5px;
+
     > div.imgButton {
       height: 20px;
       width: 20px;
     }
     &.off {
       background-color: @red;
+    }
+
+    &:focus, &.focus {
+      box-shadow: none !important;
     }
   }
 

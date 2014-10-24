@@ -128,6 +128,14 @@ tutao.tutanota.gui.MailView.prototype.showPasswordChannelColumn = function() {
 };
 
 /**
+ * See return
+ * @return {boolean} true, if the password channel column is visible.
+ */
+tutao.tutanota.gui.MailView.prototype.isPasswordChannelColumnVisible = function() {
+    return (this._swipeSlider.getRightmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS);
+};
+
+/**
  * Sets the composing mail body text.
  * @param {string} text The html body text.
  */
