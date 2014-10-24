@@ -101,6 +101,12 @@ body {
           font-size: 22px;
           width: @button-bar-button-width;
           padding: 0;
+          -webkit-tap-highlight-color: @highlight-color;
+
+          &:active {
+            background-color: @highlight-color;
+            border: 0;
+          }
         }
       }
 
@@ -217,12 +223,6 @@ body {
 			.searchAndList;
 
 			section#contactList {
-				position: absolute;
-				left: 0px;
-				top: 0px;
-				right: 0px;
-				bottom: 0px;
-
 				> div#emptyContactList {
 					margin-top: 10px;
 					text-align: center;
@@ -272,24 +272,32 @@ body {
 		}
 	
 		> div#innerContactColumn {
-			position: relative;
-			height: 100%;
+			position: absolute;
+            left: 0;
+            right:0;
+
+            @media @desktop {
+              top: @button-bar-height;
+              bottom: 0;
+            }
+
+            @media @mobile {
+              top: 0;
+              bottom: @button-bar-height;
+            }
+
 
 			> div#contactWrapper {
 				position: absolute;
 				right: 0px;
 				left: 0px;
 				top: 0px;
-				padding-bottom: 45px; // enough space for the button bar
+				padding-bottom: @button-bar-height; // enough space for the button bar
 				
 				> section#contact {
 					position: relative;
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
 					
-					> header {
-						width: 100%;
-						border-bottom: 1px solid @blue;
-					}
 					
 					> div.contactBody {
 						position: relative;
@@ -614,6 +622,17 @@ body {
 			position: relative;
 			height: 100%;
 
+          > img#sendMailBusyImg {
+            position: absolute;
+            left: 50%;
+            @media @desktop {
+              top: 10px;
+            }
+            @media @mobile {
+              bottom: 10px;
+            }
+          }
+
 			> section.conversation {
 				.fill;
                 top: @button-bar-height;
@@ -626,19 +645,6 @@ body {
                     position: relative;
                 }
 
-                > img#sendMailBusyImg {
-                  // z-index must be increased because div.actions z-index is also increased
-                  z-index: 2;
-                  display: block;
-                  position:absolute;
-                  top: 15px;
-                  left: 0px;
-                  right: 0px;
-                  width: 16px;
-                  margin-left: auto;
-                  margin-right: auto;
-                }
-	
 				// mail is used here
 			}
 		}

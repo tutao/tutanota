@@ -492,6 +492,9 @@
 				<div id="innerConversationColumn">
                     <!-- ko if: mail -->
                     <div class="actions" data-bind='template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+                    <!-- ko if: isComposingState() -->
+                    <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: mail().busy" />
+                    <!-- /ko -->
 					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
 							<div id="readMailWrapper" class="mailWrapper">
@@ -555,7 +558,6 @@
 							</div>
 						<!-- /ko -->
 						<!-- ko if: $parent.isComposingState() -->
-                            <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: busy" />
 							<div id="composeMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
@@ -690,15 +692,9 @@
 
 		<div id="contactContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.contactView">
 			<div id="searchAndContactListColumn" class="viewColumn" data-bind="with: tutao.locator.contactListViewModel">
+                <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
 				<div id="searchAndContactList">
-					<!--
-						<div class="search">
-							<div class="searchForm">
-								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-							</div>
-						</div>
-					-->
-					<section id="contactList" class="scrollable">
+					<section id="contactList" class="list scrollable">
 						<div id="innerContactList" data-bind="foreach: {data: contacts}, style: { borderTopWidth: (contacts().length > 0) ? '7px' : '0px', borderBottomWidth: (contacts().length > 0) ? '7px' : '0px' }">
 							<div class="contactInList" data-bind="click: $parent.showContact">
 								<div class="contactNameAndMailAddressInList">
@@ -719,13 +715,12 @@
 				<div id="noContact" class="infoMessage" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
 					<div data-bind="lang: 'noContact_msg'"></div><br>
 				</div>
-				<div id="innerContactColumn" class="scrollable">
+                <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
+                <div id="innerContactColumn" class="scrollable">
 					<div id="contactWrapper">
 						<!-- ko if: mode() !== tutao.tutanota.ctrl.ContactViewModel.MODE_NONE -->
 							<section id="contact">
-								<header>
-									<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-								</header>
+
 								<div class="contactBody">
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW -->
 										<div id="contactNameTitleAndImage">
@@ -1689,7 +1684,7 @@
             <menu data-bind="with: headerBarViewModel">
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
-                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
+                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
                             <div class="menu_image">
                                 <div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
                                     <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>

@@ -207,6 +207,9 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.locator.viewManager.init(external);
     tutao.locator.mailListViewModel.init();
     tutao.locator.mailViewModel.init();
+    tutao.locator.contactListViewModel.initButtonBar();
+    tutao.locator.contactViewModel.initButtonBar();
+
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
