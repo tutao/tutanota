@@ -95,7 +95,7 @@
 <script src="/lib/autolinker.min.js"></script>
 <script src="/lib/bCrypt.js"></script>
 <script src="/lib/bluebird-2.2.2.js"></script>
-<script src="/lib/google-fastbutton-2012-10-02.js"></script>
+<script src="/lib/hammer-2.0.4.js"></script>
 <script src="/lib/html-css-sanitizer-r5333-fix1.min.js"></script>
 <script src="/lib/jquery-1.9.1.js"></script>
 <script src="/lib/jquery-transit-0.9.9.js"></script>
@@ -123,6 +123,15 @@
 <script src="/js/crypto/SjclRandomizer.js"></script>
 <script src="/js/crypto/SjclSha256.js"></script>
 <script src="/js/crypto/WorkerRandomizer.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
@@ -174,15 +183,6 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/event/EventBusClient.js"></script>
 <script src="/js/event/EventBusListener.js"></script>
 <script src="/js/event/ListEventTracker.js"></script>
@@ -258,6 +258,67 @@
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Attachment.js"></script>
+<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+<script src="/js/generated/entity/tutanota/Contact.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactList.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
+<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
+<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
+<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
+<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
+<script src="/js/generated/entity/tutanota/File.js"></script>
+<script src="/js/generated/entity/tutanota/FileData.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
+<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
+<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/Mail.js"></script>
+<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/MailBody.js"></script>
+<script src="/js/generated/entity/tutanota/MailBox.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Recipient.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
+<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
+<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
 <script src="/js/generated/entity/sys/Authentication.js"></script>
@@ -341,67 +402,6 @@
 <script src="/js/generated/entity/sys/VersionData.js"></script>
 <script src="/js/generated/entity/sys/VersionReturn.js"></script>
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
-<script src="/js/generated/entity/tutanota/Attachment.js"></script>
-<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
-<script src="/js/generated/entity/tutanota/Contact.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactList.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
-<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
-<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
-<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
-<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
-<script src="/js/generated/entity/tutanota/File.js"></script>
-<script src="/js/generated/entity/tutanota/FileData.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
-<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
-<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
-<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/Mail.js"></script>
-<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/MailBody.js"></script>
-<script src="/js/generated/entity/tutanota/MailBox.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
-<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Recipient.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
-<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
-<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -451,7 +451,7 @@
 				<div id="searchAndMailList" >
 					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
-							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
+							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
 									<div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
 									<div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
@@ -468,7 +468,7 @@
 								</div>
 							</div>
 						</div>
-                        <div class="loadMoreElement" data-bind="click: loadMoreMails, visible: moreAvailable() && !showSpinner()">
+                        <div class="loadMoreElement" data-bind="fastClick: loadMoreMails, visible: moreAvailable() && !showSpinner()">
                             <span data-bind="text: tutao.lang('loadMoreMails_action'), visible: !loading()"></span>
                             <img src="graphics/busy.gif" data-bind="visible: loading()" />
                         </div>
@@ -498,7 +498,7 @@
 					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
 							<div id="readMailWrapper" class="mailWrapper">
-								<section class="mail" data-bind="click: $parent.selectMail">
+								<section class="mail" data-bind="fastClick: $parent.selectMail">
 									<header>
 										<div class="headerTable">
 											<div class="headerLine">
@@ -649,8 +649,8 @@
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
                             <div id="changeNotificationMailLanguage">
                                 <span class="descriptionFont" class="descriptionFont" data-bind="lang: 'changeNotificationMailLanguage_msg'"></span>
-                                <img class="languageButton" src="graphics/german.png" data-bind="css: {languageButtonSelected: germanSelected }, click: function() { setTimeout(function() { germanSelected(true); }, 0); }"/>
-                                <img class="languageButton" src="graphics/english.png" data-bind="css: {languageButtonSelected: !germanSelected()}, click: function() { setTimeout(function() { germanSelected(false); }, 0); }" />
+                                <img class="languageButton" src="graphics/german.png" data-bind="css: {languageButtonSelected: germanSelected }, fastClick: function() { setTimeout(function() { germanSelected(true); }, 0); }"/>
+                                <img class="languageButton" src="graphics/english.png" data-bind="css: {languageButtonSelected: !germanSelected()}, fastClick: function() { setTimeout(function() { germanSelected(false); }, 0); }" />
                             </div>
                             <div id="passwordChannelDescription" class="descriptionFont" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
@@ -696,7 +696,7 @@
 				<div id="searchAndContactList">
 					<section id="contactList" class="list scrollable">
 						<div id="innerContactList" data-bind="foreach: {data: contacts}, style: { borderTopWidth: (contacts().length > 0) ? '7px' : '0px', borderBottomWidth: (contacts().length > 0) ? '7px' : '0px' }">
-							<div class="contactInList" data-bind="click: $parent.showContact">
+							<div class="contactInList" data-bind="fastClick: $parent.showContact">
 								<div class="contactNameAndMailAddressInList">
 									<span class="emphasizedText"  data-bind="text: getFullName()"></span><br>
 									<!-- ko if: getContact().getMailAddresses().length > 0 -->
@@ -708,7 +708,7 @@
 						<div id="emptyContactList" class="infoMessage" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
 					</section>
 				</div>
-				<!-- <button data-bind="click: function() { importThunderbirdContactsAsCsv(); }">import</button> -->
+				<!-- <button data-bind="fastClick: function() { importThunderbirdContactsAsCsv(); }">import</button> -->
 			</div>
 
 			<div id="contactColumn" class="viewColumn" data-bind="with: tutao.locator.contactViewModel">
@@ -1008,7 +1008,7 @@
 								<div class="recordName"></div>
 								<div class="formAction">
 									<button id="submitLogin" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-                                    <button class="minimal" data-bind="click: createAccount, lang: 'createAccount_action'"></button>
+                                    <button class="minimal" data-bind="fastClick: createAccount, lang: 'createAccount_action'"></button>
 									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
@@ -1285,7 +1285,7 @@
                                     <div class="recordName"></div>
                                     <div class="formAction">
                                         <button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
-                                        <button class="minimal" data-bind="click: login, lang: 'login_action'"></button>
+                                        <button class="minimal" data-bind="fastClick: login, lang: 'login_action'"></button>
                                     </div>
                                 </div>
                             </form>
@@ -1428,12 +1428,12 @@
 									<div class="buttonBar" data-bind="visible: changeAccountsAllowed">
                                         <div class="outerButtons">
                                             <div class="innerButtons">
-                                                <button type="submit" data-bind="lang: 'create_action', click: createAccounts"></button>
+                                                <button type="submit" data-bind="lang: 'create_action', fastClick: createAccounts"></button>
                                             </div>
                                         </div>
                                     </div>
 									<div class="userList" data-bind="foreach: {data: userGroups}">
-										<div class="user" data-bind="click: $parent.editUser">
+										<div class="user" data-bind="fastClick: $parent.editUser">
                                             <div class="icons">
                                                 <div class="mailHeaderImage imgButton trash-small" data-bind="visible: getDeleted(), attr: {alt: tutao.lang('deleted_label')}"></div>
                                             </div>
@@ -1513,7 +1513,7 @@
 
                         <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
                             <div>
-                                <span class="close" data-bind="click: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
+                                <span class="close" data-bind="fastClick: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
                                 <h2 data-bind="lang: 'importCsv_label'"></h2>
                                 <form class="recordContainer wide" data-bind="submit: importCsv, form: true">
                                     <div class="record">
@@ -1578,8 +1578,8 @@
                                     <div class="recordName"></div>
                                     <div class="formAction">
                                         <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-                                        <button class="minimal" data-bind="lang: 'import_action', click: openCsvDialog"></button></button>
-                                        <button class="minimal" data-bind="lang: 'cancel_action', click: cancel"></button>
+                                        <button class="minimal" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button></button>
+                                        <button class="minimal" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
                                         <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
                                     </div>
                                 </div>
@@ -1601,22 +1601,22 @@
 
 	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div>
-			<span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
+			<span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: title"></h2>
             <div class="modalDialogInfo" data-bind="visible: !isErrorDialog(), html: tutao.lang('faq_msg')"></div>
             <div class="descriptionFont" data-bind="visible: isErrorDialog, lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
             <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
-            <button class="barButton" data-bind="click: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
+            <button class="barButton" data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>
 
     <div id="developer" class="modalDialog" data-bind="with: tutao.locator.developerViewModel, fadeVisible: tutao.locator.developerViewModel.showDialog">
         <div>
-            <span class="close" data-bind="click: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
+            <span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2 data-bind="lang: 'dev_label'"></h2>
             <ul class="test-list" data-bind="foreach: tests">
-                <li data-bind="click: action">
+                <li data-bind="fastClick: action">
                     <h2 data-bind="text: title"></h2>
                     <div data-bind="html: details"></div>
                 </li>
@@ -1630,9 +1630,9 @@
 
     <div id="legacyDownloadDialog" class="modalDialog" data-bind="with: tutao.locator.legacyDownloadViewModel, fadeVisible: tutao.locator.legacyDownloadViewModel.dialogVisible">
         <div>
-            <span class="close" data-bind="click: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
+            <span class="close" data-bind="fastClick: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2 data-bind="lang: 'showAttachment_label'"></h2>
-            <a id="downloadLink" target="_blank" data-bind="text: filename(), attr: { href: blobUrl }, click: function() {  setTimeout(function() { closeDialog(); }, 0); return true; }"></a>
+            <a id="downloadLink" target="_blank" data-bind="text: filename(), attr: { href: blobUrl }, fastClick: function() {  setTimeout(function() { closeDialog(); }, 0); return true; }"></a>
             <div class="modalDialogInfo" data-bind="lang: textId()"></div>
         </div>
     </div>
@@ -1647,7 +1647,7 @@
     </div>
 <!--
     <div id="attachmentDialog" data-bind="with: tutao.locator.attachmentDialogViewModel, fadeVisible: tutao.locator.attachmentDialogViewModel.dialogVisible">
-        <span class="close" data-bind="click: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
+        <span class="close" data-bind="fastClick: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
         <a target="_blank" data-bind="attr: { href: blobUrl, download: filename }">
             <span>Download</span>
         </a>
@@ -1657,7 +1657,7 @@
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
-        <div id="left-navbar" data-bind="css: { showNavButton: getActiveView().isShowLeftNeighbourColumnPossible()}, click: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }">
+        <div id="left-navbar" data-bind="css: { showNavButton: getActiveView().isShowLeftNeighbourColumnPossible()}, fastClick: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }">
             <div class="leftViewButton imgButton leftIndicator">
             </div>
             <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()">
@@ -1678,7 +1678,6 @@
             </div>
             <div id="previousLocation" data-bind="lang:previousColumnTitle(), fadeVisible: getActiveView().isShowLeftNeighbourColumnPossible()"></div>
         </div>
-
 
         <div id="right-navbar" >
             <menu data-bind="with: headerBarViewModel">
@@ -1701,7 +1700,7 @@
 	</header>
 
     <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
-        <div class="modalDialog" data-bind="click: function(){ if(moreVisible()){hideMore();}}, visible:moreVisible()">
+        <div class="modalDialog" data-bind="visible:moreVisible()">
             <menu id="menu_more">
                 <div id="triangle-up"></div>
                 <ul>
@@ -1761,7 +1760,7 @@
 			<div class="input" tabindex="-1" data-bind="css: {focus: vm.active}, click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="imgButton cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, fastClick: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="imgButton cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">

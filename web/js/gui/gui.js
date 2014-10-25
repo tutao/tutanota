@@ -25,23 +25,25 @@ tutao.tutanota.gui.initKnockout = function() {
 	        element['__ko__previousClassValue__'] = value;
 	    }
 	};
-	ko.bindingHandlers.fastClick = {
+    ko.bindingHandlers.fastClick = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-			// FastButton is used because the FastClick bug does not exist (jumping focus)
-			// Disadvantage: The cursor does not stay in the bubbleinputfield when selecting a suggestion (seems to depend on body movement)
-			// Additional bad disadvantage: elements that are bound to the fastClick can not be iscroll-scrolled
-			// Additional disadvantage: click events may come twice if the click triggers a alert or confirm popup, e.g. in the contact view
-			// one time when the delete button is clicked (then press cancel) and the second time when you try to
-			// scroll the contact afterwards (see iss129)
-			// workaround is to call the handler function in a setTimeout
-			new FastButton(element, function(event) {
-				valueAccessor()(viewModel, event);
-			});
+            if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+                var m = new Hammer.Manager(element);
+                m.add(new Hammer.Tap({ threshold: 10 }));
+                m.on("tap", function (event) {
+                    event.srcEvent.preventDefault();
+                    $(element).addClass("active");
+                    setTimeout(function () {
+                        $(element).removeClass("active");
+                    }, 100);
+                    valueAccessor()(viewModel, event.srcEvent);
+                });
+                return false;
+            } else {
+                return ko.bindingHandlers.click.init.apply(this, arguments);
+            }
 		}
 	};
-	// FastClick is currently not used because when selecting the subject field, the focus jumps to the body in certain cases
-	// Advantage of FastClick: The cursor is always staying in the bubble input field when selecting a suggestion (the body does not scroll)
-	//new FastClick(document.body);
 
 	// allows the view model to receive the bound dom element
 	ko.bindingHandlers.domInit = {
@@ -656,7 +658,6 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
         $('.panel > div').css('height', calculatedHeight);
     }
 };
-
 
 /**
  * Shows the tooltip on mobile devices

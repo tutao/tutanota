@@ -43,12 +43,14 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
     tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
         self.width = width;
         if (self.mail()) {
-            self.mail().buttonBarViewModel.setButtonBarWidth(self.width);
+            // we reduce the max width by 10 px which are used in our css for paddings + borders
+            self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 10);
         }
     });
     this.mail.subscribe(function (newMail) {
         if (newMail) {
-            self.mail().buttonBarViewModel.setButtonBarWidth(self.width);
+            // we reduce the max width by 10 px which are used in our css for paddings + borders
+            self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 10);
         }
     });
 };

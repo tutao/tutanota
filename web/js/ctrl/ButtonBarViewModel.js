@@ -40,7 +40,13 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     //  Decorate the click listener of all buttons to close the more menu
     var self = this;
     for( var i=0; i< buttons.length; i++){
-        buttons[i].setHideButtonsHandler(this.hideMore);
+        // we hide after a short delay to make the successful touch action visible (highlight the button)
+        var hideMoreAfterShortDelay = function () {
+            setTimeout(function () {
+                self.hideMore();
+            },300);
+        }
+        buttons[i].setHideButtonsHandler(hideMoreAfterShortDelay);
     }
 
 	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
@@ -57,7 +63,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
-    this.maxWidth = width - 10; // we reduce the max width by 10 px which are used in our css for paddings + borders
+    this.maxWidth = width;
     this.updateVisibleButtons();
 };
 

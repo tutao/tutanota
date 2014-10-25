@@ -60,7 +60,10 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
     ];
 
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT, this.buttonBarViewModel.setButtonBarWidth);
+    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT, function (width) {
+        // we reduce the max width by 10 px which are used in our css for paddings + borders
+        self.buttonBarViewModel.setButtonBarWidth(width - 10);
+    });
 };
 
 /**

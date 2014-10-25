@@ -82,7 +82,6 @@ body {
         position: relative;
         background: @background-dark;
         height: @button-bar-height;
-        padding-right: 5px;
 
         @media @desktop {
           border-bottom: 1px solid @border-dark;
@@ -101,11 +100,14 @@ body {
           font-size: 22px;
           width: @button-bar-button-width;
           padding: 0;
-          -webkit-tap-highlight-color: @highlight-color;
 
-          &:active {
+          &:active, &.active {
             background-color: @highlight-color;
             border: 0;
+          }
+
+          &:last-child {
+            padding-right: 5px;
           }
         }
       }

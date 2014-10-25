@@ -95,7 +95,11 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, internalUser, false, "newMailAction", "mail-new")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, this.buttonBarViewModel.setButtonBarWidth);
+    var self = this;
+    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
+        // we reduce the max width by 10 px which are used in our css for paddings + borders
+        self.buttonBarViewModel.setButtonBarWidth(width - 10);
+    });
 };
 
 
