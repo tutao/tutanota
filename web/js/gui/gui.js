@@ -571,7 +571,13 @@ tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, widt
 		$(domElement).css("left", left + "px");
 		$(domElement).css("width", width + "px");
 	} else {
-		$(domElement).transition({left: left + "px", width: width + "px"}, 300, 'easeInOutCubic');
+        if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID) {
+            // css transitions on older androids are horribly slow
+            $(domElement).css("left", left + "px");
+            $(domElement).css("width", width + "px");
+        } else {
+            $(domElement).transition({left: left + "px", width: width + "px"}, 300, 'easeInOutCubic');
+        }
 	}
 };
 
