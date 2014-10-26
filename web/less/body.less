@@ -79,6 +79,7 @@ body {
       }
 
       > div.buttonBar {
+        z-index: 9999; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
         position: relative;
         background: @background-dark;
         height: @button-bar-height;

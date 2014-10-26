@@ -20,6 +20,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     if(!moreButtonText) {
         moreButtonText = "dots_label";
     }
+
     this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
     if (measureFunction) {
         this._getSingleButtonWidth = measureFunction;
@@ -161,7 +162,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hideMore = function() {
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
-    if ( this.moreVisible()){
+    if (this.moreVisible()){
         this.hideMore();
     }else{
         this._showMore();

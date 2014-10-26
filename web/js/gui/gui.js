@@ -30,6 +30,7 @@ tutao.tutanota.gui.initKnockout = function() {
             if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                 var m = new Hammer.Manager(element);
                 m.add(new Hammer.Tap({ threshold: 10 }));
+                var prevent = new PreventGhostClick(element);
                 m.on("tap", function (event) {
                     event.srcEvent.preventDefault();
                     $(element).addClass("active");
