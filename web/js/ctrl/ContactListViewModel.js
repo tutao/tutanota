@@ -58,7 +58,11 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.initButtonBar = function() {
         new tutao.tutanota.ctrl.Button("newContact_action", 10,  tutao.locator.navigator.newContact, function(){return true;}, false, "newContactAction", "add")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST, this.buttonBarViewModel.setButtonBarWidth);
+    var self = this;
+    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST, function (width) {
+        // we reduce the max width by 10 px which are used in our css for paddings + borders
+        self.buttonBarViewModel.setButtonBarWidth(width - 10);
+    });
 };
 
 /**

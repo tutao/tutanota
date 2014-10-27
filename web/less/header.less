@@ -273,6 +273,10 @@ div#modalMoreMenu {
           //height: 35px;
           padding: @padding;
           border-bottom: 1px solid @border-dark;
+
+          &:active, &.active {
+            background-color: @highlight-color;
+          }
         }
       }
     }
@@ -282,14 +286,13 @@ div#modalMoreMenu {
 // also used in mail and contact view if no entities is shown
 .menu_link {
   width: @menuItemWidth; // defines the width of each menu item (+ margin)
-  -webkit-tap-highlight-color: @highlight-color;
 
   height: @header-height - 1;
   @media @mobile {
     height: @header-height-small - 1;
   }
 
-  &:active, &.selected {
+  &:active, &.active, &.selected {
     background-color: @highlight-color;
     border: 0;
   }
