@@ -299,3 +299,12 @@ tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(cleanPhoneNum
 	}
 	return false;
 };
+
+/**
+ * Replaces plain text links in the given text by html links. Already existing html links are not changed.
+ * @param text The text to be checked for links.
+ * @returns {string} The text with html links.
+ */
+tutao.tutanota.util.Formatter.urlify = function(text) {
+    return Autolinker.link(text, {stripPrefix : false});
+};

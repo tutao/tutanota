@@ -72,10 +72,10 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 			var generatedKeyHex = tutao.util.EncodingConverter.base64ToHex(generatedKey.publicKey.modulus);
 			console.log("generatedKeyHex:" + generatedKeyHex.length + ":" + generatedKeyHex);
 
-			var convertedKeyPair = tutao.locator.rsaCrypter._convertFromKeyPair(generatedKey);
+			var convertedKeyPair = tutao.locator.rsaUtil._convertFromKeyPair(generatedKey);
 			console.log("convertedKey:" + convertedKeyPair.publicKey.length + ":" + convertedKeyPair.publicKey);
 
-			var convertedKeyToHex = tutao.locator.rsaCrypter.keyToHex(convertedKeyPair.publicKey);
+			var convertedKeyToHex = tutao.locator.rsaUtil.keyToHex(convertedKeyPair.publicKey);
 			console.log("convertedKeyHex:" + convertedKeyToHex.length + ":" + convertedKeyToHex);
 
 			var convertedKeyToB64 = tutao.util.EncodingConverter.hexToBase64(convertedKeyToHex);

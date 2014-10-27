@@ -7,13 +7,14 @@ tutao.provide('tutao.tutanota.ctrl.ViewSlider');
  * columns is calculated. This allows a consistent layout for any browser resolution on any type of device.
  * @constructor
  */
-tutao.tutanota.ctrl.ViewSlider = function() {
+tutao.tutanota.ctrl.ViewSlider = function(updateColumnTitleCallback) {
 	 // all dummy values until showDefault is called the first time
 	// static values (only change at initialization or screen width change)
 	this._viewColumns = [];
 	this._screenWidth = 0;
 	this._initialized = false;
 	this._receiver = undefined;
+    this._updateColumnTitleCallback = updateColumnTitleCallback;
 	this._defaultViewStartIndex = 0;
 	this._defaultViewEndIndex = 0;
 
@@ -30,11 +31,12 @@ tutao.tutanota.ctrl.ViewSlider = function() {
  * @param {number} maxWidth The maximum allowed width for the view column.
  * @param {function(number, number)} widthReceiver A listener function that is called whenever the position or width of the view column is modified. Receives the x position and width
  * of the view column as argument.
+ * @param {function()} titleProvider A function that returns the translated title text for a column.
  * @return {number} The id that is now associated with the view column. Use it for calls to showViewColumn and isVisible.
  */
-tutao.tutanota.ctrl.ViewSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, widthReceiver) {
+tutao.tutanota.ctrl.ViewSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, widthReceiver, titleProvider) {
 	// 0 is a dummy width until showDefault is called the first time
-	this._viewColumns.push({ prio: prio, minWidth: minWidth, maxWidth: maxWidth, widthReceiver: widthReceiver, width: null});
+	this._viewColumns.push({ prio: prio, minWidth: minWidth, maxWidth: maxWidth, widthReceiver: widthReceiver, width: null, getTitle: titleProvider, observable: new tutao.event.Observable()});
 	return this._viewColumns.length - 1;
 };
 
@@ -85,6 +87,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype._initColumns = function() {
 	for (var i = 0; i < this._viewColumns.length; i++) {
 		// notify the view column via the setter function
 		this._viewColumns[i].widthReceiver(posX, this._viewColumns[i].width);
+        this._viewColumns[i].observable.notifyObservers(this._viewColumns[i].width);
 		posX += this._viewColumns[i].width;
 	}
 };
@@ -198,6 +201,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showDefault = function() {
 		this._maxVisibleColumn = this._defaultViewEndIndex;
 		this.notifyViewPosition(initial);
 	}
+    this.notifyColumnChange();
 };
 
 /**
@@ -290,6 +294,16 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 		this._minVisibleColumn = index + 1;
 		this.notifyViewPosition(initial);
 	}
+    this.notifyColumnChange();
+};
+
+/**
+ * Adds an observer that is notified if the width of the provided column changes
+ * @param {number} viewColumnId The id of the view columns that shall be made visible.
+ * @param {function(number)} widthObserver Called with the updated width
+ */
+tutao.tutanota.ctrl.ViewSlider.prototype.addWidthObserver = function(viewColumnId, widthObserver) {
+    this._viewColumns[viewColumnId].observable.addObserver(widthObserver);
 };
 
 /**
@@ -330,6 +344,22 @@ tutao.tutanota.ctrl.ViewSlider.prototype._getViewWidth = function() {
 	}
 	return viewWidth;
 };
+
+tutao.tutanota.ctrl.ViewSlider.prototype.notifyColumnChange = function() {
+    if ( this._updateColumnTitleCallback != undefined){
+        var currentTitle = null;
+        if ( this._minVisibleColumn >= 0){
+            currentTitle = this._viewColumns[this._minVisibleColumn].getTitle();
+        }
+        var previousColumnId = this._minVisibleColumn -1;
+        var previousTitle = null;
+        if (previousColumnId >=0 ){
+            previousTitle = this._viewColumns[previousColumnId].getTitle();
+        }
+       this._updateColumnTitleCallback(currentTitle, previousTitle);
+    }
+};
+
 
 
 

@@ -327,18 +327,11 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
 		}
 		return tutao.entity.sys.Group.load(permission.getGroup()).then(function(group) {
 			var privateKey = self._getPrivateKey(group, Number(bucketPermission.getPubKeyVersion()), groupKey);
-            return new Promise(function(resolve, reject) {
-                tutao.locator.rsaCrypter.decryptAesKey(privateKey, bucketPermission.getPubEncBucketKey(), function(bucketKeyHex, exception) {
-                    if (exception) {
-                        reject(exception);
-                        return;
-                    }
-                    var sessionKey;
-                    var bucketKey = tutao.locator.aesCrypter.hexToKey(bucketKeyHex);
-                    sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
-                    self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey);
-                    resolve(sessionKey);
-                });
+            return tutao.locator.crypto.rsaDecrypt(privateKey, tutao.util.EncodingConverter.base64ToArray(bucketPermission.getPubEncBucketKey())).then(function(bucketKeyBytes) {
+                var bucketKey = sjcl.codec.bytes.toBits(bucketKeyBytes);
+                var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
+                self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey);
+                return sessionKey;
             });
 		});
 	});
@@ -349,7 +342,7 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
  * @param {tutao.entity.sys.Group} group The group.
  * @param {number} version The version of the key pair.
  * @param {Object} symGroupKey The group key of the given group.
- * @return {Object} The private key.
+ * @return {tutao.native.PrivateKey} The private key.
  * @throws {tutao.InvalidDataError} If the private key could not be found or could not be decrypted.
  */
 tutao.entity.EntityHelper.prototype._getPrivateKey = function(group, version, symGroupKey) {
@@ -357,7 +350,7 @@ tutao.entity.EntityHelper.prototype._getPrivateKey = function(group, version, sy
 	for (var i = 0; i < group.getKeys().length; i++) {
 		if (Number(keyPairs[i].getVersion()) == version) {
             var privateKeyHex = tutao.locator.aesCrypter.decryptPrivateRsaKey(symGroupKey, keyPairs[i].getSymEncPrivKey());
-            return tutao.locator.rsaCrypter.hexToKey(privateKeyHex);
+            return tutao.locator.rsaUtil.hexToPrivateKey(privateKeyHex);
 		}
 	}
 	throw new tutao.InvalidDataError("private key with version" + version + " not found for group " + group.getId());

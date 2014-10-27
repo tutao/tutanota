@@ -1,6 +1,9 @@
 @button-bar-height: 45px;
 @button-bar-margin: 5px;
+// If this width is changed, we have to update the measure function in ButtonBarViewModel!
+@button-bar-button-width: 45px;
 @list-entry-height: 49px;
+
 
 body {
 	position: absolute; // needed to allow increasing the body height in touch composing mode
@@ -9,7 +12,7 @@ body {
 	height: 100%; // this is overwritten in touch composing mode
 	overflow:hidden;
 	background: @background;
-	
+
 	> div#tutanota {
 		-webkit-touch-callout: none;
 		-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -63,36 +66,67 @@ body {
 		margin-right: @button-bar-margin;
 	}
 
-	div.buttonBar {
-		position: relative;
-		background: @background-buttonBar;
-		height: @button-bar-height;
-		line-height: @button-bar-height;
+    div.actions {
+      position: absolute;
+      left: 0;
+      right: 0;
+
+      @media @desktop {
+        top: 0;
+      }
+      @media @mobile {
+        bottom: 0;
+      }
+
+      > div.buttonBar {
+        position: relative;
+        background: @background-dark;
+        height: @button-bar-height;
+        padding-right: 5px;
+
+        @media @desktop {
+          border-bottom: 1px solid @border-dark;
+        }
+        @media @mobile {
+          border-top: 1px solid @border-dark;
+        }
 
         > button {
+          position: relative; // needed to position stacked icons correctly (e.g. restore icon)
           float: right;
-          margin-top: @button-bar-margin;
-          margin-right: @button-bar-margin;
+          margin-top: 0;
+          border: 0;
+          background-color: transparent;
+          height: 100%;
+          font-size: 22px;
+          width: @button-bar-button-width;
+          padding: 0;
+          -webkit-tap-highlight-color: @highlight-color;
+
+          &:active {
+            background-color: @highlight-color;
+            border: 0;
+          }
         }
-	}
+      }
 
-    div.buttonBarMoreMenu {
-      position: absolute;
-      background: @background-buttonBar;
-      right: 0px;
-      // increased z-index must also be set for complete action bar because otherwise it it does not work in iOS 6
-      z-index: 1;
-      padding-left: @button-bar-margin;
-      padding-right: @button-bar-margin;
+      > div.buttonBarMoreMenu {
+        position: absolute;
+        background: @background-dark;
+        right: 0px;
+        // increased z-index must also be set for complete action bar because otherwise it it does not work in iOS 6
+        z-index: 1;
+        padding-left: @button-bar-margin;
+        padding-right: @button-bar-margin;
 
-      > button{
-        display: block;
-        position: relative;
-        width: 100%;
-        margin-bottom: @button-bar-margin;
+        > button{
+          display: block;
+          position: relative;
+          width: 100%;
+          margin-bottom: @button-bar-margin;
+        }
       }
     }
-
 
     div#tagListColumn {
 	
@@ -102,7 +136,7 @@ body {
 			top: 0px;
 			right: 0px;
 			bottom: 0px;
-			background-color: @background-buttonBar;
+			background-color: @background-alternate;
 
 			> div#innerTagList {
 				.imgButton {
@@ -111,8 +145,9 @@ body {
 			}
 		}
 	}
-	
-	.searchAndList {
+
+	.searchAndList() {
+
 		> div.actions{
           display: table;
           width: 100%;
@@ -125,7 +160,7 @@ body {
             vertical-align: top;
             padding-top: @button-bar-margin;
             padding-left: @padding;
-            background: @background-buttonBar;
+            background: @background-dark;
           }
           > div.search {
             .fill;
@@ -134,7 +169,7 @@ body {
             padding-top:  @padding;
             padding-left: @padding;
             padding-right: @padding;
-            background: @background-buttonBar;
+            background: @background-dark;
             height: @button-bar-height;
             width:100%;
             z-index: 1;
@@ -151,12 +186,25 @@ body {
             }
           }
         }
+
         > section.list {
-          .fill;
-          &.belowSearch {
-            top: @button-bar-height;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: @button-bar-height;
+          bottom: 0;
+
+          @media @desktop {
+              top: @button-bar-height;
+              bottom: 0;
           }
-          > div.loadMoreElement{
+
+          @media @mobile {
+            top: 0;
+            bottom: @button-bar-height;
+          }
+
+          > div.loadMoreElement {
             width: 100%;
             height: @list-entry-height;
             border-bottom: 1px solid @border-dark;
@@ -168,20 +216,13 @@ body {
             .light;
           }
         }
-
 	}
-	
+
 	div#searchAndContactListColumn {
 		> div#searchAndContactList {
 			.searchAndList;
-			
-			section#contactList {	
-				position: absolute;
-				left: 0px;
-				top: 0px;
-				right: 0px;
-				bottom: 0px;
 
+			section#contactList {
 				> div#emptyContactList {
 					margin-top: 10px;
 					text-align: center;
@@ -231,24 +272,32 @@ body {
 		}
 	
 		> div#innerContactColumn {
-			position: relative;
-			height: 100%;
+			position: absolute;
+            left: 0;
+            right:0;
+
+            @media @desktop {
+              top: @button-bar-height;
+              bottom: 0;
+            }
+
+            @media @mobile {
+              top: 0;
+              bottom: @button-bar-height;
+            }
+
 
 			> div#contactWrapper {
 				position: absolute;
 				right: 0px;
 				left: 0px;
 				top: 0px;
-				padding-bottom: 45px; // enough space for the button bar
+				padding-bottom: @button-bar-height; // enough space for the button bar
 				
 				> section#contact {
 					position: relative;
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */
 					
-					> header {
-						width: 100%;
-						border-bottom: 1px solid @blue;
-					}
 					
 					> div.contactBody {
 						position: relative;
@@ -573,49 +622,29 @@ body {
 			position: relative;
 			height: 100%;
 
+          > img#sendMailBusyImg {
+            position: absolute;
+            left: 50%;
+            @media @desktop {
+              top: 10px;
+            }
+            @media @mobile {
+              bottom: 10px;
+            }
+          }
+
 			> section.conversation {
 				.fill;
+                top: @button-bar-height;
+                @media @mobile {
+                  bottom: @button-bar-height;
+                  top: 0;
+                }
 
-				> div.actions {
-                    position: relative;
-					display: table;
-					width: 100%;
-                    // see div.buttonBarMoreMenu for z-index
-                    z-index: 1;
-					> div.confidentialAction {
-						display: table-cell;
-						width: 42px;
-						vertical-align: top;
-						padding-top: 5px;
-						padding-left: @padding;
-						background: @background-buttonBar;
-
-                      div.imgButton {
-                        padding-left: 4px;
-                      }
-					}
-					
-					> div.otherActions {
-						display: table-cell;
-					}
-				}
                 > div.mailWrapper {
                     position: relative;
                 }
 
-                > img#sendMailBusyImg {
-                  // z-index must be increased because div.actions z-index is also increased
-                  z-index: 2;
-                  display: block;
-                  position:absolute;
-                  top: 15px;
-                  left: 0px;
-                  right: 0px;
-                  width: 16px;
-                  margin-left: auto;
-                  margin-right: auto;
-                }
-	
 				// mail is used here
 			}
 		}
@@ -636,11 +665,6 @@ body {
 			border-bottom: 1px solid @border-dark;
 			padding-bottom: @padding;
 
-            > div.confidentialStateMessage {
-                font-size: 12px;
-                color: @dark-grey;
-            }
-			
 			> div.headerTable {
 				display: table;
 				width: 100%;
@@ -674,6 +698,40 @@ body {
 							width: 100%;
 							max-width: 100%;
 						}
+
+                        button.confidentialButton {
+                            padding-left: 17px;
+                        }
+
+                        button.showPasswordChannelColumn {
+                            float: right;
+                            border: 0;
+                            border-radius: 5px;
+                            position: relative;
+                            padding-right: 35px;
+
+                            &:focus, &.focus {
+                                box-shadow: none !important;
+                            }
+
+                            > .showPasswordChannelColumnText {
+                              display: inline-block;
+                              position: relative;
+                            }
+                            > .showPasswordChannelColumnIcon {
+                                display: inline-block;
+                                position: absolute;
+                                top: 0px;
+                                right: 0px;
+                                line-height: 35px;
+                                font-size: 35px;
+                            }
+                        }
+
+                        > div.confidentialStateMessage {
+                            font-size: 12px;
+                            color: @dark-grey;
+                        }
 					}
 				}
 			}
@@ -950,7 +1008,6 @@ body {
                                 right: 0px;
                               }
                             }
-                            border-top: 1px solid @border-dark;
 							padding: 0;
 							> div.userList {
 								background: @white;

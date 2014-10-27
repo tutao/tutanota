@@ -23,16 +23,15 @@ tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = null;
 /**
  * @inherit
  */
-tutao.tutanota.gui.MailView.prototype.init = function(external) {
-    this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "mailContent");
-    tutao.tutanota.gui.MailView.COLUMN_TAGS = this._swipeSlider.addViewColumn(2, 190, 190, 'tagListColumn');
-    tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = this._swipeSlider.addViewColumn(0, 300, 800, 'searchAndMailListColumn');
-    tutao.tutanota.gui.MailView.COLUMN_CONVERSATION = this._swipeSlider.addViewColumn(1, 600, 1024, 'conversationColumn');
+tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitleCallback) {
+    this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "mailContent", updateColumnTitleCallback);
+    tutao.tutanota.gui.MailView.COLUMN_TAGS = this._swipeSlider.addViewColumn(2, 190, 190, 'tagListColumn', "folderTitle_label");
+    tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = this._swipeSlider.addViewColumn(0, 300, 800, 'searchAndMailListColumn', tutao.locator.tagListViewModel.getActiveTagTextId );
+    tutao.tutanota.gui.MailView.COLUMN_CONVERSATION = this._swipeSlider.addViewColumn(1, 600, 1024, 'conversationColumn',tutao.locator.mailViewModel.getConversationTypeTextId);
 	if (!external) {
         tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = this._swipeSlider.addViewColumn(3, 300, 800, 'passwordChannelColumn');
 	}
 
-	this._firstActivation = true;
 };
 
 /**
@@ -47,10 +46,6 @@ tutao.tutanota.gui.MailView.prototype.isForInternalUserOnly = function() {
  */
 tutao.tutanota.gui.MailView.prototype.activate = function() {
     this._swipeSlider.activate();
-	if (this._firstActivation) {
-		this._firstActivation = false;
-		tutao.locator.mailListViewModel.init();
-	}
 };
 
 /**
@@ -134,6 +129,14 @@ tutao.tutanota.gui.MailView.prototype.showPasswordChannelColumn = function() {
 };
 
 /**
+ * See return
+ * @return {boolean} true, if the password channel column is visible.
+ */
+tutao.tutanota.gui.MailView.prototype.isPasswordChannelColumnVisible = function() {
+    return (this._swipeSlider.getRightmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS);
+};
+
+/**
  * Sets the composing mail body text.
  * @param {string} text The html body text.
  */
@@ -154,7 +157,9 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
 	// sibling blockquotes on top level are not merged if separated by user
-	return tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    var text = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
+    text = tutao.tutanota.util.Formatter.urlify(text);
+	return text;
 };
 
 /**

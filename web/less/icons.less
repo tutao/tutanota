@@ -9,21 +9,28 @@
   font-style: normal;
 }
 
-/******************** buttons.less ********************/
-/* 1. Prepare svg images (replace fill with variable):
- *		 find . -type f -print0 | xargs -0 sed -i 's/fill="#000000"/fill="@{icon-color}"/g'
- * 2. Remove all linebreaks and convert " to ' (for embedding as url parameter, see below) 
- *		 cat calendar2.svg | sed 's/"/'\''/g' | tr -d "\n"
- *
- * Setup replacement pngs:
- * 1. find . -type f -print0 | xargs -0 sed -i 's/fill="@{icon-color}"/fill="#515d6e"/g'
- * 2. for i in *; do inkscape $i --export-png=`echo $i | sed -e 's/svg$/png/'`; done
- */
+@font-face {
+  font-family: @ionicons-font-family;
+  src:url("@{ionicons-font-path}/ionicons.eot");
+  src:url("@{ionicons-font-path}/ionicons.eot?#iefix") format("embedded-opentype"),
+  url("@{ionicons-font-path}/ionicons.woff") format("woff"),
+  url("@{ionicons-font-path}/ionicons.ttf") format("truetype"),
+  url("@{ionicons-font-path}/ionicons.svg?#ionicon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+
 @icon-color: darken(@dark-blue, 15%);
 @menu-icon-color: darken(@dark-blue, 15%);
 @new-color: lighten(@dark-blue, 15%);
 
 .ie-background-image(@url) {
+}
+
+.ion {
+  font-family: @ionicons-font-family;
+  text-rendering: auto;
+  font-size: 120%
 }
 
 .imgButton {
@@ -47,6 +54,8 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+
+
   /*********** END: Copied from icomoon style.css ***************/
 
   color: @icon-color;
@@ -56,23 +65,54 @@
   }
 
   &.cancel:before {
-    content: "\e36b";
+    // content: "\e36b";
+    .ion;
+    content: @ionicon-var-close;
+  }
+
+  &.confirm:before {
+    .ion;
+    content: @ionicon-var-checkmark;
+  }
+
+  &.send:before {
+    .ion;
+    content: @ionicon-var-paper-airplane;
   }
 
   &.search:before {
     content: "\e1b7";
   }
 
-  &.mail-new {
-    //background-image: url("data:image/svg+xml,@{mail}");
-    &:before {
-      content: "\e0ec";
-    }
-    .new;
+  &.mail-new:before {
+    .ion;
+    content: @ionicon-var-compose;
   }
 
   &.mail:before {
     content: "\e0ec";
+  }
+
+  &.reply:before {
+    .ion;
+    content: @ionicon-var-reply;
+    font-size: 130%;
+  }
+
+  &.reply-all:before {
+    .ion;
+    content: @ionicon-var-reply-all;
+    font-size: 130%;
+  }
+
+  &.forward:before {
+    .ion;
+    content: @ionicon-var-forward;
+  }
+
+  &.export:before {
+    .ion;
+    content: @ionicon-var-ios7-download;
   }
 
   &.contact-new {
@@ -131,19 +171,44 @@
   }
 
   &.leftIndicator:before {
-    content: "\e3b3";
+    content: "\e601";
+    //.ion;
+    //content: @ionicon-var-chevron-left;
+    //font-size: 120%;
   }
 
   &.rightIndicator:before {
-    content: "\e3b1";
+    content: "\e602";
   }
 
   &.trash:before {
     content: "\e24f";
   }
 
+  &.restore {
+
+    &:before {
+      content: "\e24f";
+    }
+    &:after {
+      .ion;
+      content: @ionicon-var-close;
+      //content: @ionicon-var-ios7-close-empty;
+      position: absolute;
+      left: 12px;
+      font-size: 125%;
+      color: @new-color;
+    }
+}
+
   &.more:before {
     content: "\e600";
+  }
+
+  &.attachment:before {
+    //.ion;
+    //content: @ionicon-var-paperclip;
+    content: "\e2d7";
   }
 
   &.attachment-small:before {
@@ -175,6 +240,18 @@
   &.register:before {
     content: "\e185";
   }
+
+  &.add:before {
+    .ion;
+    content: @ionicon-var-android-add;
+    font-size: 110%;
+  }
+
+  &.edit:before {
+    .ion;
+    content: @ionicon-var-edit;
+  }
+
 
   .new {
     &:after {

@@ -8,7 +8,13 @@ tutao.tutanota.ctrl.Navigator = function() {
 	this.clientSupported = (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED);
 	this.externalClientSupported = this.clientSupported || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE);
 	this.mailRef = null; // the mail reference for an external user
-	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked 
+	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked
+    this.hash = ko.observable();
+};
+
+tutao.tutanota.ctrl.Navigator.prototype.updateHash = function(hash) {
+    location.replace(hash);
+    this.hash(hash);
 };
 
 /**
@@ -47,21 +53,21 @@ tutao.tutanota.ctrl.Navigator.prototype.logout = function(autoLoginAllowed, stor
 tutao.tutanota.ctrl.Navigator.prototype._login = function(autoLoginAllowed) {
     this._allowAutoLogin = autoLoginAllowed;
     if (this.mailRef == null) {
-        location.replace("#login");
+        this.updateHash("#login");
     } else {
-        location.replace("#mail/" + this.mailRef); // an external user was logged in, we redirect him to his login page
+        this.updateHash("#mail/" + this.mailRef); // an external user was logged in, we redirect him to his login page
     }
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.notSupported = function() {
-	location.replace("#notSupported");
+	this.updateHash("#notSupported");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.mail = function() {
     if ( tutao.locator.navigator.mailRef != null){
-        location.replace("#box/" + tutao.locator.navigator.mailRef);
+        this.updateHash("#box/" + tutao.locator.navigator.mailRef);
     }else{
-        location.replace("#box");
+        this.updateHash("#box");
     }
 };
 
@@ -77,7 +83,7 @@ tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.contact = function() {
-	location.replace("#contact");
+	this.updateHash("#contact");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
@@ -86,11 +92,11 @@ tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.settings = function() {
-	location.replace("#settings");
+	this.updateHash("#settings");
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.register = function() {
-    location.replace("#register");
+    this.updateHash("#register");
 };
 
 /**
@@ -144,8 +150,9 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 			tutao.tutanota.Bootstrap.init();
 		}
 		if (self.verifyClientSupported()) {
-			// provide allowAutoLogin to loginViewModel here as soon as device management is running
-			tutao.locator.viewManager.select(tutao.locator.loginView);
+            tutao.locator.loginViewModel.setup(self._allowAutoLogin).then(function () {
+                tutao.locator.viewManager.select(tutao.locator.loginView);
+            });
 		}
 	});
 

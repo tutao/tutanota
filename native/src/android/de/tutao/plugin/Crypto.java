@@ -59,7 +59,7 @@ public class Crypto extends CordovaPlugin {
 	public static final int AES_KEY_LENGTH = 128;
 	public static final int AES_KEY_LENGTH_BYTES = AES_KEY_LENGTH / 8;
 	
-	private final static String TAG = "Crypto";
+	private final static String TAG = "tutao.Crypto";
 	private SecureRandom randomizer;
 	
 	
@@ -108,7 +108,7 @@ public class Crypto extends CordovaPlugin {
 	}
 
 	private void generateRsaKey(final CallbackContext callbackContext) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			public void run() {
 				try {
 					KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", PROVIDER);
@@ -240,7 +240,7 @@ public class Crypto extends CordovaPlugin {
 	}
 	
 	private void aesEncrypt(final byte[] key, final byte[] plainText, final CallbackContext callbackContext) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			public void run() {
 				try {
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -256,7 +256,7 @@ public class Crypto extends CordovaPlugin {
 	}
 	
 	private void aesEncryptFile(final byte[] key, final String fileUrl, final CallbackContext callbackContext) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			public void run() {
 				try {
 					File inputFile = Utils.uriToFile(webView.getContext(), fileUrl);
@@ -298,7 +298,7 @@ public class Crypto extends CordovaPlugin {
 	}
 	
     private void aesDecrypt(final byte[] key, final byte[] cipherText, final CallbackContext callbackContext) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			public void run() {
 				try {
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -315,7 +315,7 @@ public class Crypto extends CordovaPlugin {
 	}
     
     private void aesDecryptFile(final byte[] key, final String fileUrl, final CallbackContext callbackContext) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			public void run() {
 				try {
 					File inputFile = Utils.uriToFile(webView.getContext(), fileUrl);

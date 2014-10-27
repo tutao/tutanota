@@ -1,42 +1,48 @@
 "use strict";
 
-tutao.provide('tutao.native.RsaInterfaceAdapter');
+tutao.provide('tutao.native.RsaUtils');
 
 /**
  * @constructor
- * @implements {tutao.crypto.RsaInterface}
  */
-tutao.native.RsaInterfaceAdapter = function () {
+tutao.native.RsaUtils = function () {
     this.keyLengthInBits = 2048;
 };
-
-/**
- * @inheritDoc
- */
-tutao.native.RsaInterfaceAdapter.prototype.generateKeyPair = function (callback) {
-    var self = this;
-    tutao.locator.crypto.generateRsaKey(this.keyLengthInBits).then(function (/*tutao.native.KeyPair*/keypair) {
-        callback(self._convertFromKeyPair(keypair))
-    });
-};
-
 /**
  * @param {tutao.native.KeyPair} keypair
  * @return {object}
  * @private
  */
-tutao.native.RsaInterfaceAdapter.prototype._convertFromKeyPair = function (keypair) {
+tutao.native.RsaUtils.prototype._convertFromKeyPair = function (keypair) {
     return {
-        publicKey: [this._base64ToBigInt(keypair.publicKey.modulus)],
-        privateKey: [
-            this._base64ToBigInt(keypair.publicKey.modulus),
-            this._base64ToBigInt(keypair.privateKey.privateExponent),
-            this._base64ToBigInt(keypair.privateKey.primeP),
-            this._base64ToBigInt(keypair.privateKey.primeQ),
-            this._base64ToBigInt(keypair.privateKey.primeExponentP),
-            this._base64ToBigInt(keypair.privateKey.primeExponentQ),
-            this._base64ToBigInt(keypair.privateKey.crtCoefficient)
-        ]};
+        publicKey: this._publicKeyToArray(keypair.publicKey),
+        privateKey: this._privateKeyToArray(keypair.privateKey)};
+};
+
+/**
+ * @param publicKey {tutao.native.PublicKey}
+ * @returns {[]} The public key in a persistable array format
+ * @private
+ */
+tutao.native.RsaUtils.prototype._publicKeyToArray = function (publicKey) {
+    return [this._base64ToBigInt(publicKey.modulus)];
+};
+
+/**
+ * @param publicKey {tutao.native.PrivateKey}
+ * @returns {[]} The private key in a persistable array format
+ * @private
+ */
+tutao.native.RsaUtils.prototype._privateKeyToArray = function (privateKey) {
+    return [
+        this._base64ToBigInt(privateKey.modulus),
+        this._base64ToBigInt(privateKey.privateExponent),
+        this._base64ToBigInt(privateKey.primeP),
+        this._base64ToBigInt(privateKey.primeQ),
+        this._base64ToBigInt(privateKey.primeExponentP),
+        this._base64ToBigInt(privateKey.primeExponentQ),
+        this._base64ToBigInt(privateKey.crtCoefficient)
+    ];
 };
 
 /**
@@ -44,24 +50,24 @@ tutao.native.RsaInterfaceAdapter.prototype._convertFromKeyPair = function (keypa
  * @return {tutao.native.KeyPair}
  * @private
  */
-tutao.native.RsaInterfaceAdapter.prototype._convertToKeyPair = function (object) {
+tutao.native.RsaUtils.prototype._arrayToKeyPair = function (object) {
     return {
-        publicKey: this._convertToPublicKey(object.publicKey),
-        privateKey: this._convertToPrivateKey(object.privateKey)
+        publicKey: this._arrayToPublicKey(object.publicKey),
+        privateKey: this._arrayToPrivateKey(object.privateKey)
     };
 };
 
-tutao.native.RsaInterfaceAdapter.prototype._convertToPublicKey = function (privateKey) {
+tutao.native.RsaUtils.prototype._arrayToPublicKey = function (publicKey) {
     var self = this;
     return {
         version: 0,
         keyLength: self.keyLengthInBits,
-        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[0].toByteArray())),
+        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(publicKey[0].toByteArray())),
         publicExponent: tutao.locator.crypto.publicExponent
     };
 };
 
-tutao.native.RsaInterfaceAdapter.prototype._convertToPrivateKey = function (privateKey) {
+tutao.native.RsaUtils.prototype._arrayToPrivateKey = function (privateKey) {
     var self = this;
     return {
         version: 0,
@@ -76,7 +82,7 @@ tutao.native.RsaInterfaceAdapter.prototype._convertToPrivateKey = function (priv
     };
 };
 
-tutao.native.RsaInterfaceAdapter.prototype._base64ToBigInt = function (base64) {
+tutao.native.RsaUtils.prototype._base64ToBigInt = function (base64) {
     return parseBigInt(tutao.util.EncodingConverter.base64ToHex(base64),16);
 };
 
@@ -85,7 +91,7 @@ tutao.native.RsaInterfaceAdapter.prototype._base64ToBigInt = function (base64) {
  * @param {string} string A string to get the length of.
  * @return {string} A hex string containing the length of string.
  */
-tutao.native.RsaInterfaceAdapter.prototype._hexLen = function (string) {
+tutao.native.RsaUtils.prototype._hexLen = function (string) {
     var hexLen = string.length.toString(16);
     while (hexLen.length < 4) {
         hexLen = "0" + hexLen;
@@ -96,7 +102,7 @@ tutao.native.RsaInterfaceAdapter.prototype._hexLen = function (string) {
 /**
  * @inheritDoc
  */
-tutao.native.RsaInterfaceAdapter.prototype.keyToHex = function (key) {
+tutao.native.RsaUtils.prototype.keyToHex = function (key) {
     var hex = "";
     for (var i = 0; i < key.length; i++) {
         var param = key[i].toString(16);
@@ -111,7 +117,7 @@ tutao.native.RsaInterfaceAdapter.prototype.keyToHex = function (key) {
 /**
  * @inheritDoc
  */
-tutao.native.RsaInterfaceAdapter.prototype.hexToKey = function (hex) {
+tutao.native.RsaUtils.prototype.hexToKey = function (hex) {
     try {
         var key = [];
         var pos = 0;
@@ -132,7 +138,7 @@ tutao.native.RsaInterfaceAdapter.prototype.hexToKey = function (hex) {
  * @param {Array} key
  * @private
  */
-tutao.native.RsaInterfaceAdapter.prototype._validateKeyLength = function (key) {
+tutao.native.RsaUtils.prototype._validateKeyLength = function (key) {
     if (key.length != 1 && key.length != 7) {
         throw new Error("invalid key params");
     }
@@ -141,34 +147,18 @@ tutao.native.RsaInterfaceAdapter.prototype._validateKeyLength = function (key) {
     }
 };
 
-/**
- * @inheritDoc
- */
-tutao.native.RsaInterfaceAdapter.prototype.encryptAesKey = function (publicKey, hex, callback) {
-    try {
-        var bytes = tutao.util.EncodingConverter.hexToBytes(hex);
-        tutao.locator.crypto.rsaEncrypt(this._convertToPublicKey(publicKey), bytes).then(function (/*Uint8Array*/bytes) {
-            callback(tutao.util.EncodingConverter.arrayBufferToBase64(bytes));
-        }).caught(function (e) {
-            callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
-        });
-    } catch (e) {
-        callback(null, new tutao.crypto.CryptoError("rsa encryption failed", e));
-    }
+tutao.native.RsaUtils.prototype.privateKeyToHex = function (privateKey) {
+    return this.keyToHex(this._privateKeyToArray(privateKey));
 };
 
-/**
- * @inheritDoc
- */
-tutao.native.RsaInterfaceAdapter.prototype.decryptAesKey = function (privateKey, base64, callback) {
-    try {
-        var bytes = tutao.util.EncodingConverter.base64ToArray(base64);
-        tutao.locator.crypto.rsaDecrypt(this._convertToPrivateKey(privateKey), bytes).then(function (/*Uint8Array*/bytes) {
-            callback(tutao.util.EncodingConverter.bytesToHex(bytes));
-        }).caught(function (e) {
-            callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
-        });
-    } catch (e) {
-        callback(null, new tutao.crypto.CryptoError("rsa decryption failed", e));
-    }
+tutao.native.RsaUtils.prototype.publicKeyToHex = function (publicKey) {
+    return this.keyToHex(this._publicKeyToArray(publicKey));
+};
+
+tutao.native.RsaUtils.prototype.hexToPrivateKey = function (privateKeyHex) {
+    return this._arrayToPrivateKey(this.hexToKey(privateKeyHex));
+};
+
+tutao.native.RsaUtils.prototype.hexToPublicKey = function (publicKeyHex) {
+    return this._arrayToPublicKey(this.hexToKey(publicKeyHex));
 };

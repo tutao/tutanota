@@ -31,7 +31,7 @@ import de.tutao.plugin.Crypto;
 import de.tutao.plugin.Utils;
 
 public class FileUtil extends CordovaPlugin {
-	private final static String TAG = "FileUtil";
+	private final static String TAG = "tutao.FileUtil";
 	static final int SHOW_FILE_REQUEST = 24325;
 	static final int PICK_FILE_REQUEST = SHOW_FILE_REQUEST + 1; 
 	private static final int HTTP_TIMEOUT = 15 * 1000;
@@ -83,7 +83,7 @@ public class FileUtil extends CordovaPlugin {
 	}
 	
 	private void delete(final CallbackContext callbackContext, final String absolutePath) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -182,7 +182,7 @@ public class FileUtil extends CordovaPlugin {
 	}
 	
 	private void upload(final CallbackContext callbackContext, final String absolutePath, final String targetUrl, final JSONObject headers) {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			
 			@Override
 			public void run() {
@@ -216,7 +216,7 @@ public class FileUtil extends CordovaPlugin {
 	
 	
 	private void download(final CallbackContext callbackContext, final String sourceUrl, final String filename, final JSONObject headers) throws MalformedURLException, IOException, JSONException {
-		Utils.run(new Runnable() {
+		Utils.run(cordova, new Runnable() {
 			
 			@Override
 			public void run() {

@@ -13,7 +13,7 @@ tutao.tutanota.gui.ExternalLoginView = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.ExternalLoginView.prototype.init = function() {
+tutao.tutanota.gui.ExternalLoginView.prototype.init = function(external, updateColumnTitleCallback) {
     this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
 };
 

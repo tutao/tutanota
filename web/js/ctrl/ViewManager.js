@@ -16,7 +16,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
 	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 480);
-    this.windowWidthObservable = ko.observable(0);
+    this.windowWidthObservable = ko.observable(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
     this.headerBarViewModel = null;
 
 	// if the window width is small, just show the logo without "Tutanota" to save space
@@ -25,6 +25,8 @@ tutao.tutanota.ctrl.ViewManager = function() {
         self.windowWidthObservable(width);
 	});
 	this._buttons = [];
+    this.currentColumnTitle = ko.observable("emptyString_msg");
+    this.previousColumnTitle = ko.observable("emptyString_msg");
 };
 
 
@@ -48,27 +50,17 @@ tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
  */
 tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
     var self = this;
-    var internalUser = function() {
-        return tutao.locator.userController.getLoggedInUser() && tutao.locator.userController.isInternalUserLoggedIn();
-    };
     var buttons = [
         // internalUsers
-        new tutao.tutanota.ctrl.Button('new_label', 30, tutao.locator.navigator.newMail, function () {
-            return internalUser() && self.getActiveView() == tutao.locator.mailView;
-        }, false, "menu_mail_new", "mail-new", 'newMail_alt'),
-        new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, function () {
-            return internalUser() && self.getActiveView() != tutao.locator.mailView;
-        }, false, "menu_mail", "mail", 'emails_alt'),
-
-        new tutao.tutanota.ctrl.Button('new_label', 29, tutao.locator.navigator.newContact, function () {
-            return internalUser() && self.getActiveView() == tutao.locator.contactView;
-        }, false, "menu_contact_new", "contact-new", 'newContact_alt'),
-        new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, function () {
-            return internalUser() && self.getActiveView() != tutao.locator.contactView;
-        }, false, "menu_contact", "contact", 'contacts_alt'),
+        new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, self.isInternalUserLoggedIn, false, "menu_mail", "mail", 'emails_alt', function () {
+            return tutao.locator.navigator.hash() == '#box'
+        }),
+        new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, self.isInternalUserLoggedIn, false, "menu_contact", "contact", 'contacts_alt', function () {
+            return tutao.locator.navigator.hash() == '#contact'
+        }),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
-            tutao.tutanota.ctrl.Navigator.prototype.newMail().then(function () {
+            tutao.locator.navigator.newMail().then(function () {
                 var mail = tutao.locator.mailViewModel.getComposingMail();
                 mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
                 mail.secure(false);
@@ -78,13 +70,17 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
 
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
 
-        new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt'),
+        new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt', function () {
+            return tutao.locator.navigator.hash() == '#settings'
+        }),
 
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, tutao.locator.navigator.register, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
 
         // all supported
-        new tutao.tutanota.ctrl.Button('feedback_label', 26, tutao.locator.feedbackViewModel.open, this.feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
+        new tutao.tutanota.ctrl.Button('feedback_label', 26, function () {
+            tutao.tutanota.gui.openLink("https://tutanota.uservoice.com/forums/237921-general");
+        }, this.feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
@@ -110,7 +106,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
 tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     var views = this.getViews();
 	for (var i = 0; i < views.length; i++) {
-		views[i].init(external);
+		views[i].init(external, this._updateColumnTitle);
 	}
 
     var self = this;
@@ -126,7 +122,16 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
         }
     };
     this._buttons = this._createButtons();
+    var getRightNavbarSize = function () {
+        return $(document.getElementById("right-navbar")).innerWidth();
+    };
     this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", measureNavButton);
+    setTimeout(function () {
+        self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
+    }, 0);
+    this.windowWidthObservable.subscribe(function () {
+        self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
+    });
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
@@ -134,8 +139,8 @@ tutao.tutanota.ctrl.ViewManager.prototype.getButtons = function() {
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.feedbackSupported = function() {
-    if (tutao.locator.userController.getLoggedInUser()) {
-        return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI;
+    if (this.isUserLoggedIn()) {
+        return tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI ;
     } else {
         return false;
     }
@@ -159,8 +164,8 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		} else if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			this._externalUserLoggedIn(true);
 		}
-		this._activeView(view);
-		this._activeView().activate(params);
+        this._activeView(view);
+        view.activate(params);
         tutao.tutanota.gui.adjustPanelHeight();
 	}
 };
@@ -176,14 +181,14 @@ tutao.tutanota.ctrl.ViewManager.prototype.getActiveView = function() {
  * @return {boolean} true, if the user is already logged in, false otherwise.
  */
 tutao.tutanota.ctrl.ViewManager.prototype.isUserLoggedIn = function() {
-	return (this._internalUserLoggedIn() || this._externalUserLoggedIn());
+	return (this._internalUserLoggedIn() || this._externalUserLoggedIn() || tutao.locator.loginViewModel.loginFinished());
 };
 
 /**
  * @return {boolean} true, if an internal user is already logged in, false otherwise.
  */
 tutao.tutanota.ctrl.ViewManager.prototype.isInternalUserLoggedIn = function() {
-	return this._internalUserLoggedIn();
+	return this._internalUserLoggedIn() || tutao.locator.loginViewModel.loginFinished();
 };
 
 /**
@@ -193,4 +198,34 @@ tutao.tutanota.ctrl.ViewManager.prototype.showHomeView = function() {
 	if (this.isInternalUserLoggedIn() && this.getActiveView() != tutao.locator.mailView) {
 		this.select(tutao.locator.mailView);
 	}
+};
+
+
+tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, height) {
+    if (this.getActiveView() != null) {
+        this.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
+    }
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
+
+    if ( currentTitle == null){
+        currentTitle = "emptyString_msg";
+    }
+    if ( previousTitle == null){
+         previousTitle = "back_action";
+    }
+
+    if (!this.getActiveView().isShowLeftNeighbourColumnPossible()){
+        previousTitle = "emptyString_msg";
+    }
+
+    this.currentColumnTitle(currentTitle);
+    this.previousColumnTitle(previousTitle);
+
+    if ( tutao.lang(currentTitle).trim().length == 0 ){
+        $("#previousLocation").css("overflow", "visible" );
+    }else{
+        $("#previousLocation").css("overflow", "hidden" );
+    }
 };

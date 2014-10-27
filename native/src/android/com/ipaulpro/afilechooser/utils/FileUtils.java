@@ -49,7 +49,7 @@ public class FileUtils {
     private FileUtils() {} //private constructor to enforce Singleton pattern
     
     /** TAG for log messages. */
-    static final String TAG = "FileUtils";
+    static final String TAG = "tutao.FileUtils";
     private static final boolean DEBUG = false; // Set to true to enable logging
 
     public static final String MIME_TYPE_AUDIO = "audio/*";

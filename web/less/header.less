@@ -1,10 +1,15 @@
+@title-width:35%;
 @left-navbar-width: 230px;
-@left-navbar-width-small: 80px;
-@nav-icon-width: 45px;
-@nav-icon-width-small: 37px;
-@indicator-width: 35px;
+@left-navbar-width-small: 30%;
+@indicator-width: 37px;
 @indicator-width-small: 27px;
-@indicator-side-margin: 5px;
+@indicator-side-margin: 8px;
+@indicator-side-margin-small:6px;
+@nav-icon-width: @indicator-width + @indicator-side-margin;
+@nav-icon-width-small: @indicator-width-small + @indicator-side-margin-small;
+@header-height:55px;
+@header-height-small:40px;
+
 
 // If these widths are changed, we have to update the measure function in ViewManager!
 @menuItemWidth: 80px;
@@ -15,9 +20,9 @@ header#main {
   left: 0px;
   top: 0px;
   right: 0px;
-  height: 55px;
+  height: @header-height;
   @media @mobile {
-    height: 40px;
+    height: @header-height-small;
   }
 
   &.loggedIn {
@@ -26,31 +31,41 @@ header#main {
     background-clip: padding-box;
 
     @media @mobile {
-      > div#right-navbar {
-        margin-left: @left-navbar-width-small;
-      }
       > div#left-navbar {
         width: @left-navbar-width-small;
+        margin-top: 6px;
+        left: -@nav-icon-width-small;
+
+        &.showNavButton {
+          left: -10px;
+        }
 
         > div.leftViewButton {
-          margin-right: @indicator-side-margin;
-          margin-left: @indicator-side-margin;
+          top:1px;
+          left: @indicator-side-margin;
           font-size: @indicator-width-small;
         }
 
         > div#logo {
-
+          left: @nav-icon-width-small + @indicator-side-margin-small;;
           > div.path {
-            margin-top: 6px;
             width: 30px;
             height: 27px;
           }
 
           > div.tutanota {
-            margin-top: 6px;
             display: none;
           }
         }
+
+        > div#previousLocation {
+          top: 0px;
+          left:32px;
+        }
+      }
+      > div#title {
+        margin-top: 6px;
+        visibility: visible;
       }
     }
   }
@@ -60,33 +75,43 @@ header#main {
     float: left;
     height: 100%;
     left: -@nav-icon-width;
-    @media @mobile {
-      left: -@nav-icon-width-small;
-    }
+    margin-top: 8px;
+
     transition: left 0.5s;
     width: @left-navbar-width;
 
     &.showNavButton {
-      left: 0;
+      left: -12px;
     }
 
     > div.leftViewButton {
-      position: relative;
-      display: inline-block;
-      margin-right: @indicator-side-margin;
-      margin-left: @indicator-side-margin;
+      position: absolute  ;
+      top:0px;
+      left: @indicator-side-margin;
       font-size: @indicator-width;
       opacity: 0.8;
       cursor: pointer;
       overflow: hidden;
     }
 
+    > div#previousLocation {
+        .light;
+        position: absolute;
+        left:40px;
+        right:0px;
+        top:5px;
+        height:27px;
+        overflow:hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
     > div#logo {
       display: inline-block;
-      margin-left: 5px;
-
+      position: absolute;
+      left: @nav-icon-width + @indicator-side-margin;
       > div.path {
-        margin-top: 8px;
         position: relative;
         display: inline-block;
         width: 41px;
@@ -109,10 +134,9 @@ header#main {
       }
 
       > div.tutanota {
-        margin-top: 8px;
         position: relative;
         display: inline-block;
-        height: 37px;
+        height: 35px;
       }
 
       img {
@@ -145,46 +169,33 @@ header#main {
     font-size: 10px;
   }
 
+  > div#title {
+    .light;
+    visibility: hidden;
+    margin-top: 8px;
+    text-align: center;
+    white-space: nowrap;
+    margin: 0 auto;
+    position: relative;
+    width: @title-width;
+    left: 0;
+    right: 0;
+  }
+
   > div#right-navbar {
-    margin-left: @left-navbar-width;
     position: relative;
     height: 100%;
-    right: -@nav-icon-width;
+
+    right:0;
+    margin-left: @left-navbar-width;
     @media @mobile {
-      right: -@nav-icon-width-small;
-    }
-    transition: right 0.5s;
-
-    &.showNavButton {
-      right: 0;
-    }
-
-    > div.rightViewButton {
-      position: relative;
-      display: inline-block;
-      float: right;
-      top: 10px;
-      margin-right: @indicator-side-margin;
-      margin-left: @indicator-side-margin;
-      font-size: @indicator-width;
-      opacity: 0.8;
-      cursor: pointer;
-
-      @media @mobile {
-        top: 6px;
-        margin-right: @indicator-side-margin;
-        margin-left: @indicator-side-margin;
-        font-size: @indicator-width-small;
-      }
+      width: 55px;
+      float:right;
+      margin-left: 0;
     }
 
     > menu {
       height: 100%;
-      margin-right: @indicator-side-margin * 2 + @indicator-width;
-
-      @media @mobile {
-        margin-right: @indicator-side-margin * 2 + @indicator-width-small;
-      }
 
       > ul#menu_list {
         list-style-type: none;
@@ -217,35 +228,71 @@ header#main {
     }
   }
 
-  > menu#menu_more {
-    position: absolute;
-    right: 10px;
-    top: 100%;
-    background-color: @background-dark;
-    border: 1px solid @border-dark;
-    border-bottom: 0px;
-    z-index: 4;
-    min-width: 200px;
 
-    ul {
-      list-style-type: none;
-      padding: 0px;
+}
 
-      li {
-        cursor: pointer;
-        .light;
-        //height: 35px;
-        padding: @padding;
-        border-bottom: 1px solid @border-dark;
+
+div#modalMoreMenu {
+  > div {
+    display:block;
+    > #menu_more {
+      position: absolute;
+      right: @indicator-side-margin;
+      top: @header-height - 12px;
+      @media @mobile {
+        top: @header-height-small - 12px;
+        @indicator-side-margin-small:6px;
+      }
+      border: 0px;
+      z-index: 4;
+      min-width: 200px;
+
+      >div#triangle-up {
+        position:absolute;
+        right: 5px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px  solid @background-dark;
+      }
+
+      ul {
+        border-radius:5px;
+        position:absolute;
+        width:100%;
+        top: 10px;
+        right:0px;
+        background-color: @background-dark;
+        list-style-type: none;
+        padding: 0px;
+
+        li {
+          cursor: pointer;
+          .light;
+          //height: 35px;
+          padding: @padding;
+          border-bottom: 1px solid @border-dark;
+        }
       }
     }
-
   }
 }
 
 // also used in mail and contact view if no entities is shown
 .menu_link {
   width: @menuItemWidth; // defines the width of each menu item (+ margin)
+  -webkit-tap-highlight-color: @highlight-color;
+
+  height: @header-height - 1;
+  @media @mobile {
+    height: @header-height-small - 1;
+  }
+
+  &:active, &.selected {
+    background-color: @highlight-color;
+    border: 0;
+  }
 
   @media @mobile {
     width: @menuItemWidthSmall;

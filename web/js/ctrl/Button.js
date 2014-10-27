@@ -13,8 +13,9 @@ tutao.provide('tutao.tutanota.ctrl.Button');
  * @param {string=} id The id to set for the button.
  * @param {string=} imageClass If set, the according image will be displayed
  * @param {string=} imageAltTextId alt text for the optional image
+ * @param {function=} isSelected Returns true, if the current button is selected
  */
-tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId) {
+tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.labelTextId = labelTextId;
 
@@ -28,6 +29,8 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
     this.imageClass = imageClass;
     this.imageAltTextId = imageAltTextId;
     this.badge = ko.observable(0);
+    this._isSelected = isSelected;
+    this._hideButtonsHandler = undefined;
 };
 
 /**
@@ -45,15 +48,25 @@ tutao.tutanota.ctrl.Button.prototype.getPriority = function () {
  */
 tutao.tutanota.ctrl.Button.prototype.click = function (vm, event) {
     if (this._directClick) {
+        if (this._hideButtonsHandler != undefined){
+            this._hideButtonsHandler();
+        }
         // needed e.g. for opening a file chooser because a setTimeout in between would not work
         this._clickListener();
     } else {
         var self = this;
         // setTimeout because otherwise problems with alert/confirm dialogs appear
         setTimeout(function () {
+            if (self._hideButtonsHandler != undefined){
+                self._hideButtonsHandler();
+            }
             self._clickListener();
         }, 0);
     }
+};
+
+tutao.tutanota.ctrl.Button.prototype.setHideButtonsHandler = function (hideButtonsHandler) {
+    return this._hideButtonsHandler = hideButtonsHandler
 };
 
 
@@ -77,3 +90,10 @@ tutao.tutanota.ctrl.Button.prototype.setBadgeNumber = function (number) {
     this.badge(number);
 };
 
+tutao.tutanota.ctrl.Button.prototype.isSelected = function () {
+    if (this._isSelected) {
+        return this._isSelected();
+    } else {
+        return false;
+    }
+};

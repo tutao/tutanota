@@ -11,38 +11,6 @@ tutao.tutanota.ctrl.ContactViewModel = function () {
 
     this.contactWrapper = ko.observable(null);
     this.editableContact = null;
-
-    var self = this;
-    var isState = function (state) {
-        return function () {
-            return self.mode() == state;
-        };
-    };
-    this.contactWrapper.subscribe(function (previousValue) {
-        // only init the button bar when we set a contactWrapper for the first time
-        if (previousValue != null) {
-            return;
-        }
-        this.buttons = [
-            new tutao.tutanota.ctrl.Button("edit_action", 10, self.editContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW)),
-            new tutao.tutanota.ctrl.Button("delete_action", 9, self._deleteContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW)),
-
-            new tutao.tutanota.ctrl.Button("save_action", 10, self._saveContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW)),
-            new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
-                self.contactWrapper().stopEditingContact(self);
-                self.removeContact();
-            }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW)),
-
-            new tutao.tutanota.ctrl.Button("save_action", 10, self._saveContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT)),
-            new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
-                self.contactWrapper().stopEditingContact(self);
-                self._showContact(self.contactWrapper());
-            }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT))
-        ];
-
-        this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
-    }, this, "beforeChange");
-
     this.mode = ko.observable(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
     this.showPresharedPassword = ko.observable(false);
     this.showAutoTransmitPassword = ko.observable(false);
@@ -60,6 +28,39 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.removeContact = function () {
     this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
     this.contactWrapper(null);
     tutao.locator.contactView.showContactListColumn();
+};
+
+
+tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
+    var self = this;
+    var isState = function (state) {
+        return function () {
+            return self.mode() == state;
+        };
+    };
+
+    this.buttons = [
+        new tutao.tutanota.ctrl.Button("edit_action", 10, self.editContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "editContact", "edit" ),
+        new tutao.tutanota.ctrl.Button("delete_action", 9, self._deleteContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "deleteContact", "trash"),
+
+
+        new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
+            self.contactWrapper().stopEditingContact(self);
+            self.removeContact();
+        }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW), false, "dismissContactNew", "cancel"),
+        new tutao.tutanota.ctrl.Button("save_action", 10, self._saveContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW), false, "saveContactNew", "confirm"),
+
+        new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
+            self.contactWrapper().stopEditingContact(self);
+            self._showContact(self.contactWrapper());
+        }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT), false, "dismissContact", "cancel"),
+
+        new tutao.tutanota.ctrl.Button("save_action", 10, self._saveContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT), false, "saveContact", "confirm")
+
+    ];
+
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    tutao.locator.contactView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.ContactView.COLUMN_CONTACT, this.buttonBarViewModel.setButtonBarWidth);
 };
 
 /**

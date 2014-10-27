@@ -349,5 +349,44 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     });
 
+    it("the android 4 in app mode supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Linux; U; Android 4.0, de-de; HTC_Desire_X Build/JRO03C) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID, info.getBrowserType());
+        assert.equal(4, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
+        assert.equal(true, info.isMobileDevice());
+        assert.equal(true, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
+    it("the android 3 in app mode not supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Linux; U; Android 4.0, de-de; HTC_Desire_X Build/JRO03C) AppleWebKit/534.30 (KHTML, like Gecko) Version/3.9 Mobile Safari/534.30");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID, info.getBrowserType());
+        assert.equal(4, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
+        assert.equal(true, info.isMobileDevice());
+        assert.equal(true, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
+    it("apps on ios are supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (iPhone; CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assert.equal(7, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE, info.getDeviceType());
+        assert.equal(true, info.isMobileDevice());
+        assert.equal(true, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
 
 });

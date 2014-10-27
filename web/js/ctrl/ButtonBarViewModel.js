@@ -20,7 +20,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     if(!moreButtonText) {
         moreButtonText = "dots_label";
     }
-    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, null, false, "moreAction",  "more", moreButtonText);
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
     if (measureFunction) {
         this._getSingleButtonWidth = measureFunction;
     }
@@ -36,10 +36,16 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 
         });
     });
+
+    //  Decorate the click listener of all buttons to close the more menu
+    var self = this;
+    for( var i=0; i< buttons.length; i++){
+        buttons[i].setHideButtonsHandler(this.hideMore);
+    }
+
 	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
 	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
     this.moreVisible = ko.observable(false);
-    this.domButtonBar = ko.observable(null); // is set via domInit binding to the buttonBar div
     this.maxWidth = 0;
     this.widthSubscription = null;
 
@@ -50,23 +56,18 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
     this._widthInterval = null;
 };
 
-/**
- * Should be called after the buttonbar became visible for the first time.
- */
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.init = function() {
-    var self = this;
-    this.domButtonBar.subscribe(function () {
-        self._initWidth();
-    })
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
+    this.maxWidth = width - 10; // we reduce the max width by 10 px which are used in our css for paddings + borders
+    this.updateVisibleButtons();
 };
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype._initWidth = function() {
-    this.maxWidth = $(this.domButtonBar()).width();
-    if (this.maxWidth == 0) {
-        setTimeout(this._initWidth, 100);
-    } else {
-        this.updateVisibleButtons();
+
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.isMoreVisible = function() {
+    if (tutao.locator.viewManager.isUserLoggedIn){
+        return this.moreVisible();
     }
+    return false;
 };
+
 
 
 /**
@@ -89,9 +90,6 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
             setTimeout(this.updateVisibleButtons, 0); // the column width is not yet updated when the window width changes, so use a timeout
         }, this);
     }
-
-    // the maxWidth might be 0 if the domButtonBar is not yet in the dom. in this case all visible buttons are removed by the filter and we have to make sure another trigger comes later
-    this.maxWidth = $(this.domButtonBar()).width();
 
     var visibleButtonList = [].concat(this.allButtons());
     var moreButtonList = [];
@@ -169,7 +167,6 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
  * @return {number} The width including the margin of the button
  */
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._getSingleButtonWidth = function (button) {
-    var measureButton = $("button#measureButton");
-    measureButton.text(tutao.lang(button.getLabelTextId()));
-    return measureButton.outerWidth(true);
+    // ATTENTION: If this width is changed, we have to update the measure function in ViewManager!
+    return 45;
 };

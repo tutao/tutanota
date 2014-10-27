@@ -92,6 +92,7 @@
 <!-- endbuild -->
 <!-- build:js -->
 <!-- inject:js -->
+<script src="/lib/autolinker.min.js"></script>
 <script src="/lib/bCrypt.js"></script>
 <script src="/lib/bluebird-2.2.2.js"></script>
 <script src="/lib/google-fastbutton-2012-10-02.js"></script>
@@ -122,35 +123,6 @@
 <script src="/js/crypto/SjclRandomizer.js"></script>
 <script src="/js/crypto/SjclSha256.js"></script>
 <script src="/js/crypto/WorkerRandomizer.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
-<script src="/js/gui/BubbleInputGui.js"></script>
-<script src="/js/gui/ContactView.js"></script>
-<script src="/js/gui/ExternalLoginView.js"></script>
-<script src="/js/gui/FastMessageView.js"></script>
-<script src="/js/gui/FileView.js"></script>
-<script src="/js/gui/LoginView.js"></script>
-<script src="/js/gui/MailView.js"></script>
-<script src="/js/gui/NotFoundView.js"></script>
-<script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
-<script src="/js/gui/RegistrationView.js"></script>
-<script src="/js/gui/SettingsView.js"></script>
-<script src="/js/gui/SwipeSlider.js"></script>
-<script src="/js/gui/gui.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
@@ -202,14 +174,48 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
+<script src="/js/gui/BubbleInputGui.js"></script>
+<script src="/js/gui/ContactView.js"></script>
+<script src="/js/gui/ExternalLoginView.js"></script>
+<script src="/js/gui/FastMessageView.js"></script>
+<script src="/js/gui/FileView.js"></script>
+<script src="/js/gui/LoginView.js"></script>
+<script src="/js/gui/MailView.js"></script>
+<script src="/js/gui/NotFoundView.js"></script>
+<script src="/js/gui/NotSupportedView.js"></script>
+<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
+<script src="/js/gui/RegistrationView.js"></script>
+<script src="/js/gui/SettingsView.js"></script>
+<script src="/js/gui/SwipeSlider.js"></script>
+<script src="/js/gui/gui.js"></script>
+<script src="/js/index/Indexer.js"></script>
 <script src="/js/legacy/FlashFileSaver.js"></script>
 <script src="/js/legacy/Legacy.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
+<script src="/js/native/ConfigApp.js"></script>
+<script src="/js/native/ConfigBrowser.js"></script>
+<script src="/js/native/ConfigFacade.js"></script>
 <script src="/js/native/ContactApp.js"></script>
 <script src="/js/native/ContactBrowser.js"></script>
 <script src="/js/native/ContactInterface.js"></script>
 <script src="/js/native/CryptoBrowser.js"></script>
 <script src="/js/native/CryptoInterface.js"></script>
+<script src="/js/native/DeviceConfig.js"></script>
 <script src="/js/native/FileFacade.js"></script>
 <script src="/js/native/FileFacadeAndroidApp.js"></script>
 <script src="/js/native/FileFacadeBrowser.js"></script>
@@ -228,7 +234,6 @@
 <script src="/js/rest/EntityRestInterface.js"></script>
 <script src="/js/rest/ResourceConstants.js"></script>
 <script src="/js/rest/RestClient.js"></script>
-<script src="/js/index/Indexer.js"></script>
 <script src="/js/security/CajaSanitizer.js"></script>
 <script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
@@ -253,67 +258,6 @@
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Attachment.js"></script>
-<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
-<script src="/js/generated/entity/tutanota/Contact.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactList.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
-<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
-<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
-<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
-<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
-<script src="/js/generated/entity/tutanota/File.js"></script>
-<script src="/js/generated/entity/tutanota/FileData.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
-<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
-<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
-<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/Mail.js"></script>
-<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/MailBody.js"></script>
-<script src="/js/generated/entity/tutanota/MailBox.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
-<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Recipient.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
-<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
-<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
 <script src="/js/generated/entity/sys/Authentication.js"></script>
@@ -397,6 +341,67 @@
 <script src="/js/generated/entity/sys/VersionData.js"></script>
 <script src="/js/generated/entity/sys/VersionReturn.js"></script>
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
+<script src="/js/generated/entity/tutanota/Attachment.js"></script>
+<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+<script src="/js/generated/entity/tutanota/Contact.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactList.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
+<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
+<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
+<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
+<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
+<script src="/js/generated/entity/tutanota/File.js"></script>
+<script src="/js/generated/entity/tutanota/FileData.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
+<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
+<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/Mail.js"></script>
+<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/MailBody.js"></script>
+<script src="/js/generated/entity/tutanota/MailBox.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Recipient.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
+<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
+<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -419,7 +424,6 @@
 
 <script type="text/html"  id="tutanota-template">
 	<input type="text" id="hiddenInput"/>
-	<button id="measureButton"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
 	<div id="viewContainer">
@@ -429,35 +433,23 @@
 					<div id="innerTagList">
 						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
 							<div class="icon imgButton left"></div>
-							<div class="text" data-bind="lang: 'received_action'"></div>
+							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
 						</div>
 						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
 							<div class="icon imgButton  right"></div>
-							<div class="text" data-bind="lang: 'sent_action'"></div>
+							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
 						</div>
 						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
 							<div class="icon imgButton  trash"></div>
-							<div class="text" data-bind="lang: 'trash_action'"></div>
+							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
 						</div>
 					</div>
 				</section>
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
+                <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
 				<div id="searchAndMailList" >
-                    <div class="actions" data-bind="visible: actionBarVisible">
-                        <div id="searchAction" data-bind="visible: searchButtonVisible">
-                            <button data-bind="click: showSearchBar, attr: {title: tutao.lang('search_title')}">
-                                <div class="imgButton search"></div>
-                            </button>
-                        </div>
-                        <div class="search" data-bind="fadeVisible: searchBarVisible">
-                            <div class="searchForm">
-                                <div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-                            </div>
-                        </div>
-                        <div class="otherActions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-                    </div>
-					<section id="mailList" class="list scrollable" data-bind="css: { belowSearch: actionBarVisible }">
+					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, click: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
@@ -494,13 +486,17 @@
 				<div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
 					<img src="graphics/busy.gif" />
 				</div>
-				<div id="noMail" class="infoMessage" data-bind="visible: (conversation().length == 0 && !tutao.locator.mailListViewModel.isMailSelected())">
+				<div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !tutao.locator.mailListViewModel.isMailSelected())">
 					<div data-bind="lang: 'noMail_msg'"></div><br>
 				</div>
-				<div id="innerConversationColumn" class="scrollable">
-					<section class="conversation" data-bind="foreach: { data: conversation }">
+				<div id="innerConversationColumn">
+                    <!-- ko if: mail -->
+                    <div class="actions" data-bind='template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+                    <!-- ko if: isComposingState() -->
+                    <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: mail().busy" />
+                    <!-- /ko -->
+					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
-							<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
 							<div id="readMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="click: $parent.selectMail">
 									<header>
@@ -562,21 +558,9 @@
 							</div>
 						<!-- /ko -->
 						<!-- ko if: $parent.isComposingState() -->
-							<div class="actions">
-								<div class="confidentialAction">
-									<button class="switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-										<div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}, attr: {title: (secure() ? tutao.lang('closedLock_alt') : tutao.lang('openedLock_alt'))}"></div>
-									</button>
-								</div>
-								<div class="otherActions">
-									<div data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-								</div>
-							</div>
-                            <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: busy" />
 							<div id="composeMailWrapper" class="mailWrapper">
 								<section class="mail" data-bind="event: { dragover: handleDragOver, drop: attachDroppedFiles }">
 									<header>
-                                        <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"'></div>
 										<div class="headerTable">
 											<!-- ko if: tutao.locator.userController.isInternalUserLoggedIn() -->
 												<div class="headerLine">
@@ -614,6 +598,24 @@
 													<input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()" tabindex="20" />
 												</div>
 											</div>
+                                            <div class="headerLine" data-bind="fadeVisible: containsExternalRecipients()">
+                                                <div class="name edit"></div>
+                                                <div class="value edit" id="composer_confidential">
+                                                    <button class="confidentialButton switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+                                                        <div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
+                                                    </button>
+                                                    <button class="showPasswordChannelColumn" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
+                                                        <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
+                                                        <div class="showPasswordChannelColumnIcon imgButton rightIndicator">
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="headerLine">
+                                                <div class="name"></div>
+                                                <div class="value" >
+                                                    <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"></div>
+                                                </div>
+                                            </div>
 										</div>
 										<div class="attachments">
 											<!-- ko foreach: { data: _attachments } -->
@@ -637,6 +639,7 @@
 							</div>
 						<!-- /ko -->
 					</section>
+                    <!-- /ko -->
 				</div>
 			</div>
 			<div id="passwordChannelColumn" class="viewColumn" data-bind="with: tutao.locator.passwordChannelViewModel">
@@ -689,15 +692,9 @@
 
 		<div id="contactContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.contactView">
 			<div id="searchAndContactListColumn" class="viewColumn" data-bind="with: tutao.locator.contactListViewModel">
+                <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
 				<div id="searchAndContactList">
-					<!--
-						<div class="search">
-							<div class="searchForm">
-								<div data-bind='template: { name: "bubbleinput-template",  data: {vm: bubbleInputViewModel, tabindex: 1 } }'></div>
-							</div>
-						</div>
-					-->
-					<section id="contactList" class="scrollable">
+					<section id="contactList" class="list scrollable">
 						<div id="innerContactList" data-bind="foreach: {data: contacts}, style: { borderTopWidth: (contacts().length > 0) ? '7px' : '0px', borderBottomWidth: (contacts().length > 0) ? '7px' : '0px' }">
 							<div class="contactInList" data-bind="click: $parent.showContact">
 								<div class="contactNameAndMailAddressInList">
@@ -718,13 +715,12 @@
 				<div id="noContact" class="infoMessage" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
 					<div data-bind="lang: 'noContact_msg'"></div><br>
 				</div>
-				<div id="innerContactColumn" class="scrollable">
+                <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
+                <div id="innerContactColumn" class="scrollable">
 					<div id="contactWrapper">
 						<!-- ko if: mode() !== tutao.tutanota.ctrl.ContactViewModel.MODE_NONE -->
 							<section id="contact">
-								<header>
-									<div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-								</header>
+
 								<div class="contactBody">
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW -->
 										<div id="contactNameTitleAndImage">
@@ -996,6 +992,17 @@
 									</div>
 								</div>
 							</div>
+
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword" />
+                                        <label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
+                                    </div>
+                                    <label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+                                </div>
+                            </div>
 
 							<div class="record">
 								<div class="recordName"></div>
@@ -1278,6 +1285,7 @@
                                     <div class="recordName"></div>
                                     <div class="formAction">
                                         <button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                        <button class="minimal" data-bind="click: login, lang: 'login_action'"></button>
                                     </div>
                                 </div>
                             </form>
@@ -1329,7 +1337,6 @@
 				<div id="changeSettingsInnerColumn" class="scrollable">
 					<div id="changeSettingsData">
 						<div>
-							<div class="heading" data-bind="lang: getSettingsTextId(displayed())"></div>
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS -->
 								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.AccountSettingsViewModel()">
 									<div class="recordContainer wide" data-bind="foreach: records, form: true">
@@ -1614,6 +1621,10 @@
                     <div data-bind="html: details"></div>
                 </li>
             </ul>
+            <h2>icons</h2>
+            <div class="icons">
+                <span class="imgButton cancel"></span><span class="imgButton confirm"></span><span class="imgButton send"></span><span class="imgButton trash"></span><span class="imgButton restore"></span><span class="imgButton reply"></span><span class="imgButton reply-all"></span><span class="imgButton export"></span><span class="imgButton attachment"></span>
+            </div>
         </div>
     </div>
 
@@ -1646,9 +1657,10 @@
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
-        <div id="left-navbar" data-bind="css: { showNavButton: getActiveView().isShowLeftNeighbourColumnPossible()}">
-            <div class="leftViewButton imgButton leftIndicator" data-bind="fastClick: function() { getActiveView().getSwipeSlider().showLeftNeighbourColumn(); }"></div>
-            <div id="logo">
+        <div id="left-navbar" data-bind="css: { showNavButton: getActiveView().isShowLeftNeighbourColumnPossible()}, click: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }">
+            <div class="leftViewButton imgButton leftIndicator">
+            </div>
+            <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()">
                 <div class="path">
                     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABKCAYAAAAsXNNQAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABkuAAAZLgE9dTosAAAAB3RJTUUH3gEIDhUOxqcwuQAABTBJREFUeNrtm21sFEUYx39zIC9VAgIGvsndrkYTiQQVxHe+VBNEYkSCgELRCkWBEoQqiIRv4hcTUGMgDS2llWjhMNEIYsSQCKLRaCIkhJ3drQIhQAnI+9s9frg70xCB3vVu9/Y6/2aSNtubm/vtf+d55pk5RQftse1BwAQF04H7gIEYpYBDwPcC6xTsGuU4l7MXVfaXn2y7UkEjMNQwu74E9iioHO04//wHcLdtPw1sVYZPZyG2AfePcZxTPXbZ9iAF3wK3GTSd1gCBivoTJ7aqH217poJ6wySvybF/T4HpYljkq5qYpKOtUX5z4fCeAgONA/NWRcww6Jp6Gvd1FaAhaBxoABqABqBRfnmgAWgcaBxoHGgcaGQcaBxoHBiOrgpcUnAO6Af0Mg7MTT2AvgJ9BLYrOA9MCHIAsRTpjc+INwVUpoQKgbeCfO8YkvFixFumLDdKhE+DfN9yCSIe8BvwpsAzQe5vRwXgsUw7CvxNemPbBw4A+4HTz7vOuc0Ju0rBx9JNAJ4HXOAgsDcDwgWOCBw5Ae3VrvO/w/siYfdW0F/BYGA48MTmhF0NDA3684QB8B+gDvgKOPmC65y59h9aE7Z9OzzZmrCHAxYwBBiioC9wS6b1Jv33rdmUotzzQAEaJ7pO1XVcdbeC5cCUG3XQnRPptS+6zqwbXN8n6bwuUooFGPHrb2LPSQKHBC5HKYOKCcH8pJC6GwGc5DqbU6TuFWSsIHWC7AxqbF34TKiNCSvIqWW/pJda+iVXX+nMCzYmrIeBicBzwB2Z4NGHDodDQ1RSfRYswOzjugNomOLq9bm8riVhDVCQyETmkcCjwOMhlrOSqiUEgB10VmAR6aPF56e6Oq+xtCSsEcCkjFOHATGCCUhJ1RwuwKxOAl8KNE9z9faudLQhYQ1R8CAwKuPOxzJ5Y3EcuKE0AHbUXwKTX3b17kJ0tiFhKeDZTPL+SIHnzqRqKj2A2dv7i8DqVzzdVKgu1yeswSodjMYBlXTxXLhAUq2PW6VeTzgs8NR0Tx8oVIdNcSsGVAhUA++TfyU7qRpLH2D2bs+f4elVxei7MW7NBmYCD+UMsCEiADMQW4BpVZ4u+Jgb4lbvTNBJ5vBoJ6NWUJ0C/AF8UOiOZ3j6IvAd0G9d3PoEmN2ZgBOLYPV+ZX3cGlnMu1Tl6TnASIEznVgLR28LBFhcbKtXefp3gRECB8sOoMBda+JW0Vcar3paCzwgcKDcAAZWSXjN00cFKgXaywmgrvb01aAiV7WnfYFx5QTwo6DD/+ue3iNQUw4AG2Z5emcYOVQKGgSc7FhSEQToCdSGlYTWePqCwOQO2UCkAJ4WGF/j6VNhZvI1nv5VYFPUHuHDAvE5nt5bIkvK5ZI+WhcJgN+kYPQbnm4vlfVkKr23sy89B2ZONpVoew9h/FxPHyylBflcT18RoQmhV6kWE34Gauf5halKF+kxXg2MjZXgMb+pMRhTyvAA5vn6gsDXpeLAU8AWgfkL/HCjbI4ubFYfDgu9oLpOwbJaXx8iggrLgaeBnQLzFvraJcIKA+BKYO1CX2vKQEEBPAxsugQLlvjBVVHKAeBeYAWwY5Gvj1OGKgbAc4AD1C729Q7KXIUEeAxYBWyp8/WfdBN1FeAV0l89WPK2rxvphsoX4FnSR3aT7/j6B7qxcgGYAtqBd5f4eg1GNwGYvaA4CbQCrUt9vc0guxbg9S14HJivhM+Bq0vbtPludicc2AZsA5qXtYWzcRNBgALp+ludgt3L2tyLBksOWnFn4h5DIX/9C2Ztxw3suQIzAAAAAElFTkSuQmCC"/>
                     <div class="claim" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn()">
@@ -1664,13 +1676,15 @@
                     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPcAAABKCAYAAABn2ML4AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABkuAAAZLgE9dTosAAAAB3RJTUUH3gEIDhkiWMoTVgAADAxJREFUeNrtnWmUHUUVgL9kZjJhJjskIexBNiEBWSJBMUE2JQQlRyGSCCoqATdEiR7UsMkBORxlcZewKBAgRERkjZpEFgMIgkAkLDkQCAEmIQsZSCazPH/c206lX/V7vTxmXs/c75w+06+nq7qrum4tt27dAsMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDMMwDCNgDPBb4BHg78BMoJ9li2Hkl/7A5cAC4AC9VgecAjwDTLQsMox88jfgM0AfYDdgD2Cg/q8euA74pmWTYeSLc4Dv6fnHgSYV9mXATc59fwG2tewyjPx0x+90fk8EznZ+Pwzsr+fHAMfXVvDhw4BrgE1dmOB1wBn23Y1eQCOwNHStQbvig4DdgRf1+kvA9EoKdwNwfBcneE0VCHcNMFkzfxnwqJXDXDICOBzoq7/7Iprol6rk/WqAltC1Y4EBwFTgKKBZr7cADbU5/yBtVfAO9cBVwE7AbOAxoGCykjv2An7PltNJM6pIuFu1d+zyZ+BiRFvuysJgYFXfCj58BaLBS3IMAN7Q8DekCD+ySjK+T+ivkU+q+fu9ow1Io/OuNXp+JXCbc+8hwEN9u/mF+zsZWmNlyzAiaQd+isxvAywHHtTzV4ALgbEq/KcDT/a1PDOM3LAImINYpjXr74BbEMXafB2Db6q1/DKMXHElcDAyv92kLflAYBpwP3AcomjGhNsw8sejwH6IEvAA4F3gx8BG9yYTbsPIL0spnvv+PzbmNoweigm3YfRQ8t4tb0Sm0Np13JG1ogtW17QQbUY7mC2NVBronM6rQzSWPiOWPshcZSFlOofos/dCjBnqgTeRKZGVwGpgc8J4+wDD2XIasgVVyHju3QYYBRyGmDsOBVYhlnl/Bd5CTIIrRYM+cywwDtgZMTJZCzwL/FPT/nbCfO2j6XDDbB3xrYdHyElB05v0e/bXfBuJ2IJ/UL9nA7ABeAF4CJneaiLHBlFbI0YsBbZc1RKHfsBc4HlkGiArO2tcLwPfKXHfSmess1Q/RqumYZ3GsdRzvO5UHnEZC1wNPO1UDL7jHS3ok53CG7egLVHhCI65nsJ8OHCfViaFEscriGKnEvwAeFIr2VLPfB34E52LJuIwSON10+3L3+bQPe7xJp0GJXEYqXnzuFMZlTpWA3cDH+iNwl2P2P4WgMUVeJfdnIy9pMR9hQzHkJjvMkyFzA27WQvg21qjN+l5c+i+WQnSvJUKhxv+Xke4BwG3p0jn3aT3CnKQVpJp8vdyTVM5Bmf8jgXt4QyImceXZHhOG3Bob+yWdwenaUvt9iAuUYF8AFks76MOeC9G/OcAP3RaheV0utN5WVuMTU7LuytwtBZsEEultjIVVLkuaxvwWX3usBRxTNJW6vsJw80CziO9teK3gQnAp7TSqoaycgHZ1lbXIG6UxtC56sta7vep5faNC1/VcLNJb59cB/zDeYd1wMkJwo/S1iQIOzRly30n8KOIlupZ4Cf6Xp8HLtLxdkdEqzM6oWBGtVxvAT8HTgVORBwWLNTejC/M89o6l2q5O7TXExwbPfFsCt3jHmtKdMvrNR9979aulfwixO/ZEcic9Uc0D5ZE5Ofz1i3Pp3APBv7rPP+XqshJytecgvGtlMIdFPIgnvXam9ilRDxTIgryL2K+90cjwi9CPI5EMQI4VwWm4BleJOFAT2VxcsqyND8iPfciLpLKjdWnRlQ040y48yfcNdoSFYAvZUjDUEcB9WRK4XaPBQm6yKd6wi+OMfTrF9EC36W9mTh8Ulv4cBzfTZB3EzzvcVrK73BCqPVtJrnjwhme9CQqGzbPXR20A9OBI0uM2eOwVsflAB/K+E6zEC15e8z7r9VWPlx5l2ulZnqE+ClE898a89n3AV/1XD8zgRKzktymwwiAecCOOuRKwn36PV3Gm3Dnk5WqOMnKs855Y4rwHcg89kUpwj7m6V3VldEzTA9da0U8jCTlOhUklx2TCkQFOVOHK1M9QhqHYMotnB4T7l7Maud8YIrw96RoZXzPRrvkpcrYaMSIw+UuZEYgDb+h2DvPWd34Le7QyjINLRQbJQ0x4e7dtGYMX0v6KdKkFnKne67NyyAQD1JsqXh0jr9jh6cnlOhDGvllJLAdsD2y9O8Q4GM5ev8pnmsLMsS3GVFMhh11TkBsEKqRfoh15A7aixmn+pIxWeXThDt/7INopo9FDEwaEY19Htkl9Pu9DF1yd1gRFu5xVSjck/Q7jkcs3QZWuidtwl399Ee2jDkBmcd2LcZWIfbcr2rhvQdx9TwjB+ka5bn2TAXi/Zfn2p5VkN56YG/gi8A3YgpygQxOG024q5uZyBTPaOdbvY7YBNwBvIZoVF0PHB05SZtP2fdWBeJt8lwb0s1pPRaZfdiH0rMHy1Rv8DCyWOgmxP7ChLuHUIMsFJiLWGChXdX7EXvtZT0knb6FJRsqEO+GiFazOxiOrOr7tOd/7VqZPQXciizQaQ7JZot1y3sW85wx4yvIflAL8a+xzjO+RTTbVCBeny/75m5I3wHIhnzbef53NbIBwnPv53c14a4eGhADlNFaq1+Tk7FzWlZ7rm1fgXh9K7De6OK07YrYCgwIjZ8XIzMETV3xEjbPXT3McQR7ag8XbJC16WHGVCBenw33ki5O2w0hwe4Avo4skGnqqpcw4a4OJjrjsguAP/aSdPvmtMdmjPMYz7VFXZimycjyTZergF93deb2FOHO+8Z71znj0It7UaV2g+faiRniG4qsjQ73EF7uwjSd53l+t5jA9hThzvMGfCPodGowh/irsHoCt3gq5k8gc/tpOIpig57fdWF6Gil2UHF3d2VunoW7nU5b5oEViG+nbkqHWxger0B8W+Wo0tuMaJRdxqmAp+HcUJneTLYltEnL1SCK179vTPnsffEb+vQK4W5zMi6rh8idEaOQtEOCoLWtSxk+YEDGdExiyyWU1b5zageykivMHSkq21sRIxFCleXSmOE3eXoR+6WorMJxHJQiX6YAT1Dsv66utwg3wH/0b3/SK2KmIfPJAzMId7ASaWSK1nKlc35EhmHJWdoFdAtAvxx8w3uRTeTDLAY+HLMMXxExVj+N+BZ7Gzz3Tk9YLtZQvCpvX8TpRRz2QJxS3h7x/7o8CWcWN0sgux0GLmieSBF+nhP+bNK5WapFrMcCIU/TFV5Dp9+yXRKGHYZYOQXOBB930lGu5Snn2jgp11PsU3xEjHB12sKG3QptBm4s0aOZTLQv9RMSvnt/it1EB44Jt0ug67nZE8d6xMtOFHtrBfduKFzYUeKK3iTcQQ0fJP68mMLwOTp3c1iBeB7ZPqVwg2i4g7BzSG7u+AUn/IPI8r9yFco4ZIolCPcisuTzfOfakTkRbpDljiuI9uf2nArAXGRq670S916W8v1vKxHnC8iuKgv1XaIWdexQJg2zgUuBX2ler/Hctw74MuIHL+wksVcJ9yitGYOa7kXgK6HxygBk/nMOnVvAFBA/VYEL4N0zCPc2oY+wHPiZth6TgVMQk8OobmYNst9yEH4NYp54GGJxNUIL/zQVoFfZ0hXvFXS68p3uXD8jR8IdVLyPkW2zgOkZymMj0W6afa6eo3ppMzK8/79VBwSy0i/8/9o8CXfQgt6cIZ7DVKDiZuAS4KRQHK5wX5riHcZH1MLucVSJ8EO0RYqbhrWIC90DQ/G4u2lcG0O4w93a+RkK0B9Ccb2ZULgDLqP81kXu0arDkQMrUCYnxCxLrWWGYOcTf+eUNi2T4cr4XM+9sWcSursWaNGu0FBkmVtaFiGG+lN07LxnhGZ2jmpnn6Z49dA7WsHUau2ZlEeQTfpO0m72/h6FzfoS4depQu1gxLnecRRvjdOCOFG8UfPrNY92dr2mcZB2c+uIdr3UrsqboSElZVqjoIc1/4Lwa1N2JWeqgE/UAh/lu3w1YghzPeL3va0CZfIBRMN9qH7HCRRv8LAeWXteKCPc1yKmxNMo9kbbATyqQ427EEOb8GKaG1VvssmR112TaFl7IjXaEm+rBXt53pQRSj9EA9+hPZxWei+jkemxeu0hPUf2nV27mlqtsDdgGIZhGIZhGIZhGIZhGIZhGIZhGIZhGIZhGIZhGIZhGNXF/wAbREsus3b0EwAAAABJRU5ErkJggg=="/>
                 </div>
             </div>
+            <div id="previousLocation" data-bind="lang:previousColumnTitle(), fadeVisible: getActiveView().isShowLeftNeighbourColumnPossible()"></div>
         </div>
-        <div id="right-navbar" data-bind="css: { showNavButton: getActiveView().isShowRightNeighbourColumnPossible()}">
-            <div class="rightViewButton imgButton rightIndicator" data-bind="fastClick: function() { getActiveView().getSwipeSlider().showRightNeighbourColumn(); }"></div>
-            <menu data-bind="with: headerBarViewModel, domInit: headerBarViewModel.domButtonBar">
+
+
+        <div id="right-navbar" >
+            <menu data-bind="with: headerBarViewModel">
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
-                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}">
+                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
                             <div class="menu_image">
                                 <div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
                                     <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
@@ -1682,17 +1696,26 @@
                 </ul>
             </menu>
         </div>
-        <menu id="menu_more" data-bind="visible: headerBarViewModel.moreVisible">
-            <ul >
-                <!-- ko foreach: headerBarViewModel.moreButtons() -->
-                <li data-bind="fastClick: click, attr: {'id': id}">
-                    <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
-                    <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
-                </li>
-                <!-- /ko -->
-            </ul>
-        </menu>
+
+        <div id="title" data-bind="lang:currentColumnTitle()"></div>
 	</header>
+
+    <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
+        <div class="modalDialog" data-bind="click: function(){ if(moreVisible()){hideMore();}}, visible:moreVisible()">
+            <menu id="menu_more">
+                <div id="triangle-up"></div>
+                <ul>
+                    <!-- ko foreach: tutao.locator.viewManager.headerBarViewModel.moreButtons() -->
+                    <li data-bind="fastClick: click, attr: {'id': id}">
+                        <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
+                        <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
+                    </li>
+                    <!-- /ko -->
+                </ul>
+            </menu>
+        </div>
+    </div>
+
 </script>
 
 	<script type="text/html" id="displayedRecord-template">
@@ -1704,9 +1727,9 @@
 	</script>
 
 	<script type="text/html" id="buttonBar-template">
-		<div class="buttonBar" data-bind="domInit: domButtonBar">
+		<div class="buttonBar">
             <!-- ko foreach: visibleButtons() -->
-            <button data-bind="lang: getLabelTextId(), fastClick: click, attr: {'id': id}" tabindex="1000"></button>
+            <button class="imgButton" data-bind="css: imageClass, fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
         <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">

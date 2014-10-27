@@ -7,6 +7,8 @@ tutao.provide('tutao.ctrl.UserController');
  * @constructor
  */
 tutao.ctrl.UserController = function () {
+    this._user = ko.observable(null);
+    this._userGroupInfo = ko.observable(null);
     this.reset();
 };
 
@@ -19,12 +21,12 @@ tutao.ctrl.UserController.prototype.reset = function () {
     this._userGroupKey = null;
     this._authVerifier = null;
     this._userGroupId = null;
-    this._user = null;
+    this._user(null);
     this._userPassphraseKey = null;
     this._userClientKey = null;
     this._mailAddress = null;
     this._hexSalt = null;
-    this._userGroupInfo = null; // indicates that a user is logged in because this is set in the last login step
+    this._userGroupInfo(null); // indicates that a user is logged in because this is set in the last login step
 
     // only set for external user
     this._authToken = null; // the hash of the salt
@@ -67,12 +69,12 @@ tutao.ctrl.UserController.prototype.getUserId = function () {
  * @return {tutao.entity.sys.User} The logged-in user.
  */
 tutao.ctrl.UserController.prototype.getLoggedInUser = function () {
-    return this._user;
+    return this._user();
 };
 
 tutao.ctrl.UserController.prototype.isLoggedInUserAdmin = function () {
     if (this.isInternalUserLoggedIn()) {
-        var memberships = this._user.getMemberships();
+        var memberships = this._user().getMemberships();
         for (var i = 0; i < memberships.length; i++) {
             if (memberships[i].getAdmin()) {
                 return true;
@@ -133,7 +135,7 @@ tutao.ctrl.UserController.prototype.getHexSalt = function () {
  * @return {tutao.entity.sys.GroupInfo} the user group info
  */
 tutao.ctrl.UserController.prototype.getUserGroupInfo = function () {
-    return this._userGroupInfo;
+    return this._userGroupInfo();
 };
 
 /**
@@ -160,13 +162,13 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
             return tutao.entity.sys.User.load(self._userId);
         });
     }).then(function (user) {
-        self._user = user;
+        self._user(user);
         self._userGroupId = user.getUserGroup().getGroup();
         self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
         self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
         return tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo())
     }).then(function (groupInfo) {
-        self._userGroupInfo = groupInfo;
+        self._userGroupInfo(groupInfo);
     }).caught(function (e) {
         self.reset();
         throw e;
@@ -190,7 +192,7 @@ tutao.ctrl.UserController.prototype.passwordChanged = function (hexPassphraseKey
  * @return {boolean} True if an internal user is logged in, false if no user or an external user is logged in.
  */
 tutao.ctrl.UserController.prototype.isInternalUserLoggedIn = function () {
-    return (this._userGroupInfo && this._authToken == null);
+    return (this._userGroupInfo() && this._authToken == null);
 };
 
 // EXTERNAL
@@ -225,12 +227,12 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
         authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
         self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
         return tutao.entity.sys.User.load(self._userId).then(function (user) {
-            self._user = user;
+            self._user(user);
             self._userGroupId = user.getUserGroup().getGroup();
             self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
             self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
             return tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo()).then(function (groupInfo) {
-                self._userGroupInfo = groupInfo;
+                self._userGroupInfo(groupInfo);
                 self._mailAddress = groupInfo.getMailAddress();
             });
         });

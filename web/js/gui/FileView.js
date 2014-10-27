@@ -13,8 +13,8 @@ tutao.tutanota.gui.FileView = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.FileView.prototype.init = function() {
-	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "fileContent");
+tutao.tutanota.gui.FileView.prototype.init = function(external, updateColumnTitleCallback) {
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "fileContent", updateColumnTitleCallback);
 	this._swipeSlider.addViewColumn(0, 300, 1024, 'filesColumn');
 	this._firstActivation = true;
 };

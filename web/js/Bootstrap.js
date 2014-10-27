@@ -69,12 +69,8 @@ tutao.tutanota.Bootstrap.init = function () {
 
 		// open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
 		$(document).on("click", "a", function(e){
-			if (tutao.env.mode == tutao.Mode.App) {
-				window.open(this.href, "_system");
-				return false; // Prevent execution of the default onClick handler
-			} else {
-				return true;
-			}
+			tutao.tutanota.gui.openLink(this.href);
+            return false;
 		});
 
         if (tutao.env.mode == tutao.Mode.App && cordova.platformId == "android") {
@@ -103,11 +99,15 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 
     if (tutao.env.mode == tutao.Mode.App) {
-        document.addEventListener("deviceready", launch, false);
-    } else {
-        $(document).ready(function () {
+        document.addEventListener("deviceready", function () {
             launch();
-        });
+            // hide the splashscreen after a short delay, as slower android phones would show the loading screen otherwise
+            setTimeout(function () {
+                navigator.splashscreen.hide();
+            }, 200);
+        }, false);
+    } else {
+        $(document).ready(launch);
     }
 };
 
@@ -120,6 +120,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     var notificationImpl = tutao.native.NotificationBrowser;
     var contactImpl = tutao.native.ContactBrowser;
     var fileFacadeImpl = tutao.native.FileFacadeBrowser;
+    var configFacadeImpl = tutao.native.ConfigBrowser;
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
         cryptoImpl = tutao.native.device.Crypto;
@@ -128,6 +129,7 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         contactImpl = tutao.native.ContactApp;
         if (cordova.platformId == "android") {
             fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
+            configFacadeImpl = tutao.native.ConfigApp;
         }
     }
 
@@ -137,10 +139,11 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
         notification: notificationImpl,
         contacts: contactImpl,
         fileFacade: fileFacadeImpl,
+        configFacade: configFacadeImpl,
 
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.SjclAes,
-        rsaCrypter: tutao.native.RsaInterfaceAdapter,
+        rsaUtil: tutao.native.RsaUtils,
         kdfCrypter: tutao.crypto.JBCryptAdapter,
         shaCrypter: tutao.crypto.SjclSha256,
         userController: tutao.ctrl.UserController,
@@ -202,6 +205,11 @@ tutao.tutanota.Bootstrap.initControllers = function () {
 
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
+    tutao.locator.mailListViewModel.init();
+    tutao.locator.mailViewModel.init();
+    tutao.locator.contactListViewModel.initButtonBar();
+    tutao.locator.contactViewModel.initButtonBar();
+
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
@@ -234,7 +242,7 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.tutanota.gui.initEvents();
 
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
-        // notify the active view and the swipe recognizer
+        // notify the view manager and the swipe recognizer
         if (tutao.locator.viewManager.getActiveView() != null) {
             tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
         }
