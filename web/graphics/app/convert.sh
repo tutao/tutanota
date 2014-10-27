@@ -31,3 +31,8 @@ inkscape -z -e ios/icon-57-2x.png -w 114 -h 114 $ICON
 inkscape -z -e ios/icon-60-2x.png -w 120 -h 120 $ICON
 inkscape -z -e ios/icon-72-2x.png -w 144 -h 144 $ICON
 inkscape -z -e ios/icon-76-2x.png -w 152 -h 152 $ICON
+inkscape -z -e ios/icon-60-3x.png -w 180 -h 180 $ICON
+
+# Removing transparent background for itunesconnect image
+#inkscape -b ffffff00 -z -e ios/icon-1024.png -w 1024 -h 1024 $ICON
+
