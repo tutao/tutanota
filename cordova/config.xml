@@ -33,9 +33,9 @@
     <splash src="www/graphics/app/ios/Default-Landscape~ipad.png" width="1024" height="768"/>
     <splash src="www/graphics/app/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/>
     <splash src="www/graphics/app/ios/Default-568h@2x~iphone.png" width="640" height="1136"/>
-    <splash src="www/graphics/app/ios/Default-667h@2x~iphone.png" width="750" height="1334"/>
-    <splash src="www/graphics/app/ios/Default-736h@3x~iphone.png" width="1242" height="2208"/>
-    <splash src="www/graphics/app/ios/Default-Landscape-736h@3x~iphone.png" width="2208" height="1242"/>
+    <splash src="www/graphics/app/ios/Default-667h.png" width="750" height="1334"/>
+    <splash src="www/graphics/app/ios/Default-736h.png" width="1242" height="2208"/>
+    <splash src="www/graphics/app/ios/Default-Landscape-736h.png" width="2208" height="1242"/>
 
 	
   </platform>
