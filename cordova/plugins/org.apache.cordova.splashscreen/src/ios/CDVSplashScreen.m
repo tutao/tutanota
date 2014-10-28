@@ -19,8 +19,10 @@
 
 #import "CDVSplashScreen.h"
 #import <Cordova/CDVViewController.h>
+#import <Cordova/CDVScreenOrientationDelegate.h>
 
 #define kSplashScreenDurationDefault 0.25f
+
 
 @implementation CDVSplashScreen
 
@@ -116,38 +118,74 @@
     [self.viewController.view removeObserver:self forKeyPath:@"bounds"];
 }
 
-// Sets the view's frame and image.
-- (void)updateImage
+- (CDV_iOSDevice) getCurrentDevice
 {
-    UIInterfaceOrientation orientation = self.viewController.interfaceOrientation;
+    CDV_iOSDevice device;
+    
+    UIScreen* mainScreen = [UIScreen mainScreen];
+    CGFloat mainScreenHeight = mainScreen.bounds.size.height;
+    
+    device.iPad = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
+    device.iPhone = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone);
+    device.retina = ([mainScreen scale] == 2.0);
+    device.iPhone5 = (device.iPhone && mainScreenHeight == 568.0);
+    // note these below is not a true device detect, for example if you are on an
+    // iPhone 6/6+ but the app is scaled it will prob set iPhone5 as true, but
+    // this is appropriate for detecting the runtime screen environment
+    device.iPhone6 = (device.iPhone && mainScreenHeight == 667.0);
+    device.iPhone6Plus = (device.iPhone && mainScreenHeight == 736.0);
+    
+    return device;
+}
 
+- (NSString*)getImageName:(UIInterfaceOrientation)currentOrientation delegate:(id<CDVScreenOrientationDelegate>)orientationDelegate device:(CDV_iOSDevice)device
+{
     // Use UILaunchImageFile if specified in plist.  Otherwise, use Default.
     NSString* imageName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UILaunchImageFile"];
-
+    
+    NSUInteger supportedOrientations = [orientationDelegate supportedInterfaceOrientations];
+    
     // Checks to see if the developer has locked the orientation to use only one of Portrait or Landscape
-    CDVViewController* vc = (CDVViewController*)self.viewController;
-    BOOL supportsLandscape = [vc supportsOrientation:UIInterfaceOrientationLandscapeLeft] || [vc supportsOrientation:UIInterfaceOrientationLandscapeRight];
-    BOOL supportsPortrait = [vc supportsOrientation:UIInterfaceOrientationPortrait] || [vc supportsOrientation:UIInterfaceOrientationPortraitUpsideDown];
+    BOOL supportsLandscape = (supportedOrientations & UIInterfaceOrientationMaskLandscape);
+    BOOL supportsPortrait = (supportedOrientations & UIInterfaceOrientationMaskPortrait || supportedOrientations & UIInterfaceOrientationMaskPortraitUpsideDown);
+    // this means there are no mixed orientations in there
     BOOL isOrientationLocked = !(supportsPortrait && supportsLandscape);
-
+    
     if (imageName) {
         imageName = [imageName stringByDeletingPathExtension];
     } else {
         imageName = @"Default";
     }
-
-    if (CDV_IsIPhone5()) {
+    
+    if (device.iPhone5) { // does not support landscape
         imageName = [imageName stringByAppendingString:@"-568h"];
-    } else if (CDV_IsIPad()) {
+    } else if (device.iPhone6) { // does not support landscape
+        imageName = [imageName stringByAppendingString:@"-667h"];
+    } else if (device.iPhone6Plus) { // supports landscape
+        if (isOrientationLocked) {
+            imageName = [imageName stringByAppendingString:(supportsLandscape ? @"-Landscape" : @"")];
+        } else {
+            switch (currentOrientation) {
+                case UIInterfaceOrientationLandscapeLeft:
+                case UIInterfaceOrientationLandscapeRight:
+                        imageName = [imageName stringByAppendingString:@"-Landscape"];
+                    break;
+                default:
+                    break;
+            }
+        }
+        imageName = [imageName stringByAppendingString:@"-736h"];
+
+    } else if (device.iPad) { // supports landscape
         if (isOrientationLocked) {
             imageName = [imageName stringByAppendingString:(supportsLandscape ? @"-Landscape" : @"-Portrait")];
         } else {
-            switch (orientation) {
+            switch (currentOrientation) {
                 case UIInterfaceOrientationLandscapeLeft:
                 case UIInterfaceOrientationLandscapeRight:
                     imageName = [imageName stringByAppendingString:@"-Landscape"];
                     break;
-
+                    
                 case UIInterfaceOrientationPortrait:
                 case UIInterfaceOrientationPortraitUpsideDown:
                 default:
@@ -156,6 +194,14 @@
             }
         }
     }
+    
+    return imageName;
+}
+
+// Sets the view's frame and image.
+- (void)updateImage
+{
+    NSString* imageName = [self getImageName:self.viewController.interfaceOrientation delegate:(id<CDVScreenOrientationDelegate>)self.viewController device:[self getCurrentDevice]];
 
     if (![imageName isEqualToString:_curImageName]) {
         UIImage* img = [UIImage imageNamed:imageName];

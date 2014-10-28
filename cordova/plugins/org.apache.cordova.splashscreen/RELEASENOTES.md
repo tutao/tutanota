@@ -83,3 +83,14 @@
 * Renamed test dir, added nested plugin.xml
 * added documentation for manual tests
 * CB-7196 port splashscreen tests to framework
+
+### 0.3.4 (Oct 03, 2014)
+* Finalized iOS splash screen (image name) tests. 176 tests in all, 44 for each type of device (iPad, iPhone, iPhone5, iPhone6, iPhone 6 Plus).
+* CB-7633 - (Re-fix based on updated unit tests) iPhone 6 Plus support
+* Updated iOS tests for locked orientations
+* Added more iOS splash screen tests.
+* CB-7633 - Add support for iPhone 6/6+
+* Added failing iPhone 6/6 Plus tests.
+* Added 'npm test'
+* CB-7663 - iOS unit tests for splash screen
+* Properly formatted splashscreen preference docs.
