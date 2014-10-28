@@ -23,29 +23,21 @@
   </platform>
 
   <platform name="ios">
-    <!-- iOS 7.0+ -->
-    <!-- iPhone / iPod Touch  -->
-    <icon src="www/graphics/app/ios/icon-60.png" width="60" height="60" />
-    <icon src="www/graphics/app/ios/icon-60-2x.png" width="120" height="120" />
-    <!-- iPad -->
-    <icon src="www/graphics/app/ios/icon-76.png" width="76" height="76" />
-    <icon src="www/graphics/app/ios/icon-76-2x.png" width="152" height="152" />
-    <!-- iOS 6.1 -->
-    <!-- Spotlight Icon -->
-    <icon src="www/graphics/app/ios/icon-40.png" width="40" height="40" />
-    <icon src="www/graphics/app/ios/icon-40-2x.png" width="80" height="80" />
-    <!-- iPhone / iPod Touch -->
-    <icon src="www/graphics/app/ios/icon-57.png" width="57" height="57" />
-    <icon src="www/graphics/app/ios/icon-57-2x.png" width="114" height="114" />
-    <!-- iPad -->
-    <icon src="www/graphics/app/ios/icon-72.png" width="72" height="72" />
-    <icon src="www/graphics/app/ios/icon-72-2x.png" width="144" height="144" />
-    <!-- iPhone Spotlight and Settings Icon -->
-    <icon src="www/graphics/app/ios/icon-29.png" width="29" height="29" />
-    <icon src="www/graphics/app/ios/icon-29-2x.png" width="58" height="58" />
-    <!-- iPad Spotlight and Settings Icon -->
-    <icon src="www/graphics/app/ios/icon-50.png" width="50" height="50" />
-    <icon src="www/graphics/app/ios/icon-50-2x.png" width="100" height="100" />
+
+		
+	<!-- images are determined by width and height. The following are supported	-->
+    <splash src="www/graphics/app/ios/Default~iphone.png" width="320" height="480"/>
+    <splash src="www/graphics/app/ios/Default@2x~iphone.png" width="640" height="960"/>
+    <splash src="www/graphics/app/ios/Default-Portrait~ipad.png" width="768" height="1024"/>
+    <splash src="www/graphics/app/ios/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
+    <splash src="www/graphics/app/ios/Default-Landscape~ipad.png" width="1024" height="768"/>
+    <splash src="www/graphics/app/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/>
+    <splash src="www/graphics/app/ios/Default-568h@2x~iphone.png" width="640" height="1136"/>
+    <splash src="www/graphics/app/ios/Default-667h@2x~iphone.png" width="750" height="1334"/>
+    <splash src="www/graphics/app/ios/Default-736h@3x~iphone.png" width="1242" height="2208"/>
+    <splash src="www/graphics/app/ios/Default-Landscape-736h@3x~iphone.png" width="2208" height="1242"/>
+
+	
   </platform>
 
   <preference name="AndroidLaunchMode" value="singleTop"/>
