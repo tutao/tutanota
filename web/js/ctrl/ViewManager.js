@@ -53,10 +53,10 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
     var buttons = [
         // internalUsers
         new tutao.tutanota.ctrl.Button('emails_label', 30, tutao.locator.navigator.mail, self.isInternalUserLoggedIn, false, "menu_mail", "mail", 'emails_alt', function () {
-            return tutao.locator.navigator.hash() == '#box'
+            return tutao.locator.navigator.hash() == '#box';
         }),
         new tutao.tutanota.ctrl.Button('contacts_label', 29, tutao.locator.navigator.contact, self.isInternalUserLoggedIn, false, "menu_contact", "contact", 'contacts_alt', function () {
-            return tutao.locator.navigator.hash() == '#contact'
+            return tutao.locator.navigator.hash() == '#contact';
         }),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
@@ -71,7 +71,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),
 
         new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt', function () {
-            return tutao.locator.navigator.hash() == '#settings'
+            return tutao.locator.navigator.hash() == '#settings';
         }),
 
         // external users
