@@ -1700,7 +1700,7 @@
 	</header>
 
     <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
-        <div class="modalDialog" data-bind="visible:moreVisible()">
+        <div class="modalDialog" data-bind="fastClick: hideMore, visible:moreVisible()">
             <menu id="menu_more">
                 <div id="triangle-up"></div>
                 <ul>

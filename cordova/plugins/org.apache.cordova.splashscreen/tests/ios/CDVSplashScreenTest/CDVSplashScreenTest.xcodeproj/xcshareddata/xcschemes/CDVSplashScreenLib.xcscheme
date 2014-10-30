@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0610"
+   LastUpgradeVersion = "0600"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
-               BuildableName = "Tutanota.app"
-               BlueprintName = "Tutanota"
-               ReferencedContainer = "container:Tutanota.xcodeproj">
+               BlueprintIdentifier = "7E9F519419DA102000DA31AC"
+               BuildableName = "libCDVSplashScreenLib.a"
+               BlueprintName = "CDVSplashScreenLib"
+               ReferencedContainer = "container:CDVSplashScreenTest.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       buildConfiguration = "Debug">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
-            BuildableName = "Tutanota.app"
-            BlueprintName = "Tutanota"
-            ReferencedContainer = "container:Tutanota.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
@@ -48,15 +39,15 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
-            BuildableName = "Tutanota.app"
-            BlueprintName = "Tutanota"
-            ReferencedContainer = "container:Tutanota.xcodeproj">
+            BlueprintIdentifier = "7E9F519419DA102000DA31AC"
+            BuildableName = "libCDVSplashScreenLib.a"
+            BlueprintName = "CDVSplashScreenLib"
+            ReferencedContainer = "container:CDVSplashScreenTest.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -66,15 +57,15 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1D6058900D05DD3D006BFB54"
-            BuildableName = "Tutanota.app"
-            BlueprintName = "Tutanota"
-            ReferencedContainer = "container:Tutanota.xcodeproj">
+            BlueprintIdentifier = "7E9F519419DA102000DA31AC"
+            BuildableName = "libCDVSplashScreenLib.a"
+            BlueprintName = "CDVSplashScreenLib"
+            ReferencedContainer = "container:CDVSplashScreenTest.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -373,7 +373,9 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
             if (versionIndex != -1) {
                 info._browser = info.BROWSER_TYPE_SAFARI;
                 try {
-                    info._browserVersion = Number(userAgent.substring(versionIndex + 4, versionIndex + 5));
+					// Support two digit numbers for iOS iPhone6 Simulator
+					var numberString = userAgent.substring(versionIndex + 4, versionIndex + 6);
+                    info._browserVersion = Number(numberString.replace("_", ""));
                 } catch (e) {}
                 return;
             }

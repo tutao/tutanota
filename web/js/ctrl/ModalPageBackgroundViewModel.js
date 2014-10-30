@@ -14,12 +14,6 @@ tutao.tutanota.ctrl.ModalPageBackgroundViewModel = function() {
     this.visible = ko.observable(false);
     this.closeListener = null;
     var self = this;
-
-    $(window.document).click(function(event){
-        if(!$(event.target).parent().is('.buttonBarMoreMenu')){
-            self._hide();
-        }
-    });
 };
 
 /**

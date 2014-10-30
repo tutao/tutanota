@@ -5,36 +5,36 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>65605274-9A02-4018-8750-78D2A071ED91</string>
+	<string>6BE9AD73-1B9F-4362-98D7-DC631BEC6185</string>
 	<key>IDESourceControlProjectName</key>
-	<string>Tutanota</string>
+	<string>CDVSplashScreenTest</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>5B59320B287A0A7A1F5958FAD5FAA816A0EC43D7</key>
-		<string>https://github.com/tutao/tutanota.git</string>
+		<key>BEF5A5D0FF64801E558286389440357A9233D7DB</key>
+		<string>https://git-wip-us.apache.org/repos/asf/cordova-plugin-splashscreen.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>cordova/platforms/ios/Tutanota.xcodeproj</string>
+	<string>tests/ios/CDVSplashScreenTest/CDVSplashScreenTest.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>5B59320B287A0A7A1F5958FAD5FAA816A0EC43D7</key>
+		<key>BEF5A5D0FF64801E558286389440357A9233D7DB</key>
 		<string>../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/tutao/tutanota.git</string>
+	<string>https://git-wip-us.apache.org/repos/asf/cordova-plugin-splashscreen.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>5B59320B287A0A7A1F5958FAD5FAA816A0EC43D7</string>
+	<string>BEF5A5D0FF64801E558286389440357A9233D7DB</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>5B59320B287A0A7A1F5958FAD5FAA816A0EC43D7</string>
+			<string>BEF5A5D0FF64801E558286389440357A9233D7DB</string>
 			<key>IDESourceControlWCCName</key>
-			<string>tutanota</string>
+			<string>cordova-plugin-splashscreen</string>
 		</dict>
 	</array>
 </dict>
