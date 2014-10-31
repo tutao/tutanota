@@ -232,7 +232,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// account settings
 	accountType_label: "Account type",
 	mailName_label: "Sender name",
-	mailNameInfo_msg: "This name is shown to the recipients of your emails.",
+	mailNameInfo_msg: "This name is shown to the recipients of your emails. You can change it in the user management.",
 
 	// security settings
 	lastSuccessfulLogin_label: "Last successful login",
@@ -673,7 +673,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// account settings
 	accountType_label: "Account-Typ",
 	mailName_label: "Absendername",
-	mailNameInfo_msg: "Dieser Name wird Empfängern Ihrer E-Mails angezeigt.",
+	mailNameInfo_msg: "Dieser Name wird Empfängern Ihrer E-Mails angezeigt. Sie können ihn in der Benutzerverwaltung ändern.",
 	
 	// security settings
 	lastSuccessfulLogin_label: "Letzter erfolgreicher Login",
