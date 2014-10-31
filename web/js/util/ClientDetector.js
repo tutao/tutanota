@@ -14,6 +14,8 @@ tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI = "Safari";
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID = "Android";
 /** Opera browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA = "Opera";
+/** Black Berry */
+tutao.tutanota.util.ClientDetector.BROWSER_TYPE_BB = "BlackBerry";
 /** other browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OTHER = "Other";
 
@@ -35,6 +37,8 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD = "iPad";
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID = "Android";
 /** Windows phone */
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE = "Windows Phone";
+/** Black Berry */
+tutao.tutanota.util.ClientDetector.DEVICE_TYPE_BB = "BlackBerry";
 /** other device */
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP = "Desktop";
 
@@ -201,6 +205,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;
     minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4; // only legacy
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
+    minVersionNeeded[info.BROWSER_TYPE_BB] = 10;
 
     if (info._browser == info.BROWSER_TYPE_OTHER ||
         (info._device != info.DEVICE_TYPE_DESKTOP && (info._browser == info.BROWSER_TYPE_FIREFOX))) {
@@ -242,6 +247,8 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
         } else {
             info._supported = info.SUPPORTED_TYPE_LEGACY_ANDROID;
         }
+    } else if (info._device == info.DEVICE_TYPE_BB) {
+        info._supported = info.SUPPORTED_TYPE_SUPPORTED;
     }
 };
 
@@ -279,6 +286,9 @@ tutao.tutanota.util.ClientDetector._setDeviceInfo = function(userAgent) {
 		info._phone = true;
 	} else if (userAgent.match(/Windows Phone/) != null){
         info._device = info.DEVICE_TYPE_WINDOWS_PHONE;
+        info._phone = true;
+    } else if (userAgent.match(/BB10/) != null){
+        info._device = info.DEVICE_TYPE_BB;
         info._phone = true;
     }
 };
@@ -321,6 +331,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	var ieIndex = userAgent.indexOf("MSIE");
 	var ie11Index = userAgent.indexOf("Trident");
     var androidIndex = userAgent.indexOf("Android");
+    var blackBerryIndex = userAgent.indexOf("BB10");
 	var versionIndex = -1;
     if (operaIndex1 != -1) {
         info._browser = info.BROWSER_TYPE_OPERA;
@@ -344,8 +355,8 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
         // keep this check after Chrome, Firefox and Opera, because the Android browser does not identify itself in any other way
         info._browser = info.BROWSER_TYPE_ANDROID;
         versionIndex = androidIndex + 8;
-	} else if (safariIndex != -1 && chromeIndex == -1) {
-		// Chrome pretends to be Safari, so it is skipped
+	} else if (safariIndex != -1 && chromeIndex == -1 && blackBerryIndex == -1) {
+		// Chrome and black berry pretends to be Safari, so it is skipped
 		info._browser = info.BROWSER_TYPE_SAFARI;
 		// Safari prints its version after "Version/"
 		versionIndex = userAgent.indexOf("Version/");
@@ -375,7 +386,10 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	} else if (ie11Index != -1) {
 		info._browser = info.BROWSER_TYPE_IE;
 		info._browserVersion = 11;
-	}	
+	} else if (blackBerryIndex !=-1){
+        info._browser = info.BROWSER_TYPE_BB;
+        info._browserVersion = 10;
+    }
 	if (versionIndex != -1) {
 		var mainVersionEndIndex = userAgent.indexOf(".", versionIndex);
 		if (mainVersionEndIndex != -1) {

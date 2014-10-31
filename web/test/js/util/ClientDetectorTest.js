@@ -388,5 +388,16 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
 
-
+    it("blackberry browser are supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (BB10; Touch) AppleWebKit/537.35+ (KHTML, like Gecko) Version/10.2.1.3247 Mobile Safari/537.35+");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_BB, info.getBrowserType());
+        assert.equal(10, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_OTHER, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_BB, info.getDeviceType());
+        assert.equal(true, info.isMobileDevice());
+        assert.equal(true, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
 });
