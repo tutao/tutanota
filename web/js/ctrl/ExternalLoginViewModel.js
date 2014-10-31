@@ -304,6 +304,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                     // no indexing for external users
                     tutao.locator.replace('dao', new tutao.db.DummyDb);
                     self._showingMail = true;
+                    tutao.locator.mailListViewModel.loadInitial();
                     tutao.locator.navigator.mail();
                 });
             });
