@@ -27,6 +27,8 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._buttons = [];
     this.currentColumnTitle = ko.observable("emptyString_msg");
     this.previousColumnTitle = ko.observable("emptyString_msg");
+
+    this.externalCompanyName = ko.observable("");
 };
 
 
