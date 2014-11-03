@@ -111,7 +111,9 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 };
 
-tutao.tutanota.Bootstrap.getSingletons = function() {
+tutao.tutanota.Bootstrap.initLocator = function() {
+    tutao.native.CryptoBrowser.initWorkerFileNames("");
+
     operative.setSelfURL("operative-0.3.1.js");
 
     //override native implementation with device specific one, if available
@@ -198,22 +200,20 @@ tutao.tutanota.Bootstrap.getSingletons = function() {
     }
     tutao.tutanota.legacy.Legacy.setup(singletons);
 
-    return singletons;
-};
-
-tutao.tutanota.Bootstrap.initControllers = function () {
-    tutao.native.CryptoBrowser.initWorkerFileNames("");
-
     // @type {tutao.Locator}
-    tutao.locator = new tutao.Locator(tutao.tutanota.Bootstrap.getSingletons());
+    tutao.locator = new tutao.Locator(singletons);
 
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
+
     tutao.locator.mailListViewModel.init();
     tutao.locator.mailViewModel.init();
     tutao.locator.contactListViewModel.initButtonBar();
     tutao.locator.contactViewModel.initButtonBar();
+};
 
+tutao.tutanota.Bootstrap.initControllers = function () {
+    tutao.tutanota.Bootstrap.initLocator();
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;

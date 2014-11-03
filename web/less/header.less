@@ -25,6 +25,25 @@ header#main {
     height: @header-height-small;
   }
 
+  > div#externalCompanyName {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    height: @header-height;
+
+    > div {
+      position: relative;
+      top: 0px;
+      width: 200px;
+      height: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      overflow: hidden;
+    }
+  }
+
   &.loggedIn {
     border-bottom: 1px solid @border-dark;
     background-color: @background-dark;

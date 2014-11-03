@@ -123,10 +123,10 @@ tutao.tutanota.gui.initKnockout = function() {
 	    }
 	};
 	
-	// sets a wide class on all forms that are wider than 350px
+	// sets a wide class on all forms that are wider than 500px
 	var updateForm = function(element, container) {
 		var e = $(element);
-		e.toggleClass("wide", container.width() > 360);
+		e.toggleClass("wide", container.width() > 499); // Must be at least 375px to support iphone6 login screen
 	};
 	// allows moving the record-data part of a record-container below the record-name on small devices
 	var currentForms = []; 
