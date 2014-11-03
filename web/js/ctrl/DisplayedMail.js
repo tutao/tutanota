@@ -150,6 +150,17 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
 };
 
 /**
+ * Offers the user to download all attachments of this mail.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAllAttachments = function () {
+    return Promise.map(this.attachments(), function (file) {
+        return tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
+            return tutao.locator.fileFacade.open(dataFile);
+        });
+    });
+};
+
+/**
  * Provides the image that shall be shown in the attachment.
  * @param {tutao.entity.tutanota.File} file The file.
  * @return {String} The name of the image.
