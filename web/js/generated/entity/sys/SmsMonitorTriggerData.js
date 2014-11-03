@@ -24,7 +24,7 @@ tutao.entity.sys.SmsMonitorTriggerData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SmsMonitorTriggerData.MODEL_VERSION = '4';
+tutao.entity.sys.SmsMonitorTriggerData.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -126,7 +126,7 @@ tutao.entity.sys.SmsMonitorTriggerData.prototype.setup = function(parameters, he
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 5;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.SmsMonitorTriggerData.PATH, this, parameters, headers, null);
 };

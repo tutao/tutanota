@@ -249,3 +249,9 @@ tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_MAIL_BOX = "0";
 tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_CONTACT_LIST = "1";
 tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_FILE_SYSTEM = "2";
 tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_FILE = "3";
+
+
+tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID = "0";
+tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS = "1";
+
+

@@ -4,7 +4,7 @@ tutao.provide('tutao.native.ConfigApp');
 
 /**
  * Access and update the device config
- * @interface
+ * @implements {tutao.native.ConfigFacade}
  */
 tutao.native.ConfigApp = function(){
     this.fileUtil = new tutao.native.device.FileUtil();

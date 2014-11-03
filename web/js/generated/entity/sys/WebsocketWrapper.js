@@ -32,7 +32,7 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '4';
+tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '5';
 
 /**
  * The encrypted flag.

@@ -31,6 +31,7 @@ tutao.entity.sys.User = function(data) {
     for (var i=0; i < data.phoneNumbers.length; i++) {
       this._phoneNumbers.push(new tutao.entity.sys.PhoneNumber(this, data.phoneNumbers[i]));
     }
+    this._pushIdentifierList = (data.pushIdentifierList) ? new tutao.entity.sys.PushIdentifierList(this, data.pushIdentifierList) : null;
     this._secondFactorAuthentications = data.secondFactorAuthentications;
     this._successfulLogins = data.successfulLogins;
     this._userGroup = (data.userGroup) ? new tutao.entity.sys.GroupMembership(this, data.userGroup) : null;
@@ -49,6 +50,7 @@ tutao.entity.sys.User = function(data) {
     this._failedLogins = null;
     this._memberships = [];
     this._phoneNumbers = [];
+    this._pushIdentifierList = null;
     this._secondFactorAuthentications = null;
     this._successfulLogins = null;
     this._userGroup = null;
@@ -61,7 +63,7 @@ tutao.entity.sys.User = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.User.MODEL_VERSION = '4';
+tutao.entity.sys.User.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -107,6 +109,7 @@ tutao.entity.sys.User.prototype.toJsonData = function() {
     failedLogins: this._failedLogins, 
     memberships: tutao.entity.EntityHelper.aggregatesToJsonData(this._memberships), 
     phoneNumbers: tutao.entity.EntityHelper.aggregatesToJsonData(this._phoneNumbers), 
+    pushIdentifierList: tutao.entity.EntityHelper.aggregatesToJsonData(this._pushIdentifierList), 
     secondFactorAuthentications: this._secondFactorAuthentications, 
     successfulLogins: this._successfulLogins, 
     userGroup: tutao.entity.EntityHelper.aggregatesToJsonData(this._userGroup)
@@ -172,6 +175,11 @@ tutao.entity.sys.User.prototype.MEMBERSHIPS_ATTRIBUTE_ID = 96;
  * The id of the phoneNumbers attribute.
  */
 tutao.entity.sys.User.prototype.PHONENUMBERS_ATTRIBUTE_ID = 94;
+
+/**
+ * The id of the pushIdentifierList attribute.
+ */
+tutao.entity.sys.User.prototype.PUSHIDENTIFIERLIST_ATTRIBUTE_ID = 638;
 
 /**
  * The id of the secondFactorAuthentications attribute.
@@ -399,6 +407,23 @@ tutao.entity.sys.User.prototype.getPhoneNumbers = function() {
 };
 
 /**
+ * Sets the pushIdentifierList of this User.
+ * @param {tutao.entity.sys.PushIdentifierList} pushIdentifierList The pushIdentifierList of this User.
+ */
+tutao.entity.sys.User.prototype.setPushIdentifierList = function(pushIdentifierList) {
+  this._pushIdentifierList = pushIdentifierList;
+  return this;
+};
+
+/**
+ * Provides the pushIdentifierList of this User.
+ * @return {tutao.entity.sys.PushIdentifierList} The pushIdentifierList of this User.
+ */
+tutao.entity.sys.User.prototype.getPushIdentifierList = function() {
+  return this._pushIdentifierList;
+};
+
+/**
  * Sets the secondFactorAuthentications of this User.
  * @param {string} secondFactorAuthentications The secondFactorAuthentications of this User.
  */
@@ -455,7 +480,7 @@ tutao.entity.sys.User.prototype.getUserGroup = function() {
  * @return {Promise.<tutao.entity.sys.User>} Resolves to the User or an exception if the loading failed.
  */
 tutao.entity.sys.User.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -466,7 +491,7 @@ tutao.entity.sys.User.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.User>>} Resolves to an array of User or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.User.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
