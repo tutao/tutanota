@@ -147,6 +147,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         tutao.locator.mailListViewModel.loadInitial();
         tutao.locator.navigator.mail();
         self.loginFinished(true);
+        tutao.locator.pushService.register();
     });
 };
 
