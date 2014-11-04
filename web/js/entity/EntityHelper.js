@@ -132,7 +132,7 @@ tutao.entity.EntityHelper._getListKey = function(listId, startId) {
         var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
         if (listKey == null){
             if (permissions.length > 0){
-                return self._getListKey(listId, permissions[permissions.length -1]);
+                return self._getListKey(listId, permissions[permissions.length -1].getId()[1]);
             } else {
                 throw new Error("no list permission found");
             }

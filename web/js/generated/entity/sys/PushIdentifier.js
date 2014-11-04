@@ -263,13 +263,10 @@ tutao.entity.sys.PushIdentifier.loadMultiple = function(ids) {
  */
 tutao.entity.sys.PushIdentifier.prototype.setup = function(listId) {
   var self = this;
-  return this._entityHelper.createListEncSessionKey(listId).then(function(listEncSessionKey) {
-    self.setListEncSessionKey(listEncSessionKey);
-    self._entityHelper.notifyObservers(false);
-    return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  self._entityHelper.notifyObservers(false);
+  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
       self.__id = [listId, entity.getGeneratedId()];
       self.setPermissions(entity.getPermissionListId());
-    });
   });
 };
 

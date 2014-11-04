@@ -17,49 +17,54 @@ tutao.native.PushServiceApp.prototype.register = function() {
     var self = this;
     if (cordova.platformId == 'android') {
         return new Promise(function (resolve, reject) {
-            pushNotification.register(
+            self.pushNotification.register(
                 resolve,
                 reject,
                 {
-                    "senderID": '707517914653',
+                    "senderID": '707517914653', // TODO (before release): check if senderid can be made public
                     "ecb": "tutao.locator.pushService.onAndroidNotification"
                 });
         });
     } else if (cordova.platformId == 'ios') {
-        pushNotification.register(
-            function (token) {
-                self.updatePushIdentifier(token, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
-            },
-            reject,
-            {
-                "badge":"true",
-                "sound":"true",
-                "alert":"true",
-                "ecb":"tutao.locator.pushService.onIosNotification"
-            });
+        return new Promise( function(resolve, reject){
+            self.pushNotification.register(
+                function (token) {
+                    resolve();
+                    self.updatePushIdentifier(token, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
+                },
+                reject,
+                {
+                    "badge":"true",
+                    "sound":"true",
+                    "alert":"true",
+                    "ecb":"tutao.locator.pushService.onIosNotification"
+                });
+        });
     }
 };
 
 
 tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier, identifierType){
     var listId = tutao.locator.userController.getLoggedInUser().getPushIdentifierList().getList();
-    tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.PushIdentifier, listId).then(function (elements) {
-        var identifier = null;
+    tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.PushIdentifier, listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function (elements) {
+        var existingPushIdentifier = null;
         for(var i=0; i<elements.length;i++){
             if (elements[i].getIdentifier() == identifier){
-                identifier = elements[i].getIdentifier();
+                existingPushIdentifier = elements[i];
                 break;
             }
         }
-        if (identifier == null){
+        if (existingPushIdentifier == null){
             new tutao.entity.sys.PushIdentifier()
-                .setType(identifierType)
+                .setOwner(tutao.locator.userController.getUserGroupId())
+                .setArea(tutao.entity.tutanota.TutanotaConstants.AREA_SYSTEM)
+                .setPushServiceType(identifierType)
                 .setIdentifier(identifier)
                 .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                .setup();
+                .setup(listId);
         } else {
-            if (identifier.getLanguage() != tutao.locator.languageViewModel.getCurrentLanguage()){
-                identifier
+            if (existingPushIdentifier.getLanguage() != tutao.locator.languageViewModel.getCurrentLanguage()){
+                existingPushIdentifier
                     .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
                     .update();
             }
@@ -79,7 +84,7 @@ tutao.native.PushServiceApp.prototype.onIosNotification = function(e) {
     }
 
     if ( event.badge ) {
-        pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
+        //this.pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
     }
 };
 
