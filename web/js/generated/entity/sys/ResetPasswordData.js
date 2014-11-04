@@ -28,7 +28,7 @@ tutao.entity.sys.ResetPasswordData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ResetPasswordData.MODEL_VERSION = '4';
+tutao.entity.sys.ResetPasswordData.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -184,7 +184,7 @@ tutao.entity.sys.ResetPasswordData.prototype.setup = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 4;
+  parameters["v"] = 5;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.ResetPasswordData.PATH, this, parameters, headers, null);
 };

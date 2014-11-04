@@ -14,6 +14,8 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._activationTime = data.activationTime;
     this._company = data.company;
     this._creationTime = data.creationTime;
+    this._deletionReason = data.deletionReason;
+    this._deletionTime = data.deletionTime;
     this._domain = data.domain;
     this._registrationMailAddress = data.registrationMailAddress;
     this._testEndTime = data.testEndTime;
@@ -26,6 +28,8 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._activationTime = null;
     this._company = null;
     this._creationTime = null;
+    this._deletionReason = null;
+    this._deletionTime = null;
     this._domain = null;
     this._registrationMailAddress = null;
     this._testEndTime = null;
@@ -40,7 +44,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerInfo.MODEL_VERSION = '4';
+tutao.entity.sys.CustomerInfo.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -78,6 +82,8 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     activationTime: this._activationTime, 
     company: this._company, 
     creationTime: this._creationTime, 
+    deletionReason: this._deletionReason, 
+    deletionTime: this._deletionTime, 
     domain: this._domain, 
     registrationMailAddress: this._registrationMailAddress, 
     testEndTime: this._testEndTime, 
@@ -105,6 +111,16 @@ tutao.entity.sys.CustomerInfo.prototype.COMPANY_ATTRIBUTE_ID = 153;
  * The id of the creationTime attribute.
  */
 tutao.entity.sys.CustomerInfo.prototype.CREATIONTIME_ATTRIBUTE_ID = 155;
+
+/**
+ * The id of the deletionReason attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype.DELETIONREASON_ATTRIBUTE_ID = 635;
+
+/**
+ * The id of the deletionTime attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype.DELETIONTIME_ATTRIBUTE_ID = 634;
 
 /**
  * The id of the domain attribute.
@@ -238,6 +254,50 @@ tutao.entity.sys.CustomerInfo.prototype.getCreationTime = function() {
 };
 
 /**
+ * Sets the deletionReason of this CustomerInfo.
+ * @param {string} deletionReason The deletionReason of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setDeletionReason = function(deletionReason) {
+  this._deletionReason = deletionReason;
+  return this;
+};
+
+/**
+ * Provides the deletionReason of this CustomerInfo.
+ * @return {string} The deletionReason of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getDeletionReason = function() {
+  return this._deletionReason;
+};
+
+/**
+ * Sets the deletionTime of this CustomerInfo.
+ * @param {Date} deletionTime The deletionTime of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setDeletionTime = function(deletionTime) {
+  if (deletionTime == null) {
+    this._deletionTime = null;
+  } else {
+    this._deletionTime = String(deletionTime.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the deletionTime of this CustomerInfo.
+ * @return {Date} The deletionTime of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getDeletionTime = function() {
+  if (this._deletionTime == null) {
+    return null;
+  }
+  if (isNaN(this._deletionTime)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._deletionTime);
+  }
+  return new Date(Number(this._deletionTime));
+};
+
+/**
  * Sets the domain of this CustomerInfo.
  * @param {string} domain The domain of this CustomerInfo.
  */
@@ -354,7 +414,7 @@ tutao.entity.sys.CustomerInfo.prototype.loadCustomer = function() {
  * @return {Promise.<tutao.entity.sys.CustomerInfo>} Resolves to the CustomerInfo or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -365,7 +425,7 @@ tutao.entity.sys.CustomerInfo.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -377,7 +437,7 @@ tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
 tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 4;
+  params["v"] = 5;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -387,7 +447,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.CustomerInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -401,7 +461,7 @@ tutao.entity.sys.CustomerInfo.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

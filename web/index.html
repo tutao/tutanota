@@ -123,16 +123,8 @@
 <script src="/js/crypto/SjclRandomizer.js"></script>
 <script src="/js/crypto/SjclSha256.js"></script>
 <script src="/js/crypto/WorkerRandomizer.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
+<script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
@@ -183,6 +175,12 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/event/EventBusClient.js"></script>
 <script src="/js/event/EventBusListener.js"></script>
 <script src="/js/event/ListEventTracker.js"></script>
@@ -253,6 +251,9 @@
 <script src="/js/util/StateMachine.js"></script>
 <script src="/js/util/StringUtils.js"></script>
 <script src="/js/util/bind.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
 <script src="/js/ctrl/bubbleinput/Bubble.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
@@ -339,6 +340,7 @@
 <script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
 <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
+<script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/EntityUpdate.js"></script>
@@ -1409,7 +1411,7 @@
                                                     <div class="recordValue">
                                                         <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
                                                     </div>
-                                                    <label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+                                                    <label for="newpassword2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
                                                 </div>
                                             </div>
                                             <div class="record">
@@ -1443,6 +1445,37 @@
 									</div>
 								</div>
 							<!-- /ko -->
+                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT -->
+                            <div id="adminDeleteAccount" data-bind="with: new tutao.tutanota.ctrl.AdminDeleteAccountViewModel()">
+                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                    <div class="record">
+                                        <label for="deleteReason" class="recordName" data-bind="lang: 'deleteAccountReason_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input id="deleteReason" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: reason"/>
+                                            </div>
+                                            <label for="deleteReason" class="recordInfo" data-bind="lang: 'deleteAccountReasonInfo_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label for="password" class="recordName" data-bind="lang: 'password_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input id="password" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: password, valueUpdate: 'input', event: { change: checkPassword }, css: passwordStatus().type"/>
+                                            </div>
+                                            <label for="password" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button id="submitDeleteAccount" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
+                                            <label for="submitDeleteAccount" class="recordStatus" data-bind="css: deleteAccountStatus().type, lang: deleteAccountStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- /ko -->
 						</div>
 					</div>
 				</div>

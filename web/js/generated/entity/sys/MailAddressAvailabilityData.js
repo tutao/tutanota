@@ -22,7 +22,7 @@ tutao.entity.sys.MailAddressAvailabilityData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAvailabilityData.MODEL_VERSION = '4';
+tutao.entity.sys.MailAddressAvailabilityData.MODEL_VERSION = '5';
 
 /**
  * The encrypted flag.

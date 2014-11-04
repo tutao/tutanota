@@ -111,6 +111,9 @@ tutao.tutanota.Bootstrap.init = function () {
     }
 };
 
+/**
+ * May be overwritten by other clients.
+ */
 tutao.tutanota.Bootstrap.initLocator = function() {
     tutao.native.CryptoBrowser.initWorkerFileNames("");
 
@@ -199,6 +202,11 @@ tutao.tutanota.Bootstrap.initLocator = function() {
     // @type {tutao.Locator}
     tutao.locator = new tutao.Locator(singletons);
 
+    // add a cache to the rest entity chain
+    var cache = new tutao.rest.EntityRestCache();
+    cache.setTarget(tutao.locator.entityRestClient);
+    tutao.locator.replace('entityRestClient', cache);
+
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
 
@@ -223,11 +231,6 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     // if (!tutao.locator.dao.isSupported() || tutao.tutanota.util.ClientDetector.isMobileDevice()) {
     tutao.locator.replace('dao', new tutao.db.DummyDb);
     // }
-
-    // add a cache to the rest entity chain
-    var cache = new tutao.rest.EntityRestCache();
-    cache.setTarget(tutao.locator.entityRestClient);
-    tutao.locator.replace('entityRestClient', cache);
 
     if (tutao.locator.swipeRecognizer) {
         tutao.locator.swipeRecognizer.setScreenSize(tutao.tutanota.gui.getWindowWidth(), tutao.tutanota.gui.getWindowHeight());

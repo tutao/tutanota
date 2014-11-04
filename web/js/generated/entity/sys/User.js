@@ -61,7 +61,7 @@ tutao.entity.sys.User = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.User.MODEL_VERSION = '4';
+tutao.entity.sys.User.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -455,7 +455,7 @@ tutao.entity.sys.User.prototype.getUserGroup = function() {
  * @return {Promise.<tutao.entity.sys.User>} Resolves to the User or an exception if the loading failed.
  */
 tutao.entity.sys.User.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -466,7 +466,7 @@ tutao.entity.sys.User.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.User>>} Resolves to an array of User or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.User.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

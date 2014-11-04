@@ -13,6 +13,8 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.activationTime = ko.observable(customerinfo.getActivationTime());
 	this.company = ko.observable(customerinfo.getCompany());
 	this.creationTime = ko.observable(customerinfo.getCreationTime());
+	this.deletionReason = ko.observable(customerinfo.getDeletionReason());
+	this.deletionTime = ko.observable(customerinfo.getDeletionTime());
 	this.domain = ko.observable(customerinfo.getDomain());
 	this.registrationMailAddress = ko.observable(customerinfo.getRegistrationMailAddress());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
@@ -39,6 +41,8 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setActivationTime(this.activationTime());
 	this._entity.setCompany(this.company());
 	this._entity.setCreationTime(this.creationTime());
+	this._entity.setDeletionReason(this.deletionReason());
+	this._entity.setDeletionTime(this.deletionTime());
 	this._entity.setDomain(this.domain());
 	this._entity.setRegistrationMailAddress(this.registrationMailAddress());
 	this._entity.setTestEndTime(this.testEndTime());

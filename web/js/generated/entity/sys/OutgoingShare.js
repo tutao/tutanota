@@ -36,7 +36,7 @@ tutao.entity.sys.OutgoingShare = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.OutgoingShare.MODEL_VERSION = '4';
+tutao.entity.sys.OutgoingShare.MODEL_VERSION = '5';
 
 /**
  * The url path to the resource.
@@ -273,7 +273,7 @@ tutao.entity.sys.OutgoingShare.prototype.loadBucketPermission = function() {
  * @return {Promise.<tutao.entity.sys.OutgoingShare>} Resolves to the OutgoingShare or an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, id[1], id[0], {"v" : 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, id[1], id[0], {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -284,7 +284,7 @@ tutao.entity.sys.OutgoingShare.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.OutgoingShare>>} Resolves to an array of OutgoingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, ids, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -296,7 +296,7 @@ tutao.entity.sys.OutgoingShare.loadMultiple = function(ids) {
 tutao.entity.sys.OutgoingShare.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 4;
+  params["v"] = 5;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.OutgoingShare.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -309,7 +309,7 @@ tutao.entity.sys.OutgoingShare.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.OutgoingShare>>} Resolves to an array of OutgoingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, listId, start, count, reverse, {"v": 4}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, listId, start, count, reverse, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

@@ -210,6 +210,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	securitySettings_action: "Security",
 	changePasswordSettings_action: "Change password",
 	adminUserList_action: "User management",
+    adminDeleteAccount_action: "Delete account",
 	adminUserAdd_action: "Add user",
 	action_label: "Action",
 	edit_label: "Edit",
@@ -241,7 +242,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	failedLoginsInfo_msg: "The number of failed login attempts since your last successful login.",
 
 	// change password
-	passwordValid_msg: "Password ok.",
 	oldPassword_label: "Old password",
 	oldPasswordNeutral_msg: "Please enter your old password.",
 	oldPasswordInvalid_msg: "Incorrect password.",
@@ -267,6 +267,14 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     passwordResetFailed_msg: "An error occurred. The password was not changed.",
 	notePassword_msg: "Please note down the password carefully and provide it to the user.",
     changePasswordNotSupported_msg: "For security reasons password change is not supported on mobile devices.",
+
+    // delete account
+    deleteAccountReason_label: "Why?",
+    deleteAccountReasonInfo_msg: "Optional: We would appreciate it if you gave us a reason why you want to delete the account so that we can improve Tutanota further.",
+    deleteAccountInfo_msg: "Your complete account will be deleted.",
+    deleteAccountConfirm_msg: "Do you really want to delete your account?",
+    deleteAccountWait_msg: "Account is being deleted...",
+    deleteAccountDeleted_msg: "Your account is deleted now.",
 
 	// general
 	emptyString_msg: "\u2008", // an empty string or normal whitespace makes a label collapse, so enter this invisible character
@@ -298,6 +306,10 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     leavePageConfirmation_msg: "Do you really want to leave Tutanota?",
     loadMore_action: "Load more",
     newContact_action: "Add new contact",
+    password_label: 'Password',
+    passwordEnterNeutral_msg: "Please enter your password for confirmation.",
+    passwordWrongInvalid_msg: "Your password is wrong.",
+    passwordValid_msg: "Password ok.",
 
 	// code verification
 	codeNeutralEnterCode_msg: "Please enter the verification code.",
@@ -443,7 +455,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     nameAdmin_label: "Name of the administrator",
 	mobileNumber_label: "Mobile phone number",
 	desiredAddress_label: "Desired email address",
-	password_label: 'Password',
 	repeatedPassword_label: 'Repeat password',
 	registrationCodeInput_label: "Verification code",
 	progress_msg: "Progress",
@@ -651,6 +662,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	securitySettings_action: "Sicherheit",
 	changePasswordSettings_action: "Passwort ändern",
 	adminUserList_action: "Benutzerverwaltung",
+    adminDeleteAccount_action: "Account löschen",
 	adminUserAdd_action: "Benutzer hinzufügen",
 	action_label: "Aktion",
 	edit_label: "Bearbeiten",
@@ -682,7 +694,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	failedLoginsInfo_msg: "Die Anzahl fehlgeschlagener Login-Versuche seit dem letzten erfolgreichen Login.",
 	
 	// change password
-	passwordValid_msg: "Passwort ok.",
 	oldPassword_label: "Altes Passwort",
 	oldPasswordNeutral_msg: "Bitte altes Passwort eingeben.",
 	oldPasswordInvalid_msg: "Passwort nicht korrekt.",
@@ -708,6 +719,14 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     passwordResetFailed_msg: "Es ist ein Fehler aufgetreten. Das Passwort wurde nicht geändert.",
     notePassword_msg: "Bitte notieren Sie sich das Passwort gut und geben Sie es an den Benutzer weiter.",
     changePasswordNotSupported_msg: "Aus Sicherheitsgründen wird die Passwortänderung auf mobilen Geräten nicht unterstützt.",
+
+    // delete account
+    deleteAccountReason_label: "Warum?",
+    deleteAccountReasonInfo_msg: "Optional: Wir würden uns freuen, wenn du uns einen kurzen Hinweis gibst, warum du deinen Account löschen möchtest, damit wir Tutanota verbessern können.",
+    deleteAccountInfo_msg: "Der gesamte Account wird gelöscht.",
+    deleteAccountConfirm_msg: "Wollen Sie Ihren Account wirklich löschen?",
+    deleteAccountWait_msg: "Account wird gelöscht...",
+    deleteAccountDeleted_msg: "Dein Account ist jetzt gelöscht.",
 
 	// general
 	emptyString_msg: "\u2008",
@@ -739,8 +758,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     leavePageConfirmation_msg: "Wollen Sie Tutanota wirklich schließen?",
     loadMore_action: "Weitere laden",
     newContact_action: "Kontakt hinzufügen",
+    password_label: 'Passwort',
+    passwordEnterNeutral_msg: "Bitte gib dein Passwort als Bestätigung ein.",
+    passwordWrongInvalid_msg: "Das Passwort ist falsch.",
+    passwordValid_msg: "Passwort ok.",
 
-	// code verification
+
+    // code verification
 	codeNeutralEnterCode_msg: "Bitte den Bestätigungscode eingeben.",
 	codeValid_msg: "Code-Format ok.",
 	codeInvalid_msg: "Der Code ist nicht korrekt, bitte überprüfen Sie ihn erneut.",
@@ -884,7 +908,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     nameAdmin_label: "Name des Administrators",
 	mobileNumber_label: "Mobilfunknummer",
 	desiredAddress_label: "Gewünschte E-Mail-Adresse",
-	password_label: 'Passwort',
 	repeatedPassword_label: 'Passwort wiederholen',
 	registrationCodeInput_label: "Bestätigungscode",
 	progress_msg: "Fortschritt",
