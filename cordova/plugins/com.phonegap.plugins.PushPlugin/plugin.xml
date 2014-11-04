@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:amazon="http://schemas.android.com/apk/lib/com.amazon.device.ads"
+    xmlns:rim="http://www.blackberry.com/ns/widgets"
+    id="com.phonegap.plugins.PushPlugin"
+    version="2.4.0">
+
+  <name>PushPlugin</name>
+	<author>Bob Easterday</author>
+
+	<description>
+		This plugin allows your application to receive push notifications on Android, iOS, WP8 and Windows8 devices.
+    Android uses Google Cloud Messaging.
+    iOS uses Apple APNS Notifications.
+    WP8 uses Microsoft MPNS Notifications.
+    Windows8 uses Microsoft WNS Notifications.
+	</description>
+
+	<license>MIT</license>
+
+	<js-module src="www/PushNotification.js" name="PushNotification">
+        <clobbers target="PushNotification" />
+	</js-module>
+
+	<engines>
+		<engine name="cordova" version=">=3.0.0" />
+	</engines>
+
+	<!-- android -->
+	<platform name="android">
+
+		<config-file target="res/xml/config.xml" parent="/*">
+			<feature name="PushPlugin" >
+				<param name="android-package" value="com.plugin.gcm.PushPlugin"/>
+			</feature>
+		</config-file>
+
+		<config-file target="AndroidManifest.xml" parent="/manifest">
+			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+			<uses-permission android:name="android.permission.GET_ACCOUNTS" />
+			<uses-permission android:name="android.permission.WAKE_LOCK" />
+			<uses-permission android:name="android.permission.VIBRATE"/>
+			<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+			<permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+			<uses-permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" />
+		</config-file>
+
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<activity android:name="com.plugin.gcm.PushHandlerActivity" android:exported="true"/>
+			<receiver android:name="com.plugin.gcm.CordovaGCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
+				<intent-filter>
+					<action android:name="com.google.android.c2dm.intent.RECEIVE" />
+					<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+					<category android:name="$PACKAGE_NAME" />
+				</intent-filter>
+			</receiver>
+			<service android:name="com.plugin.gcm.GCMIntentService" />
+		</config-file>
+
+		<source-file src="src/android/libs/gcm.jar" target-dir="libs/" />
+		<source-file src="src/android/com/plugin/gcm/CordovaGCMBroadcastReceiver.java" target-dir="src/com/plugin/gcm/" />
+		<source-file src="src/android/com/plugin/gcm/GCMIntentService.java" target-dir="src/com/plugin/gcm/" />
+		<source-file src="src/android/com/plugin/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gcm/" />
+		<source-file src="src/android/com/plugin/gcm/PushPlugin.java" target-dir="src/com/plugin/gcm/" />
+		<source-file src="src/android/com/plugin/android-support-v13.jar" target-dir="libs/" />
+
+	</platform>
+
+    <!-- amazon-fireos -->
+	<platform name="amazon-fireos">
+
+		<config-file target="res/xml/config.xml" parent="/*">
+			<feature name="PushPlugin" >
+				<param name="android-package" value="com.amazon.cordova.plugin.PushPlugin"/>
+			</feature>
+            <preference name="showmessageinnotification" value="true" />
+            <preference name="defaultnotificationmessage" value="You have a new message." />
+		</config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <!-- This permission ensures that no other application can intercept your ADM messages. "[YOUR PACKAGE NAME]" is your package name as defined in your <manifest> tag. -->
+            <permission android:name="$PACKAGE_NAME.permission.RECEIVE_ADM_MESSAGE" android:protectionLevel="signature" />
+            <uses-permission android:name="$PACKAGE_NAME.permission.RECEIVE_ADM_MESSAGE" />
+            <!-- This permission allows your app access to receive push notifications from ADM. -->
+            <uses-permission android:name="com.amazon.device.messaging.permission.RECEIVE" />
+            <!-- ADM uses WAKE_LOCK to keep the processor from sleeping when a message is received. -->
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+		</config-file>
+
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <!-- You must explicitly enable ADM and declare whether your app cannot work without ADM (android:required="true") or can work without ADM (android:required="false").
+            If you specify android:required="false", your app must degrade gracefully if ADM
+            is unavailable. -->
+            <amazon:enable-feature android:name="com.amazon.device.messaging" android:required="true"/>
+			<service android:exported="false" android:name="com.amazon.cordova.plugin.ADMMessageHandler" />
+            <activity android:exported="true" android:name="com.amazon.cordova.plugin.ADMHandlerActivity" />
+            <receiver android:name="com.amazon.cordova.plugin.ADMMessageHandler$Receiver" android:permission="com.amazon.device.messaging.permission.SEND">
+                <intent-filter>
+                    <action android:name="com.amazon.device.messaging.intent.REGISTRATION" />
+                    <action android:name="com.amazon.device.messaging.intent.RECEIVE" />
+                    <category android:name="$PACKAGE_NAME" />
+                </intent-filter>
+            </receiver>
+        </config-file>
+
+        <source-file src="src/amazon/PushPlugin.java" target-dir="src/com/amazon/cordova/plugin" />
+        <source-file src="src/amazon/ADMMessageHandler.java" target-dir="src/com/amazon/cordova/plugin" />
+        <source-file src="src/amazon/ADMHandlerActivity.java" target-dir="src/com/amazon/cordova/plugin" />
+
+	</platform>
+
+	<!-- ios -->
+	<platform name="ios">
+
+		<config-file target="config.xml" parent="/*">
+			<feature name="PushPlugin">
+				<param name="ios-package" value="PushPlugin"/>
+			</feature>
+		</config-file>
+
+		<source-file src="src/ios/AppDelegate+notification.m" />
+		<source-file src="src/ios/PushPlugin.m" />
+
+		<header-file src="src/ios/AppDelegate+notification.h" />
+		<header-file src="src/ios/PushPlugin.h" />
+
+	</platform>
+
+    <!-- blackberry10 -->
+    <platform name="blackberry10">
+        <dependency id="com.blackberry.push" />
+        <dependency id="com.blackberry.invoked" />
+        <config-file target="www/config.xml" parent="/widget">
+            <feature name="PushPlugin" value="PushPlugin" />
+        </config-file>
+        <js-module src="www/blackberry10/PushPluginProxy.js" name="PushPluginProxy" >
+            <runs />
+        </js-module>
+    </platform>
+
+    <!-- wp8 -->
+    <platform name="wp8">
+
+    <config-file target="config.xml" parent="/*">
+      <feature name="PushPlugin">
+        <param name="wp-package" value="PushPlugin"/>
+      </feature>
+    </config-file>
+
+    <config-file target="Properties/WMAppManifest.xml" parent="/Deployment/App/Capabilities">
+      <Capability Name="ID_CAP_PUSH_NOTIFICATION"/>
+    </config-file>
+
+    <source-file src="src/wp8/PushPlugin.cs" />
+    <framework src="src/wp8/Newtonsoft.Json.dll" custom="true" />
+
+  </platform>
+
+  <!-- windows8 -->
+  <platform name="windows8">
+    <js-module src="src/windows8/PushPluginProxy.js" name="PushPlugin">
+      <merges target="" />
+    </js-module>
+  </platform>
+
+</plugin>

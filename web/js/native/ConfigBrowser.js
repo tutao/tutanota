@@ -4,7 +4,7 @@ tutao.provide('tutao.native.ConfigBrowser');
 
 /**
  * Access and update the device config
- * @interface
+ * @implements {tutao.native.ConfigFacade}
  */
 tutao.native.ConfigBrowser = function(){};
 

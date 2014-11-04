@@ -126,6 +126,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
     var contactImpl = tutao.native.ContactBrowser;
     var fileFacadeImpl = tutao.native.FileFacadeBrowser;
     var configFacadeImpl = tutao.native.ConfigBrowser;
+    var pushServiceFacadeImpl = tutao.native.PushServiceBrowser;
+
     if (tutao.env.mode == tutao.Mode.App) {
         console.log("overriding native interfaces");
         cryptoImpl = tutao.native.device.Crypto;
@@ -136,6 +138,7 @@ tutao.tutanota.Bootstrap.initLocator = function() {
             fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
             configFacadeImpl = tutao.native.ConfigApp;
         }
+        pushServiceFacadeImpl = tutao.native.PushServiceApp;
     }
 
     var singletons = {
@@ -145,6 +148,7 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         contacts: contactImpl,
         fileFacade: fileFacadeImpl,
         configFacade: configFacadeImpl,
+        pushService: pushServiceFacadeImpl,
 
         randomizer: tutao.crypto.SjclRandomizer,
         aesCrypter: tutao.crypto.SjclAes,
