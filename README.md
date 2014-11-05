@@ -25,6 +25,7 @@ Build steps:
 Server templates contains working installation instructions. Allows to create a temporary server to test, deploy production servers and fork configurations for customization.
  - [Debian Wheezy] (https://manageacloud.com/cookbook/tutanota_email_client_debian_wheezy_70)
  - [Ubuntu 14.04] (https://manageacloud.com/cookbook/tutanota_email_client_ubuntu_trusty_tahr_1404)
+ - [Ubuntu 14.10] (https://manageacloud.com/cookbook/tutanota_email_client_ubuntu_utopic_unicorn_1410)
  - [Amazon Linux] (https://manageacloud.com/cookbook/tutanota_email_client_amazon_2014032)
  - [CentOS 6.5] (https://manageacloud.com/cookbook/tutanota_email_client)
  - [CentOS 7] (https://manageacloud.com/cookbook/tutanota_email_client_centos_7)
