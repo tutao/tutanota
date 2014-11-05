@@ -163,13 +163,6 @@ tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 };
 
 /**
- * Fades the new mail out
- */
-tutao.tutanota.gui.MailView.prototype.fadeFirstMailOut = function() {
-	$(".conversation").find('.mail').first().fadeOut();
-};
-
-/**
  * Provides the dom element of the given mail in the mail list.
  * @param {tutao.entity.tutanota.Mail} mail The mail.
  * @return {Object} The dom element.

@@ -493,7 +493,7 @@
 				<div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
 					<img src="graphics/busy.gif" />
 				</div>
-				<div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !tutao.locator.mailListViewModel.isMailSelected())">
+				<div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
 					<div data-bind="lang: 'noMail_msg'"></div><br>
 				</div>
 				<div id="innerConversationColumn">

@@ -56,7 +56,7 @@ describe("MailListViewModelTest", function () {
         tutao.tutanota.gui.select = mockFunction();
         tutao.locator.replace('mailViewModel', {});
         tutao.locator.mailViewModel.showMail = mockFunction();
-        tutao.locator.mailViewModel.hideConversation = mockFunction();
+        tutao.locator.mailViewModel.hideMail = mockFunction();
         tutao.locator.mailViewModel.tryCancelAllComposingMails = function () {
             return true;
         };

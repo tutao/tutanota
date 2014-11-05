@@ -11,25 +11,6 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 
 	this.mail = ko.observable();
 	this.showSpinner = ko.observable(false);
-	this.mailLoaded = ko.computed(function() {
-        var mail = this.mail();
-        return mail != null && mail.mailBodyLoaded();
-	}, this);
-	this.oldState = null;
-	this.mailLoaded.subscribe(function(loaded) {
-		if (this.oldState && this.oldState == loaded) {
-			return;
-		} else {
-			this.oldState = loaded;
-		}
-		if (loaded) {
-			this.showSpinner(false);
-			tutao.locator.mailView.fadeConversationIn(function() {});
-		} else {
-			tutao.locator.mailView.hideConversation();
-		}
-	}, this);
-
     this.mail.subscribe(function(){
         // Propagate a columnChange event when the mail changes (e,g. forward an email) to update the column title in the navigation bar.
         tutao.locator.mailView.getSwipeSlider().getViewSlider().notifyColumnChange();
@@ -60,58 +41,39 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
  * @param {tutao.entity.tutanota.Mail} mail The mail to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
-	var self = this;
-	var mails = [];
-	this._setMail(mail);
-    mail.loadConversationEntry();
-};
+    var self = this;
+    if (this.mail() && mail == this.mail().mail) {
+        return;
+    }
 
-/**
- * Loads the mail of the given conversation entry (if existing) and puts it into mails. Then triggers loading the
- * previous mail.
- * @param {tutao.entity.tutanota.ConversationEntry} conversationEntry The conversation entry to start loading from.
- * @param {Array.<tutao.entity.tutanota.Mail>} mails The result list with all loaded mails.
- * @return {Promise.<>} Resolves when all mails have been loaded.
- */
-tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMails = function(conversationEntry, mails) {
-	var self = this;
-	// there might be no mail for this user, so skip it in that case
-	if (conversationEntry.getMail()) {
-		return conversationEntry.loadMail().then(function(mail) {
-    		mails.push(mail);
-			return self._loadNextMailsLoadPrevious(conversationEntry, mails);
-		}).caught(function(exception) {
-            console.log(exception);
-        });
-	} else {
-		return self._loadNextMailsLoadPrevious(conversationEntry, mails);
-	}
-};
 
-/**
- * Loads the previous conversation entry of the given conversation entry. Then triggers loading the
- * the mail from that conversation entry.
- * @param {tutao.entity.tutanota.ConversationEntry} conversationEntry The conversation entry to load the previous from.
- * @param {Array.<tutao.entity.tutanota.Mail>} mails The result list with all loaded mails.
- * @return {Promise.<>} Resolves when all mails have been loaded.
- */
-tutao.tutanota.ctrl.MailViewModel.prototype._loadNextMailsLoadPrevious = function(conversationEntry, mails) {
-	var self = this;
-	if (conversationEntry.getPrevious()) {
-		return conversationEntry.loadPrevious().then(function(nextCe, exception) {
-			return self._loadNextMails(nextCe, mails);
-		}).caught(function(exception) {
-            console.log(exception);
-        });
-	} else {
-		return Promise.resolve();
-	}
+    var currentMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
+    this._latestMailToShow = currentMail;
+    // only show the spinner after 200ms if the conversation has not been loaded till then
+    setTimeout(function() {
+        if (self.mail() != currentMail && self._latestMailToShow == currentMail) {
+            self.mail(null);
+            self.showSpinner(true);
+        }
+    }, 200);
+
+    currentMail.load().then(function(){
+        if (self._latestMailToShow == currentMail ){
+            self.showSpinner(false);
+            self.mail(currentMail);
+            currentMail.mail.loadConversationEntry();
+        }
+    }).finally( function(){
+        if (self._latestMailToShow == currentMail ){
+            self.showSpinner(false);
+        }
+    });
 };
 
 /**
  * Hides any visible conversation.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.hideConversation = function() {
+tutao.tutanota.ctrl.MailViewModel.prototype.hideMail = function() {
 	this.mail(null);
 };
 
@@ -120,24 +82,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype.hideConversation = function() {
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.removeFirstMailFromConversation = function() {
 	this.mail(null);
-};
-
-/**
- * Shows the conversation in the mail view. Loads the mail body text asynchronously.
- * @param {tutao.tutanot.entity.Mail} conversation The list of mails to show.
- */
-tutao.tutanota.ctrl.MailViewModel.prototype._setMail = function(mail) {
-	var self = this;
-	self.mail(null);
-
-    // only show the spinner after 200ms if the conversation has not been loaded till then
-    setTimeout(function() {
-        if (!self.mailLoaded()) {
-            self.showSpinner(true);
-        }
-    }, 200);
-
-    this.mail(new tutao.tutanota.ctrl.DisplayedMail(mail));
 };
 
 /**
