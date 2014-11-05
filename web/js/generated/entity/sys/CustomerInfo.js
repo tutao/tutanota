@@ -115,12 +115,12 @@ tutao.entity.sys.CustomerInfo.prototype.CREATIONTIME_ATTRIBUTE_ID = 155;
 /**
  * The id of the deletionReason attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DELETIONREASON_ATTRIBUTE_ID = 635;
+tutao.entity.sys.CustomerInfo.prototype.DELETIONREASON_ATTRIBUTE_ID = 640;
 
 /**
  * The id of the deletionTime attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DELETIONTIME_ATTRIBUTE_ID = 634;
+tutao.entity.sys.CustomerInfo.prototype.DELETIONTIME_ATTRIBUTE_ID = 639;
 
 /**
  * The id of the domain attribute.

@@ -417,13 +417,10 @@ tutao.entity.tutanotaunencrypted.Mail.loadMultiple = function(ids) {
  */
 tutao.entity.tutanotaunencrypted.Mail.prototype.setup = function(listId) {
   var self = this;
-  return this._entityHelper.createListEncSessionKey(listId).then(function(listEncSessionKey) {
-    self.setListEncSessionKey(listEncSessionKey);
-    self._entityHelper.notifyObservers(false);
-    return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Mail.PATH, self, listId, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  self._entityHelper.notifyObservers(false);
+  return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Mail.PATH, self, listId, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
       self.__id = [listId, entity.getGeneratedId()];
-      self.setPermissions(entity.getPermissionListId());
-    });
+    self.setPermissions(entity.getPermissionListId());
   });
 };
 
