@@ -176,7 +176,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._loadMoreMails = function(alread
             var startId = tutao.rest.EntityRestInterface.getElementId(mails[mails.length-1]);
             return self._loadMoreMails(alreadyLoadedForTagCount, startId, tagId);
         } else {
-			return self._updateMailList();
+			return self._updateMailList().then(function(){
+                self.selectPreviouslySelectedMail(true);
+            });
         }
     });
 };
@@ -233,6 +235,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.systemTagActivated = function(ta
 	this.unselectAll();
 	this._currentActiveSystemTag(tagId);
     return this._updateMailList().then(function() {
+        self.selectPreviouslySelectedMail(true);
         tutao.locator.mailView.showDefaultColumns();
         // load more mails if there are not enough shown for this tag
         if (self.moreAvailable() && self.currentTagFilterResult[tagId].length < self.stepRangeCount) {
@@ -262,19 +265,19 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._updateMailList = function() {
 
 	return self._loadMails(currentResult, loadedMails, 0).then(function() {
 		self.mails(loadedMails);
-		self.selectPreviouslySelectedMail();
 	});
 };
 
 /**
  * Selects the mail that has been selected before for the current tag.
+ * @param {boolean} tryCancelComposingMails True if all existing composing mails should be canceled
  */
-tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviouslySelectedMail = function() {
+tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviouslySelectedMail = function(tryCancelComposingMails) {
 	var lastSelected = this.getLastSelectedMail();
 	if (lastSelected) {
-		this.selectMail(lastSelected);
+        this._selectMail(lastSelected, tutao.locator.mailView.getMailListDomElement(lastSelected), false, tryCancelComposingMails);
 	} else {
-		tutao.locator.mailViewModel.hideConversation();
+        tutao.locator.mailViewModel.hideMail();
 	}
 };
 
@@ -341,6 +344,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._getTagForMail = function(mail) 
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.showIndex = function(index) {
 	if (this.mails().length == 0) {
+        tutao.locator.mailViewModel.hideMail();
 		return;
 	}
 	if (index < 0) {
@@ -356,7 +360,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.showIndex = function(index) {
  * @param mail The mail to show.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectMail = function(mail) {
-	this._selectMail(mail, tutao.locator.mailView.getMailListDomElement(mail), false);
+	this._selectMail(mail, tutao.locator.mailView.getMailListDomElement(mail), false, true);
 };
 
 /**
@@ -365,7 +369,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectMail = function(mail) {
  * @param {Event} event The click event.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectMailAndSwitchToConversationColumn = function(mail, event) {
-	this._selectMail(mail, event.currentTarget, true);
+	this._selectMail(mail, event.currentTarget, true, true);
 };
 
 /**
@@ -373,9 +377,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectMailAndSwitchToConversatio
  * @param {tutao.entity.tutanota.Mail} mail Mail to select.
  * @param {Object} domElement dom element of the mail.
  * @param {boolean} switchToConversationColumn True if we shall switch.
+ * @param {boolean} tryCancelComposingMails True if all existing composing mails should be canceled
  */
-tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, domElement, switchToConversationColumn) {
-	if (!tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
+tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, domElement, switchToConversationColumn, tryCancelComposingMails) {
+	if (tryCancelComposingMails && !tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
 		return;
 	}
 	if (mail.getUnread()) {
@@ -387,20 +392,15 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, dom
 	if (this._multiSelect) {
 	} else {
 		if (this._selectedMails.length > 0 && mail == this._selectedMails[0]) {
-			tutao.locator.mailView.fadeConversation();
 			tutao.locator.mailView.showConversationColumn();
 		} else {
 			tutao.tutanota.gui.unselect(this._selectedDomElements);
 			this._selectedDomElements = [domElement];
 			this._selectedMails = [mail];
 			tutao.tutanota.gui.select(this._selectedDomElements);
-			tutao.locator.mailViewModel.hideConversation();
-			if (switchToConversationColumn) {
-				tutao.locator.mailView.showConversationColumn(function() {
-					tutao.locator.mailViewModel.showMail(mail);
-				});
-			} else {
-				tutao.locator.mailViewModel.showMail(mail);
+            tutao.locator.mailViewModel.showMail(mail);
+            if (switchToConversationColumn) {
+				tutao.locator.mailView.showConversationColumn(function() {});
 			}
 		}
 	}
@@ -450,7 +450,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.finallyDeleteMails = function(ma
             tutao.util.ArrayUtils.remove(self.currentTagFilterResult[tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID], mailIds[i][1]);
         }
         self.unselectAll();
-        return self._updateMailList();
+        return self._updateMailList().then(function(){
+            self.selectPreviouslySelectedMail(true);
+        });
     });
 };
 
@@ -535,7 +537,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
                     if (mails.length == 1) {
                         nextSelectedIndex = self.mails.indexOf(mails[index]);
                     }
-                    self.unselectAll();
                     resolve(self._updateMailList().then(function() {
                         self.showIndex(nextSelectedIndex);
                     }));
@@ -555,7 +556,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
 			if (mails.length == 1) {
 				nextSelectedIndex = self.mails.indexOf(mails[index]);
 			}
-			self.unselectAll();
 			return self._updateMailList().then(function() {
 				self.showIndex(nextSelectedIndex);
 			});

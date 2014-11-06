@@ -212,17 +212,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                     return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
                         self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
                         self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function(senderMailElementId, exception) {
-                            tutao.locator.mailView.fadeFirstMailOut();
-                            setTimeout(function() {
-                                tutao.locator.mailViewModel.removeFirstMailFromConversation();
-                                self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
-                                if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                                    // external users do not download mails automatically, so download the sent email now
-                                    tutao.entity.tutanota.Mail.load([tutao.locator.mailBoxController.getUserMailBox().getMails(), senderMailElementId]).then(function(mail, exception) {
-                                        tutao.locator.mailListViewModel.updateOnNewMails([mail]);
-                                    });
-                                }
-                            }, 500);
+                            self._restoreViewState();
+                            if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                                // external users do not download mails automatically, so download the sent email now
+                                tutao.entity.tutanota.Mail.load([tutao.locator.mailBoxController.getUserMailBox().getMails(), senderMailElementId]).then(function(mail, exception) {
+                                    tutao.locator.mailListViewModel.updateOnNewMails([mail]);
+                                });
+                            }
                         });
                 }).caught(tutao.RecipientsNotFoundError, function(exception) {
                     self.busy(false);
@@ -267,15 +263,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) 
 		if (!directSwitch) {
 			this.directSwitchActive = false;
 		}
-
 		this._freeBubbles();
-
-		//an async animation is shown when the mail is removed. We have to wait for it.
-		var self = this;
-		tutao.locator.mailViewModel.removeFirstMailFromConversation();
-		setTimeout(function() {
-			self._restoreViewState(tutao.locator.mailViewModel.isConversationEmpty());
-		}, 500);
+		this._restoreViewState();
 		return true;
 	} else {
 		return false;
@@ -286,12 +275,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) 
  * if no mail was selected -> show mail list column
  * if mail was selected (if showLastSelected == true) and conversation column visible -> show last mail
  * if mail was selected and mail list column visible -> show last mail, show mail list column
- * @param {boolean} showLastSelected true, if the last selected mail shall be shown.
  */
-tutao.tutanota.ctrl.ComposingMail.prototype._restoreViewState = function(showLastSelected) {
-	if (showLastSelected) {
-		tutao.locator.mailListViewModel.selectPreviouslySelectedMail();
-	}
+tutao.tutanota.ctrl.ComposingMail.prototype._restoreViewState = function() {
+	tutao.locator.mailListViewModel.selectPreviouslySelectedMail(false);
 	if (this.previousMailListColumnVisible) {
 		tutao.locator.mailView.showDefaultColumns();
 	}

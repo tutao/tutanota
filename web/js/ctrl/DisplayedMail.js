@@ -11,18 +11,13 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.mail = mail;
 
-
     this.bodyText = ko.observable(""); // contains the sanitized body
     this.bodyTextWithoutQuotation = ko.observable("");
     this.bodyTextQuotation = ko.observable("");
     this.bodyTextQuotationVisible = ko.observable(false);
-    this.mailBodyLoaded = ko.observable(false);
 
     this.attachments = ko.observableArray(); // contains Files
     this.currentlyDownloadingAttachment = ko.observable(null); // null or a File
-
-    this._loadBody();
-    this._loadAttachments();
 
     var self = this;
     var isExternalAnswerPossible = function () {
@@ -85,6 +80,16 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 };
 
+
+tutao.tutanota.ctrl.DisplayedMail.prototype.load = function () {
+    var self = this;
+    return this._loadBody().then(function(){
+        // We do not wait for attachment download
+        self._loadAttachments();
+    });
+};
+
+
 tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function () {
     this.bodyTextQuotationVisible(!this.bodyTextQuotationVisible());
 };
@@ -94,24 +99,27 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function ()
  */
 tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function () {
     var self = this;
-//	setTimeout(function() {
-    self.mail.loadBody().then(function (body) {
+    return self.mail.loadBody().then(function (body) {
         var text = tutao.locator.htmlSanitizer.sanitize(body.getText());
         text = tutao.tutanota.util.Formatter.urlify(text);
         self.bodyText(text);
         var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
         self.bodyTextWithoutQuotation(split.text);
-        self.mailBodyLoaded(true);
         self.bodyTextQuotation(split.quotation);
 		// use setTimeout here to make sure the gui is updated
         setTimeout(function() {
             tutao.locator.mailView.addSubmitCheckToMailBody();
         }, 0);
+/*        return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+                resolve();
+            }, 1000);
+        });
+*/
     }).caught(function(e) {
         self.bodyText("error while loading");
         throw e;
     });
-//	},1000);
 };
 
 /**
