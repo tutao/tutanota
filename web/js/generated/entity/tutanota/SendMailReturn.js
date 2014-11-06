@@ -31,7 +31,7 @@ tutao.entity.tutanota.SendMailReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailReturn.MODEL_VERSION = '5';
+tutao.entity.tutanota.SendMailReturn.MODEL_VERSION = '6';
 
 /**
  * The encrypted flag.

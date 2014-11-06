@@ -31,7 +31,8 @@ tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, body
         .setSenderBucketEncSessionKey(aes.encryptKey(senderBucketKey, service._entityHelper.getSessionKey()))
         .setRecipientBucketEncSessionKey(aes.encryptKey(recipientBucketKey, service._entityHelper.getSessionKey()))
         .setSenderSymEncBucketKey(aes.encryptKey(groupKey, senderBucketKey))
-        .setPreviousMessageId(previousMessageId);
+        .setPreviousMessageId(previousMessageId)
+        .setConfidential(true);
 
     return Promise.map(attachments, function(dataFile) {
         var attachment = new tutao.entity.tutanota.AttachmentFromExternal(service);

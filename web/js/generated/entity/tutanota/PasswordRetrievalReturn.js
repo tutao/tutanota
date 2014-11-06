@@ -22,7 +22,7 @@ tutao.entity.tutanota.PasswordRetrievalReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.PasswordRetrievalReturn.MODEL_VERSION = '5';
+tutao.entity.tutanota.PasswordRetrievalReturn.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -102,6 +102,6 @@ tutao.entity.tutanota.PasswordRetrievalReturn.load = function(entity, parameters
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   return tutao.locator.entityRestClient.getService(tutao.entity.tutanota.PasswordRetrievalReturn, tutao.entity.tutanota.PasswordRetrievalReturn.PATH, entity, parameters, headers);
 };

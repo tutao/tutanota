@@ -460,9 +460,10 @@
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
-									<div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
-									<div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-								</div>
+                                    <div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
+                                    <div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
+                                    <img src="graphics/tutanota-small.png" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"/>
+                                </div>
 								<div class="subject" data-bind="text: getSubject()"></div>
 								<div class="mailInfo">
 									<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->

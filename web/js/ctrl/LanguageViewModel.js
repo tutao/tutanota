@@ -158,6 +158,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     newMailsBadge_msg: "%d new emails received",
     passwords_label: "Passwords",
     showPasswordChannelColumn_title: "Enter passwords for external recipients.",
+    confidentialMail_alt: "This email was transmitted end-to-end encrypted.",
 
     //invitation
     invitationMailSubject_msg: "Join Tutanota and fight for privacy!",
@@ -610,6 +611,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     newMailsBadge_msg: "%d neue E-Mails empfangen",
     passwords_label: "Passwörter",
     showPasswordChannelColumn_title: "Passwörter für externe Empfänger eingeben.",
+    confidentialMail_alt: "Diese E-Mail wurde Ende-zu-Ende verschlüsselt übertragen.",
 
     //invitation
     invitationMailSubject_msg: "Sei dabei: Mit Tutanota holen wir uns unsere Privatsphäre zurück!",

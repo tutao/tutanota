@@ -26,7 +26,7 @@ tutao.entity.tutanota.FeedbackData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FeedbackData.MODEL_VERSION = '5';
+tutao.entity.tutanota.FeedbackData.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -151,7 +151,7 @@ tutao.entity.tutanota.FeedbackData.prototype.setup = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.FeedbackData.PATH, this, parameters, headers, null);
 };

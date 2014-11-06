@@ -22,7 +22,7 @@ tutao.entity.tutanota.FileDataDataReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileDataDataReturn.MODEL_VERSION = '5';
+tutao.entity.tutanota.FileDataDataReturn.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -101,6 +101,6 @@ tutao.entity.tutanota.FileDataDataReturn.prototype.update = function(parameters,
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   return tutao.locator.entityRestClient.putService(tutao.entity.tutanota.FileDataDataReturn.PATH, this, parameters, headers, null);
 };

@@ -10,6 +10,7 @@ tutao.entity.tutanota.SendMailFromExternalData = function(data) {
   if (data) {
     this.__format = data._format;
     this._bodyText = data.bodyText;
+    this._confidential = data.confidential;
     this._language = data.language;
     this._previousMessageId = data.previousMessageId;
     this._recipientBucketEncSessionKey = data.recipientBucketEncSessionKey;
@@ -25,6 +26,7 @@ tutao.entity.tutanota.SendMailFromExternalData = function(data) {
   } else {
     this.__format = "0";
     this._bodyText = null;
+    this._confidential = null;
     this._language = null;
     this._previousMessageId = null;
     this._recipientBucketEncSessionKey = null;
@@ -43,7 +45,7 @@ tutao.entity.tutanota.SendMailFromExternalData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '5';
+tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -65,6 +67,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.toJsonData = function()
   return {
     _format: this.__format, 
     bodyText: this._bodyText, 
+    confidential: this._confidential, 
     language: this._language, 
     previousMessageId: this._previousMessageId, 
     recipientBucketEncSessionKey: this._recipientBucketEncSessionKey, 
@@ -86,6 +89,11 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.TYPE_ID = 260;
  * The id of the bodyText attribute.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.BODYTEXT_ATTRIBUTE_ID = 264;
+
+/**
+ * The id of the confidential attribute.
+ */
+tutao.entity.tutanota.SendMailFromExternalData.prototype.CONFIDENTIAL_ATTRIBUTE_ID = 428;
 
 /**
  * The id of the language attribute.
@@ -169,6 +177,31 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getBodyText = function(
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bodyText);
   return value;
+};
+
+/**
+ * Sets the confidential of this SendMailFromExternalData.
+ * @param {boolean} confidential The confidential of this SendMailFromExternalData.
+ */
+tutao.entity.tutanota.SendMailFromExternalData.prototype.setConfidential = function(confidential) {
+  var dataToEncrypt = (confidential) ? '1' : '0';
+  this._confidential = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the confidential of this SendMailFromExternalData.
+ * @return {boolean} The confidential of this SendMailFromExternalData.
+ */
+tutao.entity.tutanota.SendMailFromExternalData.prototype.getConfidential = function() {
+  if (this._confidential == "") {
+    return false;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
+  if (value != '0' && value != '1') {
+    throw new tutao.InvalidDataError('invalid boolean data: ' + value);
+  }
+  return value == '1';
 };
 
 /**
@@ -335,7 +368,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setup = function(parame
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailFromExternalData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailFromExternalReturn);
 };

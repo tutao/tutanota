@@ -420,7 +420,7 @@ tutao.entity.tutanotaunencrypted.Mail.prototype.setup = function(listId) {
   self._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Mail.PATH, self, listId, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
       self.__id = [listId, entity.getGeneratedId()];
-    self.setPermissions(entity.getPermissionListId());
+      self.setPermissions(entity.getPermissionListId());
   });
 };
 

@@ -36,7 +36,8 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
         .setSenderNameUnencrypted(senderName)
         .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
         .setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())) // for sender
-        .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())); // for recipeints
+        .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())) // for recipeints
+        .setConfidential(true);
 
     if (tutao.locator.userController.isInternalUserLoggedIn()) {
         service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service._entityHelper.getSessionKey())); // for sharing the mailbox
