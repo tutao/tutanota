@@ -11,7 +11,8 @@ import android.util.Log;
 
 public class Util extends CordovaPlugin {
 	private final static String TAG = "tutao.Crypto";
-	
+
+	@Override
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		try {
 			if (action.equals("switchToHomescreen")) {
@@ -29,9 +30,9 @@ public class Util extends CordovaPlugin {
 	}
 
 	private void switchToHomeScreen(CallbackContext callbackContext) {
-        Intent i = new Intent(Intent.ACTION_MAIN);
-        i.addCategory(Intent.CATEGORY_HOME);
-        this.cordova.getActivity().startActivity(i);	
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
+		Intent i = new Intent(Intent.ACTION_MAIN);
+		i.addCategory(Intent.CATEGORY_HOME);
+		this.cordova.getActivity().startActivity(i);
+		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 	}
 }

@@ -157,8 +157,11 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype._showMore = function() {
     this.moreVisible(true);
 };
 
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hideMore = function() {
-    this.moreVisible(false);
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hideMore = function(vm, event) {
+    // when tapping on the menu item also the parent modalDialog receives an event. the menu item hides the more menu itself, so hide it here only if the modalDialog itself was tapped
+    if (!event || event.target.className.indexOf("modalDialog") != -1) {
+        this.moreVisible(false);
+    }
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {

@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
@@ -19,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -33,10 +33,11 @@ import de.tutao.plugin.Utils;
 public class FileUtil extends CordovaPlugin {
 	private final static String TAG = "tutao.FileUtil";
 	static final int SHOW_FILE_REQUEST = 24325;
-	static final int PICK_FILE_REQUEST = SHOW_FILE_REQUEST + 1; 
+	static final int PICK_FILE_REQUEST = SHOW_FILE_REQUEST + 1;
 	private static final int HTTP_TIMEOUT = 15 * 1000;
 	private CallbackContext callbackContext;
 
+	@Override
 	public boolean execute(String action, JSONArray args,
 			CallbackContext callbackContext) throws JSONException {
 		try {
@@ -72,16 +73,17 @@ public class FileUtil extends CordovaPlugin {
 			return false;
 		}
 	}
-	
+
 	private void writeFile(CallbackContext callbackContext, String absolutePath, String base64) throws FileNotFoundException, IOException {
 		Utils.writeFile(Utils.uriToFile(webView.getContext(), absolutePath), Utils.base64ToBytes(base64));
 		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 	}
 
 	private void readFile(CallbackContext callbackContext, String absolutePath) throws IOException {
-		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.bytesToBase64(Utils.readFile(Utils.uriToFile(webView.getContext(), absolutePath)))));
+		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.bytesToBase64(Utils.readFile(Utils.uriToFile(webView.getContext(),
+				absolutePath)))));
 	}
-	
+
 	private void delete(final CallbackContext callbackContext, final String absolutePath) {
 		Utils.run(cordova, new Runnable() {
 			@Override
@@ -99,23 +101,23 @@ public class FileUtil extends CordovaPlugin {
 							callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
 						}
 					}
-				} catch(Exception e) {
+				} catch (Exception e) {
 					Log.e(TAG, "error during delete of " + absolutePath, e);
 					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
 				}
 			}
 		});
 	}
-	
-	private void openFileChooser(CallbackContext callbackContext) {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
-        Intent chooser = Intent.createChooser(intent, "Select File");
-        this.callbackContext = callbackContext;
-        cordova.startActivityForResult(this, chooser, PICK_FILE_REQUEST);
+	private void openFileChooser(CallbackContext callbackContext) {
+		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+		intent.setType("*/*");
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+
+		Intent chooser = Intent.createChooser(intent, "Select File");
+		this.callbackContext = callbackContext;
+		cordova.startActivityForResult(this, chooser, PICK_FILE_REQUEST);
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
@@ -130,7 +132,7 @@ public class FileUtil extends CordovaPlugin {
 			Intent intent = new Intent(Intent.ACTION_VIEW);
 			intent.setData(path);
 			intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            // @see http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
+			// @see http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
 			this.callbackContext = callbackContext;
 			cordova.startActivityForResult(this, intent, SHOW_FILE_REQUEST);
 		} else {
@@ -138,35 +140,39 @@ public class FileUtil extends CordovaPlugin {
 					PluginResult.Status.ERROR, "file does not exist"));
 		}
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (requestCode == SHOW_FILE_REQUEST) {
 			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
 		} else if (requestCode == PICK_FILE_REQUEST) {
-			Uri uri = intent.getData();
-			try {
-                String contentPath = uri.toString(); // uri that starts with content:/ and is not directly accessible as a file
-				Log.v(TAG, "uri of selected file: " + contentPath);
-                File file = Utils.uriToFile(webView.getContext(), uri.toString());
-                if (!file.exists()) {
-                	callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "File does not exist!"));
-                } else {
-                	String fileUri = file.toURI().toString();
-                	Log.i(TAG, "selected file: " + fileUri);
-                	callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, contentPath));
-                }
-            } catch(Exception e) {
-            	Log.e(TAG, "error during file selection of " + uri, e);
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));            	
-            }
+			if (resultCode == Activity.RESULT_CANCELED || intent.getData() == null) { // both may happen if no file is selected
+				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.NO_RESULT));
+			} else {
+				Uri uri = intent.getData();
+				try {
+					String contentPath = uri.toString(); // uri that starts with content:/ and is not directly accessible as a file
+					Log.v(TAG, "uri of selected file: " + contentPath);
+					File file = Utils.uriToFile(webView.getContext(), uri.toString());
+					if (!file.exists()) {
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "File does not exist!"));
+					} else {
+						String fileUri = file.toURI().toString();
+						Log.i(TAG, "selected file: " + fileUri);
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, contentPath));
+					}
+				} catch (Exception e) {
+					Log.e(TAG, "error during file selection of " + uri, e);
+					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
+				}
+			}
 		} else {
 			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "illegal requestCode: " + requestCode));
 		}
 	}
-	
+
 	private void getSize(CallbackContext callbackContext, String absolutePath) {
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.uriToFile(webView.getContext(), absolutePath).length() + ""));
+		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.uriToFile(webView.getContext(), absolutePath).length() + ""));
 	}
 
 	private void getMimeType(CallbackContext callbackContext, String absolutePath) {
@@ -174,21 +180,21 @@ public class FileUtil extends CordovaPlugin {
 		if (mimeType == null) {
 			mimeType = "application/octet-stream";
 		}
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, mimeType));
+		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, mimeType));
 	}
-	
+
 	private void getName(CallbackContext callbackContext, String absolutePath) {
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.uriToFile(webView.getContext(), absolutePath).getName()));
+		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.uriToFile(webView.getContext(), absolutePath).getName()));
 	}
-	
+
 	private void upload(final CallbackContext callbackContext, final String absolutePath, final String targetUrl, final JSONObject headers) {
 		Utils.run(cordova, new Runnable() {
-			
+
 			@Override
 			public void run() {
-				try { 
+				try {
 					File file = Utils.uriToFile(webView.getContext(), absolutePath);
-					HttpURLConnection con = (HttpURLConnection) ( new URL(targetUrl)).openConnection();
+					HttpURLConnection con = (HttpURLConnection) (new URL(targetUrl)).openConnection();
 					try {
 						con.setConnectTimeout(HTTP_TIMEOUT);
 						con.setReadTimeout(HTTP_TIMEOUT);
@@ -199,29 +205,28 @@ public class FileUtil extends CordovaPlugin {
 						con.setChunkedStreamingMode(4096); // mitigates OOM for large files (start uploading before the complete file is buffered)
 						addHeadersToRequest(con, headers);
 						con.connect();
-						
+
 						IOUtils.copy(new FileInputStream(file), con.getOutputStream());
-						
-				        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, con.getResponseCode() + ""));
+
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, con.getResponseCode() + ""));
 					} finally {
 						con.disconnect();
 					}
-				} catch(Exception e) {
+				} catch (Exception e) {
 					Log.e(TAG, "error during upload to " + targetUrl, e);
 					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
 				}
 			}
 		});
 	}
-	
-	
-	private void download(final CallbackContext callbackContext, final String sourceUrl, final String filename, final JSONObject headers) throws MalformedURLException, IOException, JSONException {
+
+	private void download(final CallbackContext callbackContext, final String sourceUrl, final String filename, final JSONObject headers) {
 		Utils.run(cordova, new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
-					HttpURLConnection con = (HttpURLConnection) ( new URL(sourceUrl)).openConnection();
+					HttpURLConnection con = (HttpURLConnection) (new URL(sourceUrl)).openConnection();
 					try {
 						con.setConnectTimeout(HTTP_TIMEOUT);
 						con.setReadTimeout(HTTP_TIMEOUT);
@@ -230,38 +235,39 @@ public class FileUtil extends CordovaPlugin {
 						con.setUseCaches(false);
 						addHeadersToRequest(con, headers);
 						con.connect();
-						
+
 						Context context = webView.getContext();
-						File dir = Utils.getDir(context);
-						File encryptedFile = new File(new File(dir, Crypto.TEMP_DIR_ENCRYPTED), filename);
-						
+						File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
+						encryptedDir.mkdirs();
+						File encryptedFile = new File(encryptedDir, filename);
+
 						IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
-						
-				        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK,  Utils.fileToUri(encryptedFile)));
+
+						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.fileToUri(encryptedFile)));
 					} finally {
 						con.disconnect();
 					}
-				} catch(Exception e) {
+				} catch (Exception e) {
 					Log.e(TAG, "error during download from " + sourceUrl, e);
 					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
 				}
 			}
 		});
 	}
-	
-    private static void addHeadersToRequest(URLConnection connection, JSONObject headers) throws JSONException {
-        for (Iterator<?> iter = headers.keys(); iter.hasNext(); ) {
-            String headerKey = iter.next().toString();
-            JSONArray headerValues = headers.optJSONArray(headerKey);
-            if (headerValues == null) {
-                headerValues = new JSONArray();
-                headerValues.put(headers.getString(headerKey));
-            }
-            connection.setRequestProperty(headerKey, headerValues.getString(0));
-            for (int i = 1; i < headerValues.length(); ++i) {
-                connection.addRequestProperty(headerKey, headerValues.getString(i));
-            }
-        }
-    }
+
+	private static void addHeadersToRequest(URLConnection connection, JSONObject headers) throws JSONException {
+		for (Iterator<?> iter = headers.keys(); iter.hasNext();) {
+			String headerKey = iter.next().toString();
+			JSONArray headerValues = headers.optJSONArray(headerKey);
+			if (headerValues == null) {
+				headerValues = new JSONArray();
+				headerValues.put(headers.getString(headerKey));
+			}
+			connection.setRequestProperty(headerKey, headerValues.getString(0));
+			for (int i = 1; i < headerValues.length(); ++i) {
+				connection.addRequestProperty(headerKey, headerValues.getString(i));
+			}
+		}
+	}
 
 }

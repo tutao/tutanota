@@ -5,8 +5,11 @@ var runSequence = require('run-sequence');
 var package = require('../package.json');
 
 gulp.task('default', shell.task([
-//    'cordova plugins remove de.tutanota.native',
-//    'cordova plugins add ../native/',
+    // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
+    'cordova plugins remove de.tutanota.native',
+    'cordova plugins add ../native/',
+    'rm -r ./plugins/de.tutanota.native',
+    'ln -s ../../native/ ./plugins/de.tutanota.native',
     'cordova run android'
 ]));
 
