@@ -18,13 +18,24 @@
     <icon src="www/graphics/app/android/icon-48-mdpi.png" density="mdpi"/>
     <icon src="www/graphics/app/android/icon-72-hdpi.png" density="hdpi"/>
     <icon src="www/graphics/app/android/icon-96-xhdpi.png" density="xhdpi"/>
-    <preference name="SplashScreen" value="screen" />
-    <preference name="SplashScreenDelay" value="10000" />
+
+    <!-- you can use any density that exists in the Android project -->
+    <splash src="www/graphics/app/android/large_land_hdpi.9.png" density="land-hdpi"/> 
+    <splash src="www/graphics/app/android/small_land_ldpi.9.png" density="land-ldpi"/>
+    <splash src="www/graphics/app/android/medium_land_mdpi.9.png" density="land-mdpi"/>
+    <splash src="www/graphics/app/android/xlarge_land_xhdpi.9.png" density="land-xhdpi"/>
+
+    <splash src="www/graphics/app/android/large_port_hdpi.9.png" density="port-hdpi"/>
+    <splash src="www/graphics/app/android/small_port_ldpi.9.png" density="port-ldpi"/>
+    <splash src="www/graphics/app/android/medium_port_mdpi.9.png" density="port-mdpi"/>
+    <splash src="www/graphics/app/android/xlarge_port_xhdpi.9.png" density="port-xhdpi"/>
+
+	<preference name="SplashScreenDelay" value="10000" />
+	<preference name="SplashScreen" value="screen" />
+
   </platform>
 
-  <platform name="ios">
-
-		
+  <platform name="ios">		
 	<!-- images are determined by width and height. The following are supported	-->
     <splash src="www/graphics/app/ios/Default~iphone.png" width="320" height="480"/>
     <splash src="www/graphics/app/ios/Default@2x~iphone.png" width="640" height="960"/>
@@ -36,9 +47,8 @@
     <splash src="www/graphics/app/ios/Default-667h.png" width="750" height="1334"/>
     <splash src="www/graphics/app/ios/Default-736h.png" width="1242" height="2208"/>
     <splash src="www/graphics/app/ios/Default-Landscape-736h.png" width="2208" height="1242"/>
-
-	
   </platform>
+
 
   <preference name="AndroidLaunchMode" value="singleTop"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
