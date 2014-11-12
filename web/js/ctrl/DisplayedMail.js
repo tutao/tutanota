@@ -49,7 +49,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
         new tutao.tutanota.ctrl.Button("export_action", 7, function () {
             tutao.locator.mailViewModel.exportMail(self);
-        }, isExternalExportPossible, false, "exportAction"),
+        }, isExternalExportPossible, false, "exportAction", "download"),
 
         // internal
         new tutao.tutanota.ctrl.Button("reply_action", 10, function () {

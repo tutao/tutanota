@@ -79,7 +79,9 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }),
 
         // external users
-        new tutao.tutanota.ctrl.Button('register_label', 27, tutao.locator.navigator.register, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
+        new tutao.tutanota.ctrl.Button('register_label', 27, function () {
+            tutao.tutanota.gui.openLink("https://app.tutanota.de/#register");
+        }, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
 
         // all supported
         new tutao.tutanota.ctrl.Button('feedback_label', 26, function () {
