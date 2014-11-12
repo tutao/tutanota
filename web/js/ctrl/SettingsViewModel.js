@@ -12,11 +12,14 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 
 	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS);
 	this.displayed.subscribe(function(displayed) {
-		if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
-			this.adminUserListViewModel(new tutao.tutanota.ctrl.AdminUserListViewModel());
-		} else {
-			this.adminUserListViewModel(null);
-		}
+        var self = this;
+            if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
+                self.adminUserListViewModel(new tutao.tutanota.ctrl.AdminUserListViewModel());
+            } else {
+                setTimeout(function() {
+                    self.adminUserListViewModel(null);
+                }, 0);
+            }
 	}, this);
 };
 

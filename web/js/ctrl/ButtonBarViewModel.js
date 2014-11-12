@@ -46,7 +46,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
             setTimeout(function () {
                 self.hideMore();
             },300);
-        }
+        };
         buttons[i].setHideButtonsHandler(hideMoreAfterShortDelay);
     }
 

@@ -14,14 +14,20 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	this.editing = ko.observable(null);
 	this._selectedDomElements = [];
 	this.newViewModel = ko.observable(null);
-	this.changeAccountsAllowed = !tutao.locator.userController.isLoggedInUserFreeAccount();
+
+    this.buttons = [
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, function() {
+            return !tutao.locator.userController.isLoggedInUserFreeAccount();
+        }, false, "newUserAction", "add", "adminUserAdd_action")
+    ];
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+
     this.update();
-	
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.showSelected = function() {
 	var self = this;
-	this._loadUserGroupEntries(this.upperBoundId(), true).then(function(userGroupList) {
+	this._loadUserGroupEntries(tutao.rest.EntityRestInterface.GENERATED_MAX_ID, true).then(function(userGroupList) {
 		self.userGroups(userGroupList);
 	});
 };

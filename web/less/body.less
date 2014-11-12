@@ -1007,17 +1007,29 @@ body {
 						
 						
 						> div#adminUserList {
-                            > div.buttonBar {
-                              div.innerButtons {
-                                right: 0px;
-                              }
-                            }
 							padding: 0;
+
 							> div.userList {
+                                position: absolute;
+                                left: 0;
+                                right: 0;
+                                top: @button-bar-height;
+                                bottom: 0;
+
+                                @media @desktop {
+                                  top: @button-bar-height;
+                                  bottom: 0;
+                                }
+
+                                @media @mobile {
+                                  top: 0;
+                                  bottom: @button-bar-height;
+                                }
+
+
 								background: @white;
 								background-clip: padding-box;
-								position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
-				
+
 								// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
 								> div.user {
 									width: 100%;

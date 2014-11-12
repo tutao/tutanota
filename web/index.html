@@ -1343,6 +1343,9 @@
 				</div>
 			</div>
 			<div id="changeSettingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
+                <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
+                <div class="actions" data-bind='domInit: function(domElement) { adminUserListViewModel().buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: "buttonBar-template", data: adminUserListViewModel().buttonBarViewModel }'></div>
+                <!-- /ko -->
 				<div id="changeSettingsInnerColumn" class="scrollable">
 					<div id="changeSettingsData">
 						<div>
@@ -1434,13 +1437,6 @@
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
 								<div id="adminUserList" data-bind="with: adminUserListViewModel">
-									<div class="buttonBar" data-bind="visible: changeAccountsAllowed">
-                                        <div class="outerButtons">
-                                            <div class="innerButtons">
-                                                <button type="submit" data-bind="lang: 'create_action', fastClick: createAccounts"></button>
-                                            </div>
-                                        </div>
-                                    </div>
 									<div class="userList" data-bind="foreach: {data: userGroups}">
 										<div class="user" data-bind="fastClick: $parent.editUser">
                                             <div class="icons">
@@ -1511,7 +1507,7 @@
                                 <label for="userPassword" class="recordName" data-bind="lang: 'password_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="hasfocus: passwordFocused, enable: !busy(), value: password, valueUpdate: 'input', css: getPasswordStatus().type"/>
+                                        <input id="userPassword" class="inputField wide" type="text" data-bind="hasfocus: passwordFocused, enable: !busy(), value: password, valueUpdate: 'input', css: getPasswordStatus().type"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type">
                                         <div class="pwStrengthBg dataField" data-bind="visible: passwordChanged, attr: {title: tutao.lang('pwStrength_title') }">
@@ -1581,7 +1577,7 @@
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}""></input>
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}"/>
                                     </div>
                                     <label class="recordInfo" data-bind="lang: 'loginNameInfoAdmin_msg', attr: {for: 'userName' + $index()}"></label>
                                 </div>
@@ -1603,7 +1599,7 @@
                                         <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
-                                        <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                        <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
@@ -1618,7 +1614,7 @@
                                     <div class="recordName"></div>
                                     <div class="formAction">
                                         <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-                                        <button class="minimal" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button></button>
+                                        <button class="minimal" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button>
                                         <button class="minimal" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
                                         <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
                                     </div>
