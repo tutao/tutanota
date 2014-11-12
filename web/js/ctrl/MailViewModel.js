@@ -46,16 +46,22 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
         return;
     }
 
-
     var currentMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
     this._latestMailToShow = currentMail;
-    // only show the spinner after 200ms if the conversation has not been loaded till then
-    setTimeout(function() {
-        if (self.mail() != currentMail && self._latestMailToShow == currentMail) {
-            self.mail(null);
-            self.showSpinner(true);
-        }
-    }, 200);
+
+    // if the conversation column is not visible, directly show the spinner to avoid that the old email is shortly visible when switching to the conversation column
+    if (tutao.locator.mailView.isConversationColumnVisible()) {
+        // only show the spinner after 200ms if the conversation has not been loaded till then
+        setTimeout(function() {
+            if (self.mail() != currentMail && self._latestMailToShow == currentMail) {
+                self.mail(null);
+                self.showSpinner(true);
+            }
+        }, 200);
+    } else {
+        self.mail(null);
+        self.showSpinner(true);
+    }
 
     currentMail.load().then(function(){
         if (self._latestMailToShow == currentMail ){
@@ -63,7 +69,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
             self.mail(currentMail);
             currentMail.mail.loadConversationEntry();
         }
-    }).finally( function(){
+    }).lastly( function(){
         if (self._latestMailToShow == currentMail ){
             self.showSpinner(false);
         }

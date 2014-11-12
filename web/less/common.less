@@ -236,7 +236,7 @@ hr {
 
 // from Bootstrap
 //** Tooltip max width
-@tooltip-max-width: 200px;
+@tooltip-max-width: 240px;
 //** Tooltip text color
 @tooltip-color: #fff;
 //** Tooltip background color
@@ -287,6 +287,7 @@ hr {
   text-decoration: none;
   background-color: @tooltip-bg;
   border-radius: 5px;
+  word-wrap: break-word; // needed for long email addresses
 }
 
 .tooltip-arrow {
@@ -509,7 +510,7 @@ div.menuItem {
     padding-left: 1px;
   }
 
-  &.active {
+  &.active, &.selected {
     background-color: @highlight-color;
     background-clip: padding-box;
   }

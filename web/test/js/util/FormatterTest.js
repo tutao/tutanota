@@ -200,5 +200,21 @@ describe("FormatterTest", function () {
         assert.isFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533353214444")); // too long
     });
 
-
+    it.only(" localCompare", function() {
+        var data = ["ddddddd","kll, kll", "gt, gt", "peter", "bgt, ", "huu, ", "vert, vert", "ho", "ggg, ", "tt, tt", "abbbbb, abbbbb"];
+        var sorted = data.sort(function(a, b){
+            return a.localeCompare(b);
+        });
+        assert.equal("abbbbb, abbbbb", sorted[0]);
+        assert.equal("bgt, ", sorted[1]);
+        assert.equal("ddddddd", sorted[2]);
+        assert.equal("ggg, ", sorted[3]);
+        assert.equal("gt, gt", sorted[4]);
+        assert.equal("ho", sorted[5]);
+        assert.equal("huu, ", sorted[6]);
+        assert.equal("kll, kll", sorted[7]);
+        assert.equal("peter", sorted[8]);
+        assert.equal("tt, tt", sorted[9]);
+        assert.equal("vert, vert", sorted[10]);
+    });
 });

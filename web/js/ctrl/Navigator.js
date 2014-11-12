@@ -150,7 +150,8 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 			tutao.tutanota.Bootstrap.init();
 		}
 		if (self.verifyClientSupported()) {
-            tutao.locator.loginViewModel.setup(self._allowAutoLogin).then(function () {
+            // even if a connection error is thrown we have to switch to the login view
+            tutao.locator.loginViewModel.setup(self._allowAutoLogin).lastly(function () {
                 tutao.locator.viewManager.select(tutao.locator.loginView);
             });
 		}

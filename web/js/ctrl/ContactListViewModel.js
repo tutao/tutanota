@@ -109,7 +109,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 	return self._loadContacts(currentResult, loadedContacts, 0).then(function() {
         // sort contacts by name
         loadedContacts.sort(function(a, b) {
-            return (a.getSortName() > b.getSortName());
+            return a.getSortName().localeCompare(b.getSortName());
         });
 
 		// unregister the listeners

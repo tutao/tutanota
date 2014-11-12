@@ -33,6 +33,7 @@ tutao.tutanota.gui.initKnockout = function() {
                 var prevent = new PreventGhostClick(element);
                 m.on("tap", function (event) {
                     event.srcEvent.preventDefault();
+                    // make sure that "active" is not used anywhere else concurrently
                     $(element).addClass("active");
                     setTimeout(function () {
                         $(element).removeClass("active");
@@ -567,12 +568,12 @@ tutao.tutanota.gui.unselect = function(elements) {
  */
 tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, width, initial) {
 	// the transition is done via css
-	if (initial) {
+	if (initial || tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID) {
+        // css transitions on older androids are horribly slow
 		$(domElement).css("left", left + "px");
 		$(domElement).css("width", width + "px");
 	} else {
         $(domElement).transition({left: left + "px", width: width + "px"}, 300);
-        //$(domElement).transition({left: left + "px", width: width + "px"}, 300, 'easeInOutCubic');
 	}
 };
 

@@ -68,6 +68,8 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
                 mail.secure(false);
                 var username = tutao.locator.userController.getUserGroupInfo().getName();
                 tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+            }).caught(function(e) {
+                // the user did not allow to cancel the invitation mail
             });
 
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),

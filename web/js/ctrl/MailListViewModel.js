@@ -286,7 +286,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviouslySelectedMail = f
  * @param {Array.<Array.<String>>} mailIds The ids of the mails to load.
  * @param {Array.<tutao.entity.tutanota.Mail>} loadedMails An array that contains all mails that are loaded up to now.
  * @param {number} nextMail The index of the mail id in mailIds that shall be loaded next.
- * @return {Promise.<Array.<tutao.entity.tutanota.Mail>} Resolves to the loaded mails, rejected if failed.
+ * @return {Promise.<Array.<tutao.entity.tutanota.Mail>>} Resolves to the loaded mails, rejected if failed.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype._loadMails = function(mailIds, loadedMails, nextMail) {
 	if (mailIds.length == 0) {

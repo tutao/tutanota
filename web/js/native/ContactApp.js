@@ -34,7 +34,7 @@ tutao.native.ContactApp.prototype.findRecipients = function(text, maxNumberOfSug
                 reject(e);
             }
         }, reject, options);
-    }).catch(function(e) {
+    }).caught(function(e) {
 		// ignore errors from native calls - find throws an error if contact access is deactivated for tutanota.
 		return Promise.resolve();
 	});

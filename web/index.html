@@ -438,15 +438,15 @@
 			<div id="tagListColumn" class="viewColumn">
 				<section id="tagList" class="scrollable" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList">
-						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
+						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
 							<div class="icon imgButton left"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
 						</div>
-						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
+						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
 							<div class="icon imgButton  right"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
 						</div>
-						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {active: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
+						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
 							<div class="icon imgButton  trash"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
 						</div>
@@ -627,7 +627,8 @@
 										</div>
 										<div class="attachments">
 											<!-- ko foreach: { data: _attachments } -->
-												<div class="download" data-bind="fastClick: $parent.downloadNewAttachment, attr: { title: getName() }">
+                                                <!-- we need to use the click binding instead of fastClick here because otherwise the attachment is also downloaded on mobile devices when tapping "remove" -->
+												<div class="download" data-bind="click: $parent.downloadNewAttachment, attr: { title: getName() }">
 													<div class="mimeImage">
 														<img onerror="this.src='graphics/mime/file.png';" data-bind="attr: {src: $parent.getAttachmentImage($data)}"/>
 													</div>
@@ -1334,7 +1335,7 @@
 				<div id="settingsInnerColumn" class="scrollable">
 					<div id="settingsData">
 						<div data-bind="foreach: getSettings()">
-							<div class="menuItem" data-bind="css: { active: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
+							<div class="menuItem" data-bind="css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
 								<div class="text" data-bind="lang: $parent.getSettingsTextId($data)"></div>
 							</div>
 						</div>

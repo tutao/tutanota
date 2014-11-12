@@ -538,7 +538,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getSuggestions = function(text, call
 	}
 
 	if (sugs.length < MAX_NBR_OF_SUGGESTIONS) {
-		tutao.locator.contacts.findRecipients(text, MAX_NBR_OF_SUGGESTIONS, sugs).finally(function() {
+		tutao.locator.contacts.findRecipients(text, MAX_NBR_OF_SUGGESTIONS, sugs).lastly(function() {
 			callback(sugs);
 		});
 	} else {
