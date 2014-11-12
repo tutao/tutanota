@@ -73,18 +73,9 @@ tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier
 };
 
 
-tutao.native.PushServiceApp.prototype.onIosNotification = function(e) {
-    if ( event.alert ) {
-        navigator.notification.alert(event.alert);
-    }
-
-    if ( event.sound ) {
-        var snd = new Media(event.sound);
-        snd.play();
-    }
-
-    if ( event.badge ) {
-        //this.pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
+tutao.native.PushServiceApp.prototype.onIosNotification = function(event) {
+    if ( event.foreground == "1" ) {
+		navigator.notification.vibrate(300);
     }
 };
 
