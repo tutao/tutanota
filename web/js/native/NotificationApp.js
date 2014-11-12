@@ -11,10 +11,7 @@ tutao.native.NotificationApp = function(){
 };
 
 tutao.native.NotificationApp.prototype.add = function(message) {
-    if (cordova.platformId == 'ios') {
-        window.plugin.notification.local.add({ message: message, autoCancel: true});
-    }
-    navigator.notification.vibrate(300);
+	// do nothing here on mobile devices notifications are handled by push service.
 };
 
 tutao.native.NotificationApp.prototype.updateBadge = function(number) {
