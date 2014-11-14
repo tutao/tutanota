@@ -94,13 +94,7 @@ tutao.native.PushServiceApp.prototype.onAndroidNotification = function(e) {
             // you might want to play a sound to get the user's attention, throw up a dialog, etc.
             if ( e.foreground ){
                 // alert("push notification while in foreground");
-
-                // on Android soundname is outside the payload.
-                // On Amazon FireOS all custom attributes are contained within payload
-                //var soundfile = e.soundname || e.payload.sound;
-                // if the notification contains a soundname, play it.
-                //var my_media = new Media("/android_asset/www/"+ soundfile);
-                //my_media.play();
+                navigator.notification.vibrate(300);
             }
             else {  // otherwise we were launched because the user touched a notification in the notification tray.
                 if ( e.coldstart ){
