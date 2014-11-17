@@ -1,6 +1,6 @@
 "use strict";
 
-describe.only("EntitySessionKeyHandlingTest", function () {
+describe("EntitySessionKeyHandlingTest", function () {
 
     var assert = chai.assert;
 
