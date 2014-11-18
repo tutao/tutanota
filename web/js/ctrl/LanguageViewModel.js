@@ -130,8 +130,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	clickToSave_label: "Click to save",
 	confidential_action: "Confidential",
 	nonConfidential_action: "Not confidential",
-    confidentialStatus_msg: "This message is sent end-to-end encrypted.",
-    nonConfidentialStatus_msg: "This message is not sent end-to-end encrypted.",
+    confidentialStatus_msg: "This message is sent end-to-end encrypted. Switch with lock symbol button above.",
+    nonConfidentialStatus_msg: "This message is not sent end-to-end encrypted. Switch with lock symbol button above.",
 	noMails_msg: "There are no emails in this list.",
 	noMail_msg: "No email selected.",
 	addMobileNumber_msg: "Add an additional mobile phone number.",
@@ -306,7 +306,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     applicationUpdate_label: "Loading Tutanota...",
     leavePageConfirmation_msg: "Do you really want to leave Tutanota?",
     loadMore_action: "Load more",
-    newContact_action: "Add new contact",
+    newContact_action: "New contact",
     password_label: 'Password',
     passwordEnterNeutral_msg: "Please enter your password for confirmation.",
     passwordWrongInvalid_msg: "Your password is wrong.",
@@ -376,7 +376,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     invite_alt: "Invite",
     more_label: "More",
     dots_label: "...",
-    folderTitle_label: "Folder",
+    folderTitle_label: "Folders",
 
     //admin
     logs_label: "logs",
@@ -461,6 +461,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	progress_msg: "Progress",
 	terms_label: "Confirmation",
 	termsAcceptedNeutral_msg: "Please accept the terms & conditions.",
+    backTologin_action: "Back to login",
 
 	// feedback
 	errorReport_label: "Oh no!",
@@ -583,8 +584,8 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	clickToSave_label: "Klicken zum speichern",
 	confidential_action: "Vertraulich",
 	nonConfidential_action: "Nicht vertraulich",
-    confidentialStatus_msg: "Diese Nachricht wird Ende-zu-Ende verschlüsselt.",
-    nonConfidentialStatus_msg: "Diese Nachricht wird nicht Ende-zu-Ende verschlüsselt.",
+    confidentialStatus_msg: "Diese Nachricht wird Ende-zu-Ende verschlüsselt. Umschalten mit Klick auf Schloss-Symbol.",
+    nonConfidentialStatus_msg: "Diese Nachricht wird nicht Ende-zu-Ende verschlüsselt. Umschalten mit Klick auf Schloss-Symbol.",
 	noMails_msg: "Keine E-Mails in dieser Liste.",
 	noMail_msg: "Keine E-Mail ausgewählt.",
 	addMobileNumber_msg: "Zusätzliche Mobilfunknummer eingeben.",
@@ -759,7 +760,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     applicationUpdate_label: "Tutanota wird geladen...",
     leavePageConfirmation_msg: "Wollen Sie Tutanota wirklich schließen?",
     loadMore_action: "Weitere laden",
-    newContact_action: "Kontakt hinzufügen",
+    newContact_action: "Neuer Kontakt",
     password_label: 'Passwort',
     passwordEnterNeutral_msg: "Bitte gib dein Passwort als Bestätigung ein.",
     passwordWrongInvalid_msg: "Das Passwort ist falsch.",
@@ -915,6 +916,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	progress_msg: "Fortschritt",
 	terms_label: "Bestätigung",
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die AGB.",
+    backTologin_action: "Zurück zum Login",
 
 	// feedback
 	errorReport_label: "Oh nein!",

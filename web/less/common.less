@@ -79,6 +79,10 @@ body, input, button, select, textarea {
 @highlight-color: #DDE2E9;
 @padding: 8px;
 
+@icon-color: darken(@dark-blue, 15%);
+@menu-icon-color: darken(@dark-blue, 15%);
+@new-color: lighten(@dark-blue, 15%);
+
 /***************************************
   * Media queries
   * see: http://blog.scur.pl/2012/06/variable-media-queries-less-css/
@@ -397,53 +401,53 @@ input#hiddenInput {
 }
 
 /***************************************
-  * Button
+  * Button - may be on an action bar or a single button
   **************************************/
 
 button {
   display: inline-block;
   min-width: 40px;
   height: 35px;
-  padding-left: 10px;
-  padding-right: 10px;
-  background-color: @button-background;
-  border: 1px solid @button-border;
-  line-height: 35px;
+  //line-height: 35px;
   text-align: center;
   text-decoration: none;
+  background-color: transparent;
+  color: @icon-color;
   cursor: pointer;
   .nonSelectable;
-  .light;
 
-  &.minimal {
-    border: 1px solid transparent;
-    background-color: transparent;
-    text-decoration: underline;
+  font-size: 16px;
+  padding: 5px;
+  border: 0;
 
-    &:active {
-      border: 1px solid @button-border;
+  // desktop only
+  &:before {
+    padding-right: 5px;
+  }
+  &:after {
+    left: 5px; // same like padding
+  }
+
+  // mobile only
+  &.mobile {
+
+    &:before {
+      padding-right: 0px;
+    }
+    &:after {
+      left: 12px; // same like padding + extra space because of min-width
     }
   }
 
-  &.switch {
-    border: 0;
+  &:active, &.active {
+    background-color: @highlight-color;
+  }
+
+  // a button that is not on any action bar
+  &.single {
+    border: 1px solid @icon-color;
     border-radius: 5px;
-
-    > div.imgButton {
-      height: 20px;
-      width: 20px;
-    }
-    &.off {
-      background-color: @red;
-    }
-
-    &:focus, &.focus {
-      box-shadow: none !important;
-    }
-  }
-
-  &:active {
-    background-color: @button-active-background;
+    min-width: 80px;
   }
 
   &.disabled {
@@ -451,26 +455,17 @@ button {
 
     &:active {
       // disabled buttons shall not be visible as active
-      background-color: @button-background;
+      background-color: transparent;
     }
 
     &:focus, &.focus {
       // disabled buttons shall not be visible as in focus
-      border: 1px solid @button-border !important;;
-      box-shadow: 0 0 0px @focus-blue !important;
     }
   }
 
   &:focus, &.focus {
-    //border-color: @focus-blue !important;
-    //box-shadow: 0 0 10px @focus-blue !important;
-  }
-}
 
-div.simplebutton {
-  display: inline-block;
-  text-decoration: underline;
-  cursor: pointer;
+  }
 }
 
 .languageButton {

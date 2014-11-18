@@ -20,27 +20,28 @@
   font-style: normal;
 }
 
-@icon-color: darken(@dark-blue, 15%);
-@menu-icon-color: darken(@dark-blue, 15%);
-@new-color: lighten(@dark-blue, 15%);
-
 .ie-background-image(@url) {
 }
 
 .ion {
   font-family: @ionicons-font-family;
   text-rendering: auto;
-  font-size: 120%
+  font-size: 150%;
+
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: middle; // this font has a padding on top and bottom, so we need to adjust the alignment to avoid that text beside the icon has a vertical offset
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.imgButton {
-  // TODO remove
-  display: inline-block;
-  background-size: 100% auto;
-  background-repeat: no-repeat;
-  background-position: center;
-  // till here
-
+.icomoon {
   /*********** Copied from icomoon style.css ***************/
   font-family: 'icomoon';
   speak: none;
@@ -54,9 +55,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-
-
   /*********** END: Copied from icomoon style.css ***************/
+}
+
+
+
+.fontImage {
 
   color: @icon-color;
 
@@ -81,6 +85,7 @@
   }
 
   &.search:before {
+    .icomoon;
     content: "\e1b7";
   }
 
@@ -90,19 +95,18 @@
   }
 
   &.mail:before {
+    .icomoon;
     content: "\e0ec";
   }
 
   &.reply:before {
     .ion;
     content: @ionicon-var-reply;
-    font-size: 130%;
   }
 
   &.reply-all:before {
     .ion;
     content: @ionicon-var-reply-all;
-    font-size: 130%;
   }
 
   &.forward:before {
@@ -117,23 +121,27 @@
 
   &.contact-new {
     &:before {
+      .icomoon;
       content: "\e186";
     }
     .new;
   }
 
   &.contact:before {
+    .icomoon;
     content: "\e186";
   }
 
   &.file-new {
     &:before {
+      .icomoon;
       content: "\e12a";
     }
     .new;
   }
 
   &.file:before {
+    .icomoon;
     content: "\e12a";
   }
 
@@ -151,26 +159,32 @@
   }
 
   &.settings:before {
+    .icomoon;
     content: "\e1e0";
   }
 
   &.feedback:before {
+    .icomoon;
     content: "\e167";
   }
 
   &.logout:before {
+    .icomoon;
     content: "\e37d";
   }
 
   &.left:before {
+    .icomoon;
     content: "\e3bf";
   }
 
   &.right:before {
+    .icomoon;
     content: "\e3bb";
   }
 
   &.leftIndicator:before {
+    .icomoon;
     content: "\e601";
     //.ion;
     //content: @ionicon-var-chevron-left;
@@ -178,16 +192,29 @@
   }
 
   &.rightIndicator:before {
+    .icomoon;
     content: "\e602";
   }
 
+  &.upIndicator:before {
+    .icomoon;
+    content: "\e605";
+  }
+
+  &.downIndicator:before {
+    .icomoon;
+    content: "\e604";
+  }
+
   &.trash:before {
+    .icomoon;
     content: "\e24f";
   }
 
   &.restore {
 
     &:before {
+      .icomoon;
       content: "\e24f";
     }
     &:after {
@@ -195,56 +222,64 @@
       content: @ionicon-var-close;
       //content: @ionicon-var-ios7-close-empty;
       position: absolute;
-      left: 12px;
       font-size: 125%;
       color: @new-color;
     }
 }
 
   &.more:before {
+    .icomoon;
     content: "\e600";
   }
 
   &.attachment:before {
+    .icomoon;
+    content: "\e2d7";
     //.ion;
     //content: @ionicon-var-paperclip;
-    content: "\e2d7";
   }
 
   &.attachment-small:before {
+    .icomoon;
     content: "\e2d7";
     font-size: 12px;
   }
 
   &.trash-small:before {
+    .icomoon;
     content: "\e24f";
     font-size: 12px;
   }
 
   &.lock-closed:before {
+    .icomoon;
     content: "\e1d5";
   }
 
   &.lock-open:before {
+    .icomoon;
     content: "\e1d6";
   }
 
   &.star:before {
+    .icomoon;
     content: "\e2fc";
   }
 
   &.invite:before {
+    .icomoon;
     content: "\e48c";
   }
 
   &.register:before {
+    .icomoon;
     content: "\e185";
   }
 
   &.add:before {
     .ion;
     content: @ionicon-var-android-add;
-    font-size: 110%;
+    font-size: 130%;
   }
 
   &.edit:before {
@@ -253,6 +288,7 @@
   }
 
   &.download:before {
+    .icomoon;
     content: "\e603";
   }
 
@@ -267,10 +303,12 @@
       color: @new-color;
       font-size: 15px;
       content: "\e376";
+      .icomoon;
     }
   }
 
   &.progress {
+    .icomoon;
     background-image: url("../graphics/busy.gif");
     background-size: 15px 15px;
   }

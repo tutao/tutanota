@@ -76,6 +76,9 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 		new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
             tutao.locator.mailViewModel.deleteMail(self);
         }, untrashed, false, "deleteMailAction", "trash"),
+
+        // internal
+        new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
 };

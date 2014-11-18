@@ -17,6 +17,9 @@ tutao.tutanota.ctrl.MailViewModel = function() {
     }, this);
 
     this.width = 0;
+
+    // only contains buttons for the case that no mail is visible, otherwise the buttons of the displayed/composing mail are shown
+    this.buttonBarViewModel = null;
 };
 
 tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
@@ -33,6 +36,18 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
             // we reduce the max width by 10 px which are used in our css for paddings + borders
             self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 10);
         }
+    });
+
+    this.buttons = [
+        new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, function() {
+            return tutao.locator.userController.isInternalUserLoggedIn();
+        }, false, "newMailAction", "mail-new")
+    ];
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    var self = this;
+    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION, function (width) {
+        // we reduce the max width by 10 px which are used in our css for paddings + borders
+        self.buttonBarViewModel.setButtonBarWidth(width - 10);
     });
 };
 
@@ -344,7 +359,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.isConversationEmpty = function() {
 };
 
 /**
- * @param {tutao.entity.tutanota.MailAddress} the MailAddress
+ * @param {tutao.entity.tutanota.MailAddress} mailAddress The MailAddress
  * @param {string} meId The id of the text that should be used if the mailAddress is the current user
  * @returns {string} The label for this MailAddress
  */
@@ -365,7 +380,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getLabel = function(mailAddress, meI
 tutao.tutanota.ctrl.MailViewModel.prototype.getConversationTypeTextId = function(){
     var textId = "emptyString_msg";
     if(!this.isConversationEmpty()){
-        if (typeof this.mail().conversationType != "undefined"){
+        if (this.isComposingState()){
             var type = this.mail().conversationType;
             if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW){
                 textId = "newMail_action";
@@ -374,6 +389,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getConversationTypeTextId = function
             }else if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD){
                 textId = "forward_action";
             }
+        } else {
+
         }
     }
     return textId;

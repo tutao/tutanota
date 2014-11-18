@@ -81,3 +81,10 @@ tutao.tutanota.gui.ContactView.prototype.showContactListColumn = function() {
 tutao.tutanota.gui.ContactView.prototype.showContactColumn = function() {
     this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT);
 };
+
+/**
+ * Returns true if the contact column is visible.
+ */
+tutao.tutanota.gui.ContactView.prototype.isContactColumnVisible = function() {
+    return (this._swipeSlider.getRightmostVisibleColumnId() == tutao.tutanota.gui.ContactView.COLUMN_CONTACT);
+};

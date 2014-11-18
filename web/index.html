@@ -439,15 +439,15 @@
 				<section id="tagList" class="scrollable" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList">
 						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
-							<div class="icon imgButton left"></div>
+							<div class="icon fontImage left"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
 						</div>
 						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
-							<div class="icon imgButton  right"></div>
+							<div class="icon fontImage  right"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
 						</div>
 						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
-							<div class="icon imgButton  trash"></div>
+							<div class="icon fontImage  trash"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
 						</div>
 					</div>
@@ -460,8 +460,8 @@
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: {data: mails}, style: { borderTopWidth: (!tutao.locator.dao.isSupported() && mails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || mails().length > 0) ? '7px' : '0px' }">
 							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMailAndSwitchToConversationColumn, css: {unreadFont: getUnread()}">
 								<div class="icons">
-                                    <div class="mailHeaderImage imgButton attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
-                                    <div class="mailHeaderImage imgButton trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
+                                    <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
+                                    <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
                                     <img src="graphics/tutanota-small.png" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"/>
                                 </div>
 								<div class="subject" data-bind="text: getSubject()"></div>
@@ -491,15 +491,22 @@
 			</div>
 
 			<div id="conversationColumn" class="viewColumn" data-bind="with: tutao.locator.mailViewModel">
-				<div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
-					<img src="graphics/busy.gif" />
-				</div>
-				<div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
-					<div data-bind="lang: 'noMail_msg'"></div><br>
-				</div>
+                <!-- ko ifnot: mail -->
+                <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
+                <!-- /ko -->
+                <div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
+                    <img src="graphics/busy.gif" />
+                </div>
+                <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
+                    <div data-bind="lang: 'noMail_msg'"></div><br>
+                </div>
 				<div id="innerConversationColumn">
                     <!-- ko if: mail -->
-                    <div class="actions" data-bind='template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+                    <div class="actions" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
+                    <div class="previousNextMailButtons" data-bind="with: tutao.locator.mailListViewModel, visible: !isComposingState() && tutao.tutanota.util.ClientDetector.isMobileDevice()">
+                        <button class="fontImage upIndicator" data-bind="fastClick: selectPreviousMail, css: { disabled: isFirstMailSelected() }"></button>
+                        <button class="fontImage downIndicator" data-bind="fastClick: selectNextMail, css: { disabled: isLastMailSelected() }"></button>
+                    </div>
                     <!-- ko if: isComposingState() -->
                     <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: mail().busy" />
                     <!-- /ko -->
@@ -609,12 +616,12 @@
                                             <div class="headerLine" data-bind="fadeVisible: containsExternalRecipients()">
                                                 <div class="name edit"></div>
                                                 <div class="value edit" id="composer_confidential">
-                                                    <button class="confidentialButton switch" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-                                                        <div class="imgButton" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
+                                                    <button class="confidentialButton single" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
+                                                        <div class="fontImage" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
                                                     </button>
-                                                    <button class="showPasswordChannelColumn" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
+                                                    <button class="showPasswordChannelColumn single" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                         <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
-                                                        <div class="showPasswordChannelColumnIcon imgButton rightIndicator">
+                                                        <div class="showPasswordChannelColumnIcon fontImage rightIndicator">
                                                     </button>
                                                 </div>
                                             </div>
@@ -635,7 +642,7 @@
 													<div class="fileName" data-bind="text: getName()"></div>
 													<div class="fileSize" data-bind="text: '(' + tutao.tutanota.util.Formatter.formatFileSize(getSize()) + ')'"></div>
 													<div class="removeAttachment" data-bind="fastClick: $parent.removeAttachment">
-														<div class="imgButton cancel" data-bind="attr: {title: tutao.lang('removeAttachment_alt') }"></div>
+														<div class="fontImage cancel" data-bind="attr: {title: tutao.lang('removeAttachment_alt') }"></div>
 													</div>
 												</div>
 											<!-- /ko -->
@@ -667,7 +674,7 @@
 									<hr />
 									<br>
 
-									<button class="editContactButton" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
+									<button class="editContactButton single" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
 									<div class="recipientNameAndAddress">
 										<!-- ko if: getName() != "" -->
 											<span class="emphasizedText" data-bind="text: getName()"></span><br>
@@ -737,7 +744,7 @@
 											<div id="contactNameAndTitle">
 												<h1 data-bind="text: contactWrapper().getFullName()"></h1>
 												<!-- ko if: contactWrapper().getContact().getBirthday() -->
-													<div id="birthdayImage" class="imgButton star" data-bind="attr: {title: tutao.lang('birthday_alt') }"></div>
+													<div id="birthdayImage" class="fontImage star" data-bind="attr: {title: tutao.lang('birthday_alt') }"></div>
 													<span data-bind="text: '&nbsp;' + tutao.tutanota.util.Formatter.dateToSimpleString(contactWrapper().getContact().getBirthday()) + ' (' + contactWrapper().getAge() + ')'"></span>
 												<!-- /ko -->
 												<span data-bind="text: contactWrapper().getContact().getCompany()"></span><br>
@@ -749,7 +756,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getMailAddresses() -->
 												<div class="contactData">
-													<div class="contactDataButton imgButton mail-new" data-bind="fastClick: function() { $parent.sendMail($data) }, attr:{ title: tutao.lang('sendMail_alt') }"></div>
+													<div class="contactDataButton fontImage mail-new" data-bind="fastClick: function() { $parent.sendMail($data) }, attr:{ title: tutao.lang('sendMail_alt') }"></div>
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getMailAddressTypeName($data)"></div>
 													<div class="contactDataText" data-bind="text: getAddress()"></div>
 												</div>
@@ -762,7 +769,7 @@
 												<div class="contactData">
 													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
-															<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
+															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
 													<!-- /ko -->
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
@@ -776,7 +783,7 @@
 											<!-- ko foreach: contactWrapper().getContact().getAddresses() -->
 												<div class="contactData">
 													<a target="_blank" data-bind="attr: { href: $parent.getMapUrl($data) }">
-														<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showAddress_alt')}"></div>
+														<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showAddress_alt')}"></div>
 													</a>
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
 													<div class="contactDataAreaText" data-bind="text: getAddress()"></div>
@@ -790,7 +797,7 @@
 												<div class="contactData">
 													<!-- ko if: $parent.getSocialIdUrl($data) != null -->
 														<a target="_blank" data-bind="attr: { href: $parent.getSocialIdUrl($data) }">
-															<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
+															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
 														</a>
 													<!-- /ko -->
 													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
@@ -809,12 +816,12 @@
 											<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 											<hr />
 											<div class="contactData" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
-												<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
+												<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
 												<div class="contactDataType" data-bind="lang: 'presharedPasswordHeading_label'"></div>
 												<div class="contactDataText" data-bind="text: getPresharedPasswordText()"></div>
 											</div>
 											<div class="contactData" data-bind="visible: contactWrapper().getContact().getAutoTransmitPassword() != ''">
-												<div class="contactDataButton imgButton right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
+												<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
 												<div class="contactDataType" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
 												<div class="contactDataText" data-bind="text: getAutoTransmitPasswordText()"></div>
 											</div>
@@ -841,7 +848,7 @@
 													<input class="editContactMailInput" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: address"/>
 												</div>
 												<div class="recordAction">
-													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.mailAddresses.remove($data) }, attr: {title: tutao.lang('removeMailAddress_alt')}"></div>
+													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.mailAddresses.remove($data) }, attr: {title: tutao.lang('removeMailAddress_alt')}"></div>
 												</div>
 											</div>
 										<!-- /ko -->
@@ -862,7 +869,7 @@
 													<input type="tel" data-bind="value: number"/>
 												</div>
 												<div class="recordAction">
-													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.phoneNumbers.remove($data) }, attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
+													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.phoneNumbers.remove($data) }, attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 												</div>
 											</div>
 										<!-- /ko -->
@@ -883,7 +890,7 @@
 													<textarea rows="2" data-bind="value: address" oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 												</div>
 												<div class="recordAction">
-													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.addresses.remove($data) }, attr: {title: tutao.lang('removeAddress_alt') }"></div>
+													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.addresses.remove($data) }, attr: {title: tutao.lang('removeAddress_alt') }"></div>
 												</div>
 											</div>
 										<!-- /ko -->
@@ -904,7 +911,7 @@
 													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: socialId"/>
 												</div>
 												<div class="recordAction" >
-													<div class="imgButton cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
+													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
 												</div>
 											</div>
 										<!-- /ko -->
@@ -1016,8 +1023,8 @@
 							<div class="record">
 								<div class="recordName"></div>
 								<div class="formAction">
-									<button id="submitLogin" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-                                    <button class="minimal" data-bind="fastClick: createAccount, lang: 'createAccount_action'"></button>
+									<button id="submitLogin" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+                                    <button class="single" data-bind="css: { disabled: !loginPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
 									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
@@ -1066,7 +1073,7 @@
 										<!-- ko foreach: phoneNumbers -->
 										<div class="extPhoneNumberRow recordValue">
 											<div data-bind="text: getNumber()"></div>
-											<button class="recordAction" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+											<button class="recordAction single" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
 										</div>
 										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
 										<!-- /ko -->
@@ -1094,7 +1101,7 @@
 								<div class="record">
 									<div class="recordName"></div>
 									<div class="formAction">
-										<button id="showMailButton" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
+										<button id="showMailButton" class="single fontImage confirm" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
 										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
 									</div>
 								</div>
@@ -1171,7 +1178,7 @@
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button id="submitPreRegistration" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
+                                        <button id="submitPreRegistration" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
                                         <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
                                     </div>
                                 </div>
@@ -1293,8 +1300,8 @@
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button id="submitRegistration1" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
-                                        <button class="minimal" data-bind="fastClick: login, lang: 'login_action'"></button>
+                                        <button id="submitRegistration1" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                        <button class="single" data-bind="fastClick: login, lang: 'backTologin_action'"></button>
                                     </div>
                                 </div>
                             </form>
@@ -1427,7 +1434,7 @@
                                             <div class="record">
                                                 <div class="recordName"></div>
                                                 <div class="formAction">
-                                                    <button id="submitPasswordChange" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
+                                                    <button id="submitPasswordChange" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
                                                     <label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text, params: changePasswordStatus().params"></label>
                                                 </div>
                                             </div>
@@ -1440,7 +1447,7 @@
 									<div class="userList" data-bind="foreach: {data: userGroups}">
 										<div class="user" data-bind="fastClick: $parent.editUser">
                                             <div class="icons">
-                                                <div class="mailHeaderImage imgButton trash-small" data-bind="visible: getDeleted(), attr: {alt: tutao.lang('deleted_label')}"></div>
+                                                <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getDeleted(), attr: {alt: tutao.lang('deleted_label')}"></div>
                                             </div>
 											<div class="userName"  data-bind="text: getName()"></div>
 											<div class="smallFont light" data-bind="text: getMailAddress()"></div>
@@ -1472,7 +1479,7 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDeleteAccount" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
+                                            <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
                                             <label for="submitDeleteAccount" class="recordStatus" data-bind="css: deleteAccountStatus().type, lang: deleteAccountStatus().text"></label>
                                         </div>
                                     </div>
@@ -1535,9 +1542,9 @@
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button id="submitUserChange" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
-                                    <button id="deleteUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
-                                    <button id="cancelUserChange" type="button" class="minimal" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
+                                    <button id="submitUserChange" class="single fontImage confirm" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
+                                    <button id="deleteUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
+                                    <button id="cancelUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
                                     <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
                             </div>
@@ -1561,7 +1568,7 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button type="submit" data-bind="lang: 'import_action'"></button>
+                                            <button type="submit" class="single fontImage confirm" data-bind="lang: 'import_action'"></button>
                                             <label class="recordStatus" data-bind="css: csvImportStatus().type, lang: csvImportStatus().text, params: csvImportStatus().params"></label>
                                         </div>
                                     </div>
@@ -1613,9 +1620,9 @@
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button type="submit" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-                                        <button class="minimal" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button>
-                                        <button class="minimal" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
+                                        <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
+                                        <button class="single" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button>
+                                        <button class="single" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
                                         <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
                                     </div>
                                 </div>
@@ -1643,7 +1650,7 @@
             <div class="descriptionFont" data-bind="visible: isErrorDialog, lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
             <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
-            <button class="barButton" data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
+            <button class="barButton single fontImage confirm" data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>
 
@@ -1659,7 +1666,7 @@
             </ul>
             <h2>icons</h2>
             <div class="icons">
-                <span class="imgButton cancel"></span><span class="imgButton confirm"></span><span class="imgButton send"></span><span class="imgButton trash"></span><span class="imgButton restore"></span><span class="imgButton reply"></span><span class="imgButton reply-all"></span><span class="imgButton export"></span><span class="imgButton attachment"></span>
+                <span class="fontImage cancel"></span><span class="fontImage confirm"></span><span class="fontImage send"></span><span class="fontImage trash"></span><span class="fontImage restore"></span><span class="fontImage reply"></span><span class="fontImage reply-all"></span><span class="fontImage export"></span><span class="fontImage attachment"></span>
             </div>
         </div>
     </div>
@@ -1697,7 +1704,7 @@
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
         <div id="left-navbar" data-bind="css: { showNavButton: getActiveView().isShowLeftNeighbourColumnPossible()}, fastClick: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }">
-            <div class="leftViewButton imgButton leftIndicator">
+            <div class="leftViewButton fontImage leftIndicator">
             </div>
             <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()">
                 <div class="path">
@@ -1724,7 +1731,7 @@
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
                             <div class="menu_image">
-                                <div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
+                                <div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
                                     <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
                                 </div>
                             </div>
@@ -1745,7 +1752,7 @@
                 <ul>
                     <!-- ko foreach: tutao.locator.viewManager.headerBarViewModel.moreButtons() -->
                     <li data-bind="fastClick: click, attr: {'id': id}">
-                        <span class="menu_image"><div class="imgButton" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
+                        <span class="menu_image"><div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
                         <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
                     </li>
                     <!-- /ko -->
@@ -1767,7 +1774,7 @@
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar">
             <!-- ko foreach: visibleButtons() -->
-            <button class="imgButton" data-bind="css: imageClass, fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
         <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
@@ -1799,11 +1806,11 @@
 			<div class="input" tabindex="-1" data-bind="css: {focus: vm.active}, click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="imgButton cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">
-						<div class="imgButton" data-bind="css: vm.bubbleHandler.buttonCss()"></div>
+						<div class="fontImage" data-bind="css: vm.bubbleHandler.buttonCss()"></div>
 					</div>
 				<!-- /ko -->
 			</div>

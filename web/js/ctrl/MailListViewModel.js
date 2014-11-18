@@ -87,12 +87,11 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  * Creates the buttons
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
-    var internalUser = function() {
-        return tutao.locator.userController.isInternalUserLoggedIn();
-    };
     this.buttons = [
         new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction", "trash"),
-        new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, internalUser, false, "newMailAction", "mail-new")
+        new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
+            return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
+        }, false, "newMailAction", "mail-new")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
     var self = this;
@@ -435,6 +434,55 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getLastSelectedMail = function()
 	} else {
 		return null;
 	}
+};
+
+/**
+ * Shows the previous mail in the list.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviousMail = function() {
+    if (!this.isMailSelected()) {
+        return;
+    }
+
+    for (var i=1; i<this.mails().length; i++) {
+        if (this.mails()[i] == this._selectedMails[0]) {
+            this._selectMail(this.mails()[i - 1], tutao.locator.mailView.getMailListDomElement(this.mails()[i - 1]), false, true);
+            break;
+        }
+    }
+};
+
+/**
+ * Shows the next mail in the list.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.selectNextMail = function() {
+    if (!this.isMailSelected()) {
+        return;
+    }
+
+    for (var i=0; i<this.mails().length - 1; i++) {
+        if (this.mails()[i] == this._selectedMails[0]) {
+            this._selectMail(this.mails()[i + 1], tutao.locator.mailView.getMailListDomElement(this.mails()[i + 1]), false, true);
+            break;
+        }
+    }
+};
+
+/**
+ * Returns true if the first mail in the list is selected, false otherwise.
+ * @return {bool} True if the last first in the list is selected, false otherwise.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.isFirstMailSelected = function() {
+    return this.isMailSelected() && this.mails()[0] == this._selectedMails[0];
+};
+
+
+/**
+ * Returns true if the last mail in the list is selected, false otherwise.
+ * @return {bool} True if the last mail in the list is selected, false otherwise.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.isLastMailSelected = function() {
+    return this.isMailSelected() && this.mails()[this.mails().length - 1] == this._selectedMails[0];
 };
 
 /**

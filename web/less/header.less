@@ -32,6 +32,10 @@ header#main {
     right: 0px;
     height: @header-height;
 
+    @media @mobile {
+      height: @header-height-small;
+    }
+
     > div {
       position: relative;
       top: 0px;
@@ -52,7 +56,6 @@ header#main {
     @media @mobile {
       > div#left-navbar {
         width: @left-navbar-width-small;
-        margin-top: 6px;
         left: -@nav-icon-width-small;
 
         &.showNavButton {
@@ -60,13 +63,15 @@ header#main {
         }
 
         > div.leftViewButton {
-          top:1px;
+          top:2px;
           left: @indicator-side-margin;
           font-size: @indicator-width-small;
         }
 
         > div#logo {
           left: @nav-icon-width-small + @indicator-side-margin-small;;
+          top: 6px;
+
           > div.path {
             width: 30px;
             height: 27px;
@@ -78,7 +83,7 @@ header#main {
         }
 
         > div#previousLocation {
-          top: 0px;
+          top: 6px;
           left:32px;
         }
       }
@@ -94,7 +99,6 @@ header#main {
     float: left;
     height: 100%;
     left: -@nav-icon-width;
-    margin-top: 8px;
 
     transition: left 0.5s;
     width: @left-navbar-width;
@@ -105,7 +109,7 @@ header#main {
 
     > div.leftViewButton {
       position: absolute  ;
-      top:0px;
+      top: 4px;
       left: @indicator-side-margin;
       font-size: @indicator-width;
       opacity: 0.8;
@@ -118,7 +122,7 @@ header#main {
         position: absolute;
         left:40px;
         right:0px;
-        top:5px;
+        top:13px;
         height:27px;
         overflow:hidden;
         text-overflow: ellipsis;
@@ -130,6 +134,8 @@ header#main {
       display: inline-block;
       position: absolute;
       left: @nav-icon-width + @indicator-side-margin;
+      top: 8px;
+
       > div.path {
         position: relative;
         display: inline-block;
@@ -296,6 +302,16 @@ div#modalMoreMenu {
           &:active, &.active {
             background-color: @highlight-color;
           }
+
+          > .menu_image {
+            > div {
+              display: inline-block;
+            }
+          }
+
+          > .menu_text {
+            margin-left: 5px;
+          }
         }
       }
     }
@@ -328,11 +344,12 @@ div#modalMoreMenu {
     text-align: center;
 
     > div {
+      position: relative;
+      display: inline-block;
       font-size: 28px;
       height: 28px;
       width: 28px;
-      top: 3px;
-      position: relative;
+      top: 0px;
 
       > div.menu_badge {
         position: absolute;

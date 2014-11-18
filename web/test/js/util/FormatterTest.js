@@ -200,7 +200,7 @@ describe("FormatterTest", function () {
         assert.isFalse(tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber("+49179533353214444")); // too long
     });
 
-    it.only(" localCompare", function() {
+    it(" localCompare", function() {
         var data = ["ddddddd","kll, kll", "gt, gt", "peter", "bgt, ", "huu, ", "vert, vert", "ho", "ggg, ", "tt, tt", "abbbbb, abbbbb"];
         var sorted = data.sort(function(a, b){
             return a.localeCompare(b);
