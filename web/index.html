@@ -628,7 +628,7 @@
                                             <div class="headerLine">
                                                 <div class="name"></div>
                                                 <div class="value" >
-                                                    <div class="confidentialStateMessage" data-bind="text: (secure() ? tutao.lang('confidentialStatus_msg') : tutao.lang('nonConfidentialStatus_msg'))"></div>
+                                                    <div class="confidentialStateMessage" data-bind="lang: (secure()) ? ((containsExternalRecipients()) ? 'confidentialSwitchableStatus_msg' : 'confidentialStatus_msg') : 'nonConfidentialStatus_msg'"></div>
                                                 </div>
                                             </div>
 										</div>
