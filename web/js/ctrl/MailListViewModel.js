@@ -485,6 +485,20 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isLastMailSelected = function() 
     return this.isMailSelected() && this.mails()[this.mails().length - 1] == this._selectedMails[0];
 };
 
+tutao.tutanota.ctrl.MailListViewModel.prototype.getSelectedMailIndex = function() {
+    if (!this.isMailSelected()) {
+        return 0;
+    }
+
+    for (var i=0; i<this.mails().length; i++) {
+        if (this.mails()[i] == this._selectedMails[0]) {
+            return i;
+        }
+    }
+
+    return 0;
+};
+
 /**
  * Trashes/untrashes all the given mails. updates the mail list view accordingly.
  * @param {Array.<Array<String>>} mailIds The mails to delete finally.

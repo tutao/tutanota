@@ -25,8 +25,8 @@ tutao.tutanota.ctrl.ViewManager = function() {
         self.windowWidthObservable(width);
 	});
 	this._buttons = [];
-    this.currentColumnTitle = ko.observable("emptyString_msg");
-    this.previousColumnTitle = ko.observable("emptyString_msg");
+    this.currentColumnTitle = ko.observable("");
+    this.previousColumnTitle = ko.observable("");
 
     this.externalCompanyName = ko.observable("");
 };
@@ -215,23 +215,23 @@ tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, he
 
 tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
 
-    if ( currentTitle == null){
-        currentTitle = "emptyString_msg";
+    if (!currentTitle) {
+        currentTitle = "";
     }
-    if ( previousTitle == null){
-         previousTitle = "back_action";
+    if (!previousTitle) {
+        previousTitle = tutao.lang("back_action");
     }
 
-    if (!this.getActiveView().isShowLeftNeighbourColumnPossible()){
-        previousTitle = "emptyString_msg";
+    if (!this.getActiveView().isShowLeftNeighbourColumnPossible()) {
+        previousTitle = "";
     }
 
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);
 
-    if ( tutao.lang(currentTitle).trim().length == 0 ){
+    if (currentTitle.trim().length == 0 ) {
         $("#previousLocation").css("overflow", "visible" );
-    }else{
+    } else {
         $("#previousLocation").css("overflow", "hidden" );
     }
 };

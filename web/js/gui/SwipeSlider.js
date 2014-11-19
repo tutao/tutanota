@@ -36,15 +36,17 @@ tutao.tutanota.gui.SwipeSlider.none = function() {
     return new tutao.tutanota.gui.SwipeSlider(null, null);
 };
 
-tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, columnDivId, titleTextIdProvider) {
-    var titleTextIdProviderFunction = titleTextIdProvider;
+tutao.tutanota.gui.SwipeSlider.prototype.addViewColumn = function(prio, minWidth, maxWidth, columnDivId, titleTextProvider) {
+    var titleTextProviderFunction = titleTextProvider;
 
-    if (typeof titleTextIdProvider  == "string" || titleTextIdProvider == null){
-        titleTextIdProviderFunction = function(){return titleTextIdProvider;};
+    if (!titleTextProvider) {
+        titleTextProviderFunction = function() {
+            return "";
+        };
     }
     var columnId = this._viewSlider.addViewColumn(prio, minWidth, maxWidth, function(x, width) {
         $('#' + columnDivId).css("width", width + "px");
-    }, titleTextIdProviderFunction);
+    }, titleTextProviderFunction);
     return columnId;
 };
 

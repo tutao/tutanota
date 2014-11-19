@@ -20,8 +20,8 @@ tutao.tutanota.gui.ContactView.COLUMN_CONTACT = null;
  * @inherit
  */
 tutao.tutanota.gui.ContactView.prototype.init = function(external, updateColumnTitleCallback) {
-	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "contactContent",updateColumnTitleCallback);
-    tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = this._swipeSlider.addViewColumn(0, 300, 400, 'searchAndContactListColumn', "contacts_label");
+	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "contactContent", updateColumnTitleCallback);
+    tutao.tutanota.gui.ContactView.COLUMN_CONTACT_LIST = this._swipeSlider.addViewColumn(0, 300, 400, 'searchAndContactListColumn', function() { return tutao.lang("contacts_label"); });
     tutao.tutanota.gui.ContactView.COLUMN_CONTACT = this._swipeSlider.addViewColumn(1, 600, 1000, 'contactColumn');
 
 };

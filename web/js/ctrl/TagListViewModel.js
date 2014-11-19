@@ -81,8 +81,8 @@ tutao.tutanota.ctrl.TagListViewModel.prototype.getTagTextId = function(tagId) {
     throw new Error("No text id for tag");
 };
 
-tutao.tutanota.ctrl.TagListViewModel.prototype.getActiveTagTextId = function() {
-    return this.getTagTextId(this.activeSystemTag());
+tutao.tutanota.ctrl.TagListViewModel.prototype.getActiveTagText = function() {
+    return tutao.lang(this.getTagTextId(this.activeSystemTag()));
 };
 
 

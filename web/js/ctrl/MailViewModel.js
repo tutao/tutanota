@@ -377,21 +377,21 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getLabel = function(mailAddress, meI
  * Retuns a textId for the current conversation type.
  * @returns {string} The textId
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.getConversationTypeTextId = function(){
-    var textId = "emptyString_msg";
+tutao.tutanota.ctrl.MailViewModel.prototype.getColumnTitleText = function(){
+    var text = "";
     if(!this.isConversationEmpty()){
         if (this.isComposingState()){
             var type = this.mail().conversationType;
             if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW){
-                textId = "newMail_action";
+                text = tutao.lang("newMail_action");
             }else if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY){
-                textId = "reply_action";
+                text = tutao.lang("reply_action");
             }else if ( type == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD){
-                textId = "forward_action";
+                text = tutao.lang("forward_action");
             }
         } else {
-
+            text = (tutao.locator.mailListViewModel.getSelectedMailIndex() + 1) + "/" + tutao.locator.mailListViewModel.mails().length;
         }
     }
-    return textId;
+    return text;
 };

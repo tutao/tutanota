@@ -65,6 +65,6 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
 };
 
 
-tutao.tutanota.ctrl.SettingsViewModel.prototype.getActiveSettingTextId = function() {
-    return this.getSettingsTextId(this.displayed());
+tutao.tutanota.ctrl.SettingsViewModel.prototype.getActiveSettingText = function() {
+    return tutao.lang(this.getSettingsTextId(this.displayed()));
 };
