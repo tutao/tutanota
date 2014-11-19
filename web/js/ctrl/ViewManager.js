@@ -117,21 +117,12 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
 
     var self = this;
 
-    // If these widths are changed, we have to update them in header.less, too.
-    var menuItemWidth = 80;
-    var menuItemWidthSmall= 45;
-    var measureNavButton = function() {
-        if (window.innerWidth >= 720) {
-            return menuItemWidth;
-        } else {
-            return menuItemWidthSmall;
-        }
-    };
+
     this._buttons = this._createButtons();
     var getRightNavbarSize = function () {
         return $(document.getElementById("right-navbar")).innerWidth();
     };
-    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", measureNavButton);
+    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", tutao.tutanota.gui.measureNavBarEntry);
     setTimeout(function () {
         self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
     }, 0);

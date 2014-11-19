@@ -11,26 +11,35 @@ tutao.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
  * @constructor
  * @param {Array.<tutao.tutanota.ctrl.Button>} buttons An array containing any number of tutao.tutanota.ctrl.Button instances.
  * @param {string=} moreButtonText The text for the more button.
- * @param {function(Element):number=} measureFunction A function that returns the width of the buttons dom element including margins.
- *                                          This function should only be provided if the buttons are no standard-buttons
+ * @param {function(Element):number} measureFunction A function that returns the width of the buttons dom element including margins.
  */
-tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measureFunction) {
+tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measureFunction) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    if(!moreButtonText) {
-        moreButtonText = "dots_label";
+    if (!moreButtonText) {
+        moreButtonText = "more_label";
     }
 
-    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, 100, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
-    if (measureFunction) {
-        this._getSingleButtonWidth = measureFunction;
-    }
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
+    this._getSingleButtonWidth = measureFunction;
 
-    // only show buttons that are not hidden
+    // the buttons that are visible and no special buttons (prio tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO)
     this.allButtons = ko.computed(function() {
         return ko.utils.arrayFilter(buttons, function(button) {
             if (button) { // on IE8, the arrayFilter might be called with undefined parameters
-                return button.isVisible();
+                return button.isVisible() && button.getPriority() < tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO;
+            } else {
+                return false;
+            }
+
+        });
+    });
+
+    // the buttons with prio tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO. These are shown on the left of the button bar and are never put into the more menu
+    this.specialButtons = ko.computed(function() {
+        return ko.utils.arrayFilter(buttons, function(button) {
+            if (button) { // on IE8, the arrayFilter might be called with undefined parameters
+                return button.isVisible() && button.getPriority() == tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO;
             } else {
                 return false;
             }
@@ -54,7 +63,11 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
     this.moreVisible = ko.observable(false);
     this.maxWidth = 0;
-    this.widthSubscription = null;
+    this.specialButtonsWidth = 0;
+
+    this.specialButtons.subscribe(function() {
+        this.updateSpecialButtons();
+    }, this);
 
 	this.allButtons.subscribe(function() {
 		this.updateVisibleButtons();
@@ -65,11 +78,11 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons,moreButtonText, measur
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
     this.maxWidth = width;
-    this.updateVisibleButtons();
+    this.updateSpecialButtons();
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.isMoreVisible = function() {
-    if (tutao.locator.viewManager.isUserLoggedIn){
+    if (tutao.locator.viewManager.isUserLoggedIn) {
         return this.moreVisible();
     }
     return false;
@@ -92,15 +105,9 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonsWidth = function(butt
 
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function() {
-    if (!this.widthSubscription) {
-        this.widthSubscription = tutao.locator.viewManager.windowWidthObservable.subscribe( function() {
-            setTimeout(this.updateVisibleButtons, 0); // the column width is not yet updated when the window width changes, so use a timeout
-        }, this);
-    }
-
     var visibleButtonList = [].concat(this.allButtons());
     var moreButtonList = [];
-    if (this.maxWidth < this.getButtonsWidth(visibleButtonList)){
+    if (this.maxWidth - this.specialButtonsWidth < this.getButtonsWidth(visibleButtonList)) {
         visibleButtonList.push(this.moreButton);
         this._filterButtons(visibleButtonList, moreButtonList);
     }
@@ -110,6 +117,11 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
     this.visibleButtons.reverse();
 };
 
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateSpecialButtons = function() {
+    this.specialButtonsWidth = this.getButtonsWidth(this.specialButtons());
+    this.updateVisibleButtons();
+};
+
 /**
  *
  * @param {Array} visibleButtonList
@@ -117,7 +129,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
  * @private
  */
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._filterButtons = function(visibleButtonList, moreButtonList) {
-    if ( this.maxWidth < this.getButtonsWidth(visibleButtonList)){
+    if (this.maxWidth - this.specialButtonsWidth < this.getButtonsWidth(visibleButtonList)) {
         var buttonIndex = this._getLowestPriorityButtonIndex(visibleButtonList);
         if ( buttonIndex >= 0){
             var removedButtons = visibleButtonList.splice(buttonIndex, 1);
@@ -135,7 +147,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype._filterButtons = function(visib
  * @private
  */
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._getLowestPriorityButtonIndex = function(buttonList) {
-    var lowestPriority = 1000;
+    var lowestPriority = tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO; // tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO is max
     var buttonIndex = -1;
     for(var i=0; i< buttonList.length; i++ ){
         var currentButton = buttonList[i];
@@ -170,13 +182,4 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
     }else{
         this._showMore();
     }
-};
-
-/**
- * @param {tutao.tutanota.ctrl.Button} button The button to measure
- * @return {number} The width including the margin of the button
- */
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype._getSingleButtonWidth = function (button) {
-    // ATTENTION: If this width is changed, we have to update the measure function in ViewManager!
-    return 45;
 };

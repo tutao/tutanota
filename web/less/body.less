@@ -61,9 +61,13 @@ body {
 	}
 
 	button#measureButton {
-		position: absolute;
-		visibility: hidden;
-		margin-right: @button-bar-margin;
+	  position: absolute;
+	  visibility: hidden;
+	  margin-right: 15px; // icon + text needs more margin
+
+      &.mobile {
+        margin-right: @button-bar-margin
+      }
 	}
 
     div.actions {
@@ -83,6 +87,7 @@ body {
         position: relative;
         background: @background-dark;
         height: @button-bar-height;
+        padding-left: 5px;
 
         @media @desktop {
           border-bottom: 1px solid @border-dark;
@@ -99,7 +104,11 @@ body {
           color: @icon-color;
 
           &.mobile {
-            margin-right: 5px;
+            margin-right: @button-bar-margin
+          }
+
+          &.left {
+            float: left;
           }
         }
       }
@@ -112,11 +121,21 @@ body {
         z-index: 1;
         padding-left: @button-bar-margin;
         padding-right: @button-bar-margin;
+        padding-top: @button-bar-margin;
+        border-left: 1px solid @border-dark;
 
-        > button{
+        @media @desktop {
+          top: @button-bar-height;
+          border-bottom: 1px solid @border-dark;
+        }
+        @media @mobile {
+          bottom: @button-bar-height;
+          border-top: 1px solid @border-dark;
+        }
+
+        > button {
           display: block;
           position: relative;
-          width: 100%;
           margin-bottom: @button-bar-margin;
         }
       }
@@ -624,33 +643,17 @@ body {
 			position: relative;
 			height: 100%;
 
-          > div.previousNextMailButtons {
-            position: absolute;
-            display: inline-block;
-            height: @button-bar-height;
-            background: @background-dark;
-            padding-left: 5px;
+            > img#sendMailBusyImg {
+              position: absolute;
+              left: 50%;
 
-            @media @desktop {
-              top: 0;
-              border-bottom: 1px solid @border-dark;
+              @media @desktop {
+                top: 10px;
+              }
+              @media @mobile {
+                bottom: 10px;
+              }
             }
-            @media @mobile {
-              bottom: 0;
-              border-top: 1px solid @border-dark;
-            }
-
-            > button {
-              margin-top: 5px;
-            }
-          }
-
-          > div.actions {
-
-            &.mobile {
-              left: 85px; // width of the previous/next mail buttons
-            }
-          }
 
           > img#sendMailBusyImg {
             position: absolute;

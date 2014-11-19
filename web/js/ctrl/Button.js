@@ -5,8 +5,8 @@ tutao.provide('tutao.tutanota.ctrl.Button');
 /**
  * Defines a button.
  * @constructor
- * @param {string} labelTextId The label visible on the button.
- * @param {number} priority The higher the value the higher the priority. Priority 0 buttons are only in the more menu.
+ * @param {string=} labelTextId The label visible on the button.
+ * @param {number} priority The higher the value the higher the priority. Values 0 to tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO are allowed. Priority 0 buttons are only in the more menu. Priority tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO buttons are shown on the left of the button bar and are never in the more menu.
  * @param {function} clickListener Is called when the button is clicked.
  * @param {function=} isVisible The button is displayed, if this function returns true
  * @param {boolean=} directClick True if the click event shall not be deferred by a setTimeout (needed to avoid alert/confirm popup bugs).
@@ -14,10 +14,15 @@ tutao.provide('tutao.tutanota.ctrl.Button');
  * @param {string=} imageClass If set, the according image will be displayed
  * @param {string=} imageAltTextId alt text for the optional image
  * @param {function=} isSelected Returns true, if the current button is selected
+ * @param {function=} isDisabled Returns true, if the current button is disabled
  */
-tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected) {
+tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected, isDisabled) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.labelTextId = labelTextId;
+
+    if (priority > tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO) {
+        throw new Error("prio > " + tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO);
+    }
 
     this._priority = priority;
     this._clickListener = clickListener;
@@ -30,8 +35,11 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
     this.imageAltTextId = imageAltTextId;
     this.badge = ko.observable(0);
     this._isSelected = isSelected;
+    this._isDisabled = isDisabled;
     this._hideButtonsHandler = undefined;
 };
+
+tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO = 100;
 
 /**
  * Provides the priority of the button.
@@ -93,6 +101,14 @@ tutao.tutanota.ctrl.Button.prototype.setBadgeNumber = function (number) {
 tutao.tutanota.ctrl.Button.prototype.isSelected = function () {
     if (this._isSelected) {
         return this._isSelected();
+    } else {
+        return false;
+    }
+};
+
+tutao.tutanota.ctrl.Button.prototype.isDisabled = function () {
+    if (this._isDisabled) {
+        return this._isDisabled();
     } else {
         return false;
     }

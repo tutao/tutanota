@@ -693,3 +693,23 @@ tutao.tutanota.gui.openLink = function(href) {
         window.open(href, "_blank");
     }
 };
+
+tutao.tutanota.gui.measureNavBarEntry = function(button) {
+    // keep in sync with common.less and header.less
+    if (window.innerWidth >= 720) {
+        return 80;
+    } else {
+        return 45;
+    }
+};
+
+tutao.tutanota.gui.measureActionBarEntry = function(button) {
+    // keep in sync with common.less
+    if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+        return 45;
+    } else {
+        var measureButton = $("button#measureButton");
+        measureButton.text(tutao.lang(button.getLabelTextId()));
+        return measureButton.outerWidth(true);
+    }
+};

@@ -93,11 +93,11 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
             return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "newMailAction", "mail-new")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
     var self = this;
     tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
         // we reduce the max width by 10 px which are used in our css for paddings + borders
-        self.buttonBarViewModel.setButtonBarWidth(width - 10);
+        self.buttonBarViewModel.setButtonBarWidth(width - 6);
     });
 };
 

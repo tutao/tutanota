@@ -42,6 +42,10 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     };
     var trashText = self.mail.getTrashed() ? "undelete_action" : "delete_action";
     this.buttons = [
+        // special
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectPreviousMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectPreviousMailAction", "upIndicator", null, null, tutao.locator.mailListViewModel.isFirstMailSelected),
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectNextMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectNextMailAction", "downIndicator", null, null, tutao.locator.mailListViewModel.isLastMailSelected),
+
         // external
         new tutao.tutanota.ctrl.Button("replyConfidential_action", 10, function () {
             tutao.locator.mailViewModel.replyMail(self);
@@ -80,7 +84,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         // internal
         new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons);
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
 

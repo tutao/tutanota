@@ -12,8 +12,9 @@ tutao.tutanota.ctrl.View = function() {};
 /**
  * Called after loading Tutanota.
  * @param {Boolean} external True if the view shall be loaded for an external user, false for an internal user.
+ * @param {function()} updateColumnTitleCallback Has to return the column title.
  */
-tutao.tutanota.ctrl.View.prototype.init = function(external) {};
+tutao.tutanota.ctrl.View.prototype.init = function(external, updateColumnTitleCallback) {};
 
 /**
  * Provides the information if this view shall only be shown to internal users.
