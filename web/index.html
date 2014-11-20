@@ -969,15 +969,6 @@
 						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
 					</ul>
 					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
-					<!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
-						'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
-						'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
-						'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-						'mobile: ' + tutao.tutanota.util.ClientDetector.isMobileDevice() + '\n' +
-						'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
-						'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
-						'user agent: ' + navigator.userAgent">
-					</div> -->
 				</div>
 			</div>
 		</div>
@@ -985,6 +976,7 @@
 		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
 			<div class="welcomeContainer">
 				<div class="panel">
+                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
 
@@ -1129,15 +1121,6 @@
                 </div>
                 <div id="welcomePicture"><div></div></div>
             </div>
-            <!-- <div class="clientInfo" data-bind="text: 'browser: ' + tutao.tutanota.util.ClientDetector.getBrowserType() + '\n' +
-                'version: ' + tutao.tutanota.util.ClientDetector.getBrowserVersion() + '\n' +
-                'os: ' + tutao.tutanota.util.ClientDetector.getOs() + '\n' +
-                'device: ' + tutao.tutanota.util.ClientDetector.getDeviceType() + '\n' +
-                'mobile: ' + tutao.tutanota.util.ClientDetector.isMobileDevice() + '\n' +
-                'phone: ' + tutao.tutanota.util.ClientDetector.isPhoneSupported() + '\n' +
-                'supported: ' + tutao.tutanota.util.ClientDetector.getSupportedType() + '\n' +
-                'user agent: ' + navigator.userAgent">
-            </div> -->
 		</div>
 
         <div id="pre_registration" class="login" data-bind="with: tutao.locator.registrationVerifyDomainViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationVerifyDomainView">
@@ -1199,6 +1182,7 @@
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
+                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
                         <!-- ko if: getRegistrationType() == 'Starter' -->
                         <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
@@ -1759,6 +1743,19 @@
     </div>
 
 </script>
+
+    <script type="text/html" id="appInfo-template">
+        <div class="appInfo" data-bind="visible: tutao.env.mode != tutao.Mode.App">
+            <div>
+                <a data-bind="attr: { href: tutao.lang('appInfoAndroidUrl_action') }, visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
+                    <img data-bind="attr: { src: tutao.lang('appInfoAndroidImage_action'), alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
+                </a>
+                <a target="itunes_store" data-bind="attr: { href: tutao.lang('appInfoIosUrl_action') }, visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD">
+                    <img data-bind="attr: { src: tutao.lang('appInfoIosImage_action'), alt: tutao.lang('appInfoIosImageAlt_alt') }" />
+                </a>
+            </div>
+        </div>
+    </script>
 
 	<script type="text/html" id="displayedRecord-template">
 		<label class="recordName" data-bind="lang: nameTextId"></label>

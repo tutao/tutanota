@@ -63,6 +63,33 @@ div.login {
 			bottom: 0px;
 			padding-top: 70px;
 			padding-left: @padding;
+
+            > div > div.appInfo {
+              position: relative;
+              top: -70px;
+              width: 100%;
+              height: 0px;
+              z-index: 200;
+
+              > div {
+                position: absolute;
+                right: 0px;
+                text-align: right;
+                padding: 8px;
+
+                > a {
+                  display: inline-block; // needed to make link as big as image
+
+                  > img {
+                    display: block; // needed to make link as big as image
+
+                    @media @mobile {
+                      max-width: 130px; // image must not cover Tutanota logo
+                    }
+                  }
+                }
+              }
+            }
 			
 			> div.content {
 				height: 100%;

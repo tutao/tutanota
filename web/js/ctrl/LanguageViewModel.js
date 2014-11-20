@@ -348,6 +348,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	mailAddress_label: "Email address",
 	socialMedia_label: "If you like us, like us:",
 
+    appInfoAndroidUrl_action: "https://play.google.com/store/apps/details?id=de.tutao.tutanota",
+    appInfoIosUrl_action: "https://itunes.apple.com/us/app/keynote/id361285480?mt=8",
+    appInfoAndroidImage_action: "graphics/android_en.png",
+    appInfoIosImage_action: "graphics/ios_en.png",
+    appInfoAndroidImageAlt_alt: "Android app on Google Play",
+    appInfoIosImageAlt_alt: "iOS app on Apple store",
+
 	// header
 	logo_alt: "Tutanota logo",
 	featureNotAvailable_msg: "This feature will be available in 2014!",
@@ -803,6 +810,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	login_msg: 'Sie werden eingeloggt.',
 	mailAddress_label: "E-Mail-Adresse",
     socialMedia_label: "Folge uns für Updates:",
+
+    appInfoAndroidUrl_action: "https://play.google.com/store/apps/details?id=de.tutao.tutanota",
+    appInfoIosUrl_action: "https://itunes.apple.com/de/app/keynote/id361285480?mt=8",
+    appInfoAndroidImage_action: "graphics/android_de.png",
+    appInfoIosImage_action: "graphics/ios_de.png",
+    appInfoAndroidImageAlt_alt: "Android app bei Google Play",
+    appInfoIosImageAlt_alt: "iOS app im Apple store",
 
 	// header
 	logo_alt: "Tutanota-Logo",
