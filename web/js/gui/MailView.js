@@ -91,7 +91,7 @@ tutao.tutanota.gui.MailView.prototype.showDefaultColumns = function() {
  * @return {boolean} true, if the mail list column is visible.
  */
 tutao.tutanota.gui.MailView.prototype.isMailListColumnVisible = function() {
-    return (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_TAGS) || (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST);
+    return (this._swipeSlider.getLeftmostVisibleColumnId() <= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST) && (this._swipeSlider.getRightmostVisibleColumnId() >= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST);
 };
 
 /**

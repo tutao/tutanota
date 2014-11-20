@@ -1768,7 +1768,7 @@
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar">
             <!-- ko foreach: specialButtons() -->
-            <button class="left fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="leftAligned fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
             <!-- ko foreach: visibleButtons() -->
             <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>

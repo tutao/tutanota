@@ -219,10 +219,4 @@ tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentT
 
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);
-
-    if (currentTitle.trim().length == 0 ) {
-        $("#previousLocation").css("overflow", "visible" );
-    } else {
-        $("#previousLocation").css("overflow", "hidden" );
-    }
 };

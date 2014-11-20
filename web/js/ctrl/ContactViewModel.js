@@ -47,13 +47,13 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
         }, false, "newContactAction", "add"),
 
 
-        new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
+        new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
             self.contactWrapper().stopEditingContact(self);
             self.removeContact();
         }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW), false, "dismissContactNew", "cancel"),
         new tutao.tutanota.ctrl.Button("save_action", 10, self._saveContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW), false, "saveContactNew", "confirm"),
 
-        new tutao.tutanota.ctrl.Button("dismiss_action", 9, function () {
+        new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
             self.contactWrapper().stopEditingContact(self);
             self._showContact(self.contactWrapper());
         }, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT), false, "dismissContact", "cancel"),
