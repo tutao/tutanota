@@ -73,18 +73,9 @@ tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier
 };
 
 
-tutao.native.PushServiceApp.prototype.onIosNotification = function(e) {
-    if ( event.alert ) {
-        navigator.notification.alert(event.alert);
-    }
-
-    if ( event.sound ) {
-        var snd = new Media(event.sound);
-        snd.play();
-    }
-
-    if ( event.badge ) {
-        //this.pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
+tutao.native.PushServiceApp.prototype.onIosNotification = function(event) {
+    if ( event.foreground == "1" ) {
+		navigator.notification.vibrate(300);
     }
 };
 
@@ -94,7 +85,7 @@ tutao.native.PushServiceApp.prototype.onAndroidNotification = function(e) {
             if ( e.regid.length > 0 ) {
                 // Your GCM push server needs to know the regID before it can push to this device
                 // here is where you might want to send it the regID for later use.
-                console.log("regID = " + e.regid);
+                //console.log("regID = " + e.regid);
                 this.updatePushIdentifier(e.regid, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID);
             }
             break;
@@ -102,39 +93,31 @@ tutao.native.PushServiceApp.prototype.onAndroidNotification = function(e) {
             // if this flag is set, this notification happened while we were in the foreground.
             // you might want to play a sound to get the user's attention, throw up a dialog, etc.
             if ( e.foreground ){
-                $("#app-status-ul").append('<li>--INLINE NOTIFICATION--' + '</li>');
-
-                // on Android soundname is outside the payload.
-                // On Amazon FireOS all custom attributes are contained within payload
-                var soundfile = e.soundname || e.payload.sound;
-                // if the notification contains a soundname, play it.
-                var my_media = new Media("/android_asset/www/"+ soundfile);
-                my_media.play();
+                // alert("push notification while in foreground");
+                navigator.notification.vibrate(300);
             }
             else {  // otherwise we were launched because the user touched a notification in the notification tray.
-                if ( e.coldstart )
-                {
-                    $("#app-status-ul").append('<li>--COLDSTART NOTIFICATION--' + '</li>');
+                if ( e.coldstart ){
+                    //alert("push notification while in background --COLDSTART NOTIFICATION--");
                 }
-                else
-                {
-                    $("#app-status-ul").append('<li>--BACKGROUND NOTIFICATION--' + '</li>');
+                else{
+                    //alert("push notification while in background --BACKGROUND NOTIFICATION--");
                 }
             }
 
-            $("#app-status-ul").append('<li>MESSAGE -> MSG: ' + e.payload.message + '</li>');
+            //$("#app-status-ul").append('<li>MESSAGE -> MSG: ' + e.payload.message + '</li>');
             //Only works for GCM
-            $("#app-status-ul").append('<li>MESSAGE -> MSGCNT: ' + e.payload.msgcnt + '</li>');
+            //$("#app-status-ul").append('<li>MESSAGE -> MSGCNT: ' + e.payload.msgcnt + '</li>');
             //Only works on Amazon Fire OS
-            $status.append('<li>MESSAGE -> TIME: ' + e.payload.timeStamp + '</li>');
+            //$status.append('<li>MESSAGE -> TIME: ' + e.payload.timeStamp + '</li>');
             break;
 
         case 'error':
-            $("#app-status-ul").append('<li>ERROR -> MSG:' + e.msg + '</li>');
+            //alert(" --ERROR -> MSG:--" + e.msg);
             break;
 
         default:
-            $("#app-status-ul").append('<li>EVENT -> Unknown, an event was received and we do not know what it is</li>');
+            //alert("EVENT -> Unknown, an event was received and we do not know what it is");
             break;
     }
 };

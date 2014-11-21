@@ -41,6 +41,17 @@ describe("MailListViewModelTest", function () {
         tutao.locator.mailView.showConversationColumn = mockFunction();
         tutao.locator.mailView.getMailListDomElement = mockFunction();
         tutao.locator.mailView.hideConversation = mockFunction();
+        tutao.locator.mailView.addWidthObserver = mockFunction();
+
+        //tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
+
+        var viewSliderMock = {};
+        viewSliderMock.addWidthObserver = mockFunction();
+        viewSliderMock.notifyColumnChange = mockFunction();
+        var swipeSliderMock = {};
+        swipeSliderMock.getViewSlider = function(){return viewSliderMock;};
+
+        tutao.locator.mailView.getSwipeSlider = function(){ return swipeSliderMock;};
 
         this.vm = new tutao.tutanota.ctrl.MailListViewModel();
     });
@@ -75,19 +86,20 @@ describe("MailListViewModelTest", function () {
         };
 
         var self = this;
-        return this.vm.init().then(function () {
-            var mail = new tutao.entity.tutanota.Mail();
-            mail.__id = ["100", "200"];
-            mail.setSubject("test");
-            mail.setUnread(true);
-            self.vm.mails.push(mail);
+        this.vm.init();
 
-            self.vm._selectMail(mail, "test", false);
-            assert.isFalse(mail.getUnread());
+        var mail = new tutao.entity.tutanota.Mail();
+        mail.__id = ["100", "200"];
+        mail.setSubject("test");
+        mail.setUnread(true);
+        self.vm.mails.push(mail);
 
-            verify(tutao.tutanota.gui.unselect, never());
-            verify(tutao.tutanota.gui.select)(["test"]);
-        });
+        self.vm._selectMail(mail, "test", false);
+        assert.isFalse(mail.getUnread());
+
+        verify(tutao.tutanota.gui.unselect, never());
+        verify(tutao.tutanota.gui.select)(["test"]);
+
     });
 
     it(" complete search/filter chain: elements pre-exist, elements are added, search is done, filter is done", function () {
@@ -130,7 +142,8 @@ describe("MailListViewModelTest", function () {
                                 assert.equal(mail1.getId(), mailIndexedId);
                                 tutao.locator.indexer.tryIndexElements(tutao.entity.tutanota.MailBody.prototype.TYPE_ID, [body1.getId()], function (bodyIndexedId) {
                                     assert.equal(body1.getId(), bodyIndexedId);
-                                    resolve(self.vm.init().then(function () {
+                                    self.vm.init();
+                                    resolve(self.vm.loadInitial().then(function () {
                                         assert.deepEqual([mail1], self.vm.mails());
                                     }));
                                 });

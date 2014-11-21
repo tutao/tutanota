@@ -68,7 +68,7 @@ tutao.tutanota.Bootstrap.init = function() {
     var initializer = function () {
         this.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
     };
-    eval("tutao.locator = new tutao.Locator(singletons, initializer);")
+    eval("tutao.locator = new tutao.Locator(singletons, initializer);");
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
 

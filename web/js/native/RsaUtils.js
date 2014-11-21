@@ -13,11 +13,11 @@ tutao.native.RsaUtils = function () {
  * @return {object}
  * @private
  */
-tutao.native.RsaUtils.prototype._convertFromKeyPair = function (keypair) {
+/*tutao.native.RsaUtils.prototype._convertFromKeyPair = function (keypair) {
     return {
         publicKey: this._publicKeyToArray(keypair.publicKey),
         privateKey: this._privateKeyToArray(keypair.privateKey)};
-};
+};*/
 
 /**
  * @param publicKey {tutao.native.PublicKey}
@@ -50,12 +50,12 @@ tutao.native.RsaUtils.prototype._privateKeyToArray = function (privateKey) {
  * @return {tutao.native.KeyPair}
  * @private
  */
-tutao.native.RsaUtils.prototype._arrayToKeyPair = function (object) {
+/*tutao.native.RsaUtils.prototype._arrayToKeyPair = function (object) {
     return {
         publicKey: this._arrayToPublicKey(object.publicKey),
         privateKey: this._arrayToPrivateKey(object.privateKey)
     };
-};
+};*/
 
 tutao.native.RsaUtils.prototype._arrayToPublicKey = function (publicKey) {
     var self = this;
@@ -99,10 +99,8 @@ tutao.native.RsaUtils.prototype._hexLen = function (string) {
     return hexLen;
 };
 
-/**
- * @inheritDoc
- */
-tutao.native.RsaUtils.prototype.keyToHex = function (key) {
+
+tutao.native.RsaUtils.prototype._keyToHex = function (key) {
     var hex = "";
     for (var i = 0; i < key.length; i++) {
         var param = key[i].toString(16);
@@ -114,10 +112,7 @@ tutao.native.RsaUtils.prototype.keyToHex = function (key) {
     return hex;
 };
 
-/**
- * @inheritDoc
- */
-tutao.native.RsaUtils.prototype.hexToKey = function (hex) {
+tutao.native.RsaUtils.prototype._hexToKey = function (hex) {
     try {
         var key = [];
         var pos = 0;
@@ -134,10 +129,6 @@ tutao.native.RsaUtils.prototype.hexToKey = function (hex) {
     }
 };
 
-/**
- * @param {Array} key
- * @private
- */
 tutao.native.RsaUtils.prototype._validateKeyLength = function (key) {
     if (key.length != 1 && key.length != 7) {
         throw new Error("invalid key params");
@@ -148,17 +139,17 @@ tutao.native.RsaUtils.prototype._validateKeyLength = function (key) {
 };
 
 tutao.native.RsaUtils.prototype.privateKeyToHex = function (privateKey) {
-    return this.keyToHex(this._privateKeyToArray(privateKey));
+    return this._keyToHex(this._privateKeyToArray(privateKey));
 };
 
 tutao.native.RsaUtils.prototype.publicKeyToHex = function (publicKey) {
-    return this.keyToHex(this._publicKeyToArray(publicKey));
+    return this._keyToHex(this._publicKeyToArray(publicKey));
 };
 
 tutao.native.RsaUtils.prototype.hexToPrivateKey = function (privateKeyHex) {
-    return this._arrayToPrivateKey(this.hexToKey(privateKeyHex));
+    return this._arrayToPrivateKey(this._hexToKey(privateKeyHex));
 };
 
 tutao.native.RsaUtils.prototype.hexToPublicKey = function (publicKeyHex) {
-    return this._arrayToPublicKey(this.hexToKey(publicKeyHex));
+    return this._arrayToPublicKey(this._hexToKey(publicKeyHex));
 };
