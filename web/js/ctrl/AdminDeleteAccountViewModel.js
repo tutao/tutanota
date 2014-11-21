@@ -12,6 +12,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
     this.reason = ko.observable("");
 
 	this.password = ko.observable("");
+    this.password.subscribe(this._checkPassword);
 	this.passwordStatus = ko.observable({ type: "neutral", text: "passwordEnterNeutral_msg" });
 
     this.deleteAccountStatus = ko.observable({ type: "neutral", text: "deleteAccountInfo_msg" });
@@ -21,7 +22,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
 /**
  * Checks the entered old password and updates the password status.
  */
-tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.checkPassword = function() {
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._checkPassword = function() {
     var self = this;
     if (this.password().trim() == "") {
         this.passwordStatus({ type: "neutral", text: "passwordEnterNeutral_msg" });
@@ -50,19 +51,24 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirmPossible = func
  * Called when the confirm button is clicked by the user. Triggers the next state in the state machine.
  */
 tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirm = function() {
-	if (this.confirmPossible()) {
-        this.password("");
-        if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteAccountConfirm_msg"))) {
-            this.busy(true);
-            this.deleteAccountStatus({ type: "neutral", text: "deleteAccountWait_msg" });
+	if (!this.confirmPossible()) {
+        return;
+    }
+    var self = this;
+    this.password("");
+    tutao.tutanota.gui.confirm(tutao.lang("deleteAccountConfirm_msg")).then(function(confirmed) {
+        if (confirmed) {
+            self.busy(true);
+            self.deleteAccountStatus({ type: "neutral", text: "deleteAccountWait_msg" });
             var customerService = new tutao.entity.sys.DeleteCustomerData();
             customerService.setUndelete(false);
             customerService.setCustomer(tutao.locator.userController.getLoggedInUser().getCustomer());
-            customerService.setReason(this.reason());
-            customerService.erase({}, null).then(function() {
-                tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("deleteAccountDeleted_msg"));
-                tutao.locator.navigator.logout(false, false);
+            customerService.setReason(self.reason());
+            return customerService.erase({}, null).then(function() {
+                return tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("deleteAccountDeleted_msg")).then(function() {
+                    tutao.locator.navigator.logout(false, false);
+                });
             });
         }
-	}
+    });
 };

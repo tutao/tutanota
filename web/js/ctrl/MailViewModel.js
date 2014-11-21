@@ -231,61 +231,62 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText) {
 	var self = this;
 
-	if (!self.tryCancelAllComposingMails()) {
-		return Promise.reject("could not cancel composing");
-	}
+	return self.tryCancelAllComposingMails().then(function(confirmed) {
+        if (!confirmed) {
+            return Promise.reject("could not cancel composing");
+        } else {
+            // any selected mails in the mail list shall be deselected
+            tutao.locator.mailListViewModel.unselectAll();
 
-	// any selected mails in the mail list shall be deselected
-	tutao.locator.mailListViewModel.unselectAll();
+            var mailCreatedPromise;
+            if (previousMail) {
+                var previousMessageId = null;
+                mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
+                    previousMessageId = ce.getMessageId();
+                }).caught(function(e) {
+                    console.log("could not load conversation entry", e);
+                }).then(function() {
+                    // the conversation key may be null if the mail was e.g. received from an external via smtp
+                    self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
+                    self.mail().setBody(bodyText);
+                });
+            } else {
+                mailCreatedPromise = Promise.resolve();
+                self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null));
+            }
 
-    var mailCreatedPromise;
-	if (previousMail) {
-        var previousMessageId = null;
-		mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
-            previousMessageId = ce.getMessageId();
-        }).caught(function(e) {
-            console.log("could not load conversation entry", e);
-        }).then(function() {
-            // the conversation key may be null if the mail was e.g. received from an external via smtp
-            self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
-            self.mail().setBody(bodyText);
-        });
-	} else {
-        mailCreatedPromise = Promise.resolve();
-		this.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null));
-	}
+            return mailCreatedPromise.then(function() {
+                self.getComposingMail().composerSubject(subject);
+                for (var i = 0; i < toRecipients.length; i++) {
+                    self.getComposingMail().addToRecipient(toRecipients[i]);
+                }
+                for (var i = 0; i < ccRecipients.length; i++) {
+                    self.getComposingMail().addCcRecipient(ccRecipients[i]);
+                }
 
-    return mailCreatedPromise.then(function() {
-        self.getComposingMail().composerSubject(subject);
-        for (var i = 0; i < toRecipients.length; i++) {
-            self.getComposingMail().addToRecipient(toRecipients[i]);
+                //	not needed currently as we scroll the complete window when editing a mail
+                tutao.locator.mailView.showConversationColumn();
+
+
+                // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
+                //self.editor = new Quill('div.composeBody', {theme: 'snow'});
+                //self.editor.addModule('toolbar', {
+                //    container: '#toolbar-toolbar'     // Selector for toolbar container
+                //});
+                ////TODO (story send html email): test on mobiles and move to view
+                //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
+                //		toolbar:      null, // id of toolbar element
+                //		parserRules:  wysihtml5ParserRules // defined in parser rules set
+                //	});
+                //	var onChange = function() {
+                //		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
+                //	};
+                //	this.editor.on("change", onChange);
+
+                return true;
+            });
         }
-        for (var i = 0; i < ccRecipients.length; i++) {
-            self.getComposingMail().addCcRecipient(ccRecipients[i]);
-        }
-
-        //	not needed currently as we scroll the complete window when editing a mail
-        tutao.locator.mailView.showConversationColumn();
-
-
-        // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
-        //self.editor = new Quill('div.composeBody', {theme: 'snow'});
-        //self.editor.addModule('toolbar', {
-        //    container: '#toolbar-toolbar'     // Selector for toolbar container
-        //});
-        ////TODO (story send html email): test on mobiles and move to view
-        //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
-        //		toolbar:      null, // id of toolbar element
-        //		parserRules:  wysihtml5ParserRules // defined in parser rules set
-        //	});
-        //	var onChange = function() {
-        //		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
-        //	};
-        //	this.editor.on("change", onChange);
-
-        return true;
     });
-
 };
 
 /**
@@ -307,15 +308,15 @@ tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail)
 
 /**
  * If a composing mail is open, asks the user to cancel that mail.
- * @return {boolean} True if no composing mail is open any more, false otherwise.
+ * @return {Promise.<boolean>} True if no composing mail is open any more, false otherwise.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = function() {
 	if (!this.mail) {
-		return true;
+		return Promise.resolve(true);
 	} else if (this.isComposingState()) {
 		return (this.getComposingMail().cancelMail(true));
 	} else {
-		return true;
+        return Promise.resolve(true);
 	}
 };
 

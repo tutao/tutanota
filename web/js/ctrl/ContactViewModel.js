@@ -71,24 +71,30 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
 
 /**
  * Asks the user to cancel the current editing mode.
+ * @return {Promise.<bool>} True if the user does not want to cancel the current conact, false otherwise.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function () {
+    var self = this;
+    var text = null;
     if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
-        if (!tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("discardContact_msg"))) {
-            return true;
-        }
-        this.contactWrapper().stopEditingContact(this);
+        text = tutao.lang("discardContact_msg");
     } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
-        var text = tutao.locator.languageViewModel.get("discardContactChanges_msg");
-        if (this.contactWrapper().getFullName() != "") {
-            text = tutao.locator.languageViewModel.get("discardContactChangesFor_msg", {"$": this.contactWrapper().getFullName()});
+        if (this.contactWrapper().getFullName() == "") {
+            text = tutao.lang("discardContactChanges_msg");
+        } else {
+            text = tutao.lang("discardContactChangesFor_msg", {"$": this.contactWrapper().getFullName()});
         }
-        if (!tutao.tutanota.gui.confirm(text)) {
-            return true;
-        }
-        this.contactWrapper().stopEditingContact(this);
+    } else {
+        return Promise.resolve(false);
     }
-    return false;
+    return tutao.tutanota.gui.confirm(text).then(function (ok) {
+        if (!ok) {
+            return true;
+        } else {
+            self.contactWrapper().stopEditingContact(self);
+            return false;
+        }
+    });
 };
 
 /**
@@ -96,10 +102,12 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function () 
  * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.showContact = function (contactWrapper) {
-    if (this._keepNewOrEditMode()) {
-        return;
-    }
-    this._showContact(contactWrapper);
+    var self = this;
+    this._keepNewOrEditMode().then(function(keep) {
+        if (!keep) {
+            self._showContact(contactWrapper);
+        }
+    });
 };
 
 /**
@@ -107,7 +115,6 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.showContact = function (contactWr
  * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function (contactWrapper) {
-    var self = this;
     this.contactWrapper(contactWrapper);
     this.editableContact = null;
 
@@ -119,37 +126,41 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function (contactW
  * Create a new contact.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function () {
-    if (this._keepNewOrEditMode()) {
-        return;
-    }
-
     var self = this;
-    this.contactWrapper(tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper());
-    this.editableContact = this.contactWrapper().startEditingContact(this);
-    if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW || this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
-        // switch to MODE_NONE to make knockout recognize the new fields
-        this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
-    }
-    this.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW);
-    tutao.locator.contactView.showContactColumn();
+    this._keepNewOrEditMode().then(function(keep) {
+        if (!keep){
+            self.contactWrapper(tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper());
+            self.editableContact = self.contactWrapper().startEditingContact(self);
+            if (self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW || self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
+                // switch to MODE_NONE to make knockout recognize the new fields
+                self.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NONE);
+            }
+            self.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW);
+            tutao.locator.contactView.showContactColumn();
+        }
+    });
 };
 
 /**
  * Edit the given contact. If any editing contact is already existing, the user is asked to cancel that contact.
  * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact to edit.
- * @return {Boolean} True if the contact can be edited, false otherwise.
+ * @return {Promise.<Boolean>} True if the contact can be edited, false otherwise.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.tryToShowAndEditContact = function (contactWrapper) {
+    var self = this;
     if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT && this.contactWrapper().getContact() == contactWrapper.getContact()) {
         // we are already editing the contact
-        return true;
+        return Promise.resolve(true);
     }
-    if (this._keepNewOrEditMode()) {
-        return false;
-    }
-    this._showContact(contactWrapper);
-    this.editContact();
-    return true;
+    return this._keepNewOrEditMode().then(function(keep) {
+        if (keep) {
+            return false;
+        } else {
+            self._showContact(contactWrapper);
+            self.editContact();
+            return true;
+        }
+    });
 };
 
 /**
@@ -191,11 +202,13 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
     var self = this;
-    if (tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("deleteContact_msg"))) {
-        this.contactWrapper().getContact().erase().then(function() {
-            self.removeContact();
-        });
-    }
+    tutao.tutanota.gui.confirm(tutao.lang("deleteContact_msg")).then(function(ok) {
+        if (ok) {
+            self.contactWrapper().getContact().erase().then(function () {
+                self.removeContact();
+            });
+        }
+    });
 };
 
 /**

@@ -146,6 +146,8 @@ tutao.Locator = function(services, initializer) {
     this.progressDialogModel= null;
     // @type {tutao.tutanota.ctrl.ModalPageBackgroundViewModel}
     this.modalPageBackgroundViewModel= null;
+    // @type {tutao.tutanota.ctrl.ModalDialogViewModel}
+    this.modalDialogViewModel= null;
 
 	this.reset();
 };

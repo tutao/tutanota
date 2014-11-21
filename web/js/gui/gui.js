@@ -507,20 +507,21 @@ tutao.tutanota.gui.isEditable = function(domElement) {
 //};
 
 /**
- * Asks the user for a confirmation to cancel the mail and provides the result.
+ * Asks the user for a confirmation.
  * @param {string} text The text to show to the user.
- * @return {boolean} True if the mail shall be cancelled, false otherwise.
+ * @return {Promise<boolean>} When the dialog is closed. Provides true if the user seleced "ok", false if the user selected "cancel".
  */
 tutao.tutanota.gui.confirm = function(text) {
-	return confirm(text);
+    return tutao.locator.modalDialogViewModel.showConfirm(text);
 };
 
 /**
- * Shows an alert window to the user and returns when it is closed.
- * @param {string} text The text in the window.
+ * Shows an alert window to the user.
+ * @param {string} text The text to show to the user.
+ * @return {Promise} When the dialog is closed.
  */
 tutao.tutanota.gui.alert = function(text) {
-	alert(text);
+	return tutao.locator.modalDialogViewModel.showAlert(text);
 };
 
 /**

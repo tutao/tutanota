@@ -47,8 +47,9 @@ tutao.native.FileFacadeBrowser.prototype.showFileChooser = function() {
     var self = this;
 
     if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) {
-        tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg"));
-        return Promise.resolve([]);
+        return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
+            return [];
+        });
     }
     // each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
     // remove the last file input
@@ -75,7 +76,7 @@ tutao.native.FileFacadeBrowser.prototype.showFileChooser = function() {
         fileInput.click();
     }
 
-    return promise
+    return promise;
 };
 
 /**
@@ -208,10 +209,10 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                 } else {
                     navigator.saveBlob(blob, dataFile.getName());
                 }
+                return Promise.resolve();
             } catch (e) {
-                tutao.tutanota.gui.alert(tutao.lang("saveDownloadNotPossibleIe_msg"));
+                return tutao.tutanota.gui.alert(tutao.lang("saveDownloadNotPossibleIe_msg"));
             }
-            return Promise.resolve();
         } else {
             var url;
             // safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type

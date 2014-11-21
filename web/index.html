@@ -110,19 +110,6 @@
 <script src="/lib/worker/crypto-sjcl-2012-08-09_1.js"></script>
 <script src="/js/Bootstrap.js"></script>
 <script src="/js/Locator.js"></script>
-<script src="/js/crypto/AesInterface.js"></script>
-<script src="/js/crypto/CryptoError.js"></script>
-<script src="/js/crypto/EntropyCollector.js"></script>
-<script src="/js/crypto/JBCryptAdapter.js"></script>
-<script src="/js/crypto/KdfInterface.js"></script>
-<script src="/js/crypto/Oaep.js"></script>
-<script src="/js/crypto/RandomizerInterface.js"></script>
-<script src="/js/crypto/SecureRandom.js"></script>
-<script src="/js/crypto/ShaInterface.js"></script>
-<script src="/js/crypto/SjclAes.js"></script>
-<script src="/js/crypto/SjclRandomizer.js"></script>
-<script src="/js/crypto/SjclSha256.js"></script>
-<script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
@@ -153,6 +140,7 @@
 <script src="/js/ctrl/MailBoxController.js"></script>
 <script src="/js/ctrl/MailListViewModel.js"></script>
 <script src="/js/ctrl/MailViewModel.js"></script>
+<script src="/js/ctrl/ModalDialogViewModel.js"></script>
 <script src="/js/ctrl/ModalPageBackgroundViewModel.js"></script>
 <script src="/js/ctrl/Navigator.js"></script>
 <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
@@ -215,6 +203,19 @@
 <script src="/js/rest/RestClient.js"></script>
 <script src="/js/security/CajaSanitizer.js"></script>
 <script src="/js/security/HtmlSanitizer.js"></script>
+<script src="/js/crypto/AesInterface.js"></script>
+<script src="/js/crypto/CryptoError.js"></script>
+<script src="/js/crypto/EntropyCollector.js"></script>
+<script src="/js/crypto/JBCryptAdapter.js"></script>
+<script src="/js/crypto/KdfInterface.js"></script>
+<script src="/js/crypto/Oaep.js"></script>
+<script src="/js/crypto/RandomizerInterface.js"></script>
+<script src="/js/crypto/SecureRandom.js"></script>
+<script src="/js/crypto/ShaInterface.js"></script>
+<script src="/js/crypto/SjclAes.js"></script>
+<script src="/js/crypto/SjclRandomizer.js"></script>
+<script src="/js/crypto/SjclSha256.js"></script>
+<script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ConfigApp.js"></script>
 <script src="/js/native/ConfigBrowser.js"></script>
@@ -262,92 +263,6 @@
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
-<script src="/js/generated/entity/sys/AccountingInfo.js"></script>
-<script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
-<script src="/js/generated/entity/sys/Authentication.js"></script>
-<script src="/js/generated/entity/sys/AutoLoginDataDelete.js"></script>
-<script src="/js/generated/entity/sys/AutoLoginDataGet.js"></script>
-<script src="/js/generated/entity/sys/AutoLoginDataReturn.js"></script>
-<script src="/js/generated/entity/sys/AutoLoginPostReturn.js"></script>
-<script src="/js/generated/entity/sys/Bucket.js"></script>
-<script src="/js/generated/entity/sys/BucketPermission.js"></script>
-<script src="/js/generated/entity/sys/ChangePasswordData.js"></script>
-<script src="/js/generated/entity/sys/Chat.js"></script>
-<script src="/js/generated/entity/sys/ConfigDataReturn.js"></script>
-<script src="/js/generated/entity/sys/CreateGroupData.js"></script>
-<script src="/js/generated/entity/sys/CreateGroupListData.js"></script>
-<script src="/js/generated/entity/sys/Customer.js"></script>
-<script src="/js/generated/entity/sys/CustomerData.js"></script>
-<script src="/js/generated/entity/sys/CustomerInfo.js"></script>
-<script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
-<script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
-<script src="/js/generated/entity/sys/CustomerReturn.js"></script>
-<script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
-<script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
-<script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
-<script src="/js/generated/entity/sys/EntityUpdate.js"></script>
-<script src="/js/generated/entity/sys/Exception.js"></script>
-<script src="/js/generated/entity/sys/ExternalUserReference.js"></script>
-<script src="/js/generated/entity/sys/Group.js"></script>
-<script src="/js/generated/entity/sys/GroupInfo.js"></script>
-<script src="/js/generated/entity/sys/GroupMember.js"></script>
-<script src="/js/generated/entity/sys/GroupMembership.js"></script>
-<script src="/js/generated/entity/sys/GroupRoot.js"></script>
-<script src="/js/generated/entity/sys/IncomingShare.js"></script>
-<script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
-<script src="/js/generated/entity/sys/KeyPair.js"></script>
-<script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
-<script src="/js/generated/entity/sys/Login.js"></script>
-<script src="/js/generated/entity/sys/LongConfigValue.js"></script>
-<script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
-<script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
-<script src="/js/generated/entity/sys/MembershipAddData.js"></script>
-<script src="/js/generated/entity/sys/OutgoingShare.js"></script>
-<script src="/js/generated/entity/sys/Permission.js"></script>
-<script src="/js/generated/entity/sys/PhoneNumber.js"></script>
-<script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
-<script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
-<script src="/js/generated/entity/sys/PublicKeyData.js"></script>
-<script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
-<script src="/js/generated/entity/sys/PushIdentifier.js"></script>
-<script src="/js/generated/entity/sys/PushIdentifierList.js"></script>
-<script src="/js/generated/entity/sys/RegistrationConfigReturn.js"></script>
-<script src="/js/generated/entity/sys/RegistrationData.js"></script>
-<script src="/js/generated/entity/sys/RegistrationReturn.js"></script>
-<script src="/js/generated/entity/sys/RegistrationServiceData.js"></script>
-<script src="/js/generated/entity/sys/RegistrationVerifyDomainDataPost.js"></script>
-<script src="/js/generated/entity/sys/RegistrationVerifyDomainDataPut.js"></script>
-<script src="/js/generated/entity/sys/RegistrationVerifyDomainPostReturn.js"></script>
-<script src="/js/generated/entity/sys/ResetPasswordData.js"></script>
-<script src="/js/generated/entity/sys/RootInstance.js"></script>
-<script src="/js/generated/entity/sys/SaltData.js"></script>
-<script src="/js/generated/entity/sys/SaltReturn.js"></script>
-<script src="/js/generated/entity/sys/SecondFactorAuthAllowedReturn.js"></script>
-<script src="/js/generated/entity/sys/SecondFactorAuthData.js"></script>
-<script src="/js/generated/entity/sys/SendRegistrationCodeData.js"></script>
-<script src="/js/generated/entity/sys/SendRegistrationCodeReturn.js"></script>
-<script src="/js/generated/entity/sys/ShareData.js"></script>
-<script src="/js/generated/entity/sys/Shares.js"></script>
-<script src="/js/generated/entity/sys/SmsMonitorReceiverData.js"></script>
-<script src="/js/generated/entity/sys/SmsMonitorTriggerData.js"></script>
-<script src="/js/generated/entity/sys/StringConfigValue.js"></script>
-<script src="/js/generated/entity/sys/System.js"></script>
-<script src="/js/generated/entity/sys/SystemKeysReturn.js"></script>
-<script src="/js/generated/entity/sys/TimeRangeConfigValue.js"></script>
-<script src="/js/generated/entity/sys/TimeRangeListConfigValue.js"></script>
-<script src="/js/generated/entity/sys/UpdatePermissionKeyData.js"></script>
-<script src="/js/generated/entity/sys/User.js"></script>
-<script src="/js/generated/entity/sys/UserData.js"></script>
-<script src="/js/generated/entity/sys/UserDataDelete.js"></script>
-<script src="/js/generated/entity/sys/UserExternalAuthInfo.js"></script>
-<script src="/js/generated/entity/sys/UserIdData.js"></script>
-<script src="/js/generated/entity/sys/UserIdReturn.js"></script>
-<script src="/js/generated/entity/sys/UserReturn.js"></script>
-<script src="/js/generated/entity/sys/VerifyRegistrationCodeData.js"></script>
-<script src="/js/generated/entity/sys/Version.js"></script>
-<script src="/js/generated/entity/sys/VersionData.js"></script>
-<script src="/js/generated/entity/sys/VersionReturn.js"></script>
-<script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
 <script src="/js/generated/entity/tutanota/Attachment.js"></script>
 <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
 <script src="/js/generated/entity/tutanota/Contact.js"></script>
@@ -409,6 +324,93 @@
 <script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
 <script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
 <script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
+<script src="/js/generated/entity/sys/AccountingInfo.js"></script>
+<script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
+<script src="/js/generated/entity/sys/Authentication.js"></script>
+<script src="/js/generated/entity/sys/AutoLoginDataDelete.js"></script>
+<script src="/js/generated/entity/sys/AutoLoginDataGet.js"></script>
+<script src="/js/generated/entity/sys/AutoLoginDataReturn.js"></script>
+<script src="/js/generated/entity/sys/AutoLoginPostReturn.js"></script>
+<script src="/js/generated/entity/sys/Bucket.js"></script>
+<script src="/js/generated/entity/sys/BucketPermission.js"></script>
+<script src="/js/generated/entity/sys/ChangePasswordData.js"></script>
+<script src="/js/generated/entity/sys/Chat.js"></script>
+<script src="/js/generated/entity/sys/ConfigDataReturn.js"></script>
+<script src="/js/generated/entity/sys/CreateGroupData.js"></script>
+<script src="/js/generated/entity/sys/CreateGroupListData.js"></script>
+<script src="/js/generated/entity/sys/Customer.js"></script>
+<script src="/js/generated/entity/sys/CustomerData.js"></script>
+<script src="/js/generated/entity/sys/CustomerInfo.js"></script>
+<script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
+<script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
+<script src="/js/generated/entity/sys/CustomerReturn.js"></script>
+<script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
+<script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
+<script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
+<script src="/js/generated/entity/sys/EntityUpdate.js"></script>
+<script src="/js/generated/entity/sys/Exception.js"></script>
+<script src="/js/generated/entity/sys/ExternalUserReference.js"></script>
+<script src="/js/generated/entity/sys/Group.js"></script>
+<script src="/js/generated/entity/sys/GroupInfo.js"></script>
+<script src="/js/generated/entity/sys/GroupMember.js"></script>
+<script src="/js/generated/entity/sys/GroupMembership.js"></script>
+<script src="/js/generated/entity/sys/GroupRoot.js"></script>
+<script src="/js/generated/entity/sys/IncomingShare.js"></script>
+<script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
+<script src="/js/generated/entity/sys/KeyPair.js"></script>
+<script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
+<script src="/js/generated/entity/sys/Login.js"></script>
+<script src="/js/generated/entity/sys/LongConfigValue.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
+<script src="/js/generated/entity/sys/MembershipAddData.js"></script>
+<script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/sys/OutgoingShare.js"></script>
+<script src="/js/generated/entity/sys/Permission.js"></script>
+<script src="/js/generated/entity/sys/PhoneNumber.js"></script>
+<script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
+<script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
+<script src="/js/generated/entity/sys/PublicKeyData.js"></script>
+<script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
+<script src="/js/generated/entity/sys/PushIdentifier.js"></script>
+<script src="/js/generated/entity/sys/PushIdentifierList.js"></script>
+<script src="/js/generated/entity/sys/RegistrationConfigReturn.js"></script>
+<script src="/js/generated/entity/sys/RegistrationData.js"></script>
+<script src="/js/generated/entity/sys/RegistrationReturn.js"></script>
+<script src="/js/generated/entity/sys/RegistrationServiceData.js"></script>
+<script src="/js/generated/entity/sys/RegistrationVerifyDomainDataPost.js"></script>
+<script src="/js/generated/entity/sys/RegistrationVerifyDomainDataPut.js"></script>
+<script src="/js/generated/entity/sys/RegistrationVerifyDomainPostReturn.js"></script>
+<script src="/js/generated/entity/sys/ResetPasswordData.js"></script>
+<script src="/js/generated/entity/sys/RootInstance.js"></script>
+<script src="/js/generated/entity/sys/SaltData.js"></script>
+<script src="/js/generated/entity/sys/SaltReturn.js"></script>
+<script src="/js/generated/entity/sys/SecondFactorAuthAllowedReturn.js"></script>
+<script src="/js/generated/entity/sys/SecondFactorAuthData.js"></script>
+<script src="/js/generated/entity/sys/SendRegistrationCodeData.js"></script>
+<script src="/js/generated/entity/sys/SendRegistrationCodeReturn.js"></script>
+<script src="/js/generated/entity/sys/ShareData.js"></script>
+<script src="/js/generated/entity/sys/Shares.js"></script>
+<script src="/js/generated/entity/sys/SmsMonitorReceiverData.js"></script>
+<script src="/js/generated/entity/sys/SmsMonitorTriggerData.js"></script>
+<script src="/js/generated/entity/sys/StringConfigValue.js"></script>
+<script src="/js/generated/entity/sys/System.js"></script>
+<script src="/js/generated/entity/sys/SystemKeysReturn.js"></script>
+<script src="/js/generated/entity/sys/TimeRangeConfigValue.js"></script>
+<script src="/js/generated/entity/sys/TimeRangeListConfigValue.js"></script>
+<script src="/js/generated/entity/sys/UpdatePermissionKeyData.js"></script>
+<script src="/js/generated/entity/sys/User.js"></script>
+<script src="/js/generated/entity/sys/UserData.js"></script>
+<script src="/js/generated/entity/sys/UserDataDelete.js"></script>
+<script src="/js/generated/entity/sys/UserExternalAuthInfo.js"></script>
+<script src="/js/generated/entity/sys/UserIdData.js"></script>
+<script src="/js/generated/entity/sys/UserIdReturn.js"></script>
+<script src="/js/generated/entity/sys/UserReturn.js"></script>
+<script src="/js/generated/entity/sys/VerifyRegistrationCodeData.js"></script>
+<script src="/js/generated/entity/sys/Version.js"></script>
+<script src="/js/generated/entity/sys/VersionData.js"></script>
+<script src="/js/generated/entity/sys/VersionReturn.js"></script>
+<script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -1452,7 +1454,7 @@
                                         <label for="password" class="recordName" data-bind="lang: 'password_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <input id="password" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: password, valueUpdate: 'input', event: { change: checkPassword }, css: passwordStatus().type"/>
+                                                <input id="password" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: password, valueUpdate: 'change', css: passwordStatus().type"/>
                                             </div>
                                             <label for="password" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
                                         </div>
@@ -1622,6 +1624,15 @@
 
 	</div><!-- end of viewContainer -->
 
+    <div id="modalAlertConfirmDialog" class="modalDialog" data-bind="with: tutao.locator.modalDialogViewModel, fadeInVisible: tutao.locator.modalDialogViewModel.visible">
+        <div>
+            <h2>Tutanota</h2>
+            <div class="modalDialogMessage" data-bind="text: message"></div>
+            <!-- ko foreach: buttons -->
+            <button class="single" data-bind="lang: text, fastClick: click"></button>
+            <!-- /ko -->
+        </div>
+    </div>
 
 	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div>

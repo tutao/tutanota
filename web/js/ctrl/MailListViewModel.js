@@ -108,6 +108,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
  *   <li>Load the Mails to display from the server
  *   <li>register as an observer to the mail list
  * </ul>
+ * @return {Promise} When loading is finished.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
     var self = this;
@@ -121,13 +122,14 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
         if (tutao.locator.userController.isExternalUserLoggedIn()) {
             if (self.mailToShow) {
                 return tutao.entity.tutanota.Mail.load(self.mailToShow).then(function(mail) {
-                    self.selectMail(mail);
+                    return self.selectMail(mail);
                 });
             } else {
                 if (self.mails().length > 0) {
-                    self.selectMail(self.mails()[0]);
+                    return self.selectMail(self.mails()[0]);
+                } else {
+                    return Promise.resolve();
                 }
-                return Promise.resolve();
             }
         } else {
             var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
@@ -340,26 +342,29 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._getTagForMail = function(mail) 
  * Shows the mail with the given index in the mail view. If the index does not exist, the first index is shown.
  * If no mail exists, no mail is shown.
  * @param index The index to show.
+ * @return {Promise} When the mail is shown.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.showIndex = function(index) {
 	if (this.mails().length == 0) {
         tutao.locator.mailViewModel.hideMail();
-		return;
-	}
-	if (index < 0) {
-		index = 0;
-	} else if (index >= this.mails().length) {
-		index = this.mails().length - 1;
-	}
-	this.selectMail(this.mails()[index]);
+		return Promise.resolve();
+	} else {
+        if (index < 0) {
+            index = 0;
+        } else if (index >= this.mails().length) {
+            index = this.mails().length - 1;
+        }
+        return this.selectMail(this.mails()[index]);
+    }
 };
 
 /**
  * Shows the given mail in the mail view but does not switch to the conversation column.
  * @param mail The mail to show.
+ * @return {Promise} When the mail is selected or selection was cancelled.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectMail = function(mail) {
-	this._selectMail(mail, tutao.locator.mailView.getMailListDomElement(mail), false, true);
+	return this._selectMail(mail, tutao.locator.mailView.getMailListDomElement(mail), false, true);
 };
 
 /**
@@ -377,32 +382,44 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectMailAndSwitchToConversatio
  * @param {Object} domElement dom element of the mail.
  * @param {boolean} switchToConversationColumn True if we shall switch.
  * @param {boolean} tryCancelComposingMails True if all existing composing mails should be canceled
+ * @return {Promise} When the mail is selected or selection was cancelled.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, domElement, switchToConversationColumn, tryCancelComposingMails) {
-	if (tryCancelComposingMails && !tutao.locator.mailViewModel.tryCancelAllComposingMails()) {
-		return;
-	}
-	if (mail.getUnread()) {
-		mail.setUnread(false);
-		mail.update();
-        this._updateNumberOfUnreadMails();
-	}
+    var self = this;
+    var promise = null;
+    if (tryCancelComposingMails) {
+        promise = tutao.locator.mailViewModel.tryCancelAllComposingMails();
+    } else {
+        promise = Promise.resolve(true);
+    }
 
-	if (this._multiSelect) {
-	} else {
-		if (this._selectedMails.length > 0 && mail == this._selectedMails[0]) {
-			tutao.locator.mailView.showConversationColumn();
-		} else {
-			tutao.tutanota.gui.unselect(this._selectedDomElements);
-			this._selectedDomElements = [domElement];
-			this._selectedMails = [mail];
-			tutao.tutanota.gui.select(this._selectedDomElements);
-            tutao.locator.mailViewModel.showMail(mail);
-            if (switchToConversationColumn) {
-				tutao.locator.mailView.showConversationColumn(function() {});
-			}
-		}
-	}
+    return promise.then(function(allCancelled) {
+        if (allCancelled) {
+            if (mail.getUnread()) {
+                mail.setUnread(false);
+                mail.update();
+                self._updateNumberOfUnreadMails();
+            }
+
+            if (self._multiSelect) {
+            } else {
+                if (self._selectedMails.length > 0 && mail == self._selectedMails[0]) {
+                    tutao.locator.mailView.showConversationColumn();
+                } else {
+                    tutao.tutanota.gui.unselect(self._selectedDomElements);
+                    self._selectedDomElements = [domElement];
+                    self._selectedMails = [mail];
+                    tutao.tutanota.gui.select(self._selectedDomElements);
+                    tutao.locator.mailViewModel.showMail(mail);
+                    if (switchToConversationColumn) {
+                        tutao.locator.mailView.showConversationColumn(function() {});
+                    }
+                }
+            }
+        }
+        return Promise.resolve();
+    });
+
 };
 
 /**
@@ -528,23 +545,23 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
     }
 
     var self = this;
-    if (tutao.tutanota.gui.confirm(tutao.lang('confirmDeleteTrash_msg'))) {
-        this.deleting(true);
-        // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
-        return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails()).then(function(allMails) {
-            var mailsToDelete = [];
-            for (var i = 0; i < allMails.length; i++) {
-                if (allMails[i].getTrashed()) {
-                    mailsToDelete.push(allMails[i].getId());
+    tutao.tutanota.gui.confirm(tutao.lang('confirmDeleteTrash_msg')).then(function(ok) {
+        if (ok) {
+            self.deleting(true);
+            // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
+            return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails()).then(function(allMails) {
+                var mailsToDelete = [];
+                for (var i = 0; i < allMails.length; i++) {
+                    if (allMails[i].getTrashed()) {
+                        mailsToDelete.push(allMails[i].getId());
+                    }
                 }
-            }
-            return self.finallyDeleteMails(mailsToDelete);
-        }).lastly(function() {
-            self.deleting(false);
-        });
-    } else {
-        return Promise.resolve();
-    }
+                return self.finallyDeleteMails(mailsToDelete);
+            }).lastly(function() {
+                self.deleting(false);
+            });
+        }
+    });
 };
 
 
@@ -600,7 +617,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
                         nextSelectedIndex = self.mails.indexOf(mails[index]);
                     }
                     resolve(self._updateMailList().then(function() {
-                        self.showIndex(nextSelectedIndex);
+                        return self.showIndex(nextSelectedIndex);
                     }));
                 } else {
                     resolve(self._trashNextMail(mails, ++index, trash, true));
@@ -619,7 +636,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._trashNextMail = function(mails,
 				nextSelectedIndex = self.mails.indexOf(mails[index]);
 			}
 			return self._updateMailList().then(function() {
-				self.showIndex(nextSelectedIndex);
+				return self.showIndex(nextSelectedIndex);
 			});
 		} else {
 			return self._trashNextMail(mails, ++index, trash, attributeChanged);

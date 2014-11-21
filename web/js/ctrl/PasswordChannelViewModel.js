@@ -113,9 +113,11 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.editRecipient = function(
 	tutao.locator.contactView.showContactColumn();
 	// the setTimeout is needed because otherwise the contact view is not necessarily shown
 	setTimeout(function() {
-		if (!tutao.locator.contactViewModel.tryToShowAndEditContact(recipientInfo.getContactWrapper())) {
-			tutao.locator.navigator.mail();
-		}
+		tutao.locator.contactViewModel.tryToShowAndEditContact(recipientInfo.getContactWrapper()).then(function(success) {
+            if (!success) {
+                tutao.locator.navigator.mail();
+            }
+        });
 	}, 0);
 };
 

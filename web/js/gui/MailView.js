@@ -346,7 +346,8 @@ tutao.tutanota.gui.MailView.prototype.addSubmitCheckToMailBody = function() {
  */
 tutao.tutanota.gui.MailView.prototype.addSubmitCheckToDivs = function(jQueryDivs) {
     jQueryDivs.submit(function(event) {
-        if (!tutao.tutanota.gui.confirm(tutao.lang("reallySubmitContent_msg"))) {
+        // use the default confirm dialog here because the submit can not be done async
+        if (!confirm(tutao.lang("reallySubmitContent_msg"))) {
             event.preventDefault();
         }
     });

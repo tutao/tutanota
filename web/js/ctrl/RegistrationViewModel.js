@@ -228,11 +228,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
             }, 0);
         }).caught(tutao.TooManyRequestsError, function(e) {
             self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-            tutao.gui.showDialog()
-            tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAttempts_msg" ));
+            return tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAttempts_msg" ));
         }).caught(tutao.LimitReachedError, function(e) {
             self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-            tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAccountsError_msg" ));
+            return tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAccountsError_msg" ));
         }).lastly(function() {
             tutao.locator.progressDialogModel.progress(0);
             self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);

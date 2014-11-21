@@ -124,7 +124,7 @@ tutao.ctrl.UserController.prototype.getUserClientKey = function () {
 
 /**
  * Provides the salt of the user verifier.
- * @return {Object} The salt.
+ * @return {string} The salt.
  */
 tutao.ctrl.UserController.prototype.getHexSalt = function () {
     return this._hexSalt;

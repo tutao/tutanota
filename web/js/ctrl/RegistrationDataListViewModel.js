@@ -122,27 +122,30 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
  * removes a registration data entry
  */
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.remove = function(element) {
-	if (tutao.tutanota.gui.confirm("Really delete?")) {
-		element.erase();
-		this.registrationDataList.remove(element);
-	}
-	return false;
+    var self = this;
+	tutao.tutanota.gui.confirm("Really delete?").then(function(ok) {
+        if (ok) {
+            element.erase();
+            self.registrationDataList.remove(element);
+        }
+    });
 };
 
 /**
  * sends the domain verification mail to the requesting user
  */
 tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.sentDomainVerificationMail = function(element) {
-    if (tutao.tutanota.gui.confirm("Really send domain verification mail?")) {
-        var input = new tutao.entity.sys.RegistrationVerifyDomainDataPut()
-            .setAuthToken(element.getId()[1]);
-        input.update({}, null).then(function() {
-            return tutao.entity.sys.RegistrationData.load(element.getId()).then(function(regData) {
-                element.setDomainVerificationMailSentOn(regData.getDomainVerificationMailSentOn());
+    tutao.tutanota.gui.confirm("Really send domain verification mail?").then(function (ok) {
+        if (ok) {
+            var input = new tutao.entity.sys.RegistrationVerifyDomainDataPut()
+                .setAuthToken(element.getId()[1]);
+            return input.update({}, null).then(function() {
+                return tutao.entity.sys.RegistrationData.load(element.getId()).then(function(regData) {
+                    element.setDomainVerificationMailSentOn(regData.getDomainVerificationMailSentOn());
+                });
             });
-        });
-    }
-    return false;
+        }
+    });
 };
 
 
