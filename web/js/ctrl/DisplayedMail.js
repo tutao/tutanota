@@ -155,13 +155,17 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     if (this.currentlyDownloadingAttachment()) {
         return;
     }
-    var self = this;
-    this.currentlyDownloadingAttachment(file);
-    tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
-        tutao.locator.fileFacade.open(dataFile);
-    }).lastly(function (e) {
-        self.currentlyDownloadingAttachment(null);
-    });
+	if (typeof cordova != 'undefined' && cordova.platformId == 'ios' && file.getSize() > 8000000 ) {
+		tutao.tutanota.gui.alert(tutao.lang("downloadAttachmentNotPossible_msg"));
+	} else {
+	    var self = this;
+		this.currentlyDownloadingAttachment(file);
+		tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
+			return tutao.locator.fileFacade.open(dataFile);
+		}).lastly(function (e) {
+			self.currentlyDownloadingAttachment(null);
+		});
+	}
 };
 
 /**
