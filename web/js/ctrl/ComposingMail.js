@@ -589,8 +589,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype._addSuggetionsFromContact = function
 	for (var a = 0; a < contact.getMailAddresses().length; a++) {
 		var mailAddress = contact.getMailAddresses()[a].getAddress().toLowerCase();
 		if ((addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text)) && !this._containsSuggestionForMailAddress(suggestions, mailAddress)) {
-			var suggestionText = contactWrapper.getFullName() + " <" + mailAddress + ">";
-			suggestions.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrapper, mailAddress: mailAddress }, suggestionText));
+			var suggestionText = contactWrapper.getFullName();
+            var additionalText = mailAddress;
+			suggestions.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrapper, mailAddress: mailAddress }, suggestionText, additionalText));
 			if (suggestions.length >= maxNumberOfSuggestions){
 				break;
 			}
