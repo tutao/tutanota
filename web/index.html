@@ -978,7 +978,6 @@
 		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
 			<div class="welcomeContainer">
 				<div class="panel">
-                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
 
@@ -1016,11 +1015,13 @@
 								<div class="formAction">
 									<button id="submitLogin" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
                                     <button class="single" data-bind="css: { disabled: !loginPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
-									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+									<label id="submitLoginLabel" for="submitLogin" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
 
-                            <div class="record">
+                            <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+
+                            <div class="record" data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
                                 <div class="recordName"></div>
                                 <div class="recordData">
                                     <div class="recordValue socialMediaLinks">
@@ -1184,7 +1185,6 @@
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
-                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
                         <!-- ko if: getRegistrationType() == 'Starter' -->
                         <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
@@ -1285,8 +1285,11 @@
                                     <div class="formAction">
                                         <button id="submitRegistration1" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                         <button class="single" data-bind="fastClick: login, lang: 'backTologin_action'"></button>
+                                        <label id="submitRegistration1Label" for="submitRegistration1" class="recordStatus" data-bind="lang: 'emptyString_msg'"></label>
                                     </div>
                                 </div>
+
+                                <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
                             </form>
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
@@ -1757,8 +1760,9 @@
 </script>
 
     <script type="text/html" id="appInfo-template">
-        <div class="appInfo" data-bind="visible: tutao.env.mode != tutao.Mode.App">
-            <div>
+        <div class="recordName"></div>
+        <div class="recordData">
+            <div class="recordValue">
                 <a data-bind="attr: { href: tutao.lang('appInfoAndroidUrl_action') }, visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
                     <img data-bind="attr: { src: tutao.lang('appInfoAndroidImage_action'), alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
                 </a>

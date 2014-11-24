@@ -334,13 +334,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	storePassword_action: "Store password",
 	enterPresharedPassword_msg: "Please enter the password which you have agreed upon with the sender.",
 	sendingSms_msg: "Sending SMS...",
-	onlyPrivateComputer_msg: "Only choose this option if you are using a private device. Otherwise the password is requested with each access.",
+	onlyPrivateComputer_msg: "Only choose this option if you are using a private device.",
 	loadingMail_msg: "Loading mailbox...",
 	enterSmsPassword_msg: "Please enter the password that has been transmitted via text message here or click on the link within the text message.",
 
 	// login
 	welcome_msg: "Login",
-	afterRegistration_msg: "Congratulations and welcome aboard! You are now a member of the Tutanota family. Login - and enjoy!",
+	afterRegistration_msg: "Your account is created! Login - and enjoy!",
 	loginFailedOften_msg: "Too many failed login attempts. Please try again later.",
 	loginFailed_msg: "Invalid login credentials. Please try again.",
 	login_action: "Log in",
@@ -797,13 +797,13 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	storePassword_action: "Passwort speichern",
 	enterPresharedPassword_msg: "Bitte geben Sie das mit dem Absender vereinbarte Passwort ein.",
 	sendingSms_msg: "SMS wird gesendet...",
-	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie ein privates Gerät verwenden. Ansonsten wird das Passwort bei jedem Zugriff abgefragt.",
+	onlyPrivateComputer_msg: "Wählen Sie diese Option nur, wenn Sie ein privates Gerät verwenden.",
 	loadingMail_msg: "Lade Mailbox...",
 	enterSmsPassword_msg: "Bitte geben Sie hier das per SMS übertragene Passwort ein oder klicken Sie auf den Link in der SMS.",
 
 	// login
 	welcome_msg: "Login",
-	afterRegistration_msg: "Herzlich Willkommen und viel Spaß als Mitglied der Tutanota-Familie!",
+	afterRegistration_msg: "Dein Account ist erstellt. Logge dich jetzt ein!",
 	loginFailedOften_msg: "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuchen Sie es später erneut.",
 	loginFailed_msg: "Ungültige E-Mail-Adresse oder Passwort. Bitte versuchen Sie es erneut.",
 	login_action: "Anmelden",
