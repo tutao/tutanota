@@ -758,6 +758,15 @@ div.bubbleInput {
         width: 100%;
         vertical-align: top; // fix for firefox and ie (see: https://bugzilla.mozilla.org/show_bug.cgi?id=491549#c13)
 
+        > div.autocomplete-loading {
+          z-index: 1;
+          position: absolute;
+          right: 2px;
+          bottom:7px;
+          width: 16px;
+          height: 16px;
+        }
+
         > input {
           display: block;
           width: 100%;
@@ -790,7 +799,7 @@ div.bubbleInput {
   > div.autocompletebox {
     z-index: 1;
     position: absolute;
-    left: 40px;
+    left: 0px;
     right: 2px;
     border: 1px solid @grey;
     border-top: 0;
@@ -802,13 +811,19 @@ div.bubbleInput {
     }
 
     > div.autocompleteEntry {
-      height: 35px;
-      line-height: 35px;
+      height: 40px;
       padding: 0px 10px;
       border-bottom: 1px solid @grey;
       cursor: pointer;
       .fadeTextOut;
 
+      > div.autocompleteFirstLine {
+         height:21px;
+        .smallFont;
+      }
+      > div.autocompleteSecondLine {
+        .descriptionFont;
+      }
       &:last-child {
         border-bottom: 0;
       }
@@ -819,18 +834,6 @@ div.bubbleInput {
     }
   }
 
-  > div.autocomplete-loading {
-    z-index: 1;
-    position: absolute;
-    left: 0px;
-    border: 1px solid @grey;
-    border-top: 0;
-    padding-top: 5px;
-    background: rgba(254, 254, 254, 0.75);
-    width: 35px;
-    height: 35px;
-    padding-left: 8px;
-  }
 }
 
 textarea {

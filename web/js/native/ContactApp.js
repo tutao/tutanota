@@ -51,7 +51,8 @@ tutao.native.ContactApp.prototype._addSuggetionsFromContact = function(suggestio
 		if ((addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text))
 				&& tutao.tutanota.util.Formatter.isMailAddress(mailAddress)
 				&& !this._containsSuggestionForMailAddress(suggestions, mailAddress)) {
-			var suggestionText = nativeContact.name.formatted + " <" + mailAddress + ">";
+			var suggestionText = nativeContact.name.formatted;
+            var additionalText = mailAddress;
 			if (!contactWrapper) {
 				contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
 				contactWrapper.getContact().setFirstName(nativeContact.name.givenName);
@@ -62,7 +63,7 @@ tutao.native.ContactApp.prototype._addSuggetionsFromContact = function(suggestio
 			newma.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_OTHER);
 			newma.setCustomTypeName("");
 			contactWrapper.getContact().getMailAddresses().push(newma);
-			suggestions.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrapper, mailAddress: mailAddress }, suggestionText));
+			suggestions.push(new tutao.tutanota.ctrl.bubbleinput.Suggestion({ contactWrapper: contactWrapper, mailAddress: mailAddress }, suggestionText, additionalText));
 			if (suggestions.length >= maxNumberOfSuggestions) {
 				break;
 			}
