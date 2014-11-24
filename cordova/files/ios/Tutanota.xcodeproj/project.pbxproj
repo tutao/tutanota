@@ -31,6 +31,8 @@
 		30A0434814DC770100060A13 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 30A0434314DC770100060A13 /* Localizable.strings */; };
 		30FC414916E50CA1004E6F35 /* icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 30FC414816E50CA1004E6F35 /* icon-72@2x.png */; };
 		3D28DB1E19FFD4C300BDAD2C /* images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3D28DB1D19FFD4C300BDAD2C /* images.xcassets */; };
+		3D6443E01A23610A00D8DB45 /* AppDelegate+notification.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6443DD1A23610A00D8DB45 /* AppDelegate+notification.m */; };
+		3D6443E11A23610A00D8DB45 /* PushPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D6443DF1A23610A00D8DB45 /* PushPlugin.m */; };
 		585E4F55538745BD9810DDE5 /* CDVLocalFilesystem.m in Sources */ = {isa = PBXBuildFile; fileRef = E845B02E248949C98EEB7E67 /* CDVLocalFilesystem.m */; };
 		5B1594DD16A7569C00FEF299 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1594DC16A7569C00FEF299 /* AssetsLibrary.framework */; };
 		5D27B8EEE1AA4336BEF60525 /* APPBadge.m in Sources */ = {isa = PBXBuildFile; fileRef = 30CED0602FA54692951F1620 /* APPBadge.m */; };
@@ -123,6 +125,10 @@
 		380A767504CC4B0ABB1C7FC4 /* Crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Crypto.h; path = de.tutanota.native/Crypto.h; sourceTree = "<group>"; };
 		3834722594A94AFA81E973CB /* CDVVibration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CDVVibration.m; path = org.apache.cordova.vibration/CDVVibration.m; sourceTree = "<group>"; };
 		3D28DB1D19FFD4C300BDAD2C /* images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = images.xcassets; path = Tutanota/images.xcassets; sourceTree = "<group>"; };
+		3D6443DC1A23610A00D8DB45 /* AppDelegate+notification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "AppDelegate+notification.h"; path = "com.phonegap.plugins.PushPlugin/AppDelegate+notification.h"; sourceTree = "<group>"; };
+		3D6443DD1A23610A00D8DB45 /* AppDelegate+notification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "AppDelegate+notification.m"; path = "com.phonegap.plugins.PushPlugin/AppDelegate+notification.m"; sourceTree = "<group>"; };
+		3D6443DE1A23610A00D8DB45 /* PushPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PushPlugin.h; path = com.phonegap.plugins.PushPlugin/PushPlugin.h; sourceTree = "<group>"; };
+		3D6443DF1A23610A00D8DB45 /* PushPlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PushPlugin.m; path = com.phonegap.plugins.PushPlugin/PushPlugin.m; sourceTree = "<group>"; };
 		3D85D91821914A2393419CFB /* Open.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Open.m; path = com.bridge.open/Open.m; sourceTree = "<group>"; };
 		3E1F02618839470FB2373D6D /* AddressBookUI.framework */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
 		4B5E9304250246529B52B32B /* CDVSplashScreen.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CDVSplashScreen.m; path = org.apache.cordova.splashscreen/CDVSplashScreen.m; sourceTree = "<group>"; };
@@ -295,6 +301,10 @@
 		307C750510C5A3420062BCA9 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
+				3D6443DC1A23610A00D8DB45 /* AppDelegate+notification.h */,
+				3D6443DD1A23610A00D8DB45 /* AppDelegate+notification.m */,
+				3D6443DE1A23610A00D8DB45 /* PushPlugin.h */,
+				3D6443DF1A23610A00D8DB45 /* PushPlugin.m */,
 				3D85D91821914A2393419CFB /* Open.m */,
 				2F7B761DBA3B427DBAACA2B5 /* Open.h */,
 				30CED0602FA54692951F1620 /* APPBadge.m */,
@@ -525,8 +535,10 @@
 				302D95F114D2391D003F00A1 /* MainViewController.m in Sources */,
 				89789796AC9046C4BD6E9DC6 /* Open.m in Sources */,
 				5D27B8EEE1AA4336BEF60525 /* APPBadge.m in Sources */,
+				3D6443E11A23610A00D8DB45 /* PushPlugin.m in Sources */,
 				18B903D37ABB4CDE81168874 /* CDVDevice.m in Sources */,
 				83085F4B6B0248598FE72E85 /* APPLocalNotification.m in Sources */,
+				3D6443E01A23610A00D8DB45 /* AppDelegate+notification.m in Sources */,
 				1890B71071B9449298807B6A /* Crypto.m in Sources */,
 				F16CBF2A08C949C5B3256220 /* rsa_oaep_sha256.c in Sources */,
 				194FF4FBDDAA40B0AF87F1A6 /* JFBCrypt.m in Sources */,
