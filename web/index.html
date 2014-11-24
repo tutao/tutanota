@@ -1626,6 +1626,7 @@
 
     <div id="modalAlertConfirmDialog" class="modalDialog" data-bind="with: tutao.locator.modalDialogViewModel, fadeInVisible: tutao.locator.modalDialogViewModel.visible">
         <div>
+            <span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2>Tutanota</h2>
             <div class="modalDialogMessage" data-bind="text: message"></div>
             <!-- ko foreach: buttons -->
