@@ -439,22 +439,22 @@
 	<div id="viewContainer">
 		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
 			<div id="tagListColumn" class="viewColumn">
-				<section id="tagList" class="scrollable" data-bind="with: tutao.locator.tagListViewModel">
-					<div id="innerTagList">
+				<div id="tagList" class="scrollable menuList" data-bind="with: tutao.locator.tagListViewModel">
+					<div id="innerTagList" class="menuInnerList">
 						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
-							<div class="icon fontImage left"></div>
+							<div class="fontImage inbox"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
 						</div>
 						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
-							<div class="icon fontImage  right"></div>
+							<div class="fontImage  send"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
 						</div>
 						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
-							<div class="icon fontImage  trash"></div>
+							<div class="fontImage  trash"></div>
 							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
 						</div>
 					</div>
-				</section>
+				</div>
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
                 <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
@@ -1322,8 +1322,8 @@
 
 		<div id="settingsContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView, if: tutao.locator.viewManager.getActiveView() == tutao.locator.settingsView">
 			<div id="settingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
-				<div id="settingsInnerColumn" class="scrollable">
-					<div id="settingsData">
+				<div id="settingsInnerColumn" class="scrollable menuList">
+					<div id="settingsData" class="menuInnerList">
 						<div data-bind="foreach: getSettings()">
 							<div class="menuItem" data-bind="css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
 								<div class="text" data-bind="lang: $parent.getSettingsTextId($data)"></div>
