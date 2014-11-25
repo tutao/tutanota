@@ -1819,7 +1819,7 @@
 			<div class="input" tabindex="-1" data-bind="css: {focus: vm.active}, click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">
@@ -1828,11 +1828,11 @@
 				<!-- /ko -->
 			</div>
 			<div class="autocompletebox" data-bind="foreach: vm.suggestions, css: {hidden: vm.suggestions().length === 0 || !vm.active()}">
-				<div class="autocompleteEntry" data-bind="text: text, fastClick: $parent.vm.acceptSuggestion, event: {mousedown: $parent.vm.suggestionMousedownFired}, css: {selected: $parent.vm.selectedSuggestion() == $data}"></div>
+				<div class="autocompleteEntry" data-bind="fastClick: $parent.vm.acceptSuggestion, event: {mousedown: $parent.vm.suggestionMousedownFired}, css: {selected: $parent.vm.selectedSuggestion() == $data}">
+                    <div class="autocompleteFirstLine" data-bind="text: text"></div>
+                    <div class="autocompleteSecondLine" data-bind="text: additionalText"></div>
+				</div>
 			</div>
-            <div class="autocomplete-loading" data-bind="visible: vm.loading">
-                <img src="graphics/busy.gif" />
-            </div>
 		</div>
 	</script>
 

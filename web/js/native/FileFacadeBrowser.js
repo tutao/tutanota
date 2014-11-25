@@ -159,7 +159,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                     // Create a FileWriter object for our FileEntry (log.txt).
                     fileEntry.createWriter(function(fileWriter) {
                         fileWriter.onwriteend = function(e) {
-                            resolve(fileEntry);
+							cordova.plugins.bridge.open(fileEntry.toURL(), resolve, reject);
                         };
 
                         fileWriter.onerror = function(e) {
@@ -174,17 +174,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                     reject(e);
                 });
             });
-        }).then(function(fileEntry) {
-                /*if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
-                 self.fileUtil.open(fileEntry.toURL()).then(function () {
-                 resolve();
-                 });
-                 } else {
-                 */
-                cordova.plugins.bridge.open(fileEntry.toURL(), Promise.resolve, Promise.reject);
-                // deleting the temp file would be nice here, but does not work currently because the success callback comes too early
-                //}
-            });
+        });
     } else {
         // all other browsers
         navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
