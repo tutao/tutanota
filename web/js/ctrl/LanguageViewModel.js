@@ -73,7 +73,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	// soft-hyphen: \u00AD
 		
 	// mail
-	deleteMail_msg:	"Delete new email without saving?",
+	deleteMail_msg:	"Delete new email without sending?",
 	tooBigAttachment_msg: "The following files could not be attached because the overall size exceeds 25 MB: ",
 	received_action: "Inbox",
 	receivedMail_alt: "Received email",
@@ -536,7 +536,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 tutao.tutanota.ctrl.LanguageViewModel.de = {
 	// mail
-	deleteMail_msg:	"Neue E-Mail verwerfen ohne zu speichern?",
+	deleteMail_msg:	"Neue E-Mail verwerfen ohne zu senden?",
 	tooBigAttachment_msg: "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
 	received_action: "Posteingang",
 	receivedMail_alt: "Empfangene E-Mail",

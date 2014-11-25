@@ -44,7 +44,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
     };
 	this.buttons = [
                     new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
-                        self.cancelMail(false);
+                        self.cancelMail(false,true);
                     }, notBusy, false, "composer_cancel", "cancel"),
 			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
 			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
@@ -255,9 +255,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 /**
  * Try to cancel creating this new mail. The user is asked if it shall be cancelled if he has already entered text.
  * @param {boolean} directSwitch True if the cancelled mail should be hidden immediately because another mail was selected.
+ * @param {boolean} disableConfirm Disables confirm dialog when cancel mail.
  * @return {Promise.<boolean>} True if the mail was cancelled, false otherwise.
  */
-tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) {
+tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch, disableConfirm) {
     var self = this;
     // if the email is currently, sent, do not cancel the email.
     if (this.busy()) {
@@ -281,7 +282,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch) 
         self._restoreViewState();
     };
 
-	if (!confirm) {
+	if (!confirm || disableConfirm) {
         cancel();
         return Promise.resolve(true);
     } else {
