@@ -52,6 +52,9 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
     tutao.locator.passwordChannelViewModel.init();
+
+    this.showBccCc = ko.observable(false);
+
 };
 
 /**
@@ -75,12 +78,13 @@ tutao.tutanota.ctrl.ComposingMail.prototype.isDirectSwitchActive = function() {
 	return this.directSwitchActive;
 };
 
-tutao.tutanota.ctrl.ComposingMail.prototype.showCcAndBcc = function() {
-	return (this.ccRecipientsViewModel.bubbles().length > 0 || this.bccRecipientsViewModel.bubbles().length > 0 || this.ccRecipientsViewModel.inputActive() || this.bccRecipientsViewModel.inputActive());
+
+tutao.tutanota.ctrl.ComposingMail.prototype.containsCcOrBccReceipients = function() {
+	return (this.ccRecipientsViewModel.bubbles().length > 0 || this.bccRecipientsViewModel.bubbles().length > 0 );
 };
 
-tutao.tutanota.ctrl.ComposingMail.prototype.getCcFieldLabel = function() {
-	return (this.showCcAndBcc()) ? tutao.locator.languageViewModel.get("cc_label") : tutao.locator.languageViewModel.get("ccBcc_label");
+tutao.tutanota.ctrl.ComposingMail.prototype.toggleCcAndBccVisibility = function() {
+    this.showBccCc(!this.showBccCc());
 };
 
 /**
