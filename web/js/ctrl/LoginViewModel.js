@@ -89,6 +89,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
             } else if (!allowAutoLogin) {
                 // remove authentication data
                 self.config.encryptedPassword = null;
+                self.config.deviceToken = null;
+                self.config.userId = null;
                 return tutao.locator.configFacade.write(self.config);
             }
         }
