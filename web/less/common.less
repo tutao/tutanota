@@ -405,37 +405,51 @@ input#hiddenInput {
   * Button - may be on an action bar or a single button
   **************************************/
 
+@button-height: 35px;
+@button-padding: 5px;
+
 button {
+  position: relative;
   display: inline-block;
-  min-width: 40px;
-  height: 35px;
-  //line-height: 35px;
+  min-width: 45px;
+  height: @button-height;
+  line-height: @button-height;
+
+  font-size: 16px;
   text-align: center;
   text-decoration: none;
+  border: 0;
+
   background-color: transparent;
   color: @icon-color;
   cursor: pointer;
 
-  font-size: 16px;
-  padding: 5px;
-  border: 0;
+  // configuration for text only
+  padding-left: @button-padding;
+  padding-right: @button-padding;
 
-  // desktop only
-  &:before {
-    padding-right: 5px;
-  }
-  &:after {
-    left: 5px; // same like padding
+  &:before, &:after {
+    position: absolute;
+    left:@button-padding;
+    top: 0px;
   }
 
-  // mobile only
-  &.mobile {
+  // configuration for icon and font
+  &.fontImage {
+    // the image sits in the left padding, positioned absolutely
+    padding-left: 30px; // = 5px padding + 20px icon + 5 px padding to text
 
-    &:before {
-      padding-right: 0px;
+    &:before, &:after {
+      width: 20px;
     }
-    &:after {
-      left: 12px; // same like padding + extra space because of min-width
+  }
+
+  // configuration for icon only. config of class fontImage must be overwritten
+  &.iconOnly {
+    padding-left: @button-padding !important;
+
+    &:before, &:after {
+      width: 35px !important;
     }
   }
 

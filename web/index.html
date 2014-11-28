@@ -433,7 +433,7 @@
 
 <script type="text/html"  id="tutanota-template">
 	<input type="text" id="hiddenInput"/>
-    <button id="measureButton" class="fontImage confirm" data-bind="css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></button>
+    <button id="measureButton" class="fontImage confirm" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
 	<div id="viewContainer">
@@ -1726,10 +1726,8 @@
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
-                            <div class="menu_image">
-                                <div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
-                                    <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
-                                </div>
+                            <div class="menu_image fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
+                                <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
                             </div>
                             <div class="menu_text" data-bind="lang: getLabelTextId()"></div>
                         </li>
@@ -1784,15 +1782,15 @@
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar">
             <!-- ko foreach: specialButtons() -->
-            <button class="leftAligned fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="leftAligned fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
             <!-- ko foreach: visibleButtons() -->
-            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
         <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
             <!-- ko foreach: moreButtons() -->
-            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}" tabindex="1000"></button>
+            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}" tabindex="1000"></button>
             <!-- /ko -->
         </div>
 	</script>

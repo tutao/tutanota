@@ -21,8 +21,10 @@ header#main {
   top: 0px;
   right: 0px;
   height: @header-height;
+  line-height: @header-height;
   @media @mobile {
     height: @header-height-small;
+    line-height: @header-height-small;
   }
 
   > div#externalCompanyName {
@@ -63,7 +65,6 @@ header#main {
         }
 
         > div.leftViewButton {
-          top:2px;
           left: @indicator-side-margin;
           font-size: @indicator-width-small;
         }
@@ -83,12 +84,10 @@ header#main {
         }
 
         > div#previousLocation {
-          top: 6px;
           left: 34px;
         }
       }
       > div#title {
-        margin-top: 6px;
         visibility: visible;
       }
     }
@@ -108,8 +107,7 @@ header#main {
     }
 
     > div.leftViewButton {
-      position: absolute  ;
-      top: 4px;
+      position: relative;
       left: @indicator-side-margin;
       font-size: @indicator-width;
       opacity: 0.8;
@@ -122,8 +120,8 @@ header#main {
         position: absolute;
         left:40px;
         right:0px;
-        top:13px;
-        height:27px;
+        top:0px;
+        height: 100%;
         overflow:hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -135,6 +133,7 @@ header#main {
       position: absolute;
       left: @nav-icon-width + @indicator-side-margin;
       top: 8px;
+      line-height: 1;
 
       > div.path {
         position: relative;
@@ -197,7 +196,6 @@ header#main {
   > div#title {
     .light;
     visibility: hidden;
-    margin-top: 8px;
     text-align: center;
     white-space: nowrap;
     margin: 0 auto;
@@ -322,6 +320,10 @@ div#modalMoreMenu {
 .menu_link {
   width: @menuItemWidth; // defines the width of each menu item (+ margin)
 
+  @media @desktop {
+    line-height: 1; // there are two lines in the menu
+  }
+
   height: @header-height - 1;
   @media @mobile {
     height: @header-height-small - 1;
@@ -338,18 +340,15 @@ div#modalMoreMenu {
 
   div.menu_image {
     position: relative;
-    height: 30px;
-    margin-left: auto;
-    margin-right: auto;
+    display: inline-block;
+    width: 100%;
     text-align: center;
+    font-size: 28px;
 
-    > div {
-      position: relative;
-      display: inline-block;
-      font-size: 28px;
-      height: 28px;
-      width: 28px;
-      top: 0px;
+    @media @desktop {
+      height: 35px;
+      line-height: 35px;
+    }
 
       > div.menu_badge {
         position: absolute;
@@ -365,13 +364,13 @@ div#modalMoreMenu {
         line-height: 14px;
         padding-right: 3px;
       }
-    }
-
   }
 
   div.menu_text {
     .light;
     .smallFont;
+    height: 16px; // must be a bit bigger than font-size, otherwise lower parts are cut off because of overflow:hidden
+    line-height: 1;
     text-align: center;
     overflow: hidden;
     white-space: nowrap;
