@@ -79,7 +79,12 @@ tutao.tutanota.ctrl.ViewSlider.prototype._initColumns = function() {
 			widthSum += this._viewColumns[currentColumn].width;
 			currentColumn++;
 		}
-		this._viewColumns[i].width = Math.min(this._viewColumns[i].minWidth + (this._screenWidth - widthSum), this._viewColumns[i].maxWidth);
+        // if the column (+ neighbours) does not fit into the screen width completely, only show it with its minimal width
+        if (this._viewColumns[i].minWidth + (this._screenWidth - widthSum) > this._viewColumns[i].maxWidth) {
+            this._viewColumns[i].width = this._viewColumns[i].minWidth;
+        } else {
+            this._viewColumns[i].width = this._viewColumns[i].minWidth + (this._screenWidth - widthSum);
+        }
 	}
 
 	// notify the column widths and positions

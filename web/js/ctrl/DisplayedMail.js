@@ -155,7 +155,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     if (this.currentlyDownloadingAttachment()) {
         return;
     }
-	if (typeof cordova != 'undefined' && cordova.platformId == 'ios' && file.getSize() > 8000000 ) {
+	if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios' && file.getSize() > (7*1024*1024) ) {
 		tutao.tutanota.gui.alert(tutao.lang("downloadAttachmentNotPossible_msg"));
 	} else {
 	    var self = this;

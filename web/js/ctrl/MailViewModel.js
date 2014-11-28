@@ -264,6 +264,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
                     self.getComposingMail().addCcRecipient(ccRecipients[i]);
                 }
 
+                self.getComposingMail().showBccCc(self.getComposingMail().containsCcOrBccReceipients());
                 //	not needed currently as we scroll the complete window when editing a mail
                 tutao.locator.mailView.showConversationColumn();
 

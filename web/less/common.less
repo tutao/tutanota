@@ -118,6 +118,13 @@ img.helpIcon {
   .inputArea
 }
 
+.inputLine {
+  padding-left: 3px;
+  border: 0px;
+  border-bottom: 1px solid @border;
+}
+
+
 .inputArea {
   padding-left: 3px;
   padding-right: 3px;
@@ -500,28 +507,41 @@ button {
   * Menu
   **************************************/
 
-div.menuItem {
-  cursor: pointer;
-  .nonSelectable;
-  width: 100%;
-  margin-bottom: 5px;
-  padding-left: @padding;
-  .heading;
-  font-size: 20px;
+div.menuList {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  background-clip: padding-box;
+  background-color: @background-dark;
 
-  > div.icon {
-    height: 15px;
-    width: 15px;
-  }
+  > div.menuInnerList {
+    .menuItem {
+      cursor: pointer;
+      .nonSelectable;
+      width: 100%;
+      height: 40px;
+      padding-top: 5px;
+      padding-left: @padding;
+      .heading;
+      font-size: 20px;
 
-  > div.text {
-    display: inline-block;
-    padding-left: 1px;
-  }
+      > div.fontImage {
+        display: inline-block;
+        font-size: 15px;
+      }
 
-  &.active, &.selected {
-    background-color: @highlight-color;
-    background-clip: padding-box;
+      > div.text {
+        display: inline-block;
+        padding-left: 1px;
+      }
+
+      &.active, &.selected {
+        background-color: @highlight-color;
+        background-clip: padding-box;
+      }
+    }
   }
 }
 
@@ -751,7 +771,6 @@ div.bubbleInput {
   position: relative;
 
   > div.input {
-    .inputArea;
     width: 100%;
     cursor: text;
     display: table;

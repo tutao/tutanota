@@ -25,7 +25,7 @@ tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = null;
  */
 tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitleCallback) {
     this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "mailContent", updateColumnTitleCallback);
-    tutao.tutanota.gui.MailView.COLUMN_TAGS = this._swipeSlider.addViewColumn(2, 190, 190, 'tagListColumn', function() { return tutao.lang("folderTitle_label"); });
+    tutao.tutanota.gui.MailView.COLUMN_TAGS = this._swipeSlider.addViewColumn(2, 200, 420, 'tagListColumn', function() { return tutao.lang("folderTitle_label"); });
     tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = this._swipeSlider.addViewColumn(0, 300, 800, 'searchAndMailListColumn', tutao.locator.tagListViewModel.getActiveTagText );
     tutao.tutanota.gui.MailView.COLUMN_CONVERSATION = this._swipeSlider.addViewColumn(1, 600, 1024, 'conversationColumn',tutao.locator.mailViewModel.getColumnTitleText);
 	if (!external) {

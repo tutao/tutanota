@@ -73,16 +73,22 @@ tutao.tutanota.Bootstrap.init = function () {
             return false;
 		});
 
-        if (tutao.env.mode == tutao.Mode.App && cordova.platformId == "android") {
-            var util = new tutao.native.device.Util();
-            document.addEventListener("backbutton", function () {
-                var view = tutao.locator.viewManager.getActiveView();
-                if (view && view.isShowLeftNeighbourColumnPossible()) {
-                    view.getSwipeSlider().showLeftNeighbourColumn();
-                } else {
-                    util.switchToHomescreen();
-                }
-            }, false);
+        if (tutao.env.mode == tutao.Mode.App) {
+			if (cordova.platformId == "android") {
+				var util = new tutao.native.device.Util();
+				document.addEventListener("backbutton", function () {
+					var view = tutao.locator.viewManager.getActiveView();
+					if (view && view.isShowLeftNeighbourColumnPossible()) {
+						view.getSwipeSlider().showLeftNeighbourColumn();
+					} else {
+						util.switchToHomescreen();
+					}
+				}, false);
+			} else if (cordova.platformId == "ios") {
+				// Hide the keyboard accessory bar with the next, previous and done buttons.
+				// Cannot deactiave buttons for now, because cancel and send buttons are not visible.
+				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
+			}
         }
 
         // only for testing

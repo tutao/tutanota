@@ -23,13 +23,6 @@ Crypto.prototype.generateRsaKey = function(keyLength) {
     });
 };
 
-Crypto.prototype.generateRsaKey = function(keyLength) {
-    return new Promise(function (resolve, reject) {
-		var seed = tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(512));
-        exec(resolve, reject,"Crypto", "generateRsaKey", [keyLength, seed]);
-    });
-};
-
 /**
  * Encrypt bytes with the provided publicKey
  * @param {Object} publicKey

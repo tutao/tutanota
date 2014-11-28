@@ -151,7 +151,7 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
  * @inheritDoc
  */
 tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
-    if (typeof cordova != 'undefined' && cordova.platformId == 'ios') {
+    if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios') {
         return new Promise(function(resolve, reject) {
             window.requestFileSystem(LocalFileSystem.TEMPORARY, dataFile.getSize(), function(fs) {
                 var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");

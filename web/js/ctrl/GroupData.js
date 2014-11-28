@@ -17,7 +17,7 @@ tutao.provide('tutao.tutanota.ctrl.GroupData');
  */
 tutao.tutanota.ctrl.GroupData.generateGroupKeys = function(name, mailAddr, userKey, adminGroupKey, listKey) {
 	var symGroupKey = tutao.locator.aesCrypter.generateRandomKey();
-    return tutao.locator.crypto.generateRsaKey().then(function (keyPair) {
+    return tutao.locator.crypto.generateRsaKey(tutao.locator.rsaUtil.keyLengthInBits).then(function (keyPair) {
         var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
         var groupData = new tutao.entity.sys.CreateGroupData()

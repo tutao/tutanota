@@ -143,25 +143,6 @@ body {
       }
     }
 
-    div#tagListColumn {
-	
-		> section#tagList {
-			position: absolute;
-			left: 0px;
-			top: 0px;
-			right: 0px;
-			bottom: 0px;
-			background-color: @background-alternate;
-
-			> div#innerTagList {
-				.fontImage {
-                  display: inline-block;
-                  font-size: 15px;
-                }
-			}
-		}
-	}
-
 	.searchAndList() {
 
 		> div.actions{
@@ -699,19 +680,19 @@ body {
 		> header {
 			width: 100%;
 			border-bottom: 1px solid @border-dark;
-			padding-bottom: @padding;
+			padding-bottom: 5px;
 
 			> div.headerTable {
 				display: table;
 				width: 100%;
-			
+
 				> div.headerLine {
 					display: table-row;
-					
+
 					> div.name {
 						.light;
 						display: table-cell;
-						vertical-align: middle;
+						vertical-align: top;
 						width: 35px;
 					}
 					
@@ -722,7 +703,7 @@ body {
 		
 					> .value {
 						display: table-cell;
-						vertical-align: middle;
+						vertical-align: top;
 						padding-left: 5px;
 	
 						> .rightAligned {
@@ -730,60 +711,68 @@ body {
 						}
 						
 						> input.composeSubjectInput {
-							.inputField;
+                            border:none;
 							width: 100%;
 							max-width: 100%;
 						}
 
-                        &#composer_confidential {
+                      > button.bccButton {
+                        vertical-align: top;
+                        width: 45px;
+                        min-width: 45px;
+                        float:right;
+                        margin-bottom:4px;
+                      }
 
-                          > button.confidentialButton {
-                            padding-left: 12px;
-                            min-width: 40px;
-
-                            > div.fontImage {
-                              width: 20px;
-                            }
-
-                            &.off {
-                              background-color: @red;
-                            }
-                          }
-                        }
-
-
-                        button.showPasswordChannelColumn {
-                            float: right;
-                            position: relative;
-                            padding-right: 35px;
-
-                            &:focus, &.focus {
-                                box-shadow: none !important;
-                            }
-
-                            > .showPasswordChannelColumnText {
-                              display: inline-block;
-                              position: relative;
-                            }
-                            > .showPasswordChannelColumnIcon {
-                                display: inline-block;
-                                position: absolute;
-                                top: 0px;
-                                right: 0px;
-                                line-height: 35px;
-                                font-size: 35px;
-                            }
-                        }
-
-                        > div.confidentialStateMessage {
-                            font-size: 12px;
-                            color: @dark-grey;
-                        }
 					}
+                    > div.confidentialStateMessage {
+                      .descriptionFont;
+                      padding-left: 3px;
+                      display:table-cell;
+                      vertical-align:middle;
+                      padding-top: 5px;
+                    }
 				}
 			}
+            > div.composer_confidential {
+              padding-left:3px;
+              padding-top: 5px;
+              padding-bottom: 5px;
+              > button.confidentialButton {
+                padding-left: 12px;
+                min-width: 40px;
+
+                > div.fontImage {
+                  width: 20px;
+                }
+
+                &.off {
+                  background-color: @red;
+                }
+              }
+              > button.showPasswordChannelColumn {
+                float: right;
+                position: relative;
+                padding-right: 35px;
+
+
+                > .showPasswordChannelColumnText {
+                  display: inline-block;
+                  position: relative;
+                }
+                > .showPasswordChannelColumnIcon {
+                  display: inline-block;
+                  position: absolute;
+                  top: 0px;
+                  right: 0px;
+                  line-height: 35px;
+                  font-size: 35px;
+                }
+              }
+            }
 
 			> div.attachments {
+              padding-left:3px;
 				> div.download {			
 					display: inline-block;
 					position: relative; // this child 'object' (flash) must be positioned absolute
@@ -987,31 +976,6 @@ body {
 	}
 	
 	div#settingsContent {
-		div#settingsColumn {
-	
-			> div#settingsInnerColumn {
-				position: relative;
-				height: 100%;
-
-				> div#settingsData {
-					position: absolute;
-					left: 0px;
-					top: 0px;
-					right: 0px;
-					bottom: 0px;
-					background-clip: padding-box;
-	
-					> div {
-								
-						> div.settingsAction {
-							width: 100%;
-							margin-bottom: 5px;
-						}
-					}
-				}
-			}
-			
-		}
 
       div#changeSettingsDetailsColumn {
           div#createdUsersInfo {
