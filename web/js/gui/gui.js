@@ -670,8 +670,12 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
 tutao.tutanota.gui.showTooltip = function(item, event) {
     var element = event.target.parentElement; // the bubble
 
+   var tooltipNotVisible = $(element).children(".tooltip").css('display') === 'none';
+
     $(document).trigger("click.tooltip"); // hide other tooltips
-    $(element).children(".tooltip").show().transition({ opacity: 0.9 });
+    if (tooltipNotVisible ){
+        $(element).children(".tooltip").show().transition({ opacity: 0.9 });
+    }
     $(document).on("click.tooltip", function (e) {
         // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately, therefore check the timestamp
         // do not close the tooltip if the user clicks on it to allow selecting the tooltip text
