@@ -84,10 +84,6 @@ tutao.tutanota.Bootstrap.init = function () {
 						util.switchToHomescreen();
 					}
 				}, false);
-			} else if (cordova.platformId == "ios") {
-				// Hide the keyboard accessory bar with the next, previous and done buttons.
-				// Cannot deactiave buttons for now, because cancel and send buttons are not visible.
-				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
 			}
         }
 
