@@ -441,13 +441,15 @@ button {
     top: 0px;
   }
 
-  // configuration for icon and font
+  // configuration for icon and text
   &.fontImage {
+    @iconAndTextIconWidth: 20px;
+
     // the image sits in the left padding, positioned absolutely
-    padding-left: 30px; // = 5px padding + 20px icon + 5 px padding to text
+    padding-left: @button-padding + @iconAndTextIconWidth + @button-padding;
 
     &:before, &:after {
-      width: 20px;
+      width: @iconAndTextIconWidth;
     }
   }
 
@@ -507,6 +509,8 @@ button {
   * Menu
   **************************************/
 
+@menu_image_width: 25px;
+
 div.menuList {
   position: absolute;
   left: 0px;
@@ -518,23 +522,29 @@ div.menuList {
 
   > div.menuInnerList {
     .menuItem {
+      position: relative;
       cursor: pointer;
       .nonSelectable;
       width: 100%;
       height: 40px;
-      padding-top: 5px;
+      line-height: 40px;
       padding-left: @padding;
       .heading;
       font-size: 20px;
+      color: @icon-color;
 
-      > div.fontImage {
-        display: inline-block;
-        font-size: 15px;
+      &:before, &:after {
+        position: absolute;
+        left: @padding;
+        top: 0px;
+        width: @menu_image_width;
+        text-align: center;
       }
 
-      > div.text {
-        display: inline-block;
-        padding-left: 1px;
+      // configuration for icon and font
+      &.fontImage {
+        // the image sits in the left padding, positioned absolutely
+        padding-left:  @padding + @menu_image_width + @padding;
       }
 
       &.active, &.selected {
@@ -763,6 +773,7 @@ div.bubble {
       padding-left: 7px;
       padding-right: 7px;
       font-size: 14px;
+      height: 100%
     }
   }
 }

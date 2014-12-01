@@ -441,18 +441,9 @@
 			<div id="tagListColumn" class="viewColumn">
 				<div id="tagList" class="scrollable menuList" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList" class="menuInnerList">
-						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
-							<div class="fontImage inbox"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
-						</div>
-						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
-							<div class="fontImage  send"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
-						</div>
-						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
-							<div class="fontImage  trash"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
-						</div>
+						<div id="tagReceived" class="menuItem fontImage inbox" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID), attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag"></div>
+						<div id="tagSend" class="menuItem fontImage send" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID), attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag"></div>
+						<div id="tagTrash" class="menuItem fontImage trash" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID), attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag"></div>
 					</div>
 				</div>
 			</div>
@@ -465,7 +456,7 @@
 								<div class="icons">
                                     <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
                                     <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-                                    <img src="graphics/tutanota-small.png" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"/>
+                                    <div class="mailHeaderImage fontImage lock-closed" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
                                 </div>
 								<div class="subject" data-bind="text: getSubject()"></div>
 								<div class="mailInfo">
@@ -1333,9 +1324,7 @@
 				<div id="settingsInnerColumn" class="scrollable menuList">
 					<div id="settingsData" class="menuInnerList">
 						<div data-bind="foreach: getSettings()">
-							<div class="menuItem" data-bind="css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
-								<div class="text" data-bind="lang: $parent.getSettingsTextId($data)"></div>
-							</div>
+							<div class="menuItem" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
 						</div>
 					</div>
 				</div>

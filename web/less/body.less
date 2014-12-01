@@ -602,6 +602,10 @@ body {
                               &:before {
                                 font-size: 14px;
                               }
+
+                              &.lock-closed {
+                                margin-right: -4px; // the lock is left aligned in the image, so move it right
+                              }
                             }
 						}
 					}
@@ -679,7 +683,7 @@ body {
 
 		> header {
 			width: 100%;
-			border-bottom: 1px solid @border-dark;
+			border-bottom: 1px solid @border;
 			padding-bottom: 5px;
 
 			> div.headerTable {
