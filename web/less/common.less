@@ -412,37 +412,53 @@ input#hiddenInput {
   * Button - may be on an action bar or a single button
   **************************************/
 
+@button-height: 35px;
+@button-padding: 5px;
+
 button {
+  position: relative;
   display: inline-block;
-  min-width: 40px;
-  height: 35px;
-  //line-height: 35px;
+  min-width: 45px;
+  height: @button-height;
+  line-height: @button-height;
+
+  font-size: 16px;
   text-align: center;
   text-decoration: none;
+  border: 0;
+
   background-color: transparent;
   color: @icon-color;
   cursor: pointer;
 
-  font-size: 16px;
-  padding: 5px;
-  border: 0;
+  // configuration for text only
+  padding-left: @button-padding;
+  padding-right: @button-padding;
 
-  // desktop only
-  &:before {
-    padding-right: 5px;
-  }
-  &:after {
-    left: 5px; // same like padding
+  &:before, &:after {
+    position: absolute;
+    left:@button-padding;
+    top: 0px;
   }
 
-  // mobile only
-  &.mobile {
+  // configuration for icon and text
+  &.fontImage {
+    @iconAndTextIconWidth: 20px;
 
-    &:before {
-      padding-right: 0px;
+    // the image sits in the left padding, positioned absolutely
+    padding-left: @button-padding + @iconAndTextIconWidth + @button-padding;
+
+    &:before, &:after {
+      width: @iconAndTextIconWidth;
     }
-    &:after {
-      left: 12px; // same like padding + extra space because of min-width
+  }
+
+  // configuration for icon only. config of class fontImage must be overwritten
+  &.iconOnly {
+    padding-left: @button-padding !important;
+
+    &:before, &:after {
+      width: 35px !important;
     }
   }
 
@@ -493,6 +509,8 @@ button {
   * Menu
   **************************************/
 
+@menu_image_width: 25px;
+
 div.menuList {
   position: absolute;
   left: 0px;
@@ -504,23 +522,29 @@ div.menuList {
 
   > div.menuInnerList {
     .menuItem {
+      position: relative;
       cursor: pointer;
       .nonSelectable;
       width: 100%;
       height: 40px;
-      padding-top: 5px;
+      line-height: 40px;
       padding-left: @padding;
       .heading;
       font-size: 20px;
+      color: @icon-color;
 
-      > div.fontImage {
-        display: inline-block;
-        font-size: 15px;
+      &:before, &:after {
+        position: absolute;
+        left: @padding;
+        top: 0px;
+        width: @menu_image_width;
+        text-align: center;
       }
 
-      > div.text {
-        display: inline-block;
-        padding-left: 1px;
+      // configuration for icon and font
+      &.fontImage {
+        // the image sits in the left padding, positioned absolutely
+        padding-left:  @padding + @menu_image_width + @padding;
       }
 
       &.active, &.selected {
@@ -749,6 +773,7 @@ div.bubble {
       padding-left: 7px;
       padding-right: 7px;
       font-size: 14px;
+      height: 100%
     }
   }
 }

@@ -26,15 +26,13 @@
 .ion {
   font-family: @ionicons-font-family;
   text-rendering: auto;
-  font-size: 150%;
+  font-size: 130%; // stretch because the icons are smaller than icomoons by default
 
   speak: none;
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
   text-transform: none;
-  line-height: 1;
-  vertical-align: middle; // this font has a padding on top and bottom, so we need to adjust the alignment to avoid that text beside the icon has a vertical offset
 
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
@@ -49,7 +47,6 @@
   font-weight: normal;
   font-variant: normal;
   text-transform: none;
-  line-height: 1;
 
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
@@ -225,10 +222,9 @@
     &:after {
       .ion;
       content: @ionicon-var-close;
-      //content: @ionicon-var-ios7-close-empty;
-      position: absolute;
-      font-size: 125%;
+      font-size: 130%;
       color: @new-color;
+      top: 2px;
     }
 }
 
@@ -284,7 +280,7 @@
   &.add:before {
     .ion;
     content: @ionicon-var-android-add;
-    font-size: 130%;
+    font-size: 110%;
   }
 
   &.edit:before {

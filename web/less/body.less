@@ -65,8 +65,8 @@ body {
 	  visibility: hidden;
 	  margin-right: 15px; // icon + text needs more margin
 
-      &.mobile {
-        margin-right: @button-bar-margin
+      &.iconOnly {
+        margin-right: @button-bar-margin;
       }
 	}
 
@@ -87,7 +87,7 @@ body {
         position: relative;
         background: @background-dark;
         height: @button-bar-height;
-        padding-left: 5px;
+        padding-left: @button-bar-margin;
 
         @media @desktop {
           border-bottom: 1px solid @border-dark;
@@ -97,14 +97,16 @@ body {
         }
 
         > button {
-          position: relative; // needed to position stacked icons correctly (e.g. restore icon)
           float: right;
-          margin-top: 5px;
-          margin-right: 15px; // icon + text needs more margin
-          color: @icon-color;
 
-          &.mobile {
-            margin-right: @button-bar-margin
+          // the buttons in the button bar shall cover the complete height
+          height: @button-bar-height - 1; // - border
+          line-height: @button-bar-height - 1; // - border
+
+          margin-right: 15px; // icon + text needs more margin
+
+          &.iconOnly {
+            margin-right: @button-bar-margin;
           }
 
           &.leftAligned {
@@ -600,6 +602,10 @@ body {
                               &:before {
                                 font-size: 14px;
                               }
+
+                              &.lock-closed {
+                                margin-right: -4px; // the lock is left aligned in the image, so move it right
+                              }
                             }
 						}
 					}
@@ -677,7 +683,7 @@ body {
 
 		> header {
 			width: 100%;
-			border-bottom: 1px solid @border-dark;
+			border-bottom: 1px solid @border;
 			padding-bottom: 5px;
 
 			> div.headerTable {

@@ -64,33 +64,6 @@ div.login {
 			padding-top: 70px;
 			padding-left: @padding;
 
-            > div > div.appInfo {
-              position: relative;
-              top: -70px;
-              width: 100%;
-              height: 0px;
-              z-index: 200;
-
-              > div {
-                position: absolute;
-                right: 0px;
-                text-align: right;
-                padding: 8px;
-
-                > a {
-                  display: inline-block; // needed to make link as big as image
-
-                  > img {
-                    display: block; // needed to make link as big as image
-
-                    @media @mobile {
-                      max-width: 130px; // image must not cover Tutanota logo
-                    }
-                  }
-                }
-              }
-            }
-			
 			> div.content {
 				height: 100%;
 				padding-right: @padding;
@@ -124,12 +97,12 @@ div.failContent {
   }
 }
 
-div.clientInfo {
-	position: absolute;
-	left: 5px;
-	bottom: 5px;
-	font-size: 10px;
-	line-height: 10px;
+div.appInfo > div > div > a {
+  display: inline-block; // needed to make link as big as image
+
+  > img {
+    display: block; // needed to make link as big as image
+  }
 }
 
 div#registration, div#pre_registration {
@@ -156,7 +129,6 @@ div#registration, div#pre_registration {
 
 div.socialMediaLinks {
   .light;
-  margin-top: 20px;
 
   > a {
     margin-right: 10px;
