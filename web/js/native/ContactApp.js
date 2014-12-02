@@ -43,22 +43,25 @@ tutao.native.ContactApp.prototype.findRecipients = function(text, maxNumberOfSug
 tutao.native.ContactApp.prototype._addSuggetionsFromContact = function(suggestions, text, nativeContact, maxNumberOfSuggestions) {
 	var contactWrapper = null; // only create the contact wrapper if we actually want to add a suggestion to avoid that attribute encryption/decryption is reducing performance
     var nativeContactName  = nativeContact.name || {givenName:"", familyName:"", formatted:""};
+	var givenName = nativeContactName.givenName || "";
+	var familyName = nativeContactName.familyName || "";
+	var formattedName = nativeContactName.formatted || "";
 
 	var addAllMailAddresses = (text == "" ||
-            tutao.util.StringUtils.startsWith(nativeContactName.givenName.toLowerCase(), text) ||
-			tutao.util.StringUtils.startsWith(nativeContactName.familyName.toLowerCase(), text) ||
-			tutao.util.StringUtils.startsWith(nativeContactName.formatted.toLowerCase(), text));
+            tutao.util.StringUtils.startsWith(givenName.toLowerCase(), text) ||
+			tutao.util.StringUtils.startsWith(familyName.toLowerCase(), text) ||
+			tutao.util.StringUtils.startsWith(formattedName.toLowerCase(), text));
 	for (var a = 0; a < nativeContact.emails.length; a++) {
 		var mailAddress = nativeContact.emails[a].value.trim().toLowerCase();
 		if ((addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text))
 				&& tutao.tutanota.util.Formatter.isMailAddress(mailAddress)
 				&& !this._containsSuggestionForMailAddress(suggestions, mailAddress)) {
-            var suggestionText = nativeContactName.formatted;
+            var suggestionText = formattedName;
             var additionalText = mailAddress;
 			if (!contactWrapper) {
 				contactWrapper = tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper();
-				contactWrapper.getContact().setFirstName(nativeContactName.givenName);
-				contactWrapper.getContact().setLastName(nativeContactName.familyName);
+				contactWrapper.getContact().setFirstName(givenName);
+				contactWrapper.getContact().setLastName(familyName);
 			}
 			var newma = new tutao.entity.tutanota.ContactMailAddress(contactWrapper.getContact());
 			newma.setAddress(mailAddress);
