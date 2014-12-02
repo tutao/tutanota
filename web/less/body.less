@@ -656,20 +656,24 @@ body {
               padding-bottom: 5px;
 
               > button.confidentialButton {
-
+                border-color: @button-green;
+                color:@button-green;
                 &.off {
-                  background-color: @red;
+                  border-color: @icon-color;
+                  color:@icon-color;
                 }
               }
               > button.showPasswordChannelColumn {
                 float: right;
                 position: relative;
                 padding-right: 35px;
+                border-color: @button-green;
 
 
                 > .showPasswordChannelColumnText {
                   display: inline-block;
                   position: relative;
+                  color:@button-green;
                 }
                 > .showPasswordChannelColumnIcon {
                   display: inline-block;
@@ -678,6 +682,7 @@ body {
                   right: 0px;
                   line-height: 35px;
                   font-size: 35px;
+                  color:@button-green;
                 }
               }
             }
@@ -763,15 +768,19 @@ body {
 			div.bubble {
 			
 				&.secureRecipient {
-					background: @button-background;
+					background: @bubble-background-green;
+                    .fontImage {
+                      color: @bubble-icon-green;
+                     }
+
 					&.selected {
-						background: darken(@button-background, 20%);
+						background: darken(@bubble-background-green, 20%);
 					}
 				}
 				&.unsecureRecipient {
-					background: @red;
+					background: @button-background;
 					&.selected {
-						background: darken(@red, 20%);
+						background: darken(@button-background, 20%);
 					}
 				}
                 &.unknownRecipient {
