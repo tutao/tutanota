@@ -766,7 +766,14 @@ body {
 			}
 	
 			div.bubble {
-			
+
+                &.displayRecipient {
+                  background: @button-background;
+                  &.selected {
+                    background: darken(@button-background, 20%);
+                  }
+                }
+
 				&.secureRecipient {
 					background: @bubble-background-green;
                     .fontImage {
