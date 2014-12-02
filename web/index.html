@@ -618,9 +618,7 @@
                                             </div>
                                         </div>
                                         <div class="composer_confidential" data-bind="fadeVisible: containsExternalRecipients()">
-                                            <button class="confidentialButton single" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-                                                <div class="fontImage" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
-                                            </button>
+                                            <button class="confidentialButton single fontImage" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
                                             <button class="showPasswordChannelColumn single" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                 <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
                                                 <div class="showPasswordChannelColumnIcon fontImage rightIndicator">

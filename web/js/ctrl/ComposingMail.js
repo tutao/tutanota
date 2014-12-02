@@ -707,6 +707,10 @@ tutao.tutanota.ctrl.ComposingMail._getContacts = function() {
 tutao.tutanota.ctrl.ComposingMail.prototype.bubbleDeleted = function(bubble) {
 	// notify the recipient info to stop editing the contact
 	bubble.entity.setDeleted();
+    // switch the confidential button back to confidential if no external recipients are there any more
+    if (!this.secure() && !this.containsExternalRecipients()) {
+        this.switchSecurity();
+    }
 };
 
 /** @inheritDoc */
