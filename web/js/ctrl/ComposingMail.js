@@ -141,6 +141,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 		return;
 	}
 
+    self.busy(true);
     return this._resolveRecipients().then(function() {
         var unsecureRecipients = self._containsUnsecureRecipients();
         if (self.secure() && unsecureRecipients) {
@@ -216,7 +217,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                     }
 
                     // the mail is sent in the background
-                    self.busy(true);
                     self.directSwitchActive = false;
 
                     var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
@@ -240,7 +240,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 }
                             });
                     }).caught(tutao.RecipientsNotFoundError, function (exception) {
-                        self.busy(false);
                         var notFoundRecipients = exception.getRecipients();
                         var recipientList = "";
                         for (var i = 0; i < notFoundRecipients.length; i++) {
@@ -248,8 +247,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                         }
                         console.log("recipients not found", exception);
                         return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
-                    }).lastly(function () {
-                        self.busy(false);
                     });
 
                 });
@@ -258,7 +255,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                 return Promise.resolve();
             }
         });
-    })
+    }).lastly(function () {
+        self.busy(false);
+    });
 };
 
 /**

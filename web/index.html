@@ -573,7 +573,7 @@
                                                         <div data-bind='template: { name: "bubbleinput-template",  data: {vm: toRecipientsViewModel, tabindex: 10 } }'></div>
                                                 </div>
                                                 <div class="value inputLine">
-                                                    <button class="bccButton single" data-bind="lang:'ccBcc_label', fastClick:toggleCcAndBccVisibility">
+                                                    <button class="bccButton single" data-bind="lang:'ccBcc_label', visible: !busy(), fastClick:toggleCcAndBccVisibility">
                                                 </div>
                                             </div>
                                         </div>

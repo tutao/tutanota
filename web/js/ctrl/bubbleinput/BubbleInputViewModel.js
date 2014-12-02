@@ -403,6 +403,9 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.addBubble = funct
  * Deletes the given bubble.
  */
 tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.removeBubble = function(bubble) {
+    if (!this.enabled) {
+        return;
+    }
     var deletedBubble = this.bubbles.splice(this.bubbles.indexOf(bubble), 1)[0];
     this.bubbleHandler.bubbleDeleted(deletedBubble);
     tutao.tutanota.gui.BubbleInputGui.resizeInputField(this.inputDomField, this.inputValue());

@@ -529,7 +529,16 @@ body {
 	
 	div#conversationColumn {
 		> div.spinner {
-			margin: 20px 50%;
+            position: absolute;
+			margin-left: 50%;
+            z-index: 6; // must be higher than action bar
+
+            @media @desktop {
+              top: 8px;
+            }
+            @media @mobile {
+              bottom: 6px;
+            }
 		}
 
 		> div#noMail {
@@ -546,25 +555,15 @@ body {
             > img#sendMailBusyImg {
               position: absolute;
               left: 50%;
+              z-index: 6; // must be higher than action bar
 
               @media @desktop {
-                top: 10px;
+                top: 12px;
               }
               @media @mobile {
-                bottom: 10px;
+                bottom: 13px;
               }
             }
-
-          > img#sendMailBusyImg {
-            position: absolute;
-            left: 50%;
-            @media @desktop {
-              top: 10px;
-            }
-            @media @mobile {
-              bottom: 10px;
-            }
-          }
 
 			> section.conversation {
 				.fill;
