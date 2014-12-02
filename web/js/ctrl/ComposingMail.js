@@ -115,6 +115,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = fun
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 	var self = this;
+    // validate recipients here because fastclick on the send button does not trigger validation
+    this.toRecipientsViewModel.createBubbles();
+    this.ccRecipientsViewModel.createBubbles();
+    this.bccRecipientsViewModel.createBubbles();
+
 	var invalidRecipients = (this.toRecipientsViewModel.inputValue() !== "") || (this.ccRecipientsViewModel.inputValue() !== "") || (this.bccRecipientsViewModel.inputValue() !== "");
 	if (!invalidRecipients && this.toRecipientsViewModel.bubbles().length === 0 && this.ccRecipientsViewModel.bubbles().length === 0 && this.bccRecipientsViewModel.bubbles().length === 0) {
 		// setTimeout is needed because fastClick would call the event twice otherwise
