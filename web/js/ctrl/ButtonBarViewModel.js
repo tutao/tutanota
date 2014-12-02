@@ -94,7 +94,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonBarType = function() {
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
-    this.maxWidth = width;
+    this.maxWidth = width - 1; // 1 spare pixels for button with rounding inaccuracy
     this.updateSpecialButtons();
 };
 
