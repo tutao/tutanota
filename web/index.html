@@ -141,7 +141,6 @@
 <script src="/js/ctrl/MailListViewModel.js"></script>
 <script src="/js/ctrl/MailViewModel.js"></script>
 <script src="/js/ctrl/ModalDialogViewModel.js"></script>
-<script src="/js/ctrl/ModalPageBackgroundViewModel.js"></script>
 <script src="/js/ctrl/Navigator.js"></script>
 <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
@@ -1733,18 +1732,15 @@
         <div id="title" data-bind="text: currentColumnTitle()"></div>
 	</header>
 
-    <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
+    <div id="modalMoreMenu"  data-bind="with: tutao.locator.viewManager.moreMenuButtonBarViewModel">
         <div class="modalDialog" data-bind="fastClick: hideMore, visible:moreVisible()">
-            <menu id="menu_more">
-                <div id="triangle-up"></div>
-                <ul>
-                    <!-- ko foreach: tutao.locator.viewManager.headerBarViewModel.moreButtons() -->
-                    <li data-bind="fastClick: click, attr: {'id': id}">
-                        <span class="menu_image"><div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
-                        <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
-                    </li>
+            <menu id="menu_more" data-bind="css: { actionBar: (getButtonBarType() == tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION) }">
+                <div id="triangle" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></div>
+                <div class="menuList">
+                    <!-- ko foreach: moreButtons -->
+                        <div class="menuItem fontImage" data-bind="lang: getLabelTextId(), css: imageClass, attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
                     <!-- /ko -->
-                </ul>
+                </div>
             </menu>
         </div>
     </div>
@@ -1782,11 +1778,6 @@
             <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
-        <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
-            <!-- ko foreach: moreButtons() -->
-            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}" tabindex="1000"></button>
-            <!-- /ko -->
-        </div>
 	</script>
 
 	<!-- use only with the DropdownViewModel -->

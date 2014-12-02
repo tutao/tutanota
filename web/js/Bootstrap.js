@@ -197,7 +197,6 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         navigator: tutao.tutanota.ctrl.Navigator,
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
         progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
-        modalPageBackgroundViewModel: tutao.tutanota.ctrl.ModalPageBackgroundViewModel,
         modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel
     };
 
