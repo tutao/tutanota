@@ -708,6 +708,11 @@ tutao.tutanota.gui.measureNavBarEntry = function(button) {
     }
 };
 
+/**
+ * Measures the width of a button.
+ * @param button The button to be measered.
+ * @returns {number} The width of the button.
+ */
 tutao.tutanota.gui.measureActionBarEntry = function(button) {
     // keep in sync with common.less
     if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {

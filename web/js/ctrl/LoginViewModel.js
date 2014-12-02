@@ -9,7 +9,7 @@ tutao.provide('tutao.tutanota.ctrl.LoginViewModel');
 tutao.tutanota.ctrl.LoginViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.welcomeTextId = ko.observable("welcome_msg");
+	this.welcomeTextId = ko.observable(null);
 	this.welcomeText = ko.computed(function() {
 		return tutao.locator.languageViewModel.get(this.welcomeTextId());
 	}, this, {deferEvaluation: true});
@@ -277,4 +277,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function() {
         var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(autoLoginDataReturn.getDeviceKey()));
         return deviceKey;
     });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.showAppInfo = function() {
+    return (tutao.env.mode != tutao.Mode.App) && (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE);
 };

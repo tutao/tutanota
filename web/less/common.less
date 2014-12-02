@@ -95,6 +95,26 @@ body, input, button, select, textarea {
   * Global mixins
   **************************************/
 
+// header
+@title-width:35%;
+@left-navbar-width: 230px;
+@left-navbar-width-small: 30%;
+@indicator-width: 37px;
+@indicator-width-small: 27px;
+@indicator-side-margin: 8px;
+@indicator-side-margin-small:6px;
+@nav-icon-width: @indicator-width + @indicator-side-margin;
+@nav-icon-width-small: @indicator-width-small + @indicator-side-margin-small;
+@header-height:55px;
+@header-height-small:42px;
+
+@button-bar-height: 42px;
+@button-bar-margin: 5px;
+// If this width is changed, we have to update the measure function in ButtonBarViewModel!
+@button-bar-button-width: 45px;
+
+@menu_height: 42px;
+
 img.helpIcon {
   width: 30px;
   height: 30px;
@@ -412,37 +432,52 @@ input#hiddenInput {
   * Button - may be on an action bar or a single button
   **************************************/
 
+@button-height: 35px;
+@button-padding: 5px;
+
 button {
+  position: relative;
   display: inline-block;
-  min-width: 40px;
-  height: 35px;
-  //line-height: 35px;
+  height: @button-height;
+  line-height: @button-height;
+
+  font-size: 16px;
   text-align: center;
   text-decoration: none;
+  border: 0;
+
   background-color: transparent;
   color: @icon-color;
   cursor: pointer;
 
-  font-size: 16px;
-  padding: 5px;
-  border: 0;
+  // configuration for text only
+  padding-left: @button-padding;
+  padding-right: @button-padding;
 
-  // desktop only
-  &:before {
-    padding-right: 5px;
-  }
-  &:after {
-    left: 5px; // same like padding
+  &:before, &:after {
+    position: absolute;
+    left:@button-padding;
+    top: 0px;
   }
 
-  // mobile only
-  &.mobile {
+  // configuration for icon and text
+  &.fontImage {
+    @iconAndTextIconWidth: 20px;
 
-    &:before {
-      padding-right: 0px;
+    // the image sits in the left padding, positioned absolutely
+    padding-left: @button-padding + @iconAndTextIconWidth + @button-padding;
+
+    &:before, &:after {
+      width: @iconAndTextIconWidth;
     }
-    &:after {
-      left: 12px; // same like padding + extra space because of min-width
+  }
+
+  // configuration for icon only. config of class fontImage must be overwritten
+  &.iconOnly {
+    padding-left: @button-padding !important;
+
+    &:before, &:after {
+      width: 35px !important;
     }
   }
 
@@ -475,6 +510,153 @@ button {
   }
 }
 
+button#measureButton {
+  position: absolute;
+  visibility: hidden;
+  margin-right: 15px; // icon + text needs more margin
+
+  &.iconOnly {
+    margin-right: @button-bar-margin;
+  }
+}
+
+div.actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  @media @desktop {
+    top: 0;
+  }
+  @media @mobile {
+    bottom: 0;
+  }
+
+  > div.buttonBar {
+    z-index: 9999; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
+    position: relative;
+    background: @background-dark;
+    height: @button-bar-height;
+    padding-left: @button-bar-margin;
+
+    @media @desktop {
+      border-bottom: 1px solid @border-dark;
+    }
+    @media @mobile {
+      border-top: 1px solid @border-dark;
+    }
+
+    > button {
+      float: right;
+      min-width: 45px;
+
+      // the buttons in the button bar shall cover the complete height
+      height: @button-bar-height - 1; // - border
+      line-height: @button-bar-height - 1; // - border
+
+      margin-right: 15px; // icon + text needs more margin
+
+      &.iconOnly {
+        margin-right: @button-bar-margin;
+      }
+
+      &.leftAligned {
+        float: left;
+      }
+    }
+  }
+}
+
+
+div#modalMoreMenu {
+  > div {
+    display:block;
+
+    > #menu_more {
+      position: absolute;
+      right: @indicator-side-margin;
+      border: 0px;
+      z-index: 4;
+      min-width: 200px;
+
+      // configuration for header more menu
+      // big menu
+      top: @header-height;
+
+      // small menu
+      @media @mobile {
+        top: @header-height-small;
+      }
+
+      > div#triangle {
+        position:absolute;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px  solid @background-dark;
+        top: -10px;
+
+        // big menu
+        right: 20px;
+
+        // small menu
+        @media @mobile {
+          right: 5px;
+        }
+      }
+
+      // configuration for action bar more menu
+      &.actionBar {
+
+        // action bar is on top
+        top: @header-height + @button-bar-height;
+
+        > div#triangle {
+          // text + icon
+          right: 20px;
+
+          // icon only
+          &.iconOnly {
+            right: 10px;
+          }
+        }
+
+        // action bar is on bottom
+        @media @mobile {
+          top: auto;
+          bottom: @button-bar-height;
+
+          > div#triangle {
+            border-bottom: none;
+            border-top: 10px  solid @background-dark;
+            top: 100%;
+          }
+        }
+      }
+
+      > div.menuList {
+        position: relative;
+        width: 100%;
+        right: 0px;
+        border-radius: 5px;
+        background-color: @background-dark;
+
+        > div.menuItem {
+          .light;
+          border-bottom: 1px solid @border-dark;
+          border-radius: 0;
+        }
+
+        > div:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+}
+
+
 .languageButton {
   width: 25px;
   height: 18px;
@@ -493,6 +675,8 @@ button {
   * Menu
   **************************************/
 
+@menu_image_width: 25px;
+
 div.menuList {
   position: absolute;
   left: 0px;
@@ -503,31 +687,40 @@ div.menuList {
   background-color: @background-dark;
 
   > div.menuInnerList {
-    .menuItem {
-      cursor: pointer;
-      .nonSelectable;
-      width: 100%;
-      height: 40px;
-      padding-top: 5px;
-      padding-left: @padding;
-      .heading;
-      font-size: 20px;
 
-      > div.fontImage {
-        display: inline-block;
-        font-size: 15px;
-      }
+  }
+}
 
-      > div.text {
-        display: inline-block;
-        padding-left: 1px;
-      }
+.menuItem {
+  position: relative;
+  cursor: pointer;
+  .nonSelectable;
+  width: 100%;
+  height: @menu_height;
+  line-height: @menu_height;
+  padding-left: @padding;
+  .heading;
+  font-size: 20px;
+  color: @icon-color;
+  border-radius: 0;
 
-      &.active, &.selected {
-        background-color: @highlight-color;
-        background-clip: padding-box;
-      }
-    }
+  &:before, &:after {
+    position: absolute;
+    left: @padding;
+    top: 0px;
+    width: @menu_image_width;
+    text-align: center;
+  }
+
+  // configuration for icon and font
+  &.fontImage {
+    // the image sits in the left padding, positioned absolutely
+    padding-left:  @padding + @menu_image_width + @padding;
+  }
+
+  &.active, &.selected {
+    background-color: @highlight-color;
+    background-clip: padding-box;
   }
 }
 
@@ -749,6 +942,7 @@ div.bubble {
       padding-left: 7px;
       padding-right: 7px;
       font-size: 14px;
+      height: 100%
     }
   }
 }

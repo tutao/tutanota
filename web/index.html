@@ -141,7 +141,6 @@
 <script src="/js/ctrl/MailListViewModel.js"></script>
 <script src="/js/ctrl/MailViewModel.js"></script>
 <script src="/js/ctrl/ModalDialogViewModel.js"></script>
-<script src="/js/ctrl/ModalPageBackgroundViewModel.js"></script>
 <script src="/js/ctrl/Navigator.js"></script>
 <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
@@ -433,7 +432,7 @@
 
 <script type="text/html"  id="tutanota-template">
 	<input type="text" id="hiddenInput"/>
-    <button id="measureButton" class="fontImage confirm" data-bind="css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></button>
+    <button id="measureButton" class="fontImage confirm" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
 	<div id="viewContainer">
@@ -441,18 +440,9 @@
 			<div id="tagListColumn" class="viewColumn">
 				<div id="tagList" class="scrollable menuList" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList" class="menuInnerList">
-						<div id="tagReceived" class="menuItem" data-bind="attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag">
-							<div class="fontImage inbox"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID)"></div>
-						</div>
-						<div id="tagSend" class="menuItem" data-bind="attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag">
-							<div class="fontImage  send"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID)"></div>
-						</div>
-						<div id="tagTrash" class="menuItem" data-bind="attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag">
-							<div class="fontImage  trash"></div>
-							<div class="text" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID)"></div>
-						</div>
+						<div id="tagReceived" class="menuItem fontImage inbox" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID), attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag"></div>
+						<div id="tagSend" class="menuItem fontImage send" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID), attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag"></div>
+						<div id="tagTrash" class="menuItem fontImage trash" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID), attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag"></div>
 					</div>
 				</div>
 			</div>
@@ -465,7 +455,7 @@
 								<div class="icons">
                                     <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
                                     <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-                                    <img src="graphics/tutanota-small.png" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"/>
+                                    <div class="mailHeaderImage fontImage lock-closed" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
                                 </div>
 								<div class="subject" data-bind="text: getSubject()"></div>
 								<div class="mailInfo">
@@ -628,9 +618,7 @@
                                             </div>
                                         </div>
                                         <div class="composer_confidential" data-bind="fadeVisible: containsExternalRecipients()">
-                                            <button class="confidentialButton single" data-bind="fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure() }">
-                                                <div class="fontImage" data-bind="css: {'lock-closed': secure, 'lock-open': !secure()}"></div>
-                                            </button>
+                                            <button class="confidentialButton single fontImage" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
                                             <button class="showPasswordChannelColumn single" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                 <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
                                                 <div class="showPasswordChannelColumnIcon fontImage rightIndicator">
@@ -983,7 +971,6 @@
 		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
 			<div class="welcomeContainer">
 				<div class="panel">
-                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
 
@@ -1021,11 +1008,13 @@
 								<div class="formAction">
 									<button id="submitLogin" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
                                     <button class="single" data-bind="css: { disabled: !loginPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
-									<label id="submitLoginLabel" for="submitLogin1" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+									<label id="submitLoginLabel" for="submitLogin" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
 
-                            <div class="record">
+                            <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+
+                            <div class="record" data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
                                 <div class="recordName"></div>
                                 <div class="recordData">
                                     <div class="recordValue socialMediaLinks">
@@ -1189,7 +1178,6 @@
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
 				<div class="panel">
-                    <div data-bind="template: { name: 'appInfo-template' }"></div>
 					<div class="content scrollable">
                         <!-- ko if: getRegistrationType() == 'Starter' -->
                         <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
@@ -1290,8 +1278,11 @@
                                     <div class="formAction">
                                         <button id="submitRegistration1" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                         <button class="single" data-bind="fastClick: login, lang: 'backTologin_action'"></button>
+                                        <label id="submitRegistration1Label" for="submitRegistration1" class="recordStatus" data-bind="lang: 'emptyString_msg'"></label>
                                     </div>
                                 </div>
+
+                                <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
                             </form>
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
@@ -1330,9 +1321,7 @@
 				<div id="settingsInnerColumn" class="scrollable menuList">
 					<div id="settingsData" class="menuInnerList">
 						<div data-bind="foreach: getSettings()">
-							<div class="menuItem" data-bind="css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }">
-								<div class="text" data-bind="lang: $parent.getSettingsTextId($data)"></div>
-							</div>
+							<div class="menuItem" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
 						</div>
 					</div>
 				</div>
@@ -1728,10 +1717,8 @@
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
                         <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
-                            <div class="menu_image">
-                                <div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
-                                    <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
-                                </div>
+                            <div class="menu_image fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
+                                <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
                             </div>
                             <div class="menu_text" data-bind="lang: getLabelTextId()"></div>
                         </li>
@@ -1743,18 +1730,15 @@
         <div id="title" data-bind="text: currentColumnTitle()"></div>
 	</header>
 
-    <div id="modalMoreMenu"  data-bind="with:tutao.locator.viewManager.headerBarViewModel ">
+    <div id="modalMoreMenu"  data-bind="with: tutao.locator.viewManager.moreMenuButtonBarViewModel">
         <div class="modalDialog" data-bind="fastClick: hideMore, visible:moreVisible()">
-            <menu id="menu_more">
-                <div id="triangle-up"></div>
-                <ul>
-                    <!-- ko foreach: tutao.locator.viewManager.headerBarViewModel.moreButtons() -->
-                    <li data-bind="fastClick: click, attr: {'id': id}">
-                        <span class="menu_image"><div class="fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}"></div></span>
-                        <span class="menu_text" data-bind="lang: getLabelTextId()"></span>
-                    </li>
+            <menu id="menu_more" data-bind="css: { actionBar: (getButtonBarType() == tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION) }">
+                <div id="triangle" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></div>
+                <div class="menuList">
+                    <!-- ko foreach: moreButtons -->
+                        <div class="menuItem fontImage" data-bind="lang: getLabelTextId(), css: imageClass, attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
                     <!-- /ko -->
-                </ul>
+                </div>
             </menu>
         </div>
     </div>
@@ -1762,8 +1746,9 @@
 </script>
 
     <script type="text/html" id="appInfo-template">
-        <div class="appInfo" data-bind="visible: tutao.env.mode != tutao.Mode.App">
-            <div>
+        <div class="recordName"></div>
+        <div class="recordData">
+            <div class="recordValue">
                 <a data-bind="attr: { href: tutao.lang('appInfoAndroidUrl_action') }, visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
                     <img data-bind="attr: { src: tutao.lang('appInfoAndroidImage_action'), alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
                 </a>
@@ -1785,17 +1770,12 @@
 	<script type="text/html" id="buttonBar-template">
 		<div class="buttonBar">
             <!-- ko foreach: specialButtons() -->
-            <button class="leftAligned fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="leftAligned fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : '') + ((isDisabled()) ? ' disabled' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
             <!-- ko foreach: visibleButtons() -->
-            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
+            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' iconOnly' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}"></button>
             <!-- /ko -->
 		</div>
-        <div class="buttonBarMoreMenu" data-bind="visible: moreVisible">
-            <!-- ko foreach: moreButtons() -->
-            <button class="fontImage" data-bind="lang: (tutao.tutanota.util.ClientDetector.isMobileDevice()) ? null : getLabelTextId(), css: imageClass + ((tutao.tutanota.util.ClientDetector.isMobileDevice()) ? ' mobile' : ''), fastClick: click, attr: {title: tutao.lang(getLabelTextId()), 'id': id}" tabindex="1000"></button>
-            <!-- /ko -->
-        </div>
 	</script>
 
 	<!-- use only with the DropdownViewModel -->

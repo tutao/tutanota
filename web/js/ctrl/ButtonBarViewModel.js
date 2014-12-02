@@ -2,9 +2,6 @@
 
 tutao.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
 
-// - move gui part to custom binding
-// - width adaption when scrollbar appears/disappears
-
 /**
  * Defines a button bar.
  *
@@ -12,8 +9,9 @@ tutao.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
  * @param {Array.<tutao.tutanota.ctrl.Button>} buttons An array containing any number of tutao.tutanota.ctrl.Button instances.
  * @param {string=} moreButtonText The text for the more button.
  * @param {function(Element):number} measureFunction A function that returns the width of the buttons dom element including margins.
+ * @param {number} buttonBarType One of tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_* to indicate where the more menu shall be shown.
  */
-tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measureFunction) {
+tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measureFunction, buttonBarType) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     if (!moreButtonText) {
@@ -65,6 +63,8 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
     this.maxWidth = 0;
     this.specialButtonsWidth = 0;
 
+    this._buttonBarType = buttonBarType;
+
     this.specialButtons.subscribe(function() {
         this.updateSpecialButtons();
     }, this);
@@ -76,8 +76,25 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
     this._widthInterval = null;
 };
 
+/**
+ * The button bar is used in the header menu. This setting indicates at which position the more menu is shown.
+ * @type {number}
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_HEADER = 0;
+
+/**
+ * The button bar is used in an action bar. This setting indicates at which position the more menu is shown.
+ * @type {number}
+ */
+tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION = 1;
+
+
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonBarType = function() {
+    return this._buttonBarType;
+};
+
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
-    this.maxWidth = width;
+    this.maxWidth = width - 1; // 1 spare pixels for button with rounding inaccuracy
     this.updateSpecialButtons();
 };
 
@@ -165,7 +182,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hasMoreButton = function() {
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._showMore = function() {
-    tutao.locator.modalPageBackgroundViewModel.show(this.hideMore);
+    tutao.locator.viewManager.moreMenuButtonBarViewModel(this);
     this.moreVisible(true);
 };
 

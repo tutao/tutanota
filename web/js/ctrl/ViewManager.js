@@ -29,6 +29,8 @@ tutao.tutanota.ctrl.ViewManager = function() {
     this.previousColumnTitle = ko.observable("");
 
     this.externalCompanyName = ko.observable("");
+
+    this.moreMenuButtonBarViewModel = ko.observable();
 };
 
 
@@ -122,7 +124,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     var getRightNavbarSize = function () {
         return $(document.getElementById("right-navbar")).innerWidth();
     };
-    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", tutao.tutanota.gui.measureNavBarEntry);
+    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", tutao.tutanota.gui.measureNavBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_HEADER);
     setTimeout(function () {
         self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
     }, 0);

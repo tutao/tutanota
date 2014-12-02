@@ -1,7 +1,3 @@
-@button-bar-height: 45px;
-@button-bar-margin: 5px;
-// If this width is changed, we have to update the measure function in ButtonBarViewModel!
-@button-bar-button-width: 45px;
 @list-entry-height: 49px;
 
 
@@ -59,87 +55,6 @@ body {
 			}
 		}
 	}
-
-	button#measureButton {
-	  position: absolute;
-	  visibility: hidden;
-	  margin-right: 15px; // icon + text needs more margin
-
-      &.mobile {
-        margin-right: @button-bar-margin
-      }
-	}
-
-    div.actions {
-      position: absolute;
-      left: 0;
-      right: 0;
-
-      @media @desktop {
-        top: 0;
-      }
-      @media @mobile {
-        bottom: 0;
-      }
-
-      > div.buttonBar {
-        z-index: 9999; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
-        position: relative;
-        background: @background-dark;
-        height: @button-bar-height;
-        padding-left: 5px;
-
-        @media @desktop {
-          border-bottom: 1px solid @border-dark;
-        }
-        @media @mobile {
-          border-top: 1px solid @border-dark;
-        }
-
-        > button {
-          position: relative; // needed to position stacked icons correctly (e.g. restore icon)
-          float: right;
-          margin-top: 5px;
-          margin-right: 15px; // icon + text needs more margin
-          color: @icon-color;
-
-          &.mobile {
-            margin-right: @button-bar-margin
-          }
-
-          &.leftAligned {
-            float: left;
-          }
-        }
-      }
-
-      > div.buttonBarMoreMenu {
-        position: absolute;
-        background: @background-dark;
-        right: 0px;
-        // increased z-index must also be set for complete action bar because otherwise it it does not work in iOS 6
-        z-index: 1;
-        padding-left: @button-bar-margin;
-        padding-right: @button-bar-margin;
-        padding-top: @button-bar-margin;
-        border-left: 1px solid @border-dark;
-
-        @media @desktop {
-          top: @button-bar-height;
-          border-bottom: 1px solid @border-dark;
-        }
-        @media @mobile {
-          bottom: @button-bar-height;
-          border-top: 1px solid @border-dark;
-        }
-
-        > button {
-          display: block;
-          position: relative;
-          margin-bottom: @button-bar-margin;
-        }
-      }
-    }
 
 	.searchAndList() {
 
@@ -600,6 +515,10 @@ body {
                               &:before {
                                 font-size: 14px;
                               }
+
+                              &.lock-closed {
+                                margin-right: -4px; // the lock is left aligned in the image, so move it right
+                              }
                             }
 						}
 					}
@@ -677,7 +596,7 @@ body {
 
 		> header {
 			width: 100%;
-			border-bottom: 1px solid @border-dark;
+			border-bottom: 1px solid @border;
 			padding-bottom: 5px;
 
 			> div.headerTable {
@@ -716,8 +635,7 @@ body {
 
                       > button.bccButton {
                         vertical-align: top;
-                        width: 45px;
-                        min-width: 45px;
+                        min-width: 40px;
                         float:right;
                         margin-bottom:4px;
                       }
@@ -736,13 +654,8 @@ body {
               padding-left:3px;
               padding-top: 5px;
               padding-bottom: 5px;
-              > button.confidentialButton {
-                padding-left: 12px;
-                min-width: 40px;
 
-                > div.fontImage {
-                  width: 20px;
-                }
+              > button.confidentialButton {
 
                 &.off {
                   background-color: @red;
@@ -927,7 +840,7 @@ body {
 				right: 0px;
 				left: 0px;
 				top: 0px;
-				padding-bottom: 45px; // enough space for the button bar
+				padding-bottom: @button-bar-height;
 				
 				> section#passwordChannelList {
 					-webkit-transform:translate3d(0, 0, 0); /* fixes cut off scroll content for non-static positioned elements */

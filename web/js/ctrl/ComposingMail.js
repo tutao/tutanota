@@ -49,7 +49,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
 			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
 			        ];
-	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
+	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
 
     tutao.locator.passwordChannelViewModel.init();
 
@@ -115,6 +115,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = fun
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 	var self = this;
+    // validate recipients here because fastclick on the send button does not trigger validation
+    this.toRecipientsViewModel.createBubbles();
+    this.ccRecipientsViewModel.createBubbles();
+    this.bccRecipientsViewModel.createBubbles();
+
 	var invalidRecipients = (this.toRecipientsViewModel.inputValue() !== "") || (this.ccRecipientsViewModel.inputValue() !== "") || (this.bccRecipientsViewModel.inputValue() !== "");
 	if (!invalidRecipients && this.toRecipientsViewModel.bubbles().length === 0 && this.ccRecipientsViewModel.bubbles().length === 0 && this.bccRecipientsViewModel.bubbles().length === 0) {
 		// setTimeout is needed because fastClick would call the event twice otherwise
@@ -707,6 +712,10 @@ tutao.tutanota.ctrl.ComposingMail._getContacts = function() {
 tutao.tutanota.ctrl.ComposingMail.prototype.bubbleDeleted = function(bubble) {
 	// notify the recipient info to stop editing the contact
 	bubble.entity.setDeleted();
+    // switch the confidential button back to confidential if no external recipients are there any more
+    if (!this.secure() && !this.containsExternalRecipients()) {
+        this.switchSecurity();
+    }
 };
 
 /** @inheritDoc */
