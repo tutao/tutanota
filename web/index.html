@@ -508,16 +508,22 @@
 											<div class="headerLine">
 												<div class="name" data-bind="lang: 'from_label'"></div>
 												<div class="value">
-                                                    <div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div>
-													<span class="rightAligned" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(mail.getSentDate())"></span>
+                                                    <div class="ellipsisTable">
+                                                        <div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div>
+                                                    </div>
 												</div>
-											</div>
+                                                <div class="value dateValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(mail.getSentDate())"></div>
+                                            </div>
+                                        </div>
+                                        <div class="headerTable">
 											<!-- ko if: mail.getToRecipients().length > 0 -->
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'to_label'"></div>
 													<div class="value">
+                                                        <div class="ellipsisTable">
 														<!-- the next statement must be written in one line, otherwise there are whitespaces between the recipient names -->
 														<!-- ko foreach: mail.getToRecipients() --><!-- ko ifnot: $data == $parent.mail.getToRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meAccusative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+                                                        </div>
 													</div>
 												</div>
 											<!-- /ko -->
@@ -525,7 +531,9 @@
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'cc_label'"></div>
 													<div class="value">
+                                                        <div class="ellipsisTable">
 														<!-- ko foreach: mail.getCcRecipients() --><!-- ko ifnot: $data == $parent.mail.getCcRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+                                                        </div>
 													</div>
 												</div>
 											<!-- /ko -->
@@ -533,7 +541,9 @@
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'bcc_label'"></div>
 													<div class="value">
+                                                        <div class="ellipsisTable">
 														<!-- ko foreach: mail.getBccRecipients() --><!-- ko ifnot: $data == $parent.mail.getBccRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+                                                        </div>
 													</div>
 												</div>
 											<!-- /ko -->
@@ -1796,7 +1806,7 @@
 			<div class="input" tabindex="-1" data-bind="click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip, css:{closable: showDeleteIcon}"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">

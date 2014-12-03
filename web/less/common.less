@@ -928,6 +928,7 @@ div#progressDialog {
   **************************************/
 
 div.bubble {
+  position:relative;
   display: inline-block;
   margin-right: 5px;
   height: 24px; // 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
@@ -935,15 +936,23 @@ div.bubble {
   cursor: pointer;
   border-radius: 5px;
   margin-bottom: 2px;
+  max-width:100%; // Set max width to avoid overflow outside inputContainer
 
   > div.bubbleText {
     display: inline-block;
     .fadeTextOut;
+    max-width:100%; // Set max width to enable ellipsis
     padding-left: 7px;
     padding-right: 7px;
+
+    &.closable {
+      padding-right: 7px + 30px;
+    }
   }
 
   > div.removeBubble {
+    position:absolute;
+    right:0px;
     display: inline-block;
     height: 100%;
     border-left: 2px solid @white;
@@ -968,8 +977,8 @@ div.bubbleInput {
     table-layout: fixed;
     background-color: @white;
 
+
     > div.inputContainer {
-      overflow: hidden;
       padding-top: 2px;
       line-height: 1;
       padding-left: 5px; // Always update tutao.tutanota.gui.BubbleInput.resizeInputField when updating this value!
@@ -1063,6 +1072,13 @@ div.bubbleInput {
 textarea {
   resize: none;
   height: auto !important
+}
+
+// Used to enable ellipses in table cells without fixed width.
+.ellipsisTable {
+  display:table;
+  table-layout: fixed;
+  width: 100%;
 }
 
 /***************************************
