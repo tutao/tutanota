@@ -263,12 +263,13 @@ body {
 							
 							> div.contactDataButton, a > div.contactDataButton {
 								position: relative;
-								top: 5px;
 								height: 25px;
 								width: 25px;
-								float: right;
+                                line-height:44px;
+                                float: right;
 								cursor: pointer;
-                                margin-right: 3px; // needed for the mail-new icon which has a :before element (+ icon) which leads to a scrolling column if it overflows
+                                padding-top: 0px; // must be overwritten from outer div
+                                padding-bottom: 0px; // must be overwritten from outer div
 							}
 							
 							> div.contactDataAreaText {
