@@ -440,9 +440,9 @@
 			<div id="tagListColumn" class="viewColumn">
 				<div id="tagList" class="scrollable menuList" data-bind="with: tutao.locator.tagListViewModel">
 					<div id="innerTagList" class="menuInnerList">
-						<div id="tagReceived" class="menuItem fontImage inbox" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID), attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag"></div>
-						<div id="tagSend" class="menuItem fontImage send" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID), attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag"></div>
-						<div id="tagTrash" class="menuItem fontImage trash" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID), attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag"></div>
+						<div id="tagReceived" class="menuItem fontImage inbox" tabIndex="0" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID), attr: {title: tutao.lang('receivedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.RECEIVED_TAG_ID}, fastClick: activateReceivedTag"></div>
+						<div id="tagSend" class="menuItem fontImage send" tabIndex="0" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID), attr: {title: tutao.lang('sentMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.SENT_TAG_ID}, fastClick: activateSentTag"></div>
+						<div id="tagTrash" class="menuItem fontImage trash" tabIndex="0" data-bind="lang: getTagTextId(tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID), attr: {title: tutao.lang('trashedMails_alt')}, css: {selected: activeSystemTag() == tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID}, fastClick: activateTrashedTag"></div>
 					</div>
 				</div>
 			</div>
@@ -573,7 +573,7 @@
                                                         <div data-bind='template: { name: "bubbleinput-template",  data: {vm: toRecipientsViewModel, tabindex: 10 } }'></div>
                                                 </div>
                                                 <div class="value inputLine">
-                                                    <button class="bccButton single" data-bind="lang:'ccBcc_label', visible: !busy(), fastClick:toggleCcAndBccVisibility">
+                                                    <button class="bccButton single" tabIndex="18" data-bind="lang:'ccBcc_label', visible: !busy(), fastClick:toggleCcAndBccVisibility">
                                                 </div>
                                             </div>
                                         </div>
@@ -608,7 +608,7 @@
                                             <div class="headerLine">
                                                 <div class="name edit inputLine" data-bind="lang: 'subject_label'"></div>
                                                 <div class="value edit inputLine" id="composer_subject">
-                                                    <input class="composeSubjectInput" type="text" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()" tabindex="20" />
+                                                    <input class="composeSubjectInput" type="text" tabindex="14" data-bind="value: composerSubject, valueUpdate: 'input', hasfocus: subjectFieldFocused, enable: !busy()"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -618,8 +618,8 @@
                                             </div>
                                         </div>
                                         <div class="composer_confidential" data-bind="fadeVisible: containsExternalRecipients()">
-                                            <button class="confidentialButton single fontImage" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
-                                            <button class="showPasswordChannelColumn single" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
+                                            <button class="confidentialButton single fontImage" tabindex="15" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
+                                            <button class="showPasswordChannelColumn single" tabindex="16" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                 <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
                                                 <div class="showPasswordChannelColumnIcon fontImage rightIndicator">
                                             </button>
@@ -640,7 +640,7 @@
 											<!-- /ko -->
 										</div>
 									</header>
-                                    <div class="composeBody" onFocus="window.scrollTo(0, 0);" data-bind="attr: { contenteditable: (busy()) ? 'false' : 'true' }, event: {keydown: tutao.tutanota.gui.MailView.handleMailComposerReturnKey}" tabindex="21"><br></div>
+                                    <div class="composeBody" tabindex="17" onFocus="window.scrollTo(0, 0);" data-bind="attr: { contenteditable: (busy()) ? 'false' : 'true' }, event: {keydown: tutao.tutanota.gui.MailView.handleMailComposerReturnKey}"><br></div>
 									<!-- for test sending html emails. also uncomment wysihtml5 initialization in MailViewModel._createMail() -->
 									<!-- <form><textarea id="composeBodyTextArea" class="inputArea" data-bind="value: composerBody, valueUpdate: 'change'" autofocus></textarea></form> -->
 								</section>
@@ -666,7 +666,7 @@
 									<hr />
 									<br>
 
-									<button class="editContactButton single" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
+									<button class="editContactButton single" tabindex="21" data-bind="lang: 'edit_action', visible: isExistingContact(), fastClick: function() { setTimeout(function() { $parent.editRecipient($data); }, 0); }"></button>
 									<div class="recipientNameAndAddress">
 										<!-- ko if: getName() != "" -->
 											<span class="emphasizedText" data-bind="text: getName()"></span><br>
@@ -680,7 +680,7 @@
                                         <div class="recordName" data-bind="lang: 'presharedPassword_label'"></div>
                                         <div class="recordData">
                                             <div class="row">
-                                                <input type="text" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
+                                                <input type="text" tabindex="20" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
                                             </div>
                                             <div class="recordStatus">
                                                 <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1321,7 +1321,7 @@
 				<div id="settingsInnerColumn" class="scrollable menuList">
 					<div id="settingsData" class="menuInnerList">
 						<div data-bind="foreach: getSettings()">
-							<div class="menuItem" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
+							<div class="menuItem" tabIndex="0" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
 						</div>
 					</div>
 				</div>
@@ -1712,7 +1712,7 @@
             <menu data-bind="with: headerBarViewModel">
                 <ul id="menu_list">
                     <!-- ko foreach: visibleButtons() -->
-                        <li class="menu_link" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
+                        <li class="menu_link" tabIndex="0" data-bind="fastClick: click, attr: {'id': id}, css: {'selected': isSelected() }">
                             <div class="menu_image fontImage" data-bind="css: imageClass, attr: {title: tutao.lang(getImageAltTextId())}">
                                 <div class="menu_badge" data-bind="text: (badge()<100)?badge():'99+', visible: badge()>0"></div>
                             </div>
@@ -1732,7 +1732,7 @@
                 <div id="triangle" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></div>
                 <div class="menuList">
                     <!-- ko foreach: moreButtons -->
-                        <div class="menuItem fontImage" data-bind="lang: getLabelTextId(), css: imageClass, attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
+                        <div class="menuItem fontImage" tabIndex="0" data-bind="lang: getLabelTextId(), css: imageClass, attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
                     <!-- /ko -->
                 </div>
             </menu>
@@ -1796,7 +1796,7 @@
 			<div class="input" tabindex="-1" data-bind="click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" tabIndex="0" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"/></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">

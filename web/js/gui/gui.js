@@ -35,6 +35,7 @@ tutao.tutanota.gui.initKnockout = function() {
                     event.srcEvent.preventDefault();
                     // make sure that "active" is not used anywhere else concurrently
                     $(element).addClass("active");
+                    $(element).focus(); // otherwise the element does not get the focus and the keyboard is kept open if the focus stays in a text field.
                     setTimeout(function () {
                         $(element).removeClass("active");
                     }, 100);
