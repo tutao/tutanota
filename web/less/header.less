@@ -43,118 +43,91 @@ header#main {
     background-clip: padding-box;
 
     @media @mobile {
-      > div#left-navbar {
-        width: @left-navbar-width-small;
-        left: -@nav-icon-width-small;
 
-        &.showNavButton {
-          left: -10px;
+      > div#logo {
+        left: 6px;;
+        top: 6px;
+
+        > div.path {
+          width: 32px;
+          height: 29px;
         }
 
-        > div.leftViewButton {
-          height: 100%;
-          left: @indicator-side-margin;
-          font-size: @indicator-width-small;
-        }
-
-        > div#logo {
-          left: @nav-icon-width-small + @indicator-side-margin-small;;
-          top: 6px;
-
-          > div.path {
-            width: 32px;
-            height: 29px;
-          }
-
-          > div.tutanota {
-            display: none;
-          }
-        }
-
-        > div#previousLocation {
-          left: 34px;
+        > div.tutanota {
+          display: none;
         }
       }
+
       > div#title {
         visibility: visible;
       }
     }
   }
 
-  > div#left-navbar {
+  > button.leftViewButton {
     position: relative;
     float: left;
     height: 100%;
-    left: -@nav-icon-width;
+    max-width: 30%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
 
-    transition: left 0.5s;
-    width: @left-navbar-width;
-
-    &.showNavButton {
-      left: -12px;
+    &:before {
+      font-size: 27px;
+      left: 2px;
     }
 
-    > div.leftViewButton {
+    @media @desktop {
+      height: @header-height;
+      line-height: @header-height;;
+    }
+
+    @media @mobile {
+      height: @header-height-small;
+      line-height: @header-height-small;;
+    }
+  }
+
+  > div#logo {
+    display: inline-block;
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    line-height: 1;
+
+    > div.path {
       position: relative;
-      left: @indicator-side-margin;
-      font-size: @indicator-width;
-      opacity: 0.8;
-      cursor: pointer;
-      overflow: hidden;
-    }
-
-    > div#previousLocation {
-        .light;
-        position: absolute;
-        left:40px;
-        right:0px;
-        top:0px;
-        height: 100%;
-        overflow:hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        cursor: pointer;
-    }
-
-    > div#logo {
       display: inline-block;
-      position: absolute;
-      left: @nav-icon-width + @indicator-side-margin;
-      top: 8px;
-      line-height: 1;
+      width: 41px;
+      height: 37px;
 
-      > div.path {
-        position: relative;
-        display: inline-block;
-        width: 41px;
-        height: 37px;
+      > div.claim {
+        position: absolute;
+        top: 37px;
+        width: 144px;
+        height: 17px;
 
-        > div.claim {
-          position: absolute;
-          top: 37px;
-          width: 144px;
-          height: 17px;
-
-          header#main.loggedIn & {
-            display: none;
-          }
-        }
-
-        > img {
-          width: 100%;
+        header#main.loggedIn & {
+          display: none;
         }
       }
 
-      > div.tutanota {
-        position: relative;
-        display: inline-block;
-        height: 35px;
+      > img {
+        width: 100%;
       }
+    }
 
-      img {
-        height: 100%;
-        //position: absolute;
-      }
+    > div.tutanota {
+      position: relative;
+      display: inline-block;
+      height: 35px;
+    }
+
+    img {
+      height: 100%;
+      //position: absolute;
     }
   }
 
@@ -172,23 +145,15 @@ header#main {
     top: 6px;
   }
 
-  div#log {
-    position: absolute;
-    left: 330px;
-    top: 0px;
-    bottom: 0px;
-    width: 300px;
-    font-size: 10px;
-  }
-
   > div#title {
+    position: absolute;
     .light;
     visibility: hidden;
     text-align: center;
     white-space: nowrap;
     margin: 0 auto;
-    position: relative;
     width: @title-width;
+    top: 0px;
     left: 0;
     right: 0;
   }
