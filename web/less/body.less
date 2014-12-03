@@ -640,6 +640,11 @@ body {
                         margin-bottom:4px;
                       }
 
+                      &.dateValue{
+                        width:135px;
+                        text-align:right;
+                      }
+
 					}
                     > div.confidentialStateMessage {
                       .descriptionFont;
@@ -784,12 +789,7 @@ body {
 						background: darken(@bubble-background-green, 20%);
 					}
 				}
-				&.unsecureRecipient {
-					background: @button-background;
-					&.selected {
-						background: darken(@button-background, 20%);
-					}
-				}
+
                 &.unknownRecipient {
                   background: @grey;
                   &.selected {

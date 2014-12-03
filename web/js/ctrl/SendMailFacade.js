@@ -139,6 +139,12 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 	recipient.setName(recipientInfo.getName());
 	recipient.setMailAddress(recipientInfo.getMailAddress());
 
+
+    if (recipientInfo.getMailAddress() == "system@tutanota.de"){
+        notFoundRecipients.push(recipientInfo.getMailAddress());
+        return Promise.resolve();
+    }
+
 	// copy phone number and password information if this is an external contact
 	// otherwise load the key information from the server
 	if (recipientInfo.isExternal() && notFoundRecipients.length == 0) {

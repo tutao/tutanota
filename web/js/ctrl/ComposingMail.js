@@ -658,7 +658,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = fun
         } else if (this.secure() || recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL) {
             return "secureRecipient";
         } else {
-            return "unsecureRecipient";
+            return "displayRecipient";
         }
     }, this);
 	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state, true);
