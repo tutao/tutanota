@@ -508,7 +508,7 @@
 											<div class="headerLine">
 												<div class="name" data-bind="lang: 'from_label'"></div>
 												<div class="value">
-                                                    <div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div>
+                                                    <div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parent.getLabel(mail.getSender(), 'meDativ_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: mail.getSender().getAddress()"></div></div></div>
 													<span class="rightAligned" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(mail.getSentDate())"></span>
 												</div>
 											</div>
@@ -517,7 +517,7 @@
 													<div class="name" data-bind="lang: 'to_label'"></div>
 													<div class="value">
 														<!-- the next statement must be written in one line, otherwise there are whitespaces between the recipient names -->
-														<!-- ko foreach: mail.getToRecipients() --><!-- ko ifnot: $data == $parent.mail.getToRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meAccusative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getToRecipients() --><!-- ko ifnot: $data == $parent.mail.getToRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meAccusative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
 													</div>
 												</div>
 											<!-- /ko -->
@@ -525,7 +525,7 @@
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'cc_label'"></div>
 													<div class="value">
-														<!-- ko foreach: mail.getCcRecipients() --><!-- ko ifnot: $data == $parent.mail.getCcRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getCcRecipients() --><!-- ko ifnot: $data == $parent.mail.getCcRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
 													</div>
 												</div>
 											<!-- /ko -->
@@ -533,7 +533,7 @@
 												<div class="headerLine">
 													<div class="name" data-bind="lang: 'bcc_label'"></div>
 													<div class="value">
-														<!-- ko foreach: mail.getBccRecipients() --><!-- ko ifnot: $data == $parent.mail.getBccRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble secureRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getBccRecipients() --><!-- ko ifnot: $data == $parent.mail.getBccRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient"><div class="bubbleText" data-bind="text: $parents[1].getLabel($data, 'meNominative_label'), click: tutao.tutanota.gui.showTooltip"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: getAddress()"></div></div></div><!-- /ko -->
 													</div>
 												</div>
 											<!-- /ko -->
