@@ -633,9 +633,13 @@ body {
 							max-width: 100%;
 						}
 
+                      &.bccButtonValue {
+                        width: 53px; // needed on Android < 4.4 to make bubble input take remaining space
+                      }
+
                       > button.bccButton {
                         vertical-align: top;
-                        min-width: 40px;
+                        min-width: inherit; // switch off the default min width
                         float:right;
                         margin-bottom:4px;
                       }
