@@ -200,9 +200,10 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel
     };
 
-    if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-        singletons['swipeRecognizer'] = tutao.tutanota.ctrl.SwipeRecognizer;
-    }
+   // Disable swipte slider on mobile devices.
+   // if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+   //     singletons['swipeRecognizer'] = tutao.tutanota.ctrl.SwipeRecognizer;
+   // }
     tutao.tutanota.legacy.Legacy.setup(singletons);
 
     // @type {tutao.Locator}
