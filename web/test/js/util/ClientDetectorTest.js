@@ -238,7 +238,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
         assert.equal(false, info.isMobileDevice());
         assert.equal(false, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
 
     it(" detect safari 7 on OS X", function () {
@@ -250,8 +250,21 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
         assert.equal(false, info.isMobileDevice());
         assert.equal(false, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
+
+    it(" detect safari 8 on OS X", function () {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI, info.getBrowserType());
+        assert.equal(8, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_MAC, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assert.equal(false, info.isMobileDevice());
+        assert.equal(false, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
 
     it(" detect safari 6.05 on OS X", function () {
         var info = tutao.tutanota.util.ClientDetector;
