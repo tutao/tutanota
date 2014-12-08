@@ -167,12 +167,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function() 
 			return Promise.reject(e);
 		}
 		return self._tryLogin(password);
-	}).caught(tutao.NotAuthenticatedError, function(exception) {
-        // device is not authenticated by server, so delete the device token locally
-        tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
-        self.deviceToken = null;
-        throw exception;
-    });
+	});
 };
 
 /**
@@ -312,6 +307,12 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
     }).caught(tutao.AccessExpiredError, function(e) {
             self.errorMessageId("expiredLink_msg");
     }).caught(tutao.NotAuthenticatedError, function(e) {
+        if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)){
+            // device is not authenticated by server, so delete the device token locally
+            tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
+			tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
+            self.deviceToken = null;
+        }
         self.state.event("passwordInvalid");
         self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
         self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
@@ -350,11 +351,16 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
             });
 		}
 	} else if (!self.autoLoginActive && !self.storePassword()) {
-		// delete any stored password
-		if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {
-			tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
-			tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
-		}
+        // delete any stored password
+        if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {
+            var token = tutao.tutanota.util.LocalStore.load('deviceToken_' + self.userId);
+            new tutao.entity.sys.AutoLoginDataDelete()
+                .setDeviceToken(token).erase({}).caught(function(){
+                    // Ignore errors
+                });
+            tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
+            tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
+        }
 		return Promise.resolve();
 	} else {
         return Promise.resolve();

@@ -78,6 +78,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
 /**
  * Logs the user in, if allowAutoLogin is true and the user has stored a password
  * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
+ * @return {Promise} Resolved when finished, rejected if setup fails.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
     var self = this;
@@ -86,14 +87,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
             self.config = config;
             if (allowAutoLogin && self.config.encryptedPassword) {
                 return self._tryAutoLogin();
-            } else if (!allowAutoLogin) {
-                // remove authentication data
-                self.config.encryptedPassword = null;
-                self.config.deviceToken = null;
-                self.config.userId = null;
-                return tutao.locator.configFacade.write(self.config);
             }
         }
+        return Promise.resolve();
     });
 };
 
@@ -225,9 +221,15 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
     } else if (!self.autoLoginActive && !self.storePassword()) {
         // delete any stored password
         if (self.config.deviceToken || self.config.encryptedPassword) {
-            self.config.deviceToken = null;
-            self.config.encryptedPassword = null;
-            tutao.locator.configFacade.write(self.config);
+            new tutao.entity.sys.AutoLoginDataDelete()
+                .setDeviceToken(self.config.deviceToken).erase({}).caught(function(){
+                    // Ignore errors
+                }).lastly(function(){
+                    self.config.deviceToken = null;
+                    self.config.encryptedPassword = null;
+                    self.config.userId = null;
+                    tutao.locator.configFacade.write(self.config);
+                });
         }
         return Promise.resolve();
     } else {

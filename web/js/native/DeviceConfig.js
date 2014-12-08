@@ -3,7 +3,7 @@
 tutao.provide('tutao.native.DeviceConfig');
 
 /**
- * An android file contains the file name, the URI to the unencrypted file and the session key.
+ * Device config for internal user auto login. Only one config per device is stored.
  * @param {tutao.native.DeviceConfig=} config The config to copy from
  * @constructor
  */
