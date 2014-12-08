@@ -262,6 +262,7 @@ tutao.native.CryptoBrowser.prototype.generateRsaKey = function (keyLength) {
     });
 };
 
+// attention: keep in sync with Legacy implementation
 tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
     return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
 };

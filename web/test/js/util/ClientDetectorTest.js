@@ -166,7 +166,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
         assert.equal(false, info.isMobileDevice());
         assert.equal(false, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
     });
 
     it(" detect old IE8 mode windows", function () {
@@ -178,7 +178,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
         assert.equal(false, info.isMobileDevice());
         assert.equal(false, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
     });
 
     it(" detect old ie7 windows", function () {

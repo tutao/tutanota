@@ -82,7 +82,10 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
                     } catch (e) {
                     }
                 }
-                this.stack = this.name + ". " + this.message + "\n" + error.stack.split("\n").slice(1).join("\n"); // removes first line from stack
+                this.stack = this.name + ". " + this.message;
+                if (error.stack) { // not existing in IE9
+                    this.stack += "\n" + error.stack.split("\n").slice(1).join("\n"); // removes first line from stack
+                }
             }
         }
         RestError.prototype = Object.create(Error.prototype);
