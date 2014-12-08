@@ -203,7 +203,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
 	minVersionNeeded[info.BROWSER_TYPE_FIREFOX] = 16;
 	minVersionNeeded[info.BROWSER_TYPE_IE] = 10;
     minVersionNeeded[info.BROWSER_TYPE_SAFARI] = 6;
-    minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4; // only legacy
+    minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4; // only legacy 
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
     minVersionNeeded[info.BROWSER_TYPE_BB] = 10;
 
@@ -231,14 +231,12 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
             info._browserVersion < 10) {
         // tool old IE versions on win phone shall be shown as not supported instead of update needed
         info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
-    } else if (info._device == info.DEVICE_TYPE_DESKTOP &&
-            info._browser == info.BROWSER_TYPE_SAFARI &&
-            info._browserVersion >= 6.1) {
-        info._supported = info.SUPPORTED_TYPE_LEGACY_SAFARI;
-	} else if (info._device == info.DEVICE_TYPE_DESKTOP &&
-            info._browser == info.BROWSER_TYPE_SAFARI &&
-            info._browserVersion < 6.1) {
-        info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
+	} else if (info._device == info.DEVICE_TYPE_DESKTOP && info._browser == info.BROWSER_TYPE_SAFARI) {
+        if ( info._browserVersion < 6.1 ){
+            info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
+        } else {
+            info._supported = info.SUPPORTED_TYPE_SUPPORTED;
+        }
     } else if (info._device == info.DEVICE_TYPE_ANDROID &&
             info._browser == info.BROWSER_TYPE_ANDROID &&
             info._browserVersion >= 4) {
