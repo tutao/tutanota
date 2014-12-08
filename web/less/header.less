@@ -179,101 +179,78 @@ header#main {
         float: right;
         padding: 0px;
 
-        > li {
+        > li.menu_link {
           float: right;
           .clearfix;
           cursor: pointer;
+          .nonSelectable;
 
+          width: @menuItemWidth; // defines the width of each menu item (+ margin)
 
-          > img.languageIcon {
+          @media @desktop {
+            line-height: 1; // there are two lines in the menu
+          }
+
+          height: @header-height - 1;
+          @media @mobile {
+            height: @header-height-small - 1;
+          }
+
+          &:active, &.active, &.selected {
+            background-color: @highlight-color;
+            border: 0;
+          }
+
+          @media @mobile {
+            width: @menuItemWidthSmall;
+          }
+
+          div.menu_image {
             position: relative;
-            top: 10px;
-            margin-left: auto;
-            margin-right: auto;
+            display: inline-block;
+            width: 100%;
             text-align: center;
-            height: 26px;
-            opacity: 0.9;
-            cursor: pointer;
+            font-size: 28px;
 
-            &.disabled {
-              opacity: 0.2;
+            @media @desktop {
+              height: 35px;
+              line-height: 35px;
+            }
+
+              > div.menu_badge {
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                padding-left: 3px;
+                min-width: 17px;
+                font-size: 12px;
+                font-weight: bold;
+                background: lighten(@dark-blue, 30%);
+                border-radius: 8px;
+                border: 2px solid @background-dark;
+                line-height: 14px;
+                padding-right: 3px;
+              }
+          }
+
+          div.menu_text {
+            .light;
+            .smallFont;
+            height: 16px; // must be a bit bigger than font-size, otherwise lower parts are cut off because of overflow:hidden
+            line-height: 1;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-left: 2px;
+            margin-right: 2px;
+            .fadeTextOut;
+
+            @media @mobile {
+              display: none;
             }
           }
         }
       }
     }
   }
-
-
 }
-
-
-// also used in mail and contact view if no entities is shown
-.menu_link {
-  width: @menuItemWidth; // defines the width of each menu item (+ margin)
-
-  @media @desktop {
-    line-height: 1; // there are two lines in the menu
-  }
-
-  height: @header-height - 1;
-  @media @mobile {
-    height: @header-height-small - 1;
-  }
-
-  &:active, &.active, &.selected {
-    background-color: @highlight-color;
-    border: 0;
-  }
-
-  @media @mobile {
-    width: @menuItemWidthSmall;
-  }
-
-  div.menu_image {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-    font-size: 28px;
-
-    @media @desktop {
-      height: 35px;
-      line-height: 35px;
-    }
-
-      > div.menu_badge {
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        padding-left: 3px;
-        min-width: 17px;
-        font-size: 12px;
-        font-weight: bold;
-        background: lighten(@dark-blue, 30%);
-        border-radius: 8px;
-        border: 2px solid @background-dark;
-        line-height: 14px;
-        padding-right: 3px;
-      }
-  }
-
-  div.menu_text {
-    .light;
-    .smallFont;
-    height: 16px; // must be a bit bigger than font-size, otherwise lower parts are cut off because of overflow:hidden
-    line-height: 1;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    margin-left: 2px;
-    margin-right: 2px;
-    .fadeTextOut;
-
-    @media @mobile {
-      display: none;
-    }
-  }
-}
-
-

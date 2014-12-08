@@ -40,7 +40,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
                                                         .then(function (contacts) {
                                                               self.details("loaded " + contacts.length);
                                                               })
-                                                        .catch(function (e) {
+                                                        .caught(function (e) {
                                                                console.log(e);
                                                                self.details("could not get contacts");
                                                                });
@@ -52,7 +52,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
                 .then(function (number) {
                     self.details(number);
                 })
-                .catch(function (e) {
+                .caught(function (e) {
                     console.log(e);
                     self.details("could not fetch phoneNumber");
                 });
@@ -91,7 +91,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 					var hexKey = tutao.util.EncodingConverter.base64ToHex(key.publicKey.modulus);
 					console.log("public key length:" + hexKey.length + ":" + hexKey);
                 })
-                .catch(function (e) {
+                .caught(function (e) {
                     console.log(e);
                     self.details("could not generate key");
                 });
@@ -114,7 +114,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 					console.log(result);
                     self.details("|took:" + time + " value: " + result.length);
                 })
-                .catch(function (e) {
+                .caught(function (e) {
                     console.log(e);
                     self.details("could encrypt data");
                 });
@@ -134,7 +134,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
                     var time = new Date().getTime() - start;
                     self.details("|took:" + time);
                 })
-                .catch(function (e) {
+                .caught(function (e) {
                     console.log(e);
                     self.details("could not decrypt data");
                 });
@@ -157,7 +157,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 					console.log("browser took:" + browserTime + "[ms]:"+ browserKey);
 				});
 			})
-			.catch(function (e) {
+			.caught(function (e) {
 				console.log(e);
                 self.details("could not bcrypt data");
             });

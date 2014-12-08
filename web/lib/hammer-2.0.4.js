@@ -1,3 +1,7 @@
+// TUTAO start (disabled for non-touch devices because this script does not support IE9)
+if ('ontouchstart' in document.documentElement) {
+// TUTAO end
+
 /*! Hammer.JS - v2.0.4 - 2014-09-28
  * http://hammerjs.github.io/
  *
@@ -2551,3 +2555,7 @@
 
     document.addEventListener("click", preventGhostClick, true);
 })(window, document, 'PreventGhostClick');
+
+// TUTAO start
+}
+// TUTAO end

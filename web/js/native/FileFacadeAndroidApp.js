@@ -58,7 +58,7 @@ tutao.native.FileFacadeAndroidApp.prototype.uploadFileData = function(/*tutao.na
                 }
             });
         }).lastly(function () {
-            self.fileUtil.delete(encryptedFileUrl);
+            self.fileUtil.deleteFile(encryptedFileUrl);
         });
     });
 };
@@ -81,7 +81,7 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
         return tutao.locator.crypto.aesDecryptFile(byteSessionKey, downloadedFileUri).then(function(decryptedFileUri) {
             return new tutao.native.AndroidFile(decryptedFileUri, file.getName(), file.getMimeType(), file.getSize());
         }).lastly(function () {
-            self.fileUtil.delete(downloadedFileUri);
+            self.fileUtil.deleteFile(downloadedFileUri);
         });
     })
 };
@@ -92,6 +92,6 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
 tutao.native.FileFacadeAndroidApp.prototype.open = function(file) {
     var self = this;
     self.fileUtil.open(file.getLocation()).lastly(function () {
-        self.fileUtil.delete(file.getLocation());
+        self.fileUtil.deleteFile(file.getLocation());
     });
 };

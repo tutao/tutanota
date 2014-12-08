@@ -424,9 +424,6 @@ body {
 							display: inline-block;
 							padding-right: @padding;
 							.fadeTextOut;
-							html.ie.lte8 & {
-								width: 150px;
-							}
 						}
 						
 						> div.fileSize {
@@ -633,9 +630,13 @@ body {
 							max-width: 100%;
 						}
 
+                      &.bccButtonValue {
+                        width: 53px; // needed on Android < 4.4 to make bubble input take remaining space
+                      }
+
                       > button.bccButton {
                         vertical-align: top;
-                        min-width: 40px;
+                        min-width: inherit; // switch off the default min width
                         float:right;
                         margin-bottom:4px;
                       }
@@ -724,9 +725,6 @@ body {
 						display: inline-block;
 						padding-right: 5px;
 						.fadeTextOut;
-						html.ie.lte8 & {
-							width: 150px;
-						}
 					}
 					> div.fileSize {
 						display: inline-block;

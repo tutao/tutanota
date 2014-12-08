@@ -58,7 +58,7 @@ FileUtil.prototype.read = function(file) {
  * @param {string} file The uri of the file to delete.
  * @returns {Promise}
  */
-FileUtil.prototype.delete = function(file) {
+FileUtil.prototype.deleteFile = function(file) {
     return new Promise(function (resolve, reject) {
         exec(resolve,reject,"FileUtil", "delete",[file]);
     });

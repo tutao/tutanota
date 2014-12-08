@@ -61,7 +61,7 @@ describe("MailListViewModelTest", function () {
         tutao.locator.randomizer.addEntropy(1, 256, tutao.crypto.RandomizerInterface.ENTROPY_SRC_MOUSE);
     });
 
-    it(" on select, dom elements are (un)marked as selected, the conversation gets set and the mails are marked as read", function () {
+    it(" on select, dom elements are (un)marked as selected, the conversation gets set and the mails are marked as read", function (done) {
 
         tutao.tutanota.gui.unselect = mockFunction();
         tutao.tutanota.gui.select = mockFunction();
@@ -94,12 +94,13 @@ describe("MailListViewModelTest", function () {
         mail.setUnread(true);
         self.vm.mails.push(mail);
 
-        self.vm._selectMail(mail, "test", false);
-        assert.isFalse(mail.getUnread());
+        self.vm._selectMail(mail, "test", false, false).then(function() {
+            assert.isFalse(mail.getUnread());
 
-        verify(tutao.tutanota.gui.unselect, never());
-        verify(tutao.tutanota.gui.select)(["test"]);
-
+            verify(tutao.tutanota.gui.unselect, never());
+            verify(tutao.tutanota.gui.select)(["test"]);
+            done();
+        });
     });
 
     it(" complete search/filter chain: elements pre-exist, elements are added, search is done, filter is done", function () {

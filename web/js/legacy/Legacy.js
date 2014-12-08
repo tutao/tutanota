@@ -12,7 +12,16 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
         tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED ||
         tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE ||
         tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
-        delete singletons.crypto;
+
+		// attention: keep in sync with CryptoBrowser implementation
+        tutao.native.CryptoBrowser = function () {
+            this.aesKeyLength = 128;
+        };
+        tutao.native.CryptoBrowser.initWorkerFileNames = function() {};
+        tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
+            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
+        };
+        singletons.crypto = tutao.native.CryptoBrowser;
         delete singletons.rsaUtil;
         delete singletons.eventBus;
         //noinspection JSUndefinedPropertyAssignment

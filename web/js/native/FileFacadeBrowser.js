@@ -133,7 +133,7 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();
 	return tutao.locator.restClient.getBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, params), headers).then(function(data) {
         if (typeof data === "string") {
-            // LEGACY variant for IE8/9 which uses an Array instead of ArrayBuffer
+            // LEGACY variant for IE9 which uses an Array instead of ArrayBuffer
             return tutao.locator.aesCrypter.decryptBase64(file._entityHelper._sessionKey, data, file.getSize()).then(function(decryptedData) {
                 return new tutao.tutanota.util.DataFile(decryptedData, file);
             });

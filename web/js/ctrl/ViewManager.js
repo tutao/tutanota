@@ -93,15 +93,15 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
             tutao.locator.navigator.logout(false, true);
-        }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt'),
+        }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt')
 
         // all logged in
         // Just for local testing on mobile devices
-        new tutao.tutanota.ctrl.Button('dev_label', 25, function () {
+        /*new tutao.tutanota.ctrl.Button('dev_label', 25, function () {
             tutao.locator.developerViewModel.open();
         }, function() {
             return tutao.env.type == tutao.Env.LOCAL || tutao.env.type == tutao.Env.LOCAL_COMPILED;
-        }, false, "menu_dev", "star", 'dev_label'),
+        }, false, "menu_dev", "star", 'dev_label'),*/
     ];
 
     return buttons;
