@@ -8,7 +8,6 @@ tutao.provide('tutao.tutanota.ctrl.AdminUserListViewModel');
  */
 tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	this.startId = ko.observable(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
     // @type {}
 	this.userGroups = ko.observableArray([]);
 	this.editing = ko.observable(null);
@@ -23,13 +22,6 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
 
     this.update();
-};
-
-tutao.tutanota.ctrl.AdminUserListViewModel.prototype.showSelected = function() {
-	var self = this;
-	this._loadUserGroupEntries(tutao.rest.EntityRestInterface.GENERATED_MAX_ID, true).then(function(userGroupList) {
-		self.userGroups(userGroupList);
-	});
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.editUser = function(userGroup, event) {
@@ -75,20 +67,18 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccounts = function()
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
     var self = this;
-    this._loadUserGroupEntries(this.startId(), true).then(function(groups) {
+    this._loadUserGroupEntries().then(function(groups) {
         self.userGroups([]);
         self.userGroups(groups);
     });
 };
 
 /**
- * Loads a maximum of 1000 entries beginning with the entry with a smaller id than upperBoundId 
- * @param {string} boundId The boundary id (base64 encoded)
- * @param {boolean} reverse If the entries shall be loaded reverse.
+ * Loads all user groups of the logged in users customer.
  * @return {Promise.<Array.<tutao.entity.sys.GroupInfo>>} Resolves to the the list of user group infos when finished, rejected if the rest call failed.
  */
-tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function(boundId, reverse) {
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function() {
 	return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
-        return tutao.entity.sys.GroupInfo.loadRange(customer.getUserGroups(), boundId, 1000, reverse);
+        return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.GroupInfo, customer.getUserGroups(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 	});
 };
