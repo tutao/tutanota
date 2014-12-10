@@ -23,7 +23,15 @@ gulp.task('createWebRelease', shell.task([
     'cd ../web; gulp distCordova'
 ]));
 
+gulp.task('createWebReleaseTest', shell.task([
+    'cd ../web; gulp distCordovaTest'
+]));
+
 gulp.task('androidProdDist', ['createWebRelease'], shell.task([
+    'cordova build --release android'
+]));
+
+gulp.task('androidTestDist', ['createWebReleaseTest'], shell.task([
     'cordova build --release android'
 ]));
 
