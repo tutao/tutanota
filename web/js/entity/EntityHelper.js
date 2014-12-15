@@ -198,9 +198,11 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		var sessionKey;
         var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
         sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
-        self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey);
-		return sessionKey;
-	});
+        // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
+        return self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey).then(function() {
+            return sessionKey;
+        });
+    });
 };
 
 /**
@@ -261,6 +263,7 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
  * @param {tutao.entity.sys.BucketPermission} bucketPermission The bucket permission.
  * @param {Object} groupKey The symmetric group key.
  * @param {Object} sessionKey The symmetric session key.
+ * @return {Promise} When finished.
  */
 tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, groupKey, sessionKey) {
 	var self = this;
@@ -330,8 +333,10 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
             return tutao.locator.crypto.rsaDecrypt(privateKey, tutao.util.EncodingConverter.base64ToArray(bucketPermission.getPubEncBucketKey())).then(function(bucketKeyBytes) {
                 var bucketKey = sjcl.codec.bytes.toBits(bucketKeyBytes);
                 var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
-                self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey);
-                return sessionKey;
+                // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
+                return self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey).then(function() {
+                    return sessionKey;
+                });
             });
 		});
 	});
