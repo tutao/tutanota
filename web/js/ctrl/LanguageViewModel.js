@@ -934,7 +934,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 	progress_msg: "Fortschritt",
 	terms_label: "Bestätigung",
 	termsAcceptedNeutral_msg: "Bitte akzeptieren Sie die AGB.",
-    backTologin_action: "Zurück zum Login",
+    backTologin_action: "Abbrechen",
 
 	// feedback
 	errorReport_label: "Oh nein!",
