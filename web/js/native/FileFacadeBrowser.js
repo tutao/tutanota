@@ -165,7 +165,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                         fileWriter.onerror = function(e) {
                             reject(e);
                         };
-                        var blob = new Blob([new DataView(dataFile.getData().buffer)], {type: dataFile.getMimeType()});
+						var blob = new Blob([dataFile.getData()], {type: dataFile.getMimeType()});
                         fileWriter.write(blob);
                     }, function(e) {
                         reject(e);
