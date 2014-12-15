@@ -14,7 +14,7 @@ tutao.native.ContactApp.prototype.findRecipients = function(text, maxNumberOfSug
         var options      = new ContactFindOptions();
         options.filter   = text;
         options.multiple = true;
-        var fields       = [navigator.contacts.fieldType.formatted, navigator.contacts.fieldType.givenName, navigator.contacts.fieldType.familyName, navigator.contacts.fieldType.emails];
+        var fields       = [navigator.contacts.fieldType.name, navigator.contacts.fieldType.formatted, navigator.contacts.fieldType.givenName, navigator.contacts.fieldType.familyName, navigator.contacts.fieldType.emails];
 		options.desiredFields = [navigator.contacts.fieldType.name, navigator.contacts.fieldType.formatted, navigator.contacts.fieldType.givenName, navigator.contacts.fieldType.familyName, navigator.contacts.fieldType.emails];
 
         navigator.contacts.find(fields, function(nativeContacts) {
