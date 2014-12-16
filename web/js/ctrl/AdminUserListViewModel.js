@@ -52,7 +52,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
 
             // Update user group info for the logged in user.
             if (tutao.util.ArrayUtils.arrayEquals( tutao.locator.userController.getUserGroupInfo().getId(),updatedUserGroupInfo.getId()) ){
-                tutao.locator.userController._userGroupInfo = updatedUserGroupInfo;
+                tutao.locator.userController.setUserGroupInfo(updatedUserGroupInfo);
             }
             self.editing(null);
         })
