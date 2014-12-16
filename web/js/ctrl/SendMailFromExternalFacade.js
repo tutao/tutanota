@@ -12,7 +12,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
  * @param {string} conversationType See TutanotaConstants.
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Empty string if this is a new mail.
- * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
+ * @param {Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
  * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolves to the senders mail id (only element id, no list id),
  * rejected with an RecipientsNotFoundError if some of the recipients could not be found.

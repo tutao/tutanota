@@ -89,11 +89,13 @@ FileUtil.prototype.getMimeType = function(file) {
 /**
  * Returns the byte size of a file
  * @param {string} file The uri of the file
- * @returns {Promise.<string>}
+ * @returns {Promise.<Number>}
  */
 FileUtil.prototype.getSize = function(file) {
     return new Promise(function (resolve, reject) {
         exec(resolve, reject,"FileUtil", "getSize",[file]);
+    }).then(function(sizeString) {
+        return Number(sizeString);
     });
 };
 

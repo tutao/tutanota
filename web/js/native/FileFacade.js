@@ -16,7 +16,7 @@ tutao.native.FileFacade.prototype.showFileChooser = function() {};
 
 /**
  * Creates a new file on the server in the user file system.
- * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} dataFile The file.
+ * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} file The file.
  * @param {Object} sessionKey The session key used to encrypt the file.
  * @return {Promise.<Array.<String>>} Resolves to the id of the created File, rejected if failed.
  */

@@ -5,8 +5,9 @@ tutao.provide('tutao.native.AndroidFile');
 /**
  * An android file contains the file name, the URI to the unencrypted file and the session key.
  * @param {String} location The URI of the unencrypted file
+ * @param {String} name The name of the file
  * @param {String} mimeType The mimeType of the file
- * @param {String} size The size of the file
+ * @param {Number} size The size of the file
  * @constructor
  */
 tutao.native.AndroidFile = function(location, name, mimeType, size) {

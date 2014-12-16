@@ -14,7 +14,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 
 	this.composerSubject = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);
-    // @type {function(tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=):tutao.tutanota.util.DataFile|tutao.entity.tutanota.File=}
+    // @type {function():Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>
 	this._attachments = ko.observableArray();
 	this.currentlyDownloadingAttachment = ko.observable(null); // null or a DataFile
 
@@ -165,7 +165,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
         if (!self.secure()) {
             var attachmentsSize = 0;
             for (var i = 0; i < self._attachments().length; i++) {
-                attachmentsSize += self._attachments()[i].getSize();
+                attachmentsSize += Number(self._attachments()[i].getSize()); // cast to number because File.getSize() returns a string
             }
             if (attachmentsSize > tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) {
                 setTimeout(function() {
@@ -464,7 +464,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
 
 /**
  * Removes the given data file from the attachments.
- * @param {tutao.tutanota.util.DataFile} dataFile The file to remove.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile} dataFile The file to remove.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.removeAttachment = function(dataFile) {
     if (this.busy()) {
@@ -529,7 +529,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 	var self = this;
     var size = 0;
     for (var i=0; i<this._attachments().length; i++) {
-        size += this._attachments()[i].getSize();
+        size += Number(this._attachments()[i].getSize());  // cast to number because File.getSize() returns a string
     }
 	for (var i = 0; i < fileList.length; i++) {
 		if (size + fileList[i].getSize() > tutao.entity.tutanota.TutanotaConstants.MAX_ATTACHMENT_SIZE) {

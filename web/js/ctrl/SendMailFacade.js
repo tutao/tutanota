@@ -12,7 +12,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
  * @param {string} conversationType See TutanotaConstants.
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
- * @param {Array.<tutao.tutanota.util.DataFile>} attachments The new files that shall be attached to this mail.
+ * @param {Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
  * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolved finished with the id of the senders mail (only element id, no list id). Rejected with a
  * RecipientsNotFoundError if some of the recipients could not be found
@@ -63,7 +63,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
 /**
  * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files)
  * @param {tutao.entity.tutanota.Attachment|tutao.entity.tutanota.UnsecureAttachment|tutao.entity.tutanota.AttachmentFromExternal} attachment The attachment
- * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File} file The file or data file to upload.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile} dataFile File to upload.
  * @return {Promise.<Object>} Resolves to the session key of the file, rejects if failed.
  */
 tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataFile) {
