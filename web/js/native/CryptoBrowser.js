@@ -101,6 +101,13 @@ tutao.native.CryptoBrowser = function () {
         _bytesToHex: function (bytes) {
             return tutao.util.EncodingConverter.bytesToHex(bytes);
         },
+        _int32ToUint32: function (value) {
+            if (value < 0) {
+                return value + 4294967296; // =2^32
+            } else {
+                return value;
+            }
+        },
         aesEncrypt: function(key, plainText, random, callback) {
             try {
                 var byteKeyLength = key.length;
@@ -119,7 +126,7 @@ tutao.native.CryptoBrowser = function () {
 
                 // put the iv into first destination block
                 for (var i = 0; i < uint32ArraysPerBlock; i++) {
-                    dstDataView.setUint32(i * 4, iv[i], false);
+                    dstDataView.setUint32(i * 4, this._int32ToUint32(iv[i]), false);
                 }
 
                 // encrypt full src blocks
@@ -131,10 +138,10 @@ tutao.native.CryptoBrowser = function () {
                     plainBlock[3] = srcDataView.getUint32((i + 3) * 4, false);
                     iv = prp.encrypt(xor(iv, plainBlock));
                     var dstBlockOffset = (uint32ArraysPerBlock + i) * 4;
-                    dstDataView.setUint32(dstBlockOffset, iv[0], false);
-                    dstDataView.setUint32(dstBlockOffset + 4, iv[1], false);
-                    dstDataView.setUint32(dstBlockOffset + 8, iv[2], false);
-                    dstDataView.setUint32(dstBlockOffset + 12, iv[3], false);
+                    dstDataView.setUint32(dstBlockOffset, this._int32ToUint32(iv[0]), false);
+                    dstDataView.setUint32(dstBlockOffset + 4, this._int32ToUint32(iv[1]), false);
+                    dstDataView.setUint32(dstBlockOffset + 8, this._int32ToUint32(iv[2]), false);
+                    dstDataView.setUint32(dstBlockOffset + 12, this._int32ToUint32(iv[3]), false);
                 }
 
                 // padding
@@ -156,10 +163,10 @@ tutao.native.CryptoBrowser = function () {
                 plainBlock[3] = srcDataViewLastBlock.getUint32(12, false);
                 iv = prp.encrypt(xor(iv, plainBlock));
                 var dstLastBlockOffset = (nbrOfFullSrcBlocks + 1) * byteKeyLength;
-                dstDataView.setUint32(dstLastBlockOffset, iv[0], false);
-                dstDataView.setUint32(dstLastBlockOffset + 4, iv[1], false);
-                dstDataView.setUint32(dstLastBlockOffset + 8, iv[2], false);
-                dstDataView.setUint32(dstLastBlockOffset + 12, iv[3], false);
+                dstDataView.setUint32(dstLastBlockOffset, this._int32ToUint32(iv[0]), false);
+                dstDataView.setUint32(dstLastBlockOffset + 4, this._int32ToUint32(iv[1]), false);
+                dstDataView.setUint32(dstLastBlockOffset + 8, this._int32ToUint32(iv[2]), false);
+                dstDataView.setUint32(dstLastBlockOffset + 12, this._int32ToUint32(iv[3]), false);
                 callback({ type: 'result', result: new Uint8Array(dstBuffer)});
             } catch (e) {
                 callback({ type: 'error', msg: e.stack});
@@ -204,7 +211,7 @@ tutao.native.CryptoBrowser = function () {
                         var lastSrcBlock = new DataView(new ArrayBuffer(byteKeyLength));
                         // copy the decrypted uint32 to the last block
                         for (var a = 0; a < uint32ArraysPerBlock; a++) {
-                            lastSrcBlock.setUint32(a * 4, decryptedBlock[a], false);
+                            lastSrcBlock.setUint32(a * 4, this._int32ToUint32(decryptedBlock[a]), false);
                         }
                         // check the padding length
                         var nbrOfPaddingBytes = decryptedBlock[3] & 255;

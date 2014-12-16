@@ -139,7 +139,7 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
             });
         } else {
             var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(file._entityHelper._sessionKey));
-            return tutao.locator.crypto.aesDecrypt(byteSessionKey, new Uint8Array(data), file.getSize()).then(function(decryptedData) {
+            return tutao.locator.crypto.aesDecrypt(byteSessionKey, new Uint8Array(data), Number(file.getSize())).then(function(decryptedData) {
                 return new tutao.tutanota.util.DataFile(decryptedData, file);
             });
         }
