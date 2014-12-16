@@ -197,7 +197,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
     // if auto login is active, the password is already stored and valid
     if (self.storePassword()) {
         var promise = null;
-        if (!self.config.deviceToken) {
+        if (!self.config.deviceToken || tutao.locator.userController.getUserId() != self.config.userId) {
             // register the device and store the encrypted password
             var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
             var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
