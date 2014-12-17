@@ -239,7 +239,7 @@ tutao.util.EncodingConverter.asciiToArrayBuffer = function(string) {
  * Converts an ArrayBuffer to a Base64 encoded string.
  * Works only on IE > 10 (uses btoa).
  *
- * @param {ArrayBuffer} string The ASCII-String to convert.
+ * @param {ArrayBuffer} buffer The ASCII-String to convert.
  * @return {string} The Base64 encoded string.
  */
 tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {

@@ -39,7 +39,7 @@ tutao.native.FileFacade.prototype.readFileData = function(file) {};
 
 /**
  * Opens the file.
- * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile|tutao.entity.tutanota.File} file The File.
+ * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} file The File.
  * @return {Promise.<>} Resolves after the file has been opened, rejected if failed.
  */
 tutao.native.FileFacade.prototype.open = function(file) {};
