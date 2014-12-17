@@ -139,6 +139,16 @@ tutao.ctrl.UserController.prototype.getUserGroupInfo = function () {
 };
 
 /**
+ * Sets the user group info
+ * @param {tutao.entity.sys.GroupInfo} groupInfo The new group info to set
+ */
+tutao.ctrl.UserController.prototype.setUserGroupInfo = function (groupInfo) {
+    this._userGroupInfo(groupInfo);
+};
+
+
+
+/**
  * Sets the given user as logged-in user.
  * @param {string} mailAddress The mail address of the user.
  * @param {string} passphrase The passphrase of the user.

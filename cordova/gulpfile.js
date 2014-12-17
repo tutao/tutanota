@@ -13,15 +13,11 @@ gulp.task('default', shell.task([
     'cordova run android'
 ]));
 
-gulp.task('ios', shell.task([
-    'cordova plugins remove de.tutanota.native',
-    'cordova plugins add ../native/',
-   
-]));
-
 gulp.task('createWebRelease', shell.task([
     'cd ../web; gulp distCordova'
 ]));
+
+
 
 gulp.task('createWebReleaseTest', shell.task([
     'cd ../web; gulp distCordovaTest'
@@ -34,6 +30,19 @@ gulp.task('androidProdDist', ['createWebRelease'], shell.task([
 gulp.task('androidTestDist', ['createWebReleaseTest'], shell.task([
     'cordova build --release android'
 ]));
+
+
+gulp.task('prepareiOSProdDist', ['createWebRelease'], shell.task([
+    'cordova platform remove ios',
+	'cordova platform add ios'
+]));
+
+gulp.task('prepareiOSTestDist', ['createWebReleaseTest'], shell.task([
+    'cordova platform remove ios',
+	'cordova platform add ios'
+]));
+
+
 
 gulp.task('tagAndroidRelease', ['androidProdDist'], shell.task([
         "git tag -a tutanota-android-release-" + androidVersion + " -m ''",
