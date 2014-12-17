@@ -14,13 +14,38 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
         tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
 
 		// attention: keep in sync with CryptoBrowser implementation
+        var workerFunctions = tutao.native.CryptoBrowser._workerFunctions;
         tutao.native.CryptoBrowser = function () {
             this.aesKeyLength = 128;
         };
+        tutao.native.CryptoBrowser._workerFunctions = workerFunctions;
         tutao.native.CryptoBrowser.initWorkerFileNames = function() {};
         tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
             return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
         };
+        tutao.native.CryptoBrowser.prototype.aesDecrypt = function (key, cipherText, decryptedSize) {
+            var self = this;
+            return new Promise(function (resolve, reject) {
+                var byteKeyLength = self.aesKeyLength / 8;
+                if (key.length !== byteKeyLength) {
+                    throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
+                }
+                if (cipherText.length % byteKeyLength != 0 || cipherText.length < 2 * byteKeyLength) {
+                    throw new tutao.crypto.CryptoError("invalid src buffer len: " + cipherText.length);
+                }
+                if (decryptedSize < (cipherText.length - 2 * byteKeyLength)) {
+                    throw new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + cipherText.length);
+                }
+                tutao.native.CryptoBrowser._workerFunctions.aesDecrypt(key, cipherText, decryptedSize, function(data) {
+                    if (data.type != 'result') {
+                        reject(new tutao.crypto.CryptoError(data.msg));
+                    } else {
+                        resolve(data.result);
+                    }
+                });
+            });
+        };
+
         singletons.crypto = tutao.native.CryptoBrowser;
         delete singletons.rsaUtil;
         delete singletons.eventBus;

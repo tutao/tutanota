@@ -205,8 +205,8 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
             }
         } else {
             var url;
-            // safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
-            if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7) {
+            // android browser and safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
+            if ((tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7) || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
                 var base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()));
                 url = "data:" + mimeType + ";base64," + base64;
             } else {
