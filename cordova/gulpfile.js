@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
 
-var androidVersion = "1.6.0";
+var androidVersion = "1.6.1";
 
 gulp.task('default', shell.task([
     // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
@@ -24,10 +24,16 @@ gulp.task('createWebReleaseTest', shell.task([
 ]));
 
 gulp.task('androidProdDist', ['createWebRelease'], shell.task([
+    'cordova platform remove android',
+    'cordova platform add android',
+    'ln -sf /opt/next-config/android-keystore/ant.properties ./platforms/android/',
     'cordova build --release android'
 ]));
 
 gulp.task('androidTestDist', ['createWebReleaseTest'], shell.task([
+    'cordova platform remove android',
+    'cordova platform add android',
+    'ln -sf /opt/next-config/android-keystore/ant.properties ./platforms/android/',
     'cordova build --release android'
 ]));
 
