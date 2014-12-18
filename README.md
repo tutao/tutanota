@@ -14,12 +14,13 @@ Pre-requisites:
 
 Build steps:
 
-1. Checkout the repository: `clone https://github.com/tutao/tutanota.git`
+1. Checkout the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Install dependencies: `npm install`
-4. Build Tutanota: `gulp dist`
-5. Switch into the build directory: `cd build`
-6. Open the index.html with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
+3. Checkout latest stable release (currently tutanota-release-1.6.1): `checkout tutanota-release-1.6.1`
+4. Install dependencies: `npm install`
+5. Build Tutanota: `gulp dist`
+6. Switch into the build directory: `cd build`
+7. Open the index.html with your favorite browser (tested: Firefox and Chrome). Running Tutanota locally with Chrome requires starting Chrome with the argument `--allow-file-access-from-files`.
 
 ## Server templates
 Server templates contains working installation instructions. Allows to create a temporary server to test, deploy production servers and fork configurations for customization.
