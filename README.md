@@ -3,6 +3,7 @@
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
 Official website: https://tutanota.de
+Issues and new features are tracked here: https://tutanota.uservoice.com/forums/237921-general
 
 ## Building and running your own Tutanota web client
 
