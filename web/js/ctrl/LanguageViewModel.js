@@ -265,7 +265,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	pwChangeButtonChangePw_action: "Change password",
 	serverNotReachable_msg: "Could not reach server, looks like you are offline. Please try again later.",
     outdatedClient_msg: "Please update Tutanota. The currently installed version is too old and not supported any longer.",
-    unknownError_msg: "An unexpected error occured. Please try again later.",
+    unknownError_msg: "An unexpected error occurred. Please try again later.",
 	passwordNotChanged_msg: "The password was not changed.",
     passwordResetFailed_msg: "An error occurred. The password was not changed.",
 	notePassword_msg: "Please note down the password carefully and provide it to the user.",
@@ -474,7 +474,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// feedback
 	errorReport_label: "Oh no!",
-    errorReportDescription_msg: "An unexpected error occured. Please tell us what happened and we will fix the problem as soon as possible.",
+    errorReportDescription_msg: "An unexpected error occurred. Please tell us what happened and we will fix the problem as soon as possible.",
     screenshot_label: "Attach screenshot",
     feedbackInfo_msg: "The message and your browser identifier are sent encrypted to support@tutao.de.",
     feedbackErrorInfo_msg: "The message, error details and your browser identifier are sent encrypted to support@tutao.de.",
