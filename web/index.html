@@ -1009,9 +1009,9 @@
 								</div>
 							</div>
 
-                            <!-- <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div> -->
+                            <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
 
-                            <div class="record" data-bind="visible: true"> <!-- !tutao.tutanota.ctrl.LoginViewModel.showAppInfo() -->
+                            <div class="record" data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
                                 <div class="recordName"></div>
                                 <div class="recordData">
                                     <div class="recordValue socialMediaLinks">
@@ -1280,7 +1280,7 @@
                                     </div>
                                 </div>
 
-                                <!-- <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div> -->
+                                <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
                             </form>
 						<!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
