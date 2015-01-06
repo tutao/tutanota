@@ -350,7 +350,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	socialMedia_label: "If you like us, like us:",
 
     appInfoAndroidUrl_action: "https://play.google.com/store/apps/details?id=de.tutao.tutanota",
-    appInfoIosUrl_action: "https://itunes.apple.com",
+    appInfoIosUrl_action: "https://itunes.apple.com/app/tutanota/id922429609?ls=1&mt=8",
     appInfoAndroidImage_action: "graphics/android_en.png",
     appInfoIosImage_action: "graphics/ios_en.png",
     appInfoAndroidImageAlt_alt: "Android app on Google Play",
@@ -814,7 +814,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     socialMedia_label: "Folge uns für Updates:",
 
     appInfoAndroidUrl_action: "https://play.google.com/store/apps/details?id=de.tutao.tutanota",
-    appInfoIosUrl_action: "https://itunes.apple.com",
+    appInfoIosUrl_action: "https://itunes.apple.com/app/tutanota/id922429609?ls=1&mt=8",
     appInfoAndroidImage_action: "graphics/android_de.png",
     appInfoIosImage_action: "graphics/ios_de.png",
     appInfoAndroidImageAlt_alt: "Android app bei Google Play",
