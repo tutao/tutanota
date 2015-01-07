@@ -46,7 +46,8 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
  * @returns {tutao.event.EventBusClient} The event bus client object.
  */
 tutao.event.EventBusClient.prototype.connect = function(reconnect) {
-	var self = this;
+    console.log("ws connect reconnect=", reconnect);
+    var self = this;
 	var url = tutao.env.getWebsocketOrigin() + "/event/";
 	this._socket = new WebSocket(url);
 	this._socket.onopen = function() {
@@ -74,6 +75,7 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
  * Sends a close event to the server and closes the connection.
  */
 tutao.event.EventBusClient.prototype.close = function() {
+    console.log("ws close: ", event, new Date());
 	if (this._socket) {
 		this._socket.close();
 	}
@@ -94,15 +96,20 @@ tutao.event.EventBusClient.prototype._message = function(message) {
 };
 
 tutao.event.EventBusClient.prototype._close = function(event) {
-	console.log("ws close: ", event, new Date());
+	console.log("ws _close: ", event, new Date());
     if (tutao.locator.userController.isInternalUserLoggedIn()) {
-        setTimeout(this._reconnect, 1000 * this._randomIntFromInterval(30, 100));
+        setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
     }
 };
 
-tutao.event.EventBusClient.prototype._reconnect = function() {
-    console.log("reconnect socket state: " + this._socket.readyState);
-    this.connect(true);
+/**
+ * Tries to reconnect the websocket if it is not connected.
+ */
+tutao.event.EventBusClient.prototype.tryReconnect = function() {
+    console.log("ws tryReconnect socket state: " + this._socket.readyState);
+    if (this._socket == null || this._socket.readyState == WebSocket.CLOSED) {
+        this.connect(true);
+    }
 };
 
 tutao.event.EventBusClient.prototype._randomIntFromInterval = function(min,max) {
