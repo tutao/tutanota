@@ -28,6 +28,7 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS = 1;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD = 2;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST = 3;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT = 4;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES = 5;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 
 /**
@@ -41,6 +42,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
 		settings.push(s.DISPLAY_ADMIN_USER_LIST);
         if (tutao.locator.viewManager.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
+            settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
         }
 	}
 	return settings;
@@ -52,7 +54,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
  * @return {String} text id for the setting number
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
-	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action"][settings];
+	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures"][settings];
 };
 
 /**
