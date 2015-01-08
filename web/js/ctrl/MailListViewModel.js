@@ -134,7 +134,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
         } else {
             var eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, tutao.locator.mailBoxController.getUserMailBox().getMails(), "Mail");
             eventTracker.addObserver(self.updateOnNewMails);
-            eventTracker.observeList(tutao.rest.EntityRestInterface.GENERATED_MAX_ID);
+            eventTracker.observeList(self._getHighestMailId());
             return Promise.resolve();
         }
     });
@@ -652,6 +652,18 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._getLowestMailId = function(tagI
     return lowestId;
 };
 
+tutao.tutanota.ctrl.MailListViewModel.prototype._getHighestMailId = function() {
+    var highestId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
+	for(var tagIndex = 0; tagIndex < this.currentTagFilterResult.length; tagIndex++){
+		if (this.currentTagFilterResult[tagIndex].length > 0) {
+			var highestIdInTagList = this.currentTagFilterResult[tagIndex][0];
+			if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(highestIdInTagList, highestId)){
+				highestId = highestIdInTagList;
+			}
+		}
+	}
+    return highestId;
+};
 
 /**
  * Requests for validity from the search field.

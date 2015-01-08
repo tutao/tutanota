@@ -85,6 +85,12 @@ tutao.tutanota.Bootstrap.init = function () {
 					}
 				}, false);
 			}
+            // listener to get notified when the app returns to foreground.
+            document.addEventListener("resume", function(){
+                if (tutao.locator.userController.isInternalUserLoggedIn()){
+                    tutao.locator.eventBus.tryReconnect();
+                }
+            }, false);
         }
 
         // only for testing
