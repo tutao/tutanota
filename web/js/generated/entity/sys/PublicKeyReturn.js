@@ -24,7 +24,7 @@ tutao.entity.sys.PublicKeyReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PublicKeyReturn.MODEL_VERSION = '5';
+tutao.entity.sys.PublicKeyReturn.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -127,6 +127,6 @@ tutao.entity.sys.PublicKeyReturn.load = function(entity, parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PublicKeyReturn, tutao.entity.sys.PublicKeyReturn.PATH, entity, parameters, headers);
 };

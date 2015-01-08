@@ -30,7 +30,7 @@ tutao.entity.sys.GroupMember = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.GroupMember.MODEL_VERSION = '5';
+tutao.entity.sys.GroupMember.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -214,7 +214,7 @@ tutao.entity.sys.GroupMember.prototype.loadUserGroupInfo = function() {
  * @return {Promise.<tutao.entity.sys.GroupMember>} Resolves to the GroupMember or an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, id[1], id[0], {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, id[1], id[0], {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -225,7 +225,7 @@ tutao.entity.sys.GroupMember.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.GroupMember>>} Resolves to an array of GroupMember or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -237,7 +237,7 @@ tutao.entity.sys.GroupMember.loadMultiple = function(ids) {
 tutao.entity.sys.GroupMember.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 5;
+  params["v"] = 6;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupMember.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -250,7 +250,7 @@ tutao.entity.sys.GroupMember.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.GroupMember>>} Resolves to an array of GroupMember or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, listId, start, count, reverse, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, listId, start, count, reverse, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };
