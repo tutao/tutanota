@@ -17,6 +17,7 @@ tutao.entity.sys.Customer = function(data) {
     this._customerGroup = data.customerGroup;
     this._customerGroups = data.customerGroups;
     this._customerInfo = data.customerInfo;
+    this._properties = data.properties;
     this._teamGroups = data.teamGroups;
     this._userGroups = data.userGroups;
   } else {
@@ -29,6 +30,7 @@ tutao.entity.sys.Customer = function(data) {
     this._customerGroup = null;
     this._customerGroups = null;
     this._customerInfo = null;
+    this._properties = null;
     this._teamGroups = null;
     this._userGroups = null;
   }
@@ -81,6 +83,7 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     customerGroup: this._customerGroup, 
     customerGroups: this._customerGroups, 
     customerInfo: this._customerInfo, 
+    properties: this._properties, 
     teamGroups: this._teamGroups, 
     userGroups: this._userGroups
   };
@@ -120,6 +123,11 @@ tutao.entity.sys.Customer.prototype.CUSTOMERGROUPS_ATTRIBUTE_ID = 40;
  * The id of the customerInfo attribute.
  */
 tutao.entity.sys.Customer.prototype.CUSTOMERINFO_ATTRIBUTE_ID = 160;
+
+/**
+ * The id of the properties attribute.
+ */
+tutao.entity.sys.Customer.prototype.PROPERTIES_ATTRIBUTE_ID = 662;
 
 /**
  * The id of the teamGroups attribute.
@@ -297,6 +305,31 @@ tutao.entity.sys.Customer.prototype.getCustomerInfo = function() {
  */
 tutao.entity.sys.Customer.prototype.loadCustomerInfo = function() {
   return tutao.entity.sys.CustomerInfo.load(this._customerInfo);
+};
+
+/**
+ * Sets the properties of this Customer.
+ * @param {string} properties The properties of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setProperties = function(properties) {
+  this._properties = properties;
+  return this;
+};
+
+/**
+ * Provides the properties of this Customer.
+ * @return {string} The properties of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getProperties = function() {
+  return this._properties;
+};
+
+/**
+ * Loads the properties of this Customer.
+ * @return {Promise.<tutao.entity.sys.CustomerProperties>} Resolves to the loaded properties of this Customer or an exception if the loading failed.
+ */
+tutao.entity.sys.Customer.prototype.loadProperties = function() {
+  return tutao.entity.sys.CustomerProperties.load(this._properties);
 };
 
 /**

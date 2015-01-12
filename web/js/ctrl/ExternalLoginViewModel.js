@@ -299,8 +299,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                     // no indexing for external users
                     tutao.locator.replace('dao', new tutao.db.DummyDb);
                     self._showingMail = true;
-                    tutao.locator.mailListViewModel.loadInitial();
-                    tutao.locator.navigator.mail();
+                    tutao.entity.sys.ExternalPropertiesReturn.load({}, null).then(function (data) {
+                        if (data.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                            tutao.locator.viewManager.externalUserWelcomeMessage(tutao.lang("externalWelcomeMessageFree_msg"));
+                        } else {
+                            tutao.locator.viewManager.externalUserWelcomeMessage(data.getMessage());
+                        }
+                        tutao.locator.mailListViewModel.loadInitial();
+                        tutao.locator.navigator.mail();
+                    });
                 });
             });
         });

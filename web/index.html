@@ -111,13 +111,42 @@
 <script src="/lib/worker/crypto-sjcl-2012-08-09_1.js"></script>
 <script src="/js/Bootstrap.js"></script>
 <script src="/js/Locator.js"></script>
+<script src="/js/crypto/AesInterface.js"></script>
+<script src="/js/crypto/CryptoError.js"></script>
+<script src="/js/crypto/EntropyCollector.js"></script>
+<script src="/js/crypto/JBCryptAdapter.js"></script>
+<script src="/js/crypto/KdfInterface.js"></script>
+<script src="/js/crypto/Oaep.js"></script>
+<script src="/js/crypto/RandomizerInterface.js"></script>
+<script src="/js/crypto/SecureRandom.js"></script>
+<script src="/js/crypto/ShaInterface.js"></script>
+<script src="/js/crypto/SjclAes.js"></script>
+<script src="/js/crypto/SjclRandomizer.js"></script>
+<script src="/js/crypto/SjclSha256.js"></script>
+<script src="/js/crypto/WorkerRandomizer.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
+<script src="/js/ctrl/AdminMessagesViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
+<script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
 <script src="/js/ctrl/AdminUserListViewModel.js"></script>
-<script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
 <script src="/js/ctrl/AppCacheListener.js"></script>
 <script src="/js/ctrl/AttachmentDialogViewModel.js"></script>
 <script src="/js/ctrl/Button.js"></script>
@@ -164,21 +193,6 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/gui/BubbleInputGui.js"></script>
 <script src="/js/gui/ContactView.js"></script>
 <script src="/js/gui/ExternalLoginView.js"></script>
@@ -204,19 +218,6 @@
 <script src="/js/rest/RestClient.js"></script>
 <script src="/js/security/CajaSanitizer.js"></script>
 <script src="/js/security/HtmlSanitizer.js"></script>
-<script src="/js/crypto/AesInterface.js"></script>
-<script src="/js/crypto/CryptoError.js"></script>
-<script src="/js/crypto/EntropyCollector.js"></script>
-<script src="/js/crypto/JBCryptAdapter.js"></script>
-<script src="/js/crypto/KdfInterface.js"></script>
-<script src="/js/crypto/Oaep.js"></script>
-<script src="/js/crypto/RandomizerInterface.js"></script>
-<script src="/js/crypto/SecureRandom.js"></script>
-<script src="/js/crypto/ShaInterface.js"></script>
-<script src="/js/crypto/SjclAes.js"></script>
-<script src="/js/crypto/SjclRandomizer.js"></script>
-<script src="/js/crypto/SjclSha256.js"></script>
-<script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ConfigApp.js"></script>
 <script src="/js/native/ConfigBrowser.js"></script>
@@ -344,12 +345,14 @@
 <script src="/js/generated/entity/sys/CustomerInfo.js"></script>
 <script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
+<script src="/js/generated/entity/sys/CustomerProperties.js"></script>
 <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
 <script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/EntityUpdate.js"></script>
 <script src="/js/generated/entity/sys/Exception.js"></script>
+<script src="/js/generated/entity/sys/ExternalPropertiesReturn.js"></script>
 <script src="/js/generated/entity/sys/ExternalUserReference.js"></script>
 <script src="/js/generated/entity/sys/Group.js"></script>
 <script src="/js/generated/entity/sys/GroupInfo.js"></script>
@@ -371,6 +374,7 @@
 <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
+<script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
 <script src="/js/generated/entity/sys/PushIdentifier.js"></script>
@@ -1254,7 +1258,7 @@
                                         <div class="recordValue">
                                             <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
                                         </div>
-                                        <label for="newpassword2" class="recordStatus", data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+                                        <label for="newpassword2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
                                     </div>
                                 </div>
                                 <div class="record">
@@ -1263,10 +1267,10 @@
                                         <div class="recordValue">
                                             <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
                                             <!-- ko if: getRegistrationType() == 'Free' -->
-                                            <label data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
+                                            <label for="termsInput" data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
                                             <!-- /ko -->
                                             <!-- ko if: getRegistrationType() == 'Starter' -->
-                                            <label data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
+                                            <label for="termsInput" data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
                                             <!-- /ko -->
                                         </div>
                                         <label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
@@ -1334,7 +1338,7 @@
 					<div id="changeSettingsData">
 						<div>
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS -->
-								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.AccountSettingsViewModel()">
+								<div id="accountSettings" data-bind="with: new tutao.tutanota.ctrl.AccountSettingsViewModel()">
 									<div class="recordContainer wide" data-bind="foreach: records, form: true">
 										<div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
 									</div>
@@ -1352,14 +1356,14 @@
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS -->
-								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.SecuritySettingsViewModel()">
+								<div id="securitySettings" data-bind="with: new tutao.tutanota.ctrl.SecuritySettingsViewModel()">
 									<div class="recordContainer wide" data-bind="foreach: records, form: true">
 										<div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
 									</div>
 								</div>
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD -->
-								<div id="changePasswordData" data-bind="with: new tutao.tutanota.ctrl.ChangePasswordViewModel()">
+								<div id="changePassword" data-bind="with: new tutao.tutanota.ctrl.ChangePasswordViewModel()">
                                     <!-- ko if: tutao.tutanota.util.ClientDetector.isMobileDevice() -->
                                         <div class="smallInfoMessage" data-bind="lang: 'changePasswordNotSupported_msg'"></div>
                                     <!-- /ko -->
@@ -1385,12 +1389,12 @@
                                                 </div>
                                             </div>
                                             <div class="record">
-                                                <label for="newpassword" class="recordName" data-bind="lang: 'newPassword_label'"></label>
+                                                <label for="changePasswordNew" class="recordName" data-bind="lang: 'newPassword_label'"></label>
                                                 <div class="recordData">
                                                     <div class="recordValue">
-                                                        <input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+                                                        <input id="changePasswordNew" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
                                                     </div>
-                                                    <label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
+                                                    <label for="changePasswordNew" class="recordStatus" data-bind="css: getPassword1Status().type">
                                                         <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                                         </div>
@@ -1400,12 +1404,12 @@
                                                 </div>
                                             </div>
                                             <div class="record">
-                                                <label for="newpassword2" class="recordName"></label>
+                                                <label for="changePasswordNew2" class="recordName"></label>
                                                 <div class="recordData">
                                                     <div class="recordValue">
-                                                        <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+                                                        <input id="changePasswordNew2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
                                                     </div>
-                                                    <label for="newpassword2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+                                                    <label for="changePasswordNew2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
                                                 </div>
                                             </div>
                                             <div class="record">
@@ -1478,7 +1482,42 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                            <button id="submitPromotionCode" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- /ko -->
+                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_MESSAGES-->
+                            <div id="adminMessages" data-bind="with: new tutao.tutanota.ctrl.AdminMessagesViewModel()" >
+                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                    <div class="record">
+                                        <label for="externalWelcomeMessageInput" class="recordName" data-bind="lang: 'externalWelcomeMessage_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input id="externalWelcomeMessageInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: externalWelcomeMessage, valueUpdate: 'input'"/>
+                                            </div>
+                                            <label for="externalWelcomeMessageInput" class="recordInfo" data-bind="lang: 'externalWelcomeMessageInfo_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label for="externalWelcomeMessagePreview" class="recordName" data-bind="lang: 'externalWelcomeMessagePreview_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <div id="externalWelcomeMessagePreview">
+                                                    <div class="outerExternalUserWelcomeMessage">
+                                                        <div class="innerExternalUserWelcomeMessage" data-bind="text: externalWelcomeMessage"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <label for="externalWelcomeMessagePreview" class="recordInfo" data-bind="lang: 'externalWelcomeMessagePreviewInfo_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button id="submitExternalWelcomeMessage" class="single fontImage confirm" type="submit" data-bind="css: { disabled: busy() }, lang: 'save_action'"></button>
+                                            <label for="submitExternalWelcomeMessage" class="recordStatus" data-bind="css: externalWelcomeMessageStatus().type, lang: externalWelcomeMessageStatus().text"></label>
                                         </div>
                                     </div>
                                 </form>
@@ -1706,8 +1745,10 @@
     </div>
 -->
 	<header id="main" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
-        <div id="externalCompanyName">
-            <div data-bind="text: externalCompanyName"></div>
+        <div id="externalUserWelcomeMessage">
+            <div class="outerExternalUserWelcomeMessage">
+                <div class="innerExternalUserWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
+            </div>
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->

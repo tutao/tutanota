@@ -925,7 +925,7 @@ body {
 							padding: @padding;
 						}
 	
-						> div#changePasswordData {
+						> div#changePassword {
 						
 							> div.infoText {
 							
@@ -935,7 +935,21 @@ body {
 								display: inline-block;
 							}
 						}
-						
+
+                        > div#adminMessages {
+
+                            div#externalWelcomeMessagePreview {
+                                position: relative;
+                                width: 100%;
+                                height: @header-height + 1;
+                                border-top: 1px solid @border-dark;
+                                border-bottom: 1px solid @border-dark;
+                                background-color: @background-dark;
+                                overflow: hidden;
+                            }
+
+							// outerExternalUserWelcomeMessage is used here
+                        }
 						
 						> div#adminUserList {
 							padding: 0;

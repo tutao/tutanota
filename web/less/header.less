@@ -2,6 +2,22 @@
 @menuItemWidth: 80px;
 @menuItemWidthSmall: 45px;
 
+div.outerExternalUserWelcomeMessage {
+  display: table;
+  width: 240px;
+  height: @header-height - 1;
+  margin: auto;
+
+  > div.innerExternalUserWelcomeMessage {
+    display: table-cell;
+    font-size: @default-font-size;
+    line-height: 1.2;
+    .light;
+    vertical-align: middle;
+    text-align: center;
+  }
+}
+
 header#main {
   position: absolute;
   left: 0px;
@@ -14,27 +30,19 @@ header#main {
     line-height: @header-height-small;
   }
 
-  > div#externalCompanyName {
+  > div#externalUserWelcomeMessage {
     position: absolute;
     top: 0px;
     left: 0px;
     right: 0px;
-    height: @header-height;
+    height: @header-height - 1;
+    overflow: hidden;
 
     @media @mobile {
-      height: @header-height-small;
+      display: none;
     }
 
-    > div {
-      position: relative;
-      top: 0px;
-      width: 200px;
-      height: 100%;
-      margin-left: auto;
-      margin-right: auto;
-      text-align: center;
-      overflow: hidden;
-    }
+    // outerExternalUserWelcomeMessage is used here
   }
 
   &.loggedIn {
