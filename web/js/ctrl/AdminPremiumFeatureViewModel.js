@@ -8,6 +8,18 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel = function() {
     this.promotionCode.subscribe(this._checkCode);
     this.promotionCodeStatus = ko.observable({ type: "neutral", text: "promotionCodeEnterNeutral_msg" });
     this.busy = ko.observable(false);
+
+    this.capcityUpdateActivated = ko.observable(false);
+    var self = this;
+
+    var user = tutao.locator.userController.getLoggedInUser();
+    user.loadCustomer().then(function(customer){
+        customer.loadCustomerInfo().then(function(customerInfo){
+            if ( customerInfo.getStorageCapacity() > 1){
+                self.capcityUpdateActivated(true);
+            }
+        });
+    });
 };
 
 /**
@@ -43,4 +55,17 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype.confirm = function() 
     if (!this.confirmPossible()) {
         return;
     }
+    var self = this;
+    var service = new tutao.entity.sys.PremiumFeatureData();
+    service.setFeatureName("storageCapacity5GB")
+        .setActivationCode(this.promotionCode().trim());
+    service.setup({}).then(function(){
+        self.capcityUpdateActivated(true);
+    }).caught(function(e){
+        if (tutao.InvalidDataError.errorCode == e.errorCode ){
+            tutao.tutanota.gui.alert(tutao.lang('promotionCodeInvalid_msg'));
+        } else {
+            throw e;
+        }
+    });
 };

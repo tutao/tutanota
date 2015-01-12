@@ -1,11 +1,18 @@
 "use strict";
 
-describe.only("AdminPremiumFeatureViewModelTest", function () {
+describe("AdminPremiumFeatureViewModelTest", function () {
 
     var assert = chai.assert;
     var localViewModel;
 
     beforeEach(function () {
+        var customerInfoMock  = {};
+        customerInfoMock.getStorageCapacity = function(){return 1};
+        var customerMock = {};
+        customerMock.loadCustomerInfo = function(){return Promise.resolve(customerInfoMock)};
+        var userMock = {};
+        userMock.loadCustomer = function(){return Promise.resolve(customerMock)};
+        tutao.locator.userController.getLoggedInUser = function(){return userMock;}
         localViewModel = new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel();
     });
 
