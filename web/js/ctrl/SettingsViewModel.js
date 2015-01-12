@@ -54,7 +54,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
  * @return {String} text id for the setting number
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
-	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures"][settings];
+	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures_action"][settings];
 };
 
 /**
