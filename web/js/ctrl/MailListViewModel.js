@@ -526,7 +526,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.finallyDeleteMails = function(ma
     tutao.util.ArrayUtils.addAll(service.getMails(), mailIds);
     return service.erase({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(deleteMailReturn) {
         for (var i=0; i<mailIds.length; i++) {
-            tutao.util.ArrayUtils.remove(self.currentTagFilterResult[tutao.tutanota.ctrl.TagListViewModel.TRASHED_TAG_ID], mailIds[i][1]);
+            for(var tagIndex = 0; tagIndex < self.currentTagFilterResult.length; tagIndex++){
+                tutao.util.ArrayUtils.remove(self.currentTagFilterResult[tagIndex], mailIds[i][1]);
+            }
         }
         self.unselectAll();
         return self._updateMailList().then(function(){
