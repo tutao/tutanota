@@ -22,7 +22,7 @@ tutao.entity.sys.DomainMailAddressAvailabilityData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.DomainMailAddressAvailabilityData.MODEL_VERSION = '5';
+tutao.entity.sys.DomainMailAddressAvailabilityData.MODEL_VERSION = '6';
 
 /**
  * The encrypted flag.

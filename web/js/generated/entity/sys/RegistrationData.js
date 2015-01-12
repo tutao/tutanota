@@ -46,7 +46,7 @@ tutao.entity.sys.RegistrationData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationData.MODEL_VERSION = '5';
+tutao.entity.sys.RegistrationData.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -408,7 +408,7 @@ tutao.entity.sys.RegistrationData.prototype.getVerifyCount = function() {
  * @return {Promise.<tutao.entity.sys.RegistrationData>} Resolves to the RegistrationData or an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, id[1], id[0], {"v" : 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, id[1], id[0], {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -419,7 +419,7 @@ tutao.entity.sys.RegistrationData.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>>} Resolves to an array of RegistrationData or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, ids, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -431,7 +431,7 @@ tutao.entity.sys.RegistrationData.loadMultiple = function(ids) {
 tutao.entity.sys.RegistrationData.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 5;
+  params["v"] = 6;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.RegistrationData.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -441,7 +441,7 @@ tutao.entity.sys.RegistrationData.prototype.updateListEncSessionKey = function()
  */
 tutao.entity.sys.RegistrationData.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.RegistrationData.PATH, this.__id[1], this.__id[0], {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.RegistrationData.PATH, this.__id[1], this.__id[0], {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -455,7 +455,7 @@ tutao.entity.sys.RegistrationData.prototype.erase = function() {
  * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>>} Resolves to an array of RegistrationData or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, listId, start, count, reverse, {"v": 5}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, listId, start, count, reverse, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

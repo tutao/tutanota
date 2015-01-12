@@ -22,7 +22,7 @@ tutao.entity.sys.PhoneNumberTypeReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PhoneNumberTypeReturn.MODEL_VERSION = '5';
+tutao.entity.sys.PhoneNumberTypeReturn.MODEL_VERSION = '6';
 
 /**
  * The url path to the resource.
@@ -102,6 +102,6 @@ tutao.entity.sys.PhoneNumberTypeReturn.load = function(entity, parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 5;
+  parameters["v"] = 6;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PhoneNumberTypeReturn, tutao.entity.sys.PhoneNumberTypeReturn.PATH, entity, parameters, headers);
 };

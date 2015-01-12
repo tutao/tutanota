@@ -117,6 +117,7 @@
 <script src="/js/ctrl/AdminNewUser.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
 <script src="/js/ctrl/AdminUserListViewModel.js"></script>
+<script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
 <script src="/js/ctrl/AppCacheListener.js"></script>
 <script src="/js/ctrl/AttachmentDialogViewModel.js"></script>
 <script src="/js/ctrl/Button.js"></script>
@@ -1457,6 +1458,27 @@
                                         <div class="formAction">
                                             <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
                                             <label for="submitDeleteAccount" class="recordStatus" data-bind="css: deleteAccountStatus().type, lang: deleteAccountStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- /ko -->
+                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES-->
+                            <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
+                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                    <div class="record">
+                                        <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
+                                            </div>
+                                            <label for="promotionCodeInput" class="recordStatus" data-bind="css: promotionCodeStatus().type, lang: promotionCodeStatus().text"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
                                         </div>
                                     </div>
                                 </form>
