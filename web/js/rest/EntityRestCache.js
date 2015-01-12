@@ -92,9 +92,19 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 			return element;
 		});
 	} else {
-		return Promise.resolve(self._db[path][cacheListId]['entities'][id]);
+		return Promise.resolve(self._getElementFromCache(path, id, cacheListId));
 	}
 };
+
+tutao.rest.EntityRestCache.prototype._getElementFromCache = function(path, id, listId) {
+    if (this._db[path] && this._db[path][listId] && this._db[path][listId]['entities'][id] ) {
+        return this._db[path][listId]['entities'][id];
+    } else {
+        return null;
+    }
+};
+
+
 
 /**
  * @inheritDoc
@@ -492,8 +502,15 @@ tutao.rest.EntityRestCache.getListId = function(element) {
  * @param {tutao.entity.sys.EntityUpdate} data The update notification.
  */
 tutao.rest.EntityRestCache.prototype.notifyNewDataReceived = function(data) {
+    var path = "/rest/" + data.getApplication().toLowerCase() + "/" + data.getType().toLocaleLowerCase();
     if (data.getOperation() === tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_DELETE) {
-        this._deleteFromCache("/rest/" + data.getApplication().toLowerCase() + "/" + data.getType().toLocaleLowerCase(), data.getInstanceId(), data.getInstanceListId());
+        this._deleteFromCache(path, data.getInstanceId(), data.getInstanceListId());
+    }else if (data.getOperation() === tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_UPDATE) {
+        var element = this._getElementFromCache(path,data.getInstanceId(), data.getInstanceListId());
+        if (element){
+            this._deleteFromCache(path, data.getInstanceId(), data.getInstanceListId());
+            this.getElement(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {}, tutao.entity.EntityHelper.createAuthHeaders());
+        }
     }
 };
 

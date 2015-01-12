@@ -235,12 +235,13 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 	addinInfoText_msg: "Download the Outlook Addin for Tutanota Starter here. Updates are automatically installed when Outlook starts.",
     promotionCodeEnterNeutral_msg:"Please enter your promotion code to activate storage extension.",
     promotionCodeEnterWrongFormat_msg: "Invalid promotion code format",
-    promotionCodeEnterValidFormat_msg: "Valid promotion code format",
-    promotionCodeValid_msg: "Storage extension has been successfully activated.",
-    promotionCodeInvalid_msg: "Error while activating the storage extension, the promotion code is invalid.",
+    promotionCodeEnterValidFormat_msg: "Valid promotion  code format",
+    promotionCodeInvalid_msg: "The promotion code is invalid.",
     storageCapacity5GB_label: "5GB storage capacity",
     storageCapacity_label: "Storage capacity",
     activate_action:"Activate",
+    storageCapacityNoLimit_label: "unlimited",
+	activated_msg:"activated",
 
 	// account settings
 	accountType_label: "Account type",
@@ -708,12 +709,12 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     promotionCodeEnterNeutral_msg:"Bitte geben Sie hier Ihren Freischaltcode ein, um die Speichererweiterung zu aktivieren",
     promotionCodeEnterWrongFormat_msg: "Ungültiges Format",
     promotionCodeEnterValidFormat_msg: "Format gültig",
-    promotionCodeValid_msg: "Die Speichererweiterung wurde erfolgreich aktiviert",
-    promotionCodeInvalid_msg: "Speichererweiterung konnte nicht aktiviert werden, der eingegebene Code ist ungültig",
+    promotionCodeInvalid_msg: "Der eingegebene Code ist ungültig",
     storageCapacity5GB_label: "5GB Speicherkapazität",
     storageCapacity_label: "Speicherkapazität",
     activate_action:"Aktivieren",
-
+    storageCapacityNoLimit_label: "unbegrenzt",
+	activated_msg:"aktivert",
 
 	// account settings
 	accountType_label: "Account-Typ",

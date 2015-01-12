@@ -32,4 +32,15 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
         self.records[2].valueObservable("?");
         throw e;
     });
+
+    user.loadCustomer().then(function(customer){
+        customer.loadCustomerInfo().then(function(customerInfo){
+            var capacity = customerInfo.getStorageCapacity();
+            if ( capacity > 0){
+                self.records[3].valueObservable(capacity + "GB");
+            }else {
+                self.records[3].valueObservable(tutao.lang("storageCapacityNoLimit_label"));
+            }
+        });
+    });
 };

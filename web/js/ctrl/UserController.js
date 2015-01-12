@@ -183,8 +183,7 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
         self.reset();
         throw e;
     });
-}
-;
+};
 
 /**
  * Updates the user login data after a password change.

@@ -370,6 +370,7 @@
 <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
+<script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
 <script src="/js/generated/entity/sys/PushIdentifier.js"></script>
@@ -1468,18 +1469,25 @@
                                     <div class="record">
                                         <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
                                         <div class="recordData">
+											<!-- ko if: ! capcityUpdateActivated()-->
                                             <div class="recordValue">
                                                 <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
                                             </div>
                                             <label for="promotionCodeInput" class="recordStatus" data-bind="css: promotionCodeStatus().type, lang: promotionCodeStatus().text"></label>
+											<!-- /ko -->
+											<!-- ko if: capcityUpdateActivated()-->
+											<div class="recordValue" data-bind="lang: 'activated_msg'"></div>
+											<!-- /ko -->
                                         </div>
                                     </div>
+                                    <!-- ko if: ! capcityUpdateActivated()-->
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                            <button id="submitPromotionCode" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
                                         </div>
                                     </div>
+									<!-- /ko -->
                                 </form>
                             </div>
                             <!-- /ko -->
