@@ -1,4 +1,4 @@
-This document contains a list of all third party libraries used by Tutanota, including their licences .
+This document contains a list of all third party libraries, fonts and images used by Tutanota, including their licences.
 
 Autolinker - https://github.com/gregjacobs/Autolinker.js
 License: MIT
@@ -53,5 +53,81 @@ License: MIT
 Reference: http://github.com/padolsey/operative
 
 base64shim - https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
-License: This library is free.  You can redistribute it and/or modify it.
+License: "This library is free.  You can redistribute it and/or modify it."
 https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
+
+Ionicons - https://github.com/driftyco/ionicons
+License: MIT
+Reference: https://github.com/driftyco/ionicons/blob/master/LICENSE
+
+Icomoon Ultimate - https://icomoon.io/#preview-ultimate
+License: Custom (confirmation for usage in Open Source project exists)
+Reference: https://icomoon.io/#icons-icomoon/license
+
+Source Sans Pro Font - https://www.google.com/fonts/specimen/Source+Sans+Pro
+License: OFL
+Reference: http://http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=OFL
+
+Mime type icons - http://www.splitbrain.org/projects/file_icons
+License: Public Domain
+Reference: http://www.splitbrain.org/projects/file_icons
+
+Way through the dunes image - http://www.istockphoto.com/photo/way-through-the-dunes-11742529
+License: Custom
+Reference: http://www.istockphoto.com/license.php
+
+busy.gif - http://www.ajaxload.info
+License: WTFPL
+Reference: http://www.wtfpl.net
+
+Apache Cordova - http://cordova.apache.org
+License: Apache 2
+Reference: http://www.apache.org/licenses/LICENSE-2.0
+
+Cordova com.bridge.open - https://github.com/cordova-bridge/open
+License: GPLv2
+Reference: https://github.com/cordova-bridge/open/blob/develop/LICENSE
+
+Cordova com.phonegap.plugins.pushplugin - http://plugins.cordova.io/#/package/com.phonegap.plugins.pushplugin
+License: MIT
+Reference: http://plugins.cordova.io/#/package/com.phonegap.plugins.pushplugin
+
+Cordova com.ququplay.websocket.WebSocket plugin - https://github.com/mkuklis/phonegap-websocket
+License: MIT
+Reference: https://github.com/mkuklis/phonegap-websocket
+
+Cordova de.appplant.cordova.plugin.badge - https://github.com/katzer/cordova-plugin-badge
+License: Apache 2
+Reference: https://github.com/katzer/cordova-plugin-badge/blob/master/LICENSE
+
+Cordova de.appplant.cordova.plugin.local-notification plugin - https://github.com/katzer/cordova-plugin-local-notifications
+License: Apache 2
+Reference: https://github.com/katzer/cordova-plugin-local-notifications/blob/master/LICENSE
+
+Cordova org.apache.cordova.contacts plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-contacts.git
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.contacts
+
+Cordova org.apache.cordova.device plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-device.git
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.device
+
+Cordova org.apache.cordova.file plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-file.git
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.file
+
+Cordova org.apache.cordova.inappbrowser plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-inappbrowser.git
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.inappbrowser
+
+Cordova org.apache.cordova.splashscreen plugin - http://plugins.cordova.io/#/package/org.apache.cordova.splashscreen
+License: Apache 2
+Reference: https://git-wip-us.apache.org/repos/asf/cordova-plugin-splashscreen.git
+
+Cordova org.apache.cordova.statusbar plugin - http://plugins.cordova.io/#/package/org.apache.cordova.statusbar
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.statusbar
+
+Cordova org.apache.cordova.vibration plugin - https://git-wip-us.apache.org/repos/asf/cordova-plugin-vibration.git
+License: Apache 2
+Reference: http://plugins.cordova.io/#/package/org.apache.cordova.vibration

@@ -23,6 +23,12 @@ gulp.task('createWebReleaseTest', shell.task([
     'cd ../web; gulp distCordovaTest'
 ]));
 
+gulp.task('androidProdDistUnsigned', ['createWebRelease'], shell.task([
+    'cordova platform remove android',
+    'cordova platform add android',
+    'cordova build --release android'
+]));
+
 gulp.task('androidProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove android',
     'cordova platform add android',
