@@ -235,9 +235,10 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     created_label: "Created",
 	addinInfoText_msg: "Download the Outlook Addin for Tutanota Starter here. Updates are automatically installed when Outlook starts.",
     promotionCodeEnterNeutral_msg:"Please enter your promotion code to activate storage extension.",
-    promotionCodeEnterWrongFormat_msg: "Invalid promotion code format",
-    promotionCodeEnterValidFormat_msg: "Valid promotion code format",
+    promotionCodeEnterWrongFormat_msg: "Invalid promotion code format.",
+    promotionCodeEnterValidFormat_msg: "Valid promotion code format.",
     promotionCodeInvalid_msg: "The promotion code is invalid.",
+	promotionCodeSuccess_msg: "Extension has been successfully activated.",
     storageCapacity5GB_label: "5GB storage capacity",
     storageCapacity_label: "Storage capacity",
     activate_action:"Activate",
@@ -248,7 +249,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     externalWelcomeMessageUpdated_msg: "Message was updated.",
     externalWelcomeMessageFree_msg: "This version of Tutanota is a service for private users.",
     storageCapacityNoLimit_label: "unlimited",
-	activated_msg:"activated",
 
 	// account settings
 	accountType_label: "Account type",
@@ -715,9 +715,10 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     created_label: "Erstellt",
     addinInfoText_msg: "Hier können Sie das Outlook-Addin für Tutanota Starter herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
     promotionCodeEnterNeutral_msg:"Bitte geben Sie hier Ihren Freischaltcode ein, um die Speichererweiterung zu aktivieren",
-    promotionCodeEnterWrongFormat_msg: "Ungültiges Format",
-    promotionCodeEnterValidFormat_msg: "Format gültig",
-    promotionCodeInvalid_msg: "Der eingegebene Code ist ungültig",
+    promotionCodeEnterWrongFormat_msg: "Ungültiges Format.",
+    promotionCodeEnterValidFormat_msg: "Format gültig.",
+    promotionCodeInvalid_msg: "Der eingegebene Code ist ungültig.",
+	promotionCodeSuccess_msg: "Erweiterung wurde erfolgreich aktiviert.",
     storageCapacity5GB_label: "5GB Speicherkapazität",
     storageCapacity_label: "Speicherkapazität",
     activate_action:"Aktivieren",
@@ -728,7 +729,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     externalWelcomeMessageUpdated_msg: "Nachricht wurde aktualisiert.",
     externalWelcomeMessageFree_msg: "Diese Variante von Tutanota ist ein Service für Privatkunden.",
     storageCapacityNoLimit_label: "unbegrenzt",
-	activated_msg:"aktivert",
 
 	// account settings
 	accountType_label: "Account-Typ",

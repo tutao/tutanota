@@ -133,6 +133,12 @@
 <script src="/js/entity/EntityHelper.js"></script>
 <script src="/js/entity/TutanotaConstants.js"></script>
 <script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
@@ -187,12 +193,7 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
+<script src="/js/index/Indexer.js"></script>
 <script src="/js/gui/BubbleInputGui.js"></script>
 <script src="/js/gui/ContactView.js"></script>
 <script src="/js/gui/ExternalLoginView.js"></script>
@@ -207,7 +208,6 @@
 <script src="/js/gui/SettingsView.js"></script>
 <script src="/js/gui/SwipeSlider.js"></script>
 <script src="/js/gui/gui.js"></script>
-<script src="/js/index/Indexer.js"></script>
 <script src="/js/legacy/FlashFileSaver.js"></script>
 <script src="/js/legacy/Legacy.js"></script>
 <script src="/js/rest/EntityRestCache.js"></script>
@@ -369,6 +369,7 @@
 <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/MembershipAddData.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
 <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
 <script src="/js/generated/entity/sys/Permission.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
@@ -1473,25 +1474,19 @@
                                     <div class="record">
                                         <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
                                         <div class="recordData">
-											<!-- ko if: ! capcityUpdateActivated()-->
                                             <div class="recordValue">
-                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
+                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: inputEnabled(), value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
                                             </div>
                                             <label for="promotionCodeInput" class="recordStatus" data-bind="css: promotionCodeStatus().type, lang: promotionCodeStatus().text"></label>
-											<!-- /ko -->
-											<!-- ko if: capcityUpdateActivated()-->
-											<div class="recordValue" data-bind="lang: 'activated_msg'"></div>
-											<!-- /ko -->
                                         </div>
                                     </div>
-                                    <!-- ko if: ! capcityUpdateActivated()-->
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
                                             <button id="submitPromotionCode" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+											<label for="submitExternalWelcomeMessage" class="recordStatus" data-bind="css: promotionCodeSubmitStatus().type, lang: promotionCodeSubmitStatus().text"></label>
                                         </div>
                                     </div>
-									<!-- /ko -->
                                 </form>
                             </div>
                             <!-- /ko -->

@@ -7,16 +7,16 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel = function() {
     this.promotionCode = ko.observable("");
     this.promotionCode.subscribe(this._checkCode);
     this.promotionCodeStatus = ko.observable({ type: "neutral", text: "promotionCodeEnterNeutral_msg" });
-    this.busy = ko.observable(false);
-
-    this.capcityUpdateActivated = ko.observable(false);
+    this.promotionCodeSubmitStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
+    this.inputEnabled = ko.observable(true);
     var self = this;
 
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer){
         customer.loadCustomerInfo().then(function(customerInfo){
             if ( customerInfo.getStorageCapacity() > 1){
-                self.capcityUpdateActivated(true);
+                self.inputEnabled(false);
+                self.promotionCodeSubmitStatus({ type: "valid", text: "promotionCodeSuccess_msg" });
             }
         });
     });
@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype._checkCode = function
  * @return {boolean} True if the button can be presse, false otherwise.
  */
 tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype.confirmPossible = function() {
-    return  !this.busy() && this.promotionCodeStatus().type == "valid";
+    return  this.inputEnabled() && this.promotionCodeStatus().type == "valid" && this.promotionCodeSubmitStatus().type != "valid";
 };
 
 /**
@@ -59,11 +59,12 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype.confirm = function() 
     var service = new tutao.entity.sys.PremiumFeatureData();
     service.setFeatureName("storageCapacity5GB")
         .setActivationCode(this.promotionCode().trim());
-    service.setup({}).then(function(){
-        self.capcityUpdateActivated(true);
+    service.setup({}, null).then(function(){
+        self.inputEnabled(false);
+        self.promotionCodeSubmitStatus({ type: "valid", text: "promotionCodeSuccess_msg" });
     }).caught(function(e){
         if (tutao.InvalidDataError.errorCode == e.errorCode ){
-            tutao.tutanota.gui.alert(tutao.lang('promotionCodeInvalid_msg'));
+            self.promotionCodeSubmitStatus({ type: "invalid", text: "promotionCodeInvalid_msg" });
         } else {
             throw e;
         }
