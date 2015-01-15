@@ -8,8 +8,6 @@ tutao.provide('tutao.tutanota.ctrl.AccountSettingsViewModel');
  */
 tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
 
-    var DEFAULT_STORAGE_CAPACITY = "1GB";
-
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     var user = tutao.locator.userController.getLoggedInUser();
@@ -18,7 +16,7 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
     this.records.push({ nameTextId: "accountType_label", infoTextId: null, valueObservable: ko.observable("") });
     this.records.push({ nameTextId: "mailAddress_label", infoTextId: null, valueObservable: ko.observable("") });
     this.records.push({ nameTextId: "mailName_label", infoTextId: "mailNameInfo_msg", valueObservable: ko.observable("") });
-    this.records.push({ nameTextId: "storageCapacity_label", infoTextId: null, valueObservable: ko.observable(DEFAULT_STORAGE_CAPACITY) });
+    this.records.push({ nameTextId: "storageCapacity_label", infoTextId: null, valueObservable: ko.observable("") });
     this.showAddinLink = (user.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER);
 
     var self = this;
@@ -33,12 +31,12 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
         throw e;
     });
 
-    user.loadCustomer().then(function(customer){
+    user.loadCustomer().then(function(customer) {
         customer.loadCustomerInfo().then(function(customerInfo){
             var capacity = customerInfo.getStorageCapacity();
-            if ( capacity > 0){
-                self.records[3].valueObservable(capacity + "GB");
-            }else {
+            if (capacity > 0) {
+                self.records[3].valueObservable(capacity + " GB");
+            } else {
                 self.records[3].valueObservable(tutao.lang("storageCapacityNoLimit_label"));
             }
         });

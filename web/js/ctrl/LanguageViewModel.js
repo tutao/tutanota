@@ -234,7 +234,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     deleted_label: "Deleted",
     created_label: "Created",
 	addinInfoText_msg: "Download the Outlook Addin for Tutanota Starter here. Updates are automatically installed when Outlook starts.",
-    promotionCodeEnterNeutral_msg:"Please enter your promotion code to activate storage extension.",
+    promotionCodeEnterNeutral_msg:"Please enter your promotion code to activate the storage extension.",
     promotionCodeEnterWrongFormat_msg: "Invalid promotion code format.",
     promotionCodeEnterValidFormat_msg: "Valid promotion code format.",
     promotionCodeInvalid_msg: "The promotion code is invalid.",
@@ -358,7 +358,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
 
 	// login
 	welcome_msg: "Login",
-	afterRegistration_msg: "Your account is created! Login - and enjoy!",
+	afterRegistration_msg: "Your account has been created! Login - and enjoy!",
 	loginFailedOften_msg: "Too many failed login attempts. Please try again later.",
 	loginFailed_msg: "Invalid login credentials. Please try again.",
 	login_action: "Log in",

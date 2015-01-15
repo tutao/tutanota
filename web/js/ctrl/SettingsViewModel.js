@@ -42,8 +42,8 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
 	if (tutao.locator.userController.isLoggedInUserAdmin() ) {
 		settings.push(s.DISPLAY_ADMIN_USER_LIST);
         if (tutao.locator.viewManager.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-            settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
             settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
+            settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         } else if (tutao.locator.viewManager.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
             settings.push(s.DISPLAY_ADMIN_MESSAGES);
         }
