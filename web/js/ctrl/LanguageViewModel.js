@@ -163,8 +163,8 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     confidentialMail_alt: "This email was transmitted end-to-end encrypted.",
 
     //invitation
-    invitationMailSubject_msg: "Join Tutanota and fight for privacy!",
-    invitationMailBody_msg: "Hello!<br><br>I would like to invite you to Tutanota. With the free email service from Germany we are able to easily send end-to-end encrypted emails. Let’s communicate confidentially and fight against mass surveillance of the internet!<br><br>Simply sign up here:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>I am looking forward to receiving your first encrypted email.<br><br>Cheers,<br>$<br><br>PS: Tutanota encrypts all our data automatically, in addition it is open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+    invitationMailSubject_msg: "Let's take back our privacy with Tutanota!",
+    invitationMailBody_msg: "Hello!<br><br>This is my new email address. With Tutanota all our emails are encrypted automatically so no one can read along. All data on the servers is encrypted as well, no profiling possible.<br><br>Join Tutanota now:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Best regards,<br>$<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
 
 	// contact
 	discardContact_msg: "Discard new contact?",
@@ -644,7 +644,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
 
     //invitation
     invitationMailSubject_msg: "Sei dabei: Mit Tutanota holen wir uns unsere Privatsphäre zurück!",
-    invitationMailBody_msg: "Hallo!<br><br>Ich möchte dich gern zu Tutanota einladen. Mit dem kostenlosen E-Mail-Service können wir ganz einfach Ende-zu-Ende verschlüsselt mailen. So können wir vertraulich miteinander kommunizieren und einen Beitrag gegen die Massenüberwachung im Internet leisten.<br><br>Melde dich einfach hier an:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Ich freue mich auf deine erste verschlüsselte E-Mail.<br><br>Viele Grüße<br>$<br><br>PS: Tutanota verschlüsselt alle unsere Daten automatisch, noch dazu ist es Open Source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+    invitationMailBody_msg: "Hallo!<br><br>Hier ist meine neue E-Mail-Adresse. Tutanota verschlüsselt alle unsere E-Mails automatisch, so dass niemand mitlesen kann. Außerdem sind alle Daten auf den Servern verschlüsselt, daher ist es nicht möglich die Daten z.B. für Werbezwecke zu scannen.<br><br>Melde dich einfach hier an:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Viele Grüße<br>$<br><br>PS: Tutanota ist kostenlos mit 1 GB Speicher inklusive. Außerdem ist es Open Source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
 
 	// contact
 	discardContact_msg: "Neuen Kontakt verwerfen?",
