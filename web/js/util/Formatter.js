@@ -172,6 +172,9 @@ tutao.tutanota.util.Formatter.isMailAddress = function(string) {
 	if (string == null || string != string.trim()) {
 		return false;
 	}
+    if (tutao.util.StringUtils.startsWith(string, "-")) {
+        return false;
+    }
 	// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
 	return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 };
