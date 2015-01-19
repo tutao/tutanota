@@ -78,7 +78,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
             rsa.coeff = new BigInteger(new Int8Array(this.base64ToArray(privateKey.crtCoefficient)));
 
             var hex = this._bytesToHex(bytes);
-            var bigInt = parseBigInt(hex, 16);;
+            var bigInt = parseBigInt(hex, 16);
             var paddedBigInt = rsa.doPrivate(bigInt);
             var decryptedHex = paddedBigInt.toString(16);
             // fill the hex string to have a padded block of exactly (keylength / 8 - 1 bytes) for the unpad function
@@ -258,7 +258,7 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
                 srcPath + 'util/EncodingConverter.js'
         ];
     } else {
-        tutao.native.CryptoBrowser.DEPENDENCIES = ['app.min.js'];
+        tutao.native.CryptoBrowser.DEPENDENCIES = ['worker.min.js'];
     }
 };
 

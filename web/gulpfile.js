@@ -40,7 +40,6 @@ function getIpAddress() {
                 }
             }
         }
-        ;
     }
 }
 
@@ -65,7 +64,7 @@ var test = "if (typeof importScripts !== 'function') {\n\
 var env = local_compiled;
 
 gulp.task('clean', function () {
-    mkdirp("build")
+    mkdirp("build");
     return gulp.src(["build/*"], {read: false})
         .pipe(clean({force: true}));
 
@@ -128,6 +127,25 @@ gulp.task('concat', function () {
         gulp.src(['js/**/*.js', "!js/util/init.js"])
             .pipe(concat("app.js"))
     ).pipe(concat("app.min.js"))
+        .pipe(gulp.dest('build/'));
+});
+
+var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/util/EncodingConverter.js"];
+
+gulp.task('minifyWorker', function () {
+    gulp.src(WORKER_LIBS)
+        .pipe(sourcemaps.init())
+        .pipe(uglify())
+        .pipe(concat("worker.min.js"))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest('build/'));
+});
+
+gulp.task('concatWorker', function () {
+    gulp.src(WORKER_LIBS)
+        .pipe(sourcemaps.init())
+        .pipe(concat("worker.min.js"))
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('build/'));
 });
 
@@ -258,7 +276,7 @@ gulp.task('test', function (done) {
 });
 
 gulp.task('gzip', function () {
-    return gulp.src(['./build/**', '!./build/*.map', , '!./build/fonts/**', , '!./build/graphics/**'])
+    return gulp.src(['./build/**', '!./build/*.map', '!./build/fonts/**', '!./build/graphics/**'])
         .pipe(gzip())
         .pipe(gulp.dest('build'));
 });
@@ -267,33 +285,33 @@ gulp.task('distCordova', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
     env = prod;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
+    return runSequence(['copy', 'less', 'concat', 'concatWorker', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
 });
 
 gulp.task('distCordovaTest', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
     env = test;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
+    return runSequence(['copy', 'less', 'concat', 'concatWorker', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
 });
 
 gulp.task('distCordovaLocal', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
     env = local_compiled;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'concat', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
+    return runSequence(['copy', 'less', 'concat', 'concatWorker', 'processHtmlCordova', 'concatTest', 'processTestHtml'], 'manifest', cb); // 'gzip'
 });
 
 gulp.task('distLocal', ['clean'], function (cb) {
     env = local_compiled;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('dist', ['clean'], function (cb) {
     env = prod;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'processHtml'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('release', ['dist', 'tagRelease'], function (cb) {
