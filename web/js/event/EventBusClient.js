@@ -75,7 +75,7 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
  * Sends a close event to the server and closes the connection.
  */
 tutao.event.EventBusClient.prototype.close = function() {
-    console.log("ws close: ", event, new Date());
+    console.log("ws close: ", new Date());
 	if (this._socket) {
 		this._socket.close();
 	}
