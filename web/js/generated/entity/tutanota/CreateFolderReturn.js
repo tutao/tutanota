@@ -22,7 +22,7 @@ tutao.entity.tutanota.CreateFolderReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CreateFolderReturn.MODEL_VERSION = '6';
+tutao.entity.tutanota.CreateFolderReturn.MODEL_VERSION = '7';
 
 /**
  * The encrypted flag.

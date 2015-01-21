@@ -26,7 +26,7 @@ tutao.entity.tutanota.PasswordMessagingData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.PasswordMessagingData.MODEL_VERSION = '6';
+tutao.entity.tutanota.PasswordMessagingData.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -151,7 +151,7 @@ tutao.entity.tutanota.PasswordMessagingData.prototype.setup = function(parameter
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 6;
+  parameters["v"] = 7;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.PasswordMessagingData.PATH, this, parameters, headers, tutao.entity.tutanota.PasswordMessagingReturn);
 };

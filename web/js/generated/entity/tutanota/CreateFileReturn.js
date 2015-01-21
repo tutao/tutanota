@@ -22,7 +22,7 @@ tutao.entity.tutanota.CreateFileReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CreateFileReturn.MODEL_VERSION = '6';
+tutao.entity.tutanota.CreateFileReturn.MODEL_VERSION = '7';
 
 /**
  * The encrypted flag.

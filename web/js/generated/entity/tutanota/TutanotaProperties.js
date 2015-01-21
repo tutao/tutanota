@@ -35,7 +35,7 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '6';
+tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -217,7 +217,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.loadLastPushedMail = function
  * @return {Promise.<tutao.entity.tutanota.TutanotaProperties>} Resolves to the TutanotaProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -228,7 +228,7 @@ tutao.entity.tutanota.TutanotaProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.TutanotaProperties>>} Resolves to an array of TutanotaProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -239,7 +239,7 @@ tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
