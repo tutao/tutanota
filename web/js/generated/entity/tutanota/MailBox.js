@@ -16,6 +16,7 @@ tutao.entity.tutanota.MailBox = function(data) {
     this._mails = data.mails;
     this._receivedAttachments = data.receivedAttachments;
     this._sentAttachments = data.sentAttachments;
+    this._systemFolders = (data.systemFolders) ? new tutao.entity.tutanota.MailFolderRef(this, data.systemFolders) : null;
   } else {
     this.__format = "0";
     this.__id = null;
@@ -25,6 +26,7 @@ tutao.entity.tutanota.MailBox = function(data) {
     this._mails = null;
     this._receivedAttachments = null;
     this._sentAttachments = null;
+    this._systemFolders = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.MailBox.prototype;
@@ -34,7 +36,7 @@ tutao.entity.tutanota.MailBox = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailBox.MODEL_VERSION = '6';
+tutao.entity.tutanota.MailBox.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -73,7 +75,8 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
     symEncShareBucketKey: this._symEncShareBucketKey, 
     mails: this._mails, 
     receivedAttachments: this._receivedAttachments, 
-    sentAttachments: this._sentAttachments
+    sentAttachments: this._sentAttachments, 
+    systemFolders: tutao.entity.EntityHelper.aggregatesToJsonData(this._systemFolders)
   };
 };
 
@@ -106,6 +109,11 @@ tutao.entity.tutanota.MailBox.prototype.RECEIVEDATTACHMENTS_ATTRIBUTE_ID = 134;
  * The id of the sentAttachments attribute.
  */
 tutao.entity.tutanota.MailBox.prototype.SENTATTACHMENTS_ATTRIBUTE_ID = 133;
+
+/**
+ * The id of the systemFolders attribute.
+ */
+tutao.entity.tutanota.MailBox.prototype.SYSTEMFOLDERS_ATTRIBUTE_ID = 443;
 
 /**
  * Provides the id of this MailBox.
@@ -235,12 +243,29 @@ tutao.entity.tutanota.MailBox.prototype.getSentAttachments = function() {
 };
 
 /**
+ * Sets the systemFolders of this MailBox.
+ * @param {tutao.entity.tutanota.MailFolderRef} systemFolders The systemFolders of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.setSystemFolders = function(systemFolders) {
+  this._systemFolders = systemFolders;
+  return this;
+};
+
+/**
+ * Provides the systemFolders of this MailBox.
+ * @return {tutao.entity.tutanota.MailFolderRef} The systemFolders of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.getSystemFolders = function() {
+  return this._systemFolders;
+};
+
+/**
  * Loads a MailBox from the server.
  * @param {string} id The id of the MailBox.
  * @return {Promise.<tutao.entity.tutanota.MailBox>} Resolves to the MailBox or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -251,7 +276,7 @@ tutao.entity.tutanota.MailBox.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

@@ -1,0 +1,75 @@
+"use strict";
+
+tutao.provide('tutao.entity.tutanota.MailFolderRef');
+
+/**
+ * @constructor
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.MailFolderRef = function(parent, data) {
+  if (data) {
+    this.__id = data._id;
+    this._folders = data.folders;
+  } else {
+    this.__id = tutao.entity.EntityHelper.generateAggregateId();
+    this._folders = null;
+  }
+  this._parent = parent;
+  this.prototype = tutao.entity.tutanota.MailFolderRef.prototype;
+};
+
+/**
+ * Provides the data of this instances as an object that can be converted to json.
+ * @return {Object} The json object.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.toJsonData = function() {
+  return {
+    _id: this.__id, 
+    folders: this._folders
+  };
+};
+
+/**
+ * The id of the MailFolderRef type.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.TYPE_ID = 440;
+
+/**
+ * The id of the folders attribute.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.FOLDERS_ATTRIBUTE_ID = 442;
+
+/**
+ * Sets the id of this MailFolderRef.
+ * @param {string} id The id of this MailFolderRef.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.setId = function(id) {
+  this.__id = id;
+  return this;
+};
+
+/**
+ * Provides the id of this MailFolderRef.
+ * @return {string} The id of this MailFolderRef.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.getId = function() {
+  return this.__id;
+};
+
+/**
+ * Sets the folders of this MailFolderRef.
+ * @param {string} folders The folders of this MailFolderRef.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.setFolders = function(folders) {
+  this._folders = folders;
+  return this;
+};
+
+/**
+ * Provides the folders of this MailFolderRef.
+ * @return {string} The folders of this MailFolderRef.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.getFolders = function() {
+  return this._folders;
+};

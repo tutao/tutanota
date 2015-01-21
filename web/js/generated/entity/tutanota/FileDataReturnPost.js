@@ -22,7 +22,7 @@ tutao.entity.tutanota.FileDataReturnPost = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileDataReturnPost.MODEL_VERSION = '6';
+tutao.entity.tutanota.FileDataReturnPost.MODEL_VERSION = '7';
 
 /**
  * The encrypted flag.
