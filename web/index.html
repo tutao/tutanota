@@ -127,12 +127,6 @@
 <script src="/js/db/DbInterface.js"></script>
 <script src="/js/db/DummyDb.js"></script>
 <script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
@@ -189,6 +183,12 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/event/EventBusClient.js"></script>
 <script src="/js/event/EventBusListener.js"></script>
 <script src="/js/event/ListEventTracker.js"></script>
@@ -212,12 +212,6 @@
 <script src="/js/index/Indexer.js"></script>
 <script src="/js/legacy/FlashFileSaver.js"></script>
 <script src="/js/legacy/Legacy.js"></script>
-<script src="/js/rest/EntityRestCache.js"></script>
-<script src="/js/rest/EntityRestClient.js"></script>
-<script src="/js/rest/EntityRestDummy.js"></script>
-<script src="/js/rest/EntityRestInterface.js"></script>
-<script src="/js/rest/ResourceConstants.js"></script>
-<script src="/js/rest/RestClient.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ConfigApp.js"></script>
 <script src="/js/native/ConfigBrowser.js"></script>
@@ -243,8 +237,12 @@
 <script src="/js/native/PushServiceBrowser.js"></script>
 <script src="/js/native/PushServiceInterface.js"></script>
 <script src="/js/native/RsaUtils.js"></script>
-<script src="/js/security/CajaSanitizer.js"></script>
-<script src="/js/security/HtmlSanitizer.js"></script>
+<script src="/js/rest/EntityRestCache.js"></script>
+<script src="/js/rest/EntityRestClient.js"></script>
+<script src="/js/rest/EntityRestDummy.js"></script>
+<script src="/js/rest/EntityRestInterface.js"></script>
+<script src="/js/rest/ResourceConstants.js"></script>
+<script src="/js/rest/RestClient.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
@@ -262,11 +260,78 @@
 <script src="/js/util/StateMachine.js"></script>
 <script src="/js/util/StringUtils.js"></script>
 <script src="/js/util/bind.js"></script>
+<script src="/js/security/CajaSanitizer.js"></script>
+<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/ctrl/bubbleinput/Bubble.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
+<script src="/js/ctrl/lang/de.js"></script>
+<script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Attachment.js"></script>
+<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+<script src="/js/generated/entity/tutanota/Contact.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactList.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
+<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
+<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
+<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
+<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
+<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
+<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
+<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
+<script src="/js/generated/entity/tutanota/File.js"></script>
+<script src="/js/generated/entity/tutanota/FileData.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
+<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
+<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
+<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
+<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/Mail.js"></script>
+<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
+<script src="/js/generated/entity/tutanota/MailBody.js"></script>
+<script src="/js/generated/entity/tutanota/MailBox.js"></script>
+<script src="/js/generated/entity/tutanota/MailFolder.js"></script>
+<script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
+<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
+<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
+<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Recipient.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
+<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
+<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
+<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
+<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
+<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
 <script src="/js/generated/entity/sys/Authentication.js"></script>
@@ -358,69 +423,6 @@
 <script src="/js/generated/entity/sys/VersionData.js"></script>
 <script src="/js/generated/entity/sys/VersionReturn.js"></script>
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
-<script src="/js/generated/entity/tutanota/Attachment.js"></script>
-<script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
-<script src="/js/generated/entity/tutanota/Contact.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactList.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/ContactMailAddressEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/ContactPhoneNumberEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialId.js"></script>
-<script src="/js/generated/entity/tutanota/ContactSocialIdEditable.js"></script>
-<script src="/js/generated/entity/tutanota/ConversationEntry.js"></script>
-<script src="/js/generated/entity/tutanota/CreateExternalUserGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFileReturn.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderData.js"></script>
-<script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
-<script src="/js/generated/entity/tutanota/DataBlock.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
-<script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
-<script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
-<script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
-<script src="/js/generated/entity/tutanota/File.js"></script>
-<script src="/js/generated/entity/tutanota/FileData.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataGet.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataDataReturn.js"></script>
-<script src="/js/generated/entity/tutanota/FileDataReturnPost.js"></script>
-<script src="/js/generated/entity/tutanota/FileSystem.js"></script>
-<script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
-<script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
-<script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
-<script src="/js/generated/entity/tutanota/Mail.js"></script>
-<script src="/js/generated/entity/tutanota/MailAddress.js"></script>
-<script src="/js/generated/entity/tutanota/MailBody.js"></script>
-<script src="/js/generated/entity/tutanota/MailBox.js"></script>
-<script src="/js/generated/entity/tutanota/MailFolder.js"></script>
-<script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
-<script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
-<script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordChannelReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
-<script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Recipient.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailData.js"></script>
-<script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
-<script src="/js/generated/entity/tutanota/Subfiles.js"></script>
-<script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
-<script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
-<script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
-<script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -625,7 +627,7 @@
                                             <button class="confidentialButton single fontImage" tabindex="15" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
                                             <button class="showPasswordChannelColumn single" tabindex="16" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                 <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
-                                                <div class="showPasswordChannelColumnIcon fontImage rightIndicator">
+                                                <div class="showPasswordChannelColumnIcon fontImage rightIndicator"></div>
                                             </button>
                                         </div>
 										<div class="attachments">
@@ -1167,7 +1169,7 @@
                             </form>
                         <!-- /ko -->
                         <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="smallInfoMessage" data-bind="lang: getFinishedMessage(), params: { '$1': getMailAddress(), '$2': getDomain() }"></div>
+                            <div class="smallInfoMessage" data-bind="lang: getFinishedMessage(), params: { '{1}': getMailAddress(), '{2}': getDomain() }"></div>
                         <!-- /ko -->
                         <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
                             <div class="smallInfoMessage">
@@ -1418,7 +1420,7 @@
                                                 <div class="recordName"></div>
                                                 <div class="formAction">
                                                     <button id="submitPasswordChange" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
-                                                    <label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text, params: changePasswordStatus().params"></label>
+                                                    <label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text"></label>
                                                 </div>
                                             </div>
                                         </form>

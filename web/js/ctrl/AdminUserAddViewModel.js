@@ -48,7 +48,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.importCsv = function() {
 	for (var i = 0; i < lines.length; i++) {
 		var lineParts = lines[i].split(",");
 		if (lineParts.length < 2) {
-			this.csvImportStatus({type: "invalid", text: "importCsvInvalid_msg", params: {'$': i }});
+			this.csvImportStatus({type: "invalid", text: "importCsvInvalid_msg", params: {'{1}': i }});
 			return;
 		} else {
 			var user = new tutao.tutanota.ctrl.AdminNewUser();
@@ -90,10 +90,10 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     this.isEditable(false);
 
     var count = this.newUsers().length;
-    self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - this.newUsers().length, "${count}": count}});
+    self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"{index}": count - this.newUsers().length, "{count}": count}});
     if (self.newUsers().length > 0) {
         return Promise.each(self.newUsers(), function(newUser) {
-            self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"${index}": count - self.newUsers().length, "${count}": count}});
+            self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"{index}": count - self.newUsers().length, "{count}": count}});
             return newUser.create().then(function() {
                 self.createdUsers.push(self.newUsers.shift());
             });

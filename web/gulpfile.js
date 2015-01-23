@@ -1,4 +1,4 @@
-var gulp = require('gulp');
+gulp = require('gulp');
 var path = require('path');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
@@ -23,10 +23,12 @@ var mkdirp = require('mkdirp');
 var package = require('../package.json');
 
 var fs = require('fs');
+var request = require('request');
+var async = require('async');
 
 function getIpAddress() {
     var os = require('os');
-    if ( os.type() == "Darwin"){
+    if (os.type() == "Darwin") {
         return "192.168.178.51"; //bed
     }
     var ifaces = os.networkInterfaces();
@@ -71,7 +73,7 @@ gulp.task('clean', function () {
 });
 
 gulp.task('minify', function () {
-    return streamqueue({ objectMode: true },
+    return streamqueue({objectMode: true},
         gulp.src("lib/*.js")
             .pipe(sourcemaps.init())
             .pipe(concat('lib.js'))
@@ -114,7 +116,7 @@ gulp.task('minify', function () {
 });
 
 gulp.task('concat', function () {
-    return streamqueue({ objectMode: true },
+    return streamqueue({objectMode: true},
         gulp.src("lib/worker/*.js")
             .pipe(concat('workerLib.js')),
 
@@ -150,7 +152,7 @@ gulp.task('concatWorker', function () {
 });
 
 gulp.task('concatTest', function () {
-    return streamqueue({ objectMode: true },
+    return streamqueue({objectMode: true},
         gulp.src("lib/worker/*.js")
             .pipe(concat('workerLib.js')),
 
@@ -180,7 +182,7 @@ gulp.task('index.html', function () {
 
 gulp.task('test.html', function () {
     return gulp.src('./test/index.html')
-        .pipe(inject(gulp.src([ 'lib/**/*.js', 'test/lib/*.js'], {read: false}), {starttag: '<!-- inject:lib:{{ext}} -->'}))
+        .pipe(inject(gulp.src(['lib/**/*.js', 'test/lib/*.js'], {read: false}), {starttag: '<!-- inject:lib:{{ext}} -->'}))
         .pipe(inject(gulp.src([
             'js/**/*.js', "!js/util/init.js", "!js/Bootstrap.js",
             'test/js/rest/EntityRestTestFunctions.js', 'test/js/**/*.js'
@@ -210,7 +212,7 @@ gulp.task('processTestHtml', function () {
     return gulp.src('./test/index.html')
         .pipe(htmlreplace({
             'js': ['../cordova.js', 'app.min.js', '../init.js'],
-            'css' : ['mocha.css']
+            'css': ['mocha.css']
         }))
         .pipe(gulp.dest('./build/test'));
 });
@@ -320,8 +322,8 @@ gulp.task('release', ['dist', 'tagRelease'], function (cb) {
 });
 
 gulp.task('tagRelease', shell.task([
-        "git tag -a " + package.name + "-release-" + package.version + " -m ''",
-        "git push origin " + package.name + "-release-" + package.version
+    "git tag -a " + package.name + "-release-" + package.version + " -m ''",
+    "git push origin " + package.name + "-release-" + package.version
 ]));
 
 gulp.task('default', ['clean', 'distCordovaLocal'], function () {
@@ -331,4 +333,22 @@ gulp.task('default', ['clean', 'distCordovaLocal'], function () {
     gulp.watch(['lib/**', 'js/**', 'test/**'], ['concatTest']);
     gulp.watch('./index.html', ['processHtmlCordova']);
     gulp.watch("less/*", ['less']);
+});
+
+gulp.task('translation', function (cb) {
+    return async.eachSeries(['de', 'en'], function(id, callback) {
+        request('https://phraseapp.com/api/v1/translations/download?auth_token=64b1dce0ec448d21ec25816186cded22&locale='+ id +'&format=simple_json', function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var translation = "tutao.provide('tutao.tutanota.ctrl.LanguageViewModel." + id + "');\n"
+                translation += "tutao.tutanota.ctrl.LanguageViewModel." + id + " = ";
+                translation += body;
+                fs.writeFileSync("js/ctrl/lang/" + id + ".js", translation);
+                callback();
+            } else {
+                callback(JSON.stringify({e: error, status: response.statusCode, body: body}));
+            }
+        });
+
+    },cb);
+
 });

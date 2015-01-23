@@ -82,7 +82,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function () 
         if (this.contactWrapper().getFullName() == "") {
             text = tutao.lang("discardContactChanges_msg");
         } else {
-            text = tutao.lang("discardContactChangesFor_msg", {"$": this.contactWrapper().getFullName()});
+            text = tutao.lang("discardContactChangesFor_msg", {"{1}": this.contactWrapper().getFullName()});
         }
     } else {
         return Promise.resolve(false);
