@@ -73,12 +73,15 @@ tutao.tutanota.ctrl.Navigator.prototype.mail = function() {
 
 /**
  * @param {tutao.tutanota.ctrl.RecipientInfo=} recipient
- * @return {Promise}
+ * @return {Promise.<bool>} True if the new mail was opened.
  */
 tutao.tutanota.ctrl.Navigator.prototype.newMail = function(recipient) {
     var self = this;
-	return tutao.locator.mailViewModel.newMail(recipient).then(function () {
-        self.mail();
+	return tutao.locator.mailViewModel.newMail(recipient).then(function (success) {
+        if (success) {
+            self.mail();
+        }
+        return success;
     });
 };
 

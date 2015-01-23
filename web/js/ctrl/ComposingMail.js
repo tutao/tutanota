@@ -44,7 +44,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
     };
 	this.buttons = [
                     new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
-                        self.cancelMail(false,true);
+                        self.cancelMail(true, true);
                     }, notBusy, false, "composer_cancel", "cancel"),
 			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
 			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
@@ -231,8 +231,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 self._restoreViewState();
                                 if (tutao.locator.userController.isExternalUserLoggedIn()) {
                                     // external users do not download mails automatically, so download the sent email now
-                                    tutao.entity.tutanota.Mail.load([tutao.locator.mailBoxController.getUserMailBox().getMails(), senderMailElementId]).then(function (mail, exception) {
-                                        tutao.locator.mailListViewModel.updateOnNewMails([mail]);
+                                    var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
+                                    tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
+                                        externalSentFolder.updateOnNewMails([mail]);
                                     });
                                 }
                             });
@@ -259,11 +260,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 
 /**
  * Try to cancel creating this new mail. The user is asked if it shall be cancelled if he has already entered text.
- * @param {boolean} directSwitch True if the cancelled mail should be hidden immediately because another mail was selected.
+ * @param {boolean} restorePreviousMail True if previously visible mail shall be shown, otherwise no mail is shown.
  * @param {boolean} disableConfirm Disables confirm dialog when cancel mail.
  * @return {Promise.<boolean>} True if the mail was cancelled, false otherwise.
  */
-tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch, disableConfirm) {
+tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(restorePreviousMail, disableConfirm) {
     var self = this;
     // if the email is currently, sent, do not cancel the email.
     if (this.busy()) {
@@ -280,11 +281,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch, 
 			this.bccRecipientsViewModel.bubbles().length != 0);
 
     var cancel = function() {
-        if (!directSwitch) {
-            self.directSwitchActive = false;
-        }
         self._freeBubbles();
-        self._restoreViewState();
+        if (restorePreviousMail) {
+            self._restoreViewState();
+        }
     };
 
 	if (!confirm || disableConfirm) {
@@ -308,7 +308,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(directSwitch, 
  * if mail was selected and mail list column visible -> show last mail, show mail list column
  */
 tutao.tutanota.ctrl.ComposingMail.prototype._restoreViewState = function() {
-	tutao.locator.mailListViewModel.selectPreviouslySelectedMail(false);
+    tutao.locator.mailFolderListViewModel.selectedFolder().selectPreviouslySelectedMails();
 	if (this.previousMailListColumnVisible) {
 		tutao.locator.mailView.showDefaultColumns();
 	}
@@ -321,10 +321,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype._freeBubbles = function() {
 	for (var i = 0; i < this.toRecipientsViewModel.bubbles().length; i++) {
 		this.bubbleDeleted(this.toRecipientsViewModel.bubbles()[i]);
 	}
-	for (var i = 0; i < this.ccRecipientsViewModel.bubbles().length; i++) {
+	for (i = 0; i < this.ccRecipientsViewModel.bubbles().length; i++) {
 		this.bubbleDeleted(this.ccRecipientsViewModel.bubbles()[i]);
 	}
-	for (var i = 0; i < this.bccRecipientsViewModel.bubbles().length; i++) {
+	for (i = 0; i < this.bccRecipientsViewModel.bubbles().length; i++) {
 		this.bubbleDeleted(this.bccRecipientsViewModel.bubbles()[i]);
 	}
 };

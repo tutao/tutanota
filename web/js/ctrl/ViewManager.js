@@ -64,14 +64,14 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }),
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
-            tutao.locator.navigator.newMail().then(function () {
-                var mail = tutao.locator.mailViewModel.getComposingMail();
-                mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
-                mail.secure(false);
-                var username = tutao.locator.userController.getUserGroupInfo().getName();
-                tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
-            }).caught(function(e) {
-                // the user did not allow to cancel the invitation mail
+            tutao.locator.navigator.newMail().then(function (success) {
+                if (success) {
+                    var mail = tutao.locator.mailViewModel.getComposingMail();
+                    mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
+                    mail.secure(false);
+                    var username = tutao.locator.userController.getUserGroupInfo().getName();
+                    tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'$': username})));
+                }
             });
 
         }, self.isInternalUserLoggedIn, false, "menu_invite", "invite", 'invite_alt'),

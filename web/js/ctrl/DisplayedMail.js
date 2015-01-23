@@ -74,7 +74,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         }, trashed, false, "undeleteMailAction", "restore"),
 
 		new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
-            tutao.locator.mailViewModel.finalDeleteMail(self);
+            tutao.locator.mailViewModel.finallyDeleteMail(self);
         }, trashed, false, "finalDeleteMailAction", "trash"),
 		
 		new tutao.tutanota.ctrl.Button("delete_action", 8, function () {

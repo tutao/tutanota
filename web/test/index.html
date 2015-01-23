@@ -9,8 +9,10 @@
     <!-- build:js -->
     <!-- build:js -->
     <!-- inject:lib:js -->
+    <script src="/lib/autolinker.min.js"></script>
     <script src="/lib/bCrypt.js"></script>
     <script src="/lib/bluebird-2.2.2.js"></script>
+    <script src="/lib/hammer-2.0.4.js"></script>
     <script src="/lib/html-css-sanitizer-r5333-fix1.min.js"></script>
     <script src="/lib/jquery-1.9.1.js"></script>
     <script src="/lib/jquery-transit-0.9.9.js"></script>
@@ -64,25 +66,12 @@
     <script src="/js/event/Observable.js"></script>
     <script src="/js/event/ObservableInterface.js"></script>
     <script src="/js/event/PushListEventTracker.js"></script>
-    <script src="/js/gui/BubbleInputGui.js"></script>
-    <script src="/js/gui/ContactView.js"></script>
-    <script src="/js/gui/ExternalLoginView.js"></script>
-    <script src="/js/gui/FastMessageView.js"></script>
-    <script src="/js/gui/FileView.js"></script>
-    <script src="/js/gui/LoginView.js"></script>
-    <script src="/js/gui/MailView.js"></script>
-    <script src="/js/gui/NotFoundView.js"></script>
-    <script src="/js/gui/NotSupportedView.js"></script>
-    <script src="/js/gui/RegistrationVerifyDomainView.js"></script>
-    <script src="/js/gui/RegistrationView.js"></script>
-    <script src="/js/gui/SettingsView.js"></script>
-    <script src="/js/gui/SwipeSlider.js"></script>
-    <script src="/js/gui/gui.js"></script>
-    <script src="/js/index/Indexer.js"></script>
     <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
+    <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
     <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
-    <script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
+    <script src="/js/ctrl/AdminMessagesViewModel.js"></script>
     <script src="/js/ctrl/AdminNewUser.js"></script>
+    <script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
     <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
     <script src="/js/ctrl/AdminUserListViewModel.js"></script>
     <script src="/js/ctrl/AppCacheListener.js"></script>
@@ -101,14 +90,18 @@
     <script src="/js/ctrl/ExternalLoginViewModel.js"></script>
     <script src="/js/ctrl/FeedbackViewModel.js"></script>
     <script src="/js/ctrl/FileViewModel.js"></script>
+    <script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
     <script src="/js/ctrl/FontViewModel.js"></script>
     <script src="/js/ctrl/GroupData.js"></script>
     <script src="/js/ctrl/LanguageViewModel.js"></script>
     <script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
     <script src="/js/ctrl/LoginViewModel.js"></script>
     <script src="/js/ctrl/MailBoxController.js"></script>
+    <script src="/js/ctrl/MailFolderListViewModel.js"></script>
+    <script src="/js/ctrl/MailFolderViewModel.js"></script>
     <script src="/js/ctrl/MailListViewModel.js"></script>
     <script src="/js/ctrl/MailViewModel.js"></script>
+    <script src="/js/ctrl/ModalDialogViewModel.js"></script>
     <script src="/js/ctrl/Navigator.js"></script>
     <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
     <script src="/js/ctrl/ProgressDialogModel.js"></script>
@@ -123,13 +116,27 @@
     <script src="/js/ctrl/SettingsViewModel.js"></script>
     <script src="/js/ctrl/ShareFacade.js"></script>
     <script src="/js/ctrl/SwipeRecognizer.js"></script>
-    <script src="/js/ctrl/TagListViewModel.js"></script>
     <script src="/js/ctrl/ThemeViewModel.js"></script>
     <script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
     <script src="/js/ctrl/UserController.js"></script>
     <script src="/js/ctrl/View.js"></script>
     <script src="/js/ctrl/ViewManager.js"></script>
     <script src="/js/ctrl/ViewSlider.js"></script>
+    <script src="/js/gui/BubbleInputGui.js"></script>
+    <script src="/js/gui/ContactView.js"></script>
+    <script src="/js/gui/ExternalLoginView.js"></script>
+    <script src="/js/gui/FastMessageView.js"></script>
+    <script src="/js/gui/FileView.js"></script>
+    <script src="/js/gui/LoginView.js"></script>
+    <script src="/js/gui/MailView.js"></script>
+    <script src="/js/gui/NotFoundView.js"></script>
+    <script src="/js/gui/NotSupportedView.js"></script>
+    <script src="/js/gui/RegistrationVerifyDomainView.js"></script>
+    <script src="/js/gui/RegistrationView.js"></script>
+    <script src="/js/gui/SettingsView.js"></script>
+    <script src="/js/gui/SwipeSlider.js"></script>
+    <script src="/js/gui/gui.js"></script>
+    <script src="/js/index/Indexer.js"></script>
     <script src="/js/legacy/FlashFileSaver.js"></script>
     <script src="/js/legacy/Legacy.js"></script>
     <script src="/js/rest/EntityRestCache.js"></script>
@@ -138,12 +145,18 @@
     <script src="/js/rest/EntityRestInterface.js"></script>
     <script src="/js/rest/ResourceConstants.js"></script>
     <script src="/js/rest/RestClient.js"></script>
+    <script src="/js/security/CajaSanitizer.js"></script>
+    <script src="/js/security/HtmlSanitizer.js"></script>
     <script src="/js/native/AndroidFile.js"></script>
+    <script src="/js/native/ConfigApp.js"></script>
+    <script src="/js/native/ConfigBrowser.js"></script>
+    <script src="/js/native/ConfigFacade.js"></script>
     <script src="/js/native/ContactApp.js"></script>
     <script src="/js/native/ContactBrowser.js"></script>
     <script src="/js/native/ContactInterface.js"></script>
     <script src="/js/native/CryptoBrowser.js"></script>
     <script src="/js/native/CryptoInterface.js"></script>
+    <script src="/js/native/DeviceConfig.js"></script>
     <script src="/js/native/FileFacade.js"></script>
     <script src="/js/native/FileFacadeAndroidApp.js"></script>
     <script src="/js/native/FileFacadeBrowser.js"></script>
@@ -155,9 +168,10 @@
     <script src="/js/native/PhoneInterface.js"></script>
     <script src="/js/native/PrivateKey.js"></script>
     <script src="/js/native/PublicKey.js"></script>
+    <script src="/js/native/PushServiceApp.js"></script>
+    <script src="/js/native/PushServiceBrowser.js"></script>
+    <script src="/js/native/PushServiceInterface.js"></script>
     <script src="/js/native/RsaUtils.js"></script>
-    <script src="/js/security/CajaSanitizer.js"></script>
-    <script src="/js/security/HtmlSanitizer.js"></script>
     <script src="/js/util/ArrayUtils.js"></script>
     <script src="/js/util/Assert.js"></script>
     <script src="/js/util/ClientDetector.js"></script>
@@ -218,6 +232,8 @@
     <script src="/js/generated/entity/tutanota/MailAddress.js"></script>
     <script src="/js/generated/entity/tutanota/MailBody.js"></script>
     <script src="/js/generated/entity/tutanota/MailBox.js"></script>
+    <script src="/js/generated/entity/tutanota/MailFolder.js"></script>
+    <script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
     <script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
     <script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
     <script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
@@ -260,11 +276,14 @@
     <script src="/js/generated/entity/sys/CustomerInfo.js"></script>
     <script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
     <script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
+    <script src="/js/generated/entity/sys/CustomerProperties.js"></script>
     <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
+    <script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
     <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
     <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
     <script src="/js/generated/entity/sys/EntityUpdate.js"></script>
     <script src="/js/generated/entity/sys/Exception.js"></script>
+    <script src="/js/generated/entity/sys/ExternalPropertiesReturn.js"></script>
     <script src="/js/generated/entity/sys/ExternalUserReference.js"></script>
     <script src="/js/generated/entity/sys/Group.js"></script>
     <script src="/js/generated/entity/sys/GroupInfo.js"></script>
@@ -280,6 +299,8 @@
     <script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
     <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
     <script src="/js/generated/entity/sys/MembershipAddData.js"></script>
+    <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
+    <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
     <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
     <script src="/js/generated/entity/sys/Permission.js"></script>
     <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
@@ -288,6 +309,8 @@
     <script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
     <script src="/js/generated/entity/sys/PublicKeyData.js"></script>
     <script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
+    <script src="/js/generated/entity/sys/PushIdentifier.js"></script>
+    <script src="/js/generated/entity/sys/PushIdentifierList.js"></script>
     <script src="/js/generated/entity/sys/RegistrationConfigReturn.js"></script>
     <script src="/js/generated/entity/sys/RegistrationData.js"></script>
     <script src="/js/generated/entity/sys/RegistrationReturn.js"></script>
@@ -341,6 +364,7 @@
     <script src="/test/js/crypto/RandomizerTest.js"></script>
     <script src="/test/js/crypto/RsaTest.js"></script>
     <script src="/test/js/crypto/ShaTest.js"></script>
+    <script src="/test/js/db/DbTest.js"></script>
     <script src="/test/js/ctrl/AdminPremiumFeatureViewModelTest.js"></script>
     <script src="/test/js/ctrl/ComposingMailTest.js"></script>
     <script src="/test/js/ctrl/LanguageViewModelTest.js"></script>
@@ -351,7 +375,6 @@
     <script src="/test/js/ctrl/ThunderbirdCsvContactConverterTest.js"></script>
     <script src="/test/js/ctrl/ViewManagerTest.js"></script>
     <script src="/test/js/ctrl/ViewSliderTest.js"></script>
-    <script src="/test/js/db/DbTest.js"></script>
     <script src="/test/js/entity/ContactWrapperTest.js"></script>
     <script src="/test/js/entity/EntityObserverTest.js"></script>
     <script src="/test/js/entity/EntitySessionKeyHandlingTest.js"></script>
@@ -397,7 +420,6 @@
     <script src="/test/js/generated/entity/valueunencrypted/Et2.js"></script>
     <script src="/test/js/generated/entity/valueunencrypted/EtZeroOrOneValues.js"></script>
     <script src="/test/js/generated/entity/valueunencrypted/Let.js"></script>
-    <script src="/js/native/DeviceConfig.js"></script>
     <!-- endinject -->
     <script src="/js/util/init.js"></script>
     <!-- endbuild -->

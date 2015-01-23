@@ -74,6 +74,9 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
 	}, this);
 
     this._widthInterval = null;
+
+    // receives the dom element via the domInit binding. this allows the position of the more menu to be adjusted below the button bar.
+    this.buttonBarDomElement = ko.observable();
 };
 
 /**

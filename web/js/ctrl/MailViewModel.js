@@ -119,7 +119,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._findContactByMailAddress = function
 
 /**
  * @param {tutao.tutanota.ctrl.RecipientInfo=} recipientInfo Optional recipient info as recipient.
- * @return {Promise.<boolean>}
+ * @return {Promise.<boolean>} True if the new mail was opened, false otherwise.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.newMail = function(recipientInfo) {
 	var recipients = (recipientInfo) ? [recipientInfo] : [];
@@ -231,12 +231,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText) {
 	var self = this;
 
-	return self.tryCancelAllComposingMails().then(function(confirmed) {
-        if (!confirmed) {
-            return Promise.reject("could not cancel composing");
-        } else {
+	return self.tryCancelAllComposingMails(false).then(function(confirmed) {
+        if (confirmed) {
             // any selected mails in the mail list shall be deselected
-            tutao.locator.mailListViewModel.unselectAll();
+            tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
 
             var mailCreatedPromise;
             if (previousMail) {
@@ -286,6 +284,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 
                 return true;
             });
+        } else {
+            return false;
         }
     });
 };
@@ -295,8 +295,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete finally.
  * @return {window.Promise} The promise.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.finalDeleteMail = function(displayedMail) {
-    return tutao.locator.mailListViewModel.finallyDeleteMails([displayedMail.mail.getId()]);
+tutao.tutanota.ctrl.MailViewModel.prototype.finallyDeleteMail = function(displayedMail) {
+    return tutao.locator.mailFolderListViewModel.selectedFolder().finallyDeleteMails([displayedMail.mail]);
 };
 
 /**
@@ -304,18 +304,19 @@ tutao.tutanota.ctrl.MailViewModel.prototype.finalDeleteMail = function(displayed
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete/undelete.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail) {
-	tutao.locator.mailListViewModel.trashMail([displayedMail.mail], !displayedMail.mail.getTrashed());
+	//TODO tutao.locator.mailListViewModel.trashMail([displayedMail.mail], !displayedMail.mail.getTrashed());
 };
 
 /**
  * If a composing mail is open, asks the user to cancel that mail.
+ * @param {bool} restorePreviousMail True if the previously visible mail shall be shown, false otherwise.
  * @return {Promise.<boolean>} True if no composing mail is open any more, false otherwise.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = function() {
+tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = function(restorePreviousMail) {
 	if (!this.mail) {
 		return Promise.resolve(true);
 	} else if (this.isComposingState()) {
-		return (this.getComposingMail().cancelMail(true));
+		return (this.getComposingMail().cancelMail(restorePreviousMail, false));
 	} else {
         return Promise.resolve(true);
 	}
@@ -389,7 +390,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getColumnTitleText = function(){
                 text = tutao.lang("forward_action");
             }
         } else {
-            text = (tutao.locator.mailListViewModel.getSelectedMailIndex() + 1) + "/" + tutao.locator.mailListViewModel.mails().length;
+            text = (tutao.locator.mailListViewModel.getSelectedMailIndex() + 1) + "/" + tutao.locator.mailListViewModel.getMails().length;
         }
     }
     return text;

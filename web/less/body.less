@@ -222,6 +222,7 @@ body {
 							    .fadeTextOut;
 							    
 							    div#birthdayImage {
+                                    display: inline-block;
 							    	width: 13px;
 							    	height: 13px;
 							    }
@@ -436,6 +437,16 @@ body {
 			}
 		}
 	}
+
+    div#mailFolderColumn {
+        > div#innerMailFolderColumn {
+            top: @button-bar-height;
+            @media @mobile {
+              bottom: @button-bar-height;
+              top: 0;
+            }
+        }
+    }
 
 	div#searchAndMailListColumn {
 		> div#searchAndMailList {

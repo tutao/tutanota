@@ -54,7 +54,7 @@ tutao.tutanota.Bootstrap.init = function() {
         mailView: tutao.tutanota.gui.MailView,
 		passwordChannelViewModel: tutao.tutanota.ctrl.PasswordChannelViewModel,
 		externalLoginViewModel: tutao.tutanota.ctrl.ExternalLoginViewModel,
-		tagListViewModel: tutao.tutanota.ctrl.TagListViewModel,
+        mailFolderListViewModel: tutao.tutanota.ctrl.MailFolderListViewModel,
 		viewManager: tutao.tutanota.ctrl.ViewManager,
 		indexer: tutao.tutanota.index.Indexer,
 		viewSlider: tutao.tutanota.ctrl.ViewSlider,

@@ -62,8 +62,8 @@ tutao.Locator = function(services, initializer) {
     this.loginViewModel= null;
     // @type {tutao.tutanota.ctrl.ExternalLoginViewModel}
     this.externalLoginViewModel= null;
-    // @type {tutao.tutanota.ctrl.TagListViewModel}
-    this.tagListViewModel= null;
+    // @type {tutao.tutanota.ctrl.MailFolderListViewModel}
+    this.mailFolderListViewModel= null;
     // @type {tutao.tutanota.ctrl.MailListViewModel}
     this.mailListViewModel= null;
     // @type {tutao.tutanota.ctrl.MailViewModel}
@@ -146,6 +146,8 @@ tutao.Locator = function(services, initializer) {
     this.progressDialogModel= null;
     // @type {tutao.tutanota.ctrl.ModalDialogViewModel}
     this.modalDialogViewModel= null;
+    // @type {tutao.tutanota.ctrl.FolderNameDialogViewModel}
+    this.folderNameDialogViewModel = null;
 
 	this.reset();
 };

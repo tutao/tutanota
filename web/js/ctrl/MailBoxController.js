@@ -52,7 +52,23 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
 	return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
         return tutao.entity.tutanota.MailBox.load(root.getReference()).then(function(mailBox) {
             self._mailBox = mailBox;
-            return mailBox;
+            return tutao.rest.EntityRestInterface.loadAll(tutao.entity.tutanota.MailFolder, mailBox.getSystemFolders().getFolders(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(loadedSystemFolders) {
+                return Promise.map(loadedSystemFolders, function(loadedSystemFolder) {
+                    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.tutanota.MailFolder, loadedSystemFolder.getSubFolders(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(loadedSubFolders) {
+                        return Promise.map(loadedSubFolders, function(loadedSubFolder) {
+                            return new tutao.tutanota.ctrl.MailFolderViewModel(loadedSubFolder, loadedSystemFolder, []);
+                        }).then(function(createdSubFolders) {
+                            // sort the custom folders by name
+                            createdSubFolders.sort(function(a, b) {
+                                return a.getName().localeCompare(b.getName());
+                            });
+                            return new tutao.tutanota.ctrl.MailFolderViewModel(loadedSystemFolder, null, createdSubFolders);
+                        });
+                    });
+                }).then(function(createdSystemFolders) {
+                    tutao.locator.mailFolderListViewModel.setMailFolders(createdSystemFolders);
+                });
+            });
         });
 	});
 };

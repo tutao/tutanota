@@ -15,7 +15,7 @@ tutao.tutanota.gui.MailView = function() {
 /**
  * These ids are returned by addViewColumn.
  */
-tutao.tutanota.gui.MailView.COLUMN_TAGS = null;
+tutao.tutanota.gui.MailView.COLUMN_FOLDERS = null;
 tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = null;
 tutao.tutanota.gui.MailView.COLUMN_CONVERSATION = null;
 tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = null;
@@ -25,8 +25,8 @@ tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = null;
  */
 tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitleCallback) {
     this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, "mailContent", updateColumnTitleCallback);
-    tutao.tutanota.gui.MailView.COLUMN_TAGS = this._swipeSlider.addViewColumn(2, 200, 420, 'tagListColumn', function() { return tutao.lang("folderTitle_label"); });
-    tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = this._swipeSlider.addViewColumn(0, 300, 800, 'searchAndMailListColumn', tutao.locator.tagListViewModel.getActiveTagText );
+    tutao.tutanota.gui.MailView.COLUMN_FOLDERS = this._swipeSlider.addViewColumn(2, 200, 420, 'mailFolderColumn', function() { return tutao.lang("folderTitle_label"); });
+    tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST = this._swipeSlider.addViewColumn(0, 300, 800, 'searchAndMailListColumn', tutao.locator.mailFolderListViewModel.getSelectedFolderName );
     tutao.tutanota.gui.MailView.COLUMN_CONVERSATION = this._swipeSlider.addViewColumn(1, 600, 1024, 'conversationColumn',tutao.locator.mailViewModel.getColumnTitleText);
 	if (!external) {
         tutao.tutanota.gui.MailView.COLUMN_PASSWORD_CHANNELS = this._swipeSlider.addViewColumn(3, 300, 800, 'passwordChannelColumn');
@@ -69,7 +69,7 @@ tutao.tutanota.gui.MailView.prototype.isShowLeftNeighbourColumnPossible = functi
  */
 tutao.tutanota.gui.MailView.prototype.isShowRightNeighbourColumnPossible = function() {
     return ((this._swipeSlider.getRightmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_CONVERSATION) && (tutao.locator.passwordChannelViewModel.getSecureExternalRecipients().length > 0) || // allow showing password channels if composing mail is visible
-        (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_TAGS && this._swipeSlider.getRightmostVisibleColumnId() <= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST)); // allow slide out tag list
+        (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.MailView.COLUMN_FOLDERS && this._swipeSlider.getRightmostVisibleColumnId() <= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST)); // allow slide out tag list
 };
 
 /**
@@ -160,15 +160,6 @@ tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
     var text = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html());
     text = tutao.tutanota.util.Formatter.urlify(text);
 	return text;
-};
-
-/**
- * Provides the dom element of the given mail in the mail list.
- * @param {tutao.entity.tutanota.Mail} mail The mail.
- * @return {Object} The dom element.
- */
-tutao.tutanota.gui.MailView.prototype.getMailListDomElement = function(mail) {
-	return $('#mailInList' + mail.getId()[0] + mail.getId()[1]);
 };
 
 /**

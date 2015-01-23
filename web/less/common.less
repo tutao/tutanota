@@ -592,7 +592,7 @@ div#modalMoreMenu {
       right: @indicator-side-margin;
       border: 0px;
       z-index: 4;
-      min-width: 200px;
+      min-width: 182px; // makes the menu fit into the mail folder column
 
       // configuration for header more menu
       // big menu
@@ -699,10 +699,6 @@ div.menuList {
   bottom: 0px;
   background-clip: padding-box;
   background-color: @background-dark;
-
-  > div.menuInnerList {
-
-  }
 }
 
 .menuItem {
@@ -812,6 +808,10 @@ form.recordContainer, div.recordContainer {
     > div.formAction {
       > button {
         margin-right: 5px;
+
+        &.dialogButton {
+          float: right;
+        }
       }
     }
 

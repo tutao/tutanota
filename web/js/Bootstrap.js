@@ -171,7 +171,7 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         viewManager: tutao.tutanota.ctrl.ViewManager,
         loginViewModel: tutao.tutanota.ctrl.LoginViewModel,
         externalLoginViewModel: tutao.tutanota.ctrl.ExternalLoginViewModel,
-        tagListViewModel: tutao.tutanota.ctrl.TagListViewModel,
+        mailFolderListViewModel: tutao.tutanota.ctrl.MailFolderListViewModel,
         mailListViewModel: tutao.tutanota.ctrl.MailListViewModel,
         mailViewModel: tutao.tutanota.ctrl.MailViewModel,
         passwordChannelViewModel: tutao.tutanota.ctrl.PasswordChannelViewModel,
@@ -203,7 +203,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         navigator: tutao.tutanota.ctrl.Navigator,
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
         progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
-        modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel
+        modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel,
+        folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel
     };
 
    // Disable swipte slider on mobile devices.
@@ -223,6 +224,7 @@ tutao.tutanota.Bootstrap.initLocator = function() {
     var external = tutao.util.StringUtils.startsWith(location.hash, "#mail");
     tutao.locator.viewManager.init(external);
 
+    tutao.locator.mailFolderListViewModel.init();
     tutao.locator.mailListViewModel.init();
     tutao.locator.mailViewModel.init();
     tutao.locator.contactListViewModel.initButtonBar();
