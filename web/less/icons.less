@@ -311,10 +311,125 @@
     }
   }
 
-  &.progress {
+  &.file-undefined:before {
     .icomoon;
-    background-image: url("../graphics/busy.gif");
-    background-size: 15px 15px;
+    content: "\e60e";
+  }
+
+  &.file-zip:before {
+    .icomoon;
+    content: "\e611";
+    width: 16px;
+    height: 16px;
+  }
+
+  &.file-text:before {
+    .icomoon;
+    content: "\e610";
+  }
+
+  &.file-word:before {
+    .icomoon;
+    content: "\e606";
+  }
+
+  &.file-excel:before {
+    .icomoon;
+    content: "\e607";
+  }
+
+  &.file-presentation:before {
+    .icomoon;
+    content: "\e608";
+  }
+
+  &.file-mail:before {
+    .icomoon;
+    content: "\e0ec";
+  }
+
+  &.file-contact:before {
+    .icomoon;
+    content: "\e186";
+  }
+
+  &.file-data:before {
+    .icomoon;
+    content: "\e60b";
+  }
+
+  &.file-music:before {
+    .icomoon;
+    content: "\e60d";
+  }
+
+  &.file-video:before {
+    .icomoon;
+    content: "\e60c";
+  }
+
+  &.file-image:before {
+    .icomoon;
+    content: "\e60f";
+  }
+
+  &.file-pdf:before {
+    .icomoon;
+    content: "\e609";
+  }
+
+  &.file-executable:before {
+    .icomoon;
+    content: "\e614";
+  }
+
+  &.file-web:before {
+    .icomoon;
+    content: "\e60b";
+  }
+
+  &.file-calendar:before {
+    .icomoon;
+    content: "\e613";
+  }
+
+  &.file-font:before {
+    .icomoon;
+    content: "\e615";
+  }
+
+  @-moz-keyframes spin {
+    from { -moz-transform: rotate(0); }
+    to { -moz-transform: rotate(360deg); }
+  }
+  @-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0); }
+    to { -webkit-transform: rotate(360deg); }
+  }
+  @-o-keyframes spin {
+    from { -o-transform: rotate(0); }
+    to { -o-transform: rotate(360deg); }
+  }
+  @-ms-keyframes spin {
+    from { -ms-transform: rotate(0); }
+    to { -ms-transform: rotate(360deg); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0); }
+    to { transform: rotate(360deg); }
+  }
+
+  &.spinner:before {
+    .icomoon;
+    content: '\e612';
+
+    font-size: 20px;
+    text-shadow: 0 0 .25em fade(@icon-color, 30%);
+
+    -webkit-animation: spin 2s infinite linear;
+    -moz-animation: spin 2s infinite linear;
+    -o-animation: spin 2s infinite linear;
+    animation: spin 2s infinite linear;
   }
 }
 

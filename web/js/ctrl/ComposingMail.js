@@ -547,7 +547,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 };
 
 /**
- * Provides the image that shall be shown in the attachment.
+ * Provides the image class that shall be shown in the attachment.
  * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} dataFile The file.
  * @return {String} The name of the image.
  */

@@ -180,7 +180,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAllAttachments = function ()
 };
 
 /**
- * Provides the image that shall be shown in the attachment.
+ * Provides the image class that shall be shown in the attachment.
  * @param {tutao.entity.tutanota.File} file The file.
  * @return {String} The name of the image.
  */

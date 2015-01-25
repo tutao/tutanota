@@ -37,30 +37,52 @@ tutao.tutanota.util.FileUtils.getFileNameExtension = function(fileName) {
 };
 
 /**
- * Provides the image that shall be shown in the attachment.
+ * Provides the image class that shall be shown in the attachment.
  * @param {String} fileName The name of the file.
  * @param {boolean} busy True if the file is currently busy.
  * @return {String} The name of the image.
- */
-tutao.tutanota.util.FileUtils.getFileTypeImage = function(fileName, busy) {
-	if (busy) {
-		return "graphics/busy.gif";
-	} else {
-		return 'graphics/mime/' + tutao.tutanota.util.FileUtils.getFileNameExtension(fileName) + '.png';
-	}
-};
-
-/**
- * Provides the image that shall be shown in the attachment.
- * @param {String} fileName The name of the file.
- * @param {boolean} busy True if the file is currently busy.
- * @return {String} The name of the image.
+ * @see http://fileinfo.com/filetypes/common for a comprehensive listing
  */
 tutao.tutanota.util.FileUtils.getFileTypeImage = function(fileName, busy) {
     if (busy) {
-        return "graphics/busy.gif";
+        return "spinner";
     } else {
-        return 'graphics/mime/' + tutao.tutanota.util.FileUtils.getFileNameExtension(fileName) + '.png';
+        var extension = tutao.tutanota.util.FileUtils.getFileNameExtension(fileName);
+        if (["7z", "bz", "bz2", "deb", "gz", "pgk", "rar", "rpm", "tar", "tgz", "zip"].indexOf(extension) != -1) {
+            return "file-zip";
+        } else if (["txt", "log", "ini", "cfg"].indexOf(extension) != -1) {
+            return "file-text";
+        } else if (["doc", "dot", "docx", "docm", "dotx", "dotm", "docb", "odt", "rtf"].indexOf(extension) != -1) {
+            return "file-word";
+        } else if (["xls", "xlt", "xlm", "xlsx", "xlsm", "xltx", "xltm", "ods"].indexOf(extension) != -1) {
+            return "file-excel";
+        } else if (["ppt", "pot", "pps", "pptx", "pptm", "potx", "potm", "ppam", "ppsx", "ppsm", "sldx", "sldm", "odp", "key"].indexOf(extension) != -1) {
+            return "file-presentation";
+        } else if (["eml", "mbox", "pst", "ost", "msg"].indexOf(extension) != -1) {
+            return "file-email";
+        } else if (["vcf"].indexOf(extension) != -1) {
+            return "file-contact";
+        } else if (["csv", "xml", "json", "dat"].indexOf(extension) != -1) {
+            return "file-data";
+        } else if (["aac","aif", "aiff", "ape", "dvf", "flac", "m3u", "m4a", "m4p", "mid", "mp3", "mpa", "mpc", "oga", "ogg", "pcm", "wav", "wma"].indexOf(extension) != -1) {
+            return "file-music";
+        } else if (["asf", "avi", "flv", "m4v", "mov", "mp4", "mpg", "rm", "swf", "vob", "wmv", "ogv", "mp4"].indexOf(extension) != -1) {
+            return "file-video";
+        } else if (["ai", "bmp", "eps", "gif", "jpg", "jpeg", "png", "ps", "psd", "svg", "tga", "tif", "tiff", "yuv"].indexOf(extension) != -1) {
+            return "file-image";
+        } else if (["pdf"].indexOf(extension) != -1) {
+            return "file-pdf";
+        } else if (["apk", "app", "bat", "com", "exe", "jar", "sh", "vb", "wsf"].indexOf(extension) != -1) {
+            return "file-executable";
+        } else if (["asp", "aspx", "css", "htm", "html", "js", "msi", "php", "rss", "xhtml"].indexOf(extension) != -1) {
+            return "file-web";
+        } else if (["ics", "ical"].indexOf(extension) != -1) {
+            return "file-calendar";
+        } else if (["fnt", "otf", "ttf", "woff"].indexOf(extension) != -1) {
+            return "file-font";
+        } else {
+            return "file-undefined";
+        }
     }
 };
 

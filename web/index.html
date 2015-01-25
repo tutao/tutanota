@@ -467,13 +467,11 @@
 						</div>
                         <div class="loadMoreElement" data-bind="fastClick: function() { tutao.locator.mailFolderListViewModel.selectedFolder().loadMoreMails(); }, visible: tutao.locator.mailFolderListViewModel.selectedFolder().moreAvailable() && !showSpinner()">
                             <span data-bind="text: tutao.lang('loadMoreMails_action'), visible: !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></span>
-                            <img src="graphics/busy.gif" data-bind="visible: tutao.locator.mailFolderListViewModel.selectedFolder().loading()" />
+							<div data-bind="template: { name: 'spinner-template'}, visible: tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
                         </div>
                         <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (getMails().length == 0) && !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
                         <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
-                            <div class="spinner" class="defaultMargin">
-                                <img src="graphics/busy.gif" />
-                            </div>
+							<div data-bind="template: { name: 'spinner-template'}"></div>
                         </div>
 					</section>
 				</div>
@@ -483,9 +481,7 @@
                 <!-- ko ifnot: mail -->
                 <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
                 <!-- /ko -->
-                <div class="spinner" class="defaultMargin" data-bind="visible: showSpinner">
-                    <img src="graphics/busy.gif" />
-                </div>
+				<div data-bind="template: { name: 'spinner-template'}, visible: showSpinner"></div>
                 <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
                     <div data-bind="lang: 'noMail_msg'"></div><br>
                 </div>
@@ -493,7 +489,7 @@
                     <!-- ko if: mail -->
                     <div class="actions" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
                     <!-- ko if: isComposingState() -->
-                    <img id="sendMailBusyImg" src="graphics/busy.gif" data-bind="visible: mail().busy" />
+					<div id="sendMailBusyImg" data-bind="template: { name: 'spinner-template'}, visible: mail().busy"></div>
                     <!-- /ko -->
 					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
@@ -548,7 +544,7 @@
 										<div class="attachments" data-bind="foreach: {data: attachments}">
 											<div class="download" data-bind="fastClick: function() { $parent.downloadAttachment($data) }, attr: { id: 'downloadButton_' + getId()[1], title: getName() }">
 												<div class="mimeImage">
-													<img onerror="this.src='graphics/mime/file.png';" data-bind="attr: {src: $parent.getAttachmentImage($data)}">
+													<div class="fontImage" data-bind="class: $parent.getAttachmentImage($data)"></div>
 												</div>
 												<div class="fileName" data-bind="text: getName()"></div>
 												<div class="fileSize" data-bind="text: '(' + tutao.tutanota.util.Formatter.formatFileSize(getSize()) + ')'"></div>
@@ -635,7 +631,7 @@
                                                 <!-- we need to use the click binding instead of fastClick here because otherwise the attachment is also downloaded on mobile devices when tapping "remove" -->
 												<div class="download" data-bind="click: $parent.downloadNewAttachment, attr: { title: getName() }">
 													<div class="mimeImage">
-														<img onerror="this.src='graphics/mime/file.png';" data-bind="attr: {src: $parent.getAttachmentImage($data)}"/>
+														<div class="fontImage" data-bind="class: $parent.getAttachmentImage($data)"></div>
 													</div>
 													<div class="fileName" data-bind="text: getName()"></div>
 													<div class="fileSize" data-bind="text: '(' + tutao.tutanota.util.Formatter.formatFileSize(getSize()) + ')'"></div>
@@ -980,7 +976,6 @@
 				<div class="panel">
 					<div class="content scrollable">
 						<h1 data-bind="text: welcomeText"></h1>
-
 						<form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
 							<div class="record">
 								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
@@ -1372,16 +1367,6 @@
                                         <div class="smallInfoMessage" data-bind="lang: 'changePasswordNotSupported_msg'"></div>
                                     <!-- /ko -->
                                     <!-- ko if: !tutao.tutanota.util.ClientDetector.isMobileDevice() -->
-                                        <div data-bind="if: overallState() == 'checking'">
-                                            <img src="graphics/busy.gif" />
-                                        </div>
-                                        <div data-bind="if: overallState() == 'notAllowed'">
-                                            <div data-bind="lang: 'pwChangeInvalidTooManyChangeAttempts_msg'"></div>
-                                        </div>
-                                        <div data-bind="if: overallState() == 'serverNotReachable'">
-                                            <div data-bind="lang: 'serverNotReachable_msg'"></div>
-                                        </div>
-
                                         <form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                             <div class="record">
                                                 <label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
@@ -1897,7 +1882,7 @@
 			<div class="input" tabindex="-1" data-bind="click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" tabIndex="0" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip, css:{closable: showDeleteIcon}"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><img src="graphics/busy.gif"/></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" tabIndex="0" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip, css:{closable: showDeleteIcon}"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><div data-bind="template: { name: 'spinner-template'}"></div></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">
@@ -1918,12 +1903,16 @@
 			<div class="files" data-bind="foreach: { data: files }">
 				<div class="file" data-bind="fastClick: function() { $parent.fileViewModel.downloadFile($data) }, attr: { title: getName() }">
 					<div class="mimeImage">
-						<img onerror="this.src='graphics/mime/file.png';" data-bind="attr: {src: $parent.fileViewModel.getFileTypeImage($data)}">
+						<div class="fontImage" data-bind="class: $parent.fileViewModel.getFileTypeImage($data)"></div>
 					</div>
 					<div class="fileName" data-bind="text: getName()"></div>
 					<div class="fileSize" data-bind="text: '(' + tutao.tutanota.util.Formatter.formatFileSize(getSize()) + ')'"></div>
 				</div>
 			</div>
+	</script>
+
+	<script type="text/html" id="spinner-template">
+		<div class="fontImage spinner"></div>
 	</script>
 
 </body>
