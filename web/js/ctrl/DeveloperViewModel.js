@@ -8,14 +8,15 @@ tutao.provide('tutao.tutanota.ctrl.DeveloperTest');
  * {string} title
  * {function} action
  */
-tutao.tutanota.ctrl.DeveloperTest = function(title, action) {
+tutao.tutanota.ctrl.DeveloperTest = function(title, action, showInput) {
     this.title = title;
     this.action = action;
     this.action.bind(this);
     this.details = ko.observable("");
     this.badge=0;
-	
 
+    this.showInput = showInput;
+    this.inputValue = ko.observable("");
 };
 
 /**
@@ -29,6 +30,7 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
 	this.encryptedData = [];
 	var developerViewModel = this;
     var self = this;
+
 
     this.badge = 0;
     var self = this;
@@ -182,7 +184,19 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
             var locationArray = location.href.split('/')
             var rootFolder = locationArray.slice(0, locationArray.length - 1).join('/') + ('/');
             location.href = rootFolder + "test/index.html";
-        })
+        }),
+
+        new tutao.tutanota.ctrl.DeveloperTest("get welcome mail (login required)", function () {
+            var self = this;
+            self.details("request welcome mail ");
+            if ( self.inputValue().trim() ==""){
+                self.inputValue(tutao.locator.languageViewModel.getCurrentLanguage());
+            }
+            new tutao.entity.tutanota.WelcomeMailData()
+                .setLanguage(self.inputValue())
+                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+        }, true)
+
     ];
 };
 

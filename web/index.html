@@ -1722,8 +1722,9 @@
             <span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2 data-bind="lang: 'dev_label'"></h2>
             <ul class="test-list" data-bind="foreach: tests">
-                <li data-bind="fastClick: action">
-                    <h2 data-bind="text: title"></h2>
+                <li>
+                    <h2 data-bind="text: title, fastClick: action" ></h2>
+					<input class="inputField" data-bind="visible: showInput, value: inputValue" />
                     <div data-bind="html: details"></div>
                 </li>
             </ul>
