@@ -304,7 +304,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.finallyDeleteMail = function(display
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete/undelete.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail) {
-	//TODO tutao.locator.mailListViewModel.trashMail([displayedMail.mail], !displayedMail.mail.getTrashed());
+    tutao.locator.mailFolderListViewModel.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), displayedMail.mail);
 };
 
 /**

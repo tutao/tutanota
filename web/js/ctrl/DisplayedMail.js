@@ -68,11 +68,6 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
             tutao.locator.mailViewModel.forwardMail(self);
         }, isInternalUserLoggedIn, false, "forwardAction", "forward"),
 
-        // all
-        new tutao.tutanota.ctrl.Button("undelete_action", 9, function () {
-            tutao.locator.mailViewModel.deleteMail(self);
-        }, trashed, false, "undeleteMailAction", "restore"),
-
 		new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
             tutao.locator.mailViewModel.finallyDeleteMail(self);
         }, trashed, false, "finalDeleteMailAction", "trash"),

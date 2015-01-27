@@ -60,10 +60,25 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
  * @param {Array.<Mail>} mails The mails that are new.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.updateOnNewMails = function(mails) {
+    var unread = false;
     for (var i = 0; i < mails.length; i++) {
-        this._loadedMails.unshift(mails[i]);
+        // find the correct position for the email in the list
+        var found = false;
+        for (var a=0; a<this._loadedMails().length; a++) {
+            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(mails[i].getId()[1], this._loadedMails()[a].getId()[1])) {
+                this._loadedMails.splice(a, 0, mails[i]);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            this._loadedMails.push(mails[i]);
+        }
+        if (mails[i].getUnread()) {
+            unread = true;
+        }
     }
-    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
+    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX && unread) {
         tutao.locator.notification.add(tutao.lang("newMails_msg"));
         this._updateNumberOfUnreadMails(); // TODO subscribe on _loadedMails instead
     }
@@ -236,11 +251,25 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.finallyDeleteMails = function(
     }
     return service.erase({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(deleteMailReturn) {
         for (var i=0; i<mails.length; i++) {
-            self._loadedMails.remove(mails[i]);
-            self._selectedMails.remove(mails[i]);
-            self._lastSelectedMails.remove(mails[i]);
+            self.removeMail(mails[i]);
         }
     });
+};
+
+/**
+ * Removes the given mail from the list and hides it if it is visible in the mail view.
+ * @param {tutao.entity.tutanota.Mail} mail The mail to remove.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMail = function(mail) {
+    if (this.isSelectedMail(mail)) {
+        this._selectedMails.remove(mail);
+        tutao.locator.mailViewModel.hideMail();
+    }
+    this._lastSelectedMails.remove(mail);
+    this._loadedMails.remove(mail);
+    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
+        this._updateNumberOfUnreadMails();
+    }
 };
 
 /**
@@ -257,6 +286,14 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getFolderType = function() {
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailListId = function() {
     return this._mailFolder.getMails();
+};
+
+/**
+ * Provides the mail folder id.
+ * @return {Array.<string, string>} The mail folder id.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailFolderId = function() {
+    return this._mailFolder.getId();
 };
 
 /**
