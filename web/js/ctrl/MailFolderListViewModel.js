@@ -10,7 +10,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     var mailFolder = new tutao.entity.tutanota.MailFolder();
     mailFolder.setFolderType("1");
-    var dummyMailFolder = new tutao.tutanota.ctrl.MailFolderViewModel(mailFolder, null, []);
+    var dummyMailFolder = new tutao.tutanota.ctrl.MailFolderViewModel(mailFolder, null);
     //@type function(tutao.tutanota.ctrl.MailFolderViewModel=):tutao.tutanota.ctrl.MailFolderViewModel
     this.selectedFolder = ko.observable(dummyMailFolder); // bound by MailListViewModel
 
@@ -101,46 +101,19 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSelectedFolderName = fu
  * Add a folder to the selected folder.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._createFolderInSelectedFolder = function() {
-    tutao.locator.folderNameDialogViewModel.showDialog("folderNameCreate_label", "", this._getSubfolderNames(this.selectedFolder())).then(function(folderName) {
-        if (folderName) {
-            console.log("add folder " + folderName);
-        }
-    });
+    this.selectedFolder().createSubFolder();
 };
 
 /**
  * Rename the selected folder.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._renameSelectedFolder = function() {
-    tutao.locator.folderNameDialogViewModel.showDialog("folderNameRename_label", this.selectedFolder().getName(), this._getSubfolderNames(this.selectedFolder().parentFolder())).then(function(folderName) {
-        if (folderName) {
-            console.log("rename folder to " + folderName);
-        }
-    });
+    this.selectedFolder().rename();
 };
 
 /**
  * Delete the selected folder.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._deleteSelectedFolder = function() {
-    var message = tutao.lang((this.selectedFolder().getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) ? "confirmDeleteCustomFolder_msg" : "confirmDeleteSystemFolder_msg", { "$1": this.selectedFolder().getName() });
-    tutao.tutanota.gui.confirm(message).then(function(confirmed) {
-        if (confirmed) {
-            console.log("delete folder");
-        }
-    });
-};
 
-/**
- * Provides the folder names of all sub-folders of the given folder.
- * @param {tutao.tutanota.ctrl.MailFolderViewModel} folder The folder.
- * @returns {Array.<string>} The folder names.
- */
-tutao.tutanota.ctrl.MailFolderListViewModel.prototype._getSubfolderNames = function(folder) {
-    var folders = folder.subFolders();
-    var folderNames = [];
-    for (var i=0; i<folders.length; i++) {
-        folderNames.push(folders[i].getName());
-    }
-    return folderNames;
 };

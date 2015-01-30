@@ -5,22 +5,21 @@ tutao.provide('tutao.tutanota.ctrl.MailFolderViewModel');
 /**
  * A mail folder including mails.
  * @param {tutao.entity.tutanota.MailFolder} mailFolder The persistent mailFolder.
- * @param {?tutao.entity.tutanota.MailFolderListViewModel} parentFolder The parent folder. Must be null if this is a system folder.
- * @param {Array.<tutao.entity.tutanota.MailFolderListViewModel>} subFolders The subfolders.
+ * @param {?tutao.tutanota.ctrl.MailFolderViewModel} parentFolder The parent folder. Must be null if this is a system folder.
  */
-tutao.tutanota.ctrl.MailFolderViewModel = function(mailFolder, parentFolder, subFolders) {
+tutao.tutanota.ctrl.MailFolderViewModel = function(mailFolder, parentFolder) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._eventTracker = null;
     this._mailFolder = mailFolder;
-
+    this._mailFolderName = ko.observable("");
     this._loadedMails = ko.observableArray();
     this._lastSelectedMails = ko.observableArray();
     this._selectedMails = ko.observableArray();
     this.loading = ko.observable(false);
     this.moreAvailable = ko.observable(true);
     this.parentFolder = ko.observable(parentFolder);
-    this.subFolders = ko.observableArray(subFolders);
+    this.subFolders = ko.observableArray([]);
 };
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
@@ -260,23 +259,54 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailListId = function() {
 };
 
 /**
+ * Provides the sub folder list id of this folder.
+ * @return {string} The list id.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSubFolderListId = function() {
+    return this._mailFolder.getSubFolders();
+};
+
+
+
+/**
+ * Provides the  id of this folder.
+ * @return {Array.<string>} The id of this MailFolder.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getId = function() {
+    return this._mailFolder.getId();
+};
+
+/**
  * Provides the name of the given folder.
  * @return {string} The name of the folder.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.getName = function() {
-    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) {
-        return this._mailFolder.getName();
-    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
-        return  tutao.lang("received_action");
-    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT) {
-        return  tutao.lang("sent_action");
-    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH) {
-        return  tutao.lang("trash_action");
-    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
-        return  tutao.lang("archive_action");
+    if ( this._mailFolderName() == ""){
+        this._updateName();
     }
-    throw new Error("No text id for tag");
+    return this._mailFolderName();
 };
+
+/**
+ * Provides the name of the given folder.
+ * @return {string} The name of the folder.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._updateName = function() {
+    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) {
+        this._mailFolderName(this._mailFolder.getName());
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
+        this._mailFolderName(tutao.lang("received_action"));
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT) {
+        this._mailFolderName(tutao.lang("sent_action"));
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH) {
+        this._mailFolderName(tutao.lang("trash_action"));
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
+        this._mailFolderName(tutao.lang("archive_action"));
+    }else{
+        throw new Error("No text id for tag");
+    }
+};
+
 
 /**
  * Provides the tooltip for the given folder.
@@ -313,3 +343,113 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
         return null;
     }
 };
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadSubFolders = function() {
+    var self = this;
+    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.tutanota.MailFolder, self.getSubFolderListId(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(loadedSubFolders) {
+        return Promise.map(loadedSubFolders, function(loadedSubFolder) {
+            return new tutao.tutanota.ctrl.MailFolderViewModel(loadedSubFolder, self);
+        }).then(function(createdSubFolders) {
+            // sort the custom folders by name
+            createdSubFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel.compareFolders);
+            self.subFolders(createdSubFolders);
+        });
+    });
+};
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadSubFolder = function(subFolderId) {
+    var self = this;
+    return tutao.entity.tutanota.MailFolder.load(subFolderId).then(function(subFolder) {
+        var newSubFolder = new tutao.tutanota.ctrl.MailFolderViewModel(subFolder, self);
+        self.subFolders.push(newSubFolder);
+        self.subFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel.compareFolders);
+    });
+};
+
+
+/**
+ * Provides the folder names of all sub-folders of this folder.
+ * @returns {Array.<string>} The folder names.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSubFolderNames = function() {
+    var folders = this.subFolders();
+    var folderNames = [];
+    for (var i=0; i<folders.length; i++) {
+        folderNames.push(folders[i].getName());
+    }
+    return folderNames;
+};
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.createSubFolder = function() {
+    var self = this;
+    tutao.locator.folderNameDialogViewModel.showDialog("folderNameCreate_label", "", self.getSubFolderNames()).then(function(folderName) {
+        if (folderName) {
+            console.log("add folder " + folderName);
+            tutao.entity.EntityHelper.getListKey(self.getSubFolderListId()).then(function(subFolderListKey) {
+                var createService = new tutao.entity.tutanota.CreateMailFolderData();
+                createService.setFolderName(folderName);
+                createService.setParentFolder(self.getId());
+                createService.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(subFolderListKey, createService._entityHelper.getSessionKey()));
+                createService.setup({}, null).then(function(newFolderReturn){
+                    self.sortFolderNames();
+                });
+            });
+        }
+    });
+};
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.rename = function() {
+    var self = this;
+    tutao.locator.folderNameDialogViewModel.showDialog("folderNameRename_label", self.getName(), self.parentFolder().getSubFolderNames()).then(function(newName) {
+        if (newName) {
+            self._mailFolder.setName(newName);
+            self._mailFolder.update().then(function(){
+                self._updateName();
+                if (self.parentFolder()){
+                    self.parentFolder().sortFolderNames();
+                }
+            });
+        }
+    });
+};
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.sortFolderNames = function() {
+    this.subFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel.compareFolders);
+};
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isTrashFolder = function(){
+    if ( this.parentFolder() ){
+        return this.parentFolder().isTrashFolder();
+    }else{
+        return this.selectedFolder().getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH;
+    }
+};
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.compareFolders = function(a, b){
+    return a.getName().localeCompare(b.getName());
+};
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(){
+    var message = tutao.lang((this.selectedFolder().getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) ? "confirmDeleteCustomFolder_msg" : "confirmDeleteSystemFolder_msg", { "$1": this.selectedFolder().getName() });
+    var self = this;
+    tutao.tutanota.gui.confirm(message).then(function(confirmed) {
+        if (confirmed) {
+            if (self.isTrashFolder()){
+                // delete content
+
+            }else{
+                // move content to trash
+            }
+        }
+    });
+};
+
+
+
+
