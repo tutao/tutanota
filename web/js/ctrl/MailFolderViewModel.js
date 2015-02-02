@@ -486,7 +486,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFold
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(){
     var message = tutao.lang((this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) ? "confirmDeleteCustomFolder_msg" : "confirmDeleteSystemFolder_msg", { "{1}": this.getName() });
     var self = this;
-    tutao.tutanota.gui.confirm(message).then(function(confirmed) {
+    return tutao.tutanota.gui.confirm(message).then(function(confirmed) {
         if (confirmed) {
             // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
             return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, self.getMailListId()).then(function(allMails) {
