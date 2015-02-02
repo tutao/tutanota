@@ -367,7 +367,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
         return  "file";
     } else {
-        return null;
+        return "folder";
     }
 };
 
