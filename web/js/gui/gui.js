@@ -301,6 +301,51 @@ tutao.tutanota.gui.initKnockout = function() {
 		}
 	};
 
+    ko.bindingHandlers.drag = {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // make the element draggable
+            $(element).attr("draggable", "true");
+            // store the function that shall be called when dropping
+            bindingContext.dragData = ko.utils.unwrapObservable(valueAccessor());
+            ko.utils.registerEventHandler(element, "dragstart", function (event) {
+                // unfortunately, IE only allowes "text" and "url"
+                event.originalEvent.dataTransfer.setData("text", bindingContext.dragData);
+                return true;
+            });
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // nothing to do
+        }
+    };
+
+    ko.bindingHandlers.drop = {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // store the function that shall be called when dropping
+            bindingContext.dropCallback = ko.utils.unwrapObservable(valueAccessor());
+            // register listender for drag&drop
+            ko.utils.registerEventHandler(element, "dragenter", function (event) {
+                $(element).addClass("dragOver");
+                event.preventDefault();
+            });
+            ko.utils.registerEventHandler(element, "dragleave", function (event) {
+                $(element).removeClass("dragOver");
+                event.preventDefault();
+            });
+            ko.utils.registerEventHandler(element, "dragover", function (event) {
+                // needed to allow dropping
+                event.preventDefault();
+            });
+            ko.utils.registerEventHandler(element, "drop", function (event) {
+                $(element).removeClass("dragOver");
+                bindingContext.dropCallback(viewModel, event.originalEvent.dataTransfer.getData("text"));
+                event.preventDefault();
+            });
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // nothing to do
+        }
+    };
+
 //	ko.bindingHandlers.slideVisible = {
 //		    update: function(element, valueAccessor, allBindingsAccessor) {
 //		        // First get the latest data that we're bound to

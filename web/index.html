@@ -451,7 +451,7 @@
 				<div id="searchAndMailList" >
 					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: getMails(), style: { borderTopWidth: (!tutao.locator.dao.isSupported() && getMails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || getMails().length > 0) ? '7px' : '0px' }">
-							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}">
+							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 								<div class="icons">
                                     <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
                                     <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
@@ -1827,7 +1827,7 @@
     <script type="text/html" id="mailFolder-template">
         <!-- provided data: vm (the MailFolderListViewModel), folders (the array of MailFolderViewModels) -->
         <div data-bind="foreach: folders()">
-            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.selectedFolder() == $data) ? ' selected' : ''), fastClick: $parent.vm.selectFolder"></div>
+            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.selectedFolder() == $data) ? ' selected' : ''), fastClick: $parent.vm.selectFolder, drop: tutao.locator.mailFolderListViewModel.drop"></div>
             <div class="mailFolders" data-bind="template: { name: 'mailFolder-template',  data: { vm: $parent.vm, folders: subFolders } }"></div>
         </div>
     </script>

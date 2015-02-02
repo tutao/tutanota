@@ -89,6 +89,59 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(fo
     }
 };
 
+
+/**
+ * Moves the mail from the selected folder to the given target folder.
+ * @param {tutao.tutanota.ctrl.MailFolderViewModel} targetMailFolder The target folder.
+ * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to move.
+ * @param {tutao.tutanota.ctrl.MailFolderViewModel=} sourceMailFolder The source folder, if not set the source folder is the selected folder.
+ */
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.move = function(targetMailFolder, mails, sourceMailFolder) {
+    var sourceFolder = sourceMailFolder;
+    if(!sourceFolder){
+        sourceFolder = tutao.locator.mailFolderListViewModel.selectedFolder();
+    }
+    if (sourceFolder.getMailListId() == targetMailFolder.getMailListId()) {
+        // source and target folder are the same
+        return;
+    }
+
+    var data = new tutao.entity.tutanota.MoveMailData();
+    data.setTargetFolder(targetMailFolder.getMailFolderId());
+    for(var i=0; i<mails.length; i++){
+        data.getMails().push(mails[i].getId());
+    }
+
+    data.setup({}, null).then(function() {
+        for (var i=0; i<mails.length; i++) {
+            sourceFolder.removeMail(mails[i]);
+        }
+    });
+};
+
+/**
+ * Moves the mail from the selected folder with the given element id to the given target folder. Called when using drag&drop.
+ * @param {tutao.tutanota.ctrl.MailFolderViewModel} targetMailFolder The target folder.
+ * @param {tutao.entity.tutanota.Mail} mailElementId The element id of mail to move.
+ */
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.drop = function(targetMailFolder, mailElementId) {
+    var sourceMailFolder = tutao.locator.mailFolderListViewModel.selectedFolder();
+    if (sourceMailFolder.getMailListId() == targetMailFolder.getMailListId()) {
+        // source and target folder are the same
+        return;
+    }
+
+    // find the mail instance
+    var allMails = sourceMailFolder.getLoadedMails();
+    for (var i=0; i<allMails.length; i++) {
+        if (allMails[i].getId()[1] == mailElementId) {
+            this.move(targetMailFolder, allMails[i]);
+            break;
+        }
+    }
+};
+
+
 /**
  * Provides the name of the selected folder.
  * @returns {string} The name of the selected folder.
@@ -115,5 +168,5 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype._renameSelectedFolder = fu
  * Delete the selected folder.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._deleteSelectedFolder = function() {
-
+    this.selectedFolder().deleteFolder();
 };
