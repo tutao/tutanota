@@ -276,6 +276,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
     "Dez"
   ],
   "more_label": "Mehr",
+  "move_action": "Verschieben",
   "nameAdmin_label": "Name des Administrators",
   "name_label": "Name",
   "newContact_action": "Neuer Kontakt",

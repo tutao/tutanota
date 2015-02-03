@@ -176,7 +176,6 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isFirstMailSelected = function
     return this.isMailSelected() && this._loadedMails()[0] == this._selectedMails()[0];
 };
 
-
 /**
  * Returns true if the last mail in the list is selected, false otherwise.
  * @return {bool} True if the last mail in the list is selected, false otherwise.
@@ -250,25 +249,35 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.finallyDeleteMails = function(
         service.getMails().push(mails[i].getId());
     }
     return service.erase({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(deleteMailReturn) {
-        for (var i=0; i<mails.length; i++) {
-            self.removeMail(mails[i]);
-        }
+        self.removeMails(mails);
     });
 };
 
 /**
- * Removes the given mail from the list and hides it if it is visible in the mail view.
- * @param {tutao.entity.tutanota.Mail} mail The mail to remove.
+ * Removes the given mails from the list and hides it if it is visible in the mail view. Selects the next mail in the list, if any.
+ * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to remove.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMail = function(mail) {
-    if (this.isSelectedMail(mail)) {
-        this._selectedMails.remove(mail);
-        tutao.locator.mailViewModel.hideMail();
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) {
+    var selectedMailIndex = -1;
+    for (var i=0; i<mails.length; i++) {
+        if (this.isSelectedMail(mails[i])) {
+            selectedMailIndex = this.getSelectedMailIndex();
+            this._selectedMails.remove(mails[i]);
+            tutao.locator.mailViewModel.hideMail();
+        }
+        this._lastSelectedMails.remove(mails[i]);
+        this._loadedMails.remove(mails[i]);
     }
-    this._lastSelectedMails.remove(mail);
-    this._loadedMails.remove(mail);
     if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
         this._updateNumberOfUnreadMails();
+    }
+
+    // select the next mail
+    if (selectedMailIndex != -1) {
+        selectedMailIndex = Math.min(selectedMailIndex, this._loadedMails().length - 1);
+    }
+    if (selectedMailIndex != -1) {
+        this.selectMail(this._loadedMails()[selectedMailIndex]);
     }
 };
 
@@ -347,6 +356,6 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
         return  "file";
     } else {
-        return null;
+        return "folder";
     }
 };

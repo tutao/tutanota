@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
             return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "newMailAction", "mail-new")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
     var self = this;
     tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST, function (width) {
         // we reduce the max width by 10 px which are used in our css for paddings + borders
@@ -147,6 +147,23 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, try
         }
         return Promise.resolve();
     });
+};
+
+/**
+ * Returns true if the last mail in the list is selected, false otherwise.
+ * @return {bool} True if the last mail in the list is selected, false otherwise.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.isLastMailSelected = function() {
+    return tutao.locator.mailFolderListViewModel.selectedFolder().isLastMailSelected();
+};
+
+
+/**
+ * Returns true if the first mail in the list is selected, false otherwise.
+ * @return {bool} True if the last first in the list is selected, false otherwise.
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.isFirstMailSelected = function() {
+    return tutao.locator.mailFolderListViewModel.selectedFolder().isFirstMailSelected();
 };
 
 /**

@@ -534,6 +534,8 @@ button#measureButton {
   }
 }
 
+@button-bar-margin-right: 15px;
+
 div.actions {
   position: absolute;
   left: 0;
@@ -568,7 +570,7 @@ div.actions {
       height: @button-bar-height - 1; // - border
       line-height: @button-bar-height - 1; // - border
 
-      margin-right: 15px; // icon + text needs more margin
+      margin-right: @button-bar-margin-right; // icon + text needs more margin
 
       &.iconOnly {
         margin-right: @button-bar-margin;
@@ -589,82 +591,49 @@ div#modalMoreMenu {
 
     > #menu_more {
       position: absolute;
-      right: @indicator-side-margin;
-      border: 0px;
+      border: 0;
       z-index: 4;
-      min-width: 182px; // makes the menu fit into the mail folder column
-
-      // configuration for header more menu
-      // big menu
-      top: @header-height;
-
-      // small menu
-      @media @mobile {
-        top: @header-height-small;
-      }
-
-      > div#triangle {
-        position:absolute;
-        width: 0;
-        height: 0;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-bottom: 10px  solid @background-dark;
-        top: -10px;
-
-        // big menu
-        right: 20px;
-
-        // small menu
-        @media @mobile {
-          right: 5px;
-        }
-      }
-
-      // configuration for action bar more menu
-      &.actionBar {
-
-        // action bar is on top
-        top: @header-height + @button-bar-height;
-
-        > div#triangle {
-          // text + icon
-          right: 20px;
-
-          // icon only
-          &.iconOnly {
-            right: 10px;
-          }
-        }
-
-        // action bar is on bottom
-        @media @mobile {
-          top: auto;
-          bottom: @button-bar-height;
-
-          > div#triangle {
-            border-bottom: none;
-            border-top: 10px  solid @background-dark;
-            top: 100%;
-          }
-        }
-      }
+      min-width: 150px;
 
       > div.menuList {
         position: relative;
         width: 100%;
-        right: 0px;
+        right: 0;
         border-radius: 5px;
         background-color: @background-dark;
+        overflow: hidden; // otherwise button corners would be visible when selected
 
         > div.menuItem {
           border-bottom: 1px solid @border-dark;
-          border-radius: 0;
         }
 
         > div:last-child {
           border-bottom: none;
         }
+      }
+    }
+
+    @triangleRadius: 10px;
+
+    > div#triangle {
+      position:absolute;
+      width: 0;
+      height: 0;
+      border-left: @triangleRadius solid transparent;
+      border-right: @triangleRadius solid transparent;
+      border-bottom: @triangleRadius solid @background-dark;
+      margin-top: -@triangleRadius;
+
+      &:after {
+        content: '';
+        position: absolute;
+        left: -@triangleRadius;
+        top: @triangleRadius;
+        width: 0;
+        height: 0;
+        border-left: @triangleRadius solid transparent;
+        border-right: @triangleRadius solid transparent;
+        border-top: @triangleRadius solid @background-dark;
       }
     }
   }
@@ -725,9 +694,10 @@ div.menuList {
   &.fontImage {
     // the image sits in the left padding, positioned absolutely
     padding-left:  @padding + @menu_image_width + @padding;
+    padding-right: 10px;
   }
 
-  &.active, &.selected, &.dragOver {
+  &:active, &.active, &.selected, &.dragOver {
     background-color: @highlight-color;
     background-clip: padding-box;
   }

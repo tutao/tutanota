@@ -276,6 +276,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
     "Dec"
   ],
   "more_label": "More",
+  "move_action": "Move",
   "nameAdmin_label": "Name of the administrator",
   "name_label": "Name",
   "newContact_action": "New contact",

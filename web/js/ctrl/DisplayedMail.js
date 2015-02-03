@@ -41,21 +41,22 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         return !self.mail.getTrashed();
     };
     var trashText = self.mail.getTrashed() ? "undelete_action" : "delete_action";
-    this.buttons = [
-        // special
-        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectPreviousMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectPreviousMailAction", "upIndicator", null, null, tutao.locator.mailListViewModel.isFirstMailSelected),
-        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectNextMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectNextMailAction", "downIndicator", null, null, tutao.locator.mailListViewModel.isLastMailSelected),
+    // special
+    this.buttons = [];
+    this.buttons.push(new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectPreviousMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectPreviousMailAction", "upIndicator", null, null, tutao.locator.mailListViewModel.isFirstMailSelected));
+    this.buttons.push(new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectNextMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectNextMailAction", "downIndicator", null, null, tutao.locator.mailListViewModel.isLastMailSelected));
 
-        // external
-        new tutao.tutanota.ctrl.Button("replyConfidential_action", 10, function () {
-            tutao.locator.mailViewModel.replyMail(self);
-        }, isExternalAnswerPossible, false, "replyConfidentialAction", "reply"),
+    // external
+    this.buttons.push(new tutao.tutanota.ctrl.Button("replyConfidential_action", 10, function () {
+        tutao.locator.mailViewModel.replyMail(self);
+    }, isExternalAnswerPossible, false, "replyConfidentialAction", "reply"));
 
-        new tutao.tutanota.ctrl.Button("export_action", 7, function () {
-            tutao.locator.mailViewModel.exportMail(self);
-        }, isExternalExportPossible, false, "exportAction", "download"),
+    this.buttons.push(new tutao.tutanota.ctrl.Button("export_action", 7, function () {
+        tutao.locator.mailViewModel.exportMail(self);
+    }, isExternalExportPossible, false, "exportAction", "download"));
 
-        // internal
+    // internal
+    var replyButtons = [
         new tutao.tutanota.ctrl.Button("reply_action", 10, function () {
             tutao.locator.mailViewModel.replyMail(self);
         }, isInternalUserLoggedIn, false, "replyAction", "reply"),
@@ -66,22 +67,58 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
         new tutao.tutanota.ctrl.Button("forward_action", 6, function () {
             tutao.locator.mailViewModel.forwardMail(self);
-        }, isInternalUserLoggedIn, false, "forwardAction", "forward"),
-
-		new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
-            tutao.locator.mailViewModel.finallyDeleteMail(self);
-        }, trashed, false, "finalDeleteMailAction", "trash"),
-		
-		new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
-            tutao.locator.mailViewModel.deleteMail(self);
-        }, untrashed, false, "deleteMailAction", "trash"),
-
-        // internal
-        new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new")
+        }, isInternalUserLoggedIn, false, "forwardAction", "forward")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
+    if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+        this.buttons.push(new tutao.tutanota.ctrl.Button("reply_action", 10, function () {}, isInternalUserLoggedIn, false, "replyAction", "reply", null, null, null, function() { return replyButtons; }));
+    } else {
+        for (var i=0; i<replyButtons.length; i++) {
+            this.buttons.push(replyButtons[i]);
+        }
+    }
+
+    this.buttons.push(new tutao.tutanota.ctrl.Button("move_action", 6, function () {}, null, false, "moveAction", "moveToFolder", null, null, null, function() {
+        var buttons = [];
+        self._createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders());
+        return buttons;
+    }));
+
+        this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
+        tutao.locator.mailViewModel.finallyDeleteMail(self);
+    }, trashed, false, "finalDeleteMailAction", "trash"));
+
+    // internal
+    this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));
+
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
+/**
+ * Create buttons for moving a mail to the given folders, including subfolders. If moving an email to one of the folders does not make sense, no button is created for that folder.
+ * @param {Array.<tutao.tutanota.ctrl.Button>} buttons The buttons are added to this list.
+ * @param {Array.<tutao.tutanota.ctrl.MailFolderViewModel>} folders The folders to add.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype._createMoveTargetFolderButtons = function(buttons, folders) {
+    var self = this;
+    for (var i=0; i<folders.length; i++) {
+        // do not allow moving sent mails to the inbox folder or received mails to the sent folder and their sub-folders
+        if ((this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && folders[i].getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) ||
+            (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && folders[i].getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT)) {
+            continue;
+        }
+        // skip the current folder of the mail, but allow sub-folders
+        if (folders[i] != tutao.locator.mailFolderListViewModel.selectedFolder()) {
+            (function () { // closure to avoid access to mutable variable i
+                var folder = folders[i];
+                buttons.push(new tutao.tutanota.ctrl.Button("@" + folder.getName(), i, function () {
+                    tutao.locator.mailFolderListViewModel.move(folder, self.mail);
+                }, null, false, "moveAction" + folder.getName(), folder.getIconId()));
+            })();
+        }
+        // add sub-folders
+        self._createMoveTargetFolderButtons(buttons, folders[i].subFolders());
+    }
+};
 
 tutao.tutanota.ctrl.DisplayedMail.prototype.load = function () {
     var self = this;
