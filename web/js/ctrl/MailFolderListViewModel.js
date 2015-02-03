@@ -142,7 +142,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype._renameSelectedFolder = fu
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._deleteSelectedFolder = function() {
     var self = this;
     var folderToSelect = this.selectedFolder().isCustomFolder() ? this.selectedFolder().parentFolder(): this.selectedFolder();
-    this.selectedFolder().deleteFolder().then(function() {
+    this.selectedFolder().deleteFolder(true).then(function() {
         self.selectFolder(folderToSelect);
     });
 };
