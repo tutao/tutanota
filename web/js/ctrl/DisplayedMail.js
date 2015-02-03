@@ -111,7 +111,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._createMoveTargetFolderButtons = fun
             (function () { // closure to avoid access to mutable variable i
                 var folder = folders[i];
                 buttons.push(new tutao.tutanota.ctrl.Button("@" + folder.getName(), i, function () {
-                    tutao.locator.mailFolderListViewModel.move(folder, self.mail);
+                    tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, [self.mail]);
                 }, null, false, "moveAction" + folder.getName(), folder.getIconId()));
             })();
         }
