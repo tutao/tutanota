@@ -175,7 +175,6 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isFirstMailSelected = function
     return this.isMailSelected() && this._loadedMails()[0] == this._selectedMails()[0];
 };
 
-
 /**
  * Returns true if the last mail in the list is selected, false otherwise.
  * @return {bool} True if the last mail in the list is selected, false otherwise.
@@ -249,25 +248,35 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.finallyDeleteMails = function(
         service.getMails().push(mails[i].getId());
     }
     return service.erase({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(deleteMailReturn) {
-        for (var i=0; i<mails.length; i++) {
-            self.removeMail(mails[i]);
-        }
+        self.removeMails(mails);
     });
 };
 
 /**
- * Removes the given mail from the list and hides it if it is visible in the mail view.
- * @param {tutao.entity.tutanota.Mail} mail The mail to remove.
+ * Removes the given mails from the list and hides it if it is visible in the mail view. Selects the next mail in the list, if any.
+ * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to remove.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMail = function(mail) {
-    if (this.isSelectedMail(mail)) {
-        this._selectedMails.remove(mail);
-        tutao.locator.mailViewModel.hideMail();
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) {
+    var selectedMailIndex = -1;
+    for (var i=0; i<mails.length; i++) {
+        if (this.isSelectedMail(mails[i])) {
+            selectedMailIndex = this.getSelectedMailIndex();
+            this._selectedMails.remove(mails[i]);
+            tutao.locator.mailViewModel.hideMail();
+        }
+        this._lastSelectedMails.remove(mails[i]);
+        this._loadedMails.remove(mails[i]);
     }
-    this._lastSelectedMails.remove(mail);
-    this._loadedMails.remove(mail);
     if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
         this._updateNumberOfUnreadMails();
+    }
+
+    // select the next mail
+    if (selectedMailIndex != -1) {
+        selectedMailIndex = Math.min(selectedMailIndex, this._loadedMails().length - 1);
+    }
+    if (selectedMailIndex != -1) {
+        this.selectMail(this._loadedMails()[selectedMailIndex]);
     }
 };
 
@@ -291,7 +300,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailListId = function() {
  * Provides the mail folder id.
  * @return {Array.<string, string>} The mail folder id.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailFolderId = function() {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._getMailFolderId = function() {
     return this._mailFolder.getId();
 };
 
@@ -299,7 +308,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailFolderId = function() {
  * Provides the sub folder list id of this folder.
  * @return {string} The list id.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSubFolderListId = function() {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._getSubFolderListId = function() {
     return this._mailFolder.getSubFolders();
 };
 
@@ -390,14 +399,13 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.createSubFolder = function() {
     var self = this;
     tutao.locator.folderNameDialogViewModel.showDialog("folderNameCreate_label", "", self.getSubFolderNames()).then(function(folderName) {
         if (folderName) {
-            console.log("add folder " + folderName);
-            tutao.entity.EntityHelper.getListKey(self.getSubFolderListId()).then(function(subFolderListKey) {
+            tutao.entity.EntityHelper.getListKey(self._getSubFolderListId()).then(function(subFolderListKey) {
                 var createService = new tutao.entity.tutanota.CreateMailFolderData();
                 createService.setFolderName(folderName);
-                createService.setParentFolder(self.getMailFolderId());
+                createService.setParentFolder(self._getMailFolderId());
                 createService.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(subFolderListKey, createService._entityHelper.getSessionKey()));
                 createService.setup({}, null).then(function(newFolderReturn){
-                    self.loadSubFolder(newFolderReturn.getNewFolder());
+                    self._loadSubFolder(newFolderReturn.getNewFolder());
                 });
             });
         }
@@ -407,18 +415,18 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.createSubFolder = function() {
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadSubFolders = function() {
     var self = this;
-    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.tutanota.MailFolder, self.getSubFolderListId(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(loadedSubFolders) {
+    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.tutanota.MailFolder, self._getSubFolderListId(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(loadedSubFolders) {
         return Promise.map(loadedSubFolders, function(loadedSubFolder) {
             return new tutao.tutanota.ctrl.MailFolderViewModel(loadedSubFolder, self);
         }).then(function(createdSubFolders) {
             // sort the custom folders by name
-            createdSubFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel.compareFolders);
+            createdSubFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel._compareFolders);
             self.subFolders(createdSubFolders);
         });
     });
 };
 
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadSubFolder = function(subFolderId) {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._loadSubFolder = function(subFolderId) {
     var self = this;
     return tutao.entity.tutanota.MailFolder.load(subFolderId).then(function(subFolder) {
         var newSubFolder = new tutao.tutanota.ctrl.MailFolderViewModel(subFolder, self);
@@ -428,15 +436,17 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadSubFolder = function(subFo
 };
 
 
-
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeSubFolder = function(subFolderId) {
+/**
+ * Deletes the given subfolder.
+ * @param {tutao.tutanota.ctrl.MailFolderViewModel} subFolder The subfolder.
+ * @returns {Promise} When finished.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._removeSubFolder = function(subFolder) {
     var self = this;
     var deleteService = new tutao.entity.tutanota.DeleteMailFolderData;
-    deleteService.getFolders().push(subFolderId);
+    deleteService.getFolders().push(subFolder._getMailFolderId());
     return deleteService.erase({}, null).then(function(){
-        self.subFolders.remove(function(item){
-            return item.getMailFolderId() == subFolderId;
-        });
+        self.subFolders.remove(subFolder);
     });
 };
 
@@ -461,59 +471,83 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.rename = function() {
  * Moves a list of mails from  this folder to the given target folder.
  * @param {tutao.tutanota.ctrl.MailFolderViewModel} targetMailFolder The target folder.
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to move.
+ * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFolder, mails) {
     var sourceFolder = this;
     if (sourceFolder.getMailListId() == targetMailFolder.getMailListId()) {
         // source and target folder are the same
-        return;
+        return Promise.resolve();
     }
 
     var data = new tutao.entity.tutanota.MoveMailData();
-    data.setTargetFolder(targetMailFolder.getMailFolderId());
+    data.setTargetFolder(targetMailFolder._getMailFolderId());
     for(var i=0; i<mails.length; i++){
         data.getMails().push(mails[i].getId());
     }
 
-    data.setup({}, null).then(function() {
-        for (var i=0; i<mails.length; i++) {
-            sourceFolder.removeMail(mails[i]);
-        }
+    return data.setup({}, null).then(function() {
+        sourceFolder.removeMails(mails);
     });
 };
 
 
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(){
-    var message = tutao.lang((this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) ? "confirmDeleteCustomFolder_msg" : "confirmDeleteSystemFolder_msg", { "{1}": this.getName() });
+/**
+ * Delete this folder.
+ * @param {bool} confirm True if the user has to confirm the delete, false otherwise.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(confirm) {
+    var promise = null;
+    if (confirm) {
+        var message = null;
+        if (this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH) {
+            message = "confirmDeleteTrash_msg";
+        } else if (this.isTrashFolder()) {
+            message = "confirmDeleteTrashCustomFolder_msg";
+        } else if (this.isCustomFolder()) {
+            message = "confirmDeleteCustomFolder_msg";
+        } else {
+            message = "confirmDeleteSystemFolder_msg";
+        }
+        promise = tutao.tutanota.gui.confirm(tutao.lang(message, { "{1}": this.getName() }));
+    } else {
+        promise = Promise.resolve(true);
+    }
+
     var self = this;
-    return tutao.tutanota.gui.confirm(message).then(function(confirmed) {
+    return promise.then(function(confirmed) {
         if (confirmed) {
             // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
             return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, self.getMailListId()).then(function(allMails) {
                 if (self.isTrashFolder()){
                     return self.finallyDeleteMails(allMails);
-                }else{
+                } else {
                     // move content to trash
-                    self.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), allMails);
+                    return self.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), allMails);
                 }
             }).then(function(){
                 // Delete subfolders
                 var subFolderList = self.subFolders();
-                for(var i=0;i<subFolderList.length;i++){
-                    subFolderList[i].deleteFolder();
-                }
-                // Delete folder instance and remove from parent
-                if (self.isCustomFolder()){
-                    self.parentFolder().removeSubFolder(self.getMailFolderId());
-                }
+                return Promise.each(subFolderList, function(subFolder) {
+                    return subFolder.deleteFolder(false);
+                }).then(function() {
+                    // Delete folder instance and remove from parent
+                    if (self.isCustomFolder()){
+                        return self.parentFolder()._removeSubFolder(self);
+                    } else {
+                        return Promise.resolve();
+                    }
+                });
             });
+        } else {
+            return Promise.resolve();
         }
     });
 };
 
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.sortFolderNames = function() {
-    this.subFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel.compareFolders);
+    this.subFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel._compareFolders);
 };
 
 
@@ -530,7 +564,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isCustomFolder = function(){
 };
 
 
-tutao.tutanota.ctrl.MailFolderViewModel.compareFolders = function(a, b){
+tutao.tutanota.ctrl.MailFolderViewModel._compareFolders = function(a, b){
     return a.getName().localeCompare(b.getName());
 };
 

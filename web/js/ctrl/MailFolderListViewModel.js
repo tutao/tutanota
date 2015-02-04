@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.init = function() {
             return self.selectedFolder().getFolderType() != tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
         }, false, "addFolderAction", "add")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
 /**
@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.setMailFolders = function(
 };
 
 /**
- * Provides available mail folders.
+ * Provides available mail folders, i.e. all system folders.
  * @return {Array.<tutao.tutanota.ctrl.MailFolderViewModel>} The folders.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getMailFolders = function() {
@@ -76,6 +76,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSystemFolder = function
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(folder) {
     var self = this;
     if (this.selectedFolder() == folder) {
+        tutao.locator.mailView.showDefaultColumns();
         return Promise.resolve();
     } else {
         return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
@@ -141,7 +142,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype._renameSelectedFolder = fu
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype._deleteSelectedFolder = function() {
     var self = this;
     var folderToSelect = this.selectedFolder().isCustomFolder() ? this.selectedFolder().parentFolder(): this.selectedFolder();
-    this.selectedFolder().deleteFolder().then(function() {
+    this.selectedFolder().deleteFolder(true).then(function() {
         self.selectFolder(folderToSelect);
     });
 };

@@ -53,6 +53,10 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
 	if (id == "emptyString_msg") {
 		return "\u2008";
 	}
+    if (id.indexOf("@") == 0) {
+        // we regard texts marked with "@" as static text
+        return id.substring(1);
+    }
 	var text = tutao.tutanota.ctrl.LanguageViewModel[this._current()][id];
 	if (!text) {
 		throw new Error("no translation found for id " + id);

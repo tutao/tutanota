@@ -220,7 +220,10 @@ tutao.rest.EntityRestCache.prototype.postService = function(path, element, param
 tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
 	var cacheListId = tutao.rest.EntityRestCache.getListId(element);
 	var id = tutao.rest.EntityRestInterface.getElementId(element);
-	this._getListData(path, cacheListId)['entities'][id] = element;
+	// do not overwrite existing elements to avoid multiple instances of the same element
+    if (!this._getListData(path, cacheListId)['entities'][id]) {
+        this._getListData(path, cacheListId)['entities'][id] = element;
+    }
 };
 
 

@@ -9,16 +9,17 @@ tutao.provide('tutao.tutanota.ctrl.ButtonBarViewModel');
  * @param {Array.<tutao.tutanota.ctrl.Button>} buttons An array containing any number of tutao.tutanota.ctrl.Button instances.
  * @param {string=} moreButtonText The text for the more button.
  * @param {function(Element):number} measureFunction A function that returns the width of the buttons dom element including margins.
- * @param {number} buttonBarType One of tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_* to indicate where the more menu shall be shown.
  */
-tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measureFunction, buttonBarType) {
+tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measureFunction) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+    var self = this;
 
     if (!moreButtonText) {
         moreButtonText = "more_label";
     }
 
-    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, this.switchMore, this.isMoreVisible, false, "moreAction",  "more", moreButtonText);
+    this._moreButtons = ko.observableArray(); // the buttons from the more menu that will be shown as sub-buttons
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function() {}, this._isMoreButtonVisible, false, "moreAction",  "more", moreButtonText, null, null, this._moreButtons);
     this._getSingleButtonWidth = measureFunction;
 
     // the buttons that are visible and no special buttons (prio tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO)
@@ -45,25 +46,9 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
         });
     });
 
-    //  Decorate the click listener of all buttons to close the more menu
-    var self = this;
-    for( var i=0; i< buttons.length; i++){
-        // we hide after a short delay to make the successful touch action visible (highlight the button)
-        var hideMoreAfterShortDelay = function () {
-            setTimeout(function () {
-                self.hideMore();
-            },300);
-        };
-        buttons[i].setHideButtonsHandler(hideMoreAfterShortDelay);
-    }
-
-	this.moreButtons = ko.observableArray(); // the buttons that will be shown in more menu
 	this.visibleButtons = ko.observableArray(); // the buttons that are visible in button bar
-    this.moreVisible = ko.observable(false);
     this.maxWidth = 0;
     this.specialButtonsWidth = 0;
-
-    this._buttonBarType = buttonBarType;
 
     this.specialButtons.subscribe(function() {
         this.updateSpecialButtons();
@@ -74,26 +59,6 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
 	}, this);
 
     this._widthInterval = null;
-
-    // receives the dom element via the domInit binding. this allows the position of the more menu to be adjusted below the button bar.
-    this.buttonBarDomElement = ko.observable();
-};
-
-/**
- * The button bar is used in the header menu. This setting indicates at which position the more menu is shown.
- * @type {number}
- */
-tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_HEADER = 0;
-
-/**
- * The button bar is used in an action bar. This setting indicates at which position the more menu is shown.
- * @type {number}
- */
-tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION = 1;
-
-
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.getButtonBarType = function() {
-    return this._buttonBarType;
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
@@ -101,14 +66,9 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(wi
     this.updateSpecialButtons();
 };
 
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.isMoreVisible = function() {
-    if (tutao.locator.viewManager.isUserLoggedIn) {
-        return this.moreVisible();
-    }
-    return false;
+tutao.tutanota.ctrl.ButtonBarViewModel.prototype._isMoreButtonVisible = function() {
+    return this._moreButtons().length > 0;
 };
-
-
 
 /**
  *
@@ -132,7 +92,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype.updateVisibleButtons = function
         this._filterButtons(visibleButtonList, moreButtonList);
     }
     this.visibleButtons(visibleButtonList);
-    this.moreButtons(moreButtonList);
+    this._moreButtons(moreButtonList);
 
     this.visibleButtons.reverse();
 };
@@ -177,29 +137,4 @@ tutao.tutanota.ctrl.ButtonBarViewModel.prototype._getLowestPriorityButtonIndex =
         }
     }
     return buttonIndex;
-};
-
-
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hasMoreButton = function() {
-    return this.moreButtons.length != 0;
-};
-
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype._showMore = function() {
-    tutao.locator.viewManager.moreMenuButtonBarViewModel(this);
-    this.moreVisible(true);
-};
-
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.hideMore = function(vm, event) {
-    // when tapping on the menu item also the parent modalDialog receives an event. the menu item hides the more menu itself, so hide it here only if the modalDialog itself was tapped
-    if (!event || event.target.className.indexOf("modalDialog") != -1) {
-        this.moreVisible(false);
-    }
-};
-
-tutao.tutanota.ctrl.ButtonBarViewModel.prototype.switchMore = function() {
-    if (this.moreVisible()){
-        this.hideMore();
-    }else{
-        this._showMore();
-    }
 };

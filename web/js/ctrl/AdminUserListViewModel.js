@@ -19,7 +19,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
             return !tutao.locator.userController.isLoggedInUserFreeAccount();
         }, false, "newUserAction", "add", "adminUserAdd_action")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_ACTION);
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
     this.update();
 };

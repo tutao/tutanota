@@ -8,19 +8,13 @@
 	z-index: 99999;
 	pointer-events: auto;
 	display: none;
-
-    > div > div.modalDialogMessage {
-      margin-top: 10px;
-      margin-bottom: 10px;
-      font-size: @dialog-font-size;
-    }
 }
 
 #modalAlertConfirmDialog > div {
   max-width: 450px;
 }
 
-.modalDialog > div {
+.modalDialog > div.dialogWindow {
     position: relative;
 	padding: 5px 20px 13px 20px;
 	background: @background;
@@ -29,6 +23,12 @@
     margin-top: 20px;
     max-width: 600px;
     .clearfix;
+
+    > div.modalDialogMessage {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: @dialog-font-size;
+    }
 
 	&.feedback {
 		width: 20%;

@@ -30,7 +30,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 
     this.externalUserWelcomeMessage = ko.observable("");
 
-    this.moreMenuButtonBarViewModel = ko.observable();
+    this.buttonWithSubButtons = ko.observable(); // is set by the button whose sub-buttons shall be shown
 };
 
 
@@ -124,7 +124,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     var getRightNavbarSize = function () {
         return $(document.getElementById("right-navbar")).innerWidth();
     };
-    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", tutao.tutanota.gui.measureNavBarEntry, tutao.tutanota.ctrl.ButtonBarViewModel.TYPE_HEADER);
+    this.headerBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this._buttons, "more_label", tutao.tutanota.gui.measureNavBarEntry);
     setTimeout(function () {
         self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
     }, 0);

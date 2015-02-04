@@ -346,6 +346,39 @@ tutao.tutanota.gui.initKnockout = function() {
         }
     };
 
+    /**
+     * Sets the position of the bound dom element in a way that it is completely visible and as much centered horizontally below/above the given value dom element. Respects a minimum margin from the window border of 8px.
+     * The bound dom element is positioned below the value dom element if the value dom element is on the upper part of the window or it is positioned above the value dom element if the value dom element is on the lower part of the window.
+     */
+    ko.bindingHandlers.centerVisible = {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            var MIN_MARGIN = 8;
+            var parentButton = $(ko.utils.unwrapObservable(valueAccessor()));
+            var subButtons = $(element);
+            subButtons.hide(); // the sub-buttons width is not available yet, so calculate in the setTimeout function and hide the menu to avoid flickering
+            setTimeout(function() {
+                var parentButtonHorizontalCenter = (parentButton.offset().left + parentButton.outerWidth() / 2);
+                if (parentButtonHorizontalCenter < ($(window).width() / 2)) {
+                    subButtons.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - subButtons.outerWidth() / 2), right: 'initial' });
+                } else {
+                    subButtons.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + subButtons.outerWidth() / 2)) });
+                }
+
+                var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
+                if (parentButtonVerticalCenter < ($(window).width() / 2)) {
+                    subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight()), bottom: 'initial' });
+                } else {
+                    subButtons.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top });
+                }
+                subButtons.show();
+            }, 0);
+
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // nothing to do
+        }
+    };
+
 //	ko.bindingHandlers.slideVisible = {
 //		    update: function(element, valueAccessor, allBindingsAccessor) {
 //		        // First get the latest data that we're bound to
