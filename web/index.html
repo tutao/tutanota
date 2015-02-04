@@ -1828,7 +1828,7 @@
     <script type="text/html" id="mailFolder-template">
         <!-- provided data: vm (the MailFolderListViewModel), folders (the array of MailFolderViewModels) -->
         <div data-bind="foreach: folders()">
-            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.selectedFolder() == $data) ? ' selected' : ''), fastClick: $parent.vm.selectFolder, drop: tutao.locator.mailFolderListViewModel.drop"></div>
+            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.selectedFolder() == $data) ? ' selected' : '') + (isCustomFolder() ? ' indented' : '') ,fastClick: $parent.vm.selectFolder, drop: tutao.locator.mailFolderListViewModel.drop"></div>
             <div class="mailFolders" data-bind="template: { name: 'mailFolder-template',  data: { vm: $parent.vm, folders: subFolders } }"></div>
         </div>
     </script>

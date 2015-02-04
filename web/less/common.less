@@ -659,6 +659,7 @@ div#modalMoreMenu {
   **************************************/
 
 @menu_image_width: 25px;
+@menu_image_padding_left: @padding + @menu_image_width + @padding;
 
 div.menuList {
   position: absolute;
@@ -693,13 +694,20 @@ div.menuList {
   // configuration for icon and font
   &.fontImage {
     // the image sits in the left padding, positioned absolutely
-    padding-left:  @padding + @menu_image_width + @padding;
+    padding-left:  @menu_image_padding_left;
     padding-right: 10px;
   }
 
   &:active, &.active, &.selected, &.dragOver {
     background-color: @highlight-color;
     background-clip: padding-box;
+  }
+
+  &.indented {
+    padding-left: @menu_image_padding_left + @padding + @menu_image_width;
+    &:before, &:after{
+      left: @menu_image_padding_left;
+    }
   }
 }
 
