@@ -20,6 +20,10 @@ tutao.tutanota.ctrl.MailFolderViewModel = function(mailFolder, parentFolder) {
     this.moreAvailable = ko.observable(true);
     this.parentFolder = ko.observable(parentFolder);
     this.subFolders = ko.observableArray([]);
+
+    this._loadedMails.subscribe(function(){
+        this._updateNumberOfUnreadMails();
+    }, this);
 };
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
@@ -39,9 +43,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
         }
 
         self._loadedMails.splice.apply(self._loadedMails, [self._loadedMails().length, 0].concat(mails));
-        if (self._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
-            self._updateNumberOfUnreadMails();
-        }
+
     }).lastly(function() {
         self.loading(false);
 
@@ -79,25 +81,37 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.updateOnNewMails = function(ma
     }
     if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX && unread) {
         tutao.locator.notification.add(tutao.lang("newMails_msg"));
-        this._updateNumberOfUnreadMails(); // TODO subscribe on _loadedMails instead
     }
 };
 
+/**
+ * Notifies the MailFolderListViewModel to update the total number of unread mails.
+ */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype._updateNumberOfUnreadMails = function() {
+    if (this.isInboxFolder()){
+        tutao.locator.mailFolderListViewModel.updateNumberOfUnreadMails();
+    }
+};
+
+
+/**
+ * Returns the number of all loaded unread mails for this folder including all subfolder.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getNumberOfUnreadMails = function() {
     var unreadMails = 0;
     for (var i=0; i<this._loadedMails().length; i++) {
         if (this._loadedMails()[i].getUnread()) {
             unreadMails++;
         }
     }
-    var buttons = tutao.locator.viewManager.getButtons();
-    for (i=0; i< buttons.length; i++) {
-        if (buttons[i].getId() == "menu_mail" || buttons[i].getId() == "menu_mail_new") {
-            buttons[i].setBadgeNumber(unreadMails);
-        }
+    var currentSubFolders = this.subFolders();
+    for(var j=0; j<currentSubFolders.length;j++){
+        unreadMails = unreadMails + currentSubFolders[j].getNumberOfUnreadMails();
     }
-    tutao.locator.notification.updateBadge(unreadMails);
+    return unreadMails;
 };
+
+
 
 /**
  * Selects the given mails.
@@ -106,9 +120,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
     if (mail.getUnread()) {
         mail.setUnread(false);
         mail.update();
-        if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
-            this._updateNumberOfUnreadMails();
-        }
+        this._updateNumberOfUnreadMails();
     }
     this._selectedMails([mail]);
     this._lastSelectedMails([mail]);
@@ -266,9 +278,6 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) 
         }
         this._lastSelectedMails.remove(mails[i]);
         this._loadedMails.remove(mails[i]);
-    }
-    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) {
-        this._updateNumberOfUnreadMails();
     }
 
     // select the next mail
@@ -558,6 +567,15 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isTrashFolder = function(){
         return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH;
     }
 };
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isInboxFolder = function(){
+    if ( this.parentFolder() ){
+        return this.parentFolder().isInboxFolder();
+    }else{
+        return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX;
+    }
+};
+
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.isCustomFolder = function(){
     return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;

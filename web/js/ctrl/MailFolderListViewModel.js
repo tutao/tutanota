@@ -146,3 +146,16 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype._deleteSelectedFolder = fu
         self.selectFolder(folderToSelect);
     });
 };
+
+
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.updateNumberOfUnreadMails = function() {
+    var unreadMails = this.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX).getNumberOfUnreadMails();
+    var buttons = tutao.locator.viewManager.getButtons();
+    for (var i=0; i< buttons.length; i++) {
+        if (buttons[i].getId() == "menu_mail" || buttons[i].getId() == "menu_mail_new") {
+            buttons[i].setBadgeNumber(unreadMails);
+        }
+    }
+    tutao.locator.notification.updateBadge(unreadMails);
+};
+
