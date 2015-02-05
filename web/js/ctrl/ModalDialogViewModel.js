@@ -72,3 +72,11 @@ tutao.tutanota.ctrl.ModalDialogViewModel.prototype.close = function() {
     this.visible(false);
     this.closeFunction();
 };
+
+tutao.tutanota.ctrl.ModalDialogViewModel.prototype.isDefaultButton = function(button) {
+    // first element is the default button.
+    return this.buttons.indexOf(button) == 0;
+};
+
+
+
