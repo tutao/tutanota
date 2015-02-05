@@ -507,16 +507,12 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFold
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(confirm) {
     var promise = null;
-    if (confirm) {
+    if (confirm && this.isTrashFolder()) {
         var message = null;
-        if (this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH) {
-            message = "confirmDeleteTrash_msg";
-        } else if (this.isTrashFolder()) {
+        if (this.isCustomFolder()) {
             message = "confirmDeleteTrashCustomFolder_msg";
-        } else if (this.isCustomFolder()) {
-            message = "confirmDeleteCustomFolder_msg";
         } else {
-            message = "confirmDeleteSystemFolder_msg";
+            message = "confirmDeleteTrashFolder_msg";
         }
         promise = tutao.tutanota.gui.confirm(tutao.lang(message, { "{1}": this.getName() }));
     } else {
