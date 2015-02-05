@@ -594,6 +594,7 @@ div#modalMoreMenu {
       border: 0;
       z-index: 4;
       min-width: 150px;
+      max-width: 250px;
 
       > div.menuList {
         position: relative;
@@ -682,6 +683,9 @@ div.menuList {
   font-size: @menu-item-font-size;
   color: @icon-color;
   border-radius: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 
   &:before, &:after {
     position: absolute;
