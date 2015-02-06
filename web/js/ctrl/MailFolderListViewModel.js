@@ -32,7 +32,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.init = function() {
         }, false, "renameFolderAction", "edit"),
         new tutao.tutanota.ctrl.Button("add_action", 1, this._createFolderInSelectedFolder, function() {
             return self.selectedFolder().getFolderType() != tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
-        }, false, "addFolderAction", "add")
+        }, false, "addFolderAction", "addFolder")
     ];
     this.buttons = [];
     this.buttons.push(new tutao.tutanota.ctrl.Button("editFolder_action", 10, function(){}, function(){return self.selectedFolder() != null;}, false, "editFolderAction", "folder", null, null, null, function() {

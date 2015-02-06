@@ -44,7 +44,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
         new tutao.tutanota.ctrl.Button("delete_action", 9, self._deleteContact, isState(tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW), false, "deleteContact", "trash"),
         new tutao.tutanota.ctrl.Button("newContact_action", 11, tutao.locator.navigator.newContact, function() {
             return self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NONE || self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW;
-        }, false, "newContactAction", "add"),
+        }, false, "newContactAction", "addContact"),
 
 
         new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {

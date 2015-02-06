@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.initButtonBar = function() {
         //function (labelTextId, priority, clickListener, isVisible, directClick, id, imageClass, imageAltTextId, isSelected) {
         new tutao.tutanota.ctrl.Button("newContact_action", 10,  tutao.locator.navigator.newContact, function(){
             return !tutao.locator.contactView.isContactColumnVisible();
-        }, false, "newContactAction", "add")
+        }, false, "newContactAction", "addContact")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
     var self = this;

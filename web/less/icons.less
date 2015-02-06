@@ -121,12 +121,10 @@
     content: @ionicon-var-ios7-download;
   }
 
-  &.contact-new {
-    &:before {
-      .icomoon;
-      content: "\e186";
-    }
-    .new;
+  &.addContact:before {
+    .icomoon;
+    content: "\eaf6";
+    font-size:110%;
   }
 
   &.contact:before {
@@ -299,6 +297,11 @@
   &.folder:before {
     .icomoon;
     content: "\e9d0";
+  }
+
+  &.addFolder:before {
+    .icomoon;
+    content: "\e9d4";
   }
 
   &.moveToFolder:before {
