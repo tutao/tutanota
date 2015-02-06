@@ -24,16 +24,27 @@ tutao.tutanota.ctrl.MailFolderListViewModel = function() {
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.init = function() {
     var self = this;
-    this.buttons = [
-        new tutao.tutanota.ctrl.Button("delete_action", -1, this._deleteSelectedFolder, null, false, "deleteFolderAction", "trash"),
-        new tutao.tutanota.ctrl.Button("rename_action", -1, this._renameSelectedFolder, function() {
+
+    this._subButtons = [
+        new tutao.tutanota.ctrl.Button("delete_action", 1, this._deleteSelectedFolder, null, false, "deleteFolderAction", "trash"),
+        new tutao.tutanota.ctrl.Button("rename_action", 1, this._renameSelectedFolder, function() {
             return self.selectedFolder().getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
         }, false, "renameFolderAction", "edit"),
-        new tutao.tutanota.ctrl.Button("add_action", -1, this._createFolderInSelectedFolder, function() {
+        new tutao.tutanota.ctrl.Button("add_action", 1, this._createFolderInSelectedFolder, function() {
             return self.selectedFolder().getFolderType() != tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
         }, false, "addFolderAction", "add")
     ];
+    this.buttons = [];
+    this.buttons.push(new tutao.tutanota.ctrl.Button("editFolder_action", 10, function(){}, function(){return self.selectedFolder() != null;}, false, "editFolderAction", "folder", null, null, null, function() {
+        return self._subButtons;
+    }));
+
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
+
+    tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_FOLDERS, function (width) {
+        // we reduce the max width by 10 px which are used in our css for paddings + borders
+        self.buttonBarViewModel.setButtonBarWidth(width - 6);
+    });
 };
 
 /**

@@ -129,6 +129,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
   "domain_label": "Domain",
   "dots_label": "...",
   "downloadAttachmentNotPossible_msg": "Der ausgewählte Anhang kann leider nicht angezeigt werden. Anhänge größer als 7 MB werden auf diesem Gerät zur Zeit nicht unterstützt.",
+  "editFolder_action": "Bearbeiten",
   "editUser_label": "Benutzer bearbeiten",
   "edit_action": "Ändern",
   "edit_label": "Bearbeiten",

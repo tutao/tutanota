@@ -129,6 +129,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
   "domain_label": "Domain",
   "dots_label": "...",
   "downloadAttachmentNotPossible_msg": "Unfortunately, downloading this attachment is not possible. Attachments bigger than 7 MB are currently not supported on this device.",
+  "editFolder_action": "Edit",
   "editUser_label": "Edit user",
   "edit_action": "Edit",
   "edit_label": "Edit",
