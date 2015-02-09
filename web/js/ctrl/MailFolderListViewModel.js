@@ -26,7 +26,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.init = function() {
     var self = this;
 
     this._subButtons = [
-        new tutao.tutanota.ctrl.Button("delete_action", 1, this._deleteSelectedFolder, null, false, "deleteFolderAction", "trash"),
+        new tutao.tutanota.ctrl.Button("delete_action", 1, this._deleteSelectedFolder, null, false, "deleteFolderAction", "removeFolder"),
         new tutao.tutanota.ctrl.Button("rename_action", 2, this._renameSelectedFolder, function() {
             return self.selectedFolder().getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
         }, false, "renameFolderAction", "edit"),
