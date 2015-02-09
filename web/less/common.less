@@ -662,6 +662,7 @@ div#modalMoreMenu {
 
 @menu_image_width: 25px;
 @menu_image_padding_left: @padding + @menu_image_width + @padding;
+@menu_item_indent_offset: 30px;
 
 div.menuList {
   position: absolute;
@@ -684,9 +685,7 @@ div.menuList {
   font-size: @menu-item-font-size;
   color: @icon-color;
   border-radius: 0;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  .fadeTextOut;
 
   &:before, &:after {
     position: absolute;
@@ -709,9 +708,9 @@ div.menuList {
   }
 
   &.indented {
-    padding-left: @menu_image_padding_left + @padding + @menu_image_width;
+    padding-left: @menu_image_padding_left + @menu_item_indent_offset;
     &:before, &:after{
-      left: @menu_image_padding_left;
+      left: @padding + @menu_item_indent_offset;
     }
   }
 }
