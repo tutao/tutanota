@@ -1690,7 +1690,7 @@
                 <div class="record">
                     <div class="recordName"></div>
                     <div class="formAction">
-                        <button type="submit" class="single fontImage confirm dialogButton" data-bind="lang: 'ok_action', css: { disabled: getNameStatus().type != 'valid' }"></button>
+                        <button type="submit" class="single dialogButton" data-bind="lang: 'ok_action', css: { disabled: getNameStatus().type != 'valid' }"></button>
 						<button class="single dialogButton" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
                     </div>
                 </div>
@@ -1704,7 +1704,7 @@
             <h2>Tutanota</h2>
             <div class="modalDialogMessage" data-bind="text: message"></div>
             <!-- ko foreach: buttons -->
-            <button class="single dialogButton" data-bind="lang: text, fastClick: click, css: ($parent.isDefaultButton($data) ? ' confirm fontImage' : '')"></button>
+            <button class="single dialogButton" data-bind="lang: text, fastClick: click"></button>
             <!-- /ko -->
         </div>
     </div>
@@ -1717,7 +1717,7 @@
             <div class="descriptionFont" data-bind="visible: isErrorDialog, lang: 'errorReportDescription_msg'"></div>
 			<textarea rows="3" data-bind="value: message"></textarea>
             <div class="modalDialogInfo" data-bind="lang: infoMessage"></div>
-            <button class="single fontImage confirm" data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
+            <button class="single " data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
 	</div>
 
