@@ -202,3 +202,44 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
         }
     });
 };
+
+
+/**
+ * Handles the swipe gesture on the given element.
+ * @param {tutao.entity.tutanota.Mail} mail The mail on which the swipe gesture has been recognized.
+ * @param {boolean} swipeLeft True if the swipe left gesture has been executed, False on swipe right.
+ * @returns {*}
+ */
+tutao.tutanota.ctrl.MailListViewModel.prototype.handleSwipeOnElement = function(mail, swipeLeft) {
+    var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
+    var mails = [mail];
+    if (swipeLeft) {
+        if (folder.isTrashFolder()) {
+            return folder.finallyDeleteMails(mails);
+        } else {
+            // move content to trash
+            return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mails);
+        }
+    } else {
+        return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE), mails);
+    }
+};
+
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeRightLabel = function() {
+    return { iconId: "file", textId: "archive_action" };
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeLeftLabel = function() {
+    var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
+    if (folder.isTrashFolder()) {
+        return { iconId: "trash", textId: "finalDelete_action" };
+    } else {
+        return { iconId: "trash", textId: "trash_action" };
+    }
+};
+
+
+
+
+

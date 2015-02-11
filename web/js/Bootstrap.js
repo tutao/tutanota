@@ -207,10 +207,6 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel
     };
 
-   // Disable swipte slider on mobile devices.
-   // if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-   //     singletons['swipeRecognizer'] = tutao.tutanota.ctrl.SwipeRecognizer;
-   // }
     tutao.tutanota.legacy.Legacy.setup(singletons);
 
     // @type {tutao.Locator}
@@ -247,25 +243,12 @@ tutao.tutanota.Bootstrap.initControllers = function () {
     tutao.locator.replace('dao', new tutao.db.DummyDb);
     // }
 
-    if (tutao.locator.swipeRecognizer) {
-        tutao.locator.swipeRecognizer.setScreenSize(tutao.tutanota.gui.getWindowWidth(), tutao.tutanota.gui.getWindowHeight());
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT, function () {
-            tutao.locator.viewManager.getActiveView().getSwipeSlider().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT);
-        });
-        tutao.locator.swipeRecognizer.addSwipeListener(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT, function () {
-            tutao.locator.viewManager.getActiveView().getSwipeSlider().swipeRecognized(tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT);
-        });
-    }
-
     tutao.tutanota.gui.initEvents();
 
     tutao.tutanota.gui.addWindowResizeListener(function (width, height) {
         // notify the view manager and the swipe recognizer
         if (tutao.locator.viewManager.getActiveView() != null) {
             tutao.locator.viewManager.getActiveView().getSwipeSlider().windowSizeChanged(width, height);
-        }
-        if (tutao.locator.swipeRecognizer) {
-            tutao.locator.swipeRecognizer.setScreenSize(width, height);
         }
     });
 };

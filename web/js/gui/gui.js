@@ -346,7 +346,73 @@ tutao.tutanota.gui.initKnockout = function() {
         }
     };
 
-    /**
+
+	ko.bindingHandlers.swipe = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+
+			var listElement = $(element)
+			var ACTION_DISTANCE = 150;
+			var listElementWidth = listElement.outerWidth();
+			var swipeActive = false;
+
+			// store the function that shall be called when swipe done
+			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
+			if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+				var hammertime = new Hammer(element);
+				hammertime.on("hammer.input", function(ev) {
+					var swipeLeft = ev.deltaX < 0;
+					if (ev.eventType == Hammer.INPUT_START) {
+						swipeActive = true;
+					} else if (ev.eventType == Hammer.INPUT_END && swipeActive) {
+						// execute callback
+						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
+							if (swipeLeft) {
+								listElement.show().transition({left: -(listElementWidth + ACTION_DISTANCE)});
+							} else {
+								listElement.show().transition({left: listElementWidth + ACTION_DISTANCE});
+							}
+							// Need timeout here to fade the element out.
+							setTimeout(function () {
+								bindingContext.swipeAction(bindingContext.$data, swipeLeft);
+							}, 300);
+						}
+						// reset elements
+						listElement.show().transition({left: 0});
+						swipeActive = false;
+					} else if (ev.eventType == Hammer.INPUT_CANCEL) {
+						// reset elements
+						listElement.show().transition({left: 0});
+						swipeActive = false;
+					}else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
+						if (Math.abs(ev.deltaY) > 20 ){
+							// cancel swipe and reset element on vertical movement
+							swipeActive = false;
+							listElement.show().transition({left: 0});
+						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
+							var newContentLeft = ev.deltaX;
+							// Do not animate the swipe gesture more than necessary
+							if (newContentLeft > ACTION_DISTANCE){
+								newContentLeft = ACTION_DISTANCE;
+							} else if (newContentLeft < -ACTION_DISTANCE){
+								newContentLeft = -ACTION_DISTANCE;
+							}
+							// animate swipe gesture
+							listElement.css('left', newContentLeft);
+							ev.preventDefault();
+						}
+					}
+					//console.log( "type: " + ev.type + ", direction: " + ev.direction + ", directionOffset" + ev.offsetDirection + ", deltaX: " + ev.deltaX + ", distance: " + ev.distance + ", pointerType: "+ ev.pointerType + ", eventType: " + ev.eventType);
+				});
+			}
+		},
+		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+		}
+	};
+
+
+
+
+	/**
      * Sets the position of the bound dom element in a way that it is completely visible and as much centered horizontally below/above the given value dom element. Respects a minimum margin from the window border of 8px.
      * The bound dom element is positioned below the value dom element if the value dom element is on the upper part of the window or it is positioned above the value dom element if the value dom element is on the lower part of the window.
      */

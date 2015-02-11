@@ -66,13 +66,7 @@ tutao.tutanota.gui.SwipeSlider.prototype.windowSizeChanged = function(width, hei
 };
 
 tutao.tutanota.gui.SwipeSlider.prototype.swipeRecognized = function(type) {
-    if (this._viewSlider) {
-        if (type == tutao.tutanota.ctrl.SwipeRecognizer.TYPE_LEFT && this._view.isShowRightNeighbourColumnPossible()) {
-                this.showRightNeighbourColumn();
-        } else if (type == tutao.tutanota.ctrl.SwipeRecognizer.TYPE_RIGHT && this._view.isShowLeftNeighbourColumnPossible()) {
-            this.showLeftNeighbourColumn();
-        }
-    }
+    // empty
 };
 
 tutao.tutanota.gui.SwipeSlider.prototype.showLeftNeighbourColumn = function() {

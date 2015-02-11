@@ -58,7 +58,6 @@ tutao.tutanota.Bootstrap.init = function() {
 		viewManager: tutao.tutanota.ctrl.ViewManager,
 		indexer: tutao.tutanota.index.Indexer,
 		viewSlider: tutao.tutanota.ctrl.ViewSlider,
-		swipeRecognizer: tutao.tutanota.ctrl.SwipeRecognizer,
 		htmlSanitizer: tutao.tutanota.security.CajaSanitizer,
 		languageViewModel: tutao.tutanota.ctrl.LanguageViewModel,
 		eventBus: tutao.event.EventBusClient,

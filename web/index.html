@@ -255,7 +255,6 @@
 <script src="/js/ctrl/SendUnsecureMailFacade.js"></script>
 <script src="/js/ctrl/SettingsViewModel.js"></script>
 <script src="/js/ctrl/ShareFacade.js"></script>
-<script src="/js/ctrl/SwipeRecognizer.js"></script>
 <script src="/js/ctrl/ThemeViewModel.js"></script>
 <script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
 <script src="/js/ctrl/UserController.js"></script>
@@ -452,20 +451,30 @@
 				<div id="searchAndMailList" >
 					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: getMails(), style: { borderTopWidth: (!tutao.locator.dao.isSupported() && getMails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || getMails().length > 0) ? '7px' : '0px' }">
-							<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
-								<div class="icons">
-                                    <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
-                                    <div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-                                    <div class="mailHeaderImage fontImage lock-closed" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
-                                </div>
-								<div class="subject" data-bind="text: getSubject()"></div>
-								<div class="mailInfo">
-									<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->
-									<div class="date">
-										<time data-bind="text: tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(getSentDate()), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString($data.getSentDate()) }"></time>
+							<div class="listElement" >
+								<div class="listElementContent" data-bind="swipe: $parent.handleSwipeOnElement">
+									<div class="listElementButton buttonLeft"  >
+										<div class="menuItem fontImage colorWhite" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId"></div>
 									</div>
-									<div class="senderOrRecipient">
-										<span data-bind="text: tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString($data)"></span>
+									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
+										<div class="icons">
+											<div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
+											<div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
+											<div class="mailHeaderImage fontImage lock-closed" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
+										</div>
+										<div class="subject" data-bind="text: getSubject()"></div>
+										<div class="mailInfo">
+											<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->
+											<div class="date">
+												<time data-bind="text: tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(getSentDate()), attr: { datetime: tutao.tutanota.util.Formatter.dateToDashString($data.getSentDate()) }"></time>
+											</div>
+											<div class="senderOrRecipient">
+												<span data-bind="text: tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString($data)"></span>
+											</div>
+										</div>
+									</div>
+									<div class="listElementButton buttonRight">
+										<div class="menuItem fontImage colorWhite" data-bind="lang:$parent.getSwipeLeftLabel().textId, css: $parent.getSwipeLeftLabel().iconId"></div>
 									</div>
 								</div>
 							</div>

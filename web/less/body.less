@@ -103,6 +103,7 @@ body {
           right: 0;
           top: @button-bar-height;
           bottom: 0;
+		  overflow-x: hidden;
 
           @media @desktop {
               top: @button-bar-height;
@@ -113,6 +114,43 @@ body {
             top: 0;
             bottom: @button-bar-height;
           }
+
+		  div.listElement {
+			position: relative;
+			height: @list-entry-height;
+			border-bottom: 1px solid @border-dark;
+			width:100%;
+
+			> div.listElementContent {
+			  position: relative;
+			  width:100%;
+
+			  > div.listElementButton {
+				position: absolute;
+				top:0;
+				bottom:0;
+				overflow: hidden;
+				> div.menuItem {
+				  color: @white;
+				  // Center menuItem vertical
+				  line-height: @list-entry-height;
+				  height: @list-entry-height;
+				}
+
+				&.buttonRight{
+				  width:150px;
+				  right:-150px;
+				  background-color: #F3000C;
+				}
+
+				&.buttonLeft {
+				  width:150px;
+				  left:-150px;
+				  background-color: #0000FF;
+				}
+			  }
+			}
+		  }
 
           > div.loadMoreElement {
             width: 100%;
@@ -462,10 +500,7 @@ body {
 					position: relative; // needed to allow correct shadow in ie with absolute pseudo elements
 					
 					// TODO switch to Flexbox (http://www.w3.org/TR/css3-flexbox/) or Grid (http://www.w3.org/TR/css3-grid-layout/) after all browser have implemented the spec
-					> div.mailInList {
-						width: 100%;
-						height: @list-entry-height;
-						border-bottom: 1px solid @border-dark;
+					div.mailInList {
 						padding-left: @padding;
 						padding-right: @padding;
 						cursor: pointer;
