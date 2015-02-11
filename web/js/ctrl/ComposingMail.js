@@ -169,7 +169,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
             }
             if (attachmentsSize > tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) {
                 setTimeout(function() {
-                    tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("maxSizeExceeded_msg", { "$": tutao.tutanota.util.Formatter.formatFileSize(tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) }));
+                    tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("maxSizeExceeded_msg", { "{1}": tutao.tutanota.util.Formatter.formatFileSize(tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) }));
                 }, 0);
                 return;
             }

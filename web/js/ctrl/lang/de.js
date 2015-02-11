@@ -492,7 +492,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
   "welcomeMailBody3_msg": "Zeige der Welt, dass du deine Privatsphäre schützt:",
   "welcomeMailBody4_msg": "Dein Tutanota-Team",
   "welcomeMailBody5_msg": "PS: Tutanota ist Open Source, du darfst dir gerne den Quelltext ansehen und ihn prüfen:",
-  "welcomeMailBody_TweetText_msg": "Ich habe mir gerade meinen @tutanota_de - Account angelegt. So können meine E-Mails nicht mitgelesen ",
+  "welcomeMailBodyTweetText_msg": "Ich habe mir gerade meinen @tutanota_de - Account angelegt. So können meine E-Mails nicht mitgelesen ",
   "welcomeMailSubject_msg": "Fühl dich wie zuhause: Hier bleiben deine Daten privat.",
   "welcome_msg": "Login",
   "work_label": "Arbeit",
