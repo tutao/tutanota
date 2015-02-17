@@ -555,10 +555,7 @@ body {
 
                             > div.mailHeaderImage {
                               display: inline-block;
-
-                              &:before {
-                                font-size: 14px;
-                              }
+                              position: relative; // needed for positioning the icons
 
                               &.lock-closed {
                                 margin-right: -4px; // the lock is left aligned in the image, so move it right

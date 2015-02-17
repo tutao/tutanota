@@ -16,6 +16,7 @@ tutao.entity.tutanota.Mail = function(data) {
     this.__permissions = data._permissions;
     this._confidential = data.confidential;
     this._receivedDate = data.receivedDate;
+    this._replyType = data.replyType;
     this._sentDate = data.sentDate;
     this._state = data.state;
     this._subject = data.subject;
@@ -46,6 +47,7 @@ tutao.entity.tutanota.Mail = function(data) {
     this.__permissions = null;
     this._confidential = null;
     this._receivedDate = null;
+    this._replyType = null;
     this._sentDate = null;
     this._state = null;
     this._subject = null;
@@ -107,6 +109,7 @@ tutao.entity.tutanota.Mail.prototype.toJsonData = function() {
     _permissions: this.__permissions, 
     confidential: this._confidential, 
     receivedDate: this._receivedDate, 
+    replyType: this._replyType, 
     sentDate: this._sentDate, 
     state: this._state, 
     subject: this._subject, 
@@ -146,6 +149,11 @@ tutao.entity.tutanota.Mail.prototype.CONFIDENTIAL_ATTRIBUTE_ID = 426;
  * The id of the receivedDate attribute.
  */
 tutao.entity.tutanota.Mail.prototype.RECEIVEDDATE_ATTRIBUTE_ID = 107;
+
+/**
+ * The id of the replyType attribute.
+ */
+tutao.entity.tutanota.Mail.prototype.REPLYTYPE_ATTRIBUTE_ID = 466;
 
 /**
  * The id of the sentDate attribute.
@@ -343,6 +351,28 @@ tutao.entity.tutanota.Mail.prototype.getReceivedDate = function() {
     throw new tutao.InvalidDataError('invalid time data: ' + this._receivedDate);
   }
   return new Date(Number(this._receivedDate));
+};
+
+/**
+ * Sets the replyType of this Mail.
+ * @param {string} replyType The replyType of this Mail.
+ */
+tutao.entity.tutanota.Mail.prototype.setReplyType = function(replyType) {
+  var dataToEncrypt = replyType;
+  this._replyType = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the replyType of this Mail.
+ * @return {string} The replyType of this Mail.
+ */
+tutao.entity.tutanota.Mail.prototype.getReplyType = function() {
+  if (this._replyType == "") {
+    return "0";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._replyType);
+  return value;
 };
 
 /**

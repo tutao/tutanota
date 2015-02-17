@@ -239,7 +239,13 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeLeftLabel = function() {
     }
 };
 
-
-
+tutao.tutanota.ctrl.MailListViewModel.prototype.updateMailEntry = function(mail) {
+    var mailObservableArray = tutao.locator.mailFolderListViewModel.selectedFolder()._loadedMails;
+    var index = mailObservableArray.indexOf(mail);
+    if (index != -1) {
+        mailObservableArray.splice(index, 1);
+        mailObservableArray.splice(index, 0, mail);
+    }
+};
 
 

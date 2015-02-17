@@ -2,6 +2,11 @@
 
 tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
+tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE = "0";
+tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY = "1";
+tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD = "2";
+tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY_FORWARD = "3";
+
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM = "0";
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX = "1";
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT = "2";

@@ -250,13 +250,49 @@
   &.attachment-small:before {
     .icomoon;
     content: "\e2d7";
-    font-size: 12px;
+    font-size: 14px;
   }
 
   &.trash-small:before {
     .icomoon;
     content: "\e24f";
-    font-size: 12px;
+    font-size: 14px;
+  }
+
+  &.reply-small:before {
+    .ion;
+    content: @ionicon-var-reply;
+    font-size: 16px;
+  }
+
+  &.forward-small:before {
+    .icomoon;
+    content: "\ee13";
+    font-size: 14px;
+  }
+
+  &.reply-forward-small {
+    &:before {
+      .ion;
+      position: relative;
+      content: @ionicon-var-reply;
+      font-size: 16px;
+      top: 3px;
+    }
+    &:after {
+      position: relative;
+      .icomoon;
+      content: "\ee13";
+      font-size: 14px;
+      top: -4px;
+      margin-left: -12px;
+    }
+  }
+
+  &.lock-closed-small:before {
+    .icomoon;
+    content: "\e1d5";
+    font-size: 14px;
   }
 
   &.lock-closed:before {

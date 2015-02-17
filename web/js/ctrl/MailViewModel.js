@@ -245,12 +245,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
                     console.log("could not load conversation entry", e);
                 }).then(function() {
                     // the conversation key may be null if the mail was e.g. received from an external via smtp
-                    self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId));
+                    self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId, previousMail.mail));
                     self.mail().setBody(bodyText);
                 });
             } else {
                 mailCreatedPromise = Promise.resolve();
-                self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null));
+                self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null, null));
             }
 
             return mailCreatedPromise.then(function() {

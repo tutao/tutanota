@@ -458,9 +458,12 @@
 									</div>
 									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 										<div class="icons">
-											<div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
+                                            <div class="mailHeaderImage fontImage reply-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY, attr: {title: tutao.lang('mailReplyTypeReply_alt'), alt: tutao.lang('mailReplyTypeReply_alt')}"></div>
+                                            <div class="mailHeaderImage fontImage forward-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD, attr: {title: tutao.lang('mailReplyTypeForward_alt'), alt: tutao.lang('mailReplyTypeForward_alt')}"></div>
+                                            <div class="mailHeaderImage fontImage reply-forward-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY_FORWARD, attr: {title: tutao.lang('mailReplyTypeReplyForward_alt'), alt: tutao.lang('mailReplyTypeReplyForward_alt')}"></div>
+                                            <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
 											<div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
-											<div class="mailHeaderImage fontImage lock-closed" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
+											<div class="mailHeaderImage fontImage lock-closed-small" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
 										</div>
 										<div class="subject" data-bind="text: getSubject()"></div>
 										<div class="mailInfo">

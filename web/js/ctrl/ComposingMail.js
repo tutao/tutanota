@@ -6,10 +6,11 @@ tutao.provide('tutao.tutanota.ctrl.ComposingMail');
  * This class represents a mail that is currently written. It contains mail, body and other editing fields.
  * @param {string} conversationType The conversationType.
  * @param {string?} previousMessageId The message id of the mail that the new mail is a reply to or that is forwarded. Null if this is a new mail.
+ * @param {tutao.entity.tutanota.Mail?} previousMail The email that this is a reply to or that is forwarded. Null if this is a new mail.
  * @constructor
  * @implements {tutao.tutanota.ctrl.bubbleinput.BubbleHandler}
  */
-tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId) {
+tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId, previousMail) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
 	this.composerSubject = ko.observable("");
@@ -25,6 +26,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.secure = ko.observable(true);
 	this.conversationType = conversationType;
 	this.previousMessageId = previousMessageId;
+    this._previousMail = previousMail;
 	this.previousMailListColumnVisible = tutao.locator.mailView.isMailListColumnVisible();
 
 	this.busy = ko.observable(false);
@@ -228,14 +230,16 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                         return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
                             self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
                             self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailElementId, exception) {
-                                self._restoreViewState();
-                                if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                                    // external users do not download mails automatically, so download the sent email now
-                                    var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
-                                    tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
-                                        externalSentFolder.updateOnNewMails([mail]);
-                                    });
-                                }
+                                return self._updatePreviousMail().lastly(function() {
+                                    self._restoreViewState();
+                                    if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                                        // external users do not download mails automatically, so download the sent email now
+                                        var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
+                                        tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
+                                            externalSentFolder.updateOnNewMails([mail]);
+                                        });
+                                    }
+                                });
                             });
                     }).caught(tutao.RecipientsNotFoundError, function (exception) {
                         var notFoundRecipients = exception.getRecipients();
@@ -256,6 +260,26 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
     }).lastly(function () {
         self.busy(false);
     });
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
+    if (this._previousMail) {
+        if (this._previousMail.getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE && this.conversationType == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY) {
+            this._previousMail.setReplyType(tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY);
+        } else if (this._previousMail.getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE && this.conversationType == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD) {
+            this._previousMail.setReplyType(tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD);
+        } else  if (this._previousMail.getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD && this.conversationType == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY) {
+            this._previousMail.setReplyType(tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY_FORWARD);
+        } else  if (this._previousMail.getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY && this.conversationType == tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_FORWARD) {
+            this._previousMail.setReplyType(tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY_FORWARD);
+        } else {
+            return Promise.resolve();
+        }
+        tutao.locator.mailListViewModel.updateMailEntry(this._previousMail);
+        return this._previousMail.update();
+    } else {
+        return Promise.resolve();
+    }
 };
 
 /**
