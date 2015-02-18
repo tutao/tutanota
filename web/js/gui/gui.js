@@ -354,6 +354,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			var ACTION_DISTANCE = 150;
 			var listElementWidth = listElement.outerWidth();
 			var swipeActive = false;
+			var isSwipeRightPossible = bindingContext.$parent.isSwipeRightPosssible();
 
 			// store the function that shall be called when swipe done
 			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
@@ -368,7 +369,7 @@ tutao.tutanota.gui.initKnockout = function() {
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
 							if (swipeLeft) {
 								listElement.show().transition({left: -(listElementWidth + ACTION_DISTANCE)});
-							} else {
+							} else if (isSwipeRightPossible){
 								listElement.show().transition({left: listElementWidth + ACTION_DISTANCE});
 							}
 							// Need timeout here to fade the element out.
@@ -396,9 +397,13 @@ tutao.tutanota.gui.initKnockout = function() {
 							} else if (newContentLeft < -ACTION_DISTANCE){
 								newContentLeft = -ACTION_DISTANCE;
 							}
-							// animate swipe gesture
-							listElement.css('left', newContentLeft);
-							ev.preventDefault();
+
+							if (isSwipeRightPossible || swipeLeft){
+								// animate swipe gesture
+								listElement.css('left', newContentLeft);
+								ev.preventDefault();
+							}
+
 						}
 					}
 					//console.log( "type: " + ev.type + ", direction: " + ev.direction + ", directionOffset" + ev.offsetDirection + ", deltaX: " + ev.deltaX + ", distance: " + ev.distance + ", pointerType: "+ ev.pointerType + ", eventType: " + ev.eventType);
