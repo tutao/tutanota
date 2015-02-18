@@ -368,9 +368,9 @@ tutao.tutanota.gui.initKnockout = function() {
 						// execute callback
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
 							if (swipeLeft) {
-								listElement.show().transition({left: -(listElementWidth + ACTION_DISTANCE)});
+								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)});
 							} else if (isSwipeRightPossible){
-								listElement.show().transition({left: listElementWidth + ACTION_DISTANCE});
+								listElement.animate({left: listElementWidth + ACTION_DISTANCE});
 							}
 							// Need timeout here to fade the element out.
 							setTimeout(function () {
@@ -378,17 +378,17 @@ tutao.tutanota.gui.initKnockout = function() {
 							}, 300);
 						}
 						// reset elements
-						listElement.show().transition({left: 0});
+						listElement.show().animate({left: 0});
 						swipeActive = false;
 					} else if (ev.eventType == Hammer.INPUT_CANCEL) {
 						// reset elements
-						listElement.show().transition({left: 0});
+						listElement.animate({left: 0});
 						swipeActive = false;
 					}else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
-						if (Math.abs(ev.deltaY) > 20 ){
+						if (Math.abs(ev.deltaY) > 40 ){
 							// cancel swipe and reset element on vertical movement
 							swipeActive = false;
-							listElement.show().transition({left: 0});
+							listElement.animate({left: 0});
 						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
 							var newContentLeft = ev.deltaX;
 							// Do not animate the swipe gesture more than necessary
