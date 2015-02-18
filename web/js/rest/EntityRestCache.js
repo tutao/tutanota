@@ -512,7 +512,8 @@ tutao.rest.EntityRestCache.prototype.notifyNewDataReceived = function(data) {
         var element = this._getElementFromCache(path,data.getInstanceId(), data.getInstanceListId());
         if (element){
             this._deleteFromCache(path, data.getInstanceId(), data.getInstanceListId());
-            this.getElement(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {}, tutao.entity.EntityHelper.createAuthHeaders());
+            var elementTypeModelVersion = tutao.entity[data.getApplication().toLowerCase()][data.getType()].MODEL_VERSION;
+            this.getElement(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {"v": elementTypeModelVersion}, tutao.entity.EntityHelper.createAuthHeaders());
         }
     }
 };
