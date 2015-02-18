@@ -24,7 +24,7 @@ tutao.entity.sys.RegistrationConfigReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationConfigReturn.MODEL_VERSION = '6';
+tutao.entity.sys.RegistrationConfigReturn.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -126,6 +126,6 @@ tutao.entity.sys.RegistrationConfigReturn.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 6;
+  parameters["v"] = 7;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationConfigReturn, tutao.entity.sys.RegistrationConfigReturn.PATH, null, null, parameters, headers);
 };

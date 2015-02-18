@@ -34,7 +34,7 @@ tutao.entity.sys.PushIdentifier = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PushIdentifier.MODEL_VERSION = '6';
+tutao.entity.sys.PushIdentifier.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -240,7 +240,7 @@ tutao.entity.sys.PushIdentifier.prototype.getPushServiceType = function() {
  * @return {Promise.<tutao.entity.sys.PushIdentifier>} Resolves to the PushIdentifier or an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, id[1], id[0], {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, id[1], id[0], {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -251,7 +251,7 @@ tutao.entity.sys.PushIdentifier.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.PushIdentifier>>} Resolves to an array of PushIdentifier or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -264,7 +264,7 @@ tutao.entity.sys.PushIdentifier.loadMultiple = function(ids) {
 tutao.entity.sys.PushIdentifier.prototype.setup = function(listId) {
   var self = this;
   self._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
       self.__id = [listId, entity.getGeneratedId()];
       self.setPermissions(entity.getPermissionListId());
   });
@@ -277,7 +277,7 @@ tutao.entity.sys.PushIdentifier.prototype.setup = function(listId) {
 tutao.entity.sys.PushIdentifier.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 6;
+  params["v"] = 7;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -287,7 +287,7 @@ tutao.entity.sys.PushIdentifier.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.PushIdentifier.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -298,7 +298,7 @@ tutao.entity.sys.PushIdentifier.prototype.update = function() {
  */
 tutao.entity.sys.PushIdentifier.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.PushIdentifier.PATH, this.__id[1], this.__id[0], {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.PushIdentifier.PATH, this.__id[1], this.__id[0], {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -310,7 +310,7 @@ tutao.entity.sys.PushIdentifier.prototype.erase = function() {
  */
 tutao.entity.sys.PushIdentifier.createList = function(bucketData) {
   var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, false);
-  params["v"] = 6;
+  params["v"] = 7;
   return tutao.locator.entityRestClient.postList(tutao.entity.sys.PushIdentifier.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
     return returnEntity.getGeneratedId();
   });
@@ -325,7 +325,7 @@ tutao.entity.sys.PushIdentifier.createList = function(bucketData) {
  * @return {Promise.<Array.<tutao.entity.sys.PushIdentifier>>} Resolves to an array of PushIdentifier or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, listId, start, count, reverse, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, listId, start, count, reverse, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

@@ -12,8 +12,10 @@ tutao.entity.sys.RegistrationData = function(data) {
     this.__id = data._id;
     this.__permissions = data._permissions;
     this._accountType = data.accountType;
+    this._captchaResult = data.captchaResult;
     this._code = data.code;
     this._company = data.company;
+    this._creationDate = data.creationDate;
     this._domain = data.domain;
     this._domainVerificationMailSentOn = data.domainVerificationMailSentOn;
     this._groupName = data.groupName;
@@ -27,8 +29,10 @@ tutao.entity.sys.RegistrationData = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._accountType = null;
+    this._captchaResult = null;
     this._code = null;
     this._company = null;
+    this._creationDate = null;
     this._domain = null;
     this._domainVerificationMailSentOn = null;
     this._groupName = null;
@@ -46,7 +50,7 @@ tutao.entity.sys.RegistrationData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationData.MODEL_VERSION = '6';
+tutao.entity.sys.RegistrationData.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -82,8 +86,10 @@ tutao.entity.sys.RegistrationData.prototype.toJsonData = function() {
     _id: this.__id, 
     _permissions: this.__permissions, 
     accountType: this._accountType, 
+    captchaResult: this._captchaResult, 
     code: this._code, 
     company: this._company, 
+    creationDate: this._creationDate, 
     domain: this._domain, 
     domainVerificationMailSentOn: this._domainVerificationMailSentOn, 
     groupName: this._groupName, 
@@ -106,6 +112,11 @@ tutao.entity.sys.RegistrationData.prototype.TYPE_ID = 161;
 tutao.entity.sys.RegistrationData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 166;
 
 /**
+ * The id of the captchaResult attribute.
+ */
+tutao.entity.sys.RegistrationData.prototype.CAPTCHARESULT_ATTRIBUTE_ID = 672;
+
+/**
  * The id of the code attribute.
  */
 tutao.entity.sys.RegistrationData.prototype.CODE_ATTRIBUTE_ID = 176;
@@ -114,6 +125,11 @@ tutao.entity.sys.RegistrationData.prototype.CODE_ATTRIBUTE_ID = 176;
  * The id of the company attribute.
  */
 tutao.entity.sys.RegistrationData.prototype.COMPANY_ATTRIBUTE_ID = 169;
+
+/**
+ * The id of the creationDate attribute.
+ */
+tutao.entity.sys.RegistrationData.prototype.CREATIONDATE_ATTRIBUTE_ID = 673;
 
 /**
  * The id of the domain attribute.
@@ -223,6 +239,23 @@ tutao.entity.sys.RegistrationData.prototype.getAccountType = function() {
 };
 
 /**
+ * Sets the captchaResult of this RegistrationData.
+ * @param {string} captchaResult The captchaResult of this RegistrationData.
+ */
+tutao.entity.sys.RegistrationData.prototype.setCaptchaResult = function(captchaResult) {
+  this._captchaResult = captchaResult;
+  return this;
+};
+
+/**
+ * Provides the captchaResult of this RegistrationData.
+ * @return {string} The captchaResult of this RegistrationData.
+ */
+tutao.entity.sys.RegistrationData.prototype.getCaptchaResult = function() {
+  return this._captchaResult;
+};
+
+/**
  * Sets the code of this RegistrationData.
  * @param {string} code The code of this RegistrationData.
  */
@@ -254,6 +287,33 @@ tutao.entity.sys.RegistrationData.prototype.setCompany = function(company) {
  */
 tutao.entity.sys.RegistrationData.prototype.getCompany = function() {
   return this._company;
+};
+
+/**
+ * Sets the creationDate of this RegistrationData.
+ * @param {Date} creationDate The creationDate of this RegistrationData.
+ */
+tutao.entity.sys.RegistrationData.prototype.setCreationDate = function(creationDate) {
+  if (creationDate == null) {
+    this._creationDate = null;
+  } else {
+    this._creationDate = String(creationDate.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the creationDate of this RegistrationData.
+ * @return {Date} The creationDate of this RegistrationData.
+ */
+tutao.entity.sys.RegistrationData.prototype.getCreationDate = function() {
+  if (this._creationDate == null) {
+    return null;
+  }
+  if (isNaN(this._creationDate)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._creationDate);
+  }
+  return new Date(Number(this._creationDate));
 };
 
 /**
@@ -408,7 +468,7 @@ tutao.entity.sys.RegistrationData.prototype.getVerifyCount = function() {
  * @return {Promise.<tutao.entity.sys.RegistrationData>} Resolves to the RegistrationData or an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, id[1], id[0], {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, id[1], id[0], {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -419,7 +479,7 @@ tutao.entity.sys.RegistrationData.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>>} Resolves to an array of RegistrationData or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -431,7 +491,7 @@ tutao.entity.sys.RegistrationData.loadMultiple = function(ids) {
 tutao.entity.sys.RegistrationData.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 6;
+  params["v"] = 7;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.RegistrationData.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -441,7 +501,7 @@ tutao.entity.sys.RegistrationData.prototype.updateListEncSessionKey = function()
  */
 tutao.entity.sys.RegistrationData.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.RegistrationData.PATH, this.__id[1], this.__id[0], {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.RegistrationData.PATH, this.__id[1], this.__id[0], {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -455,7 +515,7 @@ tutao.entity.sys.RegistrationData.prototype.erase = function() {
  * @return {Promise.<Array.<tutao.entity.sys.RegistrationData>>} Resolves to an array of RegistrationData or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RegistrationData.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, listId, start, count, reverse, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RegistrationData, tutao.entity.sys.RegistrationData.PATH, listId, start, count, reverse, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

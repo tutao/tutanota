@@ -26,7 +26,7 @@ tutao.entity.sys.CustomerProperties = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerProperties.MODEL_VERSION = '6';
+tutao.entity.sys.CustomerProperties.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -140,7 +140,7 @@ tutao.entity.sys.CustomerProperties.prototype.getExternalUserWelcomeMessage = fu
  * @return {Promise.<tutao.entity.sys.CustomerProperties>} Resolves to the CustomerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -151,7 +151,7 @@ tutao.entity.sys.CustomerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerProperties>>} Resolves to an array of CustomerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -162,7 +162,7 @@ tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
  */
 tutao.entity.sys.CustomerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": 6}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

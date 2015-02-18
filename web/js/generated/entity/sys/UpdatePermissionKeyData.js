@@ -30,7 +30,7 @@ tutao.entity.sys.UpdatePermissionKeyData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.UpdatePermissionKeyData.MODEL_VERSION = '6';
+tutao.entity.sys.UpdatePermissionKeyData.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -217,7 +217,7 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.setup = function(parameters, 
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 6;
+  parameters["v"] = 7;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.UpdatePermissionKeyData.PATH, this, parameters, headers, null);
 };

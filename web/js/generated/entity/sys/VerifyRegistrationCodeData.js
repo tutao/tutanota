@@ -24,7 +24,7 @@ tutao.entity.sys.VerifyRegistrationCodeData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.VerifyRegistrationCodeData.MODEL_VERSION = '6';
+tutao.entity.sys.VerifyRegistrationCodeData.MODEL_VERSION = '7';
 
 /**
  * The url path to the resource.
@@ -126,7 +126,7 @@ tutao.entity.sys.VerifyRegistrationCodeData.prototype.setup = function(parameter
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 6;
+  parameters["v"] = 7;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.VerifyRegistrationCodeData.PATH, this, parameters, headers, null);
 };

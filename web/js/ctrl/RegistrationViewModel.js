@@ -12,38 +12,11 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
     this.pageStatus = ko.observable(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING);
     // if registration shall be deactivated for specific devices, use the following line
     // this.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED);
-	this.authToken = ko.observable("");
+    this.initialAuthToken = null;
+	this.authToken = ko.observable(null);
 	this.accountType = ko.observable("0"); // set to invalid account type for indicating that the account type is not known
 	this.companyName = ko.observable("");
 	this.domain = ko.observable("tutanota.de");
-
-	this.mobileNumber = ko.observable("");
-    this.mobileNumberStatus = ko.observable({ type: "neutral", text: "mobileNumberNeutral_msg" });
-    this.lastCheckedNumber = null;
-    this.mobileNumber.subscribe(function(newValue) {
-        if (newValue == "") {
-            this.lastCheckedNumber = null;
-            this.mobileNumberStatus({ type: "neutral", text: "mobileNumberNeutral_msg" });
-        } else  if (newValue.substring(0, 1) != "+") {
-            this.lastCheckedNumber = null;
-            this.mobileNumberStatus({ type: "invalid", text: "mobileNumberNoCountryCode_msg" });
-        } else if (this.lastCheckedNumber != newValue) {
-            this.lastCheckedNumber = newValue;
-            var cleaned = tutao.tutanota.util.Formatter.getCleanedPhoneNumber(newValue);
-            if (cleaned == null) {
-                this.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
-            } else {
-                var self = this;
-                tutao.entity.sys.PhoneNumberTypeReturn.load(new tutao.entity.sys.PhoneNumberTypeData().setPhoneNumber(cleaned), {}, []).then(function(result) {
-                    if (result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_MOBILE || result.getType() == tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN) {
-                        self.mobileNumberStatus({ type: "valid", text: "mobileNumberValid_msg" });
-                    } else {
-                        self.mobileNumberStatus({ type: "invalid", text: "mobileNumberInvalid_msg" });
-                    }
-                });
-            }
-        }
-    }, this);
 
 	this.mailAddressPrefix = ko.observable("");
 	this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
@@ -65,7 +38,12 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
         }
 
     }, this);
-
+    this.captchaData = ko.observable(null);
+    this.captchaHours = ko.observable("");
+    this.captchaMinutes = ko.observable("");
+    this.captchaStatus = ko.observable({ type: "neutral", text: "captchaEnter_msg"});
+    this.captchaMinutes.subscribe(this._updateCaptchaStatus, this);
+    this.captchaHours.subscribe(this._updateCaptchaStatus, this);
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK = 0;
@@ -76,7 +54,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED = 4;
 
 tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING = 0;
 tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING = 1;
-tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED = 2;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CHECKING_CAPTCHA = 2;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA = 3;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING = 4;
+tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED = 5;
 
 tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH = 4;
 
@@ -94,6 +75,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToke
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authToken) {
     var self = this;
     if (authToken) {
+        this.initialAuthToken = authToken;
         this.authToken(authToken);
         var params = {};
         params[tutao.rest.ResourceConstants.AUTH_ID_PARAMETER_NAME] = authToken;
@@ -107,7 +89,6 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
             self.domain(data.getDomain());
             self.companyName(data.getCompany());
             self.mailAddressPrefix(data.getMailAddress().substring(0, data.getMailAddress().indexOf("@")));
-            self.mobileNumber(data.getMobilePhoneNumber());
             self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
         }).caught(tutao.NotFoundError, function (exception) {
             self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK);
@@ -129,7 +110,21 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
     }
 };
 
-
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._reset = function() {
+    this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+    this.authToken(this.initialAuthToken);
+    this.mailAddressPrefix("");
+    this.mailAddressStatus({ type: "valid", text: "mailAddressNeutral_msg"});
+    this.password1("");
+    this.password2("");
+    this.termsAccepted(false);
+    this.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
+    this._keyGenProgress(0);
+    this.captchaData(null);
+    this.captchaHours("");
+    this.captchaMinutes("");
+    this.captchaStatus({ type: "neutral", text: "captchaEnter_msg"});
+};
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = function() {
     if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
@@ -139,10 +134,6 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = functi
 	} else {
         return ''; // unknown account type
     }
-};
-
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.isMobileNumberValid = function() {
-    return (this.mobileNumberStatus().type == "valid");
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isValidMailAddress = function() {
@@ -196,16 +187,35 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getKeyGenerationProgress = f
 
 // STEP 2
 
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaVisible = function() {
+    return this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA || this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING;
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._updateCaptchaStatus = function() {
+    if (!this.captchaMinutes() || isNaN(this.captchaMinutes()) || Number(this.captchaMinutes()) < 0 || Number(this.captchaMinutes()) > 55 || !this.captchaHours() || isNaN(this.captchaHours()) || Number(this.captchaHours() < 0) || Number(this.captchaHours() > 24)) {
+        this.captchaStatus({type: "neutral", text: "captchaEnter_msg"});
+    } else {
+        this.captchaStatus({type: "valid", text: "captchaFormatOk_msg"});
+    }
+};
+
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getCreateAccountState = function() {
 	return this._createAccountState();
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCreateAccountPossible = function() {
-    return  ((this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING) &&
-        (this.mailAddressStatus().type == "valid") &&
-        (this.getPassword1Status().type == "valid") &&
-        (this.getPassword2Status().type == "valid") &&
-        this.termsAccepted());
+    if ((this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) &&
+            this.captchaStatus().type == "valid") {
+        return true;
+    } else if ((this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING) &&
+            (this.mailAddressStatus().type == "valid") &&
+            (this.getPassword1Status().type == "valid") &&
+            (this.getPassword2Status().type == "valid") &&
+            this.termsAccepted()) {
+        return true;
+    } else {
+        return false;
+    }
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCreatingAccount = function() {
@@ -217,26 +227,58 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
     if (!this.isCreateAccountPossible()) {
         return;
     }
-    self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
 
-	tutao.locator.entropyCollector.fetchMissingEntropy(function() {
-		self._generateKeys().then(function() {
+    if (!this.authToken()) {
+        self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CHECKING_CAPTCHA);
+        tutao.entity.sys.RegistrationCaptchaServiceReturn.load({}, null).then(function(captchaReturn) {
+            self.authToken(captchaReturn.getToken());
+            if (captchaReturn.getChallenge()) {
+                self.captchaData(captchaReturn.getChallenge());
+                self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA);
+            } else {
+                self._checkEntropyAndGenerateKeys();
+            }
+        }).caught(tutao.LimitReachedError, function(e) {
+            self._reset();
+            return tutao.tutanota.gui.alert(tutao.lang("createAccountTooManyAccountsError_msg"));
+        });
+    } else if (this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) {
+        this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING);
+        var data = new tutao.entity.sys.RegistrationCaptchaServiceData();
+        data.setToken(this.authToken());
+        data.setResponse(this.captchaHours() + ":" + this.captchaMinutes());
+        data.setup({}, null).then(function(fine) {
+            self._checkEntropyAndGenerateKeys();
+        }).caught(tutao.InvalidDataError, function(e) {
+            self._reset();
+            return tutao.tutanota.gui.alert( tutao.lang("createAccountInvalidCaptcha_msg" ));
+        }).caught(tutao.AccessDeactivatedError, tutao.AccessExpiredError, function(e) {
+            self._reset();
+            return tutao.tutanota.gui.alert(tutao.lang("createAccountAccessDeactivated_msg"));
+        });
+    } else {
+        this._checkEntropyAndGenerateKeys()
+    }
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys = function() {
+    var self = this;
+    self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
+    tutao.locator.entropyCollector.fetchMissingEntropy(function() {
+        self._generateKeys().then(function() {
             tutao.locator.navigator.logout(false, false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
             setTimeout(function() {
                 tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
                 tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
             }, 0);
-        }).caught(tutao.TooManyRequestsError, function(e) {
-            self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED);
-            return tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAttempts_msg" ));
-        }).caught(tutao.LimitReachedError, function(e) {
-            self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-            return tutao.tutanota.gui.alert( tutao.lang("createAccountTooManyAccountsError_msg" ));
+        }).caught(tutao.AccessDeactivatedError, tutao.AccessExpiredError, function(e) {
+            self._reset();
+            return tutao.tutanota.gui.alert( tutao.lang("createAccountAccessDeactivated_msg" ));
         }).lastly(function() {
             tutao.locator.progressDialogModel.progress(0);
             self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
         });
-	});
+    });
 };
 
 /**
@@ -322,15 +364,18 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
                                 .setSymEncAccountGroupKey(symEncAccountGroupKey);
 
                             return customerService.setup({}, null).then(function(adminUserData) {
-                                return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                    //TODO (before release) create root instances and welcome mail before next login if it failed here
-                                    return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
-                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                                            new tutao.entity.tutanota.WelcomeMailData()
-                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-                                        }
-                                        tutao.locator.progressDialogModel.progress(100);
+                                customerService.getUserGroupList().getCreateGroupData().setMailAddress("juhuhus@tutanota.de");
+                                return customerService.setup({}, null).then(function(adminUserData) {
+                                    return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
+                                        //TODO (before release) create root instances and welcome mail before next login if it failed here
+                                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
+                                            if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                                                new tutao.entity.tutanota.WelcomeMailData()
+                                                    .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                                    .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+                                            }
+                                            tutao.locator.progressDialogModel.progress(100);
+                                        });
                                     });
                                 });
                             });
@@ -389,6 +434,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getMailAddress = function ()
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isFormEditable = function() {
     return (this.getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaEditable = function() {
+    return (this.getCreateAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA);
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {

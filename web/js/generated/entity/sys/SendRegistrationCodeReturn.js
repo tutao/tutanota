@@ -22,7 +22,7 @@ tutao.entity.sys.SendRegistrationCodeReturn = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SendRegistrationCodeReturn.MODEL_VERSION = '6';
+tutao.entity.sys.SendRegistrationCodeReturn.MODEL_VERSION = '7';
 
 /**
  * The encrypted flag.
