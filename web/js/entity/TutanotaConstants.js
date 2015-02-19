@@ -38,11 +38,9 @@ tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM = "3";
 
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_EXTERNAL = "5";
 
-tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL = "0";
+tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_REGISTRATION_ALLOWED = "0";
 
-tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_SENT = "1";
-
-tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_VERIFIED = "2";
+tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_CHALLENGED = "1";
 
 /**
  * Id for the internal recipient type.

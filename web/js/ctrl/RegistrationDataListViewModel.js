@@ -106,7 +106,7 @@ tutao.tutanota.ctrl.RegistrationDataListViewModel.prototype.add = function() {
 		.setGroupName(this.groupName())
 		.setMobilePhoneNumber(this.mobilePhoneNumber())
 		.setMailAddress(this.mailAddress())
-		.setState(tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_INITIAL);
+		.setState(tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_REGISTRATION_ALLOWED);
 	var self = this;
 	var authToken = regData.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(registrationReturn) {
         // Workaround as re-loading a range does not work under all circumstances if the id is custom

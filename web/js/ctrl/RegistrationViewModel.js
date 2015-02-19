@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
         }
 
     }, this);
-    this.captchaData = ko.observable(null);
+    this.captchaBase64Png = ko.observable(null);
     this.captchaHours = ko.observable("");
     this.captchaMinutes = ko.observable("");
     this.captchaStatus = ko.observable({ type: "neutral", text: "captchaEnter_msg"});
@@ -120,7 +120,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._reset = function() {
     this.termsAccepted(false);
     this.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
     this._keyGenProgress(0);
-    this.captchaData(null);
+    this.captchaBase64Png(null);
     this.captchaHours("");
     this.captchaMinutes("");
     this.captchaStatus({ type: "neutral", text: "captchaEnter_msg"});
@@ -192,7 +192,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaVisible = function(
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._updateCaptchaStatus = function() {
-    if (!this.captchaMinutes() || isNaN(this.captchaMinutes()) || Number(this.captchaMinutes()) < 0 || Number(this.captchaMinutes()) > 55 || !this.captchaHours() || isNaN(this.captchaHours()) || Number(this.captchaHours() < 0) || Number(this.captchaHours() > 24)) {
+    if (!this.captchaHours().match(/^[0-2][0-9]$/) || Number(this.captchaHours()) > 23 || !this.captchaMinutes().match(/^[0-5][05]$/)) {
         this.captchaStatus({type: "neutral", text: "captchaEnter_msg"});
     } else {
         this.captchaStatus({type: "valid", text: "captchaFormatOk_msg"});
@@ -233,11 +233,14 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
         tutao.entity.sys.RegistrationCaptchaServiceReturn.load({}, null).then(function(captchaReturn) {
             self.authToken(captchaReturn.getToken());
             if (captchaReturn.getChallenge()) {
-                self.captchaData(captchaReturn.getChallenge());
+                self.captchaBase64Png(captchaReturn.getChallenge());
                 self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA);
             } else {
                 self._checkEntropyAndGenerateKeys();
             }
+        }).caught(tutao.AccessDeactivatedError, function(e) {
+            self._reset();
+            return tutao.tutanota.gui.alert( tutao.lang("createAccountAccessDeactivated_msg" ));
         }).caught(tutao.LimitReachedError, function(e) {
             self._reset();
             return tutao.tutanota.gui.alert(tutao.lang("createAccountTooManyAccountsError_msg"));
@@ -252,7 +255,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
         }).caught(tutao.InvalidDataError, function(e) {
             self._reset();
             return tutao.tutanota.gui.alert( tutao.lang("createAccountInvalidCaptcha_msg" ));
-        }).caught(tutao.AccessDeactivatedError, tutao.AccessExpiredError, function(e) {
+        }).caught(tutao.AccessExpiredError, function(e) {
             self._reset();
             return tutao.tutanota.gui.alert(tutao.lang("createAccountAccessDeactivated_msg"));
         });
@@ -364,23 +367,19 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
                                 .setSymEncAccountGroupKey(symEncAccountGroupKey);
 
                             return customerService.setup({}, null).then(function(adminUserData) {
-                                customerService.getUserGroupList().getCreateGroupData().setMailAddress("juhuhus@tutanota.de");
-                                return customerService.setup({}, null).then(function(adminUserData) {
-                                    return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                        //TODO (before release) create root instances and welcome mail before next login if it failed here
-                                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
-                                            if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                                                new tutao.entity.tutanota.WelcomeMailData()
-                                                    .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                                    .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-                                            }
-                                            tutao.locator.progressDialogModel.progress(100);
-                                        });
+                                return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
+                                    //TODO (before release) create root instances and welcome mail before next login if it failed here
+                                    return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
+                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+                                            new tutao.entity.tutanota.WelcomeMailData()
+                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+                                        }
+                                        tutao.locator.progressDialogModel.progress(100);
                                     });
                                 });
                             });
                         });
-
 					});
 				});
 			});
