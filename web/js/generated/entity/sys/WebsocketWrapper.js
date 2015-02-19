@@ -9,6 +9,7 @@ tutao.provide('tutao.entity.sys.WebsocketWrapper');
 tutao.entity.sys.WebsocketWrapper = function(data) {
   if (data) {
     this.__format = data._format;
+    this._clientVersion = data.clientVersion;
     this._msgId = data.msgId;
     this._type = data.type;
     this._authentication = (data.authentication) ? new tutao.entity.sys.Authentication(this, data.authentication) : null;
@@ -17,6 +18,7 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
     this._exception = (data.exception) ? new tutao.entity.sys.Exception(this, data.exception) : null;
   } else {
     this.__format = "0";
+    this._clientVersion = null;
     this._msgId = null;
     this._type = null;
     this._authentication = null;
@@ -47,6 +49,7 @@ tutao.entity.sys.WebsocketWrapper.prototype.ENCRYPTED = false;
 tutao.entity.sys.WebsocketWrapper.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
+    clientVersion: this._clientVersion, 
     msgId: this._msgId, 
     type: this._type, 
     authentication: tutao.entity.EntityHelper.aggregatesToJsonData(this._authentication), 
@@ -60,6 +63,11 @@ tutao.entity.sys.WebsocketWrapper.prototype.toJsonData = function() {
  * The id of the WebsocketWrapper type.
  */
 tutao.entity.sys.WebsocketWrapper.prototype.TYPE_ID = 472;
+
+/**
+ * The id of the clientVersion attribute.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.CLIENTVERSION_ATTRIBUTE_ID = 683;
 
 /**
  * The id of the msgId attribute.
@@ -106,6 +114,23 @@ tutao.entity.sys.WebsocketWrapper.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.WebsocketWrapper.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the clientVersion of this WebsocketWrapper.
+ * @param {string} clientVersion The clientVersion of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.setClientVersion = function(clientVersion) {
+  this._clientVersion = clientVersion;
+  return this;
+};
+
+/**
+ * Provides the clientVersion of this WebsocketWrapper.
+ * @return {string} The clientVersion of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getClientVersion = function() {
+  return this._clientVersion;
 };
 
 /**

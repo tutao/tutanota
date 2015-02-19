@@ -220,11 +220,15 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.handleSwipeOnElement = function(
             // move content to trash
             return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mails);
         }
-    } else {
+    } else if (this.isSwipeRightPosssible()) {
         return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE), mails);
     }
 };
 
+
+tutao.tutanota.ctrl.MailListViewModel.prototype.isSwipeRightPosssible = function() {
+    return !tutao.locator.mailFolderListViewModel.selectedFolder().isArchiveFolder();
+};
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeRightLabel = function() {
     return { iconId: "file", textId: "archive_action" };

@@ -573,6 +573,15 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isInboxFolder = function(){
 };
 
 
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isArchiveFolder = function(){
+    if (this.parentFolder()){
+        return this.parentFolder().isArchiveFolder();
+    }else{
+        return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE;
+    }
+};
+
+
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.isCustomFolder = function(){
     return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM;
 };
