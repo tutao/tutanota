@@ -352,9 +352,16 @@ tutao.tutanota.gui.initKnockout = function() {
 
 			var listElement = $(element)
 			var ACTION_DISTANCE = 150;
+			var DEFAULT_ANIMATION_TIME = 300;
 			var listElementWidth = listElement.outerWidth();
 			var swipeActive = false;
 			var isSwipeRightPossible = bindingContext.$parent.isSwipeRightPosssible();
+
+			var resetSwipeGesture = function() {
+				swipeActive = false;
+				listElement.animate({left: 0}, DEFAULT_ANIMATION_TIME);
+			};
+
 
 			// store the function that shall be called when swipe done
 			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
@@ -367,28 +374,24 @@ tutao.tutanota.gui.initKnockout = function() {
 					} else if (ev.eventType == Hammer.INPUT_END && swipeActive) {
 						// execute callback
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
+
+							var animateCallback  = function() {
+									bindingContext.swipeAction(bindingContext.$data, swipeLeft);
+							};
+
 							if (swipeLeft) {
-								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)});
+								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)}, DEFAULT_ANIMATION_TIME, animateCallback);
 							} else if (isSwipeRightPossible){
-								listElement.animate({left: listElementWidth + ACTION_DISTANCE});
+								listElement.animate({left: listElementWidth + ACTION_DISTANCE}, DEFAULT_ANIMATION_TIME, animateCallback);
 							}
-							// Need timeout here to fade the element out.
-							setTimeout(function () {
-								bindingContext.swipeAction(bindingContext.$data, swipeLeft);
-							}, 300);
+						} else {
+							resetSwipeGesture();
 						}
-						// reset elements
-						listElement.show().animate({left: 0});
-						swipeActive = false;
 					} else if (ev.eventType == Hammer.INPUT_CANCEL) {
-						// reset elements
-						listElement.animate({left: 0});
-						swipeActive = false;
+						resetSwipeGesture();
 					}else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
 						if (Math.abs(ev.deltaY) > 40 ){
-							// cancel swipe and reset element on vertical movement
-							swipeActive = false;
-							listElement.animate({left: 0});
+							resetSwipeGesture();
 						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
 							var newContentLeft = ev.deltaX;
 							// Do not animate the swipe gesture more than necessary
@@ -397,13 +400,11 @@ tutao.tutanota.gui.initKnockout = function() {
 							} else if (newContentLeft < -ACTION_DISTANCE){
 								newContentLeft = -ACTION_DISTANCE;
 							}
-
 							if (isSwipeRightPossible || swipeLeft){
 								// animate swipe gesture
 								listElement.css('left', newContentLeft);
 								ev.preventDefault();
 							}
-
 						}
 					}
 					//console.log( "type: " + ev.type + ", direction: " + ev.direction + ", directionOffset" + ev.offsetDirection + ", deltaX: " + ev.deltaX + ", distance: " + ev.distance + ", pointerType: "+ ev.pointerType + ", eventType: " + ev.eventType);
