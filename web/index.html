@@ -455,9 +455,7 @@
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: getMails(), style: { borderTopWidth: (!tutao.locator.dao.isSupported() && getMails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || getMails().length > 0) ? '7px' : '0px' }">
 							<div class="listElement" >
 								<div class="listElementContent" data-bind="swipe: $parent.handleSwipeOnElement">
-									<div class="listElementButton buttonLeft"  >
-										<div class="menuItem fontImage colorWhite" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId"></div>
-									</div>
+									<div class="listElementButton fontImage buttonLeft" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId" ></div>
 									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 										<div class="icons">
                                             <div class="mailHeaderImage fontImage reply-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY, attr: {title: tutao.lang('mailReplyTypeReply_alt'), alt: tutao.lang('mailReplyTypeReply_alt')}"></div>
@@ -478,9 +476,7 @@
 											</div>
 										</div>
 									</div>
-									<div class="listElementButton buttonRight">
-										<div class="menuItem fontImage colorWhite" data-bind="lang:$parent.getSwipeLeftLabel().textId, css: $parent.getSwipeLeftLabel().iconId"></div>
-									</div>
+									<div class="listElementButton fontImage buttonRight" data-bind="lang:$parent.getSwipeLeftLabel().textId, css: $parent.getSwipeLeftLabel().iconId"></div>
 								</div>
 							</div>
 						</div>
