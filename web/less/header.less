@@ -75,7 +75,6 @@ header#main {
   > button.leftViewButton {
     position: relative;
     float: left;
-    height: 100%;
     max-width: 30%;
     .fadeTextOut;
     text-align: left;
@@ -86,13 +85,13 @@ header#main {
     }
 
     @media @desktop {
-      height: @header-height;
-      line-height: @header-height;
+      height: @header-height - 1;
+      line-height: @header-height - 1;
     }
 
     @media @mobile {
-      height: @header-height-small;
-      line-height: @header-height-small;
+      height: @header-height-small - 1;
+      line-height: @header-height-small - 1;
     }
   }
 

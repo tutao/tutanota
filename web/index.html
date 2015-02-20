@@ -127,18 +127,6 @@
 <script src="/js/db/DbInterface.js"></script>
 <script src="/js/db/DummyDb.js"></script>
 <script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
@@ -179,7 +167,6 @@
 <script src="/js/ctrl/PasswordChannelViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
 <script src="/js/ctrl/RecipientInfo.js"></script>
-<script src="/js/ctrl/RegistrationDataListViewModel.js"></script>
 <script src="/js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
 <script src="/js/ctrl/RegistrationViewModel.js"></script>
 <script src="/js/ctrl/SecuritySettingsViewModel.js"></script>
@@ -194,6 +181,18 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/gui/BubbleInputGui.js"></script>
 <script src="/js/gui/ContactView.js"></script>
 <script src="/js/gui/ExternalLoginView.js"></script>
@@ -217,6 +216,8 @@
 <script src="/js/rest/EntityRestInterface.js"></script>
 <script src="/js/rest/ResourceConstants.js"></script>
 <script src="/js/rest/RestClient.js"></script>
+<script src="/js/security/CajaSanitizer.js"></script>
+<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ConfigApp.js"></script>
 <script src="/js/native/ConfigBrowser.js"></script>
@@ -242,8 +243,6 @@
 <script src="/js/native/PushServiceBrowser.js"></script>
 <script src="/js/native/PushServiceInterface.js"></script>
 <script src="/js/native/RsaUtils.js"></script>
-<script src="/js/security/CajaSanitizer.js"></script>
-<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
@@ -261,12 +260,12 @@
 <script src="/js/util/StateMachine.js"></script>
 <script src="/js/util/StringUtils.js"></script>
 <script src="/js/util/bind.js"></script>
+<script src="/js/ctrl/lang/de.js"></script>
+<script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/ctrl/bubbleinput/Bubble.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
 <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
 <script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
-<script src="/js/ctrl/lang/de.js"></script>
-<script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
 <script src="/js/generated/entity/tutanota/Attachment.js"></script>
 <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
@@ -465,7 +464,7 @@
 											<div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
 											<div class="mailHeaderImage fontImage lock-closed-small" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
 										</div>
-										<div class="subject" data-bind="text: getSubject()"></div>
+										<div class="subject" data-bind="text: (getSubject().trim()) ? getSubject() : tutao.lang('emptyString_msg')"></div>
 										<div class="mailInfo">
 											<!--<div class="bullet" style="background-color: #ff0000"></div><div class="bullet" style="background-color: #00ff00"></div><div class="bullet" style="background-color: #00ffff"></div><div class="bullet" style="background-color: #ffff00"></div><div class="bullet" style="background-color: #ff00ff"></div>-->
 											<div class="date">
@@ -482,11 +481,11 @@
 						</div>
                         <div class="loadMoreElement" data-bind="fastClick: function() { tutao.locator.mailFolderListViewModel.selectedFolder().loadMoreMails(); }, visible: tutao.locator.mailFolderListViewModel.selectedFolder().moreAvailable() && !showSpinner()">
                             <span data-bind="text: tutao.lang('loadMoreMails_action'), visible: !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></span>
-							<div data-bind="template: { name: 'spinner-template'}, visible: tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
+							<div class="fontImage spinner" data-bind="visible: tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
                         </div>
                         <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (getMails().length == 0) && !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
                         <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
-							<div data-bind="template: { name: 'spinner-template'}"></div>
+							<div class="fontImage spinner"></div>
                         </div>
 					</section>
 				</div>
@@ -496,7 +495,7 @@
                 <!-- ko ifnot: mail -->
                 <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
                 <!-- /ko -->
-				<div data-bind="template: { name: 'spinner-template'}, visible: showSpinner"></div>
+				<div class="fontImage spinner spinnerActionBar" data-bind="visible: showSpinner"></div>
                 <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
                     <div data-bind="lang: 'noMail_msg'"></div><br>
                 </div>
@@ -504,7 +503,7 @@
                     <!-- ko if: mail -->
                     <div class="actions" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
                     <!-- ko if: isComposingState() -->
-					<div id="sendMailBusyImg" data-bind="template: { name: 'spinner-template'}, visible: mail().busy"></div>
+					<div class="fontImage spinner spinnerActionBar" data-bind="visible: mail().busy"></div>
                     <!-- /ko -->
 					<section class="conversation scrollable" data-bind="with: mail">
 						<!-- ko if: !$parent.isComposingState() -->
@@ -1315,7 +1314,7 @@
                                     <div class="formAction">
                                         <button id="submitRegistration1" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                         <button class="single" data-bind="fastClick: login, lang: 'backTologin_action'"></button>
-                                        <label id="submitRegistration1Label" for="submitRegistration1" class="recordStatus" data-bind="lang: 'emptyString_msg'"></label>
+                                        <label id="submitRegistration1Label" for="submitRegistration1" class="recordStatus invalid" data-bind="lang: getCreateAccountErrorMessage()"></label>
                                     </div>
                                 </div>
 
@@ -1917,7 +1916,7 @@
 			<div class="input" tabindex="-1" data-bind="click: vm.setInputActive, event: {mousedown: vm.setInputActive}">
 				<div class="inputContainer">
 					<!-- must be written in one line, otherwise spaces are inserted between bubbles and between input field -->
-					<!-- ko foreach: vm.bubbles --><div class="bubble" tabIndex="0" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip, css:{closable: showDeleteIcon}"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><div data-bind="template: { name: 'spinner-template'}"></div></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
+					<!-- ko foreach: vm.bubbles --><div class="bubble" tabIndex="0" data-bind="css: {selected: selected}, class: state"><div class="bubbleText" data-bind="text: text, attr: {title: tooltip}, click: tutao.tutanota.gui.showTooltip, css:{closable: showDeleteIcon}"></div><div class="tooltip bottom"><div class="tooltip-arrow"></div><div class="tooltip-inner" data-bind="text: tooltip"></div></div><div class="removeBubble" data-bind="visible: showDeleteIcon, fastClick: function() { $parent.vm.removeBubble($data); }, attr: { title: tutao.lang('removeRecipient_alt') }"><div class="fontImage cancel"></div></div></div><!-- /ko --><!-- prevent the click event on the input from bubbling to the inputWrapper as this would reset the selection --><div class="bubbleInputDiv"><div class="autocomplete-loading" data-bind="visible: vm.loading"><div class="fontImage spinner"></div></div><input type="email" data-bind="domInit: vm.setInputField, value: vm.inputValue, valueUpdate: 'input', hasfocus: vm.inputActive, click: function() {}, clickBubble: false, event: {keydown: vm.handleKey, blur: vm.inputFieldBlurFired}, attr: {'tabindex': tabindex}" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false"></input></div>
 				</div>
 				<!-- ko if: vm.bubbleHandler.buttonCss() -->
 					<div class="buttonContainer" data-bind="fastClick: vm.bubbleHandler.buttonClick">
@@ -1944,10 +1943,6 @@
 					<div class="fileSize" data-bind="text: '(' + tutao.tutanota.util.Formatter.formatFileSize(getSize()) + ')'"></div>
 				</div>
 			</div>
-	</script>
-
-	<script type="text/html" id="spinner-template">
-		<div class="fontImage spinner"></div>
 	</script>
 
 </body>

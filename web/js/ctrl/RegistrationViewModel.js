@@ -201,6 +201,22 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getCreateAccountState = func
 	return this._createAccountState();
 };
 
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.getCreateAccountErrorMessage = function() {
+    if (this.mailAddressStatus().type != "valid") {
+        return this.mailAddressStatus().text;
+    } else if (this.getPassword1Status().type != "valid") {
+        return this.getPassword1Status().text;
+    } else if (this.getPassword2Status().type != "valid") {
+        return this.getPassword2Status().text;
+    } else if (this.getTermsStatus().type != "valid") {
+        return this.getTermsStatus().text;
+    } else if (this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA && this.captchaStatus().type != "valid") {
+        return this.captchaStatus().text;
+    } else {
+        return 'emptyString_msg';
+    }
+};
+
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCreateAccountPossible = function() {
     if ((this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) &&
             this.captchaStatus().type == "valid") {

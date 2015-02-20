@@ -68,10 +68,6 @@ Source Sans Pro Font - https://www.google.com/fonts/specimen/Source+Sans+Pro
 License: OFL
 Reference: http://http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=OFL
 
-Mime type icons - http://www.splitbrain.org/projects/file_icons
-License: Public Domain
-Reference: http://www.splitbrain.org/projects/file_icons
-
 Way through the dunes image - http://www.istockphoto.com/photo/way-through-the-dunes-11742529
 License: Custom
 Reference: http://www.istockphoto.com/license.php
