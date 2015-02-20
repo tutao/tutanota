@@ -133,130 +133,134 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 		}, 0);
 		return;
 	}
+    var subjectConfirmPromise = null;
 	if (this.composerSubject().length === 0) {
-		setTimeout(function() {
-			tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("noSubject_msg"));
-		}, 0);
-		return;
-	}
+        subjectConfirmPromise = tutao.tutanota.gui.confirm(tutao.locator.languageViewModel.get("noSubject_msg"));
+	} else {
+        subjectConfirmPromise = Promise.resolve(true);
+    }
 
-    self.busy(true);
-    return this._resolveRecipients().then(function() {
-        var unsecureRecipients = self._containsUnsecureRecipients();
-        if (self.secure() && unsecureRecipients) {
-            setTimeout(function() {
-                var message = "noPasswordChannels_msg";
-                if ( !tutao.locator.passwordChannelViewModel.isAutoTransmitPasswordAllowed() ){
-                    message = "noPreSharedPassword_msg";
-                }
-                tutao.tutanota.gui.alert(tutao.lang(message)).then(function() {
-                    tutao.locator.mailView.showPasswordChannelColumn();
-                });
-            }, 0);
-            return;
-        }
-        if (self.secure() && self._containsInvalidPhoneNumber()) {
-            setTimeout(function() {
-                tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("invalidPasswordChannels_msg")).then(function() {
-                    tutao.locator.mailView.showPasswordChannelColumn();
-                });
-            }, 0);
-            return;
-        }
-
-        if (!self.secure()) {
-            var attachmentsSize = 0;
-            for (var i = 0; i < self._attachments().length; i++) {
-                attachmentsSize += Number(self._attachments()[i].getSize()); // cast to number because File.getSize() returns a string
-            }
-            if (attachmentsSize > tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) {
-                setTimeout(function() {
-                    tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("maxSizeExceeded_msg", { "{1}": tutao.tutanota.util.Formatter.formatFileSize(tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) }));
-                }, 0);
-                return;
-            }
-        }
-
-        var secureExternalRecipients = tutao.locator.passwordChannelViewModel.getSecureExternalRecipients();
-
-        // check if a pre-shared password is not strong enough
-        var onePresharedPasswordNotStrongEnough = false;
-        for (var i = 0; i < secureExternalRecipients.length; i++) {
-            var presharedPassword = secureExternalRecipients[i].getEditableContact().presharedPassword();
-            if (presharedPassword != null && tutao.locator.passwordChannelViewModel.getPasswordStrength(secureExternalRecipients[i]) < 80) {
-                onePresharedPasswordNotStrongEnough = true;
-                break;
-            }
-        }
-
-        var promise = null;
-        if (onePresharedPasswordNotStrongEnough) {
-            promise = tutao.tutanota.gui.confirm(tutao.lang("presharedPasswordNotStrongEnough_msg"));
-        } else {
-            promise = Promise.resolve(true);
-        }
-
-        return promise.then(function(ok) {
-            if (ok) {
-                return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
-                    self._freeBubbles();
-
-                    var senderName = "";
-                    if (tutao.locator.userController.isInternalUserLoggedIn()) {
-                        senderName = tutao.locator.userController.getUserGroupInfo().getName();
-                    }
-
-                    var facade = null;
-                    if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                        facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
-                    } else if (unsecureRecipients) {
-                        facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
-                    } else {
-                        facade = tutao.tutanota.ctrl.SendMailFacade;
-                    }
-
-                    // the mail is sent in the background
-                    self.directSwitchActive = false;
-
-                    var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
-                    var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
-                    var promise = Promise.resolve();
-                    if (selectedLanguage != propertyLanguage) {
-                        tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
-                        promise = tutao.locator.mailBoxController.getUserProperties().update();
-                    }
-
-                    return promise.then(function () {
-                        return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
-                            self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-                            self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailElementId, exception) {
-                                return self._updatePreviousMail().lastly(function() {
-                                    self._restoreViewState();
-                                    if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                                        // external users do not download mails automatically, so download the sent email now
-                                        var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
-                                        tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
-                                            externalSentFolder.updateOnNewMails([mail]);
-                                        });
-                                    }
-                                });
-                            });
-                    }).caught(tutao.RecipientsNotFoundError, function (exception) {
-                        var notFoundRecipients = exception.getRecipients();
-                        var recipientList = "";
-                        for (var i = 0; i < notFoundRecipients.length; i++) {
-                            recipientList += notFoundRecipients[i] + "\n";
+    return subjectConfirmPromise.then(function(confirmed) {
+        if (confirmed) {
+            self.busy(true);
+            return self._resolveRecipients().then(function () {
+                var unsecureRecipients = self._containsUnsecureRecipients();
+                if (self.secure() && unsecureRecipients) {
+                    setTimeout(function () {
+                        var message = "noPasswordChannels_msg";
+                        if (!tutao.locator.passwordChannelViewModel.isAutoTransmitPasswordAllowed()) {
+                            message = "noPreSharedPassword_msg";
                         }
-                        console.log("recipients not found", exception);
-                        return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
-                    });
+                        tutao.tutanota.gui.alert(tutao.lang(message)).then(function () {
+                            tutao.locator.mailView.showPasswordChannelColumn();
+                        });
+                    }, 0);
+                    return;
+                }
+                if (self.secure() && self._containsInvalidPhoneNumber()) {
+                    setTimeout(function () {
+                        tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("invalidPasswordChannels_msg")).then(function () {
+                            tutao.locator.mailView.showPasswordChannelColumn();
+                        });
+                    }, 0);
+                    return;
+                }
 
+                if (!self.secure()) {
+                    var attachmentsSize = 0;
+                    for (var i = 0; i < self._attachments().length; i++) {
+                        attachmentsSize += Number(self._attachments()[i].getSize()); // cast to number because File.getSize() returns a string
+                    }
+                    if (attachmentsSize > tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) {
+                        setTimeout(function () {
+                            tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("maxSizeExceeded_msg", {"{1}": tutao.tutanota.util.Formatter.formatFileSize(tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE)}));
+                        }, 0);
+                        return;
+                    }
+                }
+
+                var secureExternalRecipients = tutao.locator.passwordChannelViewModel.getSecureExternalRecipients();
+
+                // check if a pre-shared password is not strong enough
+                var onePresharedPasswordNotStrongEnough = false;
+                for (var i = 0; i < secureExternalRecipients.length; i++) {
+                    var presharedPassword = secureExternalRecipients[i].getEditableContact().presharedPassword();
+                    if (presharedPassword != null && tutao.locator.passwordChannelViewModel.getPasswordStrength(secureExternalRecipients[i]) < 80) {
+                        onePresharedPasswordNotStrongEnough = true;
+                        break;
+                    }
+                }
+
+                var promise = null;
+                if (onePresharedPasswordNotStrongEnough) {
+                    promise = tutao.tutanota.gui.confirm(tutao.lang("presharedPasswordNotStrongEnough_msg"));
+                } else {
+                    promise = Promise.resolve(true);
+                }
+
+                return promise.then(function (ok) {
+                    if (ok) {
+                        return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
+                            self._freeBubbles();
+
+                            var senderName = "";
+                            if (tutao.locator.userController.isInternalUserLoggedIn()) {
+                                senderName = tutao.locator.userController.getUserGroupInfo().getName();
+                            }
+
+                            var facade = null;
+                            if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                                facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
+                            } else if (unsecureRecipients) {
+                                facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
+                            } else {
+                                facade = tutao.tutanota.ctrl.SendMailFacade;
+                            }
+
+                            // the mail is sent in the background
+                            self.directSwitchActive = false;
+
+                            var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
+                            var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
+                            var promise = Promise.resolve();
+                            if (selectedLanguage != propertyLanguage) {
+                                tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
+                                promise = tutao.locator.mailBoxController.getUserProperties().update();
+                            }
+
+                            return promise.then(function () {
+                                return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
+                                    self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+                                    self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailElementId, exception) {
+                                        return self._updatePreviousMail().lastly(function () {
+                                            self._restoreViewState();
+                                            if (tutao.locator.userController.isExternalUserLoggedIn()) {
+                                                // external users do not download mails automatically, so download the sent email now
+                                                var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
+                                                tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
+                                                    externalSentFolder.updateOnNewMails([mail]);
+                                                });
+                                            }
+                                        });
+                                    });
+                            }).caught(tutao.RecipientsNotFoundError, function (exception) {
+                                var notFoundRecipients = exception.getRecipients();
+                                var recipientList = "";
+                                for (var i = 0; i < notFoundRecipients.length; i++) {
+                                    recipientList += notFoundRecipients[i] + "\n";
+                                }
+                                console.log("recipients not found", exception);
+                                return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
+                            });
+
+                        });
+                    } else {
+                        tutao.locator.mailView.showPasswordChannelColumn();
+                        return Promise.resolve();
+                    }
                 });
-            } else {
-                tutao.locator.mailView.showPasswordChannelColumn();
-                return Promise.resolve();
-            }
-        });
+            });
+        }
     }).lastly(function () {
         self.busy(false);
     });

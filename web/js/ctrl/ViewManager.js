@@ -86,9 +86,9 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
 
         // all supported
-        new tutao.tutanota.ctrl.Button('feedback_label', 26, function () {
-            tutao.tutanota.gui.openLink("https://tutanota.uservoice.com/forums/237921-general");
-        }, this.feedbackSupported, false, "menu_feedback", "feedback", 'feedback_alt'),
+        new tutao.tutanota.ctrl.Button('community_label', 26, function () {
+            tutao.tutanota.gui.openLink("https://tutanota.com/community");
+        }, this.feedbackSupported, false, "menu_community", "heart", 'community_label'),
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {

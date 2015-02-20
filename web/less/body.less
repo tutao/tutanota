@@ -557,7 +557,7 @@ body {
                               display: inline-block;
                               position: relative; // needed for positioning the icons
 
-                              &.lock-closed {
+                              &.lock-closed-small {
                                 margin-right: -4px; // the lock is left aligned in the image, so move it right
                               }
                             }
@@ -567,21 +567,21 @@ body {
 			}
 		}
 	}
+
+    div.spinnerActionBar {
+      position: absolute;
+      margin-left: 50%;
+      z-index: 6; // must be higher than action bar
+
+      @media @desktop {
+        top: 5px;
+      }
+      @media @mobile {
+        bottom: 5px;
+      }
+    }
 	
 	div#conversationColumn {
-		> div.spinner {
-            position: absolute;
-			margin-left: 50%;
-            z-index: 6; // must be higher than action bar
-
-            @media @desktop {
-              top: 8px;
-            }
-            @media @mobile {
-              bottom: 6px;
-            }
-		}
-
 		> div#noMail {
 			text-align: center;
 			> div {
@@ -592,19 +592,6 @@ body {
 		> div#innerConversationColumn {
 			position: relative;
 			height: 100%;
-
-            > div#sendMailBusyImg {
-              position: absolute;
-              left: 50%;
-              z-index: 6; // must be higher than action bar
-
-              @media @desktop {
-                top: 4px;
-              }
-              @media @mobile {
-                bottom: 5px;
-              }
-            }
 
 			> section.conversation {
 				.fill;
@@ -684,7 +671,7 @@ body {
                       }
 
                       &.dateValue{
-                        width:135px;
+                        width:175px;
                         text-align:right;
                       }
 
