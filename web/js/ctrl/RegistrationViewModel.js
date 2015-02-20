@@ -25,8 +25,6 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.password2 = ko.observable("");
 	this.termsAccepted = ko.observable(false);
 
-	this.joinStatus = ko.observable({ type: "neutral", text: "joinNeutral_msg" });
-
 	this._keyGenProgress = ko.observable(0);
 
 	this._createAccountState = ko.observable(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
@@ -39,11 +37,9 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 
     }, this);
     this.captchaBase64Png = ko.observable(null);
-    this.captchaHours = ko.observable("");
-    this.captchaMinutes = ko.observable("");
+    this.captchaTime = ko.observable("");
     this.captchaStatus = ko.observable({ type: "neutral", text: "captchaEnter_msg"});
-    this.captchaMinutes.subscribe(this._updateCaptchaStatus, this);
-    this.captchaHours.subscribe(this._updateCaptchaStatus, this);
+    this.captchaTime.subscribe(this._updateCaptchaStatus, this);
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK = 0;
@@ -111,18 +107,20 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._reset = function() {
-    this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
-    this.authToken(this.initialAuthToken);
+    this._resetGeneratedData();
     this.mailAddressPrefix("");
     this.mailAddressStatus({ type: "valid", text: "mailAddressNeutral_msg"});
     this.password1("");
     this.password2("");
     this.termsAccepted(false);
-    this.joinStatus({ type: "neutral", text: "joinNeutral_msg" });
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype._resetGeneratedData = function() {
+    this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+    this.authToken(this.initialAuthToken);
     this._keyGenProgress(0);
     this.captchaBase64Png(null);
-    this.captchaHours("");
-    this.captchaMinutes("");
+    this.captchaTime("");
     this.captchaStatus({ type: "neutral", text: "captchaEnter_msg"});
 };
 
@@ -192,10 +190,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaVisible = function(
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._updateCaptchaStatus = function() {
-    if (!this.captchaHours().match(/^[0-2][0-9]$/) || Number(this.captchaHours()) > 23 || !this.captchaMinutes().match(/^[0-5][05]$/)) {
-        this.captchaStatus({type: "neutral", text: "captchaEnter_msg"});
-    } else {
+    if (this.captchaTime().match(/^[0-2][0-9]:[0-5][05]$/) && Number(this.captchaTime().substr(0,2)) < 24) {
         this.captchaStatus({type: "valid", text: "captchaFormatOk_msg"});
+    } else {
+        this.captchaStatus({type: "neutral", text: "captchaEnter_msg"});
     }
 };
 
@@ -265,11 +263,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
         this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING);
         var data = new tutao.entity.sys.RegistrationCaptchaServiceData();
         data.setToken(this.authToken());
-        data.setResponse(this.captchaHours() + ":" + this.captchaMinutes());
+        data.setResponse(this.captchaTime());
         data.setup({}, null).then(function(fine) {
             self._checkEntropyAndGenerateKeys();
         }).caught(tutao.InvalidDataError, function(e) {
-            self._reset();
+            self._resetGeneratedData();
             return tutao.tutanota.gui.alert( tutao.lang("createAccountInvalidCaptcha_msg" ));
         }).caught(tutao.AccessExpiredError, function(e) {
             self._reset();

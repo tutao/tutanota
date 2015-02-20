@@ -119,7 +119,8 @@ body {
 			position: relative;
 			height: @list-entry-height;
 			border-bottom: 1px solid @border-dark;
-			width:100%;
+			width: 100%;
+			overflow: hidden;
 
 			> div.listElementContent {
 			  position: relative;
@@ -129,22 +130,31 @@ body {
 				position: absolute;
 				top:0;
 				bottom:0;
-				overflow: hidden;
-				> div.menuItem {
-				  color: @white;
-				  // Center menuItem vertical
-				  line-height: @list-entry-height;
-				  height: @list-entry-height;
+				width: 150px;
+				height: @list-entry-height;
+				line-height: @list-entry-height;
+
+				font-size: @menu-item-font-size;
+				color: @white;
+
+				// configuration for icon and font
+				padding-left: @menu_image_padding_left;
+				padding-right: 10px;
+
+				&:before, &:after {
+				  position: absolute;
+				  left: @padding;
+				  top: 0px;
+				  width: @menu_image_width;
+				  text-align: center;
 				}
 
 				&.buttonRight{
-				  width:150px;
 				  right:-150px;
 				  background-color: @swipe-button-red;
 				}
 
 				&.buttonLeft {
-				  width:150px;
 				  left:-150px;
 				  background-color: @swipe-button-blue;
 				}
