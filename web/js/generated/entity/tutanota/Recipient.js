@@ -9,22 +9,7 @@ tutao.provide('tutao.entity.tutanota.Recipient');
  */
 tutao.entity.tutanota.Recipient = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._autoTransmitPassword = data.autoTransmitPassword;
-    this._mailAddress = data.mailAddress;
-    this._name = data.name;
-    this._passwordVerifier = data.passwordVerifier;
-    this._pubEncBucketKey = data.pubEncBucketKey;
-    this._pubKeyVersion = data.pubKeyVersion;
-    this._pwEncCommunicationKey = data.pwEncCommunicationKey;
-    this._salt = data.salt;
-    this._saltHash = data.saltHash;
-    this._symEncBucketKey = data.symEncBucketKey;
-    this._type = data.type;
-    this._passwordChannelPhoneNumbers = [];
-    for (var i=0; i < data.passwordChannelPhoneNumbers.length; i++) {
-      this._passwordChannelPhoneNumbers.push(new tutao.entity.tutanota.PasswordChannelPhoneNumber(parent, data.passwordChannelPhoneNumbers[i]));
-    }
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._autoTransmitPassword = null;
@@ -42,6 +27,30 @@ tutao.entity.tutanota.Recipient = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.Recipient.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.Recipient.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._autoTransmitPassword = data.autoTransmitPassword;
+  this._mailAddress = data.mailAddress;
+  this._name = data.name;
+  this._passwordVerifier = data.passwordVerifier;
+  this._pubEncBucketKey = data.pubEncBucketKey;
+  this._pubKeyVersion = data.pubKeyVersion;
+  this._pwEncCommunicationKey = data.pwEncCommunicationKey;
+  this._salt = data.salt;
+  this._saltHash = data.saltHash;
+  this._symEncBucketKey = data.symEncBucketKey;
+  this._type = data.type;
+  this._passwordChannelPhoneNumbers = [];
+  for (var i=0; i < data.passwordChannelPhoneNumbers.length; i++) {
+    this._passwordChannelPhoneNumbers.push(new tutao.entity.tutanota.PasswordChannelPhoneNumber(parent, data.passwordChannelPhoneNumbers[i]));
+  }
 };
 
 /**

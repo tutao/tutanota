@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.sys.UserExternalAuthInfo');
  */
 tutao.entity.sys.UserExternalAuthInfo = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._authUpdateCounter = data.authUpdateCounter;
-    this._autoAuthenticationId = data.autoAuthenticationId;
-    this._autoTransmitPassword = data.autoTransmitPassword;
-    this._latestSaltHash = data.latestSaltHash;
-    this._variableAuthInfo = data.variableAuthInfo;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._authUpdateCounter = null;
@@ -25,6 +20,20 @@ tutao.entity.sys.UserExternalAuthInfo = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.UserExternalAuthInfo.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.UserExternalAuthInfo.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._authUpdateCounter = data.authUpdateCounter;
+  this._autoAuthenticationId = data.autoAuthenticationId;
+  this._autoTransmitPassword = data.autoTransmitPassword;
+  this._latestSaltHash = data.latestSaltHash;
+  this._variableAuthInfo = data.variableAuthInfo;
 };
 
 /**

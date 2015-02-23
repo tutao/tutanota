@@ -8,15 +8,7 @@ tutao.provide('tutao.entity.tutanota.MailBox');
  */
 tutao.entity.tutanota.MailBox = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._shareBucketId = data.shareBucketId;
-    this._symEncShareBucketKey = data.symEncShareBucketKey;
-    this._mails = data.mails;
-    this._receivedAttachments = data.receivedAttachments;
-    this._sentAttachments = data.sentAttachments;
-    this._systemFolders = (data.systemFolders) ? new tutao.entity.tutanota.MailFolderRef(this, data.systemFolders) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -30,6 +22,22 @@ tutao.entity.tutanota.MailBox = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.MailBox.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.MailBox.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._shareBucketId = data.shareBucketId;
+  this._symEncShareBucketKey = data.symEncShareBucketKey;
+  this._mails = data.mails;
+  this._receivedAttachments = data.receivedAttachments;
+  this._sentAttachments = data.sentAttachments;
+  this._systemFolders = (data.systemFolders) ? new tutao.entity.tutanota.MailFolderRef(this, data.systemFolders) : null;
 };
 
 /**

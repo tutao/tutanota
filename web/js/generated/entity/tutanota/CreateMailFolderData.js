@@ -8,10 +8,7 @@ tutao.provide('tutao.entity.tutanota.CreateMailFolderData');
  */
 tutao.entity.tutanota.CreateMailFolderData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._folderName = data.folderName;
-    this._listEncSessionKey = data.listEncSessionKey;
-    this._parentFolder = data.parentFolder;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._folderName = null;
@@ -20,6 +17,17 @@ tutao.entity.tutanota.CreateMailFolderData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.CreateMailFolderData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.CreateMailFolderData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._folderName = data.folderName;
+  this._listEncSessionKey = data.listEncSessionKey;
+  this._parentFolder = data.parentFolder;
 };
 
 /**

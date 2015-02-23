@@ -8,11 +8,7 @@ tutao.provide('tutao.entity.sys.ExternalUserReference');
  */
 tutao.entity.sys.ExternalUserReference = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._user = data.user;
-    this._userGroup = data.userGroup;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -22,6 +18,18 @@ tutao.entity.sys.ExternalUserReference = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ExternalUserReference.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ExternalUserReference.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._user = data.user;
+  this._userGroup = data.userGroup;
 };
 
 /**

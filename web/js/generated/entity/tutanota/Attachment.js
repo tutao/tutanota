@@ -9,13 +9,7 @@ tutao.provide('tutao.entity.tutanota.Attachment');
  */
 tutao.entity.tutanota.Attachment = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._bucketEncFileSessionKey = data.bucketEncFileSessionKey;
-    this._fileName = data.fileName;
-    this._listEncFileSessionKey = data.listEncFileSessionKey;
-    this._mimeType = data.mimeType;
-    this._file = data.file;
-    this._fileData = data.fileData;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bucketEncFileSessionKey = null;
@@ -27,6 +21,21 @@ tutao.entity.tutanota.Attachment = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.Attachment.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.Attachment.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._bucketEncFileSessionKey = data.bucketEncFileSessionKey;
+  this._fileName = data.fileName;
+  this._listEncFileSessionKey = data.listEncFileSessionKey;
+  this._mimeType = data.mimeType;
+  this._file = data.file;
+  this._fileData = data.fileData;
 };
 
 /**

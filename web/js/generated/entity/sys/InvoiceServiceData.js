@@ -8,12 +8,20 @@ tutao.provide('tutao.entity.sys.InvoiceServiceData');
  */
 tutao.entity.sys.InvoiceServiceData = function(data) {
   if (data) {
-    this.__format = data._format;
+    this.updateData(data);
   } else {
     this.__format = "0";
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.InvoiceServiceData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.InvoiceServiceData.prototype.updateData = function(data) {
+  this.__format = data._format;
 };
 
 /**

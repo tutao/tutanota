@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.RegistrationVerifyDomainDataPost');
  */
 tutao.entity.sys.RegistrationVerifyDomainDataPost = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._currentAdminMailAddress = data.currentAdminMailAddress;
-    this._language = data.language;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._currentAdminMailAddress = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._currentAdminMailAddress = data.currentAdminMailAddress;
+  this._language = data.language;
 };
 
 /**

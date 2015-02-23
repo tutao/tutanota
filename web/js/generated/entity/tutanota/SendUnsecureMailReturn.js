@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.SendUnsecureMailReturn');
  */
 tutao.entity.tutanota.SendUnsecureMailReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._senderMail = data.senderMail;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._senderMail = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendUnsecureMailReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.SendUnsecureMailReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._senderMail = data.senderMail;
 };
 
 /**

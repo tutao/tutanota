@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.VerifyRegistrationCodeData');
  */
 tutao.entity.sys.VerifyRegistrationCodeData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._authToken = data.authToken;
-    this._code = data.code;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._authToken = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.VerifyRegistrationCodeData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.VerifyRegistrationCodeData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.VerifyRegistrationCodeData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._authToken = data.authToken;
+  this._code = data.code;
 };
 
 /**

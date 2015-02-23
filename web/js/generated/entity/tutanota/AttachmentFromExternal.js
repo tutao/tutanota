@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.tutanota.AttachmentFromExternal');
  */
 tutao.entity.tutanota.AttachmentFromExternal = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._fileName = data.fileName;
-    this._mimeType = data.mimeType;
-    this._recipientBucketEncFileSessionKey = data.recipientBucketEncFileSessionKey;
-    this._senderBucketEncFileSessionKey = data.senderBucketEncFileSessionKey;
-    this._fileData = data.fileData;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._fileName = null;
@@ -25,6 +20,20 @@ tutao.entity.tutanota.AttachmentFromExternal = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.AttachmentFromExternal.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.AttachmentFromExternal.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._fileName = data.fileName;
+  this._mimeType = data.mimeType;
+  this._recipientBucketEncFileSessionKey = data.recipientBucketEncFileSessionKey;
+  this._senderBucketEncFileSessionKey = data.senderBucketEncFileSessionKey;
+  this._fileData = data.fileData;
 };
 
 /**

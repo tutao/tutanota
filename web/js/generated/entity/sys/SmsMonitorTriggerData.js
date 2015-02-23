@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.SmsMonitorTriggerData');
  */
 tutao.entity.sys.SmsMonitorTriggerData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._networkOperatorIds = data.networkOperatorIds;
-    this._smsFacadeIds = data.smsFacadeIds;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._networkOperatorIds = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.SmsMonitorTriggerData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SmsMonitorTriggerData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SmsMonitorTriggerData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._networkOperatorIds = data.networkOperatorIds;
+  this._smsFacadeIds = data.smsFacadeIds;
 };
 
 /**

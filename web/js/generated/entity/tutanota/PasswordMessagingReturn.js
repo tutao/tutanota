@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.PasswordMessagingReturn');
  */
 tutao.entity.tutanota.PasswordMessagingReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._autoAuthenticationId = data.autoAuthenticationId;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._autoAuthenticationId = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordMessagingReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.PasswordMessagingReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._autoAuthenticationId = data.autoAuthenticationId;
 };
 
 /**

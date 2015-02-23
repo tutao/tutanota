@@ -8,22 +8,7 @@ tutao.provide('tutao.entity.sys.CustomerData');
  */
 tutao.entity.sys.CustomerData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._accountingInfoBucketEncAccountingInfoSessionKey = data.accountingInfoBucketEncAccountingInfoSessionKey;
-    this._adminEncAccountingInfoSessionKey = data.adminEncAccountingInfoSessionKey;
-    this._authToken = data.authToken;
-    this._company = data.company;
-    this._domain = data.domain;
-    this._salt = data.salt;
-    this._symEncAccountGroupKey = data.symEncAccountGroupKey;
-    this._systemCustomerPubEncAccountingInfoBucketKey = data.systemCustomerPubEncAccountingInfoBucketKey;
-    this._systemCustomerPubKeyVersion = data.systemCustomerPubKeyVersion;
-    this._userEncClientKey = data.userEncClientKey;
-    this._verifier = data.verifier;
-    this._adminGroupList = (data.adminGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.adminGroupList) : null;
-    this._customerGroupList = (data.customerGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.customerGroupList) : null;
-    this._teamGroupList = (data.teamGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.teamGroupList) : null;
-    this._userGroupList = (data.userGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.userGroupList) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._accountingInfoBucketEncAccountingInfoSessionKey = null;
@@ -44,6 +29,29 @@ tutao.entity.sys.CustomerData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CustomerData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._accountingInfoBucketEncAccountingInfoSessionKey = data.accountingInfoBucketEncAccountingInfoSessionKey;
+  this._adminEncAccountingInfoSessionKey = data.adminEncAccountingInfoSessionKey;
+  this._authToken = data.authToken;
+  this._company = data.company;
+  this._domain = data.domain;
+  this._salt = data.salt;
+  this._symEncAccountGroupKey = data.symEncAccountGroupKey;
+  this._systemCustomerPubEncAccountingInfoBucketKey = data.systemCustomerPubEncAccountingInfoBucketKey;
+  this._systemCustomerPubKeyVersion = data.systemCustomerPubKeyVersion;
+  this._userEncClientKey = data.userEncClientKey;
+  this._verifier = data.verifier;
+  this._adminGroupList = (data.adminGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.adminGroupList) : null;
+  this._customerGroupList = (data.customerGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.customerGroupList) : null;
+  this._teamGroupList = (data.teamGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.teamGroupList) : null;
+  this._userGroupList = (data.userGroupList) ? new tutao.entity.sys.CreateGroupListData(this, data.userGroupList) : null;
 };
 
 /**

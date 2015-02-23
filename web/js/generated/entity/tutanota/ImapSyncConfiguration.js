@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.tutanota.ImapSyncConfiguration');
  */
 tutao.entity.tutanota.ImapSyncConfiguration = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._host = data.host;
-    this._password = data.password;
-    this._port = data.port;
-    this._user = data.user;
-    this._imapSyncState = data.imapSyncState;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._host = null;
@@ -25,6 +20,20 @@ tutao.entity.tutanota.ImapSyncConfiguration = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ImapSyncConfiguration.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.ImapSyncConfiguration.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._host = data.host;
+  this._password = data.password;
+  this._port = data.port;
+  this._user = data.user;
+  this._imapSyncState = data.imapSyncState;
 };
 
 /**

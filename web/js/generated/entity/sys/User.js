@@ -8,33 +8,7 @@ tutao.provide('tutao.entity.sys.User');
  */
 tutao.entity.sys.User = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._accountType = data.accountType;
-    this._enabled = data.enabled;
-    this._salt = data.salt;
-    this._userEncClientKey = data.userEncClientKey;
-    this._verifier = data.verifier;
-    this._authenticatedDevices = [];
-    for (var i=0; i < data.authenticatedDevices.length; i++) {
-      this._authenticatedDevices.push(new tutao.entity.sys.AuthenticatedDevice(this, data.authenticatedDevices[i]));
-    }
-    this._customer = data.customer;
-    this._externalAuthInfo = (data.externalAuthInfo) ? new tutao.entity.sys.UserExternalAuthInfo(this, data.externalAuthInfo) : null;
-    this._failedLogins = data.failedLogins;
-    this._memberships = [];
-    for (var i=0; i < data.memberships.length; i++) {
-      this._memberships.push(new tutao.entity.sys.GroupMembership(this, data.memberships[i]));
-    }
-    this._phoneNumbers = [];
-    for (var i=0; i < data.phoneNumbers.length; i++) {
-      this._phoneNumbers.push(new tutao.entity.sys.PhoneNumber(this, data.phoneNumbers[i]));
-    }
-    this._pushIdentifierList = (data.pushIdentifierList) ? new tutao.entity.sys.PushIdentifierList(this, data.pushIdentifierList) : null;
-    this._secondFactorAuthentications = data.secondFactorAuthentications;
-    this._successfulLogins = data.successfulLogins;
-    this._userGroup = (data.userGroup) ? new tutao.entity.sys.GroupMembership(this, data.userGroup) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -57,6 +31,40 @@ tutao.entity.sys.User = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.User.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.User.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._accountType = data.accountType;
+  this._enabled = data.enabled;
+  this._salt = data.salt;
+  this._userEncClientKey = data.userEncClientKey;
+  this._verifier = data.verifier;
+  this._authenticatedDevices = [];
+  for (var i=0; i < data.authenticatedDevices.length; i++) {
+    this._authenticatedDevices.push(new tutao.entity.sys.AuthenticatedDevice(this, data.authenticatedDevices[i]));
+  }
+  this._customer = data.customer;
+  this._externalAuthInfo = (data.externalAuthInfo) ? new tutao.entity.sys.UserExternalAuthInfo(this, data.externalAuthInfo) : null;
+  this._failedLogins = data.failedLogins;
+  this._memberships = [];
+  for (var i=0; i < data.memberships.length; i++) {
+    this._memberships.push(new tutao.entity.sys.GroupMembership(this, data.memberships[i]));
+  }
+  this._phoneNumbers = [];
+  for (var i=0; i < data.phoneNumbers.length; i++) {
+    this._phoneNumbers.push(new tutao.entity.sys.PhoneNumber(this, data.phoneNumbers[i]));
+  }
+  this._pushIdentifierList = (data.pushIdentifierList) ? new tutao.entity.sys.PushIdentifierList(this, data.pushIdentifierList) : null;
+  this._secondFactorAuthentications = data.secondFactorAuthentications;
+  this._successfulLogins = data.successfulLogins;
+  this._userGroup = (data.userGroup) ? new tutao.entity.sys.GroupMembership(this, data.userGroup) : null;
 };
 
 /**

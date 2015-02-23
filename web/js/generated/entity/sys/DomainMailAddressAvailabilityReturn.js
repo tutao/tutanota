@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.DomainMailAddressAvailabilityReturn');
  */
 tutao.entity.sys.DomainMailAddressAvailabilityReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._available = data.available;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._available = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._available = data.available;
 };
 
 /**

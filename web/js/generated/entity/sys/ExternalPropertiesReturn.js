@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.ExternalPropertiesReturn');
  */
 tutao.entity.sys.ExternalPropertiesReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._accountType = data.accountType;
-    this._message = data.message;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._accountType = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.ExternalPropertiesReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ExternalPropertiesReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._accountType = data.accountType;
+  this._message = data.message;
 };
 
 /**

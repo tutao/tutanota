@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.SecondFactorAuthData');
  */
 tutao.entity.sys.SecondFactorAuthData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._language = data.language;
-    this._service = data.service;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._language = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.SecondFactorAuthData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SecondFactorAuthData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SecondFactorAuthData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._language = data.language;
+  this._service = data.service;
 };
 
 /**

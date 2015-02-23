@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.RegistrationCaptchaServiceData');
  */
 tutao.entity.sys.RegistrationCaptchaServiceData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._response = data.response;
-    this._token = data.token;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._response = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.RegistrationCaptchaServiceData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationCaptchaServiceData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.RegistrationCaptchaServiceData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._response = data.response;
+  this._token = data.token;
 };
 
 /**

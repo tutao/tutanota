@@ -9,21 +9,7 @@ tutao.provide('tutao.entity.aggregatedtype.At2');
  */
 tutao.entity.aggregatedtype.At2 = function(parent, data) {
   if (data) {
-    this._BooleanValue = data.BooleanValue;
-    this._BytesValue = data.BytesValue;
-    this._DateValue = data.DateValue;
-    this._LongValue = data.LongValue;
-    this._StringValue = data.StringValue;
-    this.__id = data._id;
-    this._anyAggregated = [];
-    for (var i=0; i < data.anyAggregated.length; i++) {
-      this._anyAggregated.push(new tutao.entity.aggregatedtype.At1(parent, data.anyAggregated[i]));
-    }
-    this._anyList = data.anyList;
-    this._anyResource = data.anyResource;
-    this._oneAggregated = (data.oneAggregated) ? new tutao.entity.aggregatedtype.At1(parent, data.oneAggregated) : null;
-    this._oneList = data.oneList;
-    this._oneResource = data.oneResource;
+    this.updateData(parent, data);
   } else {
     this._BooleanValue = null;
     this._BytesValue = null;
@@ -40,6 +26,29 @@ tutao.entity.aggregatedtype.At2 = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.aggregatedtype.At2.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.aggregatedtype.At2.prototype.updateData = function(parent, data) {
+  this._BooleanValue = data.BooleanValue;
+  this._BytesValue = data.BytesValue;
+  this._DateValue = data.DateValue;
+  this._LongValue = data.LongValue;
+  this._StringValue = data.StringValue;
+  this.__id = data._id;
+  this._anyAggregated = [];
+  for (var i=0; i < data.anyAggregated.length; i++) {
+    this._anyAggregated.push(new tutao.entity.aggregatedtype.At1(parent, data.anyAggregated[i]));
+  }
+  this._anyList = data.anyList;
+  this._anyResource = data.anyResource;
+  this._oneAggregated = (data.oneAggregated) ? new tutao.entity.aggregatedtype.At1(parent, data.oneAggregated) : null;
+  this._oneList = data.oneList;
+  this._oneResource = data.oneResource;
 };
 
 /**

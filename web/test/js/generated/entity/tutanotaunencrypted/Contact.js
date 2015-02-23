@@ -8,15 +8,7 @@ tutao.provide('tutao.entity.tutanotaunencrypted.Contact');
  */
 tutao.entity.tutanotaunencrypted.Contact = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._birthday = data.birthday;
-    this._mail = data.mail;
-    this._name = data.name;
-    this._userid = data.userid;
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -30,6 +22,22 @@ tutao.entity.tutanotaunencrypted.Contact = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.Contact.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanotaunencrypted.Contact.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._birthday = data.birthday;
+  this._mail = data.mail;
+  this._name = data.name;
+  this._userid = data.userid;
 };
 
 /**

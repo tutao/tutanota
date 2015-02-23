@@ -8,17 +8,7 @@ tutao.provide('tutao.entity.valueunencrypted.Et2');
  */
 tutao.entity.valueunencrypted.Et2 = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._aggregationAny = [];
-    for (var i=0; i < data.aggregationAny.length; i++) {
-      this._aggregationAny.push(new tutao.entity.valueunencrypted.Aggregated(this, data.aggregationAny[i]));
-    }
-    this._aggregationOne = (data.aggregationOne) ? new tutao.entity.valueunencrypted.Aggregated(this, data.aggregationOne) : null;
-    this._list = data.list;
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -31,6 +21,24 @@ tutao.entity.valueunencrypted.Et2 = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.valueunencrypted.Et2.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.valueunencrypted.Et2.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._aggregationAny = [];
+  for (var i=0; i < data.aggregationAny.length; i++) {
+    this._aggregationAny.push(new tutao.entity.valueunencrypted.Aggregated(this, data.aggregationAny[i]));
+  }
+  this._aggregationOne = (data.aggregationOne) ? new tutao.entity.valueunencrypted.Aggregated(this, data.aggregationOne) : null;
+  this._list = data.list;
 };
 
 /**

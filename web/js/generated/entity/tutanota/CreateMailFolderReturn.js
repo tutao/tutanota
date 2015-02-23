@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.CreateMailFolderReturn');
  */
 tutao.entity.tutanota.CreateMailFolderReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._newFolder = data.newFolder;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._newFolder = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.CreateMailFolderReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.CreateMailFolderReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._newFolder = data.newFolder;
 };
 
 /**

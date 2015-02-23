@@ -8,13 +8,7 @@ tutao.provide('tutao.entity.sys.UserData');
  */
 tutao.entity.sys.UserData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._mobilePhoneNumber = data.mobilePhoneNumber;
-    this._salt = data.salt;
-    this._userEncClientKey = data.userEncClientKey;
-    this._userEncCustomerGroupKey = data.userEncCustomerGroupKey;
-    this._verifier = data.verifier;
-    this._userGroupData = (data.userGroupData) ? new tutao.entity.sys.CreateGroupData(this, data.userGroupData) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._mobilePhoneNumber = null;
@@ -26,6 +20,20 @@ tutao.entity.sys.UserData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.UserData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.UserData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._mobilePhoneNumber = data.mobilePhoneNumber;
+  this._salt = data.salt;
+  this._userEncClientKey = data.userEncClientKey;
+  this._userEncCustomerGroupKey = data.userEncCustomerGroupKey;
+  this._verifier = data.verifier;
+  this._userGroupData = (data.userGroupData) ? new tutao.entity.sys.CreateGroupData(this, data.userGroupData) : null;
 };
 
 /**

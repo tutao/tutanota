@@ -9,14 +9,23 @@ tutao.provide('tutao.entity.sys.PushIdentifierList');
  */
 tutao.entity.sys.PushIdentifierList = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._list = data.list;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._list = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.PushIdentifierList.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.PushIdentifierList.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._list = data.list;
 };
 
 /**

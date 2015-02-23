@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.PublicKeyData');
  */
 tutao.entity.sys.PublicKeyData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._mailAddress = data.mailAddress;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._mailAddress = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.PublicKeyData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.PublicKeyData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._mailAddress = data.mailAddress;
 };
 
 /**

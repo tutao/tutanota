@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.SaltReturn');
  */
 tutao.entity.sys.SaltReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._salt = data.salt;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._salt = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SaltReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SaltReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._salt = data.salt;
 };
 
 /**

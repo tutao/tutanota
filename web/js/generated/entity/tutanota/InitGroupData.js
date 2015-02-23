@@ -8,21 +8,7 @@ tutao.provide('tutao.entity.tutanota.InitGroupData');
  */
 tutao.entity.tutanota.InitGroupData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._contactShareBucketEncContactListSessionKey = data.contactShareBucketEncContactListSessionKey;
-    this._fileShareBucketEncFileSystemSessionKey = data.fileShareBucketEncFileSystemSessionKey;
-    this._groupEncEntropy = data.groupEncEntropy;
-    this._groupId = data.groupId;
-    this._groupShareBucketEncExternalGroupInfoListKey = data.groupShareBucketEncExternalGroupInfoListKey;
-    this._mailShareBucketEncMailBoxSessionKey = data.mailShareBucketEncMailBoxSessionKey;
-    this._symEncContactListSessionKey = data.symEncContactListSessionKey;
-    this._symEncContactShareBucketKey = data.symEncContactShareBucketKey;
-    this._symEncExternalGroupInfoListKey = data.symEncExternalGroupInfoListKey;
-    this._symEncFileShareBucketKey = data.symEncFileShareBucketKey;
-    this._symEncFileSystemSessionKey = data.symEncFileSystemSessionKey;
-    this._symEncGroupShareBucketKey = data.symEncGroupShareBucketKey;
-    this._symEncMailBoxSessionKey = data.symEncMailBoxSessionKey;
-    this._symEncMailShareBucketKey = data.symEncMailShareBucketKey;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._contactShareBucketEncContactListSessionKey = null;
@@ -42,6 +28,28 @@ tutao.entity.tutanota.InitGroupData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.InitGroupData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.InitGroupData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._contactShareBucketEncContactListSessionKey = data.contactShareBucketEncContactListSessionKey;
+  this._fileShareBucketEncFileSystemSessionKey = data.fileShareBucketEncFileSystemSessionKey;
+  this._groupEncEntropy = data.groupEncEntropy;
+  this._groupId = data.groupId;
+  this._groupShareBucketEncExternalGroupInfoListKey = data.groupShareBucketEncExternalGroupInfoListKey;
+  this._mailShareBucketEncMailBoxSessionKey = data.mailShareBucketEncMailBoxSessionKey;
+  this._symEncContactListSessionKey = data.symEncContactListSessionKey;
+  this._symEncContactShareBucketKey = data.symEncContactShareBucketKey;
+  this._symEncExternalGroupInfoListKey = data.symEncExternalGroupInfoListKey;
+  this._symEncFileShareBucketKey = data.symEncFileShareBucketKey;
+  this._symEncFileSystemSessionKey = data.symEncFileSystemSessionKey;
+  this._symEncGroupShareBucketKey = data.symEncGroupShareBucketKey;
+  this._symEncMailBoxSessionKey = data.symEncMailBoxSessionKey;
+  this._symEncMailShareBucketKey = data.symEncMailShareBucketKey;
 };
 
 /**

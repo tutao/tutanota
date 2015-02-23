@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.tutanota.CreateExternalUserGroupData');
  */
 tutao.entity.tutanota.CreateExternalUserGroupData = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._adminEncGKey = data.adminEncGKey;
-    this._encryptedName = data.encryptedName;
-    this._groupInfoListEncSessionKey = data.groupInfoListEncSessionKey;
-    this._mailAddress = data.mailAddress;
-    this._symEncGKey = data.symEncGKey;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._adminEncGKey = null;
@@ -25,6 +20,20 @@ tutao.entity.tutanota.CreateExternalUserGroupData = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.CreateExternalUserGroupData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.CreateExternalUserGroupData.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._adminEncGKey = data.adminEncGKey;
+  this._encryptedName = data.encryptedName;
+  this._groupInfoListEncSessionKey = data.groupInfoListEncSessionKey;
+  this._mailAddress = data.mailAddress;
+  this._symEncGKey = data.symEncGKey;
 };
 
 /**

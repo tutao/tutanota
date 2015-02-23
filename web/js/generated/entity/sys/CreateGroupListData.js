@@ -9,10 +9,7 @@ tutao.provide('tutao.entity.sys.CreateGroupListData');
  */
 tutao.entity.sys.CreateGroupListData = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._adminEncGroupInfoListKey = data.adminEncGroupInfoListKey;
-    this._customerEncGroupInfoListKey = data.customerEncGroupInfoListKey;
-    this._createGroupData = (data.createGroupData) ? new tutao.entity.sys.CreateGroupData(parent, data.createGroupData) : null;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._adminEncGroupInfoListKey = null;
@@ -21,6 +18,18 @@ tutao.entity.sys.CreateGroupListData = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.CreateGroupListData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CreateGroupListData.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._adminEncGroupInfoListKey = data.adminEncGroupInfoListKey;
+  this._customerEncGroupInfoListKey = data.customerEncGroupInfoListKey;
+  this._createGroupData = (data.createGroupData) ? new tutao.entity.sys.CreateGroupData(parent, data.createGroupData) : null;
 };
 
 /**

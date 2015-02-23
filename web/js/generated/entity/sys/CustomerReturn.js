@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.CustomerReturn');
  */
 tutao.entity.sys.CustomerReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._adminUser = data.adminUser;
-    this._adminUserGroup = data.adminUserGroup;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._adminUser = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.CustomerReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CustomerReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._adminUser = data.adminUser;
+  this._adminUserGroup = data.adminUserGroup;
 };
 
 /**

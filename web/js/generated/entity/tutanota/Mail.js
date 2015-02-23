@@ -8,36 +8,7 @@ tutao.provide('tutao.entity.tutanota.Mail');
  */
 tutao.entity.tutanota.Mail = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__listEncSessionKey = data._listEncSessionKey;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._confidential = data.confidential;
-    this._receivedDate = data.receivedDate;
-    this._replyType = data.replyType;
-    this._sentDate = data.sentDate;
-    this._state = data.state;
-    this._subject = data.subject;
-    this._trashed = data.trashed;
-    this._unread = data.unread;
-    this._attachments = data.attachments;
-    this._bccRecipients = [];
-    for (var i=0; i < data.bccRecipients.length; i++) {
-      this._bccRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.bccRecipients[i]));
-    }
-    this._body = data.body;
-    this._ccRecipients = [];
-    for (var i=0; i < data.ccRecipients.length; i++) {
-      this._ccRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.ccRecipients[i]));
-    }
-    this._conversationEntry = data.conversationEntry;
-    this._sender = (data.sender) ? new tutao.entity.tutanota.MailAddress(this, data.sender) : null;
-    this._toRecipients = [];
-    for (var i=0; i < data.toRecipients.length; i++) {
-      this._toRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.toRecipients[i]));
-    }
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -63,6 +34,43 @@ tutao.entity.tutanota.Mail = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.Mail.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.Mail.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__listEncSessionKey = data._listEncSessionKey;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._confidential = data.confidential;
+  this._receivedDate = data.receivedDate;
+  this._replyType = data.replyType;
+  this._sentDate = data.sentDate;
+  this._state = data.state;
+  this._subject = data.subject;
+  this._trashed = data.trashed;
+  this._unread = data.unread;
+  this._attachments = data.attachments;
+  this._bccRecipients = [];
+  for (var i=0; i < data.bccRecipients.length; i++) {
+    this._bccRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.bccRecipients[i]));
+  }
+  this._body = data.body;
+  this._ccRecipients = [];
+  for (var i=0; i < data.ccRecipients.length; i++) {
+    this._ccRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.ccRecipients[i]));
+  }
+  this._conversationEntry = data.conversationEntry;
+  this._sender = (data.sender) ? new tutao.entity.tutanota.MailAddress(this, data.sender) : null;
+  this._toRecipients = [];
+  for (var i=0; i < data.toRecipients.length; i++) {
+    this._toRecipients.push(new tutao.entity.tutanota.MailAddress(this, data.toRecipients[i]));
+  }
 };
 
 /**

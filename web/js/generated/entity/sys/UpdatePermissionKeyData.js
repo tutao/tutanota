@@ -8,12 +8,7 @@ tutao.provide('tutao.entity.sys.UpdatePermissionKeyData');
  */
 tutao.entity.sys.UpdatePermissionKeyData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._bucketEncSessionKey = data.bucketEncSessionKey;
-    this._symEncBucketKey = data.symEncBucketKey;
-    this._symEncSessionKey = data.symEncSessionKey;
-    this._bucketPermission = data.bucketPermission;
-    this._permission = data.permission;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._bucketEncSessionKey = null;
@@ -24,6 +19,19 @@ tutao.entity.sys.UpdatePermissionKeyData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.UpdatePermissionKeyData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.UpdatePermissionKeyData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._bucketEncSessionKey = data.bucketEncSessionKey;
+  this._symEncBucketKey = data.symEncBucketKey;
+  this._symEncSessionKey = data.symEncSessionKey;
+  this._bucketPermission = data.bucketPermission;
+  this._permission = data.permission;
 };
 
 /**

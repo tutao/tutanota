@@ -9,9 +9,7 @@ tutao.provide('tutao.entity.sys.Exception');
  */
 tutao.entity.sys.Exception = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._msg = data.msg;
-    this._type = data.type;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._msg = null;
@@ -19,6 +17,17 @@ tutao.entity.sys.Exception = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Exception.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.Exception.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._msg = data.msg;
+  this._type = data.type;
 };
 
 /**

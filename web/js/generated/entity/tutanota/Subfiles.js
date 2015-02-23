@@ -9,14 +9,23 @@ tutao.provide('tutao.entity.tutanota.Subfiles');
  */
 tutao.entity.tutanota.Subfiles = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._files = data.files;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._files = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.Subfiles.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.Subfiles.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._files = data.files;
 };
 
 /**

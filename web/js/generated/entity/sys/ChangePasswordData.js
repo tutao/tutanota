@@ -8,11 +8,7 @@ tutao.provide('tutao.entity.sys.ChangePasswordData');
  */
 tutao.entity.sys.ChangePasswordData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._code = data.code;
-    this._pwEncUserGroupKey = data.pwEncUserGroupKey;
-    this._salt = data.salt;
-    this._verifier = data.verifier;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._code = null;
@@ -22,6 +18,18 @@ tutao.entity.sys.ChangePasswordData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ChangePasswordData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ChangePasswordData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._code = data.code;
+  this._pwEncUserGroupKey = data.pwEncUserGroupKey;
+  this._salt = data.salt;
+  this._verifier = data.verifier;
 };
 
 /**

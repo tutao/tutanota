@@ -8,35 +8,7 @@ tutao.provide('tutao.entity.tutanota.SendMailData');
  */
 tutao.entity.tutanota.SendMailData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._bodyText = data.bodyText;
-    this._bucketEncSessionKey = data.bucketEncSessionKey;
-    this._confidential = data.confidential;
-    this._conversationType = data.conversationType;
-    this._language = data.language;
-    this._listEncSessionKey = data.listEncSessionKey;
-    this._previousMessageId = data.previousMessageId;
-    this._senderName = data.senderName;
-    this._senderNameUnencrypted = data.senderNameUnencrypted;
-    this._sharableEncSessionKey = data.sharableEncSessionKey;
-    this._subject = data.subject;
-    this._symEncSessionKey = data.symEncSessionKey;
-    this._attachments = [];
-    for (var i=0; i < data.attachments.length; i++) {
-      this._attachments.push(new tutao.entity.tutanota.Attachment(this, data.attachments[i]));
-    }
-    this._bccRecipients = [];
-    for (var i=0; i < data.bccRecipients.length; i++) {
-      this._bccRecipients.push(new tutao.entity.tutanota.Recipient(this, data.bccRecipients[i]));
-    }
-    this._ccRecipients = [];
-    for (var i=0; i < data.ccRecipients.length; i++) {
-      this._ccRecipients.push(new tutao.entity.tutanota.Recipient(this, data.ccRecipients[i]));
-    }
-    this._toRecipients = [];
-    for (var i=0; i < data.toRecipients.length; i++) {
-      this._toRecipients.push(new tutao.entity.tutanota.Recipient(this, data.toRecipients[i]));
-    }
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._bodyText = null;
@@ -58,6 +30,42 @@ tutao.entity.tutanota.SendMailData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.SendMailData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._bodyText = data.bodyText;
+  this._bucketEncSessionKey = data.bucketEncSessionKey;
+  this._confidential = data.confidential;
+  this._conversationType = data.conversationType;
+  this._language = data.language;
+  this._listEncSessionKey = data.listEncSessionKey;
+  this._previousMessageId = data.previousMessageId;
+  this._senderName = data.senderName;
+  this._senderNameUnencrypted = data.senderNameUnencrypted;
+  this._sharableEncSessionKey = data.sharableEncSessionKey;
+  this._subject = data.subject;
+  this._symEncSessionKey = data.symEncSessionKey;
+  this._attachments = [];
+  for (var i=0; i < data.attachments.length; i++) {
+    this._attachments.push(new tutao.entity.tutanota.Attachment(this, data.attachments[i]));
+  }
+  this._bccRecipients = [];
+  for (var i=0; i < data.bccRecipients.length; i++) {
+    this._bccRecipients.push(new tutao.entity.tutanota.Recipient(this, data.bccRecipients[i]));
+  }
+  this._ccRecipients = [];
+  for (var i=0; i < data.ccRecipients.length; i++) {
+    this._ccRecipients.push(new tutao.entity.tutanota.Recipient(this, data.ccRecipients[i]));
+  }
+  this._toRecipients = [];
+  for (var i=0; i < data.toRecipients.length; i++) {
+    this._toRecipients.push(new tutao.entity.tutanota.Recipient(this, data.toRecipients[i]));
+  }
 };
 
 /**

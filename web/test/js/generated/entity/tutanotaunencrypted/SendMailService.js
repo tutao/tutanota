@@ -8,14 +8,7 @@ tutao.provide('tutao.entity.tutanotaunencrypted.SendMailService');
  */
 tutao.entity.tutanotaunencrypted.SendMailService = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._body = data.body;
-    this._title = data.title;
-    this._recipients = [];
-    for (var i=0; i < data.recipients.length; i++) {
-      this._recipients.push(new tutao.entity.tutanotaunencrypted.MailAddress(this, data.recipients[i]));
-    }
-    this._sender = (data.sender) ? new tutao.entity.tutanotaunencrypted.MailAddress(this, data.sender) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._body = null;
@@ -25,6 +18,21 @@ tutao.entity.tutanotaunencrypted.SendMailService = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.SendMailService.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanotaunencrypted.SendMailService.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._body = data.body;
+  this._title = data.title;
+  this._recipients = [];
+  for (var i=0; i < data.recipients.length; i++) {
+    this._recipients.push(new tutao.entity.tutanotaunencrypted.MailAddress(this, data.recipients[i]));
+  }
+  this._sender = (data.sender) ? new tutao.entity.tutanotaunencrypted.MailAddress(this, data.sender) : null;
 };
 
 /**

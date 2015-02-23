@@ -9,10 +9,7 @@ tutao.provide('tutao.entity.sys.Chat');
  */
 tutao.entity.sys.Chat = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._recipient = data.recipient;
-    this._sender = data.sender;
-    this._text = data.text;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._recipient = null;
@@ -21,6 +18,18 @@ tutao.entity.sys.Chat = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Chat.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.Chat.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._recipient = data.recipient;
+  this._sender = data.sender;
+  this._text = data.text;
 };
 
 /**

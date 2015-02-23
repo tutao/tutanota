@@ -8,19 +8,7 @@ tutao.provide('tutao.entity.sys.ConfigDataReturn');
  */
 tutao.entity.sys.ConfigDataReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._longValues = [];
-    for (var i=0; i < data.longValues.length; i++) {
-      this._longValues.push(new tutao.entity.sys.LongConfigValue(this, data.longValues[i]));
-    }
-    this._stringValues = [];
-    for (var i=0; i < data.stringValues.length; i++) {
-      this._stringValues.push(new tutao.entity.sys.StringConfigValue(this, data.stringValues[i]));
-    }
-    this._timeRangeLists = [];
-    for (var i=0; i < data.timeRangeLists.length; i++) {
-      this._timeRangeLists.push(new tutao.entity.sys.TimeRangeListConfigValue(this, data.timeRangeLists[i]));
-    }
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._longValues = [];
@@ -29,6 +17,26 @@ tutao.entity.sys.ConfigDataReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ConfigDataReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ConfigDataReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._longValues = [];
+  for (var i=0; i < data.longValues.length; i++) {
+    this._longValues.push(new tutao.entity.sys.LongConfigValue(this, data.longValues[i]));
+  }
+  this._stringValues = [];
+  for (var i=0; i < data.stringValues.length; i++) {
+    this._stringValues.push(new tutao.entity.sys.StringConfigValue(this, data.stringValues[i]));
+  }
+  this._timeRangeLists = [];
+  for (var i=0; i < data.timeRangeLists.length; i++) {
+    this._timeRangeLists.push(new tutao.entity.sys.TimeRangeListConfigValue(this, data.timeRangeLists[i]));
+  }
 };
 
 /**

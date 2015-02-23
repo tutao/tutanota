@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.RegistrationConfigReturn');
  */
 tutao.entity.sys.RegistrationConfigReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._freeEnabled = data.freeEnabled;
-    this._starterEnabled = data.starterEnabled;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._freeEnabled = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.RegistrationConfigReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationConfigReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.RegistrationConfigReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._freeEnabled = data.freeEnabled;
+  this._starterEnabled = data.starterEnabled;
 };
 
 /**

@@ -9,9 +9,7 @@ tutao.provide('tutao.entity.tutanota.DataBlock');
  */
 tutao.entity.tutanota.DataBlock = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._blockData = data.blockData;
-    this._size = data.size;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._blockData = null;
@@ -19,6 +17,17 @@ tutao.entity.tutanota.DataBlock = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.DataBlock.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.DataBlock.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._blockData = data.blockData;
+  this._size = data.size;
 };
 
 /**

@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.sys.TimeRangeListConfigValue');
  */
 tutao.entity.sys.TimeRangeListConfigValue = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._name = data.name;
-    this._timeRanges = [];
-    for (var i=0; i < data.timeRanges.length; i++) {
-      this._timeRanges.push(new tutao.entity.sys.TimeRangeConfigValue(parent, data.timeRanges[i]));
-    }
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._name = null;
@@ -22,6 +17,20 @@ tutao.entity.sys.TimeRangeListConfigValue = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.TimeRangeListConfigValue.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.TimeRangeListConfigValue.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._name = data.name;
+  this._timeRanges = [];
+  for (var i=0; i < data.timeRanges.length; i++) {
+    this._timeRanges.push(new tutao.entity.sys.TimeRangeConfigValue(parent, data.timeRanges[i]));
+  }
 };
 
 /**

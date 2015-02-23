@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.SecondFactorAuthAllowedReturn');
  */
 tutao.entity.sys.SecondFactorAuthAllowedReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._allowed = data.allowed;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._allowed = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._allowed = data.allowed;
 };
 
 /**
