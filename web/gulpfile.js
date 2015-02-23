@@ -335,20 +335,29 @@ gulp.task('default', ['clean', 'distCordovaLocal'], function () {
     gulp.watch("less/*", ['less']);
 });
 
-gulp.task('translation', function (cb) {
-    return async.eachSeries(['de', 'en'], function(id, callback) {
-        request('https://phraseapp.com/api/v1/translations/download?auth_token=64b1dce0ec448d21ec25816186cded22&locale='+ id +'&format=simple_json', function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var translation = "tutao.provide('tutao.tutanota.ctrl.LanguageViewModel." + id + "');\n"
-                translation += "tutao.tutanota.ctrl.LanguageViewModel." + id + " = ";
-                translation += body;
-                fs.writeFileSync("js/ctrl/lang/" + id + ".js", translation);
-                callback();
-            } else {
-                callback(JSON.stringify({e: error, status: response.statusCode, body: body}));
-            }
-        });
 
-    },cb);
-
+gulp.task('translation', function (cb) {    
+	// get all languages from phraseapp
+    request('https://phraseapp.com/api/v1/locales?auth_token=64b1dce0ec448d21ec25816186cded22', function (error, response, body) {	
+        if (!error && response.statusCode == 200) {
+			var languages = JSON.parse(body); 
+			// download each language
+			return async.eachSeries(languages, function(lang, callback) {				
+				// lang is an object eg. {"id": 122, "name": "german",  "code": "de-DE",  "country_code": "de",  "writing_direction": "ltr"}
+				request('https://phraseapp.com/api/v1/translations/download?auth_token=64b1dce0ec448d21ec25816186cded22&locale='+ lang.name +'&format=simple_json', function(error, response, body) {
+					if (!error && response.statusCode == 200) {
+						var code = lang.code.replace("-","_").toLowerCase();						
+					    var translation = "tutao.provide('tutao.tutanota.ctrl.LanguageViewModel." + code + "');\n"
+					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + " = ";
+					    translation += body + ";";					    
+					    fs.writeFileSync("js/ctrl/lang/" + code + ".js", translation);
+						console.log(code);
+					    callback();
+					} else {
+					    callback(JSON.stringify({e: error, status: response.statusCode, body: body}));
+					}
+				});
+			},cb);			
+        } 
+    });
 });

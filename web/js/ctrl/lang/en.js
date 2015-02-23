@@ -461,6 +461,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
   "terms_label": "Confirmation",
   "testPhaseExpired_msg": "The free testing phase has expired and the sending of confidential emails has been deactivated. Please contact your administrator.",
   "thanks_msg": "Thank you for your cooperation.\nYour team from Tutanota",
+  "thisLanguage_label": "English",
   "title_placeholder": "Title",
   "to_label": "To",
   "tooBigAttachment_msg": "The following files could not be attached because the overall size exceeds 25 MB: ",
@@ -507,4 +508,4 @@ tutao.tutanota.ctrl.LanguageViewModel.en = {
   "work_label": "Work",
   "xing_label": "Xing",
   "yesterday_label": "yesterday"
-}
+};

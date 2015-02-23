@@ -461,6 +461,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
   "terms_label": "Bestätigung",
   "testPhaseExpired_msg": "Die kostenfreie Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden. Bitte wenden Sie sich an Ihren Administrator.",
   "thanks_msg": "Vielen Dank für Ihr Verständnis.\nIhr Team von Tutanota",
+  "thisLanguage_label": "Deutsch",
   "title_placeholder": "Titel",
   "to_label": "An",
   "tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
@@ -507,4 +508,4 @@ tutao.tutanota.ctrl.LanguageViewModel.de = {
   "work_label": "Arbeit",
   "xing_label": "Xing",
   "yesterday_label": "gestern"
-}
+};

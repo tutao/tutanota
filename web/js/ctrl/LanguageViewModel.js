@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getCurrentLanguage = function() 
  * @param {string} lang The language to set, one of "en" and "de".
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.setCurrentLanguage = function(lang) {
-	if (lang != "en" && lang != "de") {
+	if (!tutao.tutanota.ctrl.LanguageViewModel[lang]) {
 		throw new Error("invalid language: " + lang);
 	}
 	// tutao.tutanota.util.LocalStore.store('language', lang);
@@ -59,7 +59,11 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
     }
 	var text = tutao.tutanota.ctrl.LanguageViewModel[this._current()][id];
 	if (!text) {
-		throw new Error("no translation found for id " + id);
+		// try fallback language
+		text = tutao.tutanota.ctrl.LanguageViewModel[tutao.tutanota.util.ClientDetector.LANGUAGE_EN][id];
+		if (!text){
+			throw new Error("no translation found for id " + id);
+		}
 	}
 	if (params instanceof Object) {
 		for (var param in params) {

@@ -59,10 +59,48 @@ tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED = "not supported
 /** browser is generally supported, but must be updated to fit supported version */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED = "update needed";
 
-/** german language */
-tutao.tutanota.util.ClientDetector.LANGUAGE_DE = "de";
-/** english language */
+
+/** English */
 tutao.tutanota.util.ClientDetector.LANGUAGE_EN = "en";
+/** German */
+tutao.tutanota.util.ClientDetector.LANGUAGE_DE = "de";
+/** Arabic */
+tutao.tutanota.util.ClientDetector.LANGUAGE_AR = "ar";
+/** Greek */
+tutao.tutanota.util.ClientDetector.LANGUAGE_EL = "el";
+/** Spanish */
+tutao.tutanota.util.ClientDetector.LANGUAGE_ES = "es";
+/** French */
+tutao.tutanota.util.ClientDetector.LANGUAGE_FR = "fr";
+/** Croatian */
+tutao.tutanota.util.ClientDetector.LANGUAGE_HR = "hr";
+/** Italian */
+tutao.tutanota.util.ClientDetector.LANGUAGE_IT = "it";
+/** Dutch */
+tutao.tutanota.util.ClientDetector.LANGUAGE_NL = "nl";
+/** Polish */
+tutao.tutanota.util.ClientDetector.LANGUAGE_PL = "pl";
+/** Portuguese, Brazil */
+tutao.tutanota.util.ClientDetector.LANGUAGE_PT_BR = "pt_br";
+/** Portuguese, Portugal */
+tutao.tutanota.util.ClientDetector.LANGUAGE_PT_PT = "pt_pt";
+/** Romanian */
+tutao.tutanota.util.ClientDetector.LANGUAGE_RO = "ro";
+/** Russian */
+tutao.tutanota.util.ClientDetector.LANGUAGE_RU = "ru";
+/** Chinese, China, Simplified */
+tutao.tutanota.util.ClientDetector.LANGUAGE_ZH = "zh";
+/** Albanian */
+tutao.tutanota.util.ClientDetector.LANGUAGE_SQ = "sq";
+/** Turkish, Turkey */
+tutao.tutanota.util.ClientDetector.LANGUAGE_TR = "tr";
+/** Chinese, Traditional Han */
+tutao.tutanota.util.ClientDetector.LANGUAGE_ZH_HANT = "zh_hant";
+
+
+
+
+
 
 /**
  * Information about the client.
