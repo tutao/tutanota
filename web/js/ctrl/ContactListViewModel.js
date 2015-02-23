@@ -162,6 +162,8 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._loadContacts = function(cont
     var self = this;
 	return tutao.entity.tutanota.Contact.load([tutao.locator.mailBoxController.getUserContactList().getContacts(), contactIds[nextContact]]).then(function(contact) {
         loadedContacts.push(new tutao.entity.tutanota.ContactWrapper(contact));
+    }).caught(tutao.NotFoundError, function(e) {
+        // avoid exception for missing sync
     }).lastly(function() {
         if (nextContact == contactIds.length - 1) {
             return Promise.resolve();

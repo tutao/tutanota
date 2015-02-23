@@ -280,7 +280,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
             return Promise.resolve();
         }
         tutao.locator.mailListViewModel.updateMailEntry(this._previousMail);
-        return this._previousMail.update();
+        return this._previousMail.update().caught(tutao.NotFoundError, function(e) {
+            // avoid exception for missing sync
+        });
     } else {
         return Promise.resolve();
     }

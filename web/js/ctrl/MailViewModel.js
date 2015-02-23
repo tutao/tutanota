@@ -76,13 +76,15 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
     }
 
     currentMail.load().then(function(){
-        if (self._latestMailToShow == currentMail ){
+        if (self._latestMailToShow == currentMail ) {
             self.showSpinner(false);
             self.mail(currentMail);
             currentMail.mail.loadConversationEntry();
         }
+    }).caught(tutao.NotFoundError, tutao.NotAuthorizedError, function() {
+        // the email seems to be deleted: NotFoundError if the mail body was deleted, NotAuthorizedError if the mail body permission only exists for the sender/recipient
     }).lastly( function(){
-        if (self._latestMailToShow == currentMail ){
+        if (self._latestMailToShow == currentMail ) {
             self.showSpinner(false);
         }
     });

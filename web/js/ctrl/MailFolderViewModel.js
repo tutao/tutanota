@@ -117,9 +117,13 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getNumberOfUnreadMails = funct
  * Selects the given mails.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
+    var self = this;
     if (mail.getUnread()) {
         mail.setUnread(false);
-        mail.update();
+        mail.update().caught(tutao.NotFoundError, function(e) {
+            // avoid exception for missing sync
+            self.removeMails([mail]);
+        });
         this._updateNumberOfUnreadMails();
     }
     this._selectedMails([mail]);
@@ -496,6 +500,9 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFold
     }
 
     return data.setup({}, null).then(function() {
+        sourceFolder.removeMails(mails);
+    }).caught(tutao.NotFoundError, function(e) {
+        // avoid exception for missing sync
         sourceFolder.removeMails(mails);
     });
 };
