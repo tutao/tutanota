@@ -8,22 +8,7 @@ tutao.provide('tutao.entity.sys.RegistrationData');
  */
 tutao.entity.sys.RegistrationData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._accountType = data.accountType;
-    this._captchaResult = data.captchaResult;
-    this._code = data.code;
-    this._company = data.company;
-    this._creationDate = data.creationDate;
-    this._domain = data.domain;
-    this._domainVerificationMailSentOn = data.domainVerificationMailSentOn;
-    this._groupName = data.groupName;
-    this._language = data.language;
-    this._mailAddress = data.mailAddress;
-    this._mobilePhoneNumber = data.mobilePhoneNumber;
-    this._state = data.state;
-    this._verifyCount = data.verifyCount;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -44,6 +29,29 @@ tutao.entity.sys.RegistrationData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.RegistrationData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.RegistrationData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._accountType = data.accountType;
+  this._captchaResult = data.captchaResult;
+  this._code = data.code;
+  this._company = data.company;
+  this._creationDate = data.creationDate;
+  this._domain = data.domain;
+  this._domainVerificationMailSentOn = data.domainVerificationMailSentOn;
+  this._groupName = data.groupName;
+  this._language = data.language;
+  this._mailAddress = data.mailAddress;
+  this._mobilePhoneNumber = data.mobilePhoneNumber;
+  this._state = data.state;
+  this._verifyCount = data.verifyCount;
 };
 
 /**

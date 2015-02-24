@@ -8,20 +8,7 @@ tutao.provide('tutao.entity.sys.CustomerInfo');
  */
 tutao.entity.sys.CustomerInfo = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._activationTime = data.activationTime;
-    this._company = data.company;
-    this._creationTime = data.creationTime;
-    this._deletionReason = data.deletionReason;
-    this._deletionTime = data.deletionTime;
-    this._domain = data.domain;
-    this._registrationMailAddress = data.registrationMailAddress;
-    this._storageCapacity = data.storageCapacity;
-    this._testEndTime = data.testEndTime;
-    this._accountingInfo = data.accountingInfo;
-    this._customer = data.customer;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -40,6 +27,27 @@ tutao.entity.sys.CustomerInfo = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerInfo.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._activationTime = data.activationTime;
+  this._company = data.company;
+  this._creationTime = data.creationTime;
+  this._deletionReason = data.deletionReason;
+  this._deletionTime = data.deletionTime;
+  this._domain = data.domain;
+  this._registrationMailAddress = data.registrationMailAddress;
+  this._storageCapacity = data.storageCapacity;
+  this._testEndTime = data.testEndTime;
+  this._accountingInfo = data.accountingInfo;
+  this._customer = data.customer;
 };
 
 /**

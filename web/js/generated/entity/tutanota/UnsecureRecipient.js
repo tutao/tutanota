@@ -9,9 +9,7 @@ tutao.provide('tutao.entity.tutanota.UnsecureRecipient');
  */
 tutao.entity.tutanota.UnsecureRecipient = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._mailAddress = data.mailAddress;
-    this._name = data.name;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._mailAddress = null;
@@ -19,6 +17,17 @@ tutao.entity.tutanota.UnsecureRecipient = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.UnsecureRecipient.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.UnsecureRecipient.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._mailAddress = data.mailAddress;
+  this._name = data.name;
 };
 
 /**

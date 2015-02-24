@@ -9,14 +9,23 @@ tutao.provide('tutao.entity.tutanota.MailFolderRef');
  */
 tutao.entity.tutanota.MailFolderRef = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._folders = data.folders;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._folders = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.MailFolderRef.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._folders = data.folders;
 };
 
 /**

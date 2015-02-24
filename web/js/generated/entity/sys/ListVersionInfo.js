@@ -8,14 +8,7 @@ tutao.provide('tutao.entity.sys.ListVersionInfo');
  */
 tutao.entity.sys.ListVersionInfo = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._operation = data.operation;
-    this._timestamp = data.timestamp;
-    this._author = data.author;
-    this._authorGroupInfo = data.authorGroupInfo;
-    this._version = data.version;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -28,6 +21,21 @@ tutao.entity.sys.ListVersionInfo = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ListVersionInfo.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ListVersionInfo.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._operation = data.operation;
+  this._timestamp = data.timestamp;
+  this._author = data.author;
+  this._authorGroupInfo = data.authorGroupInfo;
+  this._version = data.version;
 };
 
 /**

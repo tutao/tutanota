@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.sys.Version');
  */
 tutao.entity.sys.Version = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._operation = data.operation;
-    this._timestamp = data.timestamp;
-    this._version = data.version;
-    this._author = data.author;
-    this._authorGroupInfo = data.authorGroupInfo;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._operation = null;
@@ -25,6 +20,20 @@ tutao.entity.sys.Version = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.Version.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.Version.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._operation = data.operation;
+  this._timestamp = data.timestamp;
+  this._version = data.version;
+  this._author = data.author;
+  this._authorGroupInfo = data.authorGroupInfo;
 };
 
 /**

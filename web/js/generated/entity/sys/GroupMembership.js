@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.sys.GroupMembership');
  */
 tutao.entity.sys.GroupMembership = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._admin = data.admin;
-    this._symEncGKey = data.symEncGKey;
-    this._group = data.group;
-    this._groupInfo = data.groupInfo;
-    this._groupMember = data.groupMember;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._admin = null;
@@ -25,6 +20,20 @@ tutao.entity.sys.GroupMembership = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.GroupMembership.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.GroupMembership.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._admin = data.admin;
+  this._symEncGKey = data.symEncGKey;
+  this._group = data.group;
+  this._groupInfo = data.groupInfo;
+  this._groupMember = data.groupMember;
 };
 
 /**

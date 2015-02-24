@@ -1299,7 +1299,7 @@
                                     </div>
                                 </div>
                                 <div class="record" data-bind="if: isCaptchaVisible()">
-                                    <label for="captchaInput" class="recordName" data-bind="lang: 'captchaInput_label'"></label>
+                                    <label for="captchaInput" class="recordName" data-bind="text: tutao.lang('captchaInput_label') + ' (hh:mm)'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
                                             <input id="captchaInput" class="captchaInput" type="text" size="10" maxlength="5" data-bind="value: captchaTime, enable: isCaptchaEditable(), valueUpdate: 'input'"/>

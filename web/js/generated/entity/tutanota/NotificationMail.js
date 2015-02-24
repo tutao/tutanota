@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.tutanota.NotificationMail');
  */
 tutao.entity.tutanota.NotificationMail = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._bodyText = data.bodyText;
-    this._mailboxLink = data.mailboxLink;
-    this._recipientMailAddress = data.recipientMailAddress;
-    this._recipientName = data.recipientName;
-    this._subject = data.subject;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bodyText = null;
@@ -25,6 +20,20 @@ tutao.entity.tutanota.NotificationMail = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.NotificationMail.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.NotificationMail.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._bodyText = data.bodyText;
+  this._mailboxLink = data.mailboxLink;
+  this._recipientMailAddress = data.recipientMailAddress;
+  this._recipientName = data.recipientName;
+  this._subject = data.subject;
 };
 
 /**

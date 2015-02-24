@@ -9,10 +9,7 @@ tutao.provide('tutao.entity.sys.KeyPair');
  */
 tutao.entity.sys.KeyPair = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._pubKey = data.pubKey;
-    this._symEncPrivKey = data.symEncPrivKey;
-    this._version = data.version;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._pubKey = null;
@@ -21,6 +18,18 @@ tutao.entity.sys.KeyPair = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.KeyPair.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.KeyPair.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._pubKey = data.pubKey;
+  this._symEncPrivKey = data.symEncPrivKey;
+  this._version = data.version;
 };
 
 /**

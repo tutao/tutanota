@@ -83,18 +83,27 @@ tutao.rest.EntityRestCache.prototype.getElement = function(type, path, id, listI
 	var versionRequest = (parameters && parameters.version) ? true : false;
 	if (versionRequest || !this._db[path] || !this._db[path][cacheListId] || !this._db[path][cacheListId]['entities'][id] || tutao.util.ArrayUtils.contains(this._ignoredPaths, path)) {
 		// the element is not in the cache, so get it from target
-		return this._target.getElement(type, path, id, listId, parameters, headers).then(function(element) {
-			// cache the received element
-			if (!versionRequest) {
-				self._addToCache(path, element);
-                self._tryAddToRange(path, element);
-			}
-			return element;
-		});
+		return this._getElementFromTarget(type, path, id, listId, parameters, headers);
 	} else {
 		return Promise.resolve(self._getElementFromCache(path, id, cacheListId));
 	}
 };
+
+
+tutao.rest.EntityRestCache.prototype._getElementFromTarget = function(type, path, id, listId, parameters, headers) {
+    var self = this;
+    var versionRequest = (parameters && parameters.version) ? true : false;
+    return this._target.getElement(type, path, id, listId, parameters, headers).then(function(element) {
+        // cache the received element
+        if (!versionRequest) {
+            self._addToCache(path, element);
+            self._tryAddToRange(path, element);
+        }
+        return element;
+    });
+};
+
+
 
 tutao.rest.EntityRestCache.prototype._getElementFromCache = function(path, id, listId) {
     if (this._db[path] && this._db[path][listId] && this._db[path][listId]['entities'][id] ) {
@@ -220,8 +229,10 @@ tutao.rest.EntityRestCache.prototype.postService = function(path, element, param
 tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
 	var cacheListId = tutao.rest.EntityRestCache.getListId(element);
 	var id = tutao.rest.EntityRestInterface.getElementId(element);
-	// do not overwrite existing elements to avoid multiple instances of the same element
-    if (!this._getListData(path, cacheListId)['entities'][id]) {
+	// do not overwrite existing elements to avoid multiple instances of the same element, update the content instead
+    if (this._getListData(path, cacheListId)['entities'][id]) {
+        this._getListData(path, cacheListId)['entities'][id].updateData(element.toJsonData());
+    } else {
         this._getListData(path, cacheListId)['entities'][id] = element;
     }
 };
@@ -232,7 +243,7 @@ tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
  */
 tutao.rest.EntityRestCache.prototype.putElement = function(path, element, parameters, headers) {
 	var self = this;
-	return this._target.putElement(path, element, parameters, headers, function(exception) {
+	return this._target.putElement(path, element, parameters, headers).then(function() {
         var cacheListId = tutao.rest.EntityRestCache.getListId(element);
         var id = tutao.rest.EntityRestInterface.getElementId(element);
 		if (!self._db[path] || !self._db[path][cacheListId] || !self._db[path][cacheListId]['entities'][id]) {
@@ -511,9 +522,8 @@ tutao.rest.EntityRestCache.prototype.notifyNewDataReceived = function(data) {
     }else if (data.getOperation() === tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_UPDATE) {
         var element = this._getElementFromCache(path,data.getInstanceId(), data.getInstanceListId());
         if (element){
-            this._deleteFromCache(path, data.getInstanceId(), data.getInstanceListId());
             var elementTypeModelVersion = tutao.entity[data.getApplication().toLowerCase()][data.getType()].MODEL_VERSION;
-            this.getElement(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {"v": elementTypeModelVersion}, tutao.entity.EntityHelper.createAuthHeaders());
+            this._getElementFromTarget(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {"v": elementTypeModelVersion}, tutao.entity.EntityHelper.createAuthHeaders());
         }
     }
 };

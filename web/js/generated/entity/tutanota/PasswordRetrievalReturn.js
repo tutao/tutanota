@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.PasswordRetrievalReturn');
  */
 tutao.entity.tutanota.PasswordRetrievalReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._transmissionKeyEncryptedPassword = data.transmissionKeyEncryptedPassword;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._transmissionKeyEncryptedPassword = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordRetrievalReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.PasswordRetrievalReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._transmissionKeyEncryptedPassword = data.transmissionKeyEncryptedPassword;
 };
 
 /**

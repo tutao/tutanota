@@ -9,10 +9,7 @@ tutao.provide('tutao.entity.tutanota.ContactAddress');
  */
 tutao.entity.tutanota.ContactAddress = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._address = data.address;
-    this._customTypeName = data.customTypeName;
-    this._type = data.type;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._address = null;
@@ -21,6 +18,18 @@ tutao.entity.tutanota.ContactAddress = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ContactAddress.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.ContactAddress.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._address = data.address;
+  this._customTypeName = data.customTypeName;
+  this._type = data.type;
 };
 
 /**

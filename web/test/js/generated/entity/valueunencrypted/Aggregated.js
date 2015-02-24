@@ -9,12 +9,7 @@ tutao.provide('tutao.entity.valueunencrypted.Aggregated');
  */
 tutao.entity.valueunencrypted.Aggregated = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._bool = data.bool;
-    this._bytes = data.bytes;
-    this._date = data.date;
-    this._number = data.number;
-    this._string = data.string;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bool = null;
@@ -25,6 +20,20 @@ tutao.entity.valueunencrypted.Aggregated = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.valueunencrypted.Aggregated.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.valueunencrypted.Aggregated.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._bool = data.bool;
+  this._bytes = data.bytes;
+  this._date = data.date;
+  this._number = data.number;
+  this._string = data.string;
 };
 
 /**

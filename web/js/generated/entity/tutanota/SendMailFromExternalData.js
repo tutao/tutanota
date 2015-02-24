@@ -8,21 +8,7 @@ tutao.provide('tutao.entity.tutanota.SendMailFromExternalData');
  */
 tutao.entity.tutanota.SendMailFromExternalData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._bodyText = data.bodyText;
-    this._confidential = data.confidential;
-    this._language = data.language;
-    this._previousMessageId = data.previousMessageId;
-    this._recipientBucketEncSessionKey = data.recipientBucketEncSessionKey;
-    this._senderBucketEncSessionKey = data.senderBucketEncSessionKey;
-    this._senderName = data.senderName;
-    this._senderSymEncBucketKey = data.senderSymEncBucketKey;
-    this._subject = data.subject;
-    this._attachments = [];
-    for (var i=0; i < data.attachments.length; i++) {
-      this._attachments.push(new tutao.entity.tutanota.AttachmentFromExternal(this, data.attachments[i]));
-    }
-    this._toRecipient = (data.toRecipient) ? new tutao.entity.tutanota.Recipient(this, data.toRecipient) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._bodyText = null;
@@ -39,6 +25,28 @@ tutao.entity.tutanota.SendMailFromExternalData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailFromExternalData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.SendMailFromExternalData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._bodyText = data.bodyText;
+  this._confidential = data.confidential;
+  this._language = data.language;
+  this._previousMessageId = data.previousMessageId;
+  this._recipientBucketEncSessionKey = data.recipientBucketEncSessionKey;
+  this._senderBucketEncSessionKey = data.senderBucketEncSessionKey;
+  this._senderName = data.senderName;
+  this._senderSymEncBucketKey = data.senderSymEncBucketKey;
+  this._subject = data.subject;
+  this._attachments = [];
+  for (var i=0; i < data.attachments.length; i++) {
+    this._attachments.push(new tutao.entity.tutanota.AttachmentFromExternal(this, data.attachments[i]));
+  }
+  this._toRecipient = (data.toRecipient) ? new tutao.entity.tutanota.Recipient(this, data.toRecipient) : null;
 };
 
 /**

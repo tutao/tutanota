@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.AutoLoginPostReturn');
  */
 tutao.entity.sys.AutoLoginPostReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._deviceToken = data.deviceToken;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._deviceToken = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.AutoLoginPostReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.AutoLoginPostReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._deviceToken = data.deviceToken;
 };
 
 /**

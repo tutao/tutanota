@@ -9,10 +9,7 @@ tutao.provide('tutao.entity.sys.AuthenticatedDevice');
  */
 tutao.entity.sys.AuthenticatedDevice = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._authType = data.authType;
-    this._deviceKey = data.deviceKey;
-    this._deviceToken = data.deviceToken;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._authType = null;
@@ -21,6 +18,18 @@ tutao.entity.sys.AuthenticatedDevice = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.AuthenticatedDevice.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.AuthenticatedDevice.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._authType = data.authType;
+  this._deviceKey = data.deviceKey;
+  this._deviceToken = data.deviceToken;
 };
 
 /**

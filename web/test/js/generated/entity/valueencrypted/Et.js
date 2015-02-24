@@ -8,16 +8,7 @@ tutao.provide('tutao.entity.valueencrypted.Et');
  */
 tutao.entity.valueencrypted.Et = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._bool = data.bool;
-    this._bytes = data.bytes;
-    this._date = data.date;
-    this._number = data.number;
-    this._string = data.string;
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -32,6 +23,23 @@ tutao.entity.valueencrypted.Et = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.valueencrypted.Et.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.valueencrypted.Et.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._bool = data.bool;
+  this._bytes = data.bytes;
+  this._date = data.date;
+  this._number = data.number;
+  this._string = data.string;
 };
 
 /**

@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.UserDataDelete');
  */
 tutao.entity.sys.UserDataDelete = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._restore = data.restore;
-    this._user = data.user;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._restore = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.UserDataDelete = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.UserDataDelete.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.UserDataDelete.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._restore = data.restore;
+  this._user = data.user;
 };
 
 /**

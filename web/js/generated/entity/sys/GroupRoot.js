@@ -8,13 +8,7 @@ tutao.provide('tutao.entity.sys.GroupRoot');
  */
 tutao.entity.sys.GroupRoot = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._groupShareBucketId = data.groupShareBucketId;
-    this._symEncShareBucketKey = data.symEncShareBucketKey;
-    this._externalGroupInfos = data.externalGroupInfos;
-    this._externalUserReferences = data.externalUserReferences;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -26,6 +20,20 @@ tutao.entity.sys.GroupRoot = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.GroupRoot.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.GroupRoot.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._groupShareBucketId = data.groupShareBucketId;
+  this._symEncShareBucketKey = data.symEncShareBucketKey;
+  this._externalGroupInfos = data.externalGroupInfos;
+  this._externalUserReferences = data.externalUserReferences;
 };
 
 /**

@@ -8,11 +8,7 @@ tutao.provide('tutao.entity.sys.SendRegistrationCodeData');
  */
 tutao.entity.sys.SendRegistrationCodeData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._accountType = data.accountType;
-    this._authToken = data.authToken;
-    this._language = data.language;
-    this._mobilePhoneNumber = data.mobilePhoneNumber;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._accountType = null;
@@ -22,6 +18,18 @@ tutao.entity.sys.SendRegistrationCodeData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SendRegistrationCodeData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SendRegistrationCodeData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._accountType = data.accountType;
+  this._authToken = data.authToken;
+  this._language = data.language;
+  this._mobilePhoneNumber = data.mobilePhoneNumber;
 };
 
 /**

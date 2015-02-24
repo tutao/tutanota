@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.sys.MigrateToV5Data');
  */
 tutao.entity.sys.MigrateToV5Data = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._noop = data.noop;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._noop = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.MigrateToV5Data.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.MigrateToV5Data.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._noop = data.noop;
 };
 
 /**

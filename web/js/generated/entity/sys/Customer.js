@@ -8,18 +8,7 @@ tutao.provide('tutao.entity.sys.Customer');
  */
 tutao.entity.sys.Customer = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._type = data.type;
-    this._adminGroup = data.adminGroup;
-    this._adminGroups = data.adminGroups;
-    this._customerGroup = data.customerGroup;
-    this._customerGroups = data.customerGroups;
-    this._customerInfo = data.customerInfo;
-    this._properties = data.properties;
-    this._teamGroups = data.teamGroups;
-    this._userGroups = data.userGroups;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -36,6 +25,25 @@ tutao.entity.sys.Customer = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.Customer.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.Customer.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._type = data.type;
+  this._adminGroup = data.adminGroup;
+  this._adminGroups = data.adminGroups;
+  this._customerGroup = data.customerGroup;
+  this._customerGroups = data.customerGroups;
+  this._customerInfo = data.customerInfo;
+  this._properties = data.properties;
+  this._teamGroups = data.teamGroups;
+  this._userGroups = data.userGroups;
 };
 
 /**

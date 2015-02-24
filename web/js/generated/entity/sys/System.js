@@ -8,23 +8,7 @@ tutao.provide('tutao.entity.sys.System');
  */
 tutao.entity.sys.System = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._lastInvoiceNbr = data.lastInvoiceNbr;
-    this._freeCustomerInfos = data.freeCustomerInfos;
-    this._freeGroup = data.freeGroup;
-    this._premiumCustomerInfos = data.premiumCustomerInfos;
-    this._premiumGroup = data.premiumGroup;
-    this._registrationDataList = data.registrationDataList;
-    this._starterCustomerInfos = data.starterCustomerInfos;
-    this._starterGroup = data.starterGroup;
-    this._streamCustomerInfos = data.streamCustomerInfos;
-    this._streamGroup = data.streamGroup;
-    this._systemAdminGroup = data.systemAdminGroup;
-    this._systemCustomer = data.systemCustomer;
-    this._systemCustomerInfo = data.systemCustomerInfo;
-    this._systemUserGroup = data.systemUserGroup;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -46,6 +30,30 @@ tutao.entity.sys.System = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.System.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.System.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._lastInvoiceNbr = data.lastInvoiceNbr;
+  this._freeCustomerInfos = data.freeCustomerInfos;
+  this._freeGroup = data.freeGroup;
+  this._premiumCustomerInfos = data.premiumCustomerInfos;
+  this._premiumGroup = data.premiumGroup;
+  this._registrationDataList = data.registrationDataList;
+  this._starterCustomerInfos = data.starterCustomerInfos;
+  this._starterGroup = data.starterGroup;
+  this._streamCustomerInfos = data.streamCustomerInfos;
+  this._streamGroup = data.streamGroup;
+  this._systemAdminGroup = data.systemAdminGroup;
+  this._systemCustomer = data.systemCustomer;
+  this._systemCustomerInfo = data.systemCustomerInfo;
+  this._systemUserGroup = data.systemUserGroup;
 };
 
 /**

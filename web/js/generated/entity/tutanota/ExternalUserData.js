@@ -8,13 +8,7 @@ tutao.provide('tutao.entity.tutanota.ExternalUserData');
  */
 tutao.entity.tutanota.ExternalUserData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._externalUserEncGroupInfoSessionKey = data.externalUserEncGroupInfoSessionKey;
-    this._groupEncEntropy = data.groupEncEntropy;
-    this._groupEncMailListKey = data.groupEncMailListKey;
-    this._userEncClientKey = data.userEncClientKey;
-    this._verifier = data.verifier;
-    this._userGroupData = (data.userGroupData) ? new tutao.entity.tutanota.CreateExternalUserGroupData(this, data.userGroupData) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._externalUserEncGroupInfoSessionKey = null;
@@ -26,6 +20,20 @@ tutao.entity.tutanota.ExternalUserData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.ExternalUserData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._externalUserEncGroupInfoSessionKey = data.externalUserEncGroupInfoSessionKey;
+  this._groupEncEntropy = data.groupEncEntropy;
+  this._groupEncMailListKey = data.groupEncMailListKey;
+  this._userEncClientKey = data.userEncClientKey;
+  this._verifier = data.verifier;
+  this._userGroupData = (data.userGroupData) ? new tutao.entity.tutanota.CreateExternalUserGroupData(this, data.userGroupData) : null;
 };
 
 /**

@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.tutanota.DeleteFileData');
  */
 tutao.entity.tutanota.DeleteFileData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._group = data.group;
-    this._file = data.file;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._group = null;
@@ -18,6 +16,16 @@ tutao.entity.tutanota.DeleteFileData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.DeleteFileData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.DeleteFileData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._group = data.group;
+  this._file = data.file;
 };
 
 /**

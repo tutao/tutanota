@@ -8,11 +8,7 @@ tutao.provide('tutao.entity.sys.VersionData');
  */
 tutao.entity.sys.VersionData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._application = data.application;
-    this._id = data.id;
-    this._listId = data.listId;
-    this._typeId = data.typeId;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._application = null;
@@ -22,6 +18,18 @@ tutao.entity.sys.VersionData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.VersionData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.VersionData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._application = data.application;
+  this._id = data.id;
+  this._listId = data.listId;
+  this._typeId = data.typeId;
 };
 
 /**

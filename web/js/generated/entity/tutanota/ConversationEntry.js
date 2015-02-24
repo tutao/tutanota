@@ -8,13 +8,7 @@ tutao.provide('tutao.entity.tutanota.ConversationEntry');
  */
 tutao.entity.tutanota.ConversationEntry = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__permissions = data._permissions;
-    this._conversationType = data.conversationType;
-    this._messageId = data.messageId;
-    this._mail = data.mail;
-    this._previous = data.previous;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -26,6 +20,20 @@ tutao.entity.tutanota.ConversationEntry = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.ConversationEntry.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.ConversationEntry.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__permissions = data._permissions;
+  this._conversationType = data.conversationType;
+  this._messageId = data.messageId;
+  this._mail = data.mail;
+  this._previous = data.previous;
 };
 
 /**

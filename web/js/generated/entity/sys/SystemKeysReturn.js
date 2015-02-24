@@ -8,12 +8,7 @@ tutao.provide('tutao.entity.sys.SystemKeysReturn');
  */
 tutao.entity.sys.SystemKeysReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._freeGroupKey = data.freeGroupKey;
-    this._premiumGroupKey = data.premiumGroupKey;
-    this._starterGroupKey = data.starterGroupKey;
-    this._systemAdminPubKey = data.systemAdminPubKey;
-    this._systemAdminPubKeyVersion = data.systemAdminPubKeyVersion;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._freeGroupKey = null;
@@ -24,6 +19,19 @@ tutao.entity.sys.SystemKeysReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SystemKeysReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._freeGroupKey = data.freeGroupKey;
+  this._premiumGroupKey = data.premiumGroupKey;
+  this._starterGroupKey = data.starterGroupKey;
+  this._systemAdminPubKey = data.systemAdminPubKey;
+  this._systemAdminPubKeyVersion = data.systemAdminPubKeyVersion;
 };
 
 /**

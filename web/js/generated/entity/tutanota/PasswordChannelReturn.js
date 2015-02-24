@@ -8,17 +8,25 @@ tutao.provide('tutao.entity.tutanota.PasswordChannelReturn');
  */
 tutao.entity.tutanota.PasswordChannelReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._phoneNumberChannels = [];
-    for (var i=0; i < data.phoneNumberChannels.length; i++) {
-      this._phoneNumberChannels.push(new tutao.entity.tutanota.PasswordChannelPhoneNumber(this, data.phoneNumberChannels[i]));
-    }
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._phoneNumberChannels = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.PasswordChannelReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.PasswordChannelReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._phoneNumberChannels = [];
+  for (var i=0; i < data.phoneNumberChannels.length; i++) {
+    this._phoneNumberChannels.push(new tutao.entity.tutanota.PasswordChannelPhoneNumber(this, data.phoneNumberChannels[i]));
+  }
 };
 
 /**

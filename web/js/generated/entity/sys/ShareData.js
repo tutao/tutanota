@@ -8,16 +8,7 @@ tutao.provide('tutao.entity.sys.ShareData');
  */
 tutao.entity.sys.ShareData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._app = data.app;
-    this._bucket = data.bucket;
-    this._instancePermissions = data.instancePermissions;
-    this._ownerGroupId = data.ownerGroupId;
-    this._pubEncBucketKey = data.pubEncBucketKey;
-    this._pubKeyVersion = data.pubKeyVersion;
-    this._shareType = data.shareType;
-    this._shareholderMailAddress = data.shareholderMailAddress;
-    this._writePermission = data.writePermission;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._app = null;
@@ -32,6 +23,23 @@ tutao.entity.sys.ShareData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ShareData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.ShareData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._app = data.app;
+  this._bucket = data.bucket;
+  this._instancePermissions = data.instancePermissions;
+  this._ownerGroupId = data.ownerGroupId;
+  this._pubEncBucketKey = data.pubEncBucketKey;
+  this._pubKeyVersion = data.pubKeyVersion;
+  this._shareType = data.shareType;
+  this._shareholderMailAddress = data.shareholderMailAddress;
+  this._writePermission = data.writePermission;
 };
 
 /**

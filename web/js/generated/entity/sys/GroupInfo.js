@@ -8,15 +8,7 @@ tutao.provide('tutao.entity.sys.GroupInfo');
  */
 tutao.entity.sys.GroupInfo = function(data) {
   if (data) {
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__listEncSessionKey = data._listEncSessionKey;
-    this.__permissions = data._permissions;
-    this._created = data.created;
-    this._deleted = data.deleted;
-    this._mailAddress = data.mailAddress;
-    this._name = data.name;
-    this._group = data.group;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this.__id = null;
@@ -30,6 +22,22 @@ tutao.entity.sys.GroupInfo = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.GroupInfo.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.GroupInfo.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__listEncSessionKey = data._listEncSessionKey;
+  this.__permissions = data._permissions;
+  this._created = data.created;
+  this._deleted = data.deleted;
+  this._mailAddress = data.mailAddress;
+  this._name = data.name;
+  this._group = data.group;
 };
 
 /**

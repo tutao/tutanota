@@ -8,14 +8,7 @@ tutao.provide('tutao.entity.sys.WebsocketWrapper');
  */
 tutao.entity.sys.WebsocketWrapper = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._clientVersion = data.clientVersion;
-    this._msgId = data.msgId;
-    this._type = data.type;
-    this._authentication = (data.authentication) ? new tutao.entity.sys.Authentication(this, data.authentication) : null;
-    this._chat = (data.chat) ? new tutao.entity.sys.Chat(this, data.chat) : null;
-    this._entityUpdate = (data.entityUpdate) ? new tutao.entity.sys.EntityUpdate(this, data.entityUpdate) : null;
-    this._exception = (data.exception) ? new tutao.entity.sys.Exception(this, data.exception) : null;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._clientVersion = null;
@@ -28,6 +21,21 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.WebsocketWrapper.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._clientVersion = data.clientVersion;
+  this._msgId = data.msgId;
+  this._type = data.type;
+  this._authentication = (data.authentication) ? new tutao.entity.sys.Authentication(this, data.authentication) : null;
+  this._chat = (data.chat) ? new tutao.entity.sys.Chat(this, data.chat) : null;
+  this._entityUpdate = (data.entityUpdate) ? new tutao.entity.sys.EntityUpdate(this, data.entityUpdate) : null;
+  this._exception = (data.exception) ? new tutao.entity.sys.Exception(this, data.exception) : null;
 };
 
 /**

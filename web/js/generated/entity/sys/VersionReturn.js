@@ -8,17 +8,25 @@ tutao.provide('tutao.entity.sys.VersionReturn');
  */
 tutao.entity.sys.VersionReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._versions = [];
-    for (var i=0; i < data.versions.length; i++) {
-      this._versions.push(new tutao.entity.sys.Version(this, data.versions[i]));
-    }
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._versions = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.VersionReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.VersionReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._versions = [];
+  for (var i=0; i < data.versions.length; i++) {
+    this._versions.push(new tutao.entity.sys.Version(this, data.versions[i]));
+  }
 };
 
 /**

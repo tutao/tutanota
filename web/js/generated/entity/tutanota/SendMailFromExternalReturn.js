@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.SendMailFromExternalReturn');
  */
 tutao.entity.tutanota.SendMailFromExternalReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._senderMail = data.senderMail;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._senderMail = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailFromExternalReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.SendMailFromExternalReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._senderMail = data.senderMail;
 };
 
 /**

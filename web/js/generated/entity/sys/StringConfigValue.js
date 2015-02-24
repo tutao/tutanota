@@ -9,9 +9,7 @@ tutao.provide('tutao.entity.sys.StringConfigValue');
  */
 tutao.entity.sys.StringConfigValue = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._name = data.name;
-    this._value = data.value;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._name = null;
@@ -19,6 +17,17 @@ tutao.entity.sys.StringConfigValue = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.StringConfigValue.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.StringConfigValue.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._name = data.name;
+  this._value = data.value;
 };
 
 /**

@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.DeleteMailFolderData');
  */
 tutao.entity.tutanota.DeleteMailFolderData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._folders = data.folders;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._folders = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.DeleteMailFolderData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.DeleteMailFolderData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._folders = data.folders;
 };
 
 /**

@@ -9,11 +9,7 @@ tutao.provide('tutao.entity.tutanota.ImapFolder');
  */
 tutao.entity.tutanota.ImapFolder = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._lastseenuid = data.lastseenuid;
-    this._name = data.name;
-    this._uidvalidity = data.uidvalidity;
-    this._syncInfo = data.syncInfo;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._lastseenuid = null;
@@ -23,6 +19,19 @@ tutao.entity.tutanota.ImapFolder = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ImapFolder.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.ImapFolder.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._lastseenuid = data.lastseenuid;
+  this._name = data.name;
+  this._uidvalidity = data.uidvalidity;
+  this._syncInfo = data.syncInfo;
 };
 
 /**

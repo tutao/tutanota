@@ -8,9 +8,7 @@ tutao.provide('tutao.entity.sys.AutoLoginDataGet');
  */
 tutao.entity.sys.AutoLoginDataGet = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._deviceToken = data.deviceToken;
-    this._userId = data.userId;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._deviceToken = null;
@@ -18,6 +16,16 @@ tutao.entity.sys.AutoLoginDataGet = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.AutoLoginDataGet.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.AutoLoginDataGet.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._deviceToken = data.deviceToken;
+  this._userId = data.userId;
 };
 
 /**

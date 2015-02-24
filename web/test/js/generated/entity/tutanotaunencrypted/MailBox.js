@@ -8,12 +8,7 @@ tutao.provide('tutao.entity.tutanotaunencrypted.MailBox');
  */
 tutao.entity.tutanotaunencrypted.MailBox = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._mails = data.mails;
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -24,6 +19,19 @@ tutao.entity.tutanotaunencrypted.MailBox = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanotaunencrypted.MailBox.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanotaunencrypted.MailBox.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._mails = data.mails;
 };
 
 /**

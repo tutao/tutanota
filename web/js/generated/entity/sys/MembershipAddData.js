@@ -8,10 +8,7 @@ tutao.provide('tutao.entity.sys.MembershipAddData');
  */
 tutao.entity.sys.MembershipAddData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._symEncGKey = data.symEncGKey;
-    this._group = data.group;
-    this._user = data.user;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._symEncGKey = null;
@@ -20,6 +17,17 @@ tutao.entity.sys.MembershipAddData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.MembershipAddData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.MembershipAddData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._symEncGKey = data.symEncGKey;
+  this._group = data.group;
+  this._user = data.user;
 };
 
 /**

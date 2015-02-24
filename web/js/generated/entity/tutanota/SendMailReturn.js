@@ -8,14 +8,7 @@ tutao.provide('tutao.entity.tutanota.SendMailReturn');
  */
 tutao.entity.tutanota.SendMailReturn = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._messageId = data.messageId;
-    this._sentDate = data.sentDate;
-    this._notifications = [];
-    for (var i=0; i < data.notifications.length; i++) {
-      this._notifications.push(new tutao.entity.tutanota.NotificationMail(this, data.notifications[i]));
-    }
-    this._senderMail = data.senderMail;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._messageId = null;
@@ -25,6 +18,21 @@ tutao.entity.tutanota.SendMailReturn = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.SendMailReturn.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.SendMailReturn.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._messageId = data.messageId;
+  this._sentDate = data.sentDate;
+  this._notifications = [];
+  for (var i=0; i < data.notifications.length; i++) {
+    this._notifications.push(new tutao.entity.tutanota.NotificationMail(this, data.notifications[i]));
+  }
+  this._senderMail = data.senderMail;
 };
 
 /**

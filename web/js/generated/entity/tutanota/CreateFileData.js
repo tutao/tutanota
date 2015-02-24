@@ -8,13 +8,7 @@ tutao.provide('tutao.entity.tutanota.CreateFileData');
  */
 tutao.entity.tutanota.CreateFileData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._fileName = data.fileName;
-    this._group = data.group;
-    this._listEncSessionKey = data.listEncSessionKey;
-    this._mimeType = data.mimeType;
-    this._fileData = data.fileData;
-    this._parentFolder = data.parentFolder;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._fileName = null;
@@ -26,6 +20,20 @@ tutao.entity.tutanota.CreateFileData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.CreateFileData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.CreateFileData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._fileName = data.fileName;
+  this._group = data.group;
+  this._listEncSessionKey = data.listEncSessionKey;
+  this._mimeType = data.mimeType;
+  this._fileData = data.fileData;
+  this._parentFolder = data.parentFolder;
 };
 
 /**

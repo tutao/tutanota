@@ -8,10 +8,7 @@ tutao.provide('tutao.entity.tutanota.FeedbackData');
  */
 tutao.entity.tutanota.FeedbackData = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._image = data.image;
-    this._msg = data.msg;
-    this._useragent = data.useragent;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._image = null;
@@ -20,6 +17,17 @@ tutao.entity.tutanota.FeedbackData = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FeedbackData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.FeedbackData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._image = data.image;
+  this._msg = data.msg;
+  this._useragent = data.useragent;
 };
 
 /**

@@ -9,12 +9,21 @@ tutao.provide('tutao.entity.aggregatedtype.At1');
  */
 tutao.entity.aggregatedtype.At1 = function(parent, data) {
   if (data) {
-    this.__id = data._id;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
   }
   this._parent = parent;
   this.prototype = tutao.entity.aggregatedtype.At1.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.aggregatedtype.At1.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
 };
 
 /**

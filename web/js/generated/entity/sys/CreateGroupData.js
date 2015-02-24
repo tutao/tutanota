@@ -9,14 +9,7 @@ tutao.provide('tutao.entity.sys.CreateGroupData');
  */
 tutao.entity.sys.CreateGroupData = function(parent, data) {
   if (data) {
-    this.__id = data._id;
-    this._adminEncGKey = data.adminEncGKey;
-    this._encryptedName = data.encryptedName;
-    this._listEncSessionKey = data.listEncSessionKey;
-    this._mailAddress = data.mailAddress;
-    this._pubKey = data.pubKey;
-    this._symEncGKey = data.symEncGKey;
-    this._symEncPrivKey = data.symEncPrivKey;
+    this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._adminEncGKey = null;
@@ -29,6 +22,22 @@ tutao.entity.sys.CreateGroupData = function(parent, data) {
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.CreateGroupData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.sys.CreateGroupData.prototype.updateData = function(parent, data) {
+  this.__id = data._id;
+  this._adminEncGKey = data.adminEncGKey;
+  this._encryptedName = data.encryptedName;
+  this._listEncSessionKey = data.listEncSessionKey;
+  this._mailAddress = data.mailAddress;
+  this._pubKey = data.pubKey;
+  this._symEncGKey = data.symEncGKey;
+  this._symEncPrivKey = data.symEncPrivKey;
 };
 
 /**

@@ -8,36 +8,7 @@ tutao.provide('tutao.entity.tutanota.Contact');
  */
 tutao.entity.tutanota.Contact = function(data) {
   if (data) {
-    this.__area = data._area;
-    this.__format = data._format;
-    this.__id = data._id;
-    this.__listEncSessionKey = data._listEncSessionKey;
-    this.__owner = data._owner;
-    this.__permissions = data._permissions;
-    this._autoTransmitPassword = data.autoTransmitPassword;
-    this._birthday = data.birthday;
-    this._comment = data.comment;
-    this._company = data.company;
-    this._firstName = data.firstName;
-    this._lastName = data.lastName;
-    this._presharedPassword = data.presharedPassword;
-    this._title = data.title;
-    this._addresses = [];
-    for (var i=0; i < data.addresses.length; i++) {
-      this._addresses.push(new tutao.entity.tutanota.ContactAddress(this, data.addresses[i]));
-    }
-    this._mailAddresses = [];
-    for (var i=0; i < data.mailAddresses.length; i++) {
-      this._mailAddresses.push(new tutao.entity.tutanota.ContactMailAddress(this, data.mailAddresses[i]));
-    }
-    this._phoneNumbers = [];
-    for (var i=0; i < data.phoneNumbers.length; i++) {
-      this._phoneNumbers.push(new tutao.entity.tutanota.ContactPhoneNumber(this, data.phoneNumbers[i]));
-    }
-    this._socialIds = [];
-    for (var i=0; i < data.socialIds.length; i++) {
-      this._socialIds.push(new tutao.entity.tutanota.ContactSocialId(this, data.socialIds[i]));
-    }
+    this.updateData(data);
   } else {
     this.__area = null;
     this.__format = "0";
@@ -60,6 +31,43 @@ tutao.entity.tutanota.Contact = function(data) {
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.Contact.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.Contact.prototype.updateData = function(data) {
+  this.__area = data._area;
+  this.__format = data._format;
+  this.__id = data._id;
+  this.__listEncSessionKey = data._listEncSessionKey;
+  this.__owner = data._owner;
+  this.__permissions = data._permissions;
+  this._autoTransmitPassword = data.autoTransmitPassword;
+  this._birthday = data.birthday;
+  this._comment = data.comment;
+  this._company = data.company;
+  this._firstName = data.firstName;
+  this._lastName = data.lastName;
+  this._presharedPassword = data.presharedPassword;
+  this._title = data.title;
+  this._addresses = [];
+  for (var i=0; i < data.addresses.length; i++) {
+    this._addresses.push(new tutao.entity.tutanota.ContactAddress(this, data.addresses[i]));
+  }
+  this._mailAddresses = [];
+  for (var i=0; i < data.mailAddresses.length; i++) {
+    this._mailAddresses.push(new tutao.entity.tutanota.ContactMailAddress(this, data.mailAddresses[i]));
+  }
+  this._phoneNumbers = [];
+  for (var i=0; i < data.phoneNumbers.length; i++) {
+    this._phoneNumbers.push(new tutao.entity.tutanota.ContactPhoneNumber(this, data.phoneNumbers[i]));
+  }
+  this._socialIds = [];
+  for (var i=0; i < data.socialIds.length; i++) {
+    this._socialIds.push(new tutao.entity.tutanota.ContactSocialId(this, data.socialIds[i]));
+  }
 };
 
 /**

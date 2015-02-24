@@ -8,14 +8,22 @@ tutao.provide('tutao.entity.tutanota.FileDataReturnPost');
  */
 tutao.entity.tutanota.FileDataReturnPost = function(data) {
   if (data) {
-    this.__format = data._format;
-    this._fileData = data.fileData;
+    this.updateData(data);
   } else {
     this.__format = "0";
     this._fileData = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.FileDataReturnPost.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.FileDataReturnPost.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._fileData = data.fileData;
 };
 
 /**
