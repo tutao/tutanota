@@ -125,7 +125,6 @@ tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
   "failedLogins_label": "Başarısız giriş denemeleri",
   "fax_label": "Faks",
   "feedbackErrorInfo_msg": "Mesaj, hata detayları ve tarayıcınızın tanımlama bilgileri şifrelenmiş olarak support@tutanota.de adresine gönderildi.",
-  "feedbackInfo_msg": "Mesaj ve tarayıcı bilgisi support@tutanota.de adresine şifreli olarak gönderildi.",
   "finalDelete_action": "Sil",
   "firstName_placeholder": "İlk isim",
   "folderNameCreate_label": "Dosya oluştur",
