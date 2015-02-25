@@ -348,7 +348,9 @@ gulp.task('translation', function (cb) {
 					if (!error && response.statusCode == 200) {
 						var code = lang.code.replace("-","_").toLowerCase();						
 					    var translation = "tutao.provide('tutao.tutanota.ctrl.LanguageViewModel." + code + "');\n"
-					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + " = ";
+					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".writing_direction = \"" + lang.writing_direction + "\";\n";
+					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".id = \"" + code + "\";\n";
+					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".keys = ";					
 					    translation += body + ";";					    
 					    fs.writeFileSync("js/ctrl/lang/" + code + ".js", translation);
 						console.log(code);

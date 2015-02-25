@@ -59,49 +59,6 @@ tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED = "not supported
 /** browser is generally supported, but must be updated to fit supported version */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED = "update needed";
 
-
-/** English */
-tutao.tutanota.util.ClientDetector.LANGUAGE_EN = "en";
-/** German */
-tutao.tutanota.util.ClientDetector.LANGUAGE_DE = "de";
-/** Arabic */
-tutao.tutanota.util.ClientDetector.LANGUAGE_AR = "ar";
-/** Greek */
-tutao.tutanota.util.ClientDetector.LANGUAGE_EL = "el";
-/** Spanish */
-tutao.tutanota.util.ClientDetector.LANGUAGE_ES = "es";
-/** French */
-tutao.tutanota.util.ClientDetector.LANGUAGE_FR = "fr";
-/** Croatian */
-tutao.tutanota.util.ClientDetector.LANGUAGE_HR = "hr";
-/** Italian */
-tutao.tutanota.util.ClientDetector.LANGUAGE_IT = "it";
-/** Dutch */
-tutao.tutanota.util.ClientDetector.LANGUAGE_NL = "nl";
-/** Polish */
-tutao.tutanota.util.ClientDetector.LANGUAGE_PL = "pl";
-/** Portuguese, Brazil */
-tutao.tutanota.util.ClientDetector.LANGUAGE_PT_BR = "pt_br";
-/** Portuguese, Portugal */
-tutao.tutanota.util.ClientDetector.LANGUAGE_PT_PT = "pt_pt";
-/** Romanian */
-tutao.tutanota.util.ClientDetector.LANGUAGE_RO = "ro";
-/** Russian */
-tutao.tutanota.util.ClientDetector.LANGUAGE_RU = "ru";
-/** Chinese, China, Simplified */
-tutao.tutanota.util.ClientDetector.LANGUAGE_ZH = "zh";
-/** Albanian */
-tutao.tutanota.util.ClientDetector.LANGUAGE_SQ = "sq";
-/** Turkish, Turkey */
-tutao.tutanota.util.ClientDetector.LANGUAGE_TR = "tr";
-/** Chinese, Traditional Han */
-tutao.tutanota.util.ClientDetector.LANGUAGE_ZH_HANT = "zh_hant";
-
-
-
-
-
-
 /**
  * Information about the client.
  * For a list of used agent strings, see: http://www.useragentstring.com/pages/Browserlist/
@@ -136,11 +93,6 @@ tutao.tutanota.util.ClientDetector._phone = null;
  * @private
  */
 tutao.tutanota.util.ClientDetector._supported = null;
-/**
- * @type {?string}
- * @private
- */
-tutao.tutanota.util.ClientDetector._lang = null;
 
 /**
  * Provides the browser type.
@@ -209,14 +161,11 @@ tutao.tutanota.util.ClientDetector.getSupportedType = function() {
 };
 
 /**
- * Provides the default language which is a supported language derived from the browser language.
- * @return {string} The default language. One of the LANGUAGE* values.
+ * Provides the current language from the browser.
+ * @return {string=} The language string.
  */
 tutao.tutanota.util.ClientDetector.getDefaultLanguage = function() {
-	if (tutao.tutanota.util.ClientDetector._lang == null) {
-		tutao.tutanota.util.ClientDetector._setDefaultLanguage();
-	}
-	return tutao.tutanota.util.ClientDetector._lang;
+	return navigator.languages ? navigator.languages[0] : (navigator.language || navigator.userLanguage);
 };
 
 /**
@@ -440,15 +389,4 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
     }
 };
 
-/**
- * Sets the default language derived from the browser language.
- */
-tutao.tutanota.util.ClientDetector._setDefaultLanguage = function() {
-	var lang = navigator.language || navigator.userLanguage;
-	if (lang && (lang.toLowerCase() == "de" || lang.toLowerCase() == "de-de")) {
-		tutao.tutanota.util.ClientDetector._lang = tutao.tutanota.util.ClientDetector.LANGUAGE_DE;
-	} else {
-		tutao.tutanota.util.ClientDetector._lang = tutao.tutanota.util.ClientDetector.LANGUAGE_EN;
-	}
-};
 

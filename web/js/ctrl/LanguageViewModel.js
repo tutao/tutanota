@@ -13,11 +13,7 @@ tutao.provide('tutao.tutanota.ctrl.LanguageViewModel');
  */
 tutao.tutanota.ctrl.LanguageViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	var lang = null; // tutao.tutanota.util.LocalStore.load('language');
-	if (!lang) {
-		lang = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
-	}
-	this._current = ko.observable(lang);
+	this._current = ko.observable(this._getDefaultLanguage());
 };
 
 /**
@@ -57,10 +53,10 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
         // we regard texts marked with "@" as static text
         return id.substring(1);
     }
-	var text = tutao.tutanota.ctrl.LanguageViewModel[this._current()][id];
+	var text = tutao.tutanota.ctrl.LanguageViewModel[this._current()]['keys'][id];
 	if (!text) {
 		// try fallback language
-		text = tutao.tutanota.ctrl.LanguageViewModel[tutao.tutanota.util.ClientDetector.LANGUAGE_EN][id];
+		text = tutao.tutanota.ctrl.LanguageViewModel[tutao.tutanota.ctrl.LanguageViewModel.en.id]['keys'][id];
 		if (!text){
 			throw new Error("no translation found for id " + id);
 		}
@@ -74,8 +70,59 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
 };
 
 /**
- * Returns all translations in pretty-printed form.
+ * Provides the list of all languages"
+ * @return {Array.<Object.{string,string}>} The current languages containg id and textid.
+ */
+tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
+	return [
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.sq.id, textId: 'languageAlbanian_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.hr.id, textId: 'languageCroatian_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.zh_hant.id, textId: 'languageChineseTraditional'},
+		//{ id: tutao.tutanota.ctrl.LanguageViewModel.zh.id, textId: 'languageChineseSimplified_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.en.id, textId: 'languageEnglish_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.nl.id, textId: 'languageDutch_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.de.id, textId: 'languageGerman_label'},
+		// { id: tutao.tutanota.util.ClientDetector.ar, textId: 'languageArabic_label' },
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.el.id, textId: 'languageGreek_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.fr.id, textId: 'languageFrench_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.it.id, textId: 'languageItalian_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.pl.id, textId: 'languagePolish_label' },
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.pt_pt.id, textId: 'languagePortugesePortugal_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.pt_br.id, textId: 'languagePortugeseBrazil_label' },
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.ro.id, textId: 'languageRomanian_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.ru.id, textId: 'languageRussian_label'},
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.es.id, textId: 'languageSpanish_label' },
+		{ id: tutao.tutanota.ctrl.LanguageViewModel.tr.id, textId: 'languageTurkish_label'}
+	]
+};
+
+/**
+ * Returns all translations in pretty-printed form to generate textids for outlook.
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.allTranslationsAsJson = function() {
-	return JSON.stringify({de: tutao.tutanota.ctrl.LanguageViewModel.de, en: tutao.tutanota.ctrl.LanguageViewModel.en}, null, 2)
+	return JSON.stringify({de: tutao.tutanota.ctrl.LanguageViewModel.de.keys, en: tutao.tutanota.ctrl.LanguageViewModel.en.keys}, null, 2)
+};
+
+
+/**
+ * Gets the default language derived from the browser language.
+ */
+tutao.tutanota.ctrl.LanguageViewModel.prototype._getDefaultLanguage = function() {
+	var lang = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
+	if (lang){
+		lang = lang.toLowerCase().replace("-","_");
+		var languages = this.getLanguages();
+		for(var i=0; i<languages.length;i++){
+			if (languages[i].id == lang ){
+				return lang;
+			}
+		}
+
+		for(i=0; i<languages.length;i++){
+			if (tutao.util.StringUtils.startsWith(languages[i].id, lang.substr(0,2))){
+				return languages[i].id;
+			}
+		}
+	}
+	return tutao.tutanota.ctrl.LanguageViewModel.en.id;
 };

@@ -8,33 +8,9 @@ tutao.provide('tutao.tutanota.ctrl.FeedbackViewModel');
  */
 tutao.tutanota.ctrl.FeedbackViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-
 	this.message = ko.observable("");
     this.stack = ko.observable("");
 	this.showDialog = ko.observable(false);
-
-    var self = this;
-    this.isErrorDialog = ko.computed(function() {
-        if (self.stack()) {
-            return true;
-        } else {
-            return false;
-        }
-    });
-    this.title = ko.computed(function() {
-        if (self.isErrorDialog()) {
-            return "errorReport_label";
-        } else {
-            return "feedback_label";
-        }
-    });
-    this.infoMessage = ko.computed(function() {
-        if (self.isErrorDialog()) {
-            return "feedbackErrorInfo_msg";
-        } else {
-            return "feedbackInfo_msg";
-        }
-    });
 };
 
 /**
@@ -68,9 +44,8 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
     }
     var message = this.message()
         + "\n\n User agent: \n" + navigator.userAgent;
-    if (this.isErrorDialog()) {
-        message += "\n\n Stacktrace: \n" + this.stack();
-    }
+
+    message += "\n\n Stacktrace: \n" + this.stack();
     message = message.split("\n").join("<br>");
     var recipient = new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "");
     recipient.resolveType().then(function() {

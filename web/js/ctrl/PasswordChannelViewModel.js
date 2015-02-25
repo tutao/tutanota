@@ -8,16 +8,25 @@ tutao.provide('tutao.tutanota.ctrl.PasswordChannelViewModel');
  */
 tutao.tutanota.ctrl.PasswordChannelViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-    this.germanSelected = ko.observable(true);
+    this.selectedLanguage = ko.observable(null);
+	this.availableLanguages = ko.observableArray();
 };
 
 tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.init = function(){
-    var currentLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
-
+	this.availableLanguages(tutao.locator.languageViewModel.getLanguages());
+	this.availableLanguages.sort(function(a,b){
+		return tutao.lang(a.textId).localeCompare(tutao.lang(b.textId));
+	});
+	var currentLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
     if (currentLanguage == null ){
         currentLanguage = tutao.locator.languageViewModel.getCurrentLanguage();
     }
-    this.germanSelected("de" == currentLanguage);
+
+	for(var i=0; i < this.availableLanguages().length; i++){
+		if (this.availableLanguages()[i].id == currentLanguage){
+			this.selectedLanguage(this.availableLanguages()[i]);
+		}
+	}
 };
 
 
@@ -181,9 +190,5 @@ tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getPasswordChannelDescrip
 };
 
 tutao.tutanota.ctrl.PasswordChannelViewModel.prototype.getNotificationMailLanguage = function() {
-    if ( this.germanSelected()){
-        return "de"
-    }else {
-       return "en";
-    }
+    return this.selectedLanguage().id;
 };
