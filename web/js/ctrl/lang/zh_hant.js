@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.zh_hant');
-tutao.tutanota.ctrl.LanguageViewModel.zh_hant.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.zh_hant.id = "zh_hant";
-tutao.tutanota.ctrl.LanguageViewModel.zh_hant.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.zh_hant');
+tutao.tutanota.ctrl.lang.zh_hant.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.zh_hant.id = "zh_hant";
+tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "accountDeactivated_msg": "不幸的是，你的Tutanota帳戶已停用。請與管理員聯繫。",
   "accountSettings_action": "帳戶",
   "accountType_label": "帳號類型",
@@ -349,7 +349,6 @@ tutao.tutanota.ctrl.LanguageViewModel.zh_hant.keys = {
   "saved_msg": "儲存成功!",
   "savingFailed_msg": "您的信件已成功寄出，但無法儲存在您的寄件匣中。",
   "secureMail_title": "外部寄件人的郵件已加密。",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "安全",
   "selectAddress_label": "請選擇電子郵件地址",
   "sendLogFile_action": "經由電子郵件寄送日誌檔",
@@ -388,8 +387,8 @@ tutao.tutanota.ctrl.LanguageViewModel.zh_hant.keys = {
   "successfullyCreatedUsers_msg": "以下使用者已經建立。請小心記下密碼並提供給使用者。",
   "technicalError_msg": "遇到技術錯誤。請稍後再試。如果再次出現此錯誤請通知管理員。",
   "termsAcceptedNeutral_msg": "請同意條款和條件。",
-  "termsAndConditionsFree_label": "我以個人的身份使用Tutanota以及我同意<a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">一般條款和條件</a>和 <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">隱私條款</a>。",
-  "termsAndConditionsStarter_label": "我已經閱讀並同意<a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">一般條款和條件</a> 與 <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">隱私條款</a>。",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "確認",
   "testPhaseExpired_msg": "免費的試用已經過期，發送加密郵件功能已被停用。請與管理員聯繫。",
   "thanks_msg": "謝謝您的合作。\nTutanota團隊",

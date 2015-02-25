@@ -1294,10 +1294,14 @@
                                         <div class="recordValue">
                                             <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
                                             <!-- ko if: getRegistrationType() == 'Free' -->
-                                            <label for="termsInput" data-bind="html: tutao.lang('termsAndConditionsFree_label')"></label>
+                                            <label for="termsInput" data-bind="lang: 'termsAndConditionsFree_label' "></label>
+											<a class="singleLineLink" href="https://tutanota.de/#!termsfree" data-bind="lang: 'termsAndConditionsLink_label' "></a>
+											<a class="singleLineLink" href="https://tutanota.de/#!privacy" data-bind="lang: 'privacyLink_label' "></a>
                                             <!-- /ko -->
                                             <!-- ko if: getRegistrationType() == 'Starter' -->
-                                            <label for="termsInput" data-bind="html: tutao.lang('termsAndConditionsStarter_label')"></label>
+                                            <label for="termsInput" data-bind="lang: 'termsAndConditionsStarter_label' "></label>
+											<a class="singleLineLink" href="https://tutanota.de/#!termsstarter" data-bind="lang: 'termsAndConditionsLink_label' "></a>
+											<a class="singleLineLink" href="https://tutanota.de/#!privacy" data-bind="lang: 'privacyLink_label' "></a>
                                             <!-- /ko -->
                                         </div>
                                         <label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
@@ -1436,7 +1440,7 @@
                                                         </div>
                                                         <div class="password1Status" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
                                                     </label>
-                                                    <div class="recordInfo"><a target="_blank" data-bind="lang: 'goodPassphrase_action', attr: { href: tutao.lang('securePasswords_link') }" tabindex="-1"></a></div>
+                                                    <div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
                                                 </div>
                                             </div>
                                             <div class="record">

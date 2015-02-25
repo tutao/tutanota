@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.es');
-tutao.tutanota.ctrl.LanguageViewModel.es.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.es.id = "es";
-tutao.tutanota.ctrl.LanguageViewModel.es.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.es');
+tutao.tutanota.ctrl.lang.es.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.es.id = "es";
+tutao.tutanota.ctrl.lang.es.keys = {
   "accountDeactivated_msg": "Desafortunadamente, tu cuenta de Tutanota ha sido desactivada. Por favor contacta con tu administrador.",
   "accountSettings_action": "Cuenta",
   "accountType_label": "Tipo de cuenta",
@@ -349,7 +349,6 @@ tutao.tutanota.ctrl.LanguageViewModel.es.keys = {
   "saved_msg": "¡Guardado con éxito!",
   "savingFailed_msg": "El mensaje se ha enviado con éxito pero no se ha podido guardar en tu carpeta de mensajes enviados.",
   "secureMail_title": "El correo esta encriptado para destinatarios externos.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords (en)",
   "securitySettings_action": "Seguridad",
   "selectAddress_label": "Por favor, selecciona una dirección de correo",
   "sendLogFile_action": "Envía el archivo de registro por correo",
@@ -388,8 +387,8 @@ tutao.tutanota.ctrl.LanguageViewModel.es.keys = {
   "successfullyCreatedUsers_msg": "Los siguientes usuarios se han creado con éxito. Por favor escribe las contraseñas cuidadosamente y pásalas a los usuarios.",
   "technicalError_msg": "Ha ocurrido un error técnico. Por favor inténtalo más tarde. Informa al administrador si ocurre de nuevo.",
   "termsAcceptedNeutral_msg": "Por favor acepta los términos y condiciones.",
-  "termsAndConditionsFree_label": "Confirmo que usaré Tutanota como usuario particular y que he leído y acepto los <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">términos generales y condiciones</a> y la  <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">política de privacidad</a>.",
-  "termsAndConditionsStarter_label": "He leído y acepto los <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">términos generales y condiciones</a> y la <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">política de privacidad</a>.",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Confirmación",
   "testPhaseExpired_msg": "La fase de prueba gratuita ha expirado y se ha desactivado el envío de correos confidenciales. Por favor contacta con el administrador.",
   "thanks_msg": "Gracias por tu cooperación.\nTu equipo de Tutanota",

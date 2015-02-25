@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.el');
-tutao.tutanota.ctrl.LanguageViewModel.el.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.el.id = "el";
-tutao.tutanota.ctrl.LanguageViewModel.el.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.el');
+tutao.tutanota.ctrl.lang.el.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.el.id = "el";
+tutao.tutanota.ctrl.lang.el.keys = {
   "accountDeactivated_msg": "Δυστυχώς ο λογαριασμός σας στο Tutanota έχει απενεργοποιηθεί. Παρακαλούμε επικοινωνήστε με το διαχειριστή σας.",
   "accountSettings_action": "Λογαριασμός",
   "accountType_label": "Τύπος λογαριασμού",
@@ -337,7 +337,6 @@ tutao.tutanota.ctrl.LanguageViewModel.el.keys = {
   "saved_msg": "Επιτυχής αποθήκευση!",
   "savingFailed_msg": "Το μήνυμα εστάλη επιτυχώς, αλλά δεν ήταν δυνατό να αποθηκευθεί στον φάκελο \"απεσταλμένα\".",
   "secureMail_title": "Το μήνυμα θα κρυπτογραφηθεί για εξωτερικούς παραλήπτες.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Ασφάλεια",
   "selectAddress_label": "Παρακαλούμε επιλέξτε διεύθυνση email",
   "sendLogFile_action": "Αποστολή αρχείου καταγραφής μέσω email",
@@ -376,8 +375,8 @@ tutao.tutanota.ctrl.LanguageViewModel.el.keys = {
   "successfullyCreatedUsers_msg": "Οι παρακάτω λογαριασμοί χρηστών δημιουργήθηκαν. Παρακαλούμε καταγράψτε προσεκτικά τους κωδικούς και δώστε τους στους χρήστες.",
   "technicalError_msg": "Προέκυψε τεχνικό σφάλμα. Παρακαλούμε δοκιμάστε ξανά αργότερα και ειδοποιήστε το διαχειριστή σας εάν το σφάλμα επαναληφθεί.",
   "termsAcceptedNeutral_msg": "Παρακαλούμε διαβάστε και αποδεχτείτε τους όρους της υπηρεσίας.",
-  "termsAndConditionsFree_label": "Επιβεβαιώνω ότι θα χρησιμοποιώ το Tutanota ως ιδιώτης και έχω διαβάσει και συμφωνώ με τους όρους χρήσης: <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> και <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
-  "termsAndConditionsStarter_label": "Έχω διαβάσει και συμφωνώ με τους όρους χρήσης  <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> και <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Επιβεβαίωση",
   "testPhaseExpired_msg": "Η δωρεάν περίοδος αξιολόγησης έχει λήξει και η αποστολή κρυπτογραφημένων email δεν είναι πλέον δυνατή. Παρακαλούμε επικοινωνήστε με το διαχειριστή σας.",
   "thanks_msg": "Σας ευχαριστούμε για τη συνεργασία.\nΗ ομάδα Tutanota",

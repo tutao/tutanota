@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.pl');
-tutao.tutanota.ctrl.LanguageViewModel.pl.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.pl.id = "pl";
-tutao.tutanota.ctrl.LanguageViewModel.pl.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.pl');
+tutao.tutanota.ctrl.lang.pl.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.pl.id = "pl";
+tutao.tutanota.ctrl.lang.pl.keys = {
   "accountDeactivated_msg": "Niestety, Twoje konto Tutanota zostało zdezaktywowane. Prosimy o kontakt z administratorem.",
   "accountSettings_action": "Konto",
   "accountType_label": "Rodzaj konta",
@@ -349,7 +349,6 @@ tutao.tutanota.ctrl.LanguageViewModel.pl.keys = {
   "saved_msg": "Zapisano!",
   "savingFailed_msg": "Wiadomoć została wysłana, ale nie mogła zostać zapisana w folderze wiadomości wysłanych.",
   "secureMail_title": "Wiadomość do użytkowników zewnętrznych została zaszyfrowana.",
-  "securePasswords_link": "https://pl.wikipedia.org/wiki/Has%C5%82o_%28kryptografia%29#Generowanie_hase.C5.82",
   "securitySettings_action": "Bezpieczeństwo",
   "selectAddress_label": "Wybierz adres e-mail",
   "sendLogFile_action": "Wyślij e-mailem plik rejestr",
@@ -388,8 +387,8 @@ tutao.tutanota.ctrl.LanguageViewModel.pl.keys = {
   "successfullyCreatedUsers_msg": "Konta następujących użytkowników zostały pomyślnie utworzone. Prosimy starannie zanotuj hasła i przekaż je użytkownikom.",
   "technicalError_msg": "Wystąpił błąd. Proszę spróbować później. Jeżeli błąd będzie się powtarzał, skontaktuj się ze swoim administratorem.",
   "termsAcceptedNeutral_msg": "Prosimy o zaakceptowanie Regulaminu.",
-  "termsAndConditionsFree_label": "Potwierdzam, że będę używał Tutanota jako osoba prywatna, oraz że przeczytałem i wyraziłem zgodę na: <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
-  "termsAndConditionsStarter_label": "Przeczytałem i wyraziłem zgodę na <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Regulamin</a> oraz <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Potwierdź",
   "testPhaseExpired_msg": "Darmowy okres próbny dobiegł końca i wysyłanie wiadomości poufnych zostało zdezaktywowane. Prosimy o kontakt z administratorem.",
   "thanks_msg": "Dziękujemy za współpracę.\nTwój zespół Tutanota.",

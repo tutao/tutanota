@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.ro');
-tutao.tutanota.ctrl.LanguageViewModel.ro.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.ro.id = "ro";
-tutao.tutanota.ctrl.LanguageViewModel.ro.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.ro');
+tutao.tutanota.ctrl.lang.ro.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.ro.id = "ro";
+tutao.tutanota.ctrl.lang.ro.keys = {
   "accountDeactivated_msg": "Din pacate, contul dv. Tutanota a fost dezactivat. Va rugam sa va contactati administratorul.",
   "accountSettings_action": "Cont",
   "accountType_label": "Tip de cont",
@@ -177,6 +177,24 @@ tutao.tutanota.ctrl.LanguageViewModel.ro.keys = {
   "invitationMailSubject_msg": "Haideti sa ne redobandim intimitatea cu Tutanota!",
   "invite_alt": "Invitati",
   "invite_label": "Invitati",
+  "languageAlbanian_label": "albaneza",
+  "languageArabic_label": "araba",
+  "languageChineseSimplified_label": "chineza simplificata",
+  "languageChineseTraditional": "chineza traditionala",
+  "languageCroatian_label": "croata",
+  "languageDutch_label": "olandeza",
+  "languageEnglish_label": "engleza",
+  "languageFrench_label": "franceza",
+  "languageGerman_label": "germana",
+  "languageGreek_label": "greaca",
+  "languageItalian_label": "italiana",
+  "languagePolish_label": "poloneza",
+  "languagePortugeseBrazil_label": "portugheza, Brazilia",
+  "languagePortugesePortugal_label": "portugheza, Portugalia",
+  "languageRomanian_label": "romana",
+  "languageRussian_label": "rusa",
+  "languageSpanish_label": "spaniola",
+  "languageTurkish_label": "turca",
   "lastName_placeholder": "Nume de familie",
   "lastSuccessfulLoginInfo_msg": "Data ultimei conectari reusita a dv., anterioara prezentei.",
   "lastSuccessfulLogin_label": "Ultima conectare reusita",
@@ -336,7 +354,6 @@ tutao.tutanota.ctrl.LanguageViewModel.ro.keys = {
   "saved_msg": "Salvat cu succes!",
   "savingFailed_msg": "Mesajul a fost trimis cu succes, dar nu a putut fi stocat in dosarul cu mesajele trimise de dv.",
   "secureMail_title": "E-mail-ul este criptat pentru destinatarii externi.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Securitate",
   "selectAddress_label": "Va rugam sa selectati adresa de e-mail",
   "sendLogFile_action": "Trimite fisierul de jurnalizare prin e-mail",
@@ -375,8 +392,8 @@ tutao.tutanota.ctrl.LanguageViewModel.ro.keys = {
   "successfullyCreatedUsers_msg": "Urmatorii utilizatori au fost creati cu succes. Va rugam sa va notati parolele cu grija si sa le furnizati utilizatorilor.",
   "technicalError_msg": "S-a produs o eroare tehnica. Va rugam sa reincercati mai tarziu. Informati-va adiminstratorul daca aceasta eroare se repeta.",
   "termsAcceptedNeutral_msg": "Va rugam sa acceptati termenii & conditiile.",
-  "termsAndConditionsFree_label": "Confirm ca voi folosi Tutanota ca utilizator privat si am citit si sunt de acord cu termenii generali si conditiile de la <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\"></a> si cu <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>",
-  "termsAndConditionsStarter_label": "Am citit si sunt de acord cu termenii si conditiile generale <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\"></a> si cu politica de intimitate <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\"></a>",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Confirmare",
   "testPhaseExpired_msg": "Faza de testare gratuita a expirat, iar trimiterea de e-mail-uri confidentiale a expirat. Va rugam sa va contactati administratorul.",
   "thanks_msg": "Va multumim pentru cooperare. Echipa dv. de la Tutanota",

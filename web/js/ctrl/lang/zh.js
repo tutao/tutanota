@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.zh');
-tutao.tutanota.ctrl.LanguageViewModel.zh.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.zh.id = "zh";
-tutao.tutanota.ctrl.LanguageViewModel.zh.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.zh');
+tutao.tutanota.ctrl.lang.zh.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.zh.id = "zh";
+tutao.tutanota.ctrl.lang.zh.keys = {
   "accountDeactivated_msg": "不幸的是，你的Tutanota帐户已停用。请与管理员联系。",
   "accountSettings_action": "账户",
   "activate_action": "激活",
@@ -133,7 +133,6 @@ tutao.tutanota.ctrl.LanguageViewModel.zh.keys = {
   "save_action": "储存",
   "save_msg": "资料储存中....",
   "saved_msg": "储存成功",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "安全",
   "selectAddress_label": "请选择邮箱地址",
   "sendLogFile_action": "经由邮件传送日志档",

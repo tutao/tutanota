@@ -347,10 +347,10 @@ gulp.task('translation', function (cb) {
 				request('https://phraseapp.com/api/v1/translations/download?auth_token=64b1dce0ec448d21ec25816186cded22&locale='+ lang.name +'&format=simple_json', function(error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var code = lang.code.replace("-","_").toLowerCase();						
-					    var translation = "tutao.provide('tutao.tutanota.ctrl.LanguageViewModel." + code + "');\n"
-					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".writing_direction = \"" + lang.writing_direction + "\";\n";
-					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".id = \"" + code + "\";\n";
-					    translation += "tutao.tutanota.ctrl.LanguageViewModel." + code + ".keys = ";					
+					    var translation = "tutao.provide('tutao.tutanota.ctrl.lang." + code + "');\n"
+					    translation += "tutao.tutanota.ctrl.lang." + code + ".writing_direction = \"" + lang.writing_direction + "\";\n";
+					    translation += "tutao.tutanota.ctrl.lang." + code + ".id = \"" + code + "\";\n";
+					    translation += "tutao.tutanota.ctrl.lang." + code + ".keys = ";					
 					    translation += body + ";";					    
 					    fs.writeFileSync("js/ctrl/lang/" + code + ".js", translation);
 						console.log(code);

@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.de');
-tutao.tutanota.ctrl.LanguageViewModel.de.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.de.id = "de";
-tutao.tutanota.ctrl.LanguageViewModel.de.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.de');
+tutao.tutanota.ctrl.lang.de.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.de.id = "de";
+tutao.tutanota.ctrl.lang.de.keys = {
   "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
   "accountSettings_action": "Account",
   "accountType_label": "Account-Typ",
@@ -319,6 +319,7 @@ tutao.tutanota.ctrl.LanguageViewModel.de.keys = {
   "presharedPasswordHeading_label": "Vereinbart:",
   "presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Wollen Sie die E-Mail trotzdem senden?",
   "presharedPassword_label": "Vereinbartes Passwort",
+  "privacyLink_label": "Datenschutzerklärung",
   "private_label": "Privat",
   "promotionCodeEnterNeutral_msg": "Bitte geben Sie hier Ihren Freischaltcode ein, um die Speichererweiterung zu aktivieren",
   "promotionCodeEnterValidFormat_msg": "Format gültig.",
@@ -367,7 +368,6 @@ tutao.tutanota.ctrl.LanguageViewModel.de.keys = {
   "saved_msg": "Die Daten wurden erfolgreich gespeichert.",
   "savingFailed_msg": "Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.",
   "secureMail_title": "Die E-Mail wird für alle externen Empfänger verschlüsselt.",
-  "securePasswords_link": "http://de.wikipedia.org/wiki/Passwortsicherheit#Wahl_sicherer_Passw.C3.B6rter",
   "securitySettings_action": "Sicherheit",
   "selectAddress_label": "Bitte E-Mail-Adresse auswählen",
   "sendLogFile_action": "Log-Datei per E-Mail senden",
@@ -406,8 +406,9 @@ tutao.tutanota.ctrl.LanguageViewModel.de.keys = {
   "successfullyCreatedUsers_msg": "Die folgenden Benutzer wurden erfolgreich angelegt. Bitte notieren Sie sich die Passwörter gut und geben Sie sie an die Benutzer weiter.",
   "technicalError_msg": "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
   "termsAcceptedNeutral_msg": "Bitte akzeptieren Sie die AGB.",
-  "termsAndConditionsFree_label": "Ich bestätige, dass ich Tutanota als Privatnutzer verwenden werde, und habe die <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Allgemeinen Geschäftsbedingungen</a> und die <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Datenschutzerklärung</a> gelesen und erkenne diese an.",
-  "termsAndConditionsStarter_label": "Ich habe die <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Allgemeinen Geschäftsbedingungen</a> und die <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Datenschutzerklärung</a> gelesen und erkenne diese an.",
+  "termsAndConditionsFree_label": "Ich bestätige, dass ich Tutanota als Privatnutzer verwenden werde und habe folgende Dokumente gelesen und erkenne diese an:",
+  "termsAndConditionsLink_label": "Allgemeine Geschäftsbedingungen",
+  "termsAndConditionsStarter_label": "Ich habe die folgenden Dokumente gelesen und erkenne diese an:",
   "terms_label": "Bestätigung",
   "testPhaseExpired_msg": "Die kostenfreie Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden. Bitte wenden Sie sich an Ihren Administrator.",
   "thanks_msg": "Vielen Dank für Ihr Verständnis.\nIhr Team von Tutanota",

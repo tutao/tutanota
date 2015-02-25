@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.hr');
-tutao.tutanota.ctrl.LanguageViewModel.hr.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.hr.id = "hr";
-tutao.tutanota.ctrl.LanguageViewModel.hr.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.hr');
+tutao.tutanota.ctrl.lang.hr.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.hr.id = "hr";
+tutao.tutanota.ctrl.lang.hr.keys = {
   "accountDeactivated_msg": "Na žalost vaš Tutanota račun je deaktiviran. Molimo kontaktirajte vašeg administratora.",
   "accountSettings_action": "Račun",
   "account_label": "Korisnik",
@@ -302,7 +302,6 @@ tutao.tutanota.ctrl.LanguageViewModel.hr.keys = {
   "saved_msg": "Uspješno pohranjeno!",
   "savingFailed_msg": "Poruka je uspješno poslana, ali nije mogla biti pohranjena u mapi poslanih poruka.",
   "secureMail_title": "Email je šifriran za vanjske primaoce.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Sigurnost",
   "selectAddress_label": "Molimo odaberite adresu e-pošte",
   "sendLogFile_action": "Slanje log datoteke preko e-maila",
@@ -335,8 +334,8 @@ tutao.tutanota.ctrl.LanguageViewModel.hr.keys = {
   "successfullyCreatedUsers_msg": "Sljedeći korisnici su uspješno kreirani. Molimo zapišite lozinke pažljivo te ih sigurno prenesite korisnicima. ",
   "technicalError_msg": "Došlo je tehničke pogreške. Molimo pokušajte ponovno kasnije. Obavijestite vašeg administratora ako se pogreška ponovno pojavi.",
   "termsAcceptedNeutral_msg": "Molimo prihvatite uvjete korištenja.",
-  "termsAndConditionsFree_label": "Potvrđujem da ću koristiti Tutanotu kao privatni korisnik i da sam pročitao te pristajem na: \n<a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">općenita prava i uvjete</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">izjava o privatnosti</a>.",
-  "termsAndConditionsStarter_label": "Pročitao sam i prihvaćam <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">Općenite uvjete korištenja</a> i <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">izjavu o privatnosti</a>.",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Potvrda",
   "testPhaseExpired_msg": "Besplatna probna faza je istekla, te je slanje povjerljivih (kodiranih) e-mailova deaktivirano. Molimo obratite se vašem administratoru.",
   "thanks_msg": "Hvala vam na suradnji.\nVaš Tutanota tim",

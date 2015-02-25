@@ -29,7 +29,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getCurrentLanguage = function() 
  * @param {string} lang The language to set, one of "en" and "de".
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.setCurrentLanguage = function(lang) {
-	if (!tutao.tutanota.ctrl.LanguageViewModel[lang]) {
+	if (!tutao.tutanota.ctrl.lang[lang]) {
 		throw new Error("invalid language: " + lang);
 	}
 	// tutao.tutanota.util.LocalStore.store('language', lang);
@@ -53,10 +53,10 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
         // we regard texts marked with "@" as static text
         return id.substring(1);
     }
-	var text = tutao.tutanota.ctrl.LanguageViewModel[this._current()]['keys'][id];
+	var text = tutao.tutanota.ctrl.lang[this._current()]['keys'][id];
 	if (!text) {
 		// try fallback language
-		text = tutao.tutanota.ctrl.LanguageViewModel[tutao.tutanota.ctrl.LanguageViewModel.en.id]['keys'][id];
+		text = tutao.tutanota.ctrl.lang[tutao.tutanota.ctrl.lang.en.id]['keys'][id];
 		if (!text){
 			throw new Error("no translation found for id " + id);
 		}
@@ -75,24 +75,24 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.get = function(id, params) {
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
 	return [
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.sq.id, textId: 'languageAlbanian_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.hr.id, textId: 'languageCroatian_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.zh_hant.id, textId: 'languageChineseTraditional'},
-		//{ id: tutao.tutanota.ctrl.LanguageViewModel.zh.id, textId: 'languageChineseSimplified_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.en.id, textId: 'languageEnglish_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.nl.id, textId: 'languageDutch_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.de.id, textId: 'languageGerman_label'},
-		// { id: tutao.tutanota.util.ClientDetector.ar, textId: 'languageArabic_label' },
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.el.id, textId: 'languageGreek_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.fr.id, textId: 'languageFrench_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.it.id, textId: 'languageItalian_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.pl.id, textId: 'languagePolish_label' },
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.pt_pt.id, textId: 'languagePortugesePortugal_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.pt_br.id, textId: 'languagePortugeseBrazil_label' },
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.ro.id, textId: 'languageRomanian_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.ru.id, textId: 'languageRussian_label'},
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.es.id, textId: 'languageSpanish_label' },
-		{ id: tutao.tutanota.ctrl.LanguageViewModel.tr.id, textId: 'languageTurkish_label'}
+		{ id: tutao.tutanota.ctrl.lang.sq.id, textId: 'languageAlbanian_label'},
+		{ id: tutao.tutanota.ctrl.lang.hr.id, textId: 'languageCroatian_label'},
+		{ id: tutao.tutanota.ctrl.lang.zh_hant.id, textId: 'languageChineseTraditional'},
+		//{ id: tutao.tutanota.ctrl.lang.zh.id, textId: 'languageChineseSimplified_label'},
+		{ id: tutao.tutanota.ctrl.lang.en.id, textId: 'languageEnglish_label'},
+		{ id: tutao.tutanota.ctrl.lang.nl.id, textId: 'languageDutch_label'},
+		{ id: tutao.tutanota.ctrl.lang.de.id, textId: 'languageGerman_label'},
+		// { id: tutao.tutanota.ctrl.lang.ar, textId: 'languageArabic_label' },
+		{ id: tutao.tutanota.ctrl.lang.el.id, textId: 'languageGreek_label'},
+		{ id: tutao.tutanota.ctrl.lang.fr.id, textId: 'languageFrench_label'},
+		{ id: tutao.tutanota.ctrl.lang.it.id, textId: 'languageItalian_label'},
+		{ id: tutao.tutanota.ctrl.lang.pl.id, textId: 'languagePolish_label' },
+		{ id: tutao.tutanota.ctrl.lang.pt_pt.id, textId: 'languagePortugesePortugal_label'},
+		{ id: tutao.tutanota.ctrl.lang.pt_br.id, textId: 'languagePortugeseBrazil_label' },
+		{ id: tutao.tutanota.ctrl.lang.ro.id, textId: 'languageRomanian_label'},
+		{ id: tutao.tutanota.ctrl.lang.ru.id, textId: 'languageRussian_label'},
+		{ id: tutao.tutanota.ctrl.lang.es.id, textId: 'languageSpanish_label' },
+		{ id: tutao.tutanota.ctrl.lang.tr.id, textId: 'languageTurkish_label'}
 	]
 };
 
@@ -100,7 +100,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
  * Returns all translations in pretty-printed form to generate textids for outlook.
  */
 tutao.tutanota.ctrl.LanguageViewModel.prototype.allTranslationsAsJson = function() {
-	return JSON.stringify({de: tutao.tutanota.ctrl.LanguageViewModel.de.keys, en: tutao.tutanota.ctrl.LanguageViewModel.en.keys}, null, 2)
+	return JSON.stringify({de: tutao.tutanota.ctrl.lang.de.keys, en: tutao.tutanota.ctrl.lang.en.keys}, null, 2)
 };
 
 
@@ -124,5 +124,5 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype._getDefaultLanguage = function()
 			}
 		}
 	}
-	return tutao.tutanota.ctrl.LanguageViewModel.en.id;
+	return tutao.tutanota.ctrl.lang.en.id;
 };

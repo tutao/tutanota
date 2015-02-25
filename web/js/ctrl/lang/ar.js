@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.ar');
-tutao.tutanota.ctrl.LanguageViewModel.ar.writing_direction = "rtl";
-tutao.tutanota.ctrl.LanguageViewModel.ar.id = "ar";
-tutao.tutanota.ctrl.LanguageViewModel.ar.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.ar');
+tutao.tutanota.ctrl.lang.ar.writing_direction = "rtl";
+tutao.tutanota.ctrl.lang.ar.id = "ar";
+tutao.tutanota.ctrl.lang.ar.keys = {
   "accountSettings_action": "حساب",
   "accountType_label": "نوع الحساب",
   "account_label": "مستخدم",
@@ -226,7 +226,6 @@ tutao.tutanota.ctrl.LanguageViewModel.ar.keys = {
   "savePassword_msg": "تخزين كلمة المرور و لا تسألني مرة أخرى عنها.",
   "save_msg": "البيانات تحفظ الآن...",
   "saved_msg": "تم حفظ البيانات بنجاح.",
-  "securePasswords_link": "https://ar.wikipedia.org/wiki/%D9%82%D9%88%D8%A9_%D9%83%D9%84%D9%85%D8%A9_%D8%A7%D9%84%D8%B3%D8%B1",
   "securitySettings_action": "الأمان",
   "selectAddress_label": "المرجو اختيار عنوان البريد الإلكتروني",
   "sendMail_alt": "إرسال بريد إلكتروني إلى هذا العنوان",
@@ -252,7 +251,7 @@ tutao.tutanota.ctrl.LanguageViewModel.ar.keys = {
   "storePassword_action": "حفظ كلمة المرور",
   "subject_label": "موضوع",
   "termsAcceptedNeutral_msg": "يرجى قبول الشروط والأحكام.",
-  "termsAndConditionsFree_label": "أؤكد أنني سوف استخدم Tutanota كمستخدم خاص ولقد قرأت ووافقت على <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+  "termsAndConditionsFree_label": "",
   "thanks_msg": "شكرا لتعاونكم. \nفريقك من Tutanota",
   "to_label": "إلى",
   "trash_action": "سلةالمهملات",

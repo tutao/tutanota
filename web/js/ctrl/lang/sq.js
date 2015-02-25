@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.sq');
-tutao.tutanota.ctrl.LanguageViewModel.sq.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.sq.id = "sq";
-tutao.tutanota.ctrl.LanguageViewModel.sq.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.sq');
+tutao.tutanota.ctrl.lang.sq.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.sq.id = "sq";
+tutao.tutanota.ctrl.lang.sq.keys = {
   "accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është çaktivizuar. Të lutem, kontaktoje ndorësin.",
   "accountSettings_action": "Llogaria",
   "accountType_label": "Lloji i llogarisë",
@@ -367,7 +367,6 @@ tutao.tutanota.ctrl.LanguageViewModel.sq.keys = {
   "saved_msg": "U ruajt!",
   "savingFailed_msg": "Mesazhi u dërgua, por nuk u ruajt dot në dosjen e mesazheve të dërguara.",
   "secureMail_title": "Marrësve të jashtëm do u dërgohen mesazhe të përfshehura.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Siguria",
   "selectAddress_label": "Të lutem, zgjedhe adresën e postelit",
   "sendLogFile_action": "Dërgoje llogun me postel",
@@ -406,8 +405,8 @@ tutao.tutanota.ctrl.LanguageViewModel.sq.keys = {
   "successfullyCreatedUsers_msg": "U krijuan përdorësit e mëposhtëm. Të lutem, shënoji me kujdes fjalëkalimet dhe jepjau përdorësve.",
   "technicalError_msg": "Ndodhi një gabim teknik. Të lutem, provo sërish më vonë. Njoftoje ndorësin nëse ky gabim përsëritet.",
   "termsAcceptedNeutral_msg": "Të lutem, pranoji kushtet.",
-  "termsAndConditionsFree_label": "Pranoj se do ta përdor Tutanotën si përdorës privat dhe se e kam lexu dhe jam pajtu me <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">kushtet e përgjithshme</a> dhe me <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">politikën e privatësisë</a>.",
-  "termsAndConditionsStarter_label": "I kam lexu dhe pajtohem me <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">kushtet e përgjithshme</a> dhe me <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">politikën e privatësisë</a>.",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Vërtetimi",
   "testPhaseExpired_msg": "Faza falas e testimit ka skadu dhe dërgimi i mesazheve të përfshehura është çaktivizu. Të lutem, kontaktoje ndorësin.",
   "thanks_msg": "Faleminderit për bashkëpunim.\nEkipi i Tutanotës",

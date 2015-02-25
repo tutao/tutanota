@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.en');
-tutao.tutanota.ctrl.LanguageViewModel.en.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.en.id = "en";
-tutao.tutanota.ctrl.LanguageViewModel.en.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.en');
+tutao.tutanota.ctrl.lang.en.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.en.id = "en";
+tutao.tutanota.ctrl.lang.en.keys = {
   "accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
   "accountSettings_action": "Account",
   "accountType_label": "Account type",
@@ -319,6 +319,7 @@ tutao.tutanota.ctrl.LanguageViewModel.en.keys = {
   "presharedPasswordHeading_label": "Agreed:",
   "presharedPasswordNotStrongEnough_msg": "At least one of the entered passwords is not secure enough. Send the email anyway?",
   "presharedPassword_label": "Agreed password",
+  "privacyLink_label": "Privacy policy",
   "private_label": "Private",
   "promotionCodeEnterNeutral_msg": "Please enter your promotion code to activate the storage extension.",
   "promotionCodeEnterValidFormat_msg": "Valid promotion code format.",
@@ -367,7 +368,6 @@ tutao.tutanota.ctrl.LanguageViewModel.en.keys = {
   "saved_msg": "Saved successfully!",
   "savingFailed_msg": "The message has been sent successfully but could not be stored into your sent messages folder.",
   "secureMail_title": "Email is encrypted for external recipients.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Security",
   "selectAddress_label": "Please select email address",
   "sendLogFile_action": "Send log file via email",
@@ -406,8 +406,9 @@ tutao.tutanota.ctrl.LanguageViewModel.en.keys = {
   "successfullyCreatedUsers_msg": "The following users have been created successfully. Please note down the passwords carefully and provide them to the users.",
   "technicalError_msg": "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
   "termsAcceptedNeutral_msg": "Please accept the terms & conditions.",
-  "termsAndConditionsFree_label": "I confirm that I will use Tutanota as private user and I have read and agree to the <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
-  "termsAndConditionsStarter_label": "I have read and agree to the <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
+  "termsAndConditionsFree_label": "I confirm that I will use Tutanota as private user and I have read and agree to the following documents:",
+  "termsAndConditionsLink_label": "General terms and conditions",
+  "termsAndConditionsStarter_label": "I have read and agree to the following documents:",
   "terms_label": "Confirmation",
   "testPhaseExpired_msg": "The free testing phase has expired and the sending of confidential emails has been deactivated. Please contact your administrator.",
   "thanks_msg": "Thank you for your cooperation.\nYour team from Tutanota",

@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.tr');
-tutao.tutanota.ctrl.LanguageViewModel.tr.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.tr.id = "tr";
-tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.tr');
+tutao.tutanota.ctrl.lang.tr.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.tr.id = "tr";
+tutao.tutanota.ctrl.lang.tr.keys = {
   "accountDeactivated_msg": "Ne yazık ki Tutanota hesabınız devre dışı bırakıldı. Lütfen yöneticinize başvurunuz.",
   "accountSettings_action": "Hesap",
   "accountType_label": "Hesap Türü",
@@ -89,12 +89,13 @@ tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
   "deleted_label": "Silindi",
   "desiredAddress_label": "İstediğiniz e-posta adresi",
   "dev_label": "Geliştirici",
+  "discardContactChangesFor_msg": "{1} için yapılan değişiklik kaydedilmeyecek.",
   "discardContactChanges_msg": "İletişim değişiklikleri silinsin mi ?",
   "discardContact_msg": "Yeni kişi silinsinmi?",
   "dismiss_action": "İptal",
   "domainNotAvailableBody_msg": "Sayın {1},\nİlginizden çok memnunuz.\nİstediğiniz alan adı {2} zaten alınmış.\nLütfen yöneticinize başvurunuz.",
   "domainVerificationMailBody_msg": "Sayın {1},\n\nİlginiz nedeniyle memnunuz. Aşağıdaki bağlantıya tıklayarak doğrulamanızı tamamlayabilirsiniz:\n{2}\n",
-  "domainVerificationMailSubject_msg": "{1} için Tutanota alan doğrulaması",
+  "domainVerificationMailSubject_msg": "{1} için Tutanota alan adı doğrulaması",
   "domain_label": "Alan adı",
   "downloadAttachmentNotPossible_msg": "Ne yazık ki, bu ek yüklenemiyor. 7 MB dan büyük ekler şu an için bu aletten desteklenmiyor.",
   "editUser_label": "Kullanıcı ekle",
@@ -102,7 +103,7 @@ tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
   "email_label": "E-posta",
   "emails_alt": "E-postalar",
   "emails_label": "E-postalar",
-  "enterPresharedPassword_msg": "Lütfen gönderen ile belirlediğiniz şifreyi giriniz.",
+  "enterPresharedPassword_msg": "Lütfen gönderici ile aranızda belirlediğiniz şifreyi giriniz.",
   "errorNotification_label": "Hata uyarısı",
   "errorReportDescription_msg": "Beklenmeyen bir hata oluştu. Lütfen ne olduğunu bize anlatın ve bizde en kısa zamanda bu sorunu çözelim.",
   "errorReport_label": "Ah hayır!",
@@ -148,7 +149,7 @@ tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
   "invalidPasswordChannels_msg": "Lütfen şifre kanallarınızı geçersiz telefon numarası için tekrar kontrol ediniz.",
   "invalidPassword_msg": "Geçersiz şifre. Lütfen tekrar kontrol ediniz.",
   "invalidRecipients_msg": "Lütfen alıcı bölümündeki geçersiz e-posta adresini düzeltiniz.",
-  "invalidSwVersion_msg": "Tutanota eklentiniz güncelleştirilmeli. Outlooku tekrar başlattığınızda yeni versiyon otomatik olarak yüklenip kaydedilecektir.",
+  "invalidSwVersion_msg": "Tutanota eklentiniz güncelleştirilmeli. Outlooku tekrar başlattığınızda yeni versiyon otomatik olarak indirilecek ve yüklenecektir.",
   "invitationMailSubject_msg": "Hadi gizliliğimizi Tutanota ile ger alalım!",
   "invite_alt": "Davet et",
   "invite_label": "Davet et",
@@ -268,10 +269,9 @@ tutao.tutanota.ctrl.LanguageViewModel.tr.keys = {
   "savePassword_msg": "Şifreyi kaydet ve bir daha bana sorma.",
   "save_action": "Kaydet",
   "save_msg": "Bilgi kaydediliyor ...",
-  "saved_msg": "Başarıyla kaydedildi.",
+  "saved_msg": "Başarıyla kaydedildi!",
   "savingFailed_msg": "İleti başarıyla gönderildi ama gönderilenler dosyasında saklanamıyor.",
   "secureMail_title": "E-posta dış alıcılar için şifrelendi.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Güvenlik",
   "selectAddress_label": "Lütfen bir e-posta adresi seçiniz",
   "sendMail_alt": "Bu adrese e-posta yolla",

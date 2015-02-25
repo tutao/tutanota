@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.nl');
-tutao.tutanota.ctrl.LanguageViewModel.nl.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.nl.id = "nl";
-tutao.tutanota.ctrl.LanguageViewModel.nl.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.nl');
+tutao.tutanota.ctrl.lang.nl.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.nl.id = "nl";
+tutao.tutanota.ctrl.lang.nl.keys = {
   "accountSettings_action": "Account",
   "accountType_label": "Accountsoort",
   "account_label": "Gebruiker",
@@ -269,7 +269,6 @@ tutao.tutanota.ctrl.LanguageViewModel.nl.keys = {
   "save_msg": "Data aan het opslaan...",
   "saved_msg": "Succesvol bewaard!",
   "savingFailed_msg": "Dit bericht is succesvol verzonden, maar kon niet in uw map met verzonden e-mails geplaatst worden.",
-  "securePasswords_link": "https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords",
   "securitySettings_action": "Beveiliging",
   "selectAddress_label": "Selecteer alstublieft e-mailadres",
   "sendMail_alt": "Stuur e-mail naar dit adres",

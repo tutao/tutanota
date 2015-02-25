@@ -1,7 +1,7 @@
-tutao.provide('tutao.tutanota.ctrl.LanguageViewModel.ru');
-tutao.tutanota.ctrl.LanguageViewModel.ru.writing_direction = "ltr";
-tutao.tutanota.ctrl.LanguageViewModel.ru.id = "ru";
-tutao.tutanota.ctrl.LanguageViewModel.ru.keys = {
+tutao.provide('tutao.tutanota.ctrl.lang.ru');
+tutao.tutanota.ctrl.lang.ru.writing_direction = "ltr";
+tutao.tutanota.ctrl.lang.ru.id = "ru";
+tutao.tutanota.ctrl.lang.ru.keys = {
   "accountDeactivated_msg": "К сожалению, Ваша учетная запись в Tutanota была деактивирована. Пожалуйста, свяжитесь с администратором.",
   "accountSettings_action": "Учётная запись",
   "accountType_label": "Тип учетной записи",
@@ -349,7 +349,6 @@ tutao.tutanota.ctrl.LanguageViewModel.ru.keys = {
   "saved_msg": "Сохранён успешно!",
   "savingFailed_msg": "Сообщение было отправлено успешно, но не может быть сохранено в папке отправленных сообщений.",
   "secureMail_title": "Письмо зашифровано для внешних получателей.",
-  "securePasswords_link": "https://ru.wikipedia.org/wiki/Сложность_пароля",
   "securitySettings_action": "Безопасность",
   "selectAddress_label": "Пожалуйста, выберите адрес эл.почты",
   "sendLogFile_action": "Отправить лог файл через эл.почту",
@@ -388,8 +387,8 @@ tutao.tutanota.ctrl.LanguageViewModel.ru.keys = {
   "successfullyCreatedUsers_msg": "Следующие пользователи были успешно созданы. Пожалуйста, внимательно запишите пароли  и передайте их пользователям.",
   "technicalError_msg": "Произошла техническая ошибка. Пожалуйста, попробуйте снова позже. Сообщите вашему администратору, если эта ошибка повторится.",
   "termsAcceptedNeutral_msg": "Пожалуйста, примите правила пользования.",
-  "termsAndConditionsFree_label": "Я подтверждаю, что буду использовать Tutanota как частный пользователь и Я прочитал, и согласен с <a href=\"https://tutanota.de/#!termsfree\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a>.",
-  "termsAndConditionsStarter_label": "Я прочитал и согласен с <a href=\"https://tutanota.de/#!termsstarter\" target=\"_blank\" data-bind=\"tabindex=\"-1\">general terms and conditions</a> and the <a href=\"https://tutanota.de/#!privacy\" target=\"_blank\" data-bind=\"tabindex=\"-1\">privacy policy</a> .",
+  "termsAndConditionsFree_label": "",
+  "termsAndConditionsStarter_label": "",
   "terms_label": "Подтверждение",
   "testPhaseExpired_msg": "Бесплатное тестирования завершено и отправка конфиденциальных писем деактивирована. Пожалуйста, обратитесь к администратору.",
   "thanks_msg": "Спасибо за ваше сотрудничество.\nВаша команда Tutanota",
