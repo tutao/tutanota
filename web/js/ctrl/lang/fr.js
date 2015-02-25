@@ -129,7 +129,6 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "errorReport_label": "Oh non !",
   "expiredLink_msg": "Désolé, ce lien n'est plus valide. Vous devriez avoir reçu un nouvel e-mail de notification avec un lien valide. Les précédents ont été désactivés pour des raisons de sécurité.",
   "export_action": "Exporter",
-  "externalMailPassword_msg": "Votre mot de passe Tutanota : \"{1}\" ou cliquez simplement sur : {2}",
   "externalNotificationMailBody1_msg": "Bonjour,",
   "externalNotificationMailBody2_msg": "Je vous ai envoyé un message confidentiel via {1}. Tutanota chiffre automatiquement les messages, y compris leurs pièces jointes. Vous pouvez accéder à votre boîte aux lettres chiffrée et répondre par un message chiffré grâce au lien suivant :",
   "externalNotificationMailBody3_msg": "Afficher le message chiffré",

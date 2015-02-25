@@ -120,7 +120,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "errorReport_label": "Ουπς!",
   "expiredLink_msg": "Λυπούμαστε, αυτός ο σύνδεσμος δεν είναι πλέον ενεργός. Θα πρέπει να έχετε ήδη λάβει ένα νέο email με ενεργό σύνδεσμο. Οι σύνδεσμοι που απεστάλησαν με προηγούμενα email δεν είναι ενεργοί για λόγους ασφαλείας.",
   "export_action": "Εξαγωγή",
-  "externalMailPassword_msg": "Ο κωδικός σας Tutanota: \"{1}\" ή κάνετε κλικ εδώ: {2}",
   "externalNotificationMailBody1_msg": "Γεια σας,",
   "externalNotificationMailBody2_msg": "Σας έστειλα ένα εμπιστευτικό email μέσω του {1}. Το Tutanota κρυπτογραφεί αυτόματα τα μηνύματα, συμπεριλαμβανομένων των attachments. Μπορείτε να δείτε το μήνυμα και να απαντήσετε στο κρυπτογραφημένο μήνυμα ακολουθώντας αυτό το σύνδεσμο: ",
   "externalNotificationMailBody3_msg": "Αποκρυπτογράφησε το μήνυμα",

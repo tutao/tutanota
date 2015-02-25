@@ -112,7 +112,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "errorReport_label": "O, ne!",
   "expiredLink_msg": "Žao nam je ali ovaj link više nije važeći. Trebali bi primiti novi obavijesni e-mail sa važećim sigurnosnim linkom. Prethodni linkovi se deaktiviraju zbog sigurnosnih razloga.",
   "export_action": "Izvoz",
-  "externalMailPassword_msg": "Vaša Tutanota zaporka: \"{1}\", ili jednostavno kliknite: {2}",
   "externalNotificationMailBody1_msg": "Pozdrav,",
   "externalNotificationMailBody3_msg": "Pokaži šifriranu e-poštu",
   "externalNotificationMailBody4_msg": "Ili zalijepite ovaj link u vašem pregledniku:",

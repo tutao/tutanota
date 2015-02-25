@@ -91,7 +91,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "errorReport_label": "Oh nee!",
   "expiredLink_msg": "Sorry, de link is niet meer geldig. U zou een nieuwe e-mail moeten hebben ontvangen met de nu geldige link. Eerdere links zijn gedeactiveerd om veiligheidsredenen.",
   "export_action": "Exporteer",
-  "externalMailPassword_msg": "Uw Tutanota-wachtwoord: {1} of klik: {2}",
   "externalNotificationMailBody1_msg": "Hallo,",
   "externalNotificationMailBody3_msg": "Laat versleutelde e-mail zien",
   "externalNotificationMailBody4_msg": "Of plak deze link in uw browser:",

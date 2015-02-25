@@ -129,7 +129,6 @@ tutao.tutanota.ctrl.lang.sq.keys = {
   "errorReport_label": "Qyqet!",
   "expiredLink_msg": "Na vjen keq, kjo vegëz nuk është më e gatshme. Është dashtë të kesh marrë një mesazh njoftues me vegzën e re. Vegzat e vjetra këputen për arsye sigurie.",
   "export_action": "Nxirr",
-  "externalMailPassword_msg": "Fjalëkalimi yt te Tutanota është \"{1}.\" Përndryshe, vetëm kliko këtu: {2}",
   "externalNotificationMailBody1_msg": "Tung,",
   "externalNotificationMailBody2_msg": "Ta kam dërgu një mesazh nbesë përmes {1}. Tutanota vetiu i përfsheh fundekrye mesazhet, përfshi bashkangjitjet. Mund ta qasësh postën e përfshehur dhe të përgjigjesh me mesazh të përfshehur duke kliku mbi këtë vegëz:",
   "externalNotificationMailBody3_msg": "Shfaqe mesazhin e përfshehur",

@@ -77,7 +77,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "errorNotification_label": "إعلام خطأ",
   "errorReportDescription_msg": "حدث خطأ غير متوقع. من فضلك قل لنا ما حدث، ونحن سوف نحل المشكلة في أقرب وقت ممكن.",
   "export_action": "تصدير",
-  "externalMailPassword_msg": "Tutanota كلمة المرور الخاصة بك: \"{1}\" أو مجرد الضغط على: {2}",
   "externalNotificationMailBody3_msg": "اظهار الرسالة المشفرة",
   "externalNotificationMailBody4_msg": "أو انسخ هذا الرابط في المتصفح الخاص بك:",
   "externalNotificationMailSubject_msg": "البريد الإلكتروني سرية من {1}",

@@ -21,7 +21,7 @@ describe("LanguageViewModelTest", function () {
 
     it(" that retrieving translations with params works", function () {
         this.vm.setCurrentLanguage("en");
-        assert.equal("The code was sent to abcde.", this.vm.get("codeInputInfo_msg", {'{1}': 'abcde'}));
+        assert.equal("Your Tutanota password: \"abcde\" or just click: fghi", this.vm.get("externalMailPassword_msg", {'{1}': 'abcde', '{2}': 'fghi'}));
     });
 
     it(" that all translation names have a valid suffix", function () {

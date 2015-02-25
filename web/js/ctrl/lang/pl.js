@@ -129,7 +129,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "errorReport_label": "Och nie!",
   "expiredLink_msg": "Przepraszamy, ten link jest nieaktualny. Powinieneś był otrzymać nowe powiadomienie z nowym linkiem. Poprzednie linki zostały zdezaktualizowane dla zachowania bezpieczeństwa.",
   "export_action": "Eksportuj",
-  "externalMailPassword_msg": "Twoje hasło w serwisie Tutanota: \"{1}\" lub kliknij: {2}",
   "externalNotificationMailBody1_msg": "Cześć,",
   "externalNotificationMailBody2_msg": "Wysłałem ci poufną wiadomość z serwisu {1}. Tutanota szyfruje automatycznie wszystkie wiadomości wraz z załącznikami. Możesz przeczytać i odpowiedzieć na tę wiadomość klikając w ten link: ",
   "externalNotificationMailBody3_msg": "Pokaż zaszyfrowaną wiadomość",

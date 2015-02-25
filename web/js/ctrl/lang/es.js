@@ -129,7 +129,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "errorReport_label": "¡Oh no!",
   "expiredLink_msg": "Lo sentimos, el enlace ya no es válido. Debes haber recibido un nuevo correo con el nuevo enlace válido. Los enlaces previos se han deshabilitado por seguridad.",
   "export_action": "Exportar",
-  "externalMailPassword_msg": "Tu contraseña de Tutanota: \"{1}\" o pincha: {2}",
   "externalNotificationMailBody1_msg": "Hola,",
   "externalNotificationMailBody2_msg": "Te he enviado un correo confidencial vía {1}. Tutanota encripta los correos automáticamente, incluyendo los archivos adjuntos. Puedes leer tu bandeja encriptada y también responder con un correo encriptado utilizando el siguiente enlace:",
   "externalNotificationMailBody3_msg": "Mostrar correo encriptado",

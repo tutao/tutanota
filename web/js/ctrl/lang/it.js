@@ -129,7 +129,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "errorReport_label": "Oh no!",
   "expiredLink_msg": "Siamo spiacenti ma questo link non e' piu' valido. Dovresti aver ricevuto una nuova e-mail di notifica con il link attualmente valido. Link precedenti sono disattivati per ragioni di sicurezza.",
   "export_action": "Esporta",
-  "externalMailPassword_msg": "La tua password Tutanota: \"{1}\" oppure clicca su:{2}",
   "externalNotificationMailBody1_msg": "Ciao, ",
   "externalNotificationMailBody2_msg": "Ti ho inviato un'email riservata attraverso {1}. Tutanota invia  le email direttamente al destinatario in forma criptata, incluso gli allegati. Puoi visualizzare la tua casella postale criptata e replicare con una mail criptata seguendo il link riportato di seguito:",
   "externalNotificationMailBody3_msg": "Mostra la mail criptata",

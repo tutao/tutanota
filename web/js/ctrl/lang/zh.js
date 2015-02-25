@@ -45,7 +45,6 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "email_label": "电子邮件",
   "enterPresharedPassword_msg": "请输入您与寄件人协议的密码。",
   "errorReport_label": "噢不",
-  "externalMailPassword_msg": "您的Tutanota密码： \"{1}\" 或点击:{2}",
   "externalNotificationMailBody1_msg": "嗨，",
   "externalNotificationMailBody3_msg": "显示加密邮件",
   "externalNotificationMailBody4_msg": "或在浏覽器中粘贴此连结。",
