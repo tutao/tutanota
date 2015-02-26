@@ -127,7 +127,7 @@ tutao.native.FileFacadeBrowser.prototype.uploadFileData = function(dataFile, ses
 tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
     var fileParams = new tutao.entity.tutanota.FileDataDataGet()
         .setFile(file.getId())
-        .setBase64(tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE);
+        .setBase64(false);
 	var params = {};
 	params[tutao.rest.ResourceConstants.GET_BODY_PARAM] = encodeURIComponent(JSON.stringify(fileParams.toJsonData()));
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();
@@ -186,11 +186,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
         }
 
         if (typeof dataFile.getData() === "string") {
-            // LEGACY mode
-            var downloadButton = $("#downloadButton_" + dataFile.getId()[1]);
-            return new tutao.tutanota.legacy.FlashFileSaver("flashDownloader_" + dataFile.getId()[1], downloadButton, downloadButton.outerWidth() + 2, downloadButton.outerHeight() + 2, dataFile.getData(), dataFile.getName()).then(function() {
-                downloadButton.find("> span.legacyDownloadText").show().css("visibility", "visible");
-            });
+            // LEGACY mode flash not supported anymore
         } else if (window.saveAs || navigator.saveBlob) {
             var blob = new Blob([dataFile.getData()], { "type" : mimeType });
             try {

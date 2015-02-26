@@ -46,8 +46,6 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP = "Desktop";
 
 /** browser is supported */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED = "supported";
-/** browser is supported in legacy mode for IE9 with flash plugin (view mails es external recipient). Replying to emails is not supported. */
-tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE = "legacy ie";
 /** browser does not support attaching files and downloading attachments */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE = "legacy ie mobile";
 /** browser is supported in legacy mode for Safari (view mails es external recipient). Downloading attachments is not fully supported. */
@@ -202,14 +200,8 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     } else {
         info._supported = info.SUPPORTED_TYPE_SUPPORTED;
     }
-	if (info._device == info.DEVICE_TYPE_DESKTOP &&
-            info._browser == info.BROWSER_TYPE_IE &&
-            info._browserVersion >= 9 && // since version 9 file download is supported
-            info._browserVersion < 10 &&
-            window.swfobject &&
-            swfobject.getFlashPlayerVersion().major >= 8) {
-        info._supported = info.SUPPORTED_TYPE_LEGACY_IE;
-    } if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
+
+  	if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
             info._browser == info.BROWSER_TYPE_IE &&
             info._browserVersion >= 10) {
         info._supported = info.SUPPORTED_TYPE_LEGACY_IE_MOBILE;

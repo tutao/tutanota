@@ -71,7 +71,7 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
 
     var fileParams = new tutao.entity.tutanota.FileDataDataGet()
         .setFile(file.getId())
-        .setBase64(tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE);
+        .setBase64(false);
 	var params = {};
 	params[tutao.rest.ResourceConstants.GET_BODY_PARAM] = encodeURIComponent(JSON.stringify(fileParams.toJsonData()));
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();

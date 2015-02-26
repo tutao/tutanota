@@ -14,14 +14,6 @@ describe("ClientDetectorTest", function () {
         tutao.env.mode = originalMode;
     });
 
-    beforeEach(function () {
-        swfobject = {
-            getFlashPlayerVersion: function () {
-                return {major: 8 };
-            }
-        };
-    });
-
     it(" detect chrome windows", function () {
         var info = tutao.tutanota.util.ClientDetector;
         info._setClientInfo("Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/29.0.1295.0 Safari/537.15");
@@ -154,7 +146,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
         assert.equal(false, info.isMobileDevice());
         assert.equal(false, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
     });
 
     it(" detect old ie9 in IE8 mode windows", function () {

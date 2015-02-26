@@ -11,7 +11,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel = function() {
     var mailFolder = new tutao.entity.tutanota.MailFolder();
     mailFolder.setFolderType("1");
     var dummyMailFolder = new tutao.tutanota.ctrl.MailFolderViewModel(mailFolder, null);
-    //@type function(tutao.tutanota.ctrl.MailFolderViewModel=):tutao.tutanota.ctrl.MailFolderViewModel
+    // @type function(tutao.tutanota.ctrl.MailFolderViewModel=):tutao.tutanota.ctrl.MailFolderViewModel
     this.selectedFolder = ko.observable(dummyMailFolder); // bound by MailListViewModel
 
     this._folders = ko.observableArray();

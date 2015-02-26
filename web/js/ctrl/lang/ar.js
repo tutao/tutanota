@@ -34,7 +34,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "check_msg": "التحقق ...",
   "claim_label": "Tutanota - بريد تم ايجاده بشكل صحيح!",
   "clickNumber_msg": "يرجى الضغط على زر \"إرسال SMS\" أدناه. سيتم إرسال كلمة المرور Tutanota لصندوق البريد الخاص بك لعدد معين فقط (أقصاها ثلاث رسائل نصية).",
-  "clickToSave_label": "انقر للحفظ",
   "close_alt": "اغلاق",
   "comment_label": "تعليق",
   "company_placeholder": "شركة",

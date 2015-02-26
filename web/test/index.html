@@ -19,7 +19,6 @@
     <script src="/lib/knockout-2.2.1.js"></script>
     <script src="/lib/operative-0.3.1.js"></script>
     <script src="/lib/path-2012-10-03.js"></script>
-    <script src="/lib/swfobject-2.2.min.js"></script>
     <script src="/lib/dev/less-1.7.0.min.js"></script>
     <script src="/lib/worker/base.js"></script>
     <script src="/lib/worker/base64shim.js"></script>
@@ -105,22 +104,21 @@
     <script src="/js/ctrl/View.js"></script>
     <script src="/js/ctrl/ViewManager.js"></script>
     <script src="/js/ctrl/ViewSlider.js"></script>
+    <script src="/js/db/DbInterface.js"></script>
+    <script src="/js/db/DummyDb.js"></script>
+    <script src="/js/db/WebSqlDb.js"></script>
     <script src="/js/entity/BucketData.js"></script>
     <script src="/js/entity/ContactExtension.js"></script>
     <script src="/js/entity/ContactWrapper.js"></script>
     <script src="/js/entity/EntityHelper.js"></script>
     <script src="/js/entity/TutanotaConstants.js"></script>
     <script src="/js/error/RecipientsNotFoundError.js"></script>
-    <script src="/js/db/DbInterface.js"></script>
-    <script src="/js/db/DummyDb.js"></script>
-    <script src="/js/db/WebSqlDb.js"></script>
     <script src="/js/event/EventBusClient.js"></script>
     <script src="/js/event/EventBusListener.js"></script>
     <script src="/js/event/ListEventTracker.js"></script>
     <script src="/js/event/Observable.js"></script>
     <script src="/js/event/ObservableInterface.js"></script>
     <script src="/js/event/PushListEventTracker.js"></script>
-    <script src="/js/index/Indexer.js"></script>
     <script src="/js/gui/BubbleInputGui.js"></script>
     <script src="/js/gui/ContactView.js"></script>
     <script src="/js/gui/ExternalLoginView.js"></script>
@@ -135,7 +133,7 @@
     <script src="/js/gui/SettingsView.js"></script>
     <script src="/js/gui/SwipeSlider.js"></script>
     <script src="/js/gui/gui.js"></script>
-    <script src="/js/legacy/FlashFileSaver.js"></script>
+    <script src="/js/index/Indexer.js"></script>
     <script src="/js/legacy/Legacy.js"></script>
     <script src="/js/native/AndroidFile.js"></script>
     <script src="/js/native/ConfigApp.js"></script>
@@ -168,6 +166,8 @@
     <script src="/js/rest/EntityRestInterface.js"></script>
     <script src="/js/rest/ResourceConstants.js"></script>
     <script src="/js/rest/RestClient.js"></script>
+    <script src="/js/security/CajaSanitizer.js"></script>
+    <script src="/js/security/HtmlSanitizer.js"></script>
     <script src="/js/util/ArrayUtils.js"></script>
     <script src="/js/util/Assert.js"></script>
     <script src="/js/util/ClientDetector.js"></script>
@@ -185,8 +185,6 @@
     <script src="/js/util/StateMachine.js"></script>
     <script src="/js/util/StringUtils.js"></script>
     <script src="/js/util/bind.js"></script>
-    <script src="/js/security/CajaSanitizer.js"></script>
-    <script src="/js/security/HtmlSanitizer.js"></script>
     <script src="/js/ctrl/bubbleinput/Bubble.js"></script>
     <script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
     <script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
@@ -404,10 +402,10 @@
     <script src="/test/js/gui/MailViewBlockquoteSplittingTest.js"></script>
     <script src="/test/js/gui/MailViewTest.js"></script>
     <script src="/test/js/index/IndexerTest.js"></script>
+    <script src="/test/js/native/FileUtilAndroidTest.js"></script>
     <script src="/test/js/rest/EntityRestCacheTest.js"></script>
     <script src="/test/js/rest/EntityRestClientTest.js"></script>
     <script src="/test/js/rest/StaticEntityRestFunctionsTest.js"></script>
-    <script src="/test/js/native/FileUtilAndroidTest.js"></script>
     <script src="/test/js/util/ArrayUtilsTest.js"></script>
     <script src="/test/js/util/BucketTestUtils.js"></script>
     <script src="/test/js/util/ClientDetectorTest.js"></script>
@@ -424,13 +422,6 @@
     <script src="/test/js/generated/entity/aggregatedtype/At1.js"></script>
     <script src="/test/js/generated/entity/aggregatedtype/At2.js"></script>
     <script src="/test/js/generated/entity/aggregatedtype/Et1.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/Attachment.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/Contact.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/Mail.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/MailAddress.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/MailBody.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/MailBox.js"></script>
-    <script src="/test/js/generated/entity/tutanotaunencrypted/SendMailService.js"></script>
     <script src="/test/js/generated/entity/valueencrypted/Aggregated.js"></script>
     <script src="/test/js/generated/entity/valueencrypted/Et.js"></script>
     <script src="/test/js/generated/entity/valueencrypted/Et2.js"></script>
@@ -441,6 +432,13 @@
     <script src="/test/js/generated/entity/valueunencrypted/Et2.js"></script>
     <script src="/test/js/generated/entity/valueunencrypted/EtZeroOrOneValues.js"></script>
     <script src="/test/js/generated/entity/valueunencrypted/Let.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/Attachment.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/Contact.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/Mail.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/MailAddress.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/MailBody.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/MailBox.js"></script>
+    <script src="/test/js/generated/entity/tutanotaunencrypted/SendMailService.js"></script>
     <!-- endinject -->
     <script src="/js/util/init.js"></script>
     <!-- endbuild -->

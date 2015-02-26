@@ -37,7 +37,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "changePasswordNotSupported_msg": "Om veiligheidsredenen is het wijzigen van uw wachtwoord niet mogelijk op mobiele apparaten",
   "changePasswordSettings_action": "Wijzig wachtwoord",
   "changePassword_label": "Wijzig wachtwoord",
-  "clickToSave_label": "Klik om te bewaren",
   "close_alt": "Sluit",
   "comment_label": "Opmerking",
   "company_label": "Bedrijf",
