@@ -135,12 +135,3 @@ tutao.crypto.AesInterface.prototype.encryptPrivateRsaKey = function(key, hexRsaP
  * @throws {tutao.crypto.CryptoError} If the decryption fails.
  */
 tutao.crypto.AesInterface.prototype.decryptPrivateRsaKey = function(key, base64) {};
-
-/**
- * LEGACY: Decrypts the content of base64 coded binary data in CBC mode and provides the decrypted data as base64.
- * @param {Object} key The key to use for the decryption.
- * @param {String} srcBase64 The encrypted data, base64 coded.
- * @param {number} decryptedSize The number of bytes the decrypted data.
- * @return {Promise.<?String,tutao.crypto.CryptoError=>} Promise with the decrypted base64 data. Rejected with an exception if the decryption failed.
- */
-tutao.crypto.AesInterface.prototype.decryptBase64 = function(key, srcBase64, decryptedSize) {};

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!--[if IE 8]>     <html class="ie ie8 lte9 lte8"> <![endif]-->
-<!--[if IE 9]>     <html class="ie ie9 lte9"> <![endif]-->
+<!--[if IE 8]>     <html> <![endif]-->
+<!--[if IE 9]>     <html> <![endif]-->
 <!--[if gt IE 9]>  <html manifest="tutanota.appcache"> <![endif]-->
 <!--[if !IE]><!--> <html manifest="tutanota.appcache"> <!--<![endif]-->
 <!-- IE 10 can not only be recognized by js, so it is done in the following lines -->
@@ -1095,8 +1095,8 @@
 							<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
 								<div class="record">
 									<label for="externalMailPasswordInput" class="recordName" data-bind="lang: 'password_label'"></label>
-									<div class="recordData">                                                                                                                                                                                <!-- see http://stackoverflow.com/a/11109560 on why valueUpdate: 'input' is not enough for IE8 -->
-										<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: ['afterkeydown','propertychange','input'], hasfocus: passphraseFieldFocused"/>
+									<div class="recordData">
+										<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
 										<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
 									</div>
 								</div>

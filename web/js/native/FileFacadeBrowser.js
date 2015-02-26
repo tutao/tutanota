@@ -133,10 +133,7 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();
 	return tutao.locator.restClient.getBinary(tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, params), headers).then(function(data) {
         if (typeof data === "string") {
-            // LEGACY variant for IE9 which uses an Array instead of ArrayBuffer
-            return tutao.locator.aesCrypter.decryptBase64(file._entityHelper._sessionKey, data, file.getSize()).then(function(decryptedData) {
-                return new tutao.tutanota.util.DataFile(decryptedData, file);
-            });
+            throw new Error("datatype string not supported");
         } else {
             var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(file._entityHelper._sessionKey));
             return tutao.locator.crypto.aesDecrypt(byteSessionKey, new Uint8Array(data), Number(file.getSize())).then(function(decryptedData) {
@@ -186,7 +183,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
         }
 
         if (typeof dataFile.getData() === "string") {
-            // LEGACY mode flash not supported anymore
+            throw new Error("datatype string not supported");
         } else if (window.saveAs || navigator.saveBlob) {
             var blob = new Blob([dataFile.getData()], { "type" : mimeType });
             try {

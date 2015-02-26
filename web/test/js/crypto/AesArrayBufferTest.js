@@ -81,19 +81,6 @@ describe("AesArrayBufferTest", function () {
         return facade.aesEncrypt(key, arrayBuffer);
     };
 
-    var _base64Roundtrip = function (facade, key, plainText) {
-        var unencryptedBits = _arrayBufferToBitArray(plainText);
-        var unencryptedBytes = sjcl.codec.bytes.fromBits(unencryptedBits);
-        var unencryptedBase64 = sjcl.codec.base64.fromBits(unencryptedBits);
-        return facade.aesEncrypt(key, plainText).then(function (encrypted) {
-            var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-            var oldFacade = new tutao.crypto.SjclAes();
-            return oldFacade.decryptBase64(oldFacade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, plainText.length).then(function (decryptedBase64) {
-                assert.equal(unencryptedBase64, decryptedBase64);
-            });
-        });
-    };
-
 
     it("ArrayRoundtrip ", function () {
         this.timeout(24000);
@@ -241,87 +228,4 @@ describe("AesArrayBufferTest", function () {
 
     });
 
-    it("DecryptBase64InvalidBase64 ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh&=", 6), /error during base64 decryption, original message: this isn't base64!/);
-    });
-
-    it("DecryptBase64InvalidKey ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        return assert.isRejected(facade.decryptBase64([1, 2], "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 6), /invalid key length: 64/);
-    });
-
-    it("DecryptBase64InvalidSrcBuffer ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        return assert.isRejected(facade.decryptBase64(key, "AAECA", 6), /invalid src buffer len: 3.75/);
-    });
-
-    it("DecryptBase64TooSmallSrcBuffer ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.generateRandomKey();
-        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODA==", 6), /invalid src buffer len: 16/);
-    });
-
-    it("DecryptBase64InvalidPadding ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = facade.hexToKey("a8db9ef70c44dc8acce26e9f44ca2f37"); // use a fixed key here to avoid that the padding value might accidentally be correct
-        return assert.isRejected(facade.decryptBase64(key, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", 17), /invalid padding value: 243/);
-    });
-
-    it("DecryptBase64InvalidDecryptedSize ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = tutao.locator.crypto.generateAesKey();
-        return tutao.locator.crypto.aesEncrypt(key, _createArray(64)).then(function (encrypted) {
-            var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-            return assert.isRejected(facade.decryptBase64(facade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, 65), /invalid decrypted size: 65, expected: 64/);
-        });
-    });
-
-    it("DecryptBase64InvalidDstLen ", function () {
-        var facade = new tutao.crypto.SjclAes();
-        var key = tutao.locator.crypto.generateAesKey();
-        return tutao.locator.crypto.aesEncrypt(key, _createArray(64)).then(function (encrypted) {
-            var encryptedBase64 = sjcl.codec.base64.fromBits(_arrayBufferToBitArray(encrypted));
-            return assert.isRejected(facade.decryptBase64(facade.hexToKey(tutao.util.EncodingConverter.bytesToHex(key)), encryptedBase64, 63), /invalid dst buffer len: 63, src buffer len: 96/);
-        });
-    });
-
-    it("DecryptBase64Roundtrip ", function () {
-        this.timeout(60000);
-
-        var facade = tutao.locator.crypto;
-        var key = facade.generateAesKey();
-        return _base64Roundtrip(facade, key, _createArray(0)).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(1));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(15));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(16));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(17));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(31));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(32));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(32));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(33));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(33));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(33));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(63));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(64));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(12345));
-        }).then(function () {
-            return _base64Roundtrip(facade, key, _createArray(120 * 1024)); // more than 100 KB to test the stTimeout
-        });
-
-    });
 });
