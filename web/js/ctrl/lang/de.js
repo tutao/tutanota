@@ -147,6 +147,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "failedLogins_label": "Fehlgeschlagene Logins",
   "fax_label": "Fax",
   "feedbackErrorInfo_msg": "Die Nachricht wird zusammen mit der Browser-Kennung und Fehlerdetails verschlüsselt an support@tutao.de gesendet.",
+  "feedbackLanguageInfo_msg": "Bitte verfasse deinen Fehlerbericht in englischer oder deutscher Sprache.",
   "finalDelete_action": "Löschen",
   "firstName_placeholder": "Vorname",
   "folderNameCreate_label": "Ordner erstellen",

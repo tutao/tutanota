@@ -1191,7 +1191,7 @@
                         <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
                             <div class="smallInfoMessage">
                                 <div data-bind="lang: 'regDisabledStarter_msg'"></div>
-                                <a href="https://tutanota.de/#contact" target="_blank" data-bind="text: 'https://tutanota.de/#contact'" tabindex="-1"></a>
+                                <a href="https://tutanota.com/contact" target="_blank" data-bind="text: 'https://tutanota.com/contact'" tabindex="-1"></a>
                             </div>
                         <!-- /ko -->
                     </div>
@@ -1287,16 +1287,9 @@
                                     <div class="recordData">
                                         <div class="recordValue">
                                             <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-                                            <!-- ko if: getRegistrationType() == 'Free' -->
-                                            <label for="termsInput" data-bind="lang: 'termsAndConditionsFree_label' "></label>
-											<a class="singleLineLink" href="https://tutanota.de/#!termsfree" data-bind="lang: 'termsAndConditionsLink_label' "></a>
-											<a class="singleLineLink" href="https://tutanota.de/#!privacy" data-bind="lang: 'privacyLink_label' "></a>
-                                            <!-- /ko -->
-                                            <!-- ko if: getRegistrationType() == 'Starter' -->
-                                            <label for="termsInput" data-bind="lang: 'termsAndConditionsStarter_label' "></label>
-											<a class="singleLineLink" href="https://tutanota.de/#!termsstarter" data-bind="lang: 'termsAndConditionsLink_label' "></a>
-											<a class="singleLineLink" href="https://tutanota.de/#!privacy" data-bind="lang: 'privacyLink_label' "></a>
-                                            <!-- /ko -->
+                                            <label for="termsInput" data-bind="lang: getTermsLabel() "></label>
+											<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
+											<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
                                         </div>
                                         <label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
                                     </div>
@@ -1754,7 +1747,7 @@
 			<span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: 'errorReport_label'"></h2>
             <div class="descriptionFont" data-bind="lang: 'errorReportDescription_msg'"></div>
-			<textarea rows="3" data-bind="value: message"></textarea>
+			<textarea rows="3" data-bind="value: message, attr: {placeholder: tutao.lang('feedbackLanguageInfo_msg')}"></textarea>
             <div class="modalDialogInfo" data-bind="lang: 'feedbackErrorInfo_msg' "></div>
             <button class="single " data-bind="fastClick: function() { setTimeout(function() { sendFeedback(); }, 0); }, lang: 'send_action'"></button>
 		</div>
@@ -1879,7 +1872,7 @@
                 <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
                     <img src="graphics/android_en.png" data-bind="attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
                 </a>
-                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?ls=1&mt=8" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD">
+                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD">
                     <img src="graphics/ios_en.png" data-bind="attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }" />
                 </a>
             </div>

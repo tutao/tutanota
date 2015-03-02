@@ -186,7 +186,7 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "loadMoreMails_action": "Charger plus de courriels",
   "loadMore_action": "Charger plus",
   "loadingMail_msg": "Chargement de la boite de réception...",
-  "loading_msg": "Chargement en cours…",
+  "loading_msg": "Chargement…",
   "loginAction_msg": "Vous ne recevrez des e-mails sécurisés par Tutanota qu'après vous être connecté.",
   "loginFailedOften_msg": "Trop d'échecs de connexion. Veuillez réessayer ultérieurement.",
   "loginFailed_msg": "Identifiants de connexion invalides. Veuillez essayer à nouveau.",
