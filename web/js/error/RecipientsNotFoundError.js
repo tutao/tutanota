@@ -14,7 +14,18 @@ tutao.RecipientsNotFoundError = function RecipientsNotFoundError(recipients) {
     if (Error.captureStackTrace) {
         Error.captureStackTrace(this, RecipientsNotFoundError);
     } else {
-        this.stack = this.name + ". " + this.message + "\n" + new Error().stack.split("\n").slice(1).join("\n"); // removes first line from stack
+        var newError = new Error();
+        if (!newError.stack) {
+            // fill the stack trace on ios devices
+            try {
+                throw error;
+            } catch (e) {
+            }
+        }
+
+        if (newError.stack) { // not existing in IE9
+            this.stack = this.name + ". " + this.message + "\n" + newError.stack.split("\n").slice(1).join("\n"); // removes first line from stack
+        }
     }
 };
 tutao.RecipientsNotFoundError.prototype = Object.create(Error.prototype);
