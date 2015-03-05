@@ -178,7 +178,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "languageAlbanian_label": "Albanés",
   "languageArabic_label": "Árabe",
   "languageChineseSimplified_label": "Chino simplificado",
-  "languageChineseTraditional": "Chino, tradicional",
+  "languageChineseTraditional_label": "Chino, tradicional",
   "languageCroatian_label": "Croata",
   "languageDutch_label": "Holandés",
   "languageEnglish_label": "Inglés",

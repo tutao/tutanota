@@ -26,47 +26,25 @@ describe("LanguageViewModelTest", function () {
 
     it(" that all translation names have a valid suffix", function () {
         var validSuffixes = ["label", "action", "msg", "title", "alt", "placeholder", "link"];
-        for (var translation in tutao.tutanota.ctrl.LanguageViewModel["en"]) {
+        for (var translation in tutao.tutanota.ctrl.lang.en.keys) {
             assert.isTrue(translation.indexOf("_") != -1, "translation name \"" + translation + "\" does not have a suffix");
             assert.isTrue(tutao.util.ArrayUtils.contains(validSuffixes, translation.substring(translation.indexOf("_") + 1)), "translation name \"" + translation + "\" does not have a valid suffix");
         }
     });
 
-    it(" that the languages share the same translations", function () {
-        for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
-            if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
-                for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
-                    for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
-                        if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(otherLanguage)) {
-                            assert.isDefined(translation + " undefined in " + language + ": ", tutao.tutanota.ctrl.LanguageViewModel[language][translation]);
-                            assert.isDefined(translation + " undefined in " + otherLanguage + ": ", tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation]);
-                        }
+    it(" that en and de translations all begin with either lowercase or uppercase letter", function () {
+        for (var language in { "en": null, "de": null}) {
+            for (var translation in tutao.tutanota.ctrl.lang[language].keys) {
+                for (var otherLanguage in { "en": null, "de": null}) {
+                    if (translation=="externalNotificationMailBody2_msg"){ // skipp check
+                        continue;
+                    }
+                    var textLang1 = tutao.tutanota.ctrl.lang[language].keys[translation];
+                    var textLang2 = tutao.tutanota.ctrl.lang[otherLanguage].keys[translation];
+                    if (typeof textLang1 == "string") {
+                        assert.equal(textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase(), "different case beginning of text: " + textLang1 + ", " + textLang2);
                     }
                 }
-            }
-        }
-    });
-
-    it(" that translations all begin with either lowercase or uppercase letter", function () {
-        for (var language in tutao.tutanota.ctrl.LanguageViewModel) {
-            if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(language)) {
-                for (var translation in tutao.tutanota.ctrl.LanguageViewModel[language]) {
-                    for (var otherLanguage in tutao.tutanota.ctrl.LanguageViewModel) {
-                        if (tutao.tutanota.ctrl.LanguageViewModel.hasOwnProperty(otherLanguage)) {
-
-                            if (translation=="externalNotificationMailBody2_msg"){ // skipp check
-                                continue;
-                            }
-
-                            var textLang1 = tutao.tutanota.ctrl.LanguageViewModel[language][translation];
-                            var textLang2 = tutao.tutanota.ctrl.LanguageViewModel[otherLanguage][translation];
-                            if (typeof textLang1 == "string") {
-                                assert.equal(textLang1.charAt(0) == textLang1.charAt(0).toUpperCase(), textLang2.charAt(0) == textLang2.charAt(0).toUpperCase(), "different case beginning of text: " + textLang1 + ", " + textLang2);
-                            }
-                        }
-                    }
-                }
-
             }
         }
     });

@@ -169,7 +169,7 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "languageAlbanian_label": "Arnavutça",
   "languageArabic_label": "Arapça",
   "languageChineseSimplified_label": "Çince, Basit",
-  "languageChineseTraditional": "Çince, Geleneksel",
+  "languageChineseTraditional_label": "Çince, Geleneksel",
   "languageCroatian_label": "Hırvatça",
   "languageDutch_label": "Flemenkçe",
   "languageEnglish_label": "İngilizce",

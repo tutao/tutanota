@@ -77,7 +77,7 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
 	return [
 		{ id: tutao.tutanota.ctrl.lang.sq.id, textId: 'languageAlbanian_label'},
 		{ id: tutao.tutanota.ctrl.lang.hr.id, textId: 'languageCroatian_label'},
-		{ id: tutao.tutanota.ctrl.lang.zh_hant.id, textId: 'languageChineseTraditional'},
+		{ id: tutao.tutanota.ctrl.lang.zh_hant.id, textId: 'languageChineseTraditional_label'},
 		//{ id: tutao.tutanota.ctrl.lang.zh.id, textId: 'languageChineseSimplified_label'},
 		{ id: tutao.tutanota.ctrl.lang.en.id, textId: 'languageEnglish_label'},
 		{ id: tutao.tutanota.ctrl.lang.nl.id, textId: 'languageDutch_label'},
