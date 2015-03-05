@@ -64,6 +64,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirm = function() {
             customerService.setUndelete(false);
             customerService.setCustomer(tutao.locator.userController.getLoggedInUser().getCustomer());
             customerService.setReason(self.reason());
+            tutao.locator.eventBus.notifyNewDataReceived = function() {}; // avoid NotAuthenticatedError
             return customerService.erase({}, null).then(function() {
                 return tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("deleteAccountDeleted_msg")).then(function() {
                     tutao.locator.navigator.logout(false, false);
