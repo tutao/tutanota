@@ -77,13 +77,13 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         }
     }
 
-    this.buttons.push(new tutao.tutanota.ctrl.Button("move_action", 6, function () {}, null, false, "moveAction", "moveToFolder", null, null, null, function() {
+    this.buttons.push(new tutao.tutanota.ctrl.Button("move_action", 9, function () {}, null, false, "moveAction", "moveToFolder", null, null, null, function() {
         var buttons = [];
         self._createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders());
         return buttons;
     }));
 
-        this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
+    this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
         tutao.locator.mailViewModel.finallyDeleteMail(self);
     }, trashed, false, "finalDeleteMailAction", "trash"));
 
