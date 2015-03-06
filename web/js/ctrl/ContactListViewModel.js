@@ -132,21 +132,28 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(deleted, contact, id) {
 	// id is the observable of the contact
 	if (deleted) {
-        // remove the contact id from the result list
-        for (var i=0; i<this.currentSearchResult.length; i++) {
-            if (this.currentSearchResult[i] == contact.getId()[1]) {
-                this.currentSearchResult.splice(i, 1);
-                break;
-            }
-        }
-        // we can not directly call remove(id) because that removes all observables (due to knockout equality check implementation)
-        this.contacts.remove(function(item) {
-			return (item().getContact() == contact);
-		});
+		this.removeFromList(contact);
 	} else {
 		id.valueHasMutated();
 	}
 };
+
+
+tutao.tutanota.ctrl.ContactListViewModel.prototype.removeFromList = function(contact) {
+	//remove the contact id from the result list
+	for (var i=0; i<this.currentSearchResult.length; i++) {
+		if (this.currentSearchResult[i] == contact.getId()[1]) {
+			this.currentSearchResult.splice(i, 1);
+			break;
+		}
+	}
+	// we can not directly call remove(id) because that removes all observables (due to knockout equality check implementation)
+	this.contacts.remove(function(item) {
+		return (item().getContact() == contact);
+	});
+};
+
+
 
 /**
  * Loads the contacts with the given ids in the given order. Uses recursion to load all contacts.

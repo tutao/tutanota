@@ -213,6 +213,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._deleteContact = function () {
                 self.removeContact();
             }).caught(tutao.NotFoundError, function () {
                 // avoid exception for missing sync
+                tutao.locator.contactListViewModel.removeFromList(self.contactWrapper().getContact());
                 self.removeContact();
             });
         }
