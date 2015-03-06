@@ -184,17 +184,22 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
         this.editableContact.presharedPassword(null);
     }
     this.editableContact.update();
-    var promise;
-    if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
-        promise = this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
-    } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
-        promise = this.contactWrapper().getContact().update();
-    }
     var self = this;
-    promise.then(function() {
-        self.contactWrapper().stopEditingContact(this);
-        self._showContact(self.contactWrapper());
-    })
+    if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
+        this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts()).then(function() {
+            self.contactWrapper().stopEditingContact(this);
+            self._showContact(self.contactWrapper());
+        });
+    } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
+        this.contactWrapper().getContact().update().then(function() {
+            self.contactWrapper().stopEditingContact(this);
+            self._showContact(self.contactWrapper());
+        }).caught(tutao.NotFoundError, function(e) {
+            // avoid exception for missing sync
+            self.contactWrapper().stopEditingContact(this);
+            self.removeContact();
+        });
+    }
 };
 
 /**
