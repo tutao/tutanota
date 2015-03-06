@@ -83,12 +83,12 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, function () {
             tutao.tutanota.gui.openLink("https://app.tutanota.de/#register");
-        }, self._externalUserLoggedIn, false, "menu_register", "register", 'register_alt'),
+        }, self._externalUserLoggedIn, true, "menu_register", "register", 'register_alt'), // Execute this action direct to avoid pop up blockers
 
         // all supported
         new tutao.tutanota.ctrl.Button('community_label', 26, function () {
             tutao.tutanota.gui.openLink("https://tutanota.com/community");
-        }, this.feedbackSupported, false, "menu_community", "heart", 'community_label'),
+        }, this.feedbackSupported, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
