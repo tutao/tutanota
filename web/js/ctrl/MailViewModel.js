@@ -20,6 +20,7 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 
     // only contains buttons for the case that no mail is visible, otherwise the buttons of the displayed/composing mail are shown
     this.buttonBarViewModel = null;
+    this._latestMailToShow = null;
 };
 
 tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
@@ -85,6 +86,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
         // the email seems to be deleted: NotFoundError if the mail body was deleted, NotAuthorizedError if the mail body permission only exists for the sender/recipient
     }).lastly( function(){
         if (self._latestMailToShow == currentMail ) {
+            self._latestMailToShow = null; // avoids that in case of an exception the spinner is started above after the timeout
             self.showSpinner(false);
         }
     });
