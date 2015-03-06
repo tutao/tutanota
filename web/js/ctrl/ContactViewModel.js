@@ -197,6 +197,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
         }).caught(tutao.NotFoundError, function(e) {
             // avoid exception for missing sync
             self.contactWrapper().stopEditingContact(self);
+            tutao.locator.contactListViewModel.removeFromList(self.contactWrapper().getContact());
             self.removeContact();
         });
     }
