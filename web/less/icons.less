@@ -488,6 +488,7 @@
   &.spinner:before {
     .icomoon;
     content: '\e612';
+    display: inline-block; // needed to show the animation in Firefox, iOS, Android
 
     font-size: 20px;
     text-shadow: 0 0 .25em fade(@icon-color, 30%);
