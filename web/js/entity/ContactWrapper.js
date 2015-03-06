@@ -228,7 +228,7 @@ tutao.entity.tutanota.ContactWrapper.prototype.stopEditingContact = function(edi
 			break;
 		}
 	}
-	if (!entry || !entry.editingInstances.indexOf(editingInstance) == -1) {
+	if (!entry || entry.editingInstances.indexOf(editingInstance) == -1) {
 		console.log("stop editing without start", editingInstance);
 		return;
 	}

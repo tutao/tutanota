@@ -187,16 +187,16 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._saveContact = function () {
     var self = this;
     if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW) {
         this.contactWrapper().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts()).then(function() {
-            self.contactWrapper().stopEditingContact(this);
+            self.contactWrapper().stopEditingContact(self);
             self._showContact(self.contactWrapper());
         });
     } else if (this.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
         this.contactWrapper().getContact().update().then(function() {
-            self.contactWrapper().stopEditingContact(this);
+            self.contactWrapper().stopEditingContact(self);
             self._showContact(self.contactWrapper());
         }).caught(tutao.NotFoundError, function(e) {
             // avoid exception for missing sync
-            self.contactWrapper().stopEditingContact(this);
+            self.contactWrapper().stopEditingContact(self);
             self.removeContact();
         });
     }
