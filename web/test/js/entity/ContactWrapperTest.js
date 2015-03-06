@@ -130,8 +130,12 @@ describe("ContactWrapperTest", function () {
         var editor2 = "editor2";
         var c1Editable = c1.startEditingContact(editor1);
         assert.isTrue(c1Editable == c1.startEditingContact(editor2));
+        assert.isTrue(tutao.entity.tutanota.ContactWrapper._editableContactsCache.length == 1);
         c1.stopEditingContact(editor1);
-        c1.stopEditingContact(editor1);
+        assert.isTrue(tutao.entity.tutanota.ContactWrapper._editableContactsCache.length == 1);
+        c1.stopEditingContact(editor1); // the same editor
+        assert.isTrue(tutao.entity.tutanota.ContactWrapper._editableContactsCache.length == 1);
+        c1.stopEditingContact(editor2);
         assert.isTrue(tutao.entity.tutanota.ContactWrapper._editableContactsCache.length == 0);
 
         var c1NewEditable = c1.startEditingContact(editor1);
