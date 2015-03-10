@@ -16,10 +16,15 @@ tutao.tutanota.ctrl.RegistrationViewModel = function() {
 	this.authToken = ko.observable(null);
 	this.accountType = ko.observable("0"); // set to invalid account type for indicating that the account type is not known
 	this.companyName = ko.observable("");
-	this.domain = ko.observable("tutanota.de");
+	this.domain = ko.observable(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS[0]);
+    this.availableDomains = ko.observableArray(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
 
 	this.mailAddressPrefix = ko.observable("");
 	this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
+
+    this.mailAddress = ko.computed(function(){
+        return this.mailAddressPrefix() + "@" + this.domain();
+    }, this);
 
 	this.password1 = ko.observable("");
 	this.password2 = ko.observable("");
@@ -78,9 +83,9 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
         tutao.entity.sys.RegistrationServiceData.load(params, null).then(function(data) {
             self.accountType(data.getAccountType());
             if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                self.mailAddressPrefix.subscribe(self._verifyMailAddressFree, this);
+                self.mailAddress.subscribe(self._verifyMailAddressFree, this);
             } else {
-                self.mailAddressPrefix.subscribe(self._verifyMailAddressStarter, this);
+                self.mailAddress.subscribe(self._verifyMailAddressStarter, this);
             }
             self.domain(data.getDomain());
             self.companyName(data.getCompany());
@@ -96,7 +101,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._activate = function(authTok
         tutao.entity.sys.RegistrationConfigReturn.load(parameters, null).then(function(registrationConfigReturn) {
             if (registrationConfigReturn.getFreeEnabled()) {
                 self.accountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
-                self.mailAddressPrefix.subscribe(self._verifyMailAddressFree, self);
+                self.mailAddress.subscribe(self._verifyMailAddressFree, self);
                 self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK);
             } else {
                 self.pageStatus(tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED);
@@ -415,11 +420,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressFree = fun
     self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
 
     setTimeout(function() {
-        if (self.mailAddressPrefix() == newValue) {
+        if (self.mailAddress() == newValue) {
             var params = [];
-            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), params, []).then(function(mailAddressAvailabilityReturn) {
-                if (self.mailAddressPrefix() == newValue) {
-                    if (mailAddressAvailabilityReturn.getAvailable()) {
+            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue), params, []).then(function(mailAddressAvailabilityReturn) {
+                if (self.mailAddress() == newValue) {
+                        if (mailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
                         self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
@@ -442,7 +447,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressStarter = 
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getMailAddress = function () {
-    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddressPrefix() + "@" + this.domain());
+    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddress());
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isFormEditable = function() {

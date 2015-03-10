@@ -1250,7 +1250,9 @@
                                     <label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+											<span>@</span>
+											<select data-bind="options: availableDomains, value: domain"></select>
                                         </div>
                                         <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
                                         <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>

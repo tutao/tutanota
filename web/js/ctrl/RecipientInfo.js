@@ -15,7 +15,7 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 	this._mailAddress = mailAddress;
 	this._name = name;
     this._type = ko.observable(tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN);
-	if (external === false || tutao.util.StringUtils.endsWith(this._mailAddress, "tutanota.de")) {
+	if (external === false || this.isTutanotaMailAddress(mailAddress)) {
 		this._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
 	} else if (external === true) {
         this._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);
@@ -198,3 +198,15 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.resolveType = function () {
         return Promise.resolve();
     }
 };
+
+
+tutao.tutanota.ctrl.RecipientInfo.prototype.isTutanotaMailAddress = function(mailAddress) {
+    var tutanotaDomains = tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS;
+    for ( var i=0; i< tutanotaDomains.length; i++){
+        if ( tutao.util.StringUtils.endsWith(this._mailAddress, tutanotaDomains[i])){
+            return true;
+        }
+    }
+    return false;
+};
+
