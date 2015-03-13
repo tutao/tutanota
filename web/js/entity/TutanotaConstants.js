@@ -265,6 +265,6 @@ tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID = "0";
 tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS = "1";
 
 
-tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "keemail.me"];
+tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tutao.io", "keemail.me"];
 
 

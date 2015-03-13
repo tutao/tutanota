@@ -203,7 +203,7 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.resolveType = function () {
 tutao.tutanota.ctrl.RecipientInfo.prototype.isTutanotaMailAddress = function(mailAddress) {
     var tutanotaDomains = tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS;
     for ( var i=0; i< tutanotaDomains.length; i++){
-        if ( tutao.util.StringUtils.endsWith(this._mailAddress, tutanotaDomains[i])){
+        if ( tutao.util.StringUtils.endsWith(mailAddress, "@" + tutanotaDomains[i])){
             return true;
         }
     }
