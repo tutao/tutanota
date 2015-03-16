@@ -261,7 +261,7 @@ gulp.task('copy', ['copyLegacy', 'copyMessages', 'copyOperative', 'copyFonts', '
 });
 
 gulp.task('manifest', function () {
-    return gulp.src(['./build/**/*', '!build/fonts/icomoon.+(eot|svg|ttf)', '!build/*.map', "!build/test/**"])
+    return gulp.src(['./build/**/*', '!build/fonts/ionicons/ionicons.+(eot|svg|ttf)', '!build/*.map', "!build/test/**"])
         .pipe(manifest({
             timestamp: true,
             network: ['*'],
