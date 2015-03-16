@@ -83,6 +83,10 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         return buttons;
     }));
 
+    this.buttons.push(new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
+        tutao.locator.mailViewModel.deleteMail(self);
+    }, untrashed, false, "deleteMailAction", "trash"));
+
     this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
         tutao.locator.mailViewModel.finallyDeleteMail(self);
     }, trashed, false, "finalDeleteMailAction", "trash"));

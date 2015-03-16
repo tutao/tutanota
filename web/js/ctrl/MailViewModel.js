@@ -304,11 +304,11 @@ tutao.tutanota.ctrl.MailViewModel.prototype.finallyDeleteMail = function(display
 };
 
 /**
- * Deletes or undeletes the given displayed mail.
- * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to delete/undelete.
+ * Moves the given mail to the trash.
+ * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to move to the trash.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.deleteMail = function(displayedMail) {
-    tutao.locator.mailFolderListViewModel.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), displayedMail.mail);
+    tutao.locator.mailFolderListViewModel.selectedFolder().move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), [displayedMail.mail]);
 };
 
 /**
