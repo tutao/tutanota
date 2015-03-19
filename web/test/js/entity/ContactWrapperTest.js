@@ -109,9 +109,9 @@ describe("ContactWrapperTest", function () {
         m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_FACEBOOK);
         assert.equal("Facebook", w.getSocialIdTypeName(m));
         m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_XING);
-        assert.equal("Xing", w.getSocialIdTypeName(m));
+        assert.equal("XING", w.getSocialIdTypeName(m));
         m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_LINKED_IN);
-        assert.equal("Linked in", w.getSocialIdTypeName(m));
+        assert.equal("LinkedIn", w.getSocialIdTypeName(m));
         m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_OTHER);
         assert.equal("Other", w.getSocialIdTypeName(m));
         m.setType(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM);
