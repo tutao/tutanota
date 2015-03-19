@@ -155,7 +155,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "folderNameValid_msg": "Nombre de carpeta válido.",
   "folderName_label": "Nombre",
   "folderTitle_label": "Carpetas",
-  "forward_action": "Avanzar",
+  "forward_action": "Reenviar",
   "from_label": "De",
   "goodPassphrase_action": "¿Cómo crear una contraseña segura?",
   "help_label": "Consigue ayuda:",
@@ -200,7 +200,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "legacyDownloadNotPossible_msg": "Safari no permite exportar correos o guardar archivos adjuntos en el disco. Aún así, algunos archivos pueden mostrase en el navegador. Por favor usa uno de los siguientes navegadores:",
   "legacyNoAttachmentsIeMobile_msg": "Internet Explorer móvil no permite descargar archivos adjuntos o adjuntar archivos a los correos electrónicos. Si necesitas estas características, por favor, utiliza uno de los siguientes navegadores:",
   "legacyNoReplyAndroid_msg": "El navegador nativo de Android no permite contestar correos ni guardar adjuntos en el disco. Aún así, algunos tipos de archivo pueden mostrarse en el navegador. Por favor usa uno de estos navegadores:",
-  "linkedin_label": "Enlazado en",
+  "linkedin_label": "LinkedIn",
   "loadMoreMails_action": "Cargar más correos",
   "loadMore_action": "Cargar más",
   "loadingMail_msg": "Cargando correos...",
@@ -449,6 +449,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "welcomeMailBodyTweetText_msg": "Sólo crear mi cuenta en @tutanota_de. Ahora protejo mis datos de vistas curiosas. Puedes unirte,",
   "welcomeMailSubject_msg": "Siéntete en casa: Tus datos permanecen privados.",
   "work_label": "Trabajo",
-  "xing_label": "Xing",
+  "xing_label": "XING",
   "yesterday_label": "ayer"
 };

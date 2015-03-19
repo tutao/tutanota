@@ -92,7 +92,12 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
 		{ id: tutao.tutanota.ctrl.lang.ro.id, textId: 'languageRomanian_label'},
 		{ id: tutao.tutanota.ctrl.lang.ru.id, textId: 'languageRussian_label'},
 		{ id: tutao.tutanota.ctrl.lang.es.id, textId: 'languageSpanish_label' },
-		{ id: tutao.tutanota.ctrl.lang.tr.id, textId: 'languageTurkish_label'}
+		{ id: tutao.tutanota.ctrl.lang.tr.id, textId: 'languageTurkish_label'},
+		//{ id: tutao.tutanota.ctrl.lang.bg_bg.id, textId: 'languageBulgarian_label'},
+		{ id: tutao.tutanota.ctrl.lang.fi.id, textId: 'languageFinnish_label'},
+		{ id: tutao.tutanota.ctrl.lang.lt_lt.id, textId: 'languageLithuanian_label'},
+		{ id: tutao.tutanota.ctrl.lang.mk.id, textId: 'languageMacedonian_label'},
+		{ id: tutao.tutanota.ctrl.lang.sr.id, textId: 'languageSerbian_label'}
 	]
 };
 
