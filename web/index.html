@@ -108,10 +108,158 @@
 <script src="/lib/worker/base64shim.js"></script>
 <script src="/lib/worker/crypto-jsbn-2012-08-09_1.js"></script>
 <script src="/lib/worker/crypto-sjcl-2012-08-09_1.js"></script>
-<script src="/js/ctrl/bubbleinput/Bubble.js"></script>
-<script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
-<script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
-<script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
+<script src="/js/Bootstrap.js"></script>
+<script src="/js/Locator.js"></script>
+<script src="/js/crypto/AesInterface.js"></script>
+<script src="/js/crypto/CryptoError.js"></script>
+<script src="/js/crypto/EntropyCollector.js"></script>
+<script src="/js/crypto/JBCryptAdapter.js"></script>
+<script src="/js/crypto/KdfInterface.js"></script>
+<script src="/js/crypto/Oaep.js"></script>
+<script src="/js/crypto/RandomizerInterface.js"></script>
+<script src="/js/crypto/SecureRandom.js"></script>
+<script src="/js/crypto/ShaInterface.js"></script>
+<script src="/js/crypto/SjclAes.js"></script>
+<script src="/js/crypto/SjclRandomizer.js"></script>
+<script src="/js/crypto/SjclSha256.js"></script>
+<script src="/js/crypto/WorkerRandomizer.js"></script>
+<script src="/js/ctrl/AccountSettingsViewModel.js"></script>
+<script src="/js/ctrl/AdminAliasViewModel.js"></script>
+<script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
+<script src="/js/ctrl/AdminEditUserViewModel.js"></script>
+<script src="/js/ctrl/AdminMailSettingsViewModel.js"></script>
+<script src="/js/ctrl/AdminMessagesViewModel.js"></script>
+<script src="/js/ctrl/AdminNewUser.js"></script>
+<script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
+<script src="/js/ctrl/AdminUserAddViewModel.js"></script>
+<script src="/js/ctrl/AdminUserListViewModel.js"></script>
+<script src="/js/ctrl/AppCacheListener.js"></script>
+<script src="/js/ctrl/AttachmentDialogViewModel.js"></script>
+<script src="/js/ctrl/Button.js"></script>
+<script src="/js/ctrl/ButtonBarViewModel.js"></script>
+<script src="/js/ctrl/ChangePasswordViewModel.js"></script>
+<script src="/js/ctrl/ComposingMail.js"></script>
+<script src="/js/ctrl/ContactCsvConverter.js"></script>
+<script src="/js/ctrl/ContactCsvHandler.js"></script>
+<script src="/js/ctrl/ContactListViewModel.js"></script>
+<script src="/js/ctrl/ContactViewModel.js"></script>
+<script src="/js/ctrl/DeveloperViewModel.js"></script>
+<script src="/js/ctrl/DisplayedMail.js"></script>
+<script src="/js/ctrl/DropDownViewModel.js"></script>
+<script src="/js/ctrl/ExternalLoginViewModel.js"></script>
+<script src="/js/ctrl/FeedbackViewModel.js"></script>
+<script src="/js/ctrl/FileViewModel.js"></script>
+<script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
+<script src="/js/ctrl/FontViewModel.js"></script>
+<script src="/js/ctrl/GroupData.js"></script>
+<script src="/js/ctrl/LanguageViewModel.js"></script>
+<script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
+<script src="/js/ctrl/LoginViewModel.js"></script>
+<script src="/js/ctrl/MailBoxController.js"></script>
+<script src="/js/ctrl/MailFolderListViewModel.js"></script>
+<script src="/js/ctrl/MailFolderViewModel.js"></script>
+<script src="/js/ctrl/MailListViewModel.js"></script>
+<script src="/js/ctrl/MailViewModel.js"></script>
+<script src="/js/ctrl/ModalDialogViewModel.js"></script>
+<script src="/js/ctrl/Navigator.js"></script>
+<script src="/js/ctrl/PasswordChannelViewModel.js"></script>
+<script src="/js/ctrl/ProgressDialogModel.js"></script>
+<script src="/js/ctrl/RecipientInfo.js"></script>
+<script src="/js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
+<script src="/js/ctrl/RegistrationViewModel.js"></script>
+<script src="/js/ctrl/SecuritySettingsViewModel.js"></script>
+<script src="/js/ctrl/SendMailFacade.js"></script>
+<script src="/js/ctrl/SendMailFromExternalFacade.js"></script>
+<script src="/js/ctrl/SendUnsecureMailFacade.js"></script>
+<script src="/js/ctrl/SettingsViewModel.js"></script>
+<script src="/js/ctrl/ShareFacade.js"></script>
+<script src="/js/ctrl/ThemeViewModel.js"></script>
+<script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
+<script src="/js/ctrl/UserController.js"></script>
+<script src="/js/ctrl/View.js"></script>
+<script src="/js/ctrl/ViewManager.js"></script>
+<script src="/js/ctrl/ViewSlider.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/error/RecipientsNotFoundError.js"></script>
+<script src="/js/event/EventBusClient.js"></script>
+<script src="/js/event/EventBusListener.js"></script>
+<script src="/js/event/ListEventTracker.js"></script>
+<script src="/js/event/Observable.js"></script>
+<script src="/js/event/ObservableInterface.js"></script>
+<script src="/js/event/PushListEventTracker.js"></script>
+<script src="/js/gui/BubbleInputGui.js"></script>
+<script src="/js/gui/ContactView.js"></script>
+<script src="/js/gui/ExternalLoginView.js"></script>
+<script src="/js/gui/FastMessageView.js"></script>
+<script src="/js/gui/FileView.js"></script>
+<script src="/js/gui/LoginView.js"></script>
+<script src="/js/gui/MailView.js"></script>
+<script src="/js/gui/NotFoundView.js"></script>
+<script src="/js/gui/NotSupportedView.js"></script>
+<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
+<script src="/js/gui/RegistrationView.js"></script>
+<script src="/js/gui/SettingsView.js"></script>
+<script src="/js/gui/SwipeSlider.js"></script>
+<script src="/js/gui/gui.js"></script>
+<script src="/js/index/Indexer.js"></script>
+<script src="/js/legacy/Legacy.js"></script>
+<script src="/js/rest/EntityRestCache.js"></script>
+<script src="/js/rest/EntityRestClient.js"></script>
+<script src="/js/rest/EntityRestDummy.js"></script>
+<script src="/js/rest/EntityRestInterface.js"></script>
+<script src="/js/rest/ResourceConstants.js"></script>
+<script src="/js/rest/RestClient.js"></script>
+<script src="/js/native/AndroidFile.js"></script>
+<script src="/js/native/ConfigApp.js"></script>
+<script src="/js/native/ConfigBrowser.js"></script>
+<script src="/js/native/ConfigFacade.js"></script>
+<script src="/js/native/ContactApp.js"></script>
+<script src="/js/native/ContactBrowser.js"></script>
+<script src="/js/native/ContactInterface.js"></script>
+<script src="/js/native/CryptoBrowser.js"></script>
+<script src="/js/native/CryptoInterface.js"></script>
+<script src="/js/native/DeviceConfig.js"></script>
+<script src="/js/native/FileFacade.js"></script>
+<script src="/js/native/FileFacadeAndroidApp.js"></script>
+<script src="/js/native/FileFacadeBrowser.js"></script>
+<script src="/js/native/KeyPair.js"></script>
+<script src="/js/native/NotificationApp.js"></script>
+<script src="/js/native/NotificationBrowser.js"></script>
+<script src="/js/native/NotificationInterface.js"></script>
+<script src="/js/native/Phone.js"></script>
+<script src="/js/native/PhoneInterface.js"></script>
+<script src="/js/native/PrivateKey.js"></script>
+<script src="/js/native/PublicKey.js"></script>
+<script src="/js/native/PushServiceApp.js"></script>
+<script src="/js/native/PushServiceBrowser.js"></script>
+<script src="/js/native/PushServiceInterface.js"></script>
+<script src="/js/native/RsaUtils.js"></script>
+<script src="/js/security/CajaSanitizer.js"></script>
+<script src="/js/security/HtmlSanitizer.js"></script>
+<script src="/js/util/ArrayUtils.js"></script>
+<script src="/js/util/Assert.js"></script>
+<script src="/js/util/ClientDetector.js"></script>
+<script src="/js/util/CsvConverter.js"></script>
+<script src="/js/util/DataFile.js"></script>
+<script src="/js/util/EncodingConverter.js"></script>
+<script src="/js/util/Environment.js"></script>
+<script src="/js/util/ErrorFactory.js"></script>
+<script src="/js/util/Exporter.js"></script>
+<script src="/js/util/FileUtils.js"></script>
+<script src="/js/util/Formatter.js"></script>
+<script src="/js/util/FunctionUtils.js"></script>
+<script src="/js/util/LocalStore.js"></script>
+<script src="/js/util/PasswordUtils.js"></script>
+<script src="/js/util/StateMachine.js"></script>
+<script src="/js/util/StringUtils.js"></script>
+<script src="/js/util/bind.js"></script>
 <script src="/js/ctrl/lang/ar.js"></script>
 <script src="/js/ctrl/lang/de.js"></script>
 <script src="/js/ctrl/lang/el.js"></script>
@@ -130,6 +278,10 @@
 <script src="/js/ctrl/lang/tr.js"></script>
 <script src="/js/ctrl/lang/zh.js"></script>
 <script src="/js/ctrl/lang/zh_hant.js"></script>
+<script src="/js/ctrl/bubbleinput/Bubble.js"></script>
+<script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
+<script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
+<script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
 <script src="/js/generated/entity/tutanota/Attachment.js"></script>
 <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
@@ -238,6 +390,9 @@
 <script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
 <script src="/js/generated/entity/sys/Login.js"></script>
 <script src="/js/generated/entity/sys/LongConfigValue.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAlias.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAliasServiceData.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAliasServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/MembershipAddData.js"></script>
@@ -292,156 +447,6 @@
 <script src="/js/generated/entity/sys/VersionData.js"></script>
 <script src="/js/generated/entity/sys/VersionReturn.js"></script>
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
-<script src="/js/Bootstrap.js"></script>
-<script src="/js/Locator.js"></script>
-<script src="/js/crypto/AesInterface.js"></script>
-<script src="/js/crypto/CryptoError.js"></script>
-<script src="/js/crypto/EntropyCollector.js"></script>
-<script src="/js/crypto/JBCryptAdapter.js"></script>
-<script src="/js/crypto/KdfInterface.js"></script>
-<script src="/js/crypto/Oaep.js"></script>
-<script src="/js/crypto/RandomizerInterface.js"></script>
-<script src="/js/crypto/SecureRandom.js"></script>
-<script src="/js/crypto/ShaInterface.js"></script>
-<script src="/js/crypto/SjclAes.js"></script>
-<script src="/js/crypto/SjclRandomizer.js"></script>
-<script src="/js/crypto/SjclSha256.js"></script>
-<script src="/js/crypto/WorkerRandomizer.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
-<script src="/js/error/RecipientsNotFoundError.js"></script>
-<script src="/js/ctrl/AccountSettingsViewModel.js"></script>
-<script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
-<script src="/js/ctrl/AdminEditUserViewModel.js"></script>
-<script src="/js/ctrl/AdminMessagesViewModel.js"></script>
-<script src="/js/ctrl/AdminNewUser.js"></script>
-<script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
-<script src="/js/ctrl/AdminUserAddViewModel.js"></script>
-<script src="/js/ctrl/AdminUserListViewModel.js"></script>
-<script src="/js/ctrl/AppCacheListener.js"></script>
-<script src="/js/ctrl/AttachmentDialogViewModel.js"></script>
-<script src="/js/ctrl/Button.js"></script>
-<script src="/js/ctrl/ButtonBarViewModel.js"></script>
-<script src="/js/ctrl/ChangePasswordViewModel.js"></script>
-<script src="/js/ctrl/ComposingMail.js"></script>
-<script src="/js/ctrl/ContactCsvConverter.js"></script>
-<script src="/js/ctrl/ContactCsvHandler.js"></script>
-<script src="/js/ctrl/ContactListViewModel.js"></script>
-<script src="/js/ctrl/ContactViewModel.js"></script>
-<script src="/js/ctrl/DeveloperViewModel.js"></script>
-<script src="/js/ctrl/DisplayedMail.js"></script>
-<script src="/js/ctrl/DropDownViewModel.js"></script>
-<script src="/js/ctrl/ExternalLoginViewModel.js"></script>
-<script src="/js/ctrl/FeedbackViewModel.js"></script>
-<script src="/js/ctrl/FileViewModel.js"></script>
-<script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
-<script src="/js/ctrl/FontViewModel.js"></script>
-<script src="/js/ctrl/GroupData.js"></script>
-<script src="/js/ctrl/LanguageViewModel.js"></script>
-<script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
-<script src="/js/ctrl/LoginViewModel.js"></script>
-<script src="/js/ctrl/MailBoxController.js"></script>
-<script src="/js/ctrl/MailFolderListViewModel.js"></script>
-<script src="/js/ctrl/MailFolderViewModel.js"></script>
-<script src="/js/ctrl/MailListViewModel.js"></script>
-<script src="/js/ctrl/MailViewModel.js"></script>
-<script src="/js/ctrl/ModalDialogViewModel.js"></script>
-<script src="/js/ctrl/Navigator.js"></script>
-<script src="/js/ctrl/PasswordChannelViewModel.js"></script>
-<script src="/js/ctrl/ProgressDialogModel.js"></script>
-<script src="/js/ctrl/RecipientInfo.js"></script>
-<script src="/js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
-<script src="/js/ctrl/RegistrationViewModel.js"></script>
-<script src="/js/ctrl/SecuritySettingsViewModel.js"></script>
-<script src="/js/ctrl/SendMailFacade.js"></script>
-<script src="/js/ctrl/SendMailFromExternalFacade.js"></script>
-<script src="/js/ctrl/SendUnsecureMailFacade.js"></script>
-<script src="/js/ctrl/SettingsViewModel.js"></script>
-<script src="/js/ctrl/ShareFacade.js"></script>
-<script src="/js/ctrl/ThemeViewModel.js"></script>
-<script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
-<script src="/js/ctrl/UserController.js"></script>
-<script src="/js/ctrl/View.js"></script>
-<script src="/js/ctrl/ViewManager.js"></script>
-<script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/event/EventBusClient.js"></script>
-<script src="/js/event/EventBusListener.js"></script>
-<script src="/js/event/ListEventTracker.js"></script>
-<script src="/js/event/Observable.js"></script>
-<script src="/js/event/ObservableInterface.js"></script>
-<script src="/js/event/PushListEventTracker.js"></script>
-<script src="/js/index/Indexer.js"></script>
-<script src="/js/legacy/Legacy.js"></script>
-<script src="/js/gui/BubbleInputGui.js"></script>
-<script src="/js/gui/ContactView.js"></script>
-<script src="/js/gui/ExternalLoginView.js"></script>
-<script src="/js/gui/FastMessageView.js"></script>
-<script src="/js/gui/FileView.js"></script>
-<script src="/js/gui/LoginView.js"></script>
-<script src="/js/gui/MailView.js"></script>
-<script src="/js/gui/NotFoundView.js"></script>
-<script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
-<script src="/js/gui/RegistrationView.js"></script>
-<script src="/js/gui/SettingsView.js"></script>
-<script src="/js/gui/SwipeSlider.js"></script>
-<script src="/js/gui/gui.js"></script>
-<script src="/js/rest/EntityRestCache.js"></script>
-<script src="/js/rest/EntityRestClient.js"></script>
-<script src="/js/rest/EntityRestDummy.js"></script>
-<script src="/js/rest/EntityRestInterface.js"></script>
-<script src="/js/rest/ResourceConstants.js"></script>
-<script src="/js/rest/RestClient.js"></script>
-<script src="/js/security/CajaSanitizer.js"></script>
-<script src="/js/security/HtmlSanitizer.js"></script>
-<script src="/js/native/AndroidFile.js"></script>
-<script src="/js/native/ConfigApp.js"></script>
-<script src="/js/native/ConfigBrowser.js"></script>
-<script src="/js/native/ConfigFacade.js"></script>
-<script src="/js/native/ContactApp.js"></script>
-<script src="/js/native/ContactBrowser.js"></script>
-<script src="/js/native/ContactInterface.js"></script>
-<script src="/js/native/CryptoBrowser.js"></script>
-<script src="/js/native/CryptoInterface.js"></script>
-<script src="/js/native/DeviceConfig.js"></script>
-<script src="/js/native/FileFacade.js"></script>
-<script src="/js/native/FileFacadeAndroidApp.js"></script>
-<script src="/js/native/FileFacadeBrowser.js"></script>
-<script src="/js/native/KeyPair.js"></script>
-<script src="/js/native/NotificationApp.js"></script>
-<script src="/js/native/NotificationBrowser.js"></script>
-<script src="/js/native/NotificationInterface.js"></script>
-<script src="/js/native/Phone.js"></script>
-<script src="/js/native/PhoneInterface.js"></script>
-<script src="/js/native/PrivateKey.js"></script>
-<script src="/js/native/PublicKey.js"></script>
-<script src="/js/native/PushServiceApp.js"></script>
-<script src="/js/native/PushServiceBrowser.js"></script>
-<script src="/js/native/PushServiceInterface.js"></script>
-<script src="/js/native/RsaUtils.js"></script>
-<script src="/js/util/ArrayUtils.js"></script>
-<script src="/js/util/Assert.js"></script>
-<script src="/js/util/ClientDetector.js"></script>
-<script src="/js/util/CsvConverter.js"></script>
-<script src="/js/util/DataFile.js"></script>
-<script src="/js/util/EncodingConverter.js"></script>
-<script src="/js/util/Environment.js"></script>
-<script src="/js/util/ErrorFactory.js"></script>
-<script src="/js/util/Exporter.js"></script>
-<script src="/js/util/FileUtils.js"></script>
-<script src="/js/util/Formatter.js"></script>
-<script src="/js/util/FunctionUtils.js"></script>
-<script src="/js/util/LocalStore.js"></script>
-<script src="/js/util/PasswordUtils.js"></script>
-<script src="/js/util/StateMachine.js"></script>
-<script src="/js/util/StringUtils.js"></script>
-<script src="/js/util/bind.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
 <!-- endinject -->
 <script src="/js/util/init.js"></script>
 <!-- endbuild -->
@@ -602,7 +607,7 @@
                                                         <div data-bind='template: { name: "bubbleinput-template",  data: {vm: toRecipientsViewModel, tabindex: 10 } }'></div>
                                                 </div>
                                                 <div class="value inputLine bccButtonValue">
-                                                    <button class="bccButton single" tabIndex="18" data-bind="lang:'ccBcc_label', visible: !busy(), fastClick:toggleCcAndBccVisibility"></button>
+                                                    <button class="bccButton single fontImage more" tabIndex="18" data-bind="visible: !busy(), fastClick:toggleCcAndBccVisibility"></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -617,6 +622,12 @@
                                                 <div class="name edit inputLine" data-bind="lang: 'bcc_label'"></div>
                                                 <div class="value edit inputLine" id="composer_bcc">
                                                     <div data-bind='template: { name: "bubbleinput-template",  data: {vm: bccRecipientsViewModel, tabindex: 12 } }'></div>
+                                                </div>
+                                            </div>
+                                            <div class="headerLine" >
+                                                <div class="name edit inputLine" data-bind="lang: 'sender_label'"></div>
+                                                <div class="value edit inputLine" id="sender_address">
+                                                    <select class="senderSelection" data-bind="options: availableSenders, value: sender, enable: !busy()"></select>
                                                 </div>
                                             </div>
                                         </div>
@@ -685,8 +696,8 @@
 						<section id="passwordChannelList" data-bind="fadeVisible: getSecureExternalRecipients().length > 0">
 							<h2 data-bind="lang: 'passwordTransmission_label'"></h2>
                             <div id="changeNotificationMailLanguage">
-                                <span class="descriptionFont" class="descriptionFont" data-bind="lang: 'changeNotificationMailLanguage_msg'"></span>
-								<select data-bind="options: availableLanguages, value: selectedLanguage, optionsText: function(item){return tutao.lang(item.textId);}"></select>
+                                <span class="descriptionFont" data-bind="lang: 'changeNotificationMailLanguage_msg'"></span>
+                                <select data-bind="options: availableLanguages, value: selectedLanguage, optionsText: function(item){return tutao.lang(item.textId);}"></select>
                             </div>
                             <div id="passwordChannelDescription" class="descriptionFont" data-bind="text: getPasswordChannelDescription()"></div>
 							<!-- ko foreach: { data: getSecureExternalRecipients(), afterAdd: tutao.tutanota.gui.slideAfterAdd, beforeRemove: tutao.tutanota.gui.slideBeforeRemove } -->
@@ -1170,7 +1181,7 @@
                                     <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+                                            <input class="inputField wide mailAddressPrefixInput" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
                                         </div>
                                         <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
                                         <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg'"></label>
@@ -1238,7 +1249,7 @@
                                     <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+                                            <input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
                                         </div>
                                         <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
                                         <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
@@ -1250,9 +1261,9 @@
                                     <label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
                                     <div class="recordData">
                                         <div class="recordValue">
-                                            <input class="inputField wide" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+                                            <input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
 											<span>@</span>
-											<select data-bind="options: availableDomains, value: domain"></select>
+										    <select data-bind="options: availableDomains, enable: isFormEditable(), value: domain"></select>
                                         </div>
                                         <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
                                         <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
@@ -1496,6 +1507,38 @@
                                 </form>
                             </div>
                             <!-- /ko -->
+                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_EMAIL-->
+                            <div id="adminEmailSettings" data-bind="with: new tutao.tutanota.ctrl.AdminMailSettingsViewModel()" >
+                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                    <div class="record">
+                                        <label for="defaultSenderMailAddress" class="recordName" data-bind="lang: 'defaultSenderMailAddress_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <select id="defaultSenderMailAddress" data-bind="enable: inputEnabled, options: tutao.locator.userController.getMailAddresses(), value: defaultSenderMailAddress"></select>
+                                            </div>
+                                            <label for="defaultSenderMailAddress" class="recordInfo" data-bind="lang: 'defaultSenderMailAddressInfo_label'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label for="defaultConfidential" class="recordName" data-bind="lang: 'defaultExternalConfidential_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input type="checkbox" id="defaultConfidential" data-bind="enable: inputEnabled, checked: defaultConfidential" />
+                                                <label for="defaultConfidential" class="recordInfo" data-bind="lang: 'confidential_action'"></label>
+                                            </div>
+                                            <label for="defaultConfidential" class="recordInfo" data-bind="lang: 'defaultExternalConfidentialInfo_label'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button id="submitDefaultMailSettings" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                            <label for="submitDefaultMailSettings" class="recordStatus" data-bind="css: mailSettingsStatus().type, lang: mailSettingsStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES-->
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
                                 <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
@@ -1503,7 +1546,7 @@
                                         <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: inputEnabled(), value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
+                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: inputEnabled, value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
                                             </div>
                                             <label for="promotionCodeInput" class="recordStatus" data-bind="css: promotionCodeStatus().type, lang: promotionCodeStatus().text"></label>
                                         </div>
@@ -1513,6 +1556,29 @@
                                         <div class="formAction">
                                             <button id="submitPromotionCode" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
 											<label for="submitExternalWelcomeMessage" class="recordStatus" data-bind="css: promotionCodeSubmitStatus().type, lang: promotionCodeSubmitStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel()">
+                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                    <div class="record">
+                                        <label for="mailAddress" class="recordName" data-bind="lang: 'adminAddMailAddressAlias_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+                                                <span>@</span>
+                                                <select data-bind="options: tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, value: domain, enable: inputEnabled()"></select>
+                                            </div>
+                                            <label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+                                            <label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button id="submitAddAlias" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                            <label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
                                         </div>
                                     </div>
                                 </form>

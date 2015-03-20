@@ -18,6 +18,7 @@ tutao.entity.tutanota.SendMailData = function(data) {
     this._language = null;
     this._listEncSessionKey = null;
     this._previousMessageId = null;
+    this._senderMailAddress = null;
     this._senderName = null;
     this._senderNameUnencrypted = null;
     this._sharableEncSessionKey = null;
@@ -45,6 +46,7 @@ tutao.entity.tutanota.SendMailData.prototype.updateData = function(data) {
   this._language = data.language;
   this._listEncSessionKey = data.listEncSessionKey;
   this._previousMessageId = data.previousMessageId;
+  this._senderMailAddress = data.senderMailAddress;
   this._senderName = data.senderName;
   this._senderNameUnencrypted = data.senderNameUnencrypted;
   this._sharableEncSessionKey = data.sharableEncSessionKey;
@@ -72,7 +74,7 @@ tutao.entity.tutanota.SendMailData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailData.MODEL_VERSION = '7';
+tutao.entity.tutanota.SendMailData.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -100,6 +102,7 @@ tutao.entity.tutanota.SendMailData.prototype.toJsonData = function() {
     language: this._language, 
     listEncSessionKey: this._listEncSessionKey, 
     previousMessageId: this._previousMessageId, 
+    senderMailAddress: this._senderMailAddress, 
     senderName: this._senderName, 
     senderNameUnencrypted: this._senderNameUnencrypted, 
     sharableEncSessionKey: this._sharableEncSessionKey, 
@@ -151,6 +154,11 @@ tutao.entity.tutanota.SendMailData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 23
  * The id of the previousMessageId attribute.
  */
 tutao.entity.tutanota.SendMailData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 236;
+
+/**
+ * The id of the senderMailAddress attribute.
+ */
+tutao.entity.tutanota.SendMailData.prototype.SENDERMAILADDRESS_ATTRIBUTE_ID = 467;
 
 /**
  * The id of the senderName attribute.
@@ -347,6 +355,23 @@ tutao.entity.tutanota.SendMailData.prototype.getPreviousMessageId = function() {
 };
 
 /**
+ * Sets the senderMailAddress of this SendMailData.
+ * @param {string} senderMailAddress The senderMailAddress of this SendMailData.
+ */
+tutao.entity.tutanota.SendMailData.prototype.setSenderMailAddress = function(senderMailAddress) {
+  this._senderMailAddress = senderMailAddress;
+  return this;
+};
+
+/**
+ * Provides the senderMailAddress of this SendMailData.
+ * @return {string} The senderMailAddress of this SendMailData.
+ */
+tutao.entity.tutanota.SendMailData.prototype.getSenderMailAddress = function() {
+  return this._senderMailAddress;
+};
+
+/**
  * Sets the senderName of this SendMailData.
  * @param {string} senderName The senderName of this SendMailData.
  */
@@ -483,7 +508,7 @@ tutao.entity.tutanota.SendMailData.prototype.setup = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 7;
+  parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailReturn);
 };

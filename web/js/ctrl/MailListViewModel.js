@@ -79,7 +79,7 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
 	var label = null;
 	if (mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT) {
 		var allRecipients = mail.getToRecipients().concat(mail.getCcRecipients()).concat(mail.getBccRecipients());
-		if (allRecipients[0].getAddress() == tutao.locator.userController.getMailAddress()) {
+		if (tutao.util.ArrayUtils.contains(tutao.locator.userController.getMailAddresses(), allRecipients[0].getAddress())) {
 			label = tutao.locator.languageViewModel.get("meNominative_label");
 		} else if (allRecipients[0].getName() != "") {
 			label = allRecipients[0].getName();
@@ -90,7 +90,7 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
 			label += ", ...";
 		}
 	} else if (mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED) {
-		if (mail.getSender().getAddress() == tutao.locator.userController.getMailAddress()) {
+		if (tutao.util.ArrayUtils.contains(tutao.locator.userController.getMailAddresses(), mail.getSender().getAddress())) {
 			label = tutao.locator.languageViewModel.get("meNominative_label");
 		} else if (mail.getSender().getName() != "") {
 			label = mail.getSender().getName();

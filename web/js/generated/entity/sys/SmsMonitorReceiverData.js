@@ -28,7 +28,7 @@ tutao.entity.sys.SmsMonitorReceiverData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SmsMonitorReceiverData.MODEL_VERSION = '7';
+tutao.entity.sys.SmsMonitorReceiverData.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -84,6 +84,6 @@ tutao.entity.sys.SmsMonitorReceiverData.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 7;
+  parameters["v"] = 8;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.SmsMonitorReceiverData, tutao.entity.sys.SmsMonitorReceiverData.PATH, null, null, parameters, headers);
 };

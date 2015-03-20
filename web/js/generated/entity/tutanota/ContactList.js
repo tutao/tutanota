@@ -38,7 +38,7 @@ tutao.entity.tutanota.ContactList.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ContactList.MODEL_VERSION = '7';
+tutao.entity.tutanota.ContactList.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -198,7 +198,7 @@ tutao.entity.tutanota.ContactList.prototype.getContacts = function() {
  * @return {Promise.<tutao.entity.tutanota.ContactList>} Resolves to the ContactList or an exception if the loading failed.
  */
 tutao.entity.tutanota.ContactList.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, id, null, {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, id, null, {"v" : 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -209,7 +209,7 @@ tutao.entity.tutanota.ContactList.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ContactList>>} Resolves to an array of ContactList or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ContactList.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

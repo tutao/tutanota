@@ -616,7 +616,11 @@ body {
                 }
 
                 > div.mailWrapper {
-                    position: relative;
+                  position: relative;
+
+                  &#readMailWrapper {
+                    padding-top: 4px;
+                  }
                 }
 
 				// mail is used here
@@ -630,7 +634,7 @@ body {
 		width: 100%;
 		height: 100%;
 		padding: @padding;
-        padding-top: 4px;
+        padding-top: 0px;
 	    
 		background-clip: padding-box;
 
@@ -680,9 +684,15 @@ body {
 
                       > button.bccButton {
                         vertical-align: top;
-                        min-width: inherit; // switch off the default min width
+                        min-width: 40px;
+                        height: 34px; // so it is vertically centered
+						line-height: 34px;
                         float:right;
-                        margin-bottom:4px;
+                        margin-top: 2px;
+
+                        &:before {
+                          padding-left: 4px;
+                        }
                       }
 
                       &.dateValue{
@@ -794,6 +804,17 @@ body {
 			> div.mailSubject {
 				font-weight: bold;
 			}
+
+            select.senderSelection {
+              background: @light-blue;
+              border: 0;
+              border-radius: 5px;
+              margin-top: 2px;
+              padding-left: 3px;
+              font-family: inherit;
+              height: @bubbleHeight;
+              line-height: @bubbleHeight;
+            }
 	
 			div.bubble {
 
@@ -1067,6 +1088,10 @@ body {
   	.singleLineLink {
 	  display: block;
 	}
+
+  input.mailAddressPrefixInput {
+    width: 45% !important;
+  }
 /*
     #attachmentDialog{
       position: fixed;

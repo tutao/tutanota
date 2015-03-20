@@ -6,6 +6,7 @@ tutao.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
  * Sends a mail to tutanota and external recipients.
  * @param {string} subject The subject of the mail.
  * @param {string} bodyText The bodyText of the mail.
+ * @param {string} senderMailAddress The senders mail address.
  * @param {string} senderName The name of the sender that is sent together with the mail address of the sender.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} toRecipients The recipients the mail shall be sent to.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
@@ -17,7 +18,7 @@ tutao.provide('tutao.tutanota.ctrl.SendUnsecureMailFacade');
  * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolves to the senders mail id (only element id, no list id),
  * rejected with an RecipientsNotFoundError if some of the recipients could not be found.
  */
-tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
+tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText, senderMailAddress, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var aes = tutao.locator.aesCrypter;
 	var groupKey = tutao.locator.userController.getUserGroupKey();
 	var sharableKey = tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey();
@@ -28,6 +29,7 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
     service.setLanguage(language)
 	    .setSubject(subject)
 	    .setBodyText(bodyText)
+        .setSenderMailAddress(senderMailAddress)
 	    .setSenderName(senderName)
 	    .setConversationType(conversationType)
 	    .setPreviousMessageId(previousMessageId)

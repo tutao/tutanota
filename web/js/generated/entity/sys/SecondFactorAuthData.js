@@ -32,7 +32,7 @@ tutao.entity.sys.SecondFactorAuthData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SecondFactorAuthData.MODEL_VERSION = '7';
+tutao.entity.sys.SecondFactorAuthData.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -134,7 +134,7 @@ tutao.entity.sys.SecondFactorAuthData.prototype.setup = function(parameters, hea
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 7;
+  parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.SecondFactorAuthData.PATH, this, parameters, headers, null);
 };

@@ -30,7 +30,7 @@ tutao.entity.sys.AutoLoginDataDelete.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AutoLoginDataDelete.MODEL_VERSION = '7';
+tutao.entity.sys.AutoLoginDataDelete.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -109,7 +109,7 @@ tutao.entity.sys.AutoLoginDataDelete.prototype.erase = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 7;
+  parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.AutoLoginDataDelete.PATH, this, parameters, headers, null);
 };

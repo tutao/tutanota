@@ -6,6 +6,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * Sends a secure mail to internal and external recipients. For external recipients the password and password channels must be set.
  * @param {string} subject The subject of the mail.
  * @param {string} bodyText The bodyText of the mail.
+ * @param {string} senderMailAddress The senders mail address.
  * @param {string} senderName The name of the sender that is sent together with the mail address of the sender.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} toRecipients The recipients the mail shall be sent to.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
@@ -17,7 +18,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFromExternalFacade');
  * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolves to the senders mail id (only element id, no list id),
  * rejected with an RecipientsNotFoundError if some of the recipients could not be found.
  */
-tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
+tutao.tutanota.ctrl.SendMailFromExternalFacade.sendMail = function(subject, bodyText, senderMailAddress, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
     var aes = tutao.locator.aesCrypter;
     var groupKey = tutao.locator.userController.getUserGroupKey();
     var senderBucketKey = aes.generateRandomKey();

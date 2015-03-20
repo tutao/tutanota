@@ -13,6 +13,8 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._defaultSender = null;
+    this._defaultUnconfidential = null;
     this._groupEncEntropy = null;
     this._notificationMailLanguage = null;
     this._imapSyncConfig = [];
@@ -30,6 +32,8 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._defaultSender = data.defaultSender;
+  this._defaultUnconfidential = data.defaultUnconfidential;
   this._groupEncEntropy = data.groupEncEntropy;
   this._notificationMailLanguage = data.notificationMailLanguage;
   this._imapSyncConfig = [];
@@ -43,7 +47,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '7';
+tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -78,6 +82,8 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    defaultSender: this._defaultSender, 
+    defaultUnconfidential: this._defaultUnconfidential, 
     groupEncEntropy: this._groupEncEntropy, 
     notificationMailLanguage: this._notificationMailLanguage, 
     imapSyncConfig: tutao.entity.EntityHelper.aggregatesToJsonData(this._imapSyncConfig), 
@@ -89,6 +95,16 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
  * The id of the TutanotaProperties type.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.TYPE_ID = 216;
+
+/**
+ * The id of the defaultSender attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.DEFAULTSENDER_ATTRIBUTE_ID = 469;
+
+/**
+ * The id of the defaultUnconfidential attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.DEFAULTUNCONFIDENTIAL_ATTRIBUTE_ID = 470;
 
 /**
  * The id of the groupEncEntropy attribute.
@@ -150,6 +166,40 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setPermissions = function(per
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the defaultSender of this TutanotaProperties.
+ * @param {string} defaultSender The defaultSender of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setDefaultSender = function(defaultSender) {
+  this._defaultSender = defaultSender;
+  return this;
+};
+
+/**
+ * Provides the defaultSender of this TutanotaProperties.
+ * @return {string} The defaultSender of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getDefaultSender = function() {
+  return this._defaultSender;
+};
+
+/**
+ * Sets the defaultUnconfidential of this TutanotaProperties.
+ * @param {boolean} defaultUnconfidential The defaultUnconfidential of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setDefaultUnconfidential = function(defaultUnconfidential) {
+  this._defaultUnconfidential = defaultUnconfidential ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the defaultUnconfidential of this TutanotaProperties.
+ * @return {boolean} The defaultUnconfidential of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getDefaultUnconfidential = function() {
+  return this._defaultUnconfidential == '1';
 };
 
 /**
@@ -225,7 +275,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.loadLastPushedMail = function
  * @return {Promise.<tutao.entity.tutanota.TutanotaProperties>} Resolves to the TutanotaProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -236,7 +286,7 @@ tutao.entity.tutanota.TutanotaProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.TutanotaProperties>>} Resolves to an array of TutanotaProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -247,7 +297,7 @@ tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 7}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

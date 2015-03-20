@@ -48,7 +48,9 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._oldPasswordUpdated = func
  * @return {Number} The strength of the password.
  */
 tutao.tutanota.ctrl.ChangePasswordViewModel.prototype.getPasswordStrength = function() {
-	return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password1(), [tutao.locator.userController.getMailAddress(), tutao.locator.userController.getUserGroupInfo().getName()]);
+    var reserved = tutao.locator.userController.getMailAddresses().slice();
+    reserved.push(tutao.locator.userController.getUserGroupInfo().getName());
+	return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password1(), reserved);
 };
 
 /**

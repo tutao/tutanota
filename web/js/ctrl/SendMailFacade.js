@@ -6,6 +6,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
  * Sends a secure mail to internal and external recipients. For external recipients the password and password channels must be set.
  * @param {string} subject The subject of the mail.
  * @param {string} bodyText The bodyText of the mail.
+ * @param {string} senderMailAddress The senders mail address.
  * @param {string} senderName The name of the sender that is sent together with the mail address of the sender.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} toRecipients The recipients the mail shall be sent to.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
@@ -17,7 +18,7 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
  * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolved finished with the id of the senders mail (only element id, no list id). Rejected with a
  * RecipientsNotFoundError if some of the recipients could not be found
  */
-tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
+tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderMailAddress, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();
 	if ((accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM) && (accountType != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER)) {
 		return Promise.reject(new Error("invalid account type"));
@@ -32,6 +33,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
     service.setLanguage(language)
         .setSubject(subject)
         .setBodyText(bodyText)
+        .setSenderMailAddress(senderMailAddress)
         .setSenderName(senderName)
         .setSenderNameUnencrypted(senderName)
         .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
@@ -140,7 +142,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 	recipient.setMailAddress(recipientInfo.getMailAddress());
 
 
-    if (recipientInfo.getMailAddress() == "system@tutanota.de"){
+    if (recipientInfo.getMailAddress() == "system@tutanota.de") {
         notFoundRecipients.push(recipientInfo.getMailAddress());
         return Promise.resolve();
     }

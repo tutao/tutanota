@@ -17,6 +17,7 @@ tutao.entity.tutanota.SendUnsecureMailData = function(data) {
     this._listEncSessionKey = null;
     this._mailSessionKey = null;
     this._previousMessageId = null;
+    this._senderMailAddress = null;
     this._senderName = null;
     this._sharableEncSessionKey = null;
     this._subject = null;
@@ -42,6 +43,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.updateData = function(data)
   this._listEncSessionKey = data.listEncSessionKey;
   this._mailSessionKey = data.mailSessionKey;
   this._previousMessageId = data.previousMessageId;
+  this._senderMailAddress = data.senderMailAddress;
   this._senderName = data.senderName;
   this._sharableEncSessionKey = data.sharableEncSessionKey;
   this._subject = data.subject;
@@ -68,7 +70,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.updateData = function(data)
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendUnsecureMailData.MODEL_VERSION = '7';
+tutao.entity.tutanota.SendUnsecureMailData.MODEL_VERSION = '8';
 
 /**
  * The url path to the resource.
@@ -95,6 +97,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.toJsonData = function() {
     listEncSessionKey: this._listEncSessionKey, 
     mailSessionKey: this._mailSessionKey, 
     previousMessageId: this._previousMessageId, 
+    senderMailAddress: this._senderMailAddress, 
     senderName: this._senderName, 
     sharableEncSessionKey: this._sharableEncSessionKey, 
     subject: this._subject, 
@@ -140,6 +143,11 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.MAILSESSIONKEY_ATTRIBUTE_ID
  * The id of the previousMessageId attribute.
  */
 tutao.entity.tutanota.SendUnsecureMailData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 294;
+
+/**
+ * The id of the senderMailAddress attribute.
+ */
+tutao.entity.tutanota.SendUnsecureMailData.prototype.SENDERMAILADDRESS_ATTRIBUTE_ID = 468;
 
 /**
  * The id of the senderName attribute.
@@ -301,6 +309,23 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.getPreviousMessageId = func
 };
 
 /**
+ * Sets the senderMailAddress of this SendUnsecureMailData.
+ * @param {string} senderMailAddress The senderMailAddress of this SendUnsecureMailData.
+ */
+tutao.entity.tutanota.SendUnsecureMailData.prototype.setSenderMailAddress = function(senderMailAddress) {
+  this._senderMailAddress = senderMailAddress;
+  return this;
+};
+
+/**
+ * Provides the senderMailAddress of this SendUnsecureMailData.
+ * @return {string} The senderMailAddress of this SendUnsecureMailData.
+ */
+tutao.entity.tutanota.SendUnsecureMailData.prototype.getSenderMailAddress = function() {
+  return this._senderMailAddress;
+};
+
+/**
  * Sets the senderName of this SendUnsecureMailData.
  * @param {string} senderName The senderName of this SendUnsecureMailData.
  */
@@ -410,7 +435,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.setup = function(parameters
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 7;
+  parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendUnsecureMailData.PATH, this, parameters, headers, tutao.entity.tutanota.SendUnsecureMailReturn);
 };

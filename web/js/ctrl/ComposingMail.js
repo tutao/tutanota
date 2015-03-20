@@ -13,6 +13,12 @@ tutao.provide('tutao.tutanota.ctrl.ComposingMail');
 tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId, previousMail) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
+    var sender = tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
+    if (!sender) {
+        sender = tutao.locator.userController.getUserGroupInfo().getMailAddress();
+    }
+    this.availableSenders = tutao.locator.userController.getMailAddresses();
+    this.sender = ko.observable(sender);
 	this.composerSubject = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);
     // @type {function():Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>
@@ -23,7 +29,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.ccRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
 	this.bccRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
 
-	this.secure = ko.observable(true);
+	this.secure = ko.observable(!tutao.locator.mailBoxController.getUserProperties().getDefaultUnconfidential());
 	this.conversationType = conversationType;
 	this.previousMessageId = previousMessageId;
     this._previousMail = previousMail;
@@ -229,7 +235,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                             }
 
                             return promise.then(function () {
-                                return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
+                                return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), self.sender(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
                                     self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
                                     self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailElementId, exception) {
                                         return self._updatePreviousMail().lastly(function () {

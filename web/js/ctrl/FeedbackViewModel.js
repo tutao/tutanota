@@ -49,7 +49,7 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
     message = message.split("\n").join("<br>");
     var recipient = new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "");
     recipient.resolveType().then(function() {
-        return facade.sendMail("Feedback", message, "", [recipient], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de");
+        return facade.sendMail("Feedback", message, tutao.locator.userController.getUserGroupInfo().getMailAddress(), "", [recipient], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de");
     }).then(function() {
         self.close();
     });

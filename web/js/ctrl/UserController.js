@@ -24,7 +24,6 @@ tutao.ctrl.UserController.prototype.reset = function () {
     this._user(null);
     this._userPassphraseKey = null;
     this._userClientKey = null;
-    this._mailAddress = null;
     this._hexSalt = null;
     this._userGroupInfo(null); // indicates that a user is logged in because this is set in the last login step
 
@@ -99,19 +98,17 @@ tutao.ctrl.UserController.prototype.isLoggedInUserFreeAccount = function () {
 // INTERNAL
 
 /**
- * Provides the mail address of the logged in internal user.
- * @return {string} The user's mail address.
+ * Provides all mail addresses of the logged in user including aliases.
+ * @return {Array.<string>} The email addresses of the logged in user.
  */
-tutao.ctrl.UserController.prototype.getMailAddress = function () {
-    return this._mailAddress;
-};
-
-/**
- * Provides the domain of the logged in internal user.
- * @return {string} The user's domain.
- */
-tutao.ctrl.UserController.prototype.getDomain = function () {
-    return this._mailAddress.split("@")[1];
+tutao.ctrl.UserController.prototype.getMailAddresses = function() {
+    var a = [];
+    a.push(this._userGroupInfo().getMailAddress());
+    var aliases = this._userGroupInfo().getMailAddressAliases();
+    for (var i=0; i<aliases.length; i++) {
+        a.push(aliases[i].getMailAddress());
+    }
+    return a;
 };
 
 /**
@@ -157,8 +154,8 @@ tutao.ctrl.UserController.prototype.setUserGroupInfo = function (groupInfo) {
 tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphrase) {
     this.reset();
     var self = this;
-    self._mailAddress = mailAddress.toLowerCase().trim();
-    return tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(self.getMailAddress()), {}, null).then(function (saltData) {
+    var cleanMailAddress = mailAddress.toLowerCase().trim();
+    return tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(cleanMailAddress), {}, null).then(function (saltData) {
         self._hexSalt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
         return tutao.locator.crypto.generateKeyFromPassphrase(passphrase, self._hexSalt);
     }).then(function (hexKey) {
@@ -166,7 +163,7 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
         self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
         var authHeaders = {};
         authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
-        return tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(self.getMailAddress()), {}, authHeaders).then(function (userIdReturn) {
+        return tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(cleanMailAddress), {}, authHeaders).then(function (userIdReturn) {
             self._userId = userIdReturn.getUserId();
             self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
             return tutao.entity.sys.User.load(self._userId);
@@ -242,7 +239,6 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
             self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
             return tutao.entity.sys.GroupInfo.load(tutao.locator.userController.getLoggedInUser().getUserGroup().getGroupInfo()).then(function (groupInfo) {
                 self._userGroupInfo(groupInfo);
-                self._mailAddress = groupInfo.getMailAddress();
             });
         });
     }).caught(function(e) {

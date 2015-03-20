@@ -2,6 +2,19 @@ tutao.provide('tutao.tutanota.ctrl.lang.en');
 tutao.tutanota.ctrl.lang.en.writing_direction = "ltr";
 tutao.tutanota.ctrl.lang.en.id = "en";
 tutao.tutanota.ctrl.lang.en.keys = {
+    "mailAddressAliases_label": "Email aliases",
+    "mailAddressAliasesInfo_label": "Emails sent to your alias email addresses are received in your normal inbox and you can choose an alias email address as sender.",
+    "mailAddressAliasesMaxNbr_label": "You can register {1} free email aliases.",
+    "pleaseWait_msg": "Please wait...",
+    "finished_msg": "Finished.",
+    "adminAddMailAddressAlias_label": "Add email alias",
+    "adminMaxNbrOfAliasesReached_msg": "The maximum number of free aliases has been reached.",
+    "sender_label": "Sender",
+    "adminEmailSettings_action": "Email",
+    "defaultSenderMailAddress_label": "Default sender",
+    "defaultSenderMailAddressInfo_label": "The default sender mail address for new emails.",
+    "defaultExternalConfidential_label": "Default delivery",
+    "defaultExternalConfidentialInfo_label": "The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or unconfidential (not end-to-end encrypted).",
   "accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
   "accountSettings_action": "Account",
   "accountType_label": "Account type",

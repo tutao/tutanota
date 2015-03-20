@@ -13,7 +13,8 @@ tutao.tutanota.ctrl.AdminNewUser = function () {
     this.name = ko.observable("");
     this.password = ko.observable(tutao.tutanota.util.PasswordUtils.generatePassword(10));
     this.state = ko.observable(tutao.tutanota.ctrl.AdminNewUser.STATE_NONE);
-    this.domain = ko.observable(tutao.locator.userController.getDomain());
+    var domain = tutao.locator.userController.getUserGroupInfo().getMailAddress().split("@")[1];
+    this.domain = ko.observable(domain);
 };
 
 tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(newValue) {

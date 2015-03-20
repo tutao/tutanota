@@ -110,6 +110,8 @@
 
 @menu_height: 42px;
 
+@bubbleHeight: 24px;
+
 // fonts
 @default-font-size: 18px;
 @button-font-size: 18px;
@@ -161,7 +163,6 @@ img.helpIcon {
   border: 0px;
   border-bottom: 1px solid @border;
 }
-
 
 .inputArea {
   padding-left: 3px;
@@ -725,27 +726,33 @@ div.menuList {
   * select
   **************************************/
 
+select {
+  // use the background color as workaround for chrome. selects seem not to use the gradient
+  background: @background;
+  border: 1px solid @border;
+  border-radius: 0;
+  height: 30px;
+  line-height: 30px;
+  .light;
+}
+
 div.dropDownWrapper {
-  border: 1px solid @button-border;
-  border-radius: 0px;
+  border: 1px solid @border;
+  border-radius: 0;
 
   &.selected {
     border-color: @focus-blue;
     box-shadow: 0 0 10px @focus-blue;
   }
   > select {
-    //height: 35px;
     // use the background color as workaround for chrome. selects seem not to use the gradient
-    background: @button-background;
-    border: 0px;
-    padding-top: 3px;
-    padding-bottom: 3px;
+    background: @background;
+    border: 0;
+    border-radius: 0;
+    height: 28px;
+    line-height: 28px;
     width: 100%;
     .light;
-
-    &:active {
-      background-color: @background-dark;
-    }
   }
 }
 
@@ -921,8 +928,8 @@ div.bubble {
   position:relative;
   display: inline-block;
   margin-right: 5px;
-  height: 24px; // 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
-  line-height: 24px;
+  height: @bubbleHeight; // 16px font size * 1,5 line height = 24px (+2px border) // set to same as input height (below)
+  line-height: @bubbleHeight;
   cursor: pointer;
   border-radius: 5px;
   margin-bottom: 2px;
@@ -942,7 +949,7 @@ div.bubble {
 
   > div.removeBubble {
     position:absolute;
-    right:0px;
+    right:0;
     display: inline-block;
     height: 100%;
     border-left: 2px solid @white;
@@ -994,7 +1001,7 @@ div.bubbleInput {
           display: block;
           width: 100%;
           padding-right: 5px;
-          height: 24px; // set to same as span.bubble height (above)
+          height: @bubbleHeight; // set to same as div.bubble height (above)
           border: none;
           //border: 1px solid red;
           margin-bottom: 2px;
