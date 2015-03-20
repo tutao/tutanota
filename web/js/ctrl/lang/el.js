@@ -417,6 +417,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "welcomeMailBodyTweetText_msg": "Μόλις τώρα έφτιαξα λογαριασμό στο @tutanota_de και κανένας περίεργος δεν βλέπει το email μου! Κι εσύ μπορείς,",
   "welcomeMailSubject_msg": "Μείνετε ήσυχοι: Τα δεδομένα σας είναι ασφαλή.",
   "work_label": "Εργασία",
-  "xing_label": "Xing",
+  "xing_label": "XING",
   "yesterday_label": "Χθες"
 };

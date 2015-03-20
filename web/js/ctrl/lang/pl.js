@@ -201,7 +201,7 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "legacyDownloadNotPossible_msg": "Safari nie daje możliwości eksportowania wiadomości ani zapisywania załączników na dysku. Niektóre pliki mogą być wyświetlone w oknie przeglądarki. Sugerujemy użycie jednej z przeglądarek wymienionych poniżej.",
   "legacyNoAttachmentsIeMobile_msg": "Internet Explorer w wersji mobilnej nie obsługuje pobierania/dołączania załączników do wiadomości. Jeżeli chcesz korzystać z tej funkcji, użyj jednej z następujących przeglądarek:",
   "legacyNoReplyAndroid_msg": "Przeglądarka Android nie daje możliwości odpowiadania na e-maile ani zapisywania załączników na dysku. Niektóre pliki mogą być wyświetlone w oknie przeglądarki. Sugerujemy użycie jednej z przeglądarek wymienionych poniżej:",
-  "linkedin_label": "Linked in",
+  "linkedin_label": "LinkedIn",
   "loadMoreMails_action": "Wczytaj więcej wiadomości",
   "loadMore_action": "Pokaż więcej",
   "loadingMail_msg": "Ładowanie skrzynki odbiorczej...",
@@ -450,6 +450,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "welcomeMailBodyTweetText_msg": "Właśnie założyłem konto na @tutanota_de. Teraz chronię swoje e-maile przed podglądaczami. Możesz dołączyć,",
   "welcomeMailSubject_msg": "Poczuj się jak w domu: Twoje dane są tylko Twoje!",
   "work_label": "Służbowy",
-  "xing_label": "Xing",
+  "xing_label": "XING",
   "yesterday_label": "wczoraj"
 };
