@@ -300,7 +300,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
                 }).then(function() {
                     // the conversation key may be null if the mail was e.g. received from an external via smtp
                     self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId, previousMail.mail));
-                    self.mail().secure(previousMail.mail.getConfidential());
+                    self.mail().confidentialButtonSecure(previousMail.mail.getConfidential());
                     self.mail().setBody(bodyText);
                 });
             } else {

@@ -654,12 +654,12 @@
                                         </div>
                                         <div class="headerTable">
                                             <div class="headerLine">
-                                                <div class="confidentialStateMessage" data-bind="lang: (secure()) ? ((containsExternalRecipients()) ? 'confidentialSwitchableStatus_msg' : 'confidentialStatus_msg') : 'nonConfidentialStatus_msg'"></div>
+                                                <div class="confidentialStateMessage" data-bind="lang: getConfidentialStateMessageId()"></div>
                                             </div>
                                         </div>
                                         <div class="composer_confidential" data-bind="fadeVisible: containsExternalRecipients()">
-                                            <button class="confidentialButton single fontImage" tabindex="15" data-bind="lang: (secure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (secure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !secure(), 'lock-closed': secure, 'lock-open': !secure() }"></button>
-                                            <button class="showPasswordChannelColumn single" tabindex="16" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && secure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
+                                            <button class="confidentialButton single fontImage" tabindex="15" data-bind="lang: (confidentialButtonSecure())? 'confidential_action' : 'nonConfidential_action', fadeVisible: containsExternalRecipients() && !busy(), attr: {title: (confidentialButtonSecure() ? tutao.lang('secureMail_title') : tutao.lang('unsecureMail_title'))}, fastClick: switchSecurity, css: { off: !confidentialButtonSecure(), 'lock-closed': confidentialButtonSecure, 'lock-open': !confidentialButtonSecure() }"></button>
+                                            <button class="showPasswordChannelColumn single" tabindex="16" data-bind="fadeVisible: !isPasswordChannelColumnVisible() && confidentialButtonSecure() && containsExternalRecipients() && !busy(), attr: {title: tutao.lang('showPasswordChannelColumn_title')}, fastClick: showPasswordChannelColumn">
                                                 <div class="showPasswordChannelColumnText" data-bind="lang: 'passwords_label'"></div>
                                                 <div class="showPasswordChannelColumnIcon fontImage rightIndicator"></div>
                                             </button>

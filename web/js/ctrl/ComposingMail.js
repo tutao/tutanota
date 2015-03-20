@@ -29,7 +29,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 	this.ccRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
 	this.bccRecipientsViewModel = new tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel(this);
 
-	this.secure = ko.observable(!tutao.locator.mailBoxController.getUserProperties().getDefaultUnconfidential());
+	this.confidentialButtonSecure = ko.observable(!tutao.locator.mailBoxController.getUserProperties().getDefaultUnconfidential());
 	this.conversationType = conversationType;
 	this.previousMessageId = previousMessageId;
     this._previousMail = previousMail;
@@ -99,8 +99,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.toggleCcAndBccVisibility = function(
  * Switches the confidentiality for this mail.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.switchSecurity = function() {
-	if (!this.secure() || this.containsExternalRecipients()) {
-		this.secure(!this.secure());
+	if (!this.confidentialButtonSecure() || this.containsExternalRecipients()) {
+		this.confidentialButtonSecure(!this.confidentialButtonSecure());
 	}
 };
 
@@ -151,7 +151,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
             self.busy(true);
             return self._resolveRecipients().then(function () {
                 var unsecureRecipients = self._containsUnsecureRecipients();
-                if (self.secure() && unsecureRecipients) {
+                if (self.confidentialButtonSecure() && unsecureRecipients) {
                     setTimeout(function () {
                         var message = "noPasswordChannels_msg";
                         if (!tutao.locator.passwordChannelViewModel.isAutoTransmitPasswordAllowed()) {
@@ -162,27 +162,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                         });
                     }, 0);
                     return;
-                }
-                if (self.secure() && self._containsInvalidPhoneNumber()) {
-                    setTimeout(function () {
-                        tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("invalidPasswordChannels_msg")).then(function () {
-                            tutao.locator.mailView.showPasswordChannelColumn();
-                        });
-                    }, 0);
-                    return;
-                }
-
-                if (!self.secure()) {
-                    var attachmentsSize = 0;
-                    for (var i = 0; i < self._attachments().length; i++) {
-                        attachmentsSize += Number(self._attachments()[i].getSize()); // cast to number because File.getSize() returns a string
-                    }
-                    if (attachmentsSize > tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE) {
-                        setTimeout(function () {
-                            tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("maxSizeExceeded_msg", {"{1}": tutao.tutanota.util.Formatter.formatFileSize(tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE)}));
-                        }, 0);
-                        return;
-                    }
                 }
 
                 var secureExternalRecipients = tutao.locator.passwordChannelViewModel.getSecureExternalRecipients();
@@ -217,7 +196,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                             var facade = null;
                             if (tutao.locator.userController.isExternalUserLoggedIn()) {
                                 facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
-                            } else if (unsecureRecipients) {
+                            } else if (!self.confidentialButtonSecure() && self.containsExternalRecipients()) {
                                 facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
                             } else {
                                 facade = tutao.tutanota.ctrl.SendMailFacade;
@@ -409,9 +388,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.addCcRecipient = function(recipientI
  * @return {boolean} True if there are unsecure recipients among the given recipients, false otherwise.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype._containsUnsecureRecipients = function() {
-	if (!this.secure()) {
-		return true;
-	}
 	var r = this.getAllComposerRecipients();
 	for (var i = 0; i < r.length; i++) {
 		if (!r[i].isSecure()) {
@@ -431,25 +407,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype._resolveRecipients = function() {
     });
 };
 
-tutao.tutanota.ctrl.ComposingMail.prototype._containsInvalidPhoneNumber = function() {
-	if (!this.secure()) {
-		return false;
-	}
-	var r = this.getAllComposerRecipients();
-	for (var i = 0; i < r.length; i++) {
-		if (tutao.locator.passwordChannelViewModel.containsInvalidNotSavedNumbers(r[i])) {
-			return true;
-		}
-	}
-	return false;
-};
-
 /**
  * Returns true if this mail shall (also) be sent to external recipients in a secure way. Returns false if not yet known for some recipients.
  * @return {boolean}
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.composeForSecureExternalRecipients = function() {
-	if (this.secure()) {
+	if (this.confidentialButtonSecure()) {
 		return this.containsExternalRecipients();
 	} else {
 		return false;
@@ -469,6 +432,14 @@ tutao.tutanota.ctrl.ComposingMail.prototype.containsExternalRecipients = functio
 		}
 	}
 	return false;
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype.getConfidentialStateMessageId = function() {
+    if (this.containsExternalRecipients() && !this.confidentialButtonSecure()) {
+        return 'nonConfidentialStatus_msg';
+    } else {
+        return 'confidentialStatus_msg';
+    }
 };
 
 /**
@@ -691,7 +662,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = fun
     var state = ko.computed(function() {
         if (recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN) {
             return "unknownRecipient";
-        } else if (this.secure() || recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL) {
+        } else if (this.confidentialButtonSecure() || recipientInfo.getRecipientType() == tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL) {
             return "secureRecipient";
         } else {
             return "displayRecipient";
@@ -744,10 +715,6 @@ tutao.tutanota.ctrl.ComposingMail._getContacts = function() {
 tutao.tutanota.ctrl.ComposingMail.prototype.bubbleDeleted = function(bubble) {
 	// notify the recipient info to stop editing the contact
 	bubble.entity.setDeleted();
-    // switch the confidential button back to confidential if no external recipients are there any more
-    if (!this.secure() && !this.containsExternalRecipients()) {
-        this.switchSecurity();
-    }
 };
 
 /** @inheritDoc */

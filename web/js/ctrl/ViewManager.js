@@ -68,7 +68,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
                 if (success) {
                     var mail = tutao.locator.mailViewModel.getComposingMail();
                     mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
-                    mail.secure(false);
+                    mail.confidentialButtonSecure(false);
                     var username = tutao.locator.userController.getUserGroupInfo().getName();
                     tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{1}': username})));
                 }
