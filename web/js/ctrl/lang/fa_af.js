@@ -4,7 +4,6 @@ tutao.tutanota.ctrl.lang.fa_af.id = "fa_af";
 tutao.tutanota.ctrl.lang.fa_af.keys = {
   "applicationUpdate_label": "در حال بارگذاری Tutanota",
   "by_label": "همراه",
-  "ccBcc_label": "  (رونوشت کاربنی ناپیدا (ر/ک ن",
   "contactImage_alt": "نگاره",
   "deleteMail_msg": "پیام نو را می خواهید پاک کنید بی روان کردن؟",
   "domainVerificationMailSubject_msg": "دامنه Tutanota برای آزمایش",
