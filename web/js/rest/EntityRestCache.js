@@ -356,10 +356,20 @@ tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path,
 
 tutao.rest.EntityRestCache.prototype._isStartInRange = function(path, listId, start) {
     var listCache = tutao.locator.entityRestClient._db[path][listId];
-    if ( tutao.util.ArrayUtils.contains( listCache["allRange"], start) ){
+    var allRangeList = listCache['allRange'];
+
+    var indexOfStart = allRangeList.indexOf(start);
+    if ( allRangeList.length == 0){ // Element range is empty read all elements
         return true;
+    } else if ( indexOfStart != -1 ) { // Start element is located in allRange read only elements that are not in allRange.
+        return true;
+    } else if (listCache["lowerRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listCache["lowerRangeId"]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(allRangeList[0], start)))) {
+        return true;
+    } else if (listCache["upperRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(listCache["upperRangeId"], start)))) {
+        return true;
+    } else {
+        return false;
     }
-    return listCache["lowerRangeId"] == start || listCache["upperRangeId"] == start;
 };
 
 
@@ -391,13 +401,13 @@ tutao.rest.EntityRestCache.prototype._getNumberOfElementsToRead = function(path,
             elementsToRead = count - (allRangeList.length -1 - indexOfStart);
             startElementId = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
         }
-    } else if (listCache["lowerRangeId"] == start) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID
+    } else if (listCache["lowerRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listCache["lowerRangeId"]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(allRangeList[0], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MIN_ID, or start is between lower range id and lowest element in range
         if ( !reverse ){ // if not reverse read only elements that are not in allRange
             startElementId = allRangeList[allRangeList.length-1]; // use the  highest id in allRange as start element
             elementsToRead = count - allRangeList.length
         }
         // if reverse read all elements
-    } else if (listCache["upperRangeId"] == start) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID
+    } else if (listCache["upperRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(listCache["upperRangeId"], start)))) { // Start element is not in allRange but has been used has start element for a range request, eg. EntityRestInterface.GENERATED_MAX_ID, or start is between upper range id and highest element in range
         if ( reverse ){ // if not reverse read only elements that are not in allRange
             startElementId = allRangeList[0]; // use the  highest id in allRange as start element
             elementsToRead = count - allRangeList.length

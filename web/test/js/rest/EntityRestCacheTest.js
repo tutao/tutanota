@@ -544,8 +544,93 @@ describe.skip("EntityRestCacheTest", function () {
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);
             });
         });
+    });
 
 
+    it("ExtendRangeFromNonExistingElement ", function () {
+        var localListId = "";
+        var localMailElements = [];
+
+        // Step 1: load range from max - expecting to get elements from target
+        return initMailElements().then(function (testSetup) {
+            localListId = testSetup.mailListId;
+            localMailElements = testSetup.mailList;
+            var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            var expectedTargetStartElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            return getElementRange(localListId, startElementId, 20, true).then(function() {
+                checkEntityRestCache(localListId, 10, tutao.rest.EntityRestInterface.GENERATED_MIN_ID,tutao.rest.EntityRestInterface.GENERATED_MAX_ID );
+            });
+        }).then(function () {
+            // Step 2: delete element to use it as non-existing element start id
+            var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            var lastCachedElementId = getLastCachedElementRangeId(localListId);
+            return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, lastCachedElementId, localListId, {}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(){
+                assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+                return lastCachedElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range reverse from non existing element
+            return getElementRange(localListId, nonExistingElementId, 2, true).then(function (loadedElements) {
+                assert.equal(2, loadedElements.length);
+                checkEntityRestCache(localListId, 9, tutao.rest.EntityRestInterface.GENERATED_MIN_ID,tutao.rest.EntityRestInterface.GENERATED_MAX_ID );
+                assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[7]), getElementId(loadedElements[1]));
+                assert.equal(getElementId(localMailElements[8]), getElementId(loadedElements[0]));
+                return nonExistingElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range forward from non existing element
+            return getElementRange(localListId, nonExistingElementId, 2, false).then(function (loadedElements) {
+                assert.equal(0, loadedElements.length);
+                assert.equal(getElementId(localMailElements[0]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+            });
+        }).then(function () {
+            // Step 2: delete element to use it as non-existing element start id
+            var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            var firstCachedElementId = getFirstCachedElementRangeId(localListId);
+            return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, firstCachedElementId, localListId, {}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(){
+                assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+                return firstCachedElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range reverse from non existing element
+            return getElementRange(localListId, nonExistingElementId, 2, false).then(function (loadedElements) {
+                assert.equal(2, loadedElements.length);
+                checkEntityRestCache(localListId, 8, tutao.rest.EntityRestInterface.GENERATED_MIN_ID,tutao.rest.EntityRestInterface.GENERATED_MAX_ID );
+                assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[1]), getElementId(loadedElements[0]));
+                assert.equal(getElementId(localMailElements[2]), getElementId(loadedElements[1]));
+                return nonExistingElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range forward from non existing element
+            return getElementRange(localListId, nonExistingElementId, 2, true).then(function (loadedElements) {
+                assert.equal(0, loadedElements.length);
+                assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+            });
+        }).then(function () {
+            // Step 2: delete element in the middle of the range
+            var startElementId = tutao.rest.EntityRestInterface.GENERATED_MAX_ID;
+            var middleCachedElementId = getElementId(localMailElements[5]);
+            return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanota.Mail.PATH, middleCachedElementId, localListId, {}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(){
+                assert.equal(getElementId(localMailElements[1]), getFirstCachedElementRangeId(localListId));
+                assert.equal(getElementId(localMailElements[8]), getLastCachedElementRangeId(localListId));
+                return middleCachedElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range reverse from non existing element
+            return getElementRange(localListId, nonExistingElementId, 2, false).then(function (loadedElements) {
+                assert.fail();
+            }).caught(function(e) {
+                assert.equal(tutao.InvalidDataError, e.constructor);
+            });
+        });
     });
 
 });
