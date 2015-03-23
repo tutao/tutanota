@@ -1167,12 +1167,7 @@
             <div class="welcomeContainer">
                 <div class="panel">
                     <div class="content scrollable">
-                        <!-- ko if: getRegistrationType() == 'Starter' -->
                         <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
-                        <!-- /ko -->
-                        <!-- ko if: getRegistrationType() == 'Free' -->
-                        <h1 data-bind="lang: 'registrationHeadlineBeta_msg'"></h1>
-                        <!-- /ko -->
                         <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
                         <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED && state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
                             <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
@@ -1223,12 +1218,7 @@
 			<div class="welcomeContainer">
 				<div class="panel">
 					<div class="content scrollable">
-                        <!-- ko if: getRegistrationType() == 'Starter' -->
                         <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
-                        <!-- /ko -->
-                        <!-- ko if: getRegistrationType() == 'Free' -->
-                        <h1 data-bind="lang: 'registrationHeadlineBeta_msg'"></h1>
-                        <!-- /ko -->
 						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
                             <!-- ko if: getRegistrationType() != 'Free' -->
                             <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
