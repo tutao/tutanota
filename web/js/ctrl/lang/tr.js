@@ -309,7 +309,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "regLinkInvalid_msg": "Üzgünüz, bu kayıt bağlantısı geçerli değil.",
   "register_alt": "Kayıt ol",
   "register_label": "Kayıt ol",
-  "registrationHeadlineBeta_msg": "Tutanota Beta Kayıt",
   "registrationHeadline_msg": "Tutanota kayıt",
   "registrationSubHeadline1_msg": "Alan adı doğrulama ",
   "registrationSubHeadline2_msg": "Kayıt bilgilerini giriniz (2 / 2 )",

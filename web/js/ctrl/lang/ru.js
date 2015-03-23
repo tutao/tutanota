@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.ru.keys = {
   "regLinkInvalid_msg": "Извините, ссылка регистрации негодна.",
   "register_alt": "Зарегистрируйся",
   "register_label": "Регистрируй",
-  "registrationHeadlineBeta_msg": "Регистрация Tutanota Бета",
   "registrationHeadline_msg": "Регистрация Tutanota",
   "registrationSubHeadline1_msg": "Подтверждение домена (шаг 1 из 2)",
   "registrationSubHeadline2_msg": "Введите регистрационные данные (шаг 2 из 2)",

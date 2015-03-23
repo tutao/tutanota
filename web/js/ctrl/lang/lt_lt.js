@@ -337,7 +337,6 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "regLinkInvalid_msg": "Atsiprašome, registracijos nuoroda neteisinga.",
   "register_alt": "Registruotis",
   "register_label": "Registruokitės",
-  "registrationHeadlineBeta_msg": "Tutanota beta registracija",
   "registrationHeadline_msg": "Tutanota registracija",
   "registrationSubHeadline1_msg": "Patvirtinti domeną (žingsnis 1 iš  2)",
   "registrationSubHeadline2_msg": "Įveskite registracijos duomenis (žingsnis 2 iš 2)",

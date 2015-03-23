@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "regLinkInvalid_msg": "抱歉，這個註冊連結無效。",
   "register_alt": "註冊",
   "register_label": "註冊",
-  "registrationHeadlineBeta_msg": "Tutanota 測試版註冊",
   "registrationHeadline_msg": "Tutanota註冊",
   "registrationSubHeadline1_msg": "驗證域名(步驟1之2)",
   "registrationSubHeadline2_msg": "輸入註冊資料 (步驟2之2)",

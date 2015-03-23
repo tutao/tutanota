@@ -323,7 +323,6 @@ tutao.tutanota.ctrl.lang.pt_br.keys = {
   "regLinkInvalid_msg": "Desculpe, este link de cadastro não é válido.",
   "register_alt": "Cadastre-se",
   "register_label": "Cadastre-se",
-  "registrationHeadlineBeta_msg": "Cadastro Beta do Tutanota",
   "registrationHeadline_msg": "Cadastro Tutanota",
   "registrationSubHeadline1_msg": "Verificar domínio (passo 1 de 2)",
   "registrationSubHeadline2_msg": "Entre com os dados do cadastro (passo 2 de 2)",

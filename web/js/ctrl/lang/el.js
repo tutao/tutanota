@@ -304,7 +304,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "regLinkInvalid_msg": "Λυπούμαστε, ο σύνδεσμος εγγραφής δεν είναι έγκυρος.",
   "register_alt": "Καταχώρηση",
   "register_label": "Καταχώρηση",
-  "registrationHeadlineBeta_msg": "Εγγραφή στο Tutanota Beta",
   "registrationHeadline_msg": "Εγγραφή στο Tutanota",
   "registrationSubHeadline1_msg": "Επαλήθευση domain (βήμα 1 από 2)",
   "registrationSubHeadline2_msg": "Εισάγετε πληροφορίες εγγραφής (βήμα 2ο από 2)",

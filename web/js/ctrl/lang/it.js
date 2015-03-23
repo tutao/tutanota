@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "regLinkInvalid_msg": "Purtroppo il link per la registrazione non è valido.",
   "register_alt": "Registrati",
   "register_label": "Registrati",
-  "registrationHeadlineBeta_msg": "Registrazione alla beta di Tutanota",
   "registrationHeadline_msg": "Registrazione Tutanota",
   "registrationSubHeadline1_msg": "Verifica del dominio (passo 1 di 2)",
   "registrationSubHeadline2_msg": "Inserisci i dati per la registrazione (passo 2 di 2)",

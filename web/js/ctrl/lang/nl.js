@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "regLinkInvalid_msg": "Sorry, deze registratielink is ongeldig.",
   "register_alt": "Registreer",
   "register_label": "Registreer",
-  "registrationHeadlineBeta_msg": "Tutanota Beta registratie",
   "registrationHeadline_msg": "Tutanota-inschrijving",
   "registrationSubHeadline1_msg": "Verifieer domein (stap 1 van 2)",
   "registrationSubHeadline2_msg": "Vul registratie-informatie in (stap 2 van 2)",

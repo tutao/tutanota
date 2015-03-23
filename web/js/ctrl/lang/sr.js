@@ -340,7 +340,6 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "regLinkInvalid_msg": "Oprostite,ali ovaj link je nevalidan.",
   "register_alt": "Registriraj se",
   "register_label": "Registrovati",
-  "registrationHeadlineBeta_msg": "Tutanota Beta Registracija",
   "registrationHeadline_msg": "Tutanota registracija",
   "registrationSubHeadline1_msg": "Verifikacija domena (korak 1 od 2)",
   "registrationSubHeadline2_msg": "Unos podataka za registraciju (korak 2 od 2)",

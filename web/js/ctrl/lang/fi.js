@@ -337,7 +337,6 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "regLinkInvalid_msg": "Valitettavasti rekisteröintilinkki ei ole voimassa.",
   "register_alt": "Rekisteröidy",
   "register_label": "Rekisteröidy",
-  "registrationHeadlineBeta_msg": "Tutanota Beta-rekisteröityminen",
   "registrationHeadline_msg": "Tutanota-rekisteröityminen",
   "registrationSubHeadline1_msg": "Varmista osoite (osa 1/2)",
   "registrationSubHeadline2_msg": "Syötä rekisteröitymistiedot (vaihe 2/2)",

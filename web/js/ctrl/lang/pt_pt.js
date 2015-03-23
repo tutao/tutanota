@@ -324,7 +324,6 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "regLinkInvalid_msg": "Lamentamos, mas esta ligação de registo não é válida.",
   "register_alt": "Registar",
   "register_label": "Registar",
-  "registrationHeadlineBeta_msg": "Registo Beta do Tutanota",
   "registrationHeadline_msg": "Registo Tutanota",
   "registrationSubHeadline1_msg": "Verificar domínio (passo 1 de 2)",
   "registrationSubHeadline2_msg": "Entre com os dados do registo (passo 2 de 2)",

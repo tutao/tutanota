@@ -323,7 +323,6 @@ tutao.tutanota.ctrl.lang.ro.keys = {
   "regLinkInvalid_msg": "Ne scuzati, acest link de inregistrare nu este valid.",
   "register_alt": "Inregistrati-va",
   "register_label": "Inregistrati-va",
-  "registrationHeadlineBeta_msg": "Inregistrare beta la Tutanota",
   "registrationHeadline_msg": "Inregistrare Tutanota",
   "registrationSubHeadline1_msg": "Verficati domeniul (pasul 1 din 2)",
   "registrationSubHeadline2_msg": "Introduceti datele de inregistrare (pasul 2 din 2)",

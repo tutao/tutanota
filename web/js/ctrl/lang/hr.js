@@ -341,7 +341,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "regLinkInvalid_msg": "Žao nam je, ova registracijska veza nije valjana.",
   "register_alt": "Registracija",
   "register_label": "Registracija",
-  "registrationHeadlineBeta_msg": "Tutanota Beta Registracija",
   "registrationHeadline_msg": "Tutanota Registracija",
   "registrationSubHeadline1_msg": "Provjera domene (korak 1 od 2)",
   "registrationSubHeadline2_msg": "Unesite registracijske podatke (korak 2 od 2)",
