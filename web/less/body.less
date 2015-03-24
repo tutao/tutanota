@@ -805,15 +805,22 @@ body {
 				font-weight: bold;
 			}
 
-            select.senderSelection {
-              background: @light-blue;
-              border: 0;
-              border-radius: 5px;
-              margin-top: 2px;
-              padding-left: 3px;
-              font-family: inherit;
-              height: @bubbleHeight;
-              line-height: @bubbleHeight;
+            div.senderSelection {
+              display: inline-block;
+              max-width: 100%; // avoids horizontally scrollable mail
+
+              > select {
+                background: @light-blue;
+                border: 0;
+                border-radius: 5px;
+                margin-top: 2px;
+                padding-left: 3px;
+                font-family: inherit;
+                height: @bubbleHeight;
+                line-height: @bubbleHeight;
+                width: 100%; // avoids horizontally scrollable mail
+                .fadeTextOut; // ellipsis in select does not seem to work in IE and Chrome
+              }
             }
 	
 			div.bubble {

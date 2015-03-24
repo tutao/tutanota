@@ -635,7 +635,9 @@
                                             <div class="headerLine" >
                                                 <div class="name edit inputLine" data-bind="lang: 'sender_label'"></div>
                                                 <div class="value edit inputLine" id="sender_address">
-                                                    <select class="senderSelection" data-bind="options: availableSenders, value: sender, enable: !busy()"></select>
+                                                    <div class="senderSelection">
+                                                        <select data-bind="options: availableSenders, value: sender, enable: !busy()"></select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
