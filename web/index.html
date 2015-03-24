@@ -615,11 +615,11 @@
                                                         <div data-bind='template: { name: "bubbleinput-template",  data: {vm: toRecipientsViewModel, tabindex: 10 } }'></div>
                                                 </div>
                                                 <div class="value inputLine bccButtonValue">
-                                                    <button class="bccButton single fontImage more" tabIndex="18" data-bind="visible: !busy(), fastClick:toggleCcAndBccVisibility"></button>
+                                                    <button class="bccButton single fontImage dropdown" tabIndex="18" data-bind="visible: !busy(), css: { rotated: showBccCc }, fastClick:toggleCcAndBccVisibility"></button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="headerTable" data-bind="fadeVisible: showBccCc()">
+                                        <div class="headerTable faded" data-bind="fadeVisible: showBccCc()">
                                             <div class="headerLine" >
                                                 <div class="name edit inputLine" data-bind="lang: 'cc_label'"></div>
                                                 <div class="value edit inputLine" id="composer_cc">

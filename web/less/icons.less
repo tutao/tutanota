@@ -363,6 +363,12 @@
     content: "\e9d2";
   }
 
+  &.dropdown:before {
+    display: inline-block; // needed to show the animation in Firefox, iOS, Android
+    .ion;
+    content: @ionicon-var-arrow-down-b;
+  }
+
   .new {
     &:after {
       position: absolute;

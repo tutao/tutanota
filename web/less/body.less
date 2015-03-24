@@ -36,9 +36,9 @@ body {
 				position: absolute;
 				.fill;
 				border-top: 1px solid @border-dark;
-                margin-top: 54px;
+                margin-top: @header-height - 1;
                 @media @mobile {
-					margin-top: 39px;
+                  margin-top: @header-height-small - 1;
 				}
 				left: -150px;
 				
@@ -689,9 +689,22 @@ body {
 						line-height: 34px;
                         float:right;
                         margin-top: 2px;
+                        border: 0;
 
                         &:before {
+                          .transition(transform);
                           padding-left: 4px;
+                          padding-right: 4px; // needed because the padding is also rotated
+                        }
+
+                        &.rotated {
+                          &:before {
+                            -webkit-transform: rotate(180deg);
+                            -moz-transform: rotate(180deg);
+                            -ms-transform: rotate(180deg);
+                            -o-transform: rotate(180deg);
+                            transform: rotate(180deg);
+                          }
                         }
                       }
 

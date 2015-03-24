@@ -147,6 +147,10 @@ img.helpIcon {
   -moz-transition: @arguments;
 }
 
+.faded {
+  -webkit-backface-visibility: hidden; // avoids flickering on elements fadeIn fadeOut, especially when a css animation is running in parallel
+}
+
 .scrollable {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
