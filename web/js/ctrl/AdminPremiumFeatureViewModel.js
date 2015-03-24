@@ -70,3 +70,13 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype.confirm = function() 
         }
     });
 };
+
+tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype.isPromotionCodeEnabled = function() {
+    if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios'){
+        return false;
+    } else {
+        return true;
+    }
+};
+
+
