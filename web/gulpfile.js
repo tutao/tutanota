@@ -226,11 +226,6 @@ gulp.task('less', function () {
         .pipe(gulp.dest('./build/css/'));
 });
 
-gulp.task('copyLegacy', function () {
-    return gulp.src('legacy/*')
-        .pipe(gulp.dest('./build/legacy'));
-});
-
 gulp.task('copyMessages', function () {
     return gulp.src('messages.html')
         .pipe(gulp.dest('./build/'));
@@ -248,7 +243,7 @@ gulp.task('copyFonts', function () {
 });
 
 gulp.task('copyGraphics', function () {
-    return gulp.src('graphics/**/*')
+    return gulp.src('graphics/*')
         .pipe(gulp.dest('./build/graphics'));
 });
 
@@ -257,7 +252,7 @@ gulp.task('copyMochaStylesheet', function () {
         .pipe(gulp.dest('./build/test/'));
 });
 
-gulp.task('copy', ['copyLegacy', 'copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics', 'copyMochaStylesheet'], function () {
+gulp.task('copy', ['copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics', 'copyMochaStylesheet'], function () {
 });
 
 gulp.task('manifest', function () {
