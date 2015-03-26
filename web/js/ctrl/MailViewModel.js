@@ -227,7 +227,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 /**
  * Provides the first mail address of the users mail addresses found in the given mail. Starts checking the sender, then the recipients.
  * @param mail The mail to check.
- * @return {string} One of the users mail addresses.
+ * @return {?string} One of the users mail addresses or null if it is not available.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype._findOwnMailAddressInMail = function(mail) {
     var myMailAddresses = tutao.locator.userController.getMailAddresses();
@@ -249,7 +249,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype._findOwnMailAddressInMail = function
             return mail.getBccRecipients()[i].getAddress();
         }
     }
-    throw new Error("no own mail address found");
+    // May occur if the mail has been received as bcc recipient.
+    return null;
 };
 
 /**
