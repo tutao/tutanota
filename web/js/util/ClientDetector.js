@@ -163,7 +163,8 @@ tutao.tutanota.util.ClientDetector.getSupportedType = function() {
  * @return {string=} The language string.
  */
 tutao.tutanota.util.ClientDetector.getDefaultLanguage = function() {
-	return navigator.languages ? navigator.languages[0] : (navigator.language || navigator.userLanguage);
+	// navigator.languages can be an empty array on android 5.x devices
+	return (navigator.languages && navigator.languages.length > 0) ? navigator.languages[0] : (navigator.language || navigator.userLanguage);
 };
 
 /**
