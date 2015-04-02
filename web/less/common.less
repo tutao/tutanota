@@ -560,39 +560,76 @@ div.actions {
     bottom: 0;
   }
 
-  > div.buttonBar {
-    z-index: 5; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
-    position: relative;
-    background: @background-dark;
-    height: @button-bar-height;
-    padding-left: @button-bar-margin;
 
-    @media @desktop {
-      border-bottom: 1px solid @border-dark;
+}
+
+div.buttonBar {
+  z-index: 5; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
+  position: relative;
+  background: @background-dark;
+  height: @button-bar-height;
+  padding-left: @button-bar-margin;
+
+  @media @desktop {
+    border-bottom: 1px solid @border-dark;
+  }
+  @media @mobile {
+    border-top: 1px solid @border-dark;
+  }
+
+  > button {
+    float: right;
+    min-width: 45px;
+
+    // the buttons in the button bar shall cover the complete height
+    height: @button-bar-height - 1; // - border
+    line-height: @button-bar-height - 1; // - border
+
+    margin-right: @button-bar-margin-right; // icon + text needs more margin
+
+    &.iconOnly {
+      margin-right: @button-bar-margin;
     }
-    @media @mobile {
-      border-top: 1px solid @border-dark;
-    }
 
-    > button {
-      float: right;
-      min-width: 45px;
-
-      // the buttons in the button bar shall cover the complete height
-      height: @button-bar-height - 1; // - border
-      line-height: @button-bar-height - 1; // - border
-
-      margin-right: @button-bar-margin-right; // icon + text needs more margin
-
-      &.iconOnly {
-        margin-right: @button-bar-margin;
-      }
-
-      &.leftAligned {
-        float: left;
-      }
+    &.leftAligned {
+      float: left;
     }
   }
+}
+
+
+div.notificationBar {
+  position:absolute;
+  display: table;
+  background: @background-dark;
+  width:100%;
+  z-index: 5; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
+
+  border-bottom: 1px solid @border-dark;
+  @media @desktop {
+    top: @button-bar-height;
+  }
+  @media @mobile {
+    top: 0;
+  }
+
+  > div.notificationMessage {
+    .descriptionFont;
+    padding-left: 3px;
+    display:table-cell;
+    vertical-align:middle;
+    z-index: 5; // for android browsers < 4.4, the z-index of the absolutely positioned buttonbar must be higher than that of the possible background as we get double clicks, otherwise
+    width: 60%;
+  }
+  > div.notificationButtons{
+    display:table-cell;
+    width: 40%;
+    > div.buttonBar {
+      border-bottom: none;
+      border-top:  none;
+    }
+  }
+
 }
 
 

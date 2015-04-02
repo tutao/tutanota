@@ -69,7 +69,7 @@ tutao.tutanota.gui.BubbleInputGui.setSelectionRange = function(input, selectionS
  * @return {number} the width of the text in px.
  */
 tutao.tutanota.gui.BubbleInputGui._measureTextWidth = function(text, font) {
-	var sanitizedText = tutao.locator.htmlSanitizer.sanitize(text);
+	var sanitizedText = tutao.locator.htmlSanitizer.sanitize(text, true).text;
     var id = 'text-width-tester';
     var tag = $('#' + id);
     if (!tag.length) {

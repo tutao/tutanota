@@ -16,16 +16,16 @@ describe("HtmlSanitizerTest", function () {
             { html: "<IMG SRC=javascript:alert('XSS')>", expected: '<img>' }
         ];
         for (var i = 0; i < tests.length; i++) {
-            assert.equal(tests[i].expected, sanitizer.sanitize(tests[i].html));
+            assert.equal(tests[i].expected, sanitizer.sanitize(tests[i].html).text);
         }
     });
 
     it(" blockquotes", function () {
-        assert.equal('<blockquote class=\"tutanota_quote\">test</blockquote>', tutao.locator.htmlSanitizer.sanitize("<blockquote class=\"tutanota_quote\">test</blockquote>"));
+        assert.equal('<blockquote class=\"tutanota_quote\">test</blockquote>', tutao.locator.htmlSanitizer.sanitize("<blockquote class=\"tutanota_quote\">test</blockquote>").text);
     });
 
     it(" leading text node", function () {
-        assert.equal('hello<blockquote>test</blockquote>', tutao.locator.htmlSanitizer.sanitize("hello<blockquote>test</blockquote>"));
+        assert.equal('hello<blockquote>test</blockquote>', tutao.locator.htmlSanitizer.sanitize("hello<blockquote>test</blockquote>").text);
     });
 
 

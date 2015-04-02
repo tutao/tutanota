@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
                     mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
                     mail.confidentialButtonSecure(false);
                     var username = tutao.locator.userController.getUserGroupInfo().getName();
-                    tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{1}': username})));
+                    tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{1}': username}), true).text);
                 }
             });
 

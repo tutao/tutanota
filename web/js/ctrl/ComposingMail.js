@@ -62,6 +62,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
     tutao.locator.passwordChannelViewModel.init();
 
     this.showBccCc = ko.observable(false);
+    tutao.locator.mailViewModel.notificationBarViewModel.hideNotification();
 
 };
 

@@ -19,6 +19,8 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.attachments = ko.observableArray(); // contains Files
     this.currentlyDownloadingAttachment = ko.observable(null); // null or a File
 
+    this._contentBlocked = ko.observable(false);
+
     var self = this;
     var isExternalAnswerPossible = function () {
         return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID;
@@ -95,6 +97,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));
 
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
+    tutao.locator.mailViewModel.notificationBarViewModel.hideNotification();
 };
 
 /**
@@ -126,7 +129,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._createMoveTargetFolderButtons = fun
 
 tutao.tutanota.ctrl.DisplayedMail.prototype.load = function () {
     var self = this;
-    return this._loadBody().then(function(){
+    return this._loadBody(true).then(function(){
         // We do not wait for attachment download
         self._loadAttachments();
     });
@@ -140,11 +143,19 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.toggleQuotationVisible = function ()
 /**
  * Loads the mail body.
  */
-tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function () {
+tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function (blockExternalContent) {
     var self = this;
     return self.mail.loadBody().then(function (body) {
-        var text = tutao.locator.htmlSanitizer.sanitize(body.getText());
-        text = tutao.tutanota.util.Formatter.urlify(text);
+        var result = tutao.locator.htmlSanitizer.sanitize(body.getText(), blockExternalContent);
+
+        self._contentBlocked(result.externalImages.length > 0);
+        if ( self._contentBlocked()){
+            tutao.locator.mailViewModel.notificationBarViewModel.showNotification("contentBlocked_msg", function() {
+                self._loadBody(false);
+            });
+        }
+
+        var text = tutao.tutanota.util.Formatter.urlify(result.text);
         self.bodyText(text);
         var split = tutao.locator.mailView.splitMailTextQuotation(self.bodyText());
         self.bodyTextWithoutQuotation(split.text);

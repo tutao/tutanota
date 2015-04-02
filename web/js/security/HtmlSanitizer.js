@@ -12,6 +12,7 @@ tutao.tutanota.security.HtmlSanitizer = function() {};
 /**
  * Sanitizes the given html.
  * @param {string} html The html content to sanitize.
+ * @param {boolean} blockExternalContent True if external content should be blocked
  * @return {string} The safe html.
  */
-tutao.tutanota.security.HtmlSanitizer.prototype.sanitize = function(html) {};
+tutao.tutanota.security.HtmlSanitizer.prototype.sanitize = function(html, blockExternalContent) {};
