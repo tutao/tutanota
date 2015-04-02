@@ -349,7 +349,7 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "repeatedPassword_label": "Herhaal wachtwoord",
   "replyAll_action": "Allen beantwoorden",
   "replyConfidential_action": "Reageer vertrouwelijk",
-  "reply_action": "Beantwoordt",
+  "reply_action": "Beantwoorden",
   "saveDownloadNotPossibleAndroid_msg": "De Android-browser ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te op de link te klikken. Als alternatief kunt Google Chrome of Opera installeren.",
   "saveDownloadNotPossibleIe_msg": "De mobiele Internet Explorer ondersteunt het opslaan of weergeven van bijlagen niet. Gebruik een andere browser voor deze functies.",
   "saveDownloadNotPossibleSafariDesktop_msg": "Safari ondersteunt het opslaan van bijlagen op schijf niet. Wel kunnen enkele bestandstypen in de browser worden weergegeven door te klikken op de link. Gebruikt u anders Mozilla Firefox of Google Chrome.",

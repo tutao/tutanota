@@ -13,7 +13,7 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "address_label": "Adresse postale",
   "adminAddMailAddressAlias_label": "Ajouter un alias d'adresse e-mail",
   "adminDeleteAccount_action": "Supprimer le compte",
-  "adminEmailSettings_action": "E-mail",
+  "adminEmailSettings_action": "Message",
   "adminMaxNbrOfAliasesReached_msg": "Vous avez atteint le nombre maximum d'alias d'adresse e-mail gratuits.",
   "adminMessages_action": "Messages affichés",
   "adminPremiumFeatures_action": "Extensions",
