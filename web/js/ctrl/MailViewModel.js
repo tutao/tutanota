@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
     tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION, function (width) {
         self.width = width;
         if (self.mail()) {
-            // we reduce the max width by 10 px which are used in our css for paddings + borders
+            // we reduce the max width by 6 px which are used in our css for paddings + borders
             self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 6);
             self.notificationBarViewModel.buttonBarViewModel.setButtonBarWidth( (self.width / 5)*2 - 6 ); // keep in sync with css div.notificationButtons width 40%
         }
@@ -47,7 +47,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
     });
     this.mail.subscribe(function (newMail) {
         if (newMail) {
-            // we reduce the max width by 10 px which are used in our css for paddings + borders
+            // we reduce the max width by 6 px which are used in our css for paddings + borders
             self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 6);
             self.notificationBarViewModel.buttonBarViewModel.setButtonBarWidth( (self.width / 5)*2 - 6); // keep in sync with css div.notificationButtons width 40%
         }
