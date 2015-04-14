@@ -11,6 +11,7 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerinfo;
 	this.activationTime = ko.observable(customerinfo.getActivationTime());
+	this.business = ko.observable(customerinfo.getBusiness());
 	this.company = ko.observable(customerinfo.getCompany());
 	this.creationTime = ko.observable(customerinfo.getCreationTime());
 	this.deletionReason = ko.observable(customerinfo.getDeletionReason());
@@ -19,6 +20,10 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.registrationMailAddress = ko.observable(customerinfo.getRegistrationMailAddress());
 	this.storageCapacity = ko.observable(customerinfo.getStorageCapacity());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
+	this.domainInfos = ko.observableArray();
+	for (var i = 0; i < customerinfo.getDomainInfos().length; i++) {
+		this.domainInfos.push(new tutao.entity.sys.DomainInfoEditable(customerinfo.getDomainInfos()[i]));
+	}
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -40,6 +45,7 @@ tutao.entity.sys.CustomerInfoEditable.prototype.getCustomerInfo = function() {
  */
 tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setActivationTime(this.activationTime());
+	this._entity.setBusiness(this.business());
 	this._entity.setCompany(this.company());
 	this._entity.setCreationTime(this.creationTime());
 	this._entity.setDeletionReason(this.deletionReason());
@@ -48,5 +54,10 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setRegistrationMailAddress(this.registrationMailAddress());
 	this._entity.setStorageCapacity(this.storageCapacity());
 	this._entity.setTestEndTime(this.testEndTime());
+	this._entity.getDomainInfos().length = 0;
+	for (var i = 0; i < this.domainInfos().length; i++) {
+		this.domainInfos()[i].update();
+		this._entity.getDomainInfos().push(this.domainInfos()[i].getDomainInfo());
+	}
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

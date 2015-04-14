@@ -30,7 +30,7 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.updateData = funct
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationVerifyDomainPostReturn.MODEL_VERSION = '8';
+tutao.entity.sys.RegistrationVerifyDomainPostReturn.MODEL_VERSION = '9';
 
 /**
  * The encrypted flag.
