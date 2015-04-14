@@ -9,7 +9,6 @@ tutao.provide('tutao.tutanota.security.CajaSanitizer');
 tutao.tutanota.security.CajaSanitizer = function() {};
 
 tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) {
-	console.log(url);
 	return url;
 };
 
@@ -52,7 +51,6 @@ tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = f
 		var srcAttr = $(this).attr("src");
 		if (self._isExternalLink(srcAttr)){
 			$(this).attr("src", localPreventIcon);
-			$(this).attr("alt", "Image src");
 			externalImages.push(srcAttr);
 		}
 	});
@@ -61,7 +59,6 @@ tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = f
 	domHtml.find("[style]").each(function(index){
 		var backgroundImage = $(this).css("background-image");
 		if (self._isExternalLink(backgroundImage)){
-			externalImages.push(backgroundImage);
 			$(this).css("background-image", "url(" +localPreventIcon + ")");
 			externalImages.push(backgroundImage);
 		}

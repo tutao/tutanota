@@ -145,7 +145,7 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
     if (composeBody.length == 0) {
         throw new Error("no composing mail created");
     }
-	var result = tutao.locator.htmlSanitizer.sanitize(text, true);
+	var result = tutao.locator.htmlSanitizer.sanitize(text, false);
     composeBody.append(result.text);
     this.addSubmitCheckToDivs(composeBody);
 
@@ -158,7 +158,7 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
 	var bodyTextNode = $(".conversation").find(".composeBody");
 	// sibling blockquotes on top level are not merged if separated by user
-    var result = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html(), true);
+    var result = tutao.locator.htmlSanitizer.sanitize(bodyTextNode.html(), false);
     var text = tutao.tutanota.util.Formatter.urlify(result.text);
 	return text;
 };
