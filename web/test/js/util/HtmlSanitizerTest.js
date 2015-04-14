@@ -28,5 +28,10 @@ describe("HtmlSanitizerTest", function () {
         assert.equal('hello<blockquote>test</blockquote>', tutao.locator.htmlSanitizer.sanitize("hello<blockquote>test</blockquote>").text);
     });
 
+    it("detect background images", function () {
+        assert.equal("url(https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image)", tutao.locator.htmlSanitizer.sanitize('<p style="background-image: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>', true).externalImages[0]);
+        assert.equal("url(https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image)", tutao.locator.htmlSanitizer.sanitize('<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>', true).externalImages[0]);
+        assert.equal("https://emailprivacytester.com/cb/510828b5a8f43ab5/img", tutao.locator.htmlSanitizer.sanitize('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5/img"></img>', true).externalImages[0]);
+    });
 
 });
