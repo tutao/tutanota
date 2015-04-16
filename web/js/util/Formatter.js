@@ -180,6 +180,22 @@ tutao.tutanota.util.Formatter.isMailAddress = function(string) {
 };
 
 /**
+ * Checks if the given string is a valid domain name.
+ * @param {string} string The string to check.
+ * @return {boolean} If the string is a domain name.
+ */
+tutao.tutanota.util.Formatter.isDomainName = function(string) {
+	if (string == null || string != string.trim()) {
+		return false;
+	}
+	if (tutao.util.StringUtils.startsWith(string, "-")) {
+		return false;
+	}
+	return /^[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
+};
+
+
+/**
  * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
  * the address to lower case.
  * @param {string} mailAddress The input mail address.

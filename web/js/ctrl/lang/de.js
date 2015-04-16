@@ -468,5 +468,11 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "welcomeMailSubject_msg": "Fühl dich wie zuhause: Hier bleiben deine Daten privat.",
   "work_label": "Arbeit",
   "xing_label": "XING",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "adminCustomDomainInfo_msg" : "Bitte konfiguriere vorher deine MX-Einträge im DNS. Siehe {1}.",
+  "adminCustomDomain_label" : "Eigene Domain",
+  "customDomainNeutral_msg" : "Bitte gib hier deine Domain ein.",
+  "customDomainError_msg" : "Einrichten der Domain fehlgeschlagen."
+
+
 };

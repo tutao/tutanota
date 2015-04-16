@@ -20,6 +20,9 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.registrationMailAddress = ko.observable(customerinfo.getRegistrationMailAddress());
 	this.storageCapacity = ko.observable(customerinfo.getStorageCapacity());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
+	if (customerinfo.getBookingItems()) {
+		this.bookingItems = ko.observable(new tutao.entity.sys.BookingItemsRefEditable(customerinfo.getBookingItems()));
+	}
 	this.domainInfos = ko.observableArray();
 	for (var i = 0; i < customerinfo.getDomainInfos().length; i++) {
 		this.domainInfos.push(new tutao.entity.sys.DomainInfoEditable(customerinfo.getDomainInfos()[i]));
@@ -54,6 +57,10 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setRegistrationMailAddress(this.registrationMailAddress());
 	this._entity.setStorageCapacity(this.storageCapacity());
 	this._entity.setTestEndTime(this.testEndTime());
+		if (this.bookingItems()) {
+			this.bookingItems().update();
+			this._entity.setBookingItems(this.bookingItems().getBookingItemsRef());
+		}
 	this._entity.getDomainInfos().length = 0;
 	for (var i = 0; i < this.domainInfos().length; i++) {
 		this.domainInfos()[i].update();
