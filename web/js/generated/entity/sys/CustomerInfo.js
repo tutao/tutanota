@@ -21,6 +21,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._deletionTime = null;
     this._domain = null;
     this._registrationMailAddress = null;
+    this._source = null;
     this._storageCapacity = null;
     this._testEndTime = null;
     this._accountingInfo = null;
@@ -48,6 +49,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this._deletionTime = data.deletionTime;
   this._domain = data.domain;
   this._registrationMailAddress = data.registrationMailAddress;
+  this._source = data.source;
   this._storageCapacity = data.storageCapacity;
   this._testEndTime = data.testEndTime;
   this._accountingInfo = data.accountingInfo;
@@ -106,6 +108,7 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     deletionTime: this._deletionTime, 
     domain: this._domain, 
     registrationMailAddress: this._registrationMailAddress, 
+    source: this._source, 
     storageCapacity: this._storageCapacity, 
     testEndTime: this._testEndTime, 
     accountingInfo: this._accountingInfo, 
@@ -161,6 +164,11 @@ tutao.entity.sys.CustomerInfo.prototype.DOMAIN_ATTRIBUTE_ID = 154;
 tutao.entity.sys.CustomerInfo.prototype.REGISTRATIONMAILADDRESS_ATTRIBUTE_ID = 597;
 
 /**
+ * The id of the source attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 715;
+
+/**
  * The id of the storageCapacity attribute.
  */
 tutao.entity.sys.CustomerInfo.prototype.STORAGECAPACITY_ATTRIBUTE_ID = 650;
@@ -178,7 +186,7 @@ tutao.entity.sys.CustomerInfo.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 159;
 /**
  * The id of the bookingItems attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.BOOKINGITEMS_ATTRIBUTE_ID = 716;
+tutao.entity.sys.CustomerInfo.prototype.BOOKINGITEMS_ATTRIBUTE_ID = 717;
 
 /**
  * The id of the customer attribute.
@@ -188,7 +196,7 @@ tutao.entity.sys.CustomerInfo.prototype.CUSTOMER_ATTRIBUTE_ID = 158;
 /**
  * The id of the domainInfos attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 715;
+tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 716;
 
 /**
  * Provides the id of this CustomerInfo.
@@ -389,6 +397,23 @@ tutao.entity.sys.CustomerInfo.prototype.setRegistrationMailAddress = function(re
  */
 tutao.entity.sys.CustomerInfo.prototype.getRegistrationMailAddress = function() {
   return this._registrationMailAddress;
+};
+
+/**
+ * Sets the source of this CustomerInfo.
+ * @param {string} source The source of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setSource = function(source) {
+  this._source = source;
+  return this;
+};
+
+/**
+ * Provides the source of this CustomerInfo.
+ * @return {string} The source of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getSource = function() {
+  return this._source;
 };
 
 /**
