@@ -24,9 +24,9 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype._verifyCustomDomain = f
     if ( cleanedValue.length == 0){
         self.customDomainStatus({ type: "neutral", text: "customDomainNeutral_msg"});
     } else if (tutao.tutanota.util.Formatter.isDomainName(cleanedValue)) {
-        self.customDomainStatus({ type: "valid", text: "promotionCodeEnterValidFormat_msg"});
+        self.customDomainStatus({ type: "valid", text: "validInputFormat_msg"});
     } else {
-        self.customDomainStatus({ type: "invalid", text: "promotionCodeEnterWrongFormat_msg"});
+        self.customDomainStatus({ type: "invalid", text: "invalidInputFormat_msg"});
     }
 };
 

@@ -33,9 +33,9 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel.prototype._checkCode = function
     } else {
         this.promotionCodeStatus({ type: "neutral", text: "check_msg" });
         if (codeToCheck.match(/^[a-zA-Z][a-zA-Z]-[\d\w][\d\w][\d\w][\d\w]-[\d\w][\d\w][\d\w][\d\w]$/)){
-            self.promotionCodeStatus({ type: "valid", text: "promotionCodeEnterValidFormat_msg" });
+            self.promotionCodeStatus({ type: "valid", text: "validInputFormat_msg" });
         }else{
-            self.promotionCodeStatus({ type: "invalid", text: "promotionCodeEnterWrongFormat_msg" });
+            self.promotionCodeStatus({ type: "invalid", text: "invalidInputFormat_msg" });
         }
     }
 };

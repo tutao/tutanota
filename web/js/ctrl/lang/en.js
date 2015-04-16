@@ -472,5 +472,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "adminCustomDomainInfo_msg" : "Please ensure in advance that your MX record entries are set up correctly in your DNS. See {1}.",
   "adminCustomDomain_label" : "Custom domain",
   "customDomainNeutral_msg" : "Please enter your domain.",
-  "customDomainError_msg" : "Error while checking your domain"
+  "customDomainError_msg" : "Error while checking your domain",
+  "validInputFormat_msg" : "Format ok.",
+  "invalidInputFormat_msg" : "Invalid format."
 };
