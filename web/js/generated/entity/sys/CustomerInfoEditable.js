@@ -23,6 +23,8 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
 	if (customerinfo.getBookingItems()) {
 		this.bookingItems = ko.observable(new tutao.entity.sys.BookingItemsRefEditable(customerinfo.getBookingItems()));
+	} else {
+	    this.bookingItems = ko.observable(null);
 	}
 	this.domainInfos = ko.observableArray();
 	for (var i = 0; i < customerinfo.getDomainInfos().length; i++) {

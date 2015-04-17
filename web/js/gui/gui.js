@@ -100,6 +100,42 @@ tutao.tutanota.gui.initKnockout = function() {
 			}
 	    }
 	};
+
+    // if the given value is undefined, null, "" or only contains whitespaces, the given default value is returned if existing, otherwise an invisible character
+    ko.bindingHandlers.replacementText = {
+        // one-way
+        update: function(element, valueAccessor, allBindingsAccessor) {
+            var defaultText = allBindingsAccessor()["default"] || "\u2008";
+            var unwrappedValue = ko.utils.unwrapObservable(valueAccessor());
+            if (!unwrappedValue || !unwrappedValue.trim()) {
+                ko.bindingHandlers.text.update(element, function() { return defaultText; });
+            } else {
+                ko.bindingHandlers.text.update(element, valueAccessor);
+            }
+        }
+    };
+
+    // stores null in the observable if the bound input is emptied
+    ko.bindingHandlers.valueNullIfEmpty = {
+        init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            ko.utils.registerEventHandler(element, 'change', function (event) {
+                var unwrappedValue = $(element).val();
+                if (!unwrappedValue) {
+                    valueAccessor()(null);
+                } else {
+                    valueAccessor()(unwrappedValue);
+                }
+            });
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            var unwrappedValue = ko.utils.unwrapObservable(valueAccessor());
+            if (!unwrappedValue) {
+                ko.bindingHandlers.value.update(element, function() { return ""; }, allBindingsAccessor, viewModel, bindingContext);
+            } else {
+                ko.bindingHandlers.value.update(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+            }
+        }
+    };
 	
 	ko.bindingHandlers.dateInput = {
 		// two-way

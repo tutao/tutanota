@@ -381,6 +381,17 @@ tutao.entity.sys.AccountingInfo.loadMultiple = function(ids) {
 };
 
 /**
+ * Updates this AccountingInfo on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.AccountingInfo.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.AccountingInfo.PATH, this, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
+};
+
+/**
  * Register a function that is called as soon as any attribute of the entity has changed. If this listener
  * was already registered it is not registered again.
  * @param {function(Object,*=)} listener. The listener function. When called it gets the entity and the given id as arguments.
