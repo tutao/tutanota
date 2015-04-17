@@ -58,12 +58,12 @@ tutao.entity.sys.CustomDomainData.prototype.toJsonData = function() {
 /**
  * The id of the CustomDomainData type.
  */
-tutao.entity.sys.CustomDomainData.prototype.TYPE_ID = 717;
+tutao.entity.sys.CustomDomainData.prototype.TYPE_ID = 724;
 
 /**
  * The id of the domain attribute.
  */
-tutao.entity.sys.CustomDomainData.prototype.DOMAIN_ATTRIBUTE_ID = 719;
+tutao.entity.sys.CustomDomainData.prototype.DOMAIN_ATTRIBUTE_ID = 726;
 
 /**
  * Sets the format of this CustomDomainData.
@@ -103,7 +103,7 @@ tutao.entity.sys.CustomDomainData.prototype.getDomain = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.CustomDomainReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers) {
   if (!headers) {
@@ -111,5 +111,5 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
   }
   parameters["v"] = 9;
   this._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
+  return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
 };

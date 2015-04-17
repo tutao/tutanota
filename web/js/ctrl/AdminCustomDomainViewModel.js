@@ -15,6 +15,7 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel = function() {
     }, this);
 
     this.busy = ko.observable(false);
+    this.invalidDnsRecords = ko.observableArray();
 
 };
 
@@ -52,11 +53,28 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.confirm = function() {
     var self = this;
     var service = new tutao.entity.sys.CustomDomainData();
     service.setDomain(this.customDomain().trim().toLowerCase());
-    service.setup({}, null).then(function() {
-        self.customDomainSubmitStatus({ type: "valid", text: "finished_msg" });
-    }).caught(function(){
-        self.customDomainSubmitStatus({ type: "invalid", text: "customDomainError_msg" });
+    service.setup({}, null).then(function(status) {
+        if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_OK){
+            self.customDomainSubmitStatus({ type: "valid", text: "finished_msg" });
+        }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED){
+            self.customDomainSubmitStatus({ type: "invalid", text: "customDomainErrorDnsLookupFailure_msg" });
+        }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD){
+            self.customDomainSubmitStatus({ type: "invalid", text: "customDomainErrorInvalidDnsRecord_msg" });
+        }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD){
+            self.customDomainSubmitStatus({ type: "invalid", text: "customDomainErrorMissingMxEntry_msg" });
+        }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD){
+            self.customDomainSubmitStatus({ type: "invalid", text: "customDomainErrorMissingSpfEntry_msg" });
+        }else {
+           self.customDomainSubmitStatus({type: "invalid", text: "customDomainErrorDomainNotAvailable_msg"});
+        }
+
+        self.invalidDnsRecords(status.getInvalidDnsRecords());
+
     }).finally(function(){
         self.busy(false);
     });
 };
+
+
+
+
