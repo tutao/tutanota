@@ -291,7 +291,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
         assert.equal(true, info.isMobileDevice());
         assert.equal(true, info.isPhoneSupported());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
 
     it(" detect android browser 4.1 on Android", function () {
@@ -403,6 +403,19 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_BB, info.getDeviceType());
         assert.equal(true, info.isMobileDevice());
         assert.equal(true, info.isPhoneSupported());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
+    it("iceweasel browser are supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (X11; Linux x86_64; rv:37.0)  Gecko/20100101 Iceweasel/37.0.1");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX, info.getBrowserType());
+        assert.equal(37, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX, info.getOs());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assert.equal(false, info.isMobileDevice());
+        assert.equal(false, info.isPhoneSupported());
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
 });
