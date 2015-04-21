@@ -1112,6 +1112,33 @@ body {
   input.mailAddressPrefixInput {
     width: 45% !important;
   }
+
+  .bookingTable {
+    display: table;
+    border-collapse: collapse;
+    width: 100%;
+
+    > .bookingItem {
+      display: table-row;
+      .light;
+    }
+
+    > .bookingTableHeader {
+      display: table-row;
+      border-bottom: 1px solid @border-dark;
+    }
+
+    > .bookingTableFooter {
+      display: table-row;
+      border-top: 1px solid @border-dark;
+    }
+
+    .bookingCell {
+      display: table-cell;
+      padding: 0 5px 0 5px;
+    }
+  }
+
 /*
     #attachmentDialog{
       position: fixed;

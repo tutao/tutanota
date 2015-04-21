@@ -108,10 +108,6 @@
 <script src="/lib/worker/base64shim.js"></script>
 <script src="/lib/worker/crypto-jsbn-2012-08-09_1.js"></script>
 <script src="/lib/worker/crypto-sjcl-2012-08-09_1.js"></script>
-<script src="/js/ctrl/bubbleinput/Bubble.js"></script>
-<script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
-<script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
-<script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/ctrl/lang/ar.js"></script>
 <script src="/js/ctrl/lang/bg_bg.js"></script>
 <script src="/js/ctrl/lang/cy_gb.js"></script>
@@ -138,6 +134,10 @@
 <script src="/js/ctrl/lang/tr.js"></script>
 <script src="/js/ctrl/lang/zh.js"></script>
 <script src="/js/ctrl/lang/zh_hant.js"></script>
+<script src="/js/ctrl/bubbleinput/Bubble.js"></script>
+<script src="/js/ctrl/bubbleinput/BubbleHandler.js"></script>
+<script src="/js/ctrl/bubbleinput/BubbleInputViewModel.js"></script>
+<script src="/js/ctrl/bubbleinput/Suggestion.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
 <script src="/js/generated/entity/tutanota/Attachment.js"></script>
 <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
@@ -208,6 +208,7 @@
 <script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
 <script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
+<script src="/js/generated/entity/sys/AccountingInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
 <script src="/js/generated/entity/sys/Authentication.js"></script>
 <script src="/js/generated/entity/sys/AutoLoginDataDelete.js"></script>
@@ -246,6 +247,9 @@
 <script src="/js/generated/entity/sys/GroupMembership.js"></script>
 <script src="/js/generated/entity/sys/GroupRoot.js"></script>
 <script src="/js/generated/entity/sys/IncomingShare.js"></script>
+<script src="/js/generated/entity/sys/Invoice.js"></script>
+<script src="/js/generated/entity/sys/InvoiceInfo.js"></script>
+<script src="/js/generated/entity/sys/InvoiceInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
 <script src="/js/generated/entity/sys/KeyPair.js"></script>
 <script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
@@ -311,27 +315,17 @@
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
 <script src="/js/Bootstrap.js"></script>
 <script src="/js/Locator.js"></script>
-<script src="/js/crypto/AesInterface.js"></script>
-<script src="/js/crypto/CryptoError.js"></script>
-<script src="/js/crypto/EntropyCollector.js"></script>
-<script src="/js/crypto/JBCryptAdapter.js"></script>
-<script src="/js/crypto/KdfInterface.js"></script>
-<script src="/js/crypto/Oaep.js"></script>
-<script src="/js/crypto/RandomizerInterface.js"></script>
-<script src="/js/crypto/SecureRandom.js"></script>
-<script src="/js/crypto/ShaInterface.js"></script>
-<script src="/js/crypto/SjclAes.js"></script>
-<script src="/js/crypto/SjclRandomizer.js"></script>
-<script src="/js/crypto/SjclSha256.js"></script>
-<script src="/js/crypto/WorkerRandomizer.js"></script>
-<script src="/js/db/DbInterface.js"></script>
-<script src="/js/db/DummyDb.js"></script>
-<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/entity/BucketData.js"></script>
+<script src="/js/entity/ContactExtension.js"></script>
+<script src="/js/entity/ContactWrapper.js"></script>
+<script src="/js/entity/EntityHelper.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
 <script src="/js/ctrl/AccountSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminAliasViewModel.js"></script>
 <script src="/js/ctrl/AdminCustomDomainViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
+<script src="/js/ctrl/AdminInvoicingViewModel.js"></script>
 <script src="/js/ctrl/AdminMailSettingsViewModel.js"></script>
 <script src="/js/ctrl/AdminMessagesViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
@@ -385,11 +379,22 @@
 <script src="/js/ctrl/View.js"></script>
 <script src="/js/ctrl/ViewManager.js"></script>
 <script src="/js/ctrl/ViewSlider.js"></script>
-<script src="/js/entity/BucketData.js"></script>
-<script src="/js/entity/ContactExtension.js"></script>
-<script src="/js/entity/ContactWrapper.js"></script>
-<script src="/js/entity/EntityHelper.js"></script>
-<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/db/DbInterface.js"></script>
+<script src="/js/db/DummyDb.js"></script>
+<script src="/js/db/WebSqlDb.js"></script>
+<script src="/js/crypto/AesInterface.js"></script>
+<script src="/js/crypto/CryptoError.js"></script>
+<script src="/js/crypto/EntropyCollector.js"></script>
+<script src="/js/crypto/JBCryptAdapter.js"></script>
+<script src="/js/crypto/KdfInterface.js"></script>
+<script src="/js/crypto/Oaep.js"></script>
+<script src="/js/crypto/RandomizerInterface.js"></script>
+<script src="/js/crypto/SecureRandom.js"></script>
+<script src="/js/crypto/ShaInterface.js"></script>
+<script src="/js/crypto/SjclAes.js"></script>
+<script src="/js/crypto/SjclRandomizer.js"></script>
+<script src="/js/crypto/SjclSha256.js"></script>
+<script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/error/RecipientsNotFoundError.js"></script>
 <script src="/js/event/EventBusClient.js"></script>
 <script src="/js/event/EventBusListener.js"></script>
@@ -419,8 +424,6 @@
 <script src="/js/rest/EntityRestInterface.js"></script>
 <script src="/js/rest/ResourceConstants.js"></script>
 <script src="/js/rest/RestClient.js"></script>
-<script src="/js/security/CajaSanitizer.js"></script>
-<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
@@ -438,6 +441,8 @@
 <script src="/js/util/StateMachine.js"></script>
 <script src="/js/util/StringUtils.js"></script>
 <script src="/js/util/bind.js"></script>
+<script src="/js/security/CajaSanitizer.js"></script>
+<script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/native/AndroidFile.js"></script>
 <script src="/js/native/ConfigApp.js"></script>
 <script src="/js/native/ConfigBrowser.js"></script>
@@ -1617,14 +1622,34 @@
 										<div class="recordName"></div>
 										<div class="formAction">
 											<button id="submitCustomDomain" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-											<label class="recordStatus" data-bind="css: customDomainSubmitStatus().type, lang: customDomainSubmitStatus().text"></label>
-											<label class="recordStatus" data-bind="css: 'invalid', foreach: invalidDnsRecords">
-												<div  class="recordStatus" data-bind="text: getValue()"></div>
-											</label>
+											<label for="submitCustomDomain" class="recordStatus" data-bind="css: customDomainSubmitStatus().type, lang: customDomainSubmitStatus().text"></label>
 										</div>
 									</div>
 								</form>
 							</div>
+                            <!-- /ko -->
+                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING-->
+                            <div id="adminInvoicing" data-bind="with: new tutao.tutanota.ctrl.AdminInvoicingViewModel()" >
+                                <div class="bookingTable">
+                                    <div class="bookingTableHeader">
+                                        <div class="bookingCell" data-bind="lang: 'bookingFeature_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'bookingOrder_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'bookingPrice_label'"></div>
+                                    </div>
+                                    <!-- ko foreach: items -->
+                                        <div class="bookingItem">
+                                            <div class="bookingCell" data-bind="lang: name"></div>
+                                            <div class="bookingCell" data-bind="text: current"></div>
+                                            <div class="bookingCell" data-bind="text: price() + ' €'"></div>
+                                        </div>
+                                    <!-- /ko -->
+                                    <div class="bookingTableFooter" data-bind="">
+                                        <div class="bookingCell"></div>
+                                        <div class="bookingCell" data-bind="lang: 'bookingTotalPrice_label'"></div>
+                                        <div class="bookingCell" data-bind="text: getTotalPrice() + ' €'"></div>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_MESSAGES-->
                             <div id="adminMessages" data-bind="with: new tutao.tutanota.ctrl.AdminMessagesViewModel()" >

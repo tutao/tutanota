@@ -42,12 +42,12 @@ tutao.entity.sys.BookingItemsRef.prototype.toJsonData = function() {
 /**
  * The id of the BookingItemsRef type.
  */
-tutao.entity.sys.BookingItemsRef.prototype.TYPE_ID = 711;
+tutao.entity.sys.BookingItemsRef.prototype.TYPE_ID = 710;
 
 /**
  * The id of the items attribute.
  */
-tutao.entity.sys.BookingItemsRef.prototype.ITEMS_ATTRIBUTE_ID = 713;
+tutao.entity.sys.BookingItemsRef.prototype.ITEMS_ATTRIBUTE_ID = 712;
 
 /**
  * Sets the id of this BookingItemsRef.

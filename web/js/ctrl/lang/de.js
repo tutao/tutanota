@@ -479,5 +479,15 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "customDomainErrorInvalidDnsRecord_msg" : "Der DNS-Eintrag für diese Domain enthält ungültige Werte.",
   "customDomainErrorDomainNotAvailable_msg" : "Diese Domain ist nicht verfügbar.",
   "validInputFormat_msg" : "Format ok.",
-  "invalidInputFormat_msg" : "Ungültiges Format."
+  "invalidInputFormat_msg" : "Ungültiges Format.",
+  "bookingItemAccountType_label" : "Account-Typ",
+    "bookingItemUsers_label" : "Weitere Benutzer",
+    "bookingItemStorage_label" : "Speicherplatz",
+    "businessUse_label" : "geschäftlich",
+    "privateUse_label" : "privat",
+    "bookingFeature_label" : "Erweiterung",
+    "bookingOrder_label" : "Buchung",
+    "bookingPrice_label" : "Preis/Monat",
+    "bookingTotalPrice_label" : "Gesamtpreis/Monat",
+  "adminInvoicing_action" : "Rechnungen"
 };
