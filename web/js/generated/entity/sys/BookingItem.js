@@ -14,11 +14,10 @@ tutao.entity.sys.BookingItem = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._activation = null;
+    this._count = null;
     this._deactivation = null;
-    this._elementId = null;
-    this._featureInfo = null;
     this._featureType = null;
-    this._paymentType = null;
+    this._totalPrice = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.BookingItem.prototype;
@@ -33,11 +32,10 @@ tutao.entity.sys.BookingItem.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__permissions = data._permissions;
   this._activation = data.activation;
+  this._count = data.count;
   this._deactivation = data.deactivation;
-  this._elementId = data.elementId;
-  this._featureInfo = data.featureInfo;
   this._featureType = data.featureType;
-  this._paymentType = data.paymentType;
+  this._totalPrice = data.totalPrice;
 };
 
 /**
@@ -80,11 +78,10 @@ tutao.entity.sys.BookingItem.prototype.toJsonData = function() {
     _id: this.__id, 
     _permissions: this.__permissions, 
     activation: this._activation, 
+    count: this._count, 
     deactivation: this._deactivation, 
-    elementId: this._elementId, 
-    featureInfo: this._featureInfo, 
     featureType: this._featureType, 
-    paymentType: this._paymentType
+    totalPrice: this._totalPrice
   };
 };
 
@@ -96,22 +93,17 @@ tutao.entity.sys.BookingItem.prototype.TYPE_ID = 700;
 /**
  * The id of the activation attribute.
  */
-tutao.entity.sys.BookingItem.prototype.ACTIVATION_ATTRIBUTE_ID = 707;
+tutao.entity.sys.BookingItem.prototype.ACTIVATION_ATTRIBUTE_ID = 706;
+
+/**
+ * The id of the count attribute.
+ */
+tutao.entity.sys.BookingItem.prototype.COUNT_ATTRIBUTE_ID = 708;
 
 /**
  * The id of the deactivation attribute.
  */
-tutao.entity.sys.BookingItem.prototype.DEACTIVATION_ATTRIBUTE_ID = 708;
-
-/**
- * The id of the elementId attribute.
- */
-tutao.entity.sys.BookingItem.prototype.ELEMENTID_ATTRIBUTE_ID = 709;
-
-/**
- * The id of the featureInfo attribute.
- */
-tutao.entity.sys.BookingItem.prototype.FEATUREINFO_ATTRIBUTE_ID = 710;
+tutao.entity.sys.BookingItem.prototype.DEACTIVATION_ATTRIBUTE_ID = 707;
 
 /**
  * The id of the featureType attribute.
@@ -119,9 +111,9 @@ tutao.entity.sys.BookingItem.prototype.FEATUREINFO_ATTRIBUTE_ID = 710;
 tutao.entity.sys.BookingItem.prototype.FEATURETYPE_ATTRIBUTE_ID = 705;
 
 /**
- * The id of the paymentType attribute.
+ * The id of the totalPrice attribute.
  */
-tutao.entity.sys.BookingItem.prototype.PAYMENTTYPE_ATTRIBUTE_ID = 706;
+tutao.entity.sys.BookingItem.prototype.TOTALPRICE_ATTRIBUTE_ID = 709;
 
 /**
  * Provides the id of this BookingItem.
@@ -186,6 +178,23 @@ tutao.entity.sys.BookingItem.prototype.getActivation = function() {
 };
 
 /**
+ * Sets the count of this BookingItem.
+ * @param {string} count The count of this BookingItem.
+ */
+tutao.entity.sys.BookingItem.prototype.setCount = function(count) {
+  this._count = count;
+  return this;
+};
+
+/**
+ * Provides the count of this BookingItem.
+ * @return {string} The count of this BookingItem.
+ */
+tutao.entity.sys.BookingItem.prototype.getCount = function() {
+  return this._count;
+};
+
+/**
  * Sets the deactivation of this BookingItem.
  * @param {Date} deactivation The deactivation of this BookingItem.
  */
@@ -213,40 +222,6 @@ tutao.entity.sys.BookingItem.prototype.getDeactivation = function() {
 };
 
 /**
- * Sets the elementId of this BookingItem.
- * @param {string} elementId The elementId of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.setElementId = function(elementId) {
-  this._elementId = elementId;
-  return this;
-};
-
-/**
- * Provides the elementId of this BookingItem.
- * @return {string} The elementId of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.getElementId = function() {
-  return this._elementId;
-};
-
-/**
- * Sets the featureInfo of this BookingItem.
- * @param {string} featureInfo The featureInfo of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.setFeatureInfo = function(featureInfo) {
-  this._featureInfo = featureInfo;
-  return this;
-};
-
-/**
- * Provides the featureInfo of this BookingItem.
- * @return {string} The featureInfo of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.getFeatureInfo = function() {
-  return this._featureInfo;
-};
-
-/**
  * Sets the featureType of this BookingItem.
  * @param {string} featureType The featureType of this BookingItem.
  */
@@ -264,20 +239,20 @@ tutao.entity.sys.BookingItem.prototype.getFeatureType = function() {
 };
 
 /**
- * Sets the paymentType of this BookingItem.
- * @param {string} paymentType The paymentType of this BookingItem.
+ * Sets the totalPrice of this BookingItem.
+ * @param {string} totalPrice The totalPrice of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.setPaymentType = function(paymentType) {
-  this._paymentType = paymentType;
+tutao.entity.sys.BookingItem.prototype.setTotalPrice = function(totalPrice) {
+  this._totalPrice = totalPrice;
   return this;
 };
 
 /**
- * Provides the paymentType of this BookingItem.
- * @return {string} The paymentType of this BookingItem.
+ * Provides the totalPrice of this BookingItem.
+ * @return {string} The totalPrice of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.getPaymentType = function() {
-  return this._paymentType;
+tutao.entity.sys.BookingItem.prototype.getTotalPrice = function() {
+  return this._totalPrice;
 };
 
 /**

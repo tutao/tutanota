@@ -474,5 +474,15 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "customDomainNeutral_msg" : "Please enter your domain.",
   "customDomainError_msg" : "Error while checking your domain",
   "validInputFormat_msg" : "Format ok.",
-  "invalidInputFormat_msg" : "Invalid format."
+  "invalidInputFormat_msg" : "Invalid format.",
+    "bookingItemAccountType_label" : "Account type",
+    "bookingItemUsers_label" : "Additional users",
+    "bookingItemStorage_label" : "Storage capacity",
+    "businessUse_label" : "business",
+    "privateUse_label" : "private",
+    "bookingFeature_label" : "Extension",
+    "bookingOrder_label" : "Booking",
+    "bookingPrice_label" : "Price/month",
+    "bookingTotalPrice_label" : "Total price/month",
+   "adminInvoicing_action" : "Invoicing"
 };

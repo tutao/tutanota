@@ -475,5 +475,15 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "customDomainNeutral_msg" : "Bitte gib hier deine Domain ein.",
   "customDomainError_msg" : "Einrichten der Domain fehlgeschlagen.",
   "validInputFormat_msg" : "Format ok.",
-  "invalidInputFormat_msg" : "Ungültiges Format."
+  "invalidInputFormat_msg" : "Ungültiges Format.",
+  "bookingItemAccountType_label" : "Account-Typ",
+    "bookingItemUsers_label" : "Weitere Benutzer",
+    "bookingItemStorage_label" : "Speicherplatz",
+    "businessUse_label" : "geschäftlich",
+    "privateUse_label" : "privat",
+    "bookingFeature_label" : "Erweiterung",
+    "bookingOrder_label" : "Buchung",
+    "bookingPrice_label" : "Preis/Monat",
+    "bookingTotalPrice_label" : "Gesamtpreis/Monat",
+  "adminInvoicing_action" : "Rechnungen"
 };

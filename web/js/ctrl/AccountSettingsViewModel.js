@@ -21,8 +21,7 @@ tutao.tutanota.ctrl.AccountSettingsViewModel = function() {
     this.showAddinLink = (user.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER);
 
     var self = this;
-	var accountTypeNames = ["System", "Free", "Starter", "Premium", "Stream"];
-	self.records[0].valueObservable("Tutanota " + accountTypeNames[Number(user.getAccountType())]);
+	self.records[0].valueObservable("Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(user.getAccountType())]);
 	user.getUserGroup().loadGroupInfo().then(function(userGroup, exception) {
         self.records[1].valueObservable(userGroup.getMailAddress());
         var aliasNames = "-";

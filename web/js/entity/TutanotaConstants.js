@@ -2,6 +2,10 @@
 
 tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_PREMIUM = "0";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS = "1";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE = "2";
+
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE = "0";
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY = "1";
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD = "2";
@@ -29,14 +33,15 @@ tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS = "1";
 tutao.entity.tutanota.TutanotaConstants.AREA_SYSTEM = "3";
 
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM = "0";
-
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE = "1";
-
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER = "2";
-
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM = "3";
-
+tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STREAM = "4";
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_EXTERNAL = "5";
+
+tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES = ["System", "Free", "Outlook", "Premium", "Stream", "External"];
+
+
 
 tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_REGISTRATION_ALLOWED = "0";
 

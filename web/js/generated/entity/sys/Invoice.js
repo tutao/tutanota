@@ -50,7 +50,7 @@ tutao.entity.sys.Invoice.PATH = '/rest/sys/invoice';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.Invoice.ROOT_INSTANCE_ID = 'A3N5cwAC0g';
+tutao.entity.sys.Invoice.ROOT_INSTANCE_ID = 'A3N5cwAC2A';
 
 /**
  * The generated id type flag.
@@ -82,22 +82,22 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
 /**
  * The id of the Invoice type.
  */
-tutao.entity.sys.Invoice.prototype.TYPE_ID = 722;
+tutao.entity.sys.Invoice.prototype.TYPE_ID = 728;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.Invoice.prototype.DATE_ATTRIBUTE_ID = 727;
+tutao.entity.sys.Invoice.prototype.DATE_ATTRIBUTE_ID = 733;
 
 /**
  * The id of the htmlFile attribute.
  */
-tutao.entity.sys.Invoice.prototype.HTMLFILE_ATTRIBUTE_ID = 728;
+tutao.entity.sys.Invoice.prototype.HTMLFILE_ATTRIBUTE_ID = 734;
 
 /**
  * The id of the pdfFile attribute.
  */
-tutao.entity.sys.Invoice.prototype.PDFFILE_ATTRIBUTE_ID = 729;
+tutao.entity.sys.Invoice.prototype.PDFFILE_ATTRIBUTE_ID = 735;
 
 /**
  * Provides the id of this Invoice.
