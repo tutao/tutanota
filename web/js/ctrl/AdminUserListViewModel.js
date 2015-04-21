@@ -15,9 +15,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	this.newViewModel = ko.observable(null);
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, function() {
-            return !tutao.locator.userController.isLoggedInUserFreeAccount();
-        }, false, "newUserAction", "add", "adminUserAdd_action")
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, null, false, "newUserAction", "add", "adminUserAdd_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 

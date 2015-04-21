@@ -155,9 +155,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                 if (self.confidentialButtonSecure() && unsecureRecipients) {
                     setTimeout(function () {
                         var message = "noPasswordChannels_msg";
-                        if (!tutao.locator.passwordChannelViewModel.isAutoTransmitPasswordAllowed()) {
-                            message = "noPreSharedPassword_msg";
-                        }
                         tutao.tutanota.gui.alert(tutao.lang(message)).then(function () {
                             tutao.locator.mailView.showPasswordChannelColumn();
                         });
