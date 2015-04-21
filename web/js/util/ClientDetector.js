@@ -193,8 +193,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
     minVersionNeeded[info.BROWSER_TYPE_BB] = 10;
 
-    if (info._browser == info.BROWSER_TYPE_OTHER ||
-        (info._device != info.DEVICE_TYPE_DESKTOP && (info._browser == info.BROWSER_TYPE_FIREFOX))) {
+    if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
     } else if (info._browserVersion < minVersionNeeded[info._browser]) {
 		info._supported = info.SUPPORTED_TYPE_UPDATE_NEEDED;
@@ -304,6 +303,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
     var operaIndex1 = userAgent.indexOf("Opera");
     var operaIndex2 = userAgent.indexOf("OPR/");
 	var firefoxIndex = userAgent.indexOf("Firefox/");
+    var iceweaselIndex = userAgent.indexOf("Iceweasel/");
 	var chromeIndex = userAgent.indexOf("Chrome/");
 	var safariIndex = userAgent.indexOf("Safari/");
 	var ieIndex = userAgent.indexOf("MSIE");
@@ -322,10 +322,14 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
     } else if (operaIndex2 != -1) {
         info._browser = info.BROWSER_TYPE_OPERA;
         versionIndex = operaIndex2 + 4;
-    } else if ((firefoxIndex != -1) && (operaIndex1 == -1) && (operaIndex2 == -1)) {
+    } else if ((firefoxIndex != -1 || iceweaselIndex != -1) && (operaIndex1 == -1) && (operaIndex2 == -1)) {
 		// Opera may pretend to be Firefox, so it is skipped
 		info._browser = info.BROWSER_TYPE_FIREFOX;
-		versionIndex = firefoxIndex + 8;
+        if (firefoxIndex != -1) {
+            versionIndex = firefoxIndex + 8;
+        } else {
+            versionIndex = iceweaselIndex + 10;
+        }
 	} else if (chromeIndex != -1) {
 		info._browser = info.BROWSER_TYPE_CHROME;
 		versionIndex = chromeIndex + 7;
