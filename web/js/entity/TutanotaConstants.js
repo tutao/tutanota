@@ -273,3 +273,9 @@ tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS = "1";
 tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"];
 
 
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_OK = 0;
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED = 1;
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD = 2;
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD = 3;
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD = 4;
+tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DOMAIN_NOT_AVAILABLE = 5;
