@@ -3,13 +3,13 @@ tutao.tutanota.ctrl.lang.en.writing_direction = "ltr";
 tutao.tutanota.ctrl.lang.en.id = "en";
 tutao.tutanota.ctrl.lang.en.keys = {
   "accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
-  "accountSettings_action": "Account",
+    "userInfo_action": "Info",
   "accountType_label": "Account type",
   "account_label": "User",
   "activate_action": "Activate",
   "addAttachmentNotPossibleIe_msg": "The mobile Internet Explorer does not support adding attachments to emails. Please use a desktop browser for this feature.",
   "add_action": "Add",
-  "addinInfoText_msg": "Download the Outlook Addin for Tutanota Starter here. Updates are automatically installed when Outlook starts.",
+  "addinInfoText_msg": "Download the Tutanota addin for Outlook here. Updates are automatically installed when Outlook starts.",
   "address_label": "Address",
   "adminAddMailAddressAlias_label": "Add email alias",
   "adminDeleteAccount_action": "Delete account",
@@ -381,7 +381,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "saved_msg": "Saved successfully!",
   "savingFailed_msg": "The message has been sent successfully but could not be stored into your sent messages folder.",
   "secureMail_title": "Email is encrypted for external recipients.",
-  "securitySettings_action": "Security",
   "selectAddress_label": "Please select email address",
   "sendLogFile_action": "Send log file via email",
   "sendMail_alt": "Send email to this address",
@@ -484,5 +483,10 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "bookingOrder_label" : "Booking",
     "bookingPrice_label" : "Price/month",
     "bookingTotalPrice_label" : "Total price/month",
-   "adminInvoicing_action" : "Invoicing"
+   "adminInvoicing_action" : "Invoicing",
+    "domains_label" : "Domains",
+    "adminAccountInfo_action": "Info",
+    "adminPayment_action": "Payment data",
+    "accountSettings_label": "Account",
+    "userSettings_label": "User"
 };

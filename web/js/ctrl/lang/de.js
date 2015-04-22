@@ -3,13 +3,13 @@ tutao.tutanota.ctrl.lang.de.writing_direction = "ltr";
 tutao.tutanota.ctrl.lang.de.id = "de";
 tutao.tutanota.ctrl.lang.de.keys = {
   "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
-  "accountSettings_action": "Account",
+  "userInfo_action": "Info",
   "accountType_label": "Account-Typ",
   "account_label": "Benutzer",
   "activate_action": "Aktivieren",
   "addAttachmentNotPossibleIe_msg": "Leider unterstützt der mobile Internet Explorer nicht das Anhängen von Dateien an E-Mails. Bitte verwenden Sie dafür einen Desktop-Browser.",
   "add_action": "Hinzufügen",
-  "addinInfoText_msg": "Hier können Sie das Outlook-Addin für Tutanota Starter herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
+  "addinInfoText_msg": "Hier können Sie das Addin für Outlook herunterladen. Neue Versionen werden automatisch beim Starten von Outlook installiert.",
   "address_label": "Adresse",
   "adminAddMailAddressAlias_label": "E-Mail-Alias hinzufügen",
   "adminDeleteAccount_action": "Account löschen",
@@ -381,7 +381,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "saved_msg": "Die Daten wurden erfolgreich gespeichert.",
   "savingFailed_msg": "Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.",
   "secureMail_title": "Die E-Mail wird für alle externen Empfänger verschlüsselt.",
-  "securitySettings_action": "Sicherheit",
   "selectAddress_label": "Bitte E-Mail-Adresse auswählen",
   "sendLogFile_action": "Log-Datei per E-Mail senden",
   "sendMail_alt": "E-Mail an diese Adresse senden",
@@ -485,5 +484,10 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "bookingOrder_label" : "Buchung",
     "bookingPrice_label" : "Preis/Monat",
     "bookingTotalPrice_label" : "Gesamtpreis/Monat",
-  "adminInvoicing_action" : "Rechnungen"
+  "adminInvoicing_action" : "Rechnungen",
+    "domains_label" : "Domains",
+    "adminAccountInfo_action": "Info",
+    "adminPayment_action": "Zahlungsdaten",
+    "accountSettings_label": "Account",
+    "userSettings_label": "Benutzer"
 };

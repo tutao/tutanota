@@ -10,7 +10,7 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.adminUserListViewModel = ko.observable(null);
 
-	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS);
+	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO);
 	this.displayed.subscribe(function(displayed) {
         var self = this;
             if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
@@ -23,37 +23,55 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 	}, this);
 };
 
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ACCOUNT_SETTINGS = 0;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_SECURITY_SETTINGS = 1;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD = 2;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST = 3;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT = 4;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES = 5;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_MESSAGES = 6;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_EMAIL = 7;
-tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING = 8;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO = 0;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD = 1;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST = 2;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT = 3;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES = 4;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_MESSAGES = 5;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_MAIL_SETTINGS = 6;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING = 7;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO = 8;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT = 9;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 
 /**
- * Provides all settings ids.
+ * Provides all user setting ids.
  * @return {Array.<Number>} The Settings ids.
  */
-tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
+tutao.tutanota.ctrl.SettingsViewModel.prototype.getUserSettings = function() {
 	var s = tutao.tutanota.ctrl.SettingsViewModel;
-	var settings = [s.DISPLAY_ACCOUNT_SETTINGS, s.DISPLAY_SECURITY_SETTINGS, s.DISPLAY_CHANGE_PASSWORD];
-	if (tutao.locator.userController.isLoggedInUserAdmin() ) {
-		settings.push(s.DISPLAY_ADMIN_USER_LIST);
-        if (tutao.locator.viewManager.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+	var settings = [s.DISPLAY_USER_INFO, s.DISPLAY_CHANGE_PASSWORD];
+    if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+        settings.push(s.DISPLAY_MAIL_SETTINGS);
+    }
+	return settings;
+};
+
+/**
+ * Provides all account settings ids.
+ * @return {Array.<Number>} The Settings ids.
+ */
+tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() {
+    var s = tutao.tutanota.ctrl.SettingsViewModel;
+    var settings = [];
+
+    if (tutao.locator.userController.isLoggedInUserAdmin() ) {
+        settings.push(s.DISPLAY_ADMIN_ACCOUNT_INFO);
+        settings.push(s.DISPLAY_ADMIN_USER_LIST);
+        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
             settings.push(s.DISPLAY_ADMIN_MESSAGES);
-            settings.push(s.DISPLAY_ADMIN_INVOICING);
-        } else {
-            settings.push(s.DISPLAY_ADMIN_EMAIL);
+        }
+        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
             settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
-            settings.push(s.DISPLAY_ADMIN_INVOICING);
+        }
+        settings.push(s.DISPLAY_ADMIN_PAYMENT);
+        settings.push(s.DISPLAY_ADMIN_INVOICING);
+        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         }
-	}
-	return settings;
+    }
+    return settings;
 };
 
 /**
@@ -62,7 +80,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettings = function() {
  * @return {String} text id for the setting number
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
-	return ["accountSettings_action", "securitySettings_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action"][settings];
+	return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
 };
 
 /**

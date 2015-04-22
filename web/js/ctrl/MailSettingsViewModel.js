@@ -1,8 +1,8 @@
 "use strict";
 
-tutao.provide('tutao.tutanota.ctrl.AdminMailSettingsViewModel');
+tutao.provide('tutao.tutanota.ctrl.MailSettingsViewModel');
 
-tutao.tutanota.ctrl.AdminMailSettingsViewModel = function() {
+tutao.tutanota.ctrl.MailSettingsViewModel = function() {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this.currentSenderMailAddress = tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.AdminMailSettingsViewModel = function() {
  * Provides the information if the user may press the confirm button.
  * @return {boolean} True if the button can be presse, false otherwise.
  */
-tutao.tutanota.ctrl.AdminMailSettingsViewModel.prototype.confirmPossible = function() {
+tutao.tutanota.ctrl.MailSettingsViewModel.prototype.confirmPossible = function() {
     // check both observables here to make sure that both are bound
     var senderChanged = (this.currentSenderMailAddress != this.defaultSenderMailAddress());
     var confidentialChanged = (this.currentConfidential != this.defaultConfidential());
@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.AdminMailSettingsViewModel.prototype.confirmPossible = funct
 /**
  * Called when the confirm button is clicked by the user.
  */
-tutao.tutanota.ctrl.AdminMailSettingsViewModel.prototype.confirm = function() {
+tutao.tutanota.ctrl.MailSettingsViewModel.prototype.confirm = function() {
     if (!this.confirmPossible()) {
         return;
     }
