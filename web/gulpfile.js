@@ -19,6 +19,8 @@ var gzip = require('gulp-gzip');
 var karma = require('karma').server;
 var shell = require('gulp-shell');
 var mkdirp = require('mkdirp');
+var sort = require('gulp-sort');
+var merge = require('gulp-merge');
 
 var package = require('../package.json');
 
@@ -176,17 +178,20 @@ gulp.task('concatTest', function () {
 
 gulp.task('index.html', function () {
     return gulp.src('./index.html')
-        .pipe(inject(gulp.src(['lib/**/*.js', "js/**/*.js", "!js/util/init.js"], {read: false})))
+        .pipe(inject(merge(
+            gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js/* files
+            gulp.src(["js/**/*.js", "!js/util/init.js"], {read: false}).pipe(sort())
+        )))
         .pipe(gulp.dest('./'));
 });
 
 gulp.task('test.html', function () {
     return gulp.src('./test/index.html')
-        .pipe(inject(gulp.src(['lib/**/*.js', 'test/lib/*.js'], {read: false}), {starttag: '<!-- inject:lib:{{ext}} -->'}))
+        .pipe(inject(gulp.src(['lib/**/*.js', 'test/lib/*.js'], {read: false}).pipe(sort()), {starttag: '<!-- inject:lib:{{ext}} -->'}))
         .pipe(inject(gulp.src([
             'js/**/*.js', "!js/util/init.js", "!js/Bootstrap.js",
             'test/js/rest/EntityRestTestFunctions.js', 'test/js/**/*.js'
-        ], {read: false})))
+        ], {read: false}).pipe(sort())))
         .pipe(gulp.dest('./test'));
 });
 
