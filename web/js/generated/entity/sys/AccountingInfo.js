@@ -16,6 +16,7 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this._invoiceAddress = null;
     this._invoiceCountry = null;
     this._invoiceName = null;
+    this._invoiceVatIdNo = null;
     this._lastInvoiceNbrOfSentSms = null;
     this._lastInvoiceTimestamp = null;
     this._paymentMethod = null;
@@ -36,6 +37,7 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this._invoiceAddress = data.invoiceAddress;
   this._invoiceCountry = data.invoiceCountry;
   this._invoiceName = data.invoiceName;
+  this._invoiceVatIdNo = data.invoiceVatIdNo;
   this._lastInvoiceNbrOfSentSms = data.lastInvoiceNbrOfSentSms;
   this._lastInvoiceTimestamp = data.lastInvoiceTimestamp;
   this._paymentMethod = data.paymentMethod;
@@ -84,6 +86,7 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     invoiceAddress: this._invoiceAddress, 
     invoiceCountry: this._invoiceCountry, 
     invoiceName: this._invoiceName, 
+    invoiceVatIdNo: this._invoiceVatIdNo, 
     lastInvoiceNbrOfSentSms: this._lastInvoiceNbrOfSentSms, 
     lastInvoiceTimestamp: this._lastInvoiceTimestamp, 
     paymentMethod: this._paymentMethod, 
@@ -112,6 +115,11 @@ tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 746;
 tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 744;
 
 /**
+ * The id of the invoiceVatIdNo attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 747;
+
+/**
  * The id of the lastInvoiceNbrOfSentSms attribute.
  */
 tutao.entity.sys.AccountingInfo.prototype.LASTINVOICENBROFSENTSMS_ATTRIBUTE_ID = 593;
@@ -124,12 +132,12 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 59
 /**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 747;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 748;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 748;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 749;
 
 /**
  * Provides the id of this AccountingInfo.
@@ -200,8 +208,12 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
  * @param {string} invoiceCountry The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCountry) {
-  var dataToEncrypt = invoiceCountry;
-  this._invoiceCountry = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  if (invoiceCountry == null) {
+    this._invoiceCountry = null;
+  } else {
+    var dataToEncrypt = invoiceCountry;
+    this._invoiceCountry = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -210,8 +222,8 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCo
  * @return {string} The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
-  if (this._invoiceCountry == "") {
-    return "";
+  if (this._invoiceCountry == null) {
+    return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceCountry);
   return value;
@@ -236,6 +248,28 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceName);
+  return value;
+};
+
+/**
+ * Sets the invoiceVatIdNo of this AccountingInfo.
+ * @param {string} invoiceVatIdNo The invoiceVatIdNo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVatIdNo) {
+  var dataToEncrypt = invoiceVatIdNo;
+  this._invoiceVatIdNo = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the invoiceVatIdNo of this AccountingInfo.
+ * @return {string} The invoiceVatIdNo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getInvoiceVatIdNo = function() {
+  if (this._invoiceVatIdNo == "") {
+    return "";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceVatIdNo);
   return value;
 };
 

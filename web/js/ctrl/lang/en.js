@@ -492,5 +492,22 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "adminAccountInfo_action": "Info",
     "adminPayment_action": "Payment data",
     "accountSettings_label": "Account",
-    "userSettings_label": "User"
+    "userSettings_label": "User",
+    "invoiceRecipient_label": "Invoice recipient",
+    "invoiceAddress_label": "Address",
+    "invoiceCountry_label": "Country",
+    "invoiceVatIdNo_label": "VAT identification number",
+    "paymentMethod_label": "Payment method",
+    "paymentMethodCreditCard_label": "Credit Card",
+    "paymentMethodInvoice_label": "On Account",
+    "choose_label": "Choose...",
+    "invoiceRecipientInfoBusiness_msg": "Please enter the recipient shown in your invoices, e.g. your company name.",
+    "invoiceRecipientInfoConsumer_msg": "Optional: You can enter a name that shall be shown in your invoices.",
+    "invoiceAddressInfoBusiness_msg": "Please enter your invoice address (max. 4 rows).",
+    "invoiceAddressInfoConsumer_msg": "Optional: You can enter your invoice address (max. 4 rows).",
+    "invoiceCountryInfoBusiness_msg": "Please choose your country.",
+    "invoiceCountryInfoConsumer_msg": "This is needed to decide if value-added tax must be stated in your invoices.",
+    "invoiceVatIdNoInfoBusiness_msg": "Please enter your value-added tax identification number.",
+    "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later."
+
 };

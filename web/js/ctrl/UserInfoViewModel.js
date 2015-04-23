@@ -3,7 +3,7 @@
 tutao.provide('tutao.tutanota.ctrl.UserInfoViewModel');
 
 /**
- * Displays the account settings. This view model is created dynamically.
+ * Displays user information. This view model is created dynamically.
  * @constructor
  */
 tutao.tutanota.ctrl.UserInfoViewModel = function() {

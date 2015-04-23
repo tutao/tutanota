@@ -493,5 +493,21 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "adminAccountInfo_action": "Info",
     "adminPayment_action": "Zahlungsdaten",
     "accountSettings_label": "Account",
-    "userSettings_label": "Benutzer"
+    "userSettings_label": "Benutzer",
+    "invoiceRecipient_label": "Rechnungs-Empfänger",
+    "invoiceAddress_label": "Adresse",
+    "invoiceCountry_label": "Land",
+    "invoiceVatIdNo_label": "USt-IdNr.",
+    "paymentMethod_label": "Zahlungsmethode",
+    "paymentMethodCreditCard_label": "Kreditkarte",
+    "paymentMethodInvoice_label": "Auf Rechnung",
+    "choose_label": "Bitte auswählen",
+    "invoiceRecipientInfoBusiness_msg": "Bitte trage den Rechnungsempfänger ein, z.B. den Namen deiner Firma.",
+    "invoiceRecipientInfoConsumer_msg": "Optional: Du kannst hier einen Namen eintragen, der auf deinen Rechnungen erscheinen soll.",
+    "invoiceAddressInfoBusiness_msg": "Bitte trage die Rechnungsanschrift ein (max. 4 Zeilen).",
+    "invoiceAddressInfoConsumer_msg": "Optional: Du kannst hier eine Rechnungsanschrift eintragen (max. 4 Zeilen).",
+    "invoiceCountryInfoBusiness_msg": "Bitte Land auswählen.",
+    "invoiceCountryInfoConsumer_msg": "Dies wird benötigt um zu entscheiden, ob Mehrwertsteuer auf deinen Rechnungen ausgewiesen werden muss.",
+    "invoiceVatIdNoInfoBusiness_msg": "Bitte trage deine Umsatzsteuer-Identifikationsnummer ein.",
+    "invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Optionen werden später hinzugefügt."
 };
