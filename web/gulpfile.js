@@ -179,7 +179,7 @@ gulp.task('concatTest', function () {
 gulp.task('index.html', function () {
     return gulp.src('./index.html')
         .pipe(inject(merge(
-            gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js/* files
+            gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js files
             gulp.src(["js/**/*.js", "!js/util/init.js"], {read: false}).pipe(sort())
         )))
         .pipe(gulp.dest('./'));

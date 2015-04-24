@@ -1,6 +1,6 @@
 "use strict";
 
-tutao.provide('tutao.tutanota.util.StateMachine2');
+tutao.provide('tutao.tutanota.util.SubmitStateMachine');
 
 /**
  * A state machine that covers all common handling for form editing by a user in a view.
@@ -12,7 +12,7 @@ tutao.provide('tutao.tutanota.util.StateMachine2');
  * failure
  *
  * Use as follows:
- * Create state machine in your view model: "this.state = new tutao.tutanota.util.StateMachine2()";
+ * Create state machine in your view model: "this.state = new tutao.tutanota.util.SubmitStateMachine()";
  * Keep in loading state (initial state) as long as some initial loading is needed before the form can be edited. Call "state.entering(true)" afterwards.
  * If the submit button record status shall show a message if one of the input fields is invalid, call "state.setInputInvalidMessageListener(listener)" with a function that returns null if all input is valid and returns an error message (id) if any input is invalid.
  * Set enable bindings for all input fields to "state.entering".
@@ -23,7 +23,7 @@ tutao.provide('tutao.tutanota.util.StateMachine2');
  * Call "state.failure(true)" if the submit was not successful. Call "setFailureMessage(message)" with a failure message (id) if the default message 'unknownError_msg' shall be replaced.
  * Set the lang binding of the submit button record status to "state.submitStatus().text" and the css binding to "state.submitStatus().type".
  */
-tutao.tutanota.util.StateMachine2 = function() {
+tutao.tutanota.util.SubmitStateMachine = function() {
 	this._state = ko.observable("loading");
 
     this._inputInvalidMessageListener = function() { return null; }; // default function that says the input is valid
@@ -62,7 +62,7 @@ tutao.tutanota.util.StateMachine2 = function() {
     }, this);
 };
 
-tutao.tutanota.util.StateMachine2.prototype._createStateObservable = function(name) {
+tutao.tutanota.util.SubmitStateMachine.prototype._createStateObservable = function(name) {
     return ko.computed({
         read: function () {
             return this._state() == name;
@@ -81,18 +81,18 @@ tutao.tutanota.util.StateMachine2.prototype._createStateObservable = function(na
  * Set the function that specifies the sub-state of "entering" and the corresponding error message that shall be shown as saveButtonMessage.
  * @param {function():string} listener Function that returns an error message in case the input is invalid and returns null if the input is valid.
  */
-tutao.tutanota.util.StateMachine2.prototype.setInputInvalidMessageListener = function(listener) {
+tutao.tutanota.util.SubmitStateMachine.prototype.setInputInvalidMessageListener = function(listener) {
     this._inputInvalidMessageListener = listener;
 };
 
-tutao.tutanota.util.StateMachine2.prototype.setSubmittingMessage = function(message) {
+tutao.tutanota.util.SubmitStateMachine.prototype.setSubmittingMessage = function(message) {
     this._submittingMessage = message;
 };
 
-tutao.tutanota.util.StateMachine2.prototype.setSuccessMessage = function(message) {
+tutao.tutanota.util.SubmitStateMachine.prototype.setSuccessMessage = function(message) {
     this._successMessage = message;
 };
 
-tutao.tutanota.util.StateMachine2.prototype.setFailureMessage = function(message) {
+tutao.tutanota.util.SubmitStateMachine.prototype.setFailureMessage = function(message) {
     this._failureMessage = message;
 };

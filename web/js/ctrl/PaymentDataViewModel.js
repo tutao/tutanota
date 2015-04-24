@@ -9,7 +9,7 @@ tutao.provide('tutao.tutanota.ctrl.PaymentDataViewModel');
 tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.businessUse = ko.observable(true);
+    this.businessUse = ko.observable(false);
     this.accountingInfo = ko.observable();
 
     this.selectedCountry = ko.computed({
@@ -58,14 +58,14 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         owner: this
     });
 
-    this.state = new tutao.tutanota.util.StateMachine2();
+    this.state = new tutao.tutanota.util.SubmitStateMachine();
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
 
     var self = this;
     tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                //self.businessUse(customerInfo.getBusiness());
+                self.businessUse(customerInfo.getBusiness());
                 self.availablePaymentMethods.push({ name: tutao.lang('paymentMethodCreditCard_label'), id: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD });
                 if (self.businessUse()) {
                     self.availablePaymentMethods.push({ name: tutao.lang('paymentMethodInvoice_label'), id: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE });
