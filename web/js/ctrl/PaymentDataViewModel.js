@@ -9,67 +9,48 @@ tutao.provide('tutao.tutanota.ctrl.PaymentDataViewModel');
 tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.businessUse = ko.observable(false);
     this.accountingInfo = ko.observable();
+    this.accountType = ko.observable(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
 
-    this.selectedCountry = ko.computed({
-        read: function () {
-            if (this.accountingInfo()) {
-                if (this.accountingInfo().invoiceCountry()) {
-                    var c = tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry());
-                    if (c) {
-                        return c;
-                    }
-                }
-            }
-            return undefined; // we need to return undefined, otherwise the options caption is not shown in the select
-        },
-        write: function (value) {
-            if (!value) {
-                this.accountingInfo().invoiceCountry(null);
-            } else {
-                this.accountingInfo().invoiceCountry(value.a);
-            }
-        },
-        owner: this
-    });
+    this.usageOptions = [{name: tutao.lang("privateUse_label"), value: false}, {name: tutao.lang("businessUse_label"), value: true}];
 
-    this.availablePaymentMethods = ko.observableArray();
-    this.selectedPaymentMethod = ko.computed({
-        read: function () {
-            if (this.accountingInfo()) {
-                if (this.accountingInfo().paymentMethod()) {
-                    for (var i = 0; i < this.availablePaymentMethods().length; i++) {
-                        if (this.availablePaymentMethods()[i].id == this.accountingInfo().paymentMethod()) {
-                            return this.availablePaymentMethods()[i];
-                        }
-                    }
-                }
-            }
-            return undefined; // we need to return undefined, otherwise the options caption is not shown in the select
-        },
-        write: function (value) {
-            if (!value) {
-                this.accountingInfo().paymentMethod(null);
-            } else {
-                this.accountingInfo().paymentMethod(value.id);
-            }
-        },
-        owner: this
-    });
+    this.usageStatus = ko.computed(function() {
+        if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE && this.accountingInfo() && this.accountingInfo().business()) {
+            return {type: "invalid", text: "emptyString_msg"};
+        } else {
+            return {type: "neutral", text: "emptyString_msg"};
+        }
+    }, this);
+
+    this.availableCountries = [{n: tutao.lang('choose_label'), a: null, t: 0}].concat(tutao.util.CountryList.COUNTRIES);
+
+    this.showVatIdNoField = ko.computed(function() {
+        return this.accountingInfo() && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
+    }, this);
+
+    var businessMethods = [
+        { name: tutao.lang('choose_label'), value: null },
+        { name: tutao.lang('paymentMethodCreditCard_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD },
+        { name: tutao.lang('paymentMethodInvoice_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE }
+    ];
+    var privateMethods = [businessMethods[0], businessMethods[1]];
+
+    this.availablePaymentMethods = ko.computed(function() {
+        if (this.accountingInfo() && this.accountingInfo().business()) {
+            return businessMethods;
+        } else {
+            return privateMethods;
+        }
+    }, this);
 
     this.state = new tutao.tutanota.util.SubmitStateMachine();
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
 
     var self = this;
     tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        self.accountType(customer.getType());
         return customer.loadCustomerInfo().then(function(customerInfo) {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                self.businessUse(customerInfo.getBusiness());
-                self.availablePaymentMethods.push({ name: tutao.lang('paymentMethodCreditCard_label'), id: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD });
-                if (self.businessUse()) {
-                    self.availablePaymentMethods.push({ name: tutao.lang('paymentMethodInvoice_label'), id: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE });
-                }
                 self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
                 self.state.entering(true);
             });
@@ -79,14 +60,14 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = function() {
     if (this.accountingInfo()) {
-        if (this.businessUse()) {
+        if (this.accountingInfo().business()) {
             if (this.accountingInfo().invoiceName().trim() == "") {
                 return "invoiceRecipientInfoBusiness_msg";
-            } else if (this.accountingInfo().invoiceAddress().trim() == "") {
+            } else if (this.accountingInfo().invoiceAddress().trim() == "" || (this.accountingInfo().invoiceAddress().match(/\n/g) || []).length > 3) {
                 return "invoiceAddressInfoBusiness_msg";
             } else if (!this.accountingInfo().invoiceCountry()) {
                 return "invoiceCountryInfoBusiness_msg";
-            } else if (this.selectedCountry() && this.selectedCountry().t == tutao.util.CountryList.TYPE_EU && this.accountingInfo().invoiceVatIdNo().trim() == "") {
+            } else if (this.showVatIdNoField() && this.accountingInfo().invoiceVatIdNo().trim() == "") {
                 return "invoiceVatIdNoInfoBusiness_msg";
             } else if (!this.accountingInfo().paymentMethod()) {
                 return "invoicePaymentMethodInfo_msg";

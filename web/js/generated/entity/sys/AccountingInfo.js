@@ -13,6 +13,7 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._business = null;
     this._invoiceAddress = null;
     this._invoiceCountry = null;
     this._invoiceName = null;
@@ -34,6 +35,7 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._business = data.business;
   this._invoiceAddress = data.invoiceAddress;
   this._invoiceCountry = data.invoiceCountry;
   this._invoiceName = data.invoiceName;
@@ -83,6 +85,7 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    business: this._business, 
     invoiceAddress: this._invoiceAddress, 
     invoiceCountry: this._invoiceCountry, 
     invoiceName: this._invoiceName, 
@@ -98,6 +101,11 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
  * The id of the AccountingInfo type.
  */
 tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
+
+/**
+ * The id of the business attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 743;
 
 /**
  * The id of the invoiceAddress attribute.
@@ -179,6 +187,23 @@ tutao.entity.sys.AccountingInfo.prototype.setPermissions = function(permissions)
  */
 tutao.entity.sys.AccountingInfo.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the business of this AccountingInfo.
+ * @param {boolean} business The business of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setBusiness = function(business) {
+  this._business = business ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the business of this AccountingInfo.
+ * @return {boolean} The business of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getBusiness = function() {
+  return this._business == '1';
 };
 
 /**

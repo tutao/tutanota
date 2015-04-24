@@ -58,12 +58,12 @@ tutao.entity.sys.CustomDomainData.prototype.toJsonData = function() {
 /**
  * The id of the CustomDomainData type.
  */
-tutao.entity.sys.CustomDomainData.prototype.TYPE_ID = 724;
+tutao.entity.sys.CustomDomainData.prototype.TYPE_ID = 723;
 
 /**
  * The id of the domain attribute.
  */
-tutao.entity.sys.CustomDomainData.prototype.DOMAIN_ATTRIBUTE_ID = 726;
+tutao.entity.sys.CustomDomainData.prototype.DOMAIN_ATTRIBUTE_ID = 725;
 
 /**
  * Sets the format of this CustomDomainData.

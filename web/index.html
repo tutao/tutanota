@@ -1663,48 +1663,57 @@
                             <div data-bind="with: new tutao.tutanota.ctrl.PaymentDataViewModel()" >
                                 <form class="recordContainer wide" data-bind="if: accountingInfo, submit: storeAccountingInfo, form: true">
                                     <div class="record">
-                                        <label class="recordName" data-bind="lang: 'invoiceRecipient_label'"></label>
+                                        <label for="paymentUsageInput" class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <input class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="value: accountingInfo().invoiceName, enable: state.entering"/>
+                                                <select id="paymentUsageInput" class="inputField wide" data-bind="options: usageOptions, value: accountingInfo().business, optionsText: 'name', optionsValue: 'value', enable: state.entering"></select>
                                             </div>
-                                            <label class="recordInfo" data-bind="lang: (businessUse()) ? 'invoiceRecipientInfoBusiness_msg' : 'invoiceRecipientInfoConsumer_msg'"></label>
+                                            <label for="paymentUsageInput" class="recordStatus" data-bind="lang: usageStatus().text, css: usageStatus().type"></label>
                                         </div>
                                     </div>
                                     <div class="record">
-                                        <label class="recordName" data-bind="lang: 'invoiceAddress_label'"></label>
+                                        <label for="paymentInvoiceRecipientInput"  class="recordName" data-bind="lang: 'invoiceRecipient_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <textarea rows="4" class="inputArea wide" data-bind="value: accountingInfo().invoiceAddress, enable: state.entering"></textarea>
+                                                <input id="paymentInvoiceRecipientInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="value: accountingInfo().invoiceName, enable: state.entering"/>
                                             </div>
-                                            <label class="recordInfo" data-bind="lang: (businessUse()) ? 'invoiceAddressInfoBusiness_msg' : 'invoiceAddressInfoConsumer_msg'"></label>
+                                            <label for="paymentInvoiceRecipientInput"  class="recordInfo" data-bind="lang: (accountingInfo().business()) ? 'invoiceRecipientInfoBusiness_msg' : 'invoiceRecipientInfoConsumer_msg'"></label>
                                         </div>
                                     </div>
                                     <div class="record">
-                                        <label class="recordName" data-bind="lang: 'invoiceCountry_label'"></label>
+                                        <label for="paymentInvoiceAddressnput"  class="recordName" data-bind="lang: 'invoiceAddress_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <select class="inputField wide" data-bind="options: tutao.util.CountryList.COUNTRIES, value: selectedCountry, optionsText: 'n', optionsCaption: tutao.lang('choose_label'), enable: state.entering"></select>
+                                                <textarea id="paymentInvoiceAddressnput" rows="4" class="inputArea wide" data-bind="value: accountingInfo().invoiceAddress, enable: state.entering"></textarea>
                                             </div>
-                                            <label class="recordInfo" data-bind="lang: (businessUse()) ? 'invoiceCountryInfoBusiness_msg' : 'invoiceCountryInfoConsumer_msg'"></label>
-                                        </div>
-                                    </div>
-                                    <div class="record" data-bind="if: businessUse() && selectedCountry() && selectedCountry().t == tutao.util.CountryList.TYPE_EU">
-                                        <label class="recordName" data-bind="lang: 'invoiceVatIdNo_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue">
-                                                <input class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="value: accountingInfo().invoiceVatIdNo, enable: state.entering"/>
-                                            </div>
-                                            <label class="recordInfo" data-bind="lang: 'invoiceVatIdNoInfoBusiness_msg'"></label>
+                                            <label for="paymentInvoiceAddressnput"  class="recordInfo" data-bind="lang: (accountingInfo().business()) ? 'invoiceAddressInfoBusiness_msg' : 'invoiceAddressInfoConsumer_msg'"></label>
                                         </div>
                                     </div>
                                     <div class="record">
-                                        <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                        <label for="paymentCountryInput"  class="recordName" data-bind="lang: 'invoiceCountry_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
-                                                <select class="inputField wide" data-bind="options: availablePaymentMethods, value: selectedPaymentMethod, optionsText: 'name', optionsCaption: tutao.lang('choose_label'), enable: state.entering"></select>
+                                                <select id="paymentCountryInput" class="inputField wide" data-bind="options: availableCountries, value: accountingInfo().invoiceCountry, optionsText: 'n', optionsValue: 'a', enable: state.entering"></select>
                                             </div>
-                                            <label class="recordInfo" data-bind="lang: 'invoicePaymentMethodInfo_msg'"></label>
+                                            <label for="paymentCountryInput"  class="recordInfo" data-bind="lang: (accountingInfo().business()) ? 'invoiceCountryInfoBusiness_msg' : 'invoiceCountryInfoConsumer_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record" data-bind="if: showVatIdNoField">
+                                        <label for="paymentVatIdNoInput"  class="recordName" data-bind="lang: 'invoiceVatIdNo_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <input id="paymentVatIdNoInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="value: accountingInfo().invoiceVatIdNo, enable: state.entering"/>
+                                            </div>
+                                            <label for="paymentVatIdNoInput"  class="recordInfo" data-bind="lang: 'invoiceVatIdNoInfoBusiness_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label for="paymentMethodInput"  class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <select id="paymentMethodInput" class="inputField wide" data-bind="options: availablePaymentMethods, value: accountingInfo().paymentMethod, optionsText: 'name', optionsValue: 'value', enable: state.entering"></select>
+                                            </div>
+                                            <label for="paymentMethodInput"  class="recordInfo" data-bind="lang: 'invoicePaymentMethodInfo_msg'"></label>
                                         </div>
                                     </div>
                                     <div class="record">

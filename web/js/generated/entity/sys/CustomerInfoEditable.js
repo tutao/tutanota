@@ -11,7 +11,6 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerinfo;
 	this.activationTime = ko.observable(customerinfo.getActivationTime());
-	this.business = ko.observable(customerinfo.getBusiness());
 	this.company = ko.observable(customerinfo.getCompany());
 	this.creationTime = ko.observable(customerinfo.getCreationTime());
 	this.deletionReason = ko.observable(customerinfo.getDeletionReason());
@@ -51,7 +50,6 @@ tutao.entity.sys.CustomerInfoEditable.prototype.getCustomerInfo = function() {
  */
 tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setActivationTime(this.activationTime());
-	this._entity.setBusiness(this.business());
 	this._entity.setCompany(this.company());
 	this._entity.setCreationTime(this.creationTime());
 	this._entity.setDeletionReason(this.deletionReason());

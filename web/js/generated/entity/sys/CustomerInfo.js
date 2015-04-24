@@ -14,7 +14,6 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._activationTime = null;
-    this._business = null;
     this._company = null;
     this._creationTime = null;
     this._deletionReason = null;
@@ -42,7 +41,6 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__permissions = data._permissions;
   this._activationTime = data.activationTime;
-  this._business = data.business;
   this._company = data.company;
   this._creationTime = data.creationTime;
   this._deletionReason = data.deletionReason;
@@ -101,7 +99,6 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     _id: this.__id, 
     _permissions: this.__permissions, 
     activationTime: this._activationTime, 
-    business: this._business, 
     company: this._company, 
     creationTime: this._creationTime, 
     deletionReason: this._deletionReason, 
@@ -127,11 +124,6 @@ tutao.entity.sys.CustomerInfo.prototype.TYPE_ID = 148;
  * The id of the activationTime attribute.
  */
 tutao.entity.sys.CustomerInfo.prototype.ACTIVATIONTIME_ATTRIBUTE_ID = 157;
-
-/**
- * The id of the business attribute.
- */
-tutao.entity.sys.CustomerInfo.prototype.BUSINESS_ATTRIBUTE_ID = 713;
 
 /**
  * The id of the company attribute.
@@ -166,7 +158,7 @@ tutao.entity.sys.CustomerInfo.prototype.REGISTRATIONMAILADDRESS_ATTRIBUTE_ID = 5
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 714;
+tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 713;
 
 /**
  * The id of the storageCapacity attribute.
@@ -186,7 +178,7 @@ tutao.entity.sys.CustomerInfo.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 159;
 /**
  * The id of the bookingItems attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.BOOKINGITEMS_ATTRIBUTE_ID = 716;
+tutao.entity.sys.CustomerInfo.prototype.BOOKINGITEMS_ATTRIBUTE_ID = 715;
 
 /**
  * The id of the customer attribute.
@@ -196,7 +188,7 @@ tutao.entity.sys.CustomerInfo.prototype.CUSTOMER_ATTRIBUTE_ID = 158;
 /**
  * The id of the domainInfos attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 715;
+tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 714;
 
 /**
  * Provides the id of this CustomerInfo.
@@ -265,23 +257,6 @@ tutao.entity.sys.CustomerInfo.prototype.getActivationTime = function() {
     throw new tutao.InvalidDataError('invalid time data: ' + this._activationTime);
   }
   return new Date(Number(this._activationTime));
-};
-
-/**
- * Sets the business of this CustomerInfo.
- * @param {boolean} business The business of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.setBusiness = function(business) {
-  this._business = business ? '1' : '0';
-  return this;
-};
-
-/**
- * Provides the business of this CustomerInfo.
- * @return {boolean} The business of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.getBusiness = function() {
-  return this._business == '1';
 };
 
 /**
