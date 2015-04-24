@@ -1793,7 +1793,9 @@
                                 <label class="recordName" data-bind="lang: 'mailAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" /><span data-bind="text: '@' + domain()"></span>
+                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" />
+										<span>@</span>
+										<select data-bind="options: availableDomains, value: domain"></select>
                                     </div>
                                     <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
                                     <label class="recordInfo" data-bind="lang: 'mailAddressInfoAdmin_msg', attr: {for: 'userMailAddress' + $index()}"></label>
@@ -1831,7 +1833,7 @@
                                 <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
                             <!-- /ko -->
                             <ul data-bind="foreach: createdUsers">
-                                <li class="createdUserEntry" data-bind="text: mailAddressPrefix() + '@' + domain() + ': ' + password()"></li>
+                                <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
                             </ul>
                         <!-- /ko -->
                     </div>
