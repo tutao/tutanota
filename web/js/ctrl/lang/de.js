@@ -371,6 +371,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "replyConfidential_action": "Vertraulich antworten",
   "reply_action": "Antworten",
   "saveDownloadNotPossibleAndroid_msg": "Leider unterstützt der Android-Browser nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Leider unterstützt Firefox auf Android nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
   "saveDownloadNotPossibleIe_msg": "Leider unterstützt der mobile Internet Explorer nicht das Abspeichern oder Anzeigen von Anhängen. Bitte verwenden Sie dafür einen Desktop-Browser.",
   "saveDownloadNotPossibleSafariDesktop_msg": "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls Mozilla Firefox oder Google Chrome.",
   "saveDownloadNotPossibleSafariMobile_msg": "Leider unterstützt Safari nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte verwenden Sie andernfalls einen Desktop-Browser.",

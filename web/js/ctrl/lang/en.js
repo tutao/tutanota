@@ -371,6 +371,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "replyConfidential_action": "Reply confidentially",
   "reply_action": "Reply",
   "saveDownloadNotPossibleAndroid_msg": "The native Android browser does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise.",
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Firefox on Android does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise.",
   "saveDownloadNotPossibleIe_msg": "The mobile Internet Explorer does not support saving or displaying attachments. Please use a desktop browser for these features.",
   "saveDownloadNotPossibleSafariDesktop_msg": "Safari does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please use Mozilla Firefox or Google Chrome otherwise.",
   "saveDownloadNotPossibleSafariMobile_msg": "Safari does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please use a desktop browser otherwise.",
