@@ -158,7 +158,6 @@ img.helpIcon {
 
 .inputField {
   height: 30px;
-  max-width: 500px;
   .inputArea
 }
 
@@ -760,6 +759,21 @@ div.menuList {
     &:before, &:after{
       left: @padding + @menu_item_indent_offset;
     }
+  }
+}
+
+.menuItemHeading {
+  position: relative;
+  width: 100%;
+  height: @menu_height;
+  line-height: @menu_height;
+  padding-left: @padding;
+  color: @icon-color;
+  .heading;
+  .fadeTextOut;
+
+  &.marginTop {
+    margin-top: 15px;
   }
 }
 

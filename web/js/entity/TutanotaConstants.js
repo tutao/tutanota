@@ -2,6 +2,9 @@
 
 tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE = "0";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD = "1";
+
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_PREMIUM = "0";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS = "1";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE = "2";
