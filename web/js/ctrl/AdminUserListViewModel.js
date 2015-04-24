@@ -13,9 +13,10 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	this.editing = ko.observable(null);
 	this._selectedDomElements = [];
 	this.newViewModel = ko.observable(null);
+    this.customerInfo = ko.observable(null);
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, null, false, "newUserAction", "add", "adminUserAdd_action")
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, this._createAccountsVisible, false, "newUserAction", "add", "adminUserAdd_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
@@ -76,7 +77,16 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
  * @return {Promise.<Array.<tutao.entity.sys.GroupInfo>>} Resolves to the the list of user group infos when finished, rejected if the rest call failed.
  */
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function() {
+    var self = this;
 	return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        customer.loadCustomerInfo().then(function(customerInfo){
+            self.customerInfo(customerInfo);
+        });
         return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.GroupInfo, customer.getUserGroups(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 	});
 };
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype._createAccountsVisible = function(){
+    return this.customerInfo() != null;
+};
+

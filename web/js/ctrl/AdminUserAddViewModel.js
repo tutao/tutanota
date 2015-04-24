@@ -18,7 +18,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
      */
 	this.newUsers = ko.observableArray([]);
     this.createdUsers = ko.observableArray([]);
-	this.addEmptyUser();
+
 	
 	this.isEditable = ko.observable(true);
 	this.createStatus = ko.observable({type: "neutral", text: "emptyString_msg", params: {}});
@@ -28,10 +28,24 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 		this.csvImportStatus({type: "neutral", text: "emptyString_msg"});
 	}, this);
 	this.csvImportStatus = ko.observable({type: "neutral", text: "emptyString_msg"});
+
+    this._availableDomains = [];
+    var user = tutao.locator.userController.getLoggedInUser();
+    if (user.getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER){
+        this._availableDomains = this._availableDomains.concat(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
+    }
+    var customerInfo = this.adminUserListViewModel.customerInfo();
+    if (customerInfo){
+        for( var i=0; i< customerInfo.getDomainInfos().length; i++) {
+            this._availableDomains.unshift(customerInfo.getDomainInfos()[i].getDomain())
+        }
+    }
+
+    this.addEmptyUser();
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.addEmptyUser = function() {
-	this.newUsers.push(new tutao.tutanota.ctrl.AdminNewUser());
+	this.newUsers.push(new tutao.tutanota.ctrl.AdminNewUser(this._availableDomains));
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.openCsvDialog = function() {
@@ -51,9 +65,10 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.importCsv = function() {
 			this.csvImportStatus({type: "invalid", text: "importCsvInvalid_msg", params: {'{1}': i }});
 			return;
 		} else {
-			var user = new tutao.tutanota.ctrl.AdminNewUser();
+			var user = new tutao.tutanota.ctrl.AdminNewUser(this._availableDomains);
 			user.name(lineParts[0]);
 			user.mailAddressPrefix(lineParts[1].split("@")[0]);
+            user.domain(lineParts[1].split("@")[1]);
 			if (lineParts.length > 2) {
 				user.password(lineParts[2]);
 			}

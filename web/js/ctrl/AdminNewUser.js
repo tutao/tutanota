@@ -6,34 +6,39 @@ tutao.provide('tutao.tutanota.ctrl.AdminNewUser');
  * A new user that should be added to an existing customer
  * @constructor
  */
-tutao.tutanota.ctrl.AdminNewUser = function () {
+tutao.tutanota.ctrl.AdminNewUser = function(availableDomains){
     this.mailAddressPrefix = ko.observable("");
     this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
-    this.mailAddressPrefix.subscribe(this._verifyMailAddress, this);
+
     this.name = ko.observable("");
     this.password = ko.observable(tutao.tutanota.util.PasswordUtils.generatePassword(10));
     this.state = ko.observable(tutao.tutanota.ctrl.AdminNewUser.STATE_NONE);
-    var domain = tutao.locator.userController.getUserGroupInfo().getMailAddress().split("@")[1];
-    this.domain = ko.observable(domain);
+    this.domain = ko.observable("");
+    this.availableDomains = availableDomains;
+
+    this.mailAddress = ko.computed(function(){
+        return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddressPrefix() + "@" + this.domain());
+    }, this);
+
+    this.mailAddress.subscribe(this._verifyMailAddress, this);
 };
 
-tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(newValue) {
+tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(cleanedValue) {
     var self = this;
-    var cleanedValue = newValue.toLowerCase().trim();
-    if (self.mailAddressPrefix().length < 1) {
-        self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+    if ( self.mailAddressPrefix().length < 1){
+        this.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
         return;
-    } else if (!self.isValidMailAddress()) {
+    }
+    if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     }
-
     self.mailAddressStatus({ type: "invalid", text: "mailAddressBusy_msg"});
 
     setTimeout(function() {
-        if (self.mailAddressPrefix() == newValue) {
-            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue + "@" + self.domain()), [], tutao.entity.EntityHelper.createAuthHeaders()).then(function(domainMailAddressAvailabilityReturn) {
-                if (self.mailAddressPrefix() == newValue) {
+        if (self.mailAddress() == cleanedValue) {
+            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue), [], tutao.entity.EntityHelper.createAuthHeaders()).then(function(domainMailAddressAvailabilityReturn) {
+                if (self.mailAddress() == cleanedValue) {
                     if (domainMailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
@@ -64,15 +69,6 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStatus = function () {
 tutao.tutanota.ctrl.AdminNewUser.prototype.getPasswordStrength = function () {
     return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password(), [])
 };
-
-tutao.tutanota.ctrl.AdminNewUser.prototype.isValidMailAddress = function () {
-    return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress());
-};
-
-tutao.tutanota.ctrl.AdminNewUser.prototype.getMailAddress = function () {
-    return tutao.tutanota.util.Formatter.getCleanedMailAddress(this.mailAddressPrefix() + "@" + this.domain());
-};
-
 
 tutao.tutanota.ctrl.AdminNewUser.STATE_NONE = "";
 tutao.tutanota.ctrl.AdminNewUser.STATE_IN_PROGRESS = "progress";
@@ -119,7 +115,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
 
             var userGroupsListKey = null;
             return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
-                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
+                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
                     /** @type tutao.entity.sys.UserData */
                     var userService = new tutao.entity.sys.UserData()
                         .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
