@@ -132,6 +132,7 @@
 <script src="/js/ctrl/AdminMessagesViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
 <script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
+<script src="/js/ctrl/AdminSwitchAccountTypeViewModel.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
 <script src="/js/ctrl/AdminUserListViewModel.js"></script>
 <script src="/js/ctrl/AppCacheListener.js"></script>
@@ -239,6 +240,7 @@
 <script src="/js/generated/entity/sys/AutoLoginPostReturn.js"></script>
 <script src="/js/generated/entity/sys/BookingItem.js"></script>
 <script src="/js/generated/entity/sys/BookingItemsRef.js"></script>
+<script src="/js/generated/entity/sys/BookingItemsRefEditable.js"></script>
 <script src="/js/generated/entity/sys/Bucket.js"></script>
 <script src="/js/generated/entity/sys/BucketPermission.js"></script>
 <script src="/js/generated/entity/sys/ChangePasswordData.js"></script>
@@ -257,6 +259,7 @@
 <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
 <script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
 <script src="/js/generated/entity/sys/DomainInfo.js"></script>
+<script src="/js/generated/entity/sys/DomainInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/DomainMailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/EntityUpdate.js"></script>
@@ -318,6 +321,7 @@
 <script src="/js/generated/entity/sys/SmsMonitorTriggerData.js"></script>
 <script src="/js/generated/entity/sys/StringConfigValue.js"></script>
 <script src="/js/generated/entity/sys/StringWrapper.js"></script>
+<script src="/js/generated/entity/sys/SwitchAccountTypeData.js"></script>
 <script src="/js/generated/entity/sys/System.js"></script>
 <script src="/js/generated/entity/sys/SystemKeysReturn.js"></script>
 <script src="/js/generated/entity/sys/TimeRangeConfigValue.js"></script>
@@ -1569,9 +1573,27 @@
                             </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES -->
+							<div id="adminSwitchAccountType" data-bind="with: new tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel()" >
+								<form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+									<div class="record">
+										<label for="accountTypeInput" class="recordName" data-bind="lang: 'bookingItemAccountType_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<select  id="accountTypeInput" data-bind="options: accountTypes, value: selectedAccountType, optionsText: getAccountTypeText"></select>
+											</div>
+										</div>
+									</div>
+									<div class="record">
+										<div class="recordName"></div>
+										<div class="formAction">
+											<button id="submitAccountType" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+											<label  class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
+										</div>
+									</div>
+								</form>
+							</div>
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
-								<!-- ko if: isPromotionCodeEnabled() -->
-                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+                                <form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                     <div class="record">
                                         <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
                                         <div class="recordData">
@@ -1589,7 +1611,6 @@
                                         </div>
                                     </div>
                                 </form>
-								<!-- /ko -->
                             </div>
                             <div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel()">
                                 <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">

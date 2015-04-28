@@ -20,6 +20,7 @@ tutao.tutanota.ctrl.AdminAccountInfoViewModel = function() {
 
     var self = this;
     user.loadCustomer().then(function(customer) {
+        self.records[0].valueObservable("Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(customer.getType())]);
         customer.loadCustomerInfo().then(function(customerInfo) {
             var domainNames = "-";
             var domainInfos = customerInfo.getDomainInfos();

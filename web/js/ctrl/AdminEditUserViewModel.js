@@ -39,7 +39,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {
         if (userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
             tutao.entity.sys.User.load(userGroup.getUser()).then(function(user) {
-                if (!self._isAdmin(user)) {
+                if (!self._isAdmin(user) && self.adminUserListViewModel.createAccountsPossible()) {
                     self.passwordChangeAllowed(true);
                     self.deleteUserAllowed(true);
                 }

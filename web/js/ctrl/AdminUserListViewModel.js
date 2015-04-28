@@ -14,9 +14,10 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
 	this._selectedDomElements = [];
 	this.newViewModel = ko.observable(null);
     this.customerInfo = ko.observable(null);
+    this._customerAccountType = ko.observable(null);
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, this._createAccountsVisible, false, "newUserAction", "add", "adminUserAdd_action")
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, this.createAccountsPossible, false, "newUserAction", "add", "adminUserAdd_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
@@ -79,6 +80,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.update = function () {
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = function() {
     var self = this;
 	return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        self._customerAccountType(customer.getType());
         customer.loadCustomerInfo().then(function(customerInfo){
             self.customerInfo(customerInfo);
         });
@@ -86,7 +88,8 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = fun
 	});
 };
 
-tutao.tutanota.ctrl.AdminUserListViewModel.prototype._createAccountsVisible = function(){
-    return this.customerInfo() != null;
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccountsPossible = function(){
+    var addUserAccountTypes = [tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM];
+    return this.customerInfo() != null && tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customerAccountType()) ;
 };
 

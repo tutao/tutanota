@@ -96,3 +96,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getActiveSettingText = function() {
     return tutao.lang(this.getSettingsTextId(this.displayed()));
 };
+
+tutao.tutanota.ctrl.SettingsViewModel.prototype.isActivateExtensionEnabled = function() {
+    return !(tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios');
+};

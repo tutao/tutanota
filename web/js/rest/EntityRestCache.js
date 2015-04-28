@@ -106,8 +106,9 @@ tutao.rest.EntityRestCache.prototype._getElementFromTarget = function(type, path
 
 
 tutao.rest.EntityRestCache.prototype._getElementFromCache = function(path, id, listId) {
-    if (this._db[path] && this._db[path][listId] && this._db[path][listId]['entities'][id] ) {
-        return this._db[path][listId]['entities'][id];
+    var cacheListId = (listId) ? listId : "0";
+    if (this._db[path] && this._db[path][cacheListId] && this._db[path][cacheListId]['entities'][id] ) {
+        return this._db[path][cacheListId]['entities'][id];
     } else {
         return null;
     }

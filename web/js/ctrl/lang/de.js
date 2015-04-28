@@ -511,5 +511,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "invoiceCountryInfoBusiness_msg": "Bitte Land auswählen.",
     "invoiceCountryInfoConsumer_msg": "Dies wird benötigt um zu entscheiden, ob Mehrwertsteuer auf deinen Rechnungen ausgewiesen werden muss.",
     "invoiceVatIdNoInfoBusiness_msg": "Bitte trage deine Umsatzsteuer-Identifikationsnummer ein.",
-    "invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Optionen werden später hinzugefügt."
+    "invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Optionen werden später hinzugefügt.",
+    "accountTypeInvalid_msg": "Der ausgwewählte Account ist ungültig.",
+    "accountSwitchTooManyActiveUsers_msg": "Bitte löschen sie alle zusätzlichen Benutzer bevor sie den Account-Typ wechseln"
 };

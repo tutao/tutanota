@@ -510,6 +510,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "invoiceCountryInfoBusiness_msg": "Please choose your country.",
     "invoiceCountryInfoConsumer_msg": "This is needed to decide if value-added tax must be stated in your invoices.",
     "invoiceVatIdNoInfoBusiness_msg": "Please enter your value-added tax identification number.",
-    "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later."
+    "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later.",
+    "accountTypeInvalid_msg": "Selected account type is invalid.",
+    "accountSwitchTooManyActiveUsers_msg": "Please delete all additional users before switching the account type."
 
 };
