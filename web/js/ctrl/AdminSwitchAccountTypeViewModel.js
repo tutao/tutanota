@@ -50,18 +50,13 @@ tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel.prototype.confirm = function
 
 tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel.prototype._getInputInvalidMessage = function() {
     if (!this.selectedAccountType()) {
-        return "accountTypeInvalid_msg";
+        return "emptyString_msg";
     }
     if ( this.selectedAccountType() == this._customerAccountType){
         return "emptyString_msg";
     }
     return null; // input is valid
 };
-
-tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel.prototype.confirmPossible = function() {
-   return this.state.submitEnabled();
-};
-
 
 tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel.prototype.getAccountTypeText = function(accountType) {
     return tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(accountType)];

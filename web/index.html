@@ -1586,7 +1586,7 @@
 									<div class="record">
 										<div class="recordName"></div>
 										<div class="formAction">
-											<button id="submitAccountType" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+											<button id="submitAccountType" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
 											<label  class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
 										</div>
 									</div>

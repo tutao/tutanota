@@ -16,7 +16,6 @@ tutao.tutanota.ctrl.AdminAccountInfoViewModel = function() {
     this.records.push({ nameTextId: "storageCapacity_label", infoTextId: null, valueObservable: ko.observable("") });
 
     var user = tutao.locator.userController.getLoggedInUser();
-	this.records[0].valueObservable("Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(user.getAccountType())]);
 
     var self = this;
     user.loadCustomer().then(function(customer) {
