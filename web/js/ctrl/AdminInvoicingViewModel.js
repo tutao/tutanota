@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                     var currentItem = self.items()[i];
                     var lastBookingItem = self._getLastBookingItem(currentItem.type, bookingItems);
                     if (lastBookingItem) {
-                        currentItem.price(lastBookingItem.getPrice());
+                        currentItem.price(lastBookingItem.getTotalPrice());
                         if ( currentItem.type == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS ){
                             currentItem.current(lastBookingItem.getCount());
                         }
@@ -60,12 +60,10 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype._getLastBookingItem = func
 tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getTotalPrice = function() {
     var total = 0;
     for (var i=0; i<this.items().length; i++) {
-        total += this.items()[i].price()    ;
+        total += Number(this.items()[i].price());
     }
     return total;
 };
-
-
 
 
 
