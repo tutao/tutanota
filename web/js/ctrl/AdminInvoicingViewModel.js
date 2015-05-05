@@ -11,7 +11,6 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.storage = ko.observable(0);
 
     this.items = ko.observableArray();
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_PREMIUM, name: "bookingItemAccountType_label", current: ko.observable("Free"), price: ko.observable(0), itemPrice : 1 });
     this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, name: "bookingItemUsers_label", current: ko.observable("0"), price: ko.observable(0), itemPrice : 1  });
     this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: "bookingItemStorage_label", current: ko.observable("1 GB"), price: ko.observable(0), itemPrice : 1  });
 
@@ -20,7 +19,6 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
 
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
-        self._getItem(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_PREMIUM).current(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(user.getAccountType())]);
         return customer.loadCustomerInfo().then(function(customerInfo) {
             self._getItem(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE).current((customerInfo.getStorageCapacity() > 0 ) ? customerInfo.getStorageCapacity() + " GB" : tutao.lang('storageCapacityNoLimit_label'));
             return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.BookingItem, customerInfo.getBookingItems().getItems()).then(function(bookingItems) {
