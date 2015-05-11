@@ -25,7 +25,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this.availableCountries = [{n: tutao.lang('choose_label'), a: null, t: 0}].concat(tutao.util.CountryList.COUNTRIES);
 
     this.showVatIdNoField = ko.computed(function() {
-        return this.accountingInfo() && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
+        return this.accountingInfo() && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU_OR_SIMILAR;
     }, this);
 
     var businessMethods = [

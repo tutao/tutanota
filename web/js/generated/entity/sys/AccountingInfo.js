@@ -105,27 +105,27 @@ tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
 /**
  * The id of the business attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 743;
+tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 747;
 
 /**
  * The id of the invoiceAddress attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 745;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 749;
 
 /**
  * The id of the invoiceCountry attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 746;
+tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 750;
 
 /**
  * The id of the invoiceName attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 744;
+tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 748;
 
 /**
  * The id of the invoiceVatIdNo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 747;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 751;
 
 /**
  * The id of the lastInvoiceNbrOfSentSms attribute.
@@ -140,12 +140,12 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 59
 /**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 748;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 752;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 749;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 753;
 
 /**
  * Provides the id of this AccountingInfo.
