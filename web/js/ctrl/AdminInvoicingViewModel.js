@@ -21,14 +21,16 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     user.loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
             self._getItem(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE).current((customerInfo.getStorageCapacity() > 0 ) ? customerInfo.getStorageCapacity() + " GB" : tutao.lang('storageCapacityNoLimit_label'));
-            return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.BookingItem, customerInfo.getBookingItems().getItems()).then(function(bookingItems) {
-                for( var i=0; i<self.items().length; i++) {
-                    var currentItem = self.items()[i];
-                    var lastBookingItem = self._getLastBookingItem(currentItem.type, bookingItems);
-                    if (lastBookingItem) {
-                        currentItem.price(lastBookingItem.getTotalPrice());
-                        if ( currentItem.type == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS ){
-                            currentItem.current(lastBookingItem.getCount());
+            return tutao.entity.sys.Booking.loadRange(customerInfo.getBookings().getItems(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, 1, true).then(function(bookings) {
+                if ( bookings.length > 0 ){ // at least one booking must be available
+                    var lastBooking = bookings[0];
+                    for( var i=0; i<self.items().length; i++) {
+                        var currentItem = self.items()[i];
+
+                        var bookingItem = self._getBookingItem(currentItem.type, lastBooking);
+                        if (bookingItem) {
+                            currentItem.price(self._calculatePrice(bookingItem));
+                            currentItem.current(bookingItem.getMaxCount());
                         }
                     }
                 }
@@ -46,10 +48,10 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype._getItem = function(type) 
     throw new Error("item not found");
 };
 
-tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype._getLastBookingItem = function(type, bookingItems) {
-    for( var i=bookingItems.length-1; i>=0; i--){
-        if (bookingItems[i].getFeatureType() == type){
-            return bookingItems[i];
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype._getBookingItem = function(type, booking) {
+    for( var i=0; i<booking.getItems().length; i++){
+        if (booking.getItems()[i].getFeatureType() == type){
+            return booking.getItems()[i];
         }
     }
     return null;
@@ -62,6 +64,20 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getTotalPrice = function()
     }
     return total;
 };
+
+
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype._calculatePrice = function(bookingItem) {
+    var totalPrice = 0;
+    if (bookingItem.getPriceType() == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_SINGLE){
+        totalPrice = Number(bookingItem.getPrice()) * bookingItem.getMaxCount();
+    } else if (bookingItem.getPriceType() == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_PACKAGE) {
+        totalPrice = Number(bookingItem.getPrice());
+    } else if (bookingItem.getPriceType() == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_TOTAL) {
+        totalPrice = Number(bookingItem.getPrice());
+    }
+    return totalPrice;
+};
+
 
 
 

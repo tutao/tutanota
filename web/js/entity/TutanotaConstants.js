@@ -8,6 +8,10 @@ tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD = "1";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS = "0";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE = "1";
 
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_SINGLE = "0";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_PACKAGE = "1";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_TOTAL = "2";
+
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE = "0";
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY = "1";
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD = "2";

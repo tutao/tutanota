@@ -4,69 +4,41 @@ tutao.provide('tutao.entity.sys.BookingItem');
 
 /**
  * @constructor
+ * @param {Object} parent The parent entity of this aggregate.
  * @param {Object=} data The json data to store in this entity.
  */
-tutao.entity.sys.BookingItem = function(data) {
+tutao.entity.sys.BookingItem = function(parent, data) {
   if (data) {
-    this.updateData(data);
+    this.updateData(parent, data);
   } else {
-    this.__format = "0";
-    this.__id = null;
-    this.__permissions = null;
-    this._activation = null;
-    this._count = null;
-    this._deactivation = null;
+    this.__id = tutao.entity.EntityHelper.generateAggregateId();
+    this._currentCount = null;
+    this._currentInvoicedCount = null;
     this._featureType = null;
-    this._totalPrice = null;
+    this._maxCount = null;
+    this._price = null;
+    this._priceType = null;
+    this._totalInvoicedCount = null;
   }
-  this._entityHelper = new tutao.entity.EntityHelper(this);
+  this._parent = parent;
   this.prototype = tutao.entity.sys.BookingItem.prototype;
 };
 
 /**
  * Updates the data of this entity.
+ * @param {Object} parent The parent entity of this aggregate.
  * @param {Object=} data The json data to store in this entity.
  */
-tutao.entity.sys.BookingItem.prototype.updateData = function(data) {
-  this.__format = data._format;
+tutao.entity.sys.BookingItem.prototype.updateData = function(parent, data) {
   this.__id = data._id;
-  this.__permissions = data._permissions;
-  this._activation = data.activation;
-  this._count = data.count;
-  this._deactivation = data.deactivation;
+  this._currentCount = data.currentCount;
+  this._currentInvoicedCount = data.currentInvoicedCount;
   this._featureType = data.featureType;
-  this._totalPrice = data.totalPrice;
+  this._maxCount = data.maxCount;
+  this._price = data.price;
+  this._priceType = data.priceType;
+  this._totalInvoicedCount = data.totalInvoicedCount;
 };
-
-/**
- * The version of the model this type belongs to.
- * @const
- */
-tutao.entity.sys.BookingItem.MODEL_VERSION = '9';
-
-/**
- * The url path to the resource.
- * @const
- */
-tutao.entity.sys.BookingItem.PATH = '/rest/sys/bookingitem';
-
-/**
- * The id of the root instance reference.
- * @const
- */
-tutao.entity.sys.BookingItem.ROOT_INSTANCE_ID = 'A3N5cwACvA';
-
-/**
- * The generated id type flag.
- * @const
- */
-tutao.entity.sys.BookingItem.GENERATED_ID = true;
-
-/**
- * The encrypted flag.
- * @const
- */
-tutao.entity.sys.BookingItem.prototype.ENCRYPTED = false;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
@@ -74,14 +46,14 @@ tutao.entity.sys.BookingItem.prototype.ENCRYPTED = false;
  */
 tutao.entity.sys.BookingItem.prototype.toJsonData = function() {
   return {
-    _format: this.__format, 
     _id: this.__id, 
-    _permissions: this.__permissions, 
-    activation: this._activation, 
-    count: this._count, 
-    deactivation: this._deactivation, 
+    currentCount: this._currentCount, 
+    currentInvoicedCount: this._currentInvoicedCount, 
     featureType: this._featureType, 
-    totalPrice: this._totalPrice
+    maxCount: this._maxCount, 
+    price: this._price, 
+    priceType: this._priceType, 
+    totalInvoicedCount: this._totalInvoicedCount
   };
 };
 
@@ -91,134 +63,89 @@ tutao.entity.sys.BookingItem.prototype.toJsonData = function() {
 tutao.entity.sys.BookingItem.prototype.TYPE_ID = 700;
 
 /**
- * The id of the activation attribute.
+ * The id of the currentCount attribute.
  */
-tutao.entity.sys.BookingItem.prototype.ACTIVATION_ATTRIBUTE_ID = 706;
+tutao.entity.sys.BookingItem.prototype.CURRENTCOUNT_ATTRIBUTE_ID = 703;
 
 /**
- * The id of the count attribute.
+ * The id of the currentInvoicedCount attribute.
  */
-tutao.entity.sys.BookingItem.prototype.COUNT_ATTRIBUTE_ID = 708;
-
-/**
- * The id of the deactivation attribute.
- */
-tutao.entity.sys.BookingItem.prototype.DEACTIVATION_ATTRIBUTE_ID = 707;
+tutao.entity.sys.BookingItem.prototype.CURRENTINVOICEDCOUNT_ATTRIBUTE_ID = 706;
 
 /**
  * The id of the featureType attribute.
  */
-tutao.entity.sys.BookingItem.prototype.FEATURETYPE_ATTRIBUTE_ID = 705;
+tutao.entity.sys.BookingItem.prototype.FEATURETYPE_ATTRIBUTE_ID = 702;
 
 /**
- * The id of the totalPrice attribute.
+ * The id of the maxCount attribute.
  */
-tutao.entity.sys.BookingItem.prototype.TOTALPRICE_ATTRIBUTE_ID = 709;
+tutao.entity.sys.BookingItem.prototype.MAXCOUNT_ATTRIBUTE_ID = 704;
+
+/**
+ * The id of the price attribute.
+ */
+tutao.entity.sys.BookingItem.prototype.PRICE_ATTRIBUTE_ID = 707;
+
+/**
+ * The id of the priceType attribute.
+ */
+tutao.entity.sys.BookingItem.prototype.PRICETYPE_ATTRIBUTE_ID = 708;
+
+/**
+ * The id of the totalInvoicedCount attribute.
+ */
+tutao.entity.sys.BookingItem.prototype.TOTALINVOICEDCOUNT_ATTRIBUTE_ID = 705;
+
+/**
+ * Sets the id of this BookingItem.
+ * @param {string} id The id of this BookingItem.
+ */
+tutao.entity.sys.BookingItem.prototype.setId = function(id) {
+  this.__id = id;
+  return this;
+};
 
 /**
  * Provides the id of this BookingItem.
- * @return {Array.<string>} The id of this BookingItem.
+ * @return {string} The id of this BookingItem.
  */
 tutao.entity.sys.BookingItem.prototype.getId = function() {
   return this.__id;
 };
 
 /**
- * Sets the format of this BookingItem.
- * @param {string} format The format of this BookingItem.
+ * Sets the currentCount of this BookingItem.
+ * @param {string} currentCount The currentCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.setFormat = function(format) {
-  this.__format = format;
+tutao.entity.sys.BookingItem.prototype.setCurrentCount = function(currentCount) {
+  this._currentCount = currentCount;
   return this;
 };
 
 /**
- * Provides the format of this BookingItem.
- * @return {string} The format of this BookingItem.
+ * Provides the currentCount of this BookingItem.
+ * @return {string} The currentCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.getFormat = function() {
-  return this.__format;
+tutao.entity.sys.BookingItem.prototype.getCurrentCount = function() {
+  return this._currentCount;
 };
 
 /**
- * Sets the permissions of this BookingItem.
- * @param {string} permissions The permissions of this BookingItem.
+ * Sets the currentInvoicedCount of this BookingItem.
+ * @param {string} currentInvoicedCount The currentInvoicedCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.setPermissions = function(permissions) {
-  this.__permissions = permissions;
+tutao.entity.sys.BookingItem.prototype.setCurrentInvoicedCount = function(currentInvoicedCount) {
+  this._currentInvoicedCount = currentInvoicedCount;
   return this;
 };
 
 /**
- * Provides the permissions of this BookingItem.
- * @return {string} The permissions of this BookingItem.
+ * Provides the currentInvoicedCount of this BookingItem.
+ * @return {string} The currentInvoicedCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.getPermissions = function() {
-  return this.__permissions;
-};
-
-/**
- * Sets the activation of this BookingItem.
- * @param {Date} activation The activation of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.setActivation = function(activation) {
-  this._activation = String(activation.getTime());
-  return this;
-};
-
-/**
- * Provides the activation of this BookingItem.
- * @return {Date} The activation of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.getActivation = function() {
-  if (isNaN(this._activation)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._activation);
-  }
-  return new Date(Number(this._activation));
-};
-
-/**
- * Sets the count of this BookingItem.
- * @param {string} count The count of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.setCount = function(count) {
-  this._count = count;
-  return this;
-};
-
-/**
- * Provides the count of this BookingItem.
- * @return {string} The count of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.getCount = function() {
-  return this._count;
-};
-
-/**
- * Sets the deactivation of this BookingItem.
- * @param {Date} deactivation The deactivation of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.setDeactivation = function(deactivation) {
-  if (deactivation == null) {
-    this._deactivation = null;
-  } else {
-    this._deactivation = String(deactivation.getTime());
-  }
-  return this;
-};
-
-/**
- * Provides the deactivation of this BookingItem.
- * @return {Date} The deactivation of this BookingItem.
- */
-tutao.entity.sys.BookingItem.prototype.getDeactivation = function() {
-  if (this._deactivation == null) {
-    return null;
-  }
-  if (isNaN(this._deactivation)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._deactivation);
-  }
-  return new Date(Number(this._deactivation));
+tutao.entity.sys.BookingItem.prototype.getCurrentInvoicedCount = function() {
+  return this._currentInvoicedCount;
 };
 
 /**
@@ -239,83 +166,69 @@ tutao.entity.sys.BookingItem.prototype.getFeatureType = function() {
 };
 
 /**
- * Sets the totalPrice of this BookingItem.
- * @param {string} totalPrice The totalPrice of this BookingItem.
+ * Sets the maxCount of this BookingItem.
+ * @param {string} maxCount The maxCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.setTotalPrice = function(totalPrice) {
-  this._totalPrice = totalPrice;
+tutao.entity.sys.BookingItem.prototype.setMaxCount = function(maxCount) {
+  this._maxCount = maxCount;
   return this;
 };
 
 /**
- * Provides the totalPrice of this BookingItem.
- * @return {string} The totalPrice of this BookingItem.
+ * Provides the maxCount of this BookingItem.
+ * @return {string} The maxCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.getTotalPrice = function() {
-  return this._totalPrice;
+tutao.entity.sys.BookingItem.prototype.getMaxCount = function() {
+  return this._maxCount;
 };
 
 /**
- * Loads a BookingItem from the server.
- * @param {Array.<string>} id The id of the BookingItem.
- * @return {Promise.<tutao.entity.sys.BookingItem>} Resolves to the BookingItem or an exception if the loading failed.
+ * Sets the price of this BookingItem.
+ * @param {string} price The price of this BookingItem.
  */
-tutao.entity.sys.BookingItem.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.BookingItem, tutao.entity.sys.BookingItem.PATH, id[1], id[0], {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity;
-  });
+tutao.entity.sys.BookingItem.prototype.setPrice = function(price) {
+  this._price = price;
+  return this;
 };
 
 /**
- * Loads multiple BookingItems from the server.
- * @param {Array.<Array.<string>>} ids The ids of the BookingItems to load.
- * @return {Promise.<Array.<tutao.entity.sys.BookingItem>>} Resolves to an array of BookingItem or rejects with an exception if the loading failed.
+ * Provides the price of this BookingItem.
+ * @return {string} The price of this BookingItem.
  */
-tutao.entity.sys.BookingItem.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.BookingItem, tutao.entity.sys.BookingItem.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
-    return entities;
-  });
+tutao.entity.sys.BookingItem.prototype.getPrice = function() {
+  return this._price;
 };
 
 /**
- * Updates the listEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ * Sets the priceType of this BookingItem.
+ * @param {string} priceType The priceType of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 9;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.BookingItem.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.BookingItem.prototype.setPriceType = function(priceType) {
+  this._priceType = priceType;
+  return this;
 };
 
 /**
- * Provides a  list of BookingItems loaded from the server.
- * @param {string} listId The list id.
- * @param {string} start Start id.
- * @param {number} count Max number of mails.
- * @param {boolean} reverse Reverse or not.
- * @return {Promise.<Array.<tutao.entity.sys.BookingItem>>} Resolves to an array of BookingItem or rejects with an exception if the loading failed.
+ * Provides the priceType of this BookingItem.
+ * @return {string} The priceType of this BookingItem.
  */
-tutao.entity.sys.BookingItem.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.BookingItem, tutao.entity.sys.BookingItem.PATH, listId, start, count, reverse, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
-    return entities;
-  });
+tutao.entity.sys.BookingItem.prototype.getPriceType = function() {
+  return this._priceType;
 };
 
 /**
- * Register a function that is called as soon as any attribute of the entity has changed. If this listener
- * was already registered it is not registered again.
- * @param {function(Object,*=)} listener. The listener function. When called it gets the entity and the given id as arguments.
- * @param {*=} id. An optional value that is just passed-through to the listener.
+ * Sets the totalInvoicedCount of this BookingItem.
+ * @param {string} totalInvoicedCount The totalInvoicedCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.registerObserver = function(listener, id) {
-  this._entityHelper.registerObserver(listener, id);
+tutao.entity.sys.BookingItem.prototype.setTotalInvoicedCount = function(totalInvoicedCount) {
+  this._totalInvoicedCount = totalInvoicedCount;
+  return this;
 };
 
 /**
- * Removes a registered listener function if it was registered before.
- * @param {function(Object)} listener. The listener to unregister.
+ * Provides the totalInvoicedCount of this BookingItem.
+ * @return {string} The totalInvoicedCount of this BookingItem.
  */
-tutao.entity.sys.BookingItem.prototype.unregisterObserver = function(listener) {
-  this._entityHelper.unregisterObserver(listener);
+tutao.entity.sys.BookingItem.prototype.getTotalInvoicedCount = function() {
+  return this._totalInvoicedCount;
 };
