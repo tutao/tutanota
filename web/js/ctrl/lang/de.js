@@ -468,5 +468,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "welcomeMailSubject_msg": "Fühl dich wie zuhause: Hier bleiben deine Daten privat.",
   "work_label": "Arbeit",
   "xing_label": "XING",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Leider unterstützt Firefox auf Android nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera."
 };

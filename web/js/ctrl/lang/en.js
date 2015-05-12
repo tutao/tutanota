@@ -468,5 +468,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "welcomeMailSubject_msg": "Feel at home: Your data stays private.",
   "work_label": "Work",
   "xing_label": "XING",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Firefox on Android does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise."
 };
