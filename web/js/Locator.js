@@ -94,10 +94,6 @@ tutao.Locator = function(services, initializer) {
     this.fastMessageView= null;
     // @type {tutao.tutanota.gui.NotSupportedView}
     this.notSupportedView= null;
-    // @type {tutao.tutanota.gui.RegistrationVerifyDomainView}
-    this.registrationVerifyDomainView= null;
-    // @type {tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel}
-    this.registrationVerifyDomainViewModel= null;
     // @type {tutao.tutanota.gui.RegistrationView}
     this.registrationView= null;
     // @type {tutao.tutanota.ctrl.RegistrationViewModel}

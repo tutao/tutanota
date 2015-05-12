@@ -46,7 +46,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.getLoggedInUserAccountType = function(
  * @return {Array.<tutao.tutanota.ctrl.View>} views All the views of this ViewManager.
  */
 tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
-    return [tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.settingsView,tutao.locator.registrationVerifyDomainView];
+    return [tutao.locator.registrationView, tutao.locator.loginView, tutao.locator.mailView, tutao.locator.contactView, tutao.locator.fileView, tutao.locator.externalLoginView, tutao.locator.notSupportedView, tutao.locator.settingsView];
 };
 
 /**

@@ -188,8 +188,6 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         contactView: tutao.tutanota.gui.ContactView,
         fastMessageView: tutao.tutanota.gui.FastMessageView,
         notSupportedView: tutao.tutanota.gui.NotSupportedView,
-        registrationVerifyDomainView: tutao.tutanota.gui.RegistrationVerifyDomainView,
-        registrationVerifyDomainViewModel: tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel,
         registrationView: tutao.tutanota.gui.RegistrationView,
         registrationViewModel: tutao.tutanota.ctrl.RegistrationViewModel,
         settingsView: tutao.tutanota.gui.SettingsView,

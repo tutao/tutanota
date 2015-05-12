@@ -170,7 +170,6 @@
 <script src="/js/ctrl/PaymentDataViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
 <script src="/js/ctrl/RecipientInfo.js"></script>
-<script src="/js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
 <script src="/js/ctrl/RegistrationViewModel.js"></script>
 <script src="/js/ctrl/SendMailFacade.js"></script>
 <script src="/js/ctrl/SendMailFromExternalFacade.js"></script>
@@ -416,7 +415,6 @@
 <script src="/js/gui/MailView.js"></script>
 <script src="/js/gui/NotFoundView.js"></script>
 <script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
 <script src="/js/gui/RegistrationView.js"></script>
 <script src="/js/gui/SettingsView.js"></script>
 <script src="/js/gui/SwipeSlider.js"></script>
@@ -1192,57 +1190,6 @@
                 <div id="welcomePicture"><div></div></div>
             </div>
 		</div>
-
-        <div id="pre_registration" class="login" data-bind="with: tutao.locator.registrationVerifyDomainViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationVerifyDomainView">
-            <div class="welcomeContainer">
-                <div class="panel">
-                    <div class="content scrollable">
-                        <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
-                        <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
-                        <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED && state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
-                            <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
-                                <div class="record">
-                                    <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused" />
-                                        </div>
-                                        <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide mailAddressPrefixInput" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
-                                        </div>
-                                        <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
-                                        <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg'"></label>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <div class="recordName"></div>
-                                    <div class="formAction">
-                                        <button id="submitPreRegistration" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
-                                        <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
-                                    </div>
-                                </div>
-                            </form>
-                        <!-- /ko -->
-                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="smallInfoMessage" data-bind="lang: getFinishedMessage(), params: { '{1}': getMailAddress(), '{2}': getDomain() }"></div>
-                        <!-- /ko -->
-                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
-                            <div class="smallInfoMessage">
-                                <div data-bind="lang: 'regDisabledStarter_msg'"></div>
-                                <a href="https://tutanota.com/contact" target="_blank" data-bind="text: 'https://tutanota.com/contact'" tabindex="-1"></a>
-                            </div>
-                        <!-- /ko -->
-                    </div>
-                </div>
-                <div id="welcomePicture"><div></div></div>
-            </div>
-        </div>
 
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
