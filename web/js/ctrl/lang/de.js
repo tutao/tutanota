@@ -212,7 +212,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "lastSuccessfulLogin_label": "Letzter erfolgreicher Login",
   "leavePageConfirmation_msg": "Wollen Sie Tutanota wirklich schließen?",
   "legacyDownloadNotPossible_msg": "Leider unterstützt Safari nicht das Exportieren von E-Mails oder das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls einen der folgenden Browser:",
-  "legacyNoAttachmentsIeMobile_msg": "Internet Explorer auf Windows Phone unterstützt leider nicht das Herunterladen von Anhängen oder das Anhängen von Dateien an E-Mails. Falls Sie diese Funktionalität benötigen, verwenden Sie bitte einen der folgenden Browser:",
+  "legacyNoAttachmentsIeMobile_msg": "Internet Explorer auf Windows Phone unterstützt leider nicht das Antworten auf E-Mails oder das Herunterladen von Anhängen. Falls Sie diese Funktionalität benötigen, verwenden Sie bitte einen der folgenden Browser:",
   "legacyNoReplyAndroid_msg": "Der Android-Browser unterstützt nicht das Antworten auf E-Mails sowie das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser angezeigt werden. Bitte verwenden Sie andernfalls einen der folgenden Browser:",
   "linkedin_label": "LinkedIn",
   "loadMoreMails_action": "Weitere E-Mails laden",
