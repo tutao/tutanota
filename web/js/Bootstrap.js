@@ -87,9 +87,8 @@ tutao.tutanota.Bootstrap.init = function () {
 			}
             // listener to get notified when the app returns to foreground.
             document.addEventListener("resume", function(){
-                if (tutao.locator.userController.isInternalUserLoggedIn()){
-                    tutao.locator.eventBus.tryReconnect();
-                }
+			    console.log("resume event") ;
+                tutao.locator.eventBus.tryReconnect();
             }, false);
         }
 
