@@ -16,17 +16,10 @@ tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID = "Android";
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OPERA = "Opera";
 /** Black Berry */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_BB = "BlackBerry";
+/** Ubuntu browser */
+tutao.tutanota.util.ClientDetector.BROWSER_TYPE_UBUNTU = "Ubuntu";
 /** other browser */
 tutao.tutanota.util.ClientDetector.BROWSER_TYPE_OTHER = "Other";
-
-/** Unix/Linux OS */
-tutao.tutanota.util.ClientDetector.OS_TYPE_LINUX = "Linux";
-/** Mac/iOS OS */
-tutao.tutanota.util.ClientDetector.OS_TYPE_MAC = "Mac";
-/** Windows OS */
-tutao.tutanota.util.ClientDetector.OS_TYPE_WINDOWS = "Windows";
-/** other OS */
-tutao.tutanota.util.ClientDetector.OS_TYPE_OTHER = "Other";
 
 
 /** iPhone device */
@@ -41,7 +34,8 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE = "Windows Phone";
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_BB = "BlackBerry";
 /** other device */
 tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP = "Desktop";
-
+/** Other device */
+tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER_MOBILE = "Other mobile";
 
 
 /** browser is supported */
@@ -75,17 +69,7 @@ tutao.tutanota.util.ClientDetector._browserVersion = null;
  * @type {?string}
  * @private
  */
-tutao.tutanota.util.ClientDetector._os = null;
-/**
- * @type {?string}
- * @private
- */
 tutao.tutanota.util.ClientDetector._device = null;
-/**
- * @type {?boolean}
- * @private
- */
-tutao.tutanota.util.ClientDetector._phone = null;
 /**
  * @type {?string}
  * @private
@@ -115,17 +99,6 @@ tutao.tutanota.util.ClientDetector.getBrowserVersion = function() {
 };
 
 /**
- * Provides the operating system.
- * @return {string} The operating system. One of OS_TYPES.
- */
-tutao.tutanota.util.ClientDetector.getOs = function() {
-	if (tutao.tutanota.util.ClientDetector._browser == null) {
-		tutao.tutanota.util.ClientDetector._setClientInfo(navigator.userAgent);
-	}
-	return tutao.tutanota.util.ClientDetector._os;
-};
-
-/**
  * Provides the device type.
  * @return {string} The operating system. One of DEVICE_TYPES.
  */
@@ -134,17 +107,6 @@ tutao.tutanota.util.ClientDetector.getDeviceType = function() {
 		tutao.tutanota.util.ClientDetector._setClientInfo(navigator.userAgent);
 	}
 	return tutao.tutanota.util.ClientDetector._device;
-};
-
-/**
- * Provides the information if phone capabilities exist on the device. Defaults to true for desktop browsers.
- * @return {Boolean} True if the device has phone capabilities.
- */
-tutao.tutanota.util.ClientDetector.isPhoneSupported = function() {
-	if (tutao.tutanota.util.ClientDetector._browser == null) {
-		tutao.tutanota.util.ClientDetector._setClientInfo(navigator.userAgent);
-	}
-	return tutao.tutanota.util.ClientDetector._phone;
 };
 
 /**
@@ -173,7 +135,6 @@ tutao.tutanota.util.ClientDetector.getDefaultLanguage = function() {
  */
 tutao.tutanota.util.ClientDetector._setClientInfo = function(userAgent) {
 	tutao.tutanota.util.ClientDetector._setBrowserAndVersion(userAgent);
-	tutao.tutanota.util.ClientDetector._setOs(userAgent);
 	tutao.tutanota.util.ClientDetector._setDeviceInfo(userAgent);
 	tutao.tutanota.util.ClientDetector._setSupportInfo(userAgent);
 };
@@ -192,6 +153,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
     minVersionNeeded[info.BROWSER_TYPE_ANDROID] = 4; // only legacy 
     minVersionNeeded[info.BROWSER_TYPE_OPERA] = 19;
     minVersionNeeded[info.BROWSER_TYPE_BB] = 10;
+    minVersionNeeded[info.BROWSER_TYPE_UBUNTU] = 1;
 
     if (info._browser == info.BROWSER_TYPE_OTHER) {
 		info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
@@ -251,44 +213,19 @@ tutao.tutanota.util.ClientDetector.isMobileDevice = function() {
 tutao.tutanota.util.ClientDetector._setDeviceInfo = function(userAgent) {
 	var info = tutao.tutanota.util.ClientDetector;
 	info._device = info.DEVICE_TYPE_DESKTOP;
-	info._phone = false; // we assume by default devices do not support phones
 	if (userAgent.match(/iPad.*AppleWebKit/) != null) {
 		info._device = info.DEVICE_TYPE_IPAD;
-		info._phone = false;
 	} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
 		info._device = info.DEVICE_TYPE_IPHONE;
-		info._phone = true;
 	} else if (userAgent.match(/Android/) != null) {
 		info._device = info.DEVICE_TYPE_ANDROID;
-		info._phone = true;
-	} else if (userAgent.match(/Windows Phone/) != null){
+	} else if (userAgent.match(/Windows Phone/) != null) {
         info._device = info.DEVICE_TYPE_WINDOWS_PHONE;
-        info._phone = true;
-    } else if (userAgent.match(/BB10/) != null){
+    } else if (userAgent.match(/BB10/) != null) {
         info._device = info.DEVICE_TYPE_BB;
-        info._phone = true;
+    } else if (userAgent.match(/Mobile/) != null || userAgent.match(/Tablet/) != null) {
+        info._device = info.DEVICE_TYPE_OTHER_MOBILE;
     }
-};
-
-/**
- * Sets the OS info.
- * @param {string} userAgent The user agent string.
- */
-tutao.tutanota.util.ClientDetector._setOs = function(userAgent) {
-	var info = tutao.tutanota.util.ClientDetector;
-	info._os = info.OS_TYPE_OTHER;
-    var windowsIndex = userAgent.indexOf("Windows");
-    var linuxIndex = userAgent.indexOf("Linux");
-    var androidIndex = userAgent.indexOf("Android");
-    var appleIndex1 = userAgent.indexOf("Macintosh");
-    var appleIndex2 = userAgent.indexOf("Mac OS");
-	if (windowsIndex != -1) {
-        info._os = info.OS_TYPE_WINDOWS;
-	} else if (linuxIndex != -1 || androidIndex != -1) {
-		info._os = info.OS_TYPE_LINUX;
-	} else if (appleIndex1 != -1 || appleIndex2 != -1) {
-		info._os = info.OS_TYPE_MAC;
-	}
 };
 
 /**
@@ -310,6 +247,9 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	var ie11Index = userAgent.indexOf("Trident");
     var androidIndex = userAgent.indexOf("Android");
     var blackBerryIndex = userAgent.indexOf("BB10");
+    var ubuntuMobileIndex = userAgent.indexOf("Ubuntu; Mobile");
+    var ubuntuTabletIndex = userAgent.indexOf("Ubuntu; Tablet");
+
 	var versionIndex = -1;
     if (operaIndex1 != -1) {
         info._browser = info.BROWSER_TYPE_OPERA;
@@ -345,7 +285,6 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		if (versionIndex != -1) {
 			versionIndex += 8;
 		}
-
 	} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
         // homescreen detection is only available when in app mode otherwise it is deactivated because of problems in iOS
         if (tutao.env.mode == tutao.Mode.App) {
@@ -371,6 +310,9 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	} else if (blackBerryIndex !=-1){
         info._browser = info.BROWSER_TYPE_BB;
         info._browserVersion = 10;
+    } else if (ubuntuMobileIndex != -1 || ubuntuTabletIndex != -1) {
+        info._browser = info.BROWSER_TYPE_UBUNTU;
+        info._browserVersion = 1; // dummy, no browser version is provided
     }
 	if (versionIndex != -1) {
 		var mainVersionEndIndex = userAgent.indexOf(".", versionIndex);
