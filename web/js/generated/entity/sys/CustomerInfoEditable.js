@@ -20,10 +20,10 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.source = ko.observable(customerinfo.getSource());
 	this.storageCapacity = ko.observable(customerinfo.getStorageCapacity());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
-	if (customerinfo.getBookingItems()) {
-		this.bookingItems = ko.observable(new tutao.entity.sys.BookingItemsRefEditable(customerinfo.getBookingItems()));
+	if (customerinfo.getBookings()) {
+		this.bookings = ko.observable(new tutao.entity.sys.BookingsRefEditable(customerinfo.getBookings()));
 	} else {
-	    this.bookingItems = ko.observable(null);
+	    this.bookings = ko.observable(null);
 	}
 	this.domainInfos = ko.observableArray();
 	for (var i = 0; i < customerinfo.getDomainInfos().length; i++) {
@@ -59,9 +59,9 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setSource(this.source());
 	this._entity.setStorageCapacity(this.storageCapacity());
 	this._entity.setTestEndTime(this.testEndTime());
-		if (this.bookingItems()) {
-			this.bookingItems().update();
-			this._entity.setBookingItems(this.bookingItems().getBookingItemsRef());
+		if (this.bookings()) {
+			this.bookings().update();
+			this._entity.setBookings(this.bookings().getBookingsRef());
 		}
 	this._entity.getDomainInfos().length = 0;
 	for (var i = 0; i < this.domainInfos().length; i++) {

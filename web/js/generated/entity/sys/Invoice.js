@@ -58,7 +58,7 @@ tutao.entity.sys.Invoice.PATH = '/rest/sys/invoice';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.Invoice.ROOT_INSTANCE_ID = 'A3N5cwAC1w';
+tutao.entity.sys.Invoice.ROOT_INSTANCE_ID = 'A3N5cwAC4Q';
 
 /**
  * The generated id type flag.
@@ -94,37 +94,37 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
 /**
  * The id of the Invoice type.
  */
-tutao.entity.sys.Invoice.prototype.TYPE_ID = 727;
+tutao.entity.sys.Invoice.prototype.TYPE_ID = 737;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.Invoice.prototype.DATE_ATTRIBUTE_ID = 733;
+tutao.entity.sys.Invoice.prototype.DATE_ATTRIBUTE_ID = 743;
 
 /**
  * The id of the grandTotal attribute.
  */
-tutao.entity.sys.Invoice.prototype.GRANDTOTAL_ATTRIBUTE_ID = 735;
+tutao.entity.sys.Invoice.prototype.GRANDTOTAL_ATTRIBUTE_ID = 745;
 
 /**
  * The id of the number attribute.
  */
-tutao.entity.sys.Invoice.prototype.NUMBER_ATTRIBUTE_ID = 734;
+tutao.entity.sys.Invoice.prototype.NUMBER_ATTRIBUTE_ID = 744;
 
 /**
  * The id of the paid attribute.
  */
-tutao.entity.sys.Invoice.prototype.PAID_ATTRIBUTE_ID = 738;
+tutao.entity.sys.Invoice.prototype.PAID_ATTRIBUTE_ID = 748;
 
 /**
  * The id of the published attribute.
  */
-tutao.entity.sys.Invoice.prototype.PUBLISHED_ATTRIBUTE_ID = 737;
+tutao.entity.sys.Invoice.prototype.PUBLISHED_ATTRIBUTE_ID = 747;
 
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.Invoice.prototype.SOURCE_ATTRIBUTE_ID = 736;
+tutao.entity.sys.Invoice.prototype.SOURCE_ATTRIBUTE_ID = 746;
 
 /**
  * Provides the id of this Invoice.

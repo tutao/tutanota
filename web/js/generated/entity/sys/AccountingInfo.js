@@ -20,6 +20,7 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this._invoiceVatIdNo = null;
     this._lastInvoiceNbrOfSentSms = null;
     this._lastInvoiceTimestamp = null;
+    this._paymentInterval = null;
     this._paymentMethod = null;
     this._invoiceInfo = null;
   }
@@ -42,6 +43,7 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this._invoiceVatIdNo = data.invoiceVatIdNo;
   this._lastInvoiceNbrOfSentSms = data.lastInvoiceNbrOfSentSms;
   this._lastInvoiceTimestamp = data.lastInvoiceTimestamp;
+  this._paymentInterval = data.paymentInterval;
   this._paymentMethod = data.paymentMethod;
   this._invoiceInfo = data.invoiceInfo;
 };
@@ -92,6 +94,7 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     invoiceVatIdNo: this._invoiceVatIdNo, 
     lastInvoiceNbrOfSentSms: this._lastInvoiceNbrOfSentSms, 
     lastInvoiceTimestamp: this._lastInvoiceTimestamp, 
+    paymentInterval: this._paymentInterval, 
     paymentMethod: this._paymentMethod, 
     invoiceInfo: this._invoiceInfo
   };
@@ -105,27 +108,27 @@ tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
 /**
  * The id of the business attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 747;
+tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 758;
 
 /**
  * The id of the invoiceAddress attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 749;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 760;
 
 /**
  * The id of the invoiceCountry attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 750;
+tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 761;
 
 /**
  * The id of the invoiceName attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 748;
+tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 759;
 
 /**
  * The id of the invoiceVatIdNo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 751;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 762;
 
 /**
  * The id of the lastInvoiceNbrOfSentSms attribute.
@@ -138,14 +141,19 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICENBROFSENTSMS_ATTRIBUTE_ID =
 tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 592;
 
 /**
+ * The id of the paymentInterval attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 764;
+
+/**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 752;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 763;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 753;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 765;
 
 /**
  * Provides the id of this AccountingInfo.
@@ -340,6 +348,23 @@ tutao.entity.sys.AccountingInfo.prototype.getLastInvoiceTimestamp = function() {
     throw new tutao.InvalidDataError('invalid time data: ' + this._lastInvoiceTimestamp);
   }
   return new Date(Number(this._lastInvoiceTimestamp));
+};
+
+/**
+ * Sets the paymentInterval of this AccountingInfo.
+ * @param {string} paymentInterval The paymentInterval of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentInterval = function(paymentInterval) {
+  this._paymentInterval = paymentInterval;
+  return this;
+};
+
+/**
+ * Provides the paymentInterval of this AccountingInfo.
+ * @return {string} The paymentInterval of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentInterval = function() {
+  return this._paymentInterval;
 };
 
 /**

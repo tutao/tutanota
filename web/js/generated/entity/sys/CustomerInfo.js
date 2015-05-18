@@ -24,7 +24,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._storageCapacity = null;
     this._testEndTime = null;
     this._accountingInfo = null;
-    this._bookingItems = null;
+    this._bookings = null;
     this._customer = null;
     this._domainInfos = [];
   }
@@ -51,7 +51,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this._storageCapacity = data.storageCapacity;
   this._testEndTime = data.testEndTime;
   this._accountingInfo = data.accountingInfo;
-  this._bookingItems = (data.bookingItems) ? new tutao.entity.sys.BookingItemsRef(this, data.bookingItems) : null;
+  this._bookings = (data.bookings) ? new tutao.entity.sys.BookingsRef(this, data.bookings) : null;
   this._customer = data.customer;
   this._domainInfos = [];
   for (var i=0; i < data.domainInfos.length; i++) {
@@ -109,7 +109,7 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     storageCapacity: this._storageCapacity, 
     testEndTime: this._testEndTime, 
     accountingInfo: this._accountingInfo, 
-    bookingItems: tutao.entity.EntityHelper.aggregatesToJsonData(this._bookingItems), 
+    bookings: tutao.entity.EntityHelper.aggregatesToJsonData(this._bookings), 
     customer: this._customer, 
     domainInfos: tutao.entity.EntityHelper.aggregatesToJsonData(this._domainInfos)
   };
@@ -158,7 +158,7 @@ tutao.entity.sys.CustomerInfo.prototype.REGISTRATIONMAILADDRESS_ATTRIBUTE_ID = 5
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 713;
+tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 723;
 
 /**
  * The id of the storageCapacity attribute.
@@ -176,9 +176,9 @@ tutao.entity.sys.CustomerInfo.prototype.TESTENDTIME_ATTRIBUTE_ID = 156;
 tutao.entity.sys.CustomerInfo.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 159;
 
 /**
- * The id of the bookingItems attribute.
+ * The id of the bookings attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.BOOKINGITEMS_ATTRIBUTE_ID = 715;
+tutao.entity.sys.CustomerInfo.prototype.BOOKINGS_ATTRIBUTE_ID = 725;
 
 /**
  * The id of the customer attribute.
@@ -188,7 +188,7 @@ tutao.entity.sys.CustomerInfo.prototype.CUSTOMER_ATTRIBUTE_ID = 158;
 /**
  * The id of the domainInfos attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 714;
+tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 724;
 
 /**
  * Provides the id of this CustomerInfo.
@@ -461,20 +461,20 @@ tutao.entity.sys.CustomerInfo.prototype.loadAccountingInfo = function() {
 };
 
 /**
- * Sets the bookingItems of this CustomerInfo.
- * @param {tutao.entity.sys.BookingItemsRef} bookingItems The bookingItems of this CustomerInfo.
+ * Sets the bookings of this CustomerInfo.
+ * @param {tutao.entity.sys.BookingsRef} bookings The bookings of this CustomerInfo.
  */
-tutao.entity.sys.CustomerInfo.prototype.setBookingItems = function(bookingItems) {
-  this._bookingItems = bookingItems;
+tutao.entity.sys.CustomerInfo.prototype.setBookings = function(bookings) {
+  this._bookings = bookings;
   return this;
 };
 
 /**
- * Provides the bookingItems of this CustomerInfo.
- * @return {tutao.entity.sys.BookingItemsRef} The bookingItems of this CustomerInfo.
+ * Provides the bookings of this CustomerInfo.
+ * @return {tutao.entity.sys.BookingsRef} The bookings of this CustomerInfo.
  */
-tutao.entity.sys.CustomerInfo.prototype.getBookingItems = function() {
-  return this._bookingItems;
+tutao.entity.sys.CustomerInfo.prototype.getBookings = function() {
+  return this._bookings;
 };
 
 /**

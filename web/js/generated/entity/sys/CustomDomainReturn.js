@@ -58,17 +58,17 @@ tutao.entity.sys.CustomDomainReturn.prototype.toJsonData = function() {
 /**
  * The id of the CustomDomainReturn type.
  */
-tutao.entity.sys.CustomDomainReturn.prototype.TYPE_ID = 719;
+tutao.entity.sys.CustomDomainReturn.prototype.TYPE_ID = 729;
 
 /**
  * The id of the statusCode attribute.
  */
-tutao.entity.sys.CustomDomainReturn.prototype.STATUSCODE_ATTRIBUTE_ID = 721;
+tutao.entity.sys.CustomDomainReturn.prototype.STATUSCODE_ATTRIBUTE_ID = 731;
 
 /**
  * The id of the invalidDnsRecords attribute.
  */
-tutao.entity.sys.CustomDomainReturn.prototype.INVALIDDNSRECORDS_ATTRIBUTE_ID = 722;
+tutao.entity.sys.CustomDomainReturn.prototype.INVALIDDNSRECORDS_ATTRIBUTE_ID = 732;
 
 /**
  * Sets the format of this CustomDomainReturn.
