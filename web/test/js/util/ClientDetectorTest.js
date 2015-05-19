@@ -1,6 +1,6 @@
 "use strict";
 
-describe.only("ClientDetectorTest", function () {
+describe("ClientDetectorTest", function () {
 
     var assert = chai.assert;
 
