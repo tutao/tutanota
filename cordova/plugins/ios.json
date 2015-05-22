@@ -65,6 +65,10 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"Keyboard\"><param name=\"ios-package\" onload=\"true\" value=\"IonicKeyboard\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"PushPlugin\"><param name=\"ios-package\" value=\"PushPlugin\" /></feature>",
                             "count": 1
                         },
@@ -126,6 +130,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.bridge.open": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.ionic.keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.phonegap.plugins.PushPlugin": {

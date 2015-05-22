@@ -71,6 +71,10 @@
                         {
                             "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Keyboard\"><param name=\"android-package\" value=\"com.ionic.keyboard.IonicKeyboard\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -189,6 +193,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.vibration": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.ionic.keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },

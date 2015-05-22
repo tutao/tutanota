@@ -90,6 +90,41 @@ tutao.tutanota.Bootstrap.init = function () {
 			    console.log("resume event") ;
                 tutao.locator.eventBus.tryReconnect();
             }, false);
+			
+			
+			if (cordova.platformId == "ios") {
+				// Workaround for making the cursor position always visible when writing emails.
+				// Disable html navigation bar to save space.
+				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+				
+				// To be able to set an absolute body height
+				cordova.plugins.Keyboard.disableScroll(true);
+				
+				// Set an absolute body height to make the body end at the keyboard top.
+				window.addEventListener('native.keyboardshow', function (e){
+					var element = $("body");
+					var windowHeight = $(window).height();
+					var targetHeight = windowHeight - e.keyboardHeight;
+					if ( element.height() != targetHeight){
+						element.animate({height: targetHeight + "px"});
+					}
+				});
+			
+				window.addEventListener('native.keyboardhide', function (){
+					var element = $("body");
+					element.animate({height: "100%"});
+				});
+			}
+			
+			//var element = document.getElementsByTagName("body");
+		//	var bodyElement = $("body");
+		//	var hammertime = new Hammer(bodyElement);
+		//	hammertime.on("swipeDown", function(event) {
+		//		cordova.plugins.Keyboard.close();
+		//	});
+			
+			
+			
         }
 
         // only for testing
