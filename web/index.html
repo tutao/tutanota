@@ -818,7 +818,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="contactData">
-													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
+													<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
 															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>

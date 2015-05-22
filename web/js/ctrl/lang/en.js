@@ -212,7 +212,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "lastSuccessfulLogin_label": "Last successful login",
   "leavePageConfirmation_msg": "Do you really want to leave Tutanota?",
   "legacyDownloadNotPossible_msg": "Safari does not support exporting emails or saving attachments to disk. Still some file types can be displayed in the browser. Please use one of the following browsers otherwise:",
-  "legacyNoAttachmentsIeMobile_msg": "Internet Explorer mobile does not support downloading attachments or attaching files to emails. If you need these features, please use one of the following browsers:",
+  "legacyNoAttachmentsIeMobile_msg": "Internet Explorer mobile does not support replying to emails or downloading attachments. If you need these features, please use one of the following browsers:",
   "legacyNoReplyAndroid_msg": "The Android browser does not support replying to emails or saving attachments to disk. Still some file types can be displayed in the browser. Please use one of the following browsers otherwise:",
   "linkedin_label": "LinkedIn",
   "loadMoreMails_action": "Load more emails",
