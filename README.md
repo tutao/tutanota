@@ -2,7 +2,7 @@
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
-* Official website: https://tutanota.de
+* Official website: https://tutanota.com
 * Issue and feature tracker: https://tutanota.uservoice.com/forums/237921-general
 
 ## WebStorm
@@ -22,7 +22,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 1.9.2): `git checkout tutanota-release-1.9.2`
+3. Checkout latest release (currently 1.9.3): `git checkout tutanota-release-1.9.3`
 4. Install dependencies: `npm install`
 5. Build Tutanota: `gulp dist`
 6. Switch into the build directory: `cd build`
@@ -42,7 +42,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 1.9.2): `git checkout tutanota-android-release-1.9.2`
+3. Checkout latest android release (currently 1.9.3): `git checkout tutanota-android-release-1.9.3`
 4. Install cordova globally: `sudo npm install -g cordova`
 5. Install dependencies: `npm install`
 6. Change into the cordova directory: `cd cordova`
