@@ -217,4 +217,33 @@ describe("FormatterTest", function () {
         assert.equal("tt, tt", sorted[9]);
         assert.equal("vert, vert", sorted[10]);
     });
+
+    it(" validHtmlLinks", function() {
+        // html links
+        assert.equal('<a href=\"http://hello.it\" target=\"_blank\">http://hello.it</a>', tutao.tutanota.util.Formatter.urlify("http://hello.it"));
+        assert.equal('<a href=\"https://hello.it\" target=\"_blank\">https://hello.it</a>', tutao.tutanota.util.Formatter.urlify("https://hello.it"));
+        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\">http://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("http://www.tutanota.de"));
+        assert.equal('<a href=\"https://www.tutanota.de\" target=\"_blank\">https://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("https://www.tutanota.de"));
+           // email adresses
+        assert.equal('<a href=\"mailto:bed-free@tutanota.de\" target=\"_blank\">bed-free@tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("bed-free@tutanota.de"));
+    });
+
+    it(" invalidHtmlLinks", function() {
+        // no html links
+        assert.equal("hello.it is nice to meet you.", tutao.tutanota.util.Formatter.urlify("hello.it is nice to meet you."));
+        assert.equal("www.tutanota.de", tutao.tutanota.util.Formatter.urlify("www.tutanota.de"));
+        assert.equal("tutanota.de", tutao.tutanota.util.Formatter.urlify("tutanota.de"));
+        assert.equal("34.34.de", tutao.tutanota.util.Formatter.urlify("34.34.de"));
+
+        // twitter
+        assert.equal("@de_tutanota", tutao.tutanota.util.Formatter.urlify("@de_tutanota"));
+        assert.equal("#de_tutanota", tutao.tutanota.util.Formatter.urlify("#de_tutanota"));
+
+        // no phone numbers
+        assert.equal("0511202801-0", tutao.tutanota.util.Formatter.urlify("0511202801-0"));
+        assert.equal("+49511202801", tutao.tutanota.util.Formatter.urlify("+49511202801"));
+        assert.equal("(555)555-5555", tutao.tutanota.util.Formatter.urlify("(555)555-5555"));
+    });
+
+
 });
