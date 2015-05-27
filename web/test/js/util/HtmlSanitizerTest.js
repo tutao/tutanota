@@ -1,6 +1,6 @@
 "use strict";
 
-describe.only("HtmlSanitizerTest", function () {
+describe("HtmlSanitizerTest", function () {
 
     var assert = chai.assert;
 
