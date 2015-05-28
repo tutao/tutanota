@@ -313,7 +313,7 @@ tutao.tutanota.util.Formatter.urlify = function(text) {
 		switch( match.getType() ) {
 			case 'url' :
 				// true: let Autolinker perform its normal anchor tag replacement,  false: don't auto-link this particular item leave as-is
-				return tutao.util.StringUtils.startsWith( match.getMatchedText(),  "http");
+				return tutao.util.StringUtils.startsWith( match.getMatchedText(),  "http") || tutao.util.StringUtils.startsWith( match.getMatchedText(),  "www.");
 		}
 	}});
 };

@@ -226,12 +226,14 @@ describe("FormatterTest", function () {
         assert.equal('<a href=\"https://www.tutanota.de\" target=\"_blank\">https://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("https://www.tutanota.de"));
            // email adresses
         assert.equal('<a href=\"mailto:bed-free@tutanota.de\" target=\"_blank\">bed-free@tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("bed-free@tutanota.de"));
+
+        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\">http://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("www.tutanota.de"));
     });
 
     it(" invalidHtmlLinks", function() {
         // no html links
         assert.equal("hello.it is nice to meet you.", tutao.tutanota.util.Formatter.urlify("hello.it is nice to meet you."));
-        assert.equal("www.tutanota.de", tutao.tutanota.util.Formatter.urlify("www.tutanota.de"));
+
         assert.equal("tutanota.de", tutao.tutanota.util.Formatter.urlify("tutanota.de"));
         assert.equal("34.34.de", tutao.tutanota.util.Formatter.urlify("34.34.de"));
 
