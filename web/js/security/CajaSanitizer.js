@@ -20,17 +20,24 @@ tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) 
 			var originalUrl = url.toString();
 			// Replace the external url with a non existing local reference and store
 			// the replacement in a map.
-			url.setDomain(null);
-			url.setScheme(null);
-			url.setPort(null);
-			url.setQuery(null);
-			url.setPath("replacement_" + (this._urlReplacementMap.length + 1));
+			url = URI.parse("replacement_" + (this._urlReplacementMap.length + 1));
 			var replacementUrl = url.toString();
 			this._urlReplacementMap.push( {replacement:replacementUrl, original: originalUrl });
 		}
 	}
 	return url;
 };
+
+
+tutao.tutanota.security.CajaSanitizer.prototype._reverseUrlTransformer = function(url) {
+	var path = url.toString();
+	var originalUrl = this._getOriginalLink(path);
+	if ( originalUrl){
+		return URI.parse(originalUrl);
+	}
+	return url;
+};
+
 
 tutao.tutanota.security.CajaSanitizer.prototype._nameIdClassTransformer = function(s) {
 	//console.log(s);
@@ -58,21 +65,19 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 		var cleanHtml = html_sanitize(html, this._urlTransformer, this._nameIdClassTransformer);
 
 		// parse html for image references and replace them with the local prevent icon.
-		var htmlNodes = $.parseHTML(cleanHtml);
 		var externalImages = [];
 		if (this._blockExternalContent){
+			var htmlNodes = $.parseHTML(cleanHtml);
 			externalImages = this._preventExternalImageLoading(htmlNodes);
+			// Restore all other external links to the original reference.
+			cleanHtml = html_sanitize($('<div>').append(htmlNodes).html(), this._reverseUrlTransformer, this._nameIdClassTransformer);
 		}
 
 		// set target="_blank" for all links
-		var domHtml = $('<div>').append(htmlNodes);
+		var domHtml = $('<div>').append(cleanHtml);
 		domHtml.find("a").attr("target", "_blank");
 
-		var htmlText = domHtml.html();
-
-		// Restore all other external links to the original reference.
-		htmlText = this._restoreReplacedUrls(htmlText);
-		return {"text" : htmlText, "externalImages" : externalImages };
+		return {"text" : domHtml.html(), "externalImages" : externalImages };
 	} catch (e) {
 		console.log("error in html: " + html, e);
 		return "";
@@ -133,20 +138,11 @@ tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = funct
  */
 tutao.tutanota.security.CajaSanitizer.prototype._getOriginalLink = function(link) {
 	for( var i=0; i<this._urlReplacementMap.length; i++){
+		// use indexOf here because link contains url(replacement_1) for background images.
 		if (link.indexOf(this._urlReplacementMap[i].replacement)  != -1){
-			console.log("found originalLink for: " + link + "->" + this._urlReplacementMap[i].original);
 			return this._urlReplacementMap[i].original;
 		}
 	}
-	console.log("no originalLink for: " + link );
 	return null;
-};
-
-tutao.tutanota.security.CajaSanitizer.prototype._restoreReplacedUrls = function(htmlText) {
-	var newHtmlText = htmlText;
-	for( var i=0; i<this._urlReplacementMap.length; i++){
-		newHtmlText = newHtmlText.replace(this._urlReplacementMap[i].replacement, this._urlReplacementMap[i].original)
-	}
-	return newHtmlText;
 };
 
