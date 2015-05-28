@@ -309,5 +309,11 @@ tutao.tutanota.util.Formatter.isGermanMobilePhoneNumber = function(cleanPhoneNum
  * @returns {string} The text with html links.
  */
 tutao.tutanota.util.Formatter.urlify = function(text) {
-    return Autolinker.link(text, {stripPrefix : false});
+    return Autolinker.link(text, {stripPrefix:false, urls:true, emails:true, phone:false, twitter:false, hashtag:false, replaceFn : function( autolinker, match ) {
+		switch( match.getType() ) {
+			case 'url' :
+				// true: let Autolinker perform its normal anchor tag replacement,  false: don't auto-link this particular item leave as-is
+				return tutao.util.StringUtils.startsWith( match.getMatchedText(),  "http") || tutao.util.StringUtils.startsWith( match.getMatchedText(),  "www.");
+		}
+	}});
 };
