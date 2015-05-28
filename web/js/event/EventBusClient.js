@@ -10,6 +10,7 @@ tutao.event.EventBusClient = function() {
 	this._socket = null;
     /** @type {Array.<tutao.event.EventBusListener>} */
     this._listeners = [];
+    this.terminated = false; // if terminated, never reconnects
 };
 
 /**
@@ -52,15 +53,15 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 	this._socket = new WebSocket(url);
 	this._socket.onopen = function() {
 		console.log("ws open: ", new Date());
-		var authentication = new tutao.entity.sys.Authentication()
-			.setUserId(tutao.locator.userController.getUserId())
-			.setAuthVerifier(tutao.locator.userController.getAuthVerifier());
 		var wrapper = new tutao.entity.sys.WebsocketWrapper()
 			.setType("authentication")
 			.setMsgId("0")
-			.setAuthentication(authentication)
 			// ClientVersion = <SystemModelVersion>.<TutanotaModelVersion>
 			.setClientVersion(tutao.entity.sys.WebsocketWrapper.MODEL_VERSION + "." + tutao.entity.tutanota.Mail.MODEL_VERSION);
+        var authentication = new tutao.entity.sys.Authentication(wrapper)
+            .setUserId(tutao.locator.userController.getUserId())
+            .setAuthVerifier(tutao.locator.userController.getAuthVerifier());
+        wrapper.setAuthentication(authentication);
 	    self._socket.send(JSON.stringify(wrapper.toJsonData()));
         if (reconnect) {
             self.notifyReconnected();
@@ -73,11 +74,12 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 };
 
 /**
- * Sends a close event to the server and closes the connection.
+ * Sends a close event to the server and finally closes the connection. Makes sure that there will be no reconnect.
  */
 tutao.event.EventBusClient.prototype.close = function() {
     console.log("ws close: ", new Date());
-	if (this._socket) {
+    this.terminated = true;
+    if (this._socket) {
 		this._socket.close();
 	}
 };
@@ -98,7 +100,7 @@ tutao.event.EventBusClient.prototype._message = function(message) {
 
 tutao.event.EventBusClient.prototype._close = function(event) {
 	console.log("ws _close: ", event, new Date());
-    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+    if (!this.terminated) {
         setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
     }
 };
@@ -108,7 +110,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
  */
 tutao.event.EventBusClient.prototype.tryReconnect = function() {
     console.log("ws tryReconnect socket state: " + this._socket.readyState);
-    if (this._socket == null || this._socket.readyState == WebSocket.CLOSED) {
+    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated) {
         this.connect(true);
     }
 };
