@@ -10,6 +10,7 @@ tutao.event.EventBusClient = function() {
 	this._socket = null;
     /** @type {Array.<tutao.event.EventBusListener>} */
     this._listeners = [];
+    this.terminated = false; // if terminated, never reconnects
 };
 
 /**
@@ -73,10 +74,11 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 };
 
 /**
- * Sends a close event to the server and closes the connection.
+ * Sends a close event to the server and finally closes the connection. Makes sure that there will be no reconnect.
  */
 tutao.event.EventBusClient.prototype.close = function() {
     console.log("ws close: ", new Date());
+    this.terminated = true;
 	if (this._socket) {
 		this._socket.close();
 	}
@@ -105,19 +107,17 @@ tutao.event.EventBusClient.prototype._close = function(event) {
 		// two events are executed is not defined so we need the tryReconnect in both situations.
 		this.tryReconnect();
 	}
-	setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
+    if (!this.terminated) {
+        setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
+    }
 };
 
 /**
  * Tries to reconnect the websocket if it is not connected.
  */
 tutao.event.EventBusClient.prototype.tryReconnect = function() {
-	if(!tutao.locator.userController.isInternalUserLoggedIn()){
-		// disable reconnect when user is not logged in
-		return;
-	}
 	console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + this._socket.readyState);
-    if (this._socket == null || this._socket.readyState == WebSocket.CLOSED) {
+    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated) {
         this.connect(true);
     }
 };
