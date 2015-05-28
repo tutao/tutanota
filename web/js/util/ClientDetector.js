@@ -218,7 +218,11 @@ tutao.tutanota.util.ClientDetector._setDeviceInfo = function(userAgent) {
 	} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
 		info._device = info.DEVICE_TYPE_IPHONE;
 	} else if (userAgent.match(/Android/) != null) {
-		info._device = info.DEVICE_TYPE_ANDROID;
+        if (userAgent.match(/Ubuntu/) != null ){
+            info._device = info.DEVICE_TYPE_OTHER_MOBILE;
+        }else {
+            info._device = info.DEVICE_TYPE_ANDROID;
+        }
 	} else if (userAgent.match(/Windows Phone/) != null) {
         info._device = info.DEVICE_TYPE_WINDOWS_PHONE;
     } else if (userAgent.match(/BB10/) != null) {
@@ -249,6 +253,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
     var blackBerryIndex = userAgent.indexOf("BB10");
     var ubuntuMobileIndex = userAgent.indexOf("Ubuntu; Mobile");
     var ubuntuTabletIndex = userAgent.indexOf("Ubuntu; Tablet");
+    var ubuntuIndex = userAgent.indexOf("Ubuntu");
 
 	var versionIndex = -1;
     if (operaIndex1 != -1) {
@@ -274,9 +279,14 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 		info._browser = info.BROWSER_TYPE_CHROME;
 		versionIndex = chromeIndex + 7;
     } else if (androidIndex != -1) {
-        // keep this check after Chrome, Firefox and Opera, because the Android browser does not identify itself in any other way
-        info._browser = info.BROWSER_TYPE_ANDROID;
-        versionIndex = androidIndex + 8;
+        if ( ubuntuIndex != -1){ // ubuntu phone browser
+            info._browser = info.BROWSER_TYPE_UBUNTU;
+            versionIndex = ubuntuIndex + 7;
+        }else { // default android browser
+            // keep this check after Chrome, Firefox and Opera, because the Android browser does not identify itself in any other way
+            info._browser = info.BROWSER_TYPE_ANDROID;
+            versionIndex = androidIndex + 8;
+        }
 	} else if (safariIndex != -1 && chromeIndex == -1 && blackBerryIndex == -1) {
 		// Chrome and black berry pretends to be Safari, so it is skipped
 		info._browser = info.BROWSER_TYPE_SAFARI;

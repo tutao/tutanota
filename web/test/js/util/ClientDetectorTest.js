@@ -364,6 +364,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
 
+
     it("ubuntu tablet is supported", function () {
         tutao.env.mode = tutao.Mode.App;
         var info = tutao.tutanota.util.ClientDetector;
@@ -374,6 +375,18 @@ describe("ClientDetectorTest", function () {
         assert.equal(true, info.isMobileDevice());
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
     });
+
+    it("ubuntu phone (like Android) is supported", function () {
+        tutao.env.mode = tutao.Mode.App;
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Linux; Ubuntu 14.04 like Android 4.4) AppleWebKit/537.36 Chromium/35.0.1870.2 Mobile Safari/537.36");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_UBUNTU, info.getBrowserType());
+        assert.equal(14, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER_MOBILE, info.getDeviceType());
+        assert.equal(true, info.isMobileDevice());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
 
     it("firefox os is supported", function () {
         tutao.env.mode = tutao.Mode.App;
