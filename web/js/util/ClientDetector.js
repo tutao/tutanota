@@ -40,8 +40,6 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER_MOBILE = "Other mobile";
 
 /** browser is supported */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED = "supported";
-/** browser does not support attaching files and downloading attachments */
-tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE = "legacy ie mobile";
 /** browser is supported in legacy mode for Safari (view mails es external recipient). Downloading attachments is not fully supported. */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI = "legacy safari";
 /** browser is supported in legacy mode for Android 4.0 - 4.3. Replying to emails is not supported. */
