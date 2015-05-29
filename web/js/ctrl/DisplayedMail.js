@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
     var self = this;
     var isExternalAnswerPossible = function () {
-        return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE;
+        return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID;
     };
     var isExternalExportPossible = function () {
         // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
@@ -204,9 +204,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     }
 	if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios' && file.getSize() > (7*1024*1024) ) {
         tutao.tutanota.gui.alert(tutao.lang("downloadAttachmentNotPossible_msg"));
-    } else if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) {
-        return tutao.tutanota.gui.alert(tutao.lang("saveDownloadNotPossibleIe_msg"));
-	} else {
+    } else {
 	    var self = this;
 		this.currentlyDownloadingAttachment(file);
 		tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {

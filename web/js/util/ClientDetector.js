@@ -166,7 +166,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
   	if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
             info._browser == info.BROWSER_TYPE_IE &&
             info._browserVersion >= 10) {
-        info._supported = info.SUPPORTED_TYPE_LEGACY_IE_MOBILE;
+        info._supported = info.SUPPORTED_TYPE_SUPPORTED;
     } if (info._device == info.DEVICE_TYPE_WINDOWS_PHONE &&
             info._browser == info.BROWSER_TYPE_IE &&
             info._browserVersion < 10) {

@@ -46,7 +46,7 @@ tutao.native.FileFacadeBrowser.prototype.createFile = function(dataFile, session
 tutao.native.FileFacadeBrowser.prototype.showFileChooser = function() {
     var self = this;
 
-    if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) {
+    if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE) {
         return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
             return [];
         });
