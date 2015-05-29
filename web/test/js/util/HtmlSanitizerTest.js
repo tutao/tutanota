@@ -30,15 +30,17 @@ describe("HtmlSanitizerTest", function () {
 
     it(" htmllinks", function() {
         var simpleHtmlLink = '<a href="https://tutanota.com">here</a>';
-
-        var sanitizedLink='<a href="https://tutanota.com" target="_blank">here</a>';
-        assert.equal(sanitizedLink, tutao.locator.htmlSanitizer.sanitize(simpleHtmlLink, true).text);
+        var sanitizedLink = tutao.locator.htmlSanitizer.sanitize(simpleHtmlLink, true).text;
+        assert.include(sanitizedLink, 'href="https://tutanota.com"');
+        assert.include(sanitizedLink, 'target="_blank"');
+        assert.include(sanitizedLink, '>here</a>');
 
         var htmlLink = '<a href="https://www.coursera.org/maestro/auth/normal/change_email.php?payload=9722E7n3bcN/iM08q79eG2plUafuyc6Yj631JIMAuZgGAQL0UdTqbP7w2bH8b7fmpsljKMVVVpF81l0zD1HMVQ==|Iv5+NfeRQh0Gk7/Idr0jsIZfC69Mnixw0FNbTRNmuUTgIqLefDMOhKBqY8prtvyBB7jV8kZy9XtGDue7uuUMwNYv1ucDvn/RYt76LAVXIQrY9BhW1Y381ZyMbuhB14LERDe05DUJgQI6XkM9gxM3APT7RZs48ERUIb/MstkJtxw=">here</a>';
-        sanitizedLink='<a href="https://www.coursera.org/maestro/auth/normal/change_email.php?payload=9722E7n3bcN/iM08q79eG2plUafuyc6Yj631JIMAuZgGAQL0UdTqbP7w2bH8b7fmpsljKMVVVpF81l0zD1HMVQ==|Iv5+NfeRQh0Gk7/Idr0jsIZfC69Mnixw0FNbTRNmuUTgIqLefDMOhKBqY8prtvyBB7jV8kZy9XtGDue7uuUMwNYv1ucDvn/RYt76LAVXIQrY9BhW1Y381ZyMbuhB14LERDe05DUJgQI6XkM9gxM3APT7RZs48ERUIb/MstkJtxw=" target="_blank">here</a>';
+        sanitizedLink=tutao.locator.htmlSanitizer.sanitize(htmlLink, true).text;
 
-        assert.equal(sanitizedLink, tutao.locator.htmlSanitizer.sanitize(htmlLink, true).text);
-        assert.equal(sanitizedLink, tutao.tutanota.util.Formatter.urlify(sanitizedLink));
+        assert.include(sanitizedLink, 'href="https://www.coursera.org/maestro/auth/normal/change_email.php?payload=9722E7n3bcN/iM08q79eG2plUafuyc6Yj631JIMAuZgGAQL0UdTqbP7w2bH8b7fmpsljKMVVVpF81l0zD1HMVQ==|Iv5+NfeRQh0Gk7/Idr0jsIZfC69Mnixw0FNbTRNmuUTgIqLefDMOhKBqY8prtvyBB7jV8kZy9XtGDue7uuUMwNYv1ucDvn/RYt76LAVXIQrY9BhW1Y381ZyMbuhB14LERDe05DUJgQI6XkM9gxM3APT7RZs48ERUIb/MstkJtxw="');
+        assert.include(sanitizedLink, 'target="_blank"');
+        assert.include(sanitizedLink, '>here</a>');
     });
 
     it(" detect background images", function () {
