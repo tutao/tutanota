@@ -236,7 +236,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailAddressDelay_msg": "Too many requests, please try again later.",
   "mailAddressInfoAdmin_msg": "The user's mail address.",
   "mailAddressInfoBusiness_msg": "This is your email address.",
-  "mailAddressInfo_msg": "This will be your new mail address. Register with a unique name. First come, first serve. At least four letters required.",
+  "mailAddressInfo_msg": "This will be your new mail address. Register with a unique name. First come, first serve. At least three letters required.",
   "mailAddressInvalid_msg": "Mail address is not valid.",
   "mailAddressNA_msg": "Email address is not available.",
   "mailAddressNeutral_msg": "Please enter mail address.",

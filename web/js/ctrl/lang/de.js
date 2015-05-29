@@ -236,7 +236,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "mailAddressDelay_msg": "Zu viele Anfragen, bitte später erneut versuchen.",
   "mailAddressInfoAdmin_msg": "Die E-Mail-Adresse des Benutzers.",
   "mailAddressInfoBusiness_msg": "Ihre vorhandene E-Mail-Adresse.",
-  "mailAddressInfo_msg": "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
+  "mailAddressInfo_msg": "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens drei Buchstaben benötigt.",
   "mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
   "mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
   "mailAddressNeutral_msg": "Bitte E-Mail-Adresse eingeben.",
