@@ -112,17 +112,9 @@ tutao.tutanota.Bootstrap.init = function () {
 			
 				window.addEventListener('native.keyboardhide', function (){
 					var element = $("body");
-					element.animate({height: "100%"});
+					element.animate({height: "100%"}, 300);
 				});
 			}
-			
-			//var element = document.getElementsByTagName("body");
-		//	var bodyElement = $("body");
-		//	var hammertime = new Hammer(bodyElement);
-		//	hammertime.on("swipeDown", function(event) {
-		//		cordova.plugins.Keyboard.close();
-		//	});
-			
 			
 			
         }
