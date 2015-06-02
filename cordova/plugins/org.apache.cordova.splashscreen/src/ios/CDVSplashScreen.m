@@ -124,16 +124,19 @@
     
     UIScreen* mainScreen = [UIScreen mainScreen];
     CGFloat mainScreenHeight = mainScreen.bounds.size.height;
+    CGFloat mainScreenWidth = mainScreen.bounds.size.width;
+    
+    int limit = MAX(mainScreenHeight,mainScreenWidth);
     
     device.iPad = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
     device.iPhone = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone);
     device.retina = ([mainScreen scale] == 2.0);
-    device.iPhone5 = (device.iPhone && mainScreenHeight == 568.0);
+    device.iPhone5 = (device.iPhone && limit == 568.0);
     // note these below is not a true device detect, for example if you are on an
     // iPhone 6/6+ but the app is scaled it will prob set iPhone5 as true, but
     // this is appropriate for detecting the runtime screen environment
-    device.iPhone6 = (device.iPhone && mainScreenHeight == 667.0);
-    device.iPhone6Plus = (device.iPhone && mainScreenHeight == 736.0);
+    device.iPhone6 = (device.iPhone && limit == 667.0);
+    device.iPhone6Plus = (device.iPhone && limit == 736.0);
     
     return device;
 }
@@ -231,7 +234,8 @@
      * landscape. In this case the image must be rotated in order to appear
      * correctly.
      */
-    if (UIInterfaceOrientationIsLandscape(orientation) && !CDV_IsIPad()) {
+    BOOL isIPad = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+    if (UIInterfaceOrientationIsLandscape(orientation) && !isIPad) {
         imgTransform = CGAffineTransformMakeRotation(M_PI / 2);
         imgBounds.size = CGSizeMake(imgBounds.size.height, imgBounds.size.width);
     }
@@ -289,13 +293,15 @@
                           duration:fadeDuration
                            options:UIViewAnimationOptionTransitionNone
                         animations:^(void) {
-            [_imageView setAlpha:0];
-            [_activityView setAlpha:0];
-        }
-
+                            [_imageView setAlpha:0];
+                            [_activityView setAlpha:0];
+                        }
                         completion:^(BOOL finished) {
-            [self destroyViews];
-        }];
+                            if (finished) {
+                                [self destroyViews];
+                            }
+                        }
+        ];
     }
 }
 

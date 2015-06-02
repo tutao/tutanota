@@ -55,12 +55,6 @@
             "id": "org.apache.cordova.file"
         }
     },
-    "org.apache.cordova.splashscreen": {
-        "source": {
-            "type": "registry",
-            "id": "org.apache.cordova.splashscreen"
-        }
-    },
     "org.apache.cordova.statusbar": {
         "source": {
             "type": "local",
@@ -101,6 +95,14 @@
         "source": {
             "type": "local",
             "path": "../native"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "org.apache.cordova.splashscreen": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.splashscreen"
         },
         "is_top_level": true,
         "variables": {}
