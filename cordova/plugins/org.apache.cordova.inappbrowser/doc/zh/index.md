@@ -77,6 +77,10 @@
     *   **presentationstyle**： 將設置為 `pagesheet` ， `formsheet` 或 `fullscreen` 來設置[演示文稿樣式][1](預設為`fullscreen`).
     *   **transitionstyle**： 將設置為 `fliphorizontal` ， `crossdissolve` 或 `coververtical` 設置[過渡樣式][2](預設為`coververtical`).
     *   **toolbarposition**： 將設置為 `top` 或 `bottom` （預設值是 `bottom` ）。使工具列，則在頂部或底部的視窗。
+    
+    僅限 Windows：
+    
+    *   **隱藏**： 將設置為 `yes` ，創建瀏覽器並載入頁面，但不是顯示它。 載入完成時，將觸發 loadstop 事件。 省略或被設置為 `no` （預設值），有的瀏覽器打開，以正常方式載入。
 
  [1]: http://developer.apple.com/library/ios/documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalPresentationStyle
  [2]: http://developer.apple.com/library/ios/#documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalTransitionStyle
@@ -88,6 +92,7 @@
 *   黑莓 10
 *   火狐瀏覽器的作業系統
 *   iOS
+*   Windows 8 和 8.1
 *   Windows Phone 7 和 8
 
 ### 示例
@@ -172,6 +177,7 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   iOS
+*   Windows 8 和 8.1
 *   Windows Phone 7 和 8
 
 ### 快速的示例
@@ -203,6 +209,7 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   iOS
+*   Windows 8 和 8.1
 *   Windows Phone 7 和 8
 
 ### 快速的示例
@@ -228,6 +235,7 @@
 *   Android 系統
 *   火狐瀏覽器的作業系統
 *   iOS
+*   Windows 8 和 8.1
 *   Windows Phone 7 和 8
 
 ### 快速的示例
@@ -250,6 +258,7 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   iOS
+*   Windows 8 和 8.1
 
 ### 快速的示例
 
@@ -281,6 +290,7 @@
 *   亞馬遜火 OS
 *   Android 系統
 *   iOS
+*   Windows 8 和 8.1
 
 ### 快速的示例
 

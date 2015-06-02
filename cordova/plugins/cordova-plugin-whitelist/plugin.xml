@@ -19,13 +19,29 @@
 -->
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-    id="org.apache.cordova.inappbrowser.tests"
-    version="0.6.0">
-    <name>Cordova InAppBrowser Plugin Tests</name>
+           id="cordova-plugin-whitelist"
+      version="1.0.0">
+    <name>Whitelist</name>
+    <description>Cordova Network Whitelist Plugin</description>
     <license>Apache 2.0</license>
+    <keywords>cordova,whitelist,policy</keywords>
 
-    <js-module src="tests.js" name="tests">
-    </js-module>
+    <engines>
+      <engine name="cordova-android" version=">=4.0.0-dev" />
+    </engines>
 
-    <asset src="resources" target="cdvtests/iab-resources" />
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Whitelist" >
+                <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin"/>
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <source-file src="src/android/WhitelistPlugin.java" target-dir="src/org/apache/cordova/whitelist" />
+
+        <js-module src="whitelist.js" name="whitelist">
+            <runs />
+        </js-module>
+    </platform>
 </plugin>

@@ -54,5 +54,5 @@
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
   <preference name="android-minSdkVersion" value="14" />
-  <preference name="android-targetSdkVersion" value="21" />
+  <preference name="android-targetSdkVersion" value="22" />
 </widget>

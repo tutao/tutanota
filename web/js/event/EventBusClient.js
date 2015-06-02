@@ -116,7 +116,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
  * Tries to reconnect the websocket if it is not connected.
  */
 tutao.event.EventBusClient.prototype.tryReconnect = function() {
-	console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + this._socket.readyState);
+	console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + ((this._socket) ? this._socket.readyState: "null"));
     if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated) {
         this.connect(true);
     }

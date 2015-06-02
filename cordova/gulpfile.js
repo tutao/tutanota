@@ -10,6 +10,7 @@ gulp.task('default', shell.task([
     'cordova plugins add ../native/',
     'rm -r ./plugins/de.tutanota.native',
     'ln -s ../../native/ ./plugins/de.tutanota.native',
+    // attention: do not use platforms/android/cordova/run because it does not copy the www content
     'cordova run android'
 ]));
 
@@ -25,22 +26,25 @@ gulp.task('createWebReleaseTest', shell.task([
 
 gulp.task('androidProdDistUnsigned', ['createWebRelease'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android',
-    'cordova build --release android'
+    'cordova platform add android@4.0.2',
+    // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
+    'platforms/android/cordova/build --release android'
 ]));
 
 gulp.task('androidProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android',
-    'ln -sf /opt/next-config/android-keystore/ant.properties ./platforms/android/',
-    'cordova build --release android'
+    'cordova platform add android@4.0.2',
+    // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
+    // attention: do not use "cordova build" here because it does not respect the --buildConfig
+    'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'
 ]));
 
 gulp.task('androidTestDist', ['createWebReleaseTest'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android',
-    'ln -sf /opt/next-config/android-keystore/ant.properties ./platforms/android/',
-    'cordova build --release android'
+    'cordova platform add android@4.0.2',
+    // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
+    // attention: do not use "cordova build" here because it does not respect the --buildConfig
+    'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'
 ]));
 
 

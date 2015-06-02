@@ -126,9 +126,6 @@
         }
     },
     "installed_plugins": {
-        "android.support.v4": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "com.bridge.open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
