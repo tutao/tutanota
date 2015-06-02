@@ -115,6 +115,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getNumberOfUnreadMails = funct
 
 /**
  * Selects the given mails.
+ * @return Promise
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
     var self = this;
@@ -128,7 +129,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
     }
     this._selectedMails([mail]);
     this._lastSelectedMails([mail]);
-    tutao.locator.mailViewModel.showMail(mail);
+    return tutao.locator.mailViewModel.showMail(mail);
 };
 
 /**
