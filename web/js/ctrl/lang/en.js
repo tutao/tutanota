@@ -469,5 +469,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yesterday_label": "yesterday",
-  "saveDownloadNotPossibleFirefoxAndroid_msg": "Firefox on Android does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise."
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Firefox on Android does not support saving attachments to disk. Still some file types can be displayed in the browser by clicking the link above. Please install Google Chrome or Opera otherwise.",
+    "canNotOpenFileOnDevice_msg": "This file can not be opened on this device."
 };

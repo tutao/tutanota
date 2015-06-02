@@ -469,5 +469,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yesterday_label": "gestern",
-  "saveDownloadNotPossibleFirefoxAndroid_msg": "Leider unterstützt Firefox auf Android nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera."
+  "saveDownloadNotPossibleFirefoxAndroid_msg": "Leider unterstützt Firefox auf Android nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
+    "canNotOpenFileOnDevice_msg": "Die Datei kann auf diesem Gerät nicht geöffnet werden."
 };
