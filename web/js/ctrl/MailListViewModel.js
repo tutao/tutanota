@@ -142,8 +142,9 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, try
     }
     return promise.then(function(allCancelled) {
         if (allCancelled) {
-            tutao.locator.mailFolderListViewModel.selectedFolder().selectMail(mail);
-            tutao.locator.mailView.showConversationColumn(function() {});
+            tutao.locator.mailFolderListViewModel.selectedFolder().selectMail(mail).then(function(){
+                tutao.locator.mailView.showConversationColumn();
+            });
         }
         return Promise.resolve();
     });

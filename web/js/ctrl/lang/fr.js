@@ -233,7 +233,7 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "mailAddressDelay_msg": "Trop de demandes. Veuillez réessayer ultérieurement.",
   "mailAddressInfoAdmin_msg": "L'adresse e-mail de l'utilisateur.",
   "mailAddressInfoBusiness_msg": "Ceci est votre adresse e-mail.",
-  "mailAddressInfo_msg": "Ce sera votre nouvelle adresse e-mail. Enregistrez-vous avec un nom unique. Premier arrivé, premier servi ! Au moins quatre lettres requises.",
+  "mailAddressInfo_msg": "Ce sera votre nouvelle adresse e-mail. Enregistrez-vous avec un nom unique. Premier arrivé, premier servi ! Au moins trois lettres requises.",
   "mailAddressInvalid_msg": "Cette adresse e-mail n'est pas valide.",
   "mailAddressNA_msg": "Cette adresse e-mail n'est pas disponible.",
   "mailAddressNeutral_msg": "Veuillez entrer l'adresse e-mail.",

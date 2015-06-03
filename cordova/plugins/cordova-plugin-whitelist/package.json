@@ -1,0 +1,34 @@
+{
+  "name": "cordova-plugin-whitelist",
+  "version": "1.0.0",
+  "description": "Cordova Whitelist Plugin",
+  "cordova": {
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git-wip-us.apache.org/repos/asf/cordova-plugin-whitelist.git"
+  },
+  "keywords": [
+    "cordova",
+    "whitelist",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "engines": [
+    {
+      "name": "cordova-android",
+      "version": ">=4.0.0-dev"
+    },
+    {
+      "name": "cordova-ios",
+      "version": ">=4.0.0-dev"
+    }
+  ],
+  "author": "Apache Software Foundation",
+  "license": "Apache 2.0"
+}

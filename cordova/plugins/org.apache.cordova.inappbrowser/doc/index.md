@@ -23,8 +23,23 @@ This plugin provides a web browser view that displays when calling `window.open(
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
 
-__NOTE__: The InAppBrowser window behaves like a standard web browser,
-and can't access Cordova APIs.
+The InAppBrowser window behaves like a standard web browser,
+and can't access Cordova APIs. For this reason, the InAppBrowser is recommended
+if you need to load third-party (untrusted) content, instead of loading that
+into the main Cordova webview. The InAppBrowser is not subject to the
+whitelist, nor is opening links in the system browser.
+
+The InAppBrowser provides by default its own GUI controls for the user (back,
+forward, done).
+
+This plugin hooks `window.open`.
+
+Although `window.open` is in the global scope, InAppBrowser is not available until after the `deviceready` event.
+
+    document.addEventListener("deviceready", onDeviceReady, false);
+    function onDeviceReady() {
+        console.log("window.open works well");
+    }
 
 ## Installation
 
@@ -55,7 +70,6 @@ instance, or the system browser.
 
     Android only:
 
-    - __closebuttoncaption__: set to a string to use as the __Done__ button's caption.
     - __hidden__: set to `yes` to create the browser and load the page, but not show it. The loadstop event fires when loading is complete. Omit or set to `no` (default) to have the browser open and load normally.
     - __clearcache__: set to `yes` to have the browser's cookie cache cleared before the new window is opened
     - __clearsessioncache__: set to `yes` to have the session cookie cache cleared before the new window is opened
@@ -77,6 +91,10 @@ instance, or the system browser.
     - __transitionstyle__: Set to `fliphorizontal`, `crossdissolve` or `coververtical` to set the [transition style](http://developer.apple.com/library/ios/#documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalTransitionStyle) (defaults to `coververtical`).
     - __toolbarposition__: Set to `top` or `bottom` (default is `bottom`). Causes the toolbar to be at the top or bottom of the window.
 
+    Windows only:
+
+    - __hidden__: set to `yes` to create the browser and load the page, but not show it. The loadstop event fires when loading is complete. Omit or set to `no` (default) to have the browser open and load normally.
+
 ### Supported Platforms
 
 - Amazon Fire OS
@@ -84,6 +102,7 @@ instance, or the system browser.
 - BlackBerry 10
 - Firefox OS
 - iOS
+- Windows 8 and 8.1
 - Windows Phone 7 and 8
 
 ### Example
@@ -93,7 +112,7 @@ instance, or the system browser.
 
 ### Firefox OS Quirks
 
-As plugin doesn't enforce any design there is a need to add some CSS rules if 
+As plugin doesn't enforce any design there is a need to add some CSS rules if
 opened with `target='_blank'`. The rules might look like these
 
 ``` css
@@ -169,6 +188,7 @@ The object returned from a call to `window.open`.
 - Amazon Fire OS
 - Android
 - iOS
+- Windows 8 and 8.1
 - Windows Phone 7 and 8
 
 ### Quick Example
@@ -199,6 +219,7 @@ The function is passed an `InAppBrowserEvent` object.
 - Amazon Fire OS
 - Android
 - iOS
+- Windows 8 and 8.1
 - Windows Phone 7 and 8
 
 ### Quick Example
@@ -222,6 +243,7 @@ The function is passed an `InAppBrowserEvent` object.
 - Android
 - Firefox OS
 - iOS
+- Windows 8 and 8.1
 - Windows Phone 7 and 8
 
 ### Quick Example
@@ -242,6 +264,7 @@ The function is passed an `InAppBrowserEvent` object.
 - Amazon Fire OS
 - Android
 - iOS
+- Windows 8 and 8.1
 
 ### Quick Example
 
@@ -273,6 +296,7 @@ The function is passed an `InAppBrowserEvent` object.
 - Amazon Fire OS
 - Android
 - iOS
+- Windows 8 and 8.1
 
 ### Quick Example
 

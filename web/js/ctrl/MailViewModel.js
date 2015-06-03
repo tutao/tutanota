@@ -57,11 +57,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
 /**
  * Shows the given mail
  * @param {tutao.entity.tutanota.Mail} mail The mail to show.
+ * @return Promise
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
     var self = this;
     if (this.mail() && mail == this.mail().mail) {
-        return;
+        return Promise.resolve();
     }
 
     var currentMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
@@ -81,7 +82,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
         self.showSpinner(true);
     }
 
-    currentMail.load().then(function(){
+    return currentMail.load().then(function(){
         if (self._latestMailToShow == currentMail ) {
             self.showSpinner(false);
             self.mail(currentMail);

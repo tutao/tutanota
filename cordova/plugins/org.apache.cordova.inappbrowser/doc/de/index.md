@@ -77,6 +77,10 @@ Dieses Plugin bietet eine Web-Browser-Ansicht, die beim Aufruf angezeigt`window.
     *   **Presentationstyle**: Legen Sie auf `pagesheet` , `formsheet` oder `fullscreen` [Präsentationsstil][1] (standardmäßig fest`fullscreen`).
     *   **Transitionstyle**: Legen Sie auf `fliphorizontal` , `crossdissolve` oder `coververtical` [Übergangsstil][2] (standardmäßig fest`coververtical`).
     *   **Toolbarposition**: Legen Sie auf `top` oder `bottom` (Standard ist `bottom` ). Bewirkt, dass die Symbolleiste am oberen oder unteren Rand des Fensters sein.
+    
+    Nur Windows:
+    
+    *   **versteckte**: Legen Sie auf `yes` um den Browser zu erstellen und laden Sie die Seite, aber nicht zeigen. Das Loadstop-Ereignis wird ausgelöst, wenn der Ladevorgang abgeschlossen ist. Weglassen oder auf `no` (Standard), den Browser öffnen und laden normalerweise zu haben.
 
  [1]: http://developer.apple.com/library/ios/documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalPresentationStyle
  [2]: http://developer.apple.com/library/ios/#documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalTransitionStyle
@@ -88,6 +92,7 @@ Dieses Plugin bietet eine Web-Browser-Ansicht, die beim Aufruf angezeigt`window.
 *   BlackBerry 10
 *   Firefox OS
 *   iOS
+*   Windows 8 und 8.1
 *   Windows Phone 7 und 8
 
 ### Beispiel
@@ -172,9 +177,10 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 und 8.1
 *   Windows Phone 7 und 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstart', function(event) { alert(event.url); });
@@ -203,9 +209,10 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 und 8.1
 *   Windows Phone 7 und 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     var myCallback = function(event) { alert(event.url); }
@@ -228,9 +235,10 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Android
 *   Firefox OS
 *   iOS
+*   Windows 8 und 8.1
 *   Windows Phone 7 und 8
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.close();
@@ -250,8 +258,9 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 und 8.1
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'hidden=yes');
     // some time later...
@@ -281,8 +290,9 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 und 8.1
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstop', function() {
@@ -312,7 +322,7 @@ Aus einem Aufruf zurückgegebenen Objekts`window.open`.
 *   Android
 *   iOS
 
-### Kleines Beispiel
+### Kurzes Beispiel
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstop', function() {

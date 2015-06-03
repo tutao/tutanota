@@ -236,7 +236,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "mailAddressDelay_msg": "Zu viele Anfragen, bitte später erneut versuchen.",
   "mailAddressInfoAdmin_msg": "Die E-Mail-Adresse des Benutzers.",
   "mailAddressInfoBusiness_msg": "Ihre vorhandene E-Mail-Adresse.",
-  "mailAddressInfo_msg": "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens vier Buchstaben benötigt.",
+  "mailAddressInfo_msg": "Dies wird Ihre neue E-Mail-Adresse. Es werden mindestens drei Zeichen benötigt.",
   "mailAddressInvalid_msg": "Ungültige E-Mail-Adresse.",
   "mailAddressNA_msg": "E-Mail-Adresse ist bereits vergeben.",
   "mailAddressNeutral_msg": "Bitte E-Mail-Adresse eingeben.",
@@ -382,6 +382,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "saved_msg": "Die Daten wurden erfolgreich gespeichert.",
   "savingFailed_msg": "Die Nachricht wurde erfolgreich versendet, konnte allerdings nicht in Ihrem Ordner für gesendete Nachrichten gespeichert werden.",
   "secureMail_title": "Die E-Mail wird für alle externen Empfänger verschlüsselt.",
+  "securitySettings_action": "Sicherheit",
   "selectAddress_label": "Bitte E-Mail-Adresse auswählen",
   "sendLogFile_action": "Log-Datei per E-Mail senden",
   "sendMail_alt": "E-Mail an diese Adresse senden",
@@ -512,5 +513,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "invoiceCountryInfoConsumer_msg": "Dies wird benötigt um zu entscheiden, ob Mehrwertsteuer auf deinen Rechnungen ausgewiesen werden muss.",
     "invoiceVatIdNoInfoBusiness_msg": "Bitte trage deine Umsatzsteuer-Identifikationsnummer ein.",
     "invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Optionen werden später hinzugefügt.",
-    "accountSwitchTooManyActiveUsers_msg": "Bitte löschen sie alle zusätzlichen Benutzer bevor sie den Account-Typ wechseln."
+    "accountSwitchTooManyActiveUsers_msg": "Bitte löschen sie alle zusätzlichen Benutzer bevor sie den Account-Typ wechseln.",
+    "canNotOpenFileOnDevice_msg": "Die Datei kann auf diesem Gerät nicht geöffnet werden."
 };

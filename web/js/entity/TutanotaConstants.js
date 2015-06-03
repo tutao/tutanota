@@ -278,6 +278,8 @@ tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS = "1";
 
 tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"];
 
+tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON = "graphics/ion-alert-circled.svg";
+
 
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_OK = 0;
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED = 1;
