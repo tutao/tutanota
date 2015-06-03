@@ -22,7 +22,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 1.9.3): `git checkout tutanota-release-1.9.3`
+3. Checkout latest release (currently 1.9.4): `git checkout tutanota-release-1.9.4`
 4. Install dependencies: `npm install`
 5. Build Tutanota: `gulp dist`
 6. Switch into the build directory: `cd build`
@@ -34,23 +34,22 @@ If you build and install the Tutanota Android app by yourself, keep in mind that
 
 Pre-requisites:
 * An up-to-date version of git is installed
-* An up-to-date version of ant is installed
 * An up-to-date version of node js is installed
-* An up-to-date version of the Android SDK (API 19 and API 21) is installed
+* An up-to-date version of the Android SDK (API 22) is installed
 
 Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 1.9.3): `git checkout tutanota-android-release-1.9.3`
-4. Install cordova globally: `sudo npm install -g cordova`
+3. Checkout latest android release (currently 1.9.4): `git checkout tutanota-android-release-1.9.4`
+4. Install cordova globally: `npm install -g cordova`
 5. Install dependencies: `npm install`
 6. Change into the cordova directory: `cd cordova`
 7. Build the app: `gulp androidProdDistUnsigned`
 8. Create a keystore: `keytool -genkey -v -keystore MyKeystore.keystore -alias TutanotaKey -keyalg RSA -keysize 2048 -validity 10000`
-9. Sign the app: `jarsigner -verbose -keystore MyKeystore.keystore platforms/android/ant-build/Tutanota-release-unsigned.apk TutanotaKey`
-10. Align the app: `<path_to_android_sdk_>/build-tools/21.0.2/zipalign -v 4 platforms/android/ant-build/Tutanota-release-unsigned.apk platforms/android/ant-build/Tutanota-release.apk`
-11. Install the app on your device: `adb install ./platforms/android/ant-build/Tutanota-release.apk`
+9. Sign the app: `jarsigner -verbose -keystore MyKeystore.keystore platforms/android/build/outputs/apk/android-release-unsigned.apk TutanotaKey`
+10. Align the app: `<path_to_android_sdk_>/build-tools/22.0.1/zipalign -v 4 platforms/android/build/outputs/apk/android-release-unsigned.apk platforms/android/build/outputs/apk/Tutanota-release.apk`
+11. Install the app on your device: `adb install platforms/android/build/outputs/apk/Tutanota-release.apk`
 
 ## Server templates
 
