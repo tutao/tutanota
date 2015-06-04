@@ -34,7 +34,7 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function() {
 
 tutao.tutanota.ctrl.AdminAliasViewModel.prototype._verifyMailAddressFree = function(cleanedValue) {
     var self = this;
-    if (!cleanedValue || self.mailAddressPrefix().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
+    if (!cleanedValue || self.mailAddressPrefix().trim().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     } else if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {

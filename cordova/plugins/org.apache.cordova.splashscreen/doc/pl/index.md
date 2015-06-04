@@ -21,16 +21,16 @@
 
 Ten plugin wyświetla i ukrywa ekran powitalny podczas uruchamiania aplikacji.
 
-## Instalacji
+## Instalacja
 
     cordova plugin add org.apache.cordova.splashscreen
     
 
 ## Obsługiwane platformy
 
-*   Amazon ogień OS
+*   Amazon Fire OS
 *   Android
-*   Jeżyna 10
+*   BlackBerry 10
 *   iOS
 *   Windows Phone 7 i 8
 *   Windows 8
@@ -40,7 +40,7 @@ Ten plugin wyświetla i ukrywa ekran powitalny podczas uruchamiania aplikacji.
 *   splashscreen.show
 *   splashscreen.Hide
 
-### Android dziwactwa
+### Dziwactwa Androida
 
 W pliku config.xml musisz dodać następujące preferencje:
 
@@ -54,15 +54,14 @@ Gdzie foo jest nazwą pliku ekranu powitalnego, najlepiej 9 łatce. Upewnij się
 
 Odrzucić ten opryskaæ têcza.
 
-    navigator.splashscreen.hide();
+    Navigator.splashscreen.Hide();
     
 
 ### Jeżyna 10, WP8, iOS dziwactwo
 
 `config.xml`Pliku `AutoHideSplashScreen` ustawienie musi być `false` . Opóźnienia, ukrywanie ekranu powitalnego przez dwie sekundy, dodać timer następujących w `deviceready` obsługa zdarzeń:
 
-        setTimeout(function() {
-            navigator.splashscreen.hide();
+        setTimeout(function() {navigator.splashscreen.hide();
         }, 2000);
     
 
@@ -70,7 +69,7 @@ Odrzucić ten opryskaæ têcza.
 
 Wyświetla ekran powitalny.
 
-    navigator.splashscreen.show();
+    Navigator.splashscreen.show();
     
 
 Aplikacja nie może wywołać `navigator.splashscreen.show()` aż aplikacja została uruchomiona i `deviceready` imprezy został zwolniony. Ale ponieważ zazwyczaj opryskać tęcza ma być widoczne przed rozpoczęciem aplikacji, wydaje się sprzeczne z celem ekranu powitalnego. Dostarczanie niektórych konfiguracji w `config.xml` będzie automatycznie `show` ekran powitalny, natychmiast po uruchomienie aplikacji i przed pełni rozpoczął i otrzymał `deviceready` zdarzenie. Aby uzyskać więcej informacji na robienie tej konfiguracji, zobacz [ikony i ekrany powitalne w aplikacjach][1] . Z tego powodu, jest mało prawdopodobne, należy zadzwonić `navigator.splashscreen.show()` Aby wyświetlić ekran powitalny dla uruchamiania aplikacji.

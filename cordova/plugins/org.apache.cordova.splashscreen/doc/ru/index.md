@@ -28,7 +28,7 @@
 
 ## Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   BlackBerry 10
 *   iOS
@@ -54,15 +54,14 @@
 
 Закройте экран-заставка.
 
-    navigator.splashscreen.hide();
+    Navigator.SplashScreen.Hide();
     
 
 ### Особенности BlackBerry 10, WP8, iOS
 
 `config.xml`Файла `AutoHideSplashScreen` должен быть `false` . Для задержки скрытия заставки на две секунды, добавить таймер, например в `deviceready` обработчик событий:
 
-        setTimeout(function() {
-            navigator.splashscreen.hide();
+        setTimeout(function() {navigator.splashscreen.hide();
         }, 2000);
     
 
@@ -70,7 +69,7 @@
 
 Отображает экран-заставку.
 
-    navigator.splashscreen.show();
+    Navigator.SplashScreen.Show();
     
 
 Ваше приложение не может вызвать `navigator.splashscreen.show()` до тех пор, пока приложение началась и `deviceready` событие инициировано. Но поскольку обычно экран-заставка должен быть видимым до начала вашего приложения, что казалось бы поражение цели экрана-заставки. Предоставление некоторых конфигурации в `config.xml` будет автоматически `show` экран-заставку сразу же после запуска вашего приложения и перед его полностью запущен и получил `deviceready` событие. Увидеть [иконки и заставки][1] для получения дополнительной информации на делать этой конфигурации. По этой причине маловероятно, вам нужно вызвать `navigator.splashscreen.show()` для отображения экрана-заставки для запуска приложения.

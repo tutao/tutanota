@@ -13,11 +13,19 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"Keyboard\"><param name=\"android-package\" value=\"com.ionic.keyboard.IonicKeyboard\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"PushPlugin\"><param name=\"android-package\" value=\"com.plugin.gcm.PushPlugin\" /></feature>",
                             "count": 1
                         },
                         {
                             "xml": "<feature name=\"WebSocket\"><param name=\"android-package\" value=\"com.ququplay.websocket.WebSocket\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
                         },
                         {
@@ -61,7 +69,7 @@
                             "count": 1
                         },
                         {
-                            "xml": "<feature name=\"SplashScreen\"><param name=\"android-package\" value=\"org.apache.cordova.splashscreen.SplashScreen\" /></feature>",
+                            "xml": "<feature name=\"SplashScreen\"><param name=\"android-package\" value=\"org.apache.cordova.splashscreen.SplashScreen\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
                         },
                         {
@@ -152,16 +160,19 @@
         }
     },
     "installed_plugins": {
-        "android.support.v4": {
+        "com.bridge.open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "com.bridge.open": {
+        "com.ionic.keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.phonegap.plugins.PushPlugin": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "de.appplant.cordova.plugin.badge": {

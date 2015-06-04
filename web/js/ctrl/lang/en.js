@@ -236,7 +236,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailAddressDelay_msg": "Too many requests, please try again later.",
   "mailAddressInfoAdmin_msg": "The user's mail address.",
   "mailAddressInfoBusiness_msg": "This is your email address.",
-  "mailAddressInfo_msg": "This will be your new mail address. Register with a unique name. First come, first serve. At least four letters required.",
+  "mailAddressInfo_msg": "This will be your new mail address. Register with a unique name. First come, first serve. At least three characters required.",
   "mailAddressInvalid_msg": "Mail address is not valid.",
   "mailAddressNA_msg": "Email address is not available.",
   "mailAddressNeutral_msg": "Please enter mail address.",
@@ -382,6 +382,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "saved_msg": "Saved successfully!",
   "savingFailed_msg": "The message has been sent successfully but could not be stored into your sent messages folder.",
   "secureMail_title": "Email is encrypted for external recipients.",
+  "securitySettings_action": "Security",
   "selectAddress_label": "Please select email address",
   "sendLogFile_action": "Send log file via email",
   "sendMail_alt": "Send email to this address",
@@ -511,6 +512,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "invoiceCountryInfoConsumer_msg": "This is needed to decide if value-added tax must be stated in your invoices.",
     "invoiceVatIdNoInfoBusiness_msg": "Please enter your value-added tax identification number.",
     "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later.",
-    "accountSwitchTooManyActiveUsers_msg": "Please delete all additional users before switching the account type."
+    "accountSwitchTooManyActiveUsers_msg": "Please delete all additional users before switching the account type.",
+	"canNotOpenFileOnDevice_msg": "This file can not be opened on this device."
 
 };

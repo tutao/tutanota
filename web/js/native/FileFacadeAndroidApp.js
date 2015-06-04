@@ -91,7 +91,9 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
  */
 tutao.native.FileFacadeAndroidApp.prototype.open = function(file) {
     var self = this;
-    self.fileUtil.open(file.getLocation()).lastly(function () {
+    self.fileUtil.open(file.getLocation()).caught(function() {
+        return tutao.tutanota.gui.alert(tutao.lang("canNotOpenFileOnDevice_msg"));
+    }).lastly(function () {
         self.fileUtil.deleteFile(file.getLocation());
     });
 };

@@ -20,7 +20,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
            id="org.apache.cordova.inappbrowser"
-      version="0.5.2">
+      version="0.6.0">
 
     <name>InAppBrowser</name>
     <description>Cordova InAppBrowser Plugin</description>
@@ -32,7 +32,7 @@
     <engines>
       <engine name="cordova" version=">=3.1.0" /><!-- Needs cordova/urlutil -->
     </engines>
-    
+
     <!-- android -->
     <platform name="android">
         <js-module src="www/inappbrowser.js" name="inappbrowser">
@@ -65,7 +65,7 @@
         <resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />
 
     </platform>
-    
+
     <!-- amazon-fireos -->
     <platform name="amazon-fireos">
         <js-module src="www/inappbrowser.js" name="inappbrowser">
@@ -97,7 +97,7 @@
         <resource-file src="src/android/res/drawable-xhdpi/ic_action_remove.png" target="res/drawable-xhdpi/ic_action_remove.png" />
         <resource-file src="src/android/res/drawable-xxhdpi/ic_action_remove.png" target="res/drawable-xxhdpi/ic_action_remove.png" />
     </platform>
-
+    
     <!-- ubuntu -->
     <platform name="ubuntu">
         <js-module src="www/inappbrowser.js" name="inappbrowser">
@@ -106,6 +106,7 @@
         <header-file src="src/ubuntu/inappbrowser.h" />
         <source-file src="src/ubuntu/inappbrowser.cpp" />
         <resource-file src="src/ubuntu/InAppBrowser.qml" />
+        <resource-file src="src/ubuntu/InAppBrowser_escapeScript.js" />
         <resource-file src="src/ubuntu/close.png" />
     </platform>
 
@@ -179,7 +180,17 @@
             <merges target="" />
         </js-module>
     </platform>
-        
+
+    <!-- windows universal apps (Windows 8.1, Windows Phone 8.1, Windows 8.0) -->
+    <platform name="windows">
+        <js-module src="www/inappbrowser.js" name="inappbrowser">
+            <clobbers target="window.open" />
+        </js-module>
+        <js-module src="src/windows/InAppBrowserProxy.js" name="InAppBrowserProxy">
+            <merges target="" />
+        </js-module>
+    </platform>
+  
     <!-- firefoxos -->
     <platform name="firefoxos">
         <config-file target="config.xml" parent="/*">
@@ -191,6 +202,6 @@
         <js-module src="src/firefoxos/InAppBrowserProxy.js" name="InAppBrowserProxy">
             <merges target="" />
         </js-module>
-    </platform>    
+    </platform>
 
 </plugin>

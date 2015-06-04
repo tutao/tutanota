@@ -14,7 +14,7 @@
 		<string>https://github.com/tutao/tutanota.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>cordova/platforms/ios/Tutanota.xcodeproj</string>
+	<string>cordova/files/ios/Tutanota.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>5B59320B287A0A7A1F5958FAD5FAA816A0EC43D7</key>

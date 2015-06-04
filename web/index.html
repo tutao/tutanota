@@ -834,7 +834,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="contactData">
-													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
+													<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
 															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
@@ -1028,7 +1028,7 @@
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED ) -->
 						<div id="oldBrowserMessage" data-bind="lang: 'oldBrowser_msg'"></div>
 					<!-- /ko -->
-					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) -->
+					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) -->
 						<div id="unsupportedBrowserMessage" data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
@@ -1167,14 +1167,14 @@
 								</div>
 							</form>
 						</div>
-						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE)">
+						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE)">
                             <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
                                 <label data-bind="lang: 'legacyDownloadNotPossible_msg'"></label>
                             <!-- /ko -->
                             <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID -->
                                 <label data-bind="lang: 'legacyNoReplyAndroid_msg'"></label>
                             <!-- /ko -->
-                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE -->
+                            <!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE -->
                                 <label data-bind="lang: 'legacyNoAttachmentsIeMobile_msg'"></label>
                             <!-- /ko -->
 							<ul>
