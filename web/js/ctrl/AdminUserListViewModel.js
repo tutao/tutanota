@@ -93,3 +93,20 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccountsPossible = fu
     return this.customerInfo() != null && tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customerAccountType()) ;
 };
 
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.getAvailableDomains = function(){
+    var availableDomains = [];
+    var user = tutao.locator.userController.getLoggedInUser();
+    if (user.getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER){
+        availableDomains = availableDomains.concat(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
+    }
+    var customerInfo = this.customerInfo();
+    if (customerInfo){
+        for( var i=0; i< customerInfo.getDomainInfos().length; i++) {
+           availableDomains.unshift(customerInfo.getDomainInfos()[i].getDomain())
+        }
+    }
+    return availableDomains;
+};
+
+
+

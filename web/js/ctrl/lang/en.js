@@ -14,7 +14,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "adminAddMailAddressAlias_label": "Add email alias",
   "adminDeleteAccount_action": "Delete account",
   "adminEmailSettings_action": "Email",
-  "adminMaxNbrOfAliasesReached_msg": "The maximum number of free aliases has been reached.",
   "adminMessages_action": "Displayed messages",
   "adminPremiumFeatures_action": "Extensions",
   "adminUserAdd_action": "Add user",
@@ -229,7 +228,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "logout_label": "Logout",
   "logs_label": "logs",
   "mailAddressAliasesInfo_label": "Emails sent to your alias email addresses are received in your normal inbox and you can choose an alias email address as sender.",
-  "mailAddressAliasesMaxNbr_label": "You can register {1} free email aliases.",
   "mailAddressAliases_label": "Email aliases",
   "mailAddressAvailable_msg": "Email address is available.",
   "mailAddressBusy_msg": "Verifying email address...",
@@ -513,6 +511,14 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "invoiceVatIdNoInfoBusiness_msg": "Please enter your value-added tax identification number.",
     "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later.",
     "accountSwitchTooManyActiveUsers_msg": "Please delete all additional users before switching the account type.",
-	"canNotOpenFileOnDevice_msg": "This file can not be opened on this device."
+	"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
+    "adminMaxNbrOfAliasesReached_msg": "The maximum number of aliases has been reached.",
+    "mailAddressAliasesMaxNbr_label": "You can register {1} email aliases.",
+    "adminEditMailAddressAlias_label":"Email alias",
+    "deactivate_action": "Deactivate",
+    "deactivateAlias_msg": "The email alias '{1}' will be deactivated now. The address remains reserved for this account and can be activated again.",
+    "deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or assign it to another user.",
+    "emailAliasStatusActivated_label": "Activated",
+    "emailAliasStatusDeactivated_label": "Deactivated"
 
 };

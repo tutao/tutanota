@@ -12,6 +12,7 @@ tutao.entity.sys.MailAddressAlias = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
+    this._enabled = null;
     this._mailAddress = null;
   }
   this._parent = parent;
@@ -25,6 +26,7 @@ tutao.entity.sys.MailAddressAlias = function(parent, data) {
  */
 tutao.entity.sys.MailAddressAlias.prototype.updateData = function(parent, data) {
   this.__id = data._id;
+  this._enabled = data.enabled;
   this._mailAddress = data.mailAddress;
 };
 
@@ -35,6 +37,7 @@ tutao.entity.sys.MailAddressAlias.prototype.updateData = function(parent, data) 
 tutao.entity.sys.MailAddressAlias.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
+    enabled: this._enabled, 
     mailAddress: this._mailAddress
   };
 };
@@ -43,6 +46,11 @@ tutao.entity.sys.MailAddressAlias.prototype.toJsonData = function() {
  * The id of the MailAddressAlias type.
  */
 tutao.entity.sys.MailAddressAlias.prototype.TYPE_ID = 684;
+
+/**
+ * The id of the enabled attribute.
+ */
+tutao.entity.sys.MailAddressAlias.prototype.ENABLED_ATTRIBUTE_ID = 766;
 
 /**
  * The id of the mailAddress attribute.
@@ -64,6 +72,23 @@ tutao.entity.sys.MailAddressAlias.prototype.setId = function(id) {
  */
 tutao.entity.sys.MailAddressAlias.prototype.getId = function() {
   return this.__id;
+};
+
+/**
+ * Sets the enabled of this MailAddressAlias.
+ * @param {boolean} enabled The enabled of this MailAddressAlias.
+ */
+tutao.entity.sys.MailAddressAlias.prototype.setEnabled = function(enabled) {
+  this._enabled = enabled ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the enabled of this MailAddressAlias.
+ * @return {boolean} The enabled of this MailAddressAlias.
+ */
+tutao.entity.sys.MailAddressAlias.prototype.getEnabled = function() {
+  return this._enabled == '1';
 };
 
 /**
