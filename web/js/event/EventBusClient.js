@@ -107,7 +107,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
 		// two events are executed is not defined so we need the tryReconnect in both situations.
 		this.tryReconnect();
 	}
-    if (!this.terminated) {
+    if (!this.terminated && tutao.locator.userController.isInternalUserLoggedIn()) {
         setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
     }
 };
@@ -117,7 +117,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
  */
 tutao.event.EventBusClient.prototype.tryReconnect = function() {
 	console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + ((this._socket) ? this._socket.readyState: "null"));
-    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated) {
+    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated && tutao.locator.userController.isInternalUserLoggedIn()) {
         this.connect(true);
     }
 };
