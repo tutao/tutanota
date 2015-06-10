@@ -68,9 +68,12 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 		var externalImages = [];
 		if (this._blockExternalContent){
 			var htmlNodes = $.parseHTML(cleanHtml);
-			externalImages = this._preventExternalImageLoading(htmlNodes);
-			// Restore all other external links to the original reference.
-			cleanHtml = html_sanitize($('<div>').append(htmlNodes).html(), this._reverseUrlTransformer, this._nameIdClassTransformer);
+            // htmlNodes may be null if the body text is empty
+            if (htmlNodes) {
+                externalImages = this._preventExternalImageLoading(htmlNodes);
+                // Restore all other external links to the original reference.
+                cleanHtml = html_sanitize($('<div>').append(htmlNodes).html(), this._reverseUrlTransformer, this._nameIdClassTransformer);
+            }
 		}
 
 		// set target="_blank" for all links

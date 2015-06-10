@@ -43,6 +43,32 @@ describe("HtmlSanitizerTest", function () {
         assert.include(sanitizedLink, '>here</a>');
     });
 
+    it(" sanitizing empty body", function() {
+        var sanitized = tutao.locator.htmlSanitizer.sanitize("", true).text;
+        assert.equal("", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize(" ", true).text;
+        assert.equal(" ", sanitized);
+
+		var sanitized = tutao.locator.htmlSanitizer.sanitize("yo", true).text;
+        assert.equal("yo", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize("<br>", true).text;
+        assert.equal("<br>", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize("<div></div>", true).text;
+        assert.equal("<div></div>", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize("<html></html>", true).text;
+        assert.equal("", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize("<html><body></body></html>", true).text;
+        assert.equal("", sanitized);
+
+        sanitized = tutao.locator.htmlSanitizer.sanitize("<html><body>yo</body></html>", true).text;
+        assert.equal("yo", sanitized);
+    });
+
     it(" detect background images", function () {
         var result = tutao.locator.htmlSanitizer.sanitize('<p style="background-image: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>', true);
         assert.equal("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image", result.externalImages[0]);
