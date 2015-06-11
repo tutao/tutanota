@@ -17,7 +17,7 @@ tutao.entity.sys.Booking = function(data) {
     this._createDate = null;
     this._endDate = null;
     this._paymentInterval = null;
-    this._startDate = null;
+    this._paymentMonths = null;
     this._items = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -36,7 +36,7 @@ tutao.entity.sys.Booking.prototype.updateData = function(data) {
   this._createDate = data.createDate;
   this._endDate = data.endDate;
   this._paymentInterval = data.paymentInterval;
-  this._startDate = data.startDate;
+  this._paymentMonths = data.paymentMonths;
   this._items = [];
   for (var i=0; i < data.items.length; i++) {
     this._items.push(new tutao.entity.sys.BookingItem(this, data.items[i]));
@@ -86,7 +86,7 @@ tutao.entity.sys.Booking.prototype.toJsonData = function() {
     createDate: this._createDate, 
     endDate: this._endDate, 
     paymentInterval: this._paymentInterval, 
-    startDate: this._startDate, 
+    paymentMonths: this._paymentMonths, 
     items: tutao.entity.EntityHelper.aggregatesToJsonData(this._items)
   };
 };
@@ -117,9 +117,9 @@ tutao.entity.sys.Booking.prototype.ENDDATE_ATTRIBUTE_ID = 716;
 tutao.entity.sys.Booking.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 717;
 
 /**
- * The id of the startDate attribute.
+ * The id of the paymentMonths attribute.
  */
-tutao.entity.sys.Booking.prototype.STARTDATE_ATTRIBUTE_ID = 715;
+tutao.entity.sys.Booking.prototype.PAYMENTMONTHS_ATTRIBUTE_ID = 715;
 
 /**
  * The id of the items attribute.
@@ -250,30 +250,20 @@ tutao.entity.sys.Booking.prototype.getPaymentInterval = function() {
 };
 
 /**
- * Sets the startDate of this Booking.
- * @param {Date} startDate The startDate of this Booking.
+ * Sets the paymentMonths of this Booking.
+ * @param {string} paymentMonths The paymentMonths of this Booking.
  */
-tutao.entity.sys.Booking.prototype.setStartDate = function(startDate) {
-  if (startDate == null) {
-    this._startDate = null;
-  } else {
-    this._startDate = String(startDate.getTime());
-  }
+tutao.entity.sys.Booking.prototype.setPaymentMonths = function(paymentMonths) {
+  this._paymentMonths = paymentMonths;
   return this;
 };
 
 /**
- * Provides the startDate of this Booking.
- * @return {Date} The startDate of this Booking.
+ * Provides the paymentMonths of this Booking.
+ * @return {string} The paymentMonths of this Booking.
  */
-tutao.entity.sys.Booking.prototype.getStartDate = function() {
-  if (this._startDate == null) {
-    return null;
-  }
-  if (isNaN(this._startDate)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + this._startDate);
-  }
-  return new Date(Number(this._startDate));
+tutao.entity.sys.Booking.prototype.getPaymentMonths = function() {
+  return this._paymentMonths;
 };
 
 /**
