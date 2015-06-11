@@ -137,6 +137,19 @@ tutao.tutanota.ctrl.MailViewModel.prototype.newMail = function(recipientInfo) {
 };
 
 /**
+ * Generates newSubject, that contains only one copy of prefix at the head
+ * @param {string} prefix
+ * @param {string} oldSubject
+ * @return {string} newSubject
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype._createReplySubject = function(prefix, oldSubject){
+   if (oldSubject.substr(0,prefix.length) == prefix)
+      return oldSubject;
+   else
+      return prefix + oldSubject;
+}
+
+/**
  * Lets the user write a reply mail to the given displayed mail.
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to reply to.
  */
@@ -162,7 +175,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) 
         // we are offline but we want to show the dialog only when we click on send.
     });
     var senderMailAddress = this._findOwnMailAddressInMail(displayedMail.mail);
-	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), recipients, [], displayedMail, body, senderMailAddress);
+	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, this._createReplySubject(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX, displayedMail.mail.getSubject()), recipients, [], displayedMail, body, senderMailAddress);
 };
 
 /**
@@ -197,7 +210,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyAllMail = function(displayedMai
         // we are offline but we want to show the dialog only when we click on send.
     });
     var senderMailAddress = this._findOwnMailAddressInMail(displayedMail.mail);
-	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX + displayedMail.mail.getSubject(), toRecipients, ccRecipients, displayedMail, body, senderMailAddress);
+	this._createMail(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_REPLY, this._createReplySubject(tutao.entity.tutanota.TutanotaConstants.CONVERSATION_REPLY_SUBJECT_PREFIX, displayedMail.mail.getSubject()), toRecipients, ccRecipients, displayedMail, body, senderMailAddress);
 };
 
 /**
