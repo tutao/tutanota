@@ -289,6 +289,8 @@
 <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
 <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
+<script src="/js/generated/entity/sys/PdfInvoiceServiceData.js"></script>
+<script src="/js/generated/entity/sys/PdfInvoiceServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/Permission.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
@@ -1607,6 +1609,7 @@
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING -->
                             <div data-bind="with: new tutao.tutanota.ctrl.AdminInvoicingViewModel()" >
+                                <h2 data-bind="lang: 'currentlyBooked_label'"></h2>
                                 <div class="bookingTable">
                                     <div class="bookingTableHeader">
                                         <div class="bookingCell" data-bind="lang: 'bookingFeature_label'"></div>
@@ -1625,6 +1628,25 @@
                                         <div class="bookingCell" data-bind="lang: 'bookingTotalPrice_label'"></div>
                                         <div class="bookingCell" data-bind="text: getTotalPrice() + ' €'"></div>
                                     </div>
+                                </div>
+                                <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
+                                <div class="bookingTable">
+                                    <div class="bookingTableHeader">
+                                        <div class="bookingCell" data-bind="lang: 'date_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'number_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'amount_label'"></div>
+                                        <div class="bookingCell" data-bind="text: 'PDF'"></div>
+                                    </div>
+                                    <!-- ko foreach: invoices -->
+                                    <div class="bookingItem">
+                                        <div class="bookingCell" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
+                                        <div class="bookingCell" data-bind="text: getNumber()"></div>
+                                        <div class="bookingCell" data-bind="text: getGrandTotal() + ' €'"></div>
+                                        <div class="bookingCell">
+                                            <button class="single" type="submit" data-bind="lang: 'download_label', fastClick: function() { $parent.downloadPdf($data); }"></button>
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
                                 </div>
                             </div>
                             <!-- /ko -->

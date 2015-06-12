@@ -514,5 +514,10 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "invoiceVatIdNoInfoBusiness_msg": "Bitte trage deine Umsatzsteuer-Identifikationsnummer ein.",
     "invoicePaymentMethodInfo_msg": "Bitte wähle eine Zahlungsmethode. Weitere Optionen werden später hinzugefügt.",
     "accountSwitchTooManyActiveUsers_msg": "Bitte löschen sie alle zusätzlichen Benutzer bevor sie den Account-Typ wechseln.",
+    "currentlyBooked_label": "Aktuell gebucht",
+    "invoices_label": "Rechnungen",
+    "number_label": "Nummer",
+    "amount_label": "Betrag",
+    "download_label": "Download",
     "canNotOpenFileOnDevice_msg": "Die Datei kann auf diesem Gerät nicht geöffnet werden."
 };

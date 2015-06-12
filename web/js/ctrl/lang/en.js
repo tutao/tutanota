@@ -513,6 +513,10 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "invoiceVatIdNoInfoBusiness_msg": "Please enter your value-added tax identification number.",
     "invoicePaymentMethodInfo_msg": "Please choose a payment method. More options will be added later.",
     "accountSwitchTooManyActiveUsers_msg": "Please delete all additional users before switching the account type.",
+    "currentlyBooked_label": "Booking overview",
+    "invoices_label": "Invoices",
+    "number_label": "Number",
+    "amount_label": "Amount",
+    "download_label": "Download",
 	"canNotOpenFileOnDevice_msg": "This file can not be opened on this device."
-
 };
