@@ -522,7 +522,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "adminEditMailAddressAlias_label":"Email alias",
     "deactivate_action": "Deactivate",
     "deactivateAlias_msg": "The email alias '{1}' will be deactivated now. The address remains reserved for this account and can be activated again.",
-    "deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or assign it to another user.",
+    "deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or use it for a new user.",
     "emailAliasStatusActivated_label": "Activated",
     "emailAliasStatusDeactivated_label": "Deactivated"
 };

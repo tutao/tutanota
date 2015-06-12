@@ -196,7 +196,7 @@ tutao.tutanota.util.Formatter.isDomainName = function(string) {
 
 
 /**
- * Checks if the given mail addres ends with a Tutanota domain.
+ * Checks if the given mail address ends with a Tutanota domain.
  * @param mailAddress The mail address
  * @returns {boolean} True if the domain is one of the Tutanota mail address domains.
  */
