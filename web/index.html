@@ -282,6 +282,7 @@
 <script src="/js/generated/entity/sys/LongConfigValue.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAlias.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAliasServiceData.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAliasServiceDataDelete.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAliasServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
@@ -1562,29 +1563,6 @@
                                     </div>
                                 </form>
                             </div>
-                            <div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel()">
-                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-                                    <div class="record">
-                                        <label for="mailAddress" class="recordName" data-bind="lang: 'adminAddMailAddressAlias_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue">
-                                                <input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
-                                                <span>@</span>
-                                                <select data-bind="options: tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, value: domain, enable: inputEnabled()"></select>
-                                            </div>
-                                            <label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-                                            <label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
-                                        </div>
-                                    </div>
-                                    <div class="record">
-                                        <div class="recordName"></div>
-                                        <div class="formAction">
-                                            <button id="submitAddAlias" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-                                            <label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
 							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel()">
 								<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
 									<div class="record">
@@ -1815,6 +1793,45 @@
                                 </div>
                             </div>
                         </form>
+						<div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel($data)">
+							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true ">
+								<div class="record">
+									<label for="mailAddress" class="recordName" data-bind="lang: 'adminAddMailAddressAlias_label'"></label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+											<span>@</span>
+											<select data-bind="options: availableDomains, value: domain, enable: inputEnabled()"></select>
+										</div>
+										<label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+										<label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button id="submitAddAlias" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+										<label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
+									</div>
+								</div>
+							</form>
+
+							<div class="recordContainer" data-bind="foreach: aliasList, form: true">
+								<div class="record">
+									<label class="recordName" data-bind="lang: 'adminEditMailAddressAlias_label'"></label>
+									<div class="recordData">
+										<div class="recordValue" data-bind="text: emailAddress"></div>
+										<label class="recordStatus" data-bind="css: $parent.getAliasStatusType($data), lang: $parent.getAliasStatusText($data)"></label>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button class="single" data-bind="lang: $parent.getDeleteAliasTextId($data), fastClick: function() {$parent.deleteAlias($data);}"></button>
+									</div>
+								</div>
+							</div>
+						</div>
                     </div>
                 <!-- /ko -->
                 <!-- ko if: newViewModel() -->

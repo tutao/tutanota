@@ -2,12 +2,14 @@
 
 tutao.provide('tutao.tutanota.ctrl.AdminAliasViewModel');
 
-tutao.tutanota.ctrl.AdminAliasViewModel = function() {
+tutao.tutanota.ctrl.AdminAliasViewModel = function(adminEditUserViewModel) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
+    this._editUserViewModel = adminEditUserViewModel;
     this.mailAddressPrefix = ko.observable("");
-    this.domain = ko.observable(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS[0]);
-    this.availableDomains = ko.observableArray(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
+
+    this.availableDomains = ko.observableArray(adminEditUserViewModel.adminUserListViewModel.getAvailableDomains());
+    this.domain = ko.observable(this.availableDomains()[0]);
     this.mailAddressStatus = ko.observable({ type: "neutral", text: "mailAddressNeutral_msg"});
 
     this.mailAddress = ko.computed(function() {
@@ -21,16 +23,24 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function() {
 
     this.maxNbrOfAliases = ko.observable(null);
 
+
     var self = this;
     tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
         self.maxNbrOfAliases(mailAddressAliasServiceReturn.getNbrOfFreeAliases());
-        if (self.maxNbrOfAliases() > tutao.locator.userController.getUserGroupInfo().getMailAddressAliases().length) {
+        if (self.maxNbrOfAliases() > self._editUserViewModel.userGroupInfo.getMailAddressAliases().length) {
             self.inputEnabled(true);
         } else {
             self.mailAddressStatus({ type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
         }
     });
+
+    this.aliasList = ko.observableArray();
+    for( var i=0; i<this._editUserViewModel.userGroupInfo.getMailAddressAliases().length; i++ ){
+        var emailAlias = this._editUserViewModel.userGroupInfo.getMailAddressAliases()[i];
+        this.aliasList.push( {emailAddress : emailAlias.getMailAddress(), enabled: ko.observable(emailAlias.getEnabled()) } );
+    }
 };
+
 
 tutao.tutanota.ctrl.AdminAliasViewModel.prototype._verifyMailAddressFree = function(cleanedValue) {
     var self = this;
@@ -46,17 +56,14 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype._verifyMailAddressFree = funct
 
     setTimeout(function() {
         if (self.mailAddress() == cleanedValue) {
-            var params = [];
-            tutao.entity.sys.MailAddressAvailabilityReturn.load(new tutao.entity.sys.MailAddressAvailabilityData().setMailAddress(cleanedValue), params, []).then(function(mailAddressAvailabilityReturn) {
+            tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(cleanedValue), [], tutao.entity.EntityHelper.createAuthHeaders()).then(function(domainMailAddressAvailabilityReturn) {
                 if (self.mailAddress() == cleanedValue) {
-                    if (mailAddressAvailabilityReturn.getAvailable()) {
+                    if (domainMailAddressAvailabilityReturn.getAvailable()) {
                         self.mailAddressStatus({ type: "valid", text: "mailAddressAvailable_msg"});
                     } else {
                         self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg"});
                     }
                 }
-            }).caught(tutao.AccessDeactivatedError, function (exception) {
-                self.mailAddressStatus({ type: "invalid", text: "mailAddressDelay_msg"});
             });
         }
     }, 500);
@@ -83,9 +90,67 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.confirm = function() {
 
     var self = this;
     var service = new tutao.entity.sys.MailAddressAliasServiceData();
-    service.setGroup(tutao.locator.userController.getUserGroupId())
+
+    service.setGroup(this._editUserViewModel.userGroupInfo.getGroup())
         .setMailAddress(this.mailAddress());
     service.setup({}, null).then(function() {
+        self.aliasList.push( {emailAddress : self.mailAddress(), enabled: ko.observable(true) } );
         self.aliasSubmitStatus({ type: "valid", text: "finished_msg" });
     });
 };
+
+/**
+ *
+ */
+tutao.tutanota.ctrl.AdminAliasViewModel.prototype.deleteAlias = function(aliasListElement) {
+    var self = this;
+
+    var restore = true;
+    var promise = Promise.resolve(true);
+    if (aliasListElement.enabled()){
+        restore = false;
+        var message = tutao.tutanota.util.Formatter.isTutanotaMailAddress(aliasListElement.emailAddress) ? 'deactivateAlias_msg' : 'deleteAlias_msg';
+        promise = tutao.tutanota.gui.confirm(tutao.lang(message, { "{1}" : aliasListElement.emailAddress} ));
+    }
+    promise.then(function(confirmed){
+        if(confirmed){
+            var deleteData = new tutao.entity.sys.MailAddressAliasServiceDataDelete();
+            deleteData.setMailAddress(aliasListElement.emailAddress);
+            deleteData.setRestore(restore);
+            deleteData.setGroup(self._editUserViewModel.userGroupInfo.getGroup());
+            deleteData.erase({}, null).then(function() {
+                // update alias status for tutanota addresses
+                if (tutao.tutanota.util.Formatter.isTutanotaMailAddress(aliasListElement.emailAddress)){
+                    aliasListElement.enabled(restore);
+                } else { // remove alias for custom domain addresses
+                    self.aliasList.remove(aliasListElement);
+                }
+            });
+        }
+    });
+};
+
+tutao.tutanota.ctrl.AdminAliasViewModel.prototype.getDeleteAliasTextId = function(aliasListElement) {
+    var self = this;
+    if (aliasListElement.enabled()){
+        if ( tutao.tutanota.util.Formatter.isTutanotaMailAddress(aliasListElement.emailAddress)){
+            return 'deactivate_action';
+        }else {
+            return 'delete_action';
+        }
+    } else {
+        return 'activate_action';
+    }
+};
+
+
+tutao.tutanota.ctrl.AdminAliasViewModel.prototype.getAliasStatusType = function(aliasListElement) {
+    return aliasListElement.enabled() ? "valid" : "invalid";
+};
+
+
+tutao.tutanota.ctrl.AdminAliasViewModel.prototype.getAliasStatusText = function(aliasListElement) {
+    return aliasListElement.enabled() ? "emailAliasStatusActivated_label" : "emailAliasStatusDeactivated_label";
+};
+
+

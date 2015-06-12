@@ -196,6 +196,22 @@ tutao.tutanota.util.Formatter.isDomainName = function(string) {
 
 
 /**
+ * Checks if the given mail addres ends with a Tutanota domain.
+ * @param mailAddress The mail address
+ * @returns {boolean} True if the domain is one of the Tutanota mail address domains.
+ */
+tutao.tutanota.util.Formatter.isTutanotaMailAddress = function(mailAddress) {
+	var tutanotaDomains = tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS;
+	for ( var i=0; i< tutanotaDomains.length; i++){
+		if ( tutao.util.StringUtils.endsWith(mailAddress, "@" + tutanotaDomains[i])){
+			return true;
+		}
+	}
+	return false;
+};
+
+
+/**
  * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters
  * the address to lower case.
  * @param {string} mailAddress The input mail address.

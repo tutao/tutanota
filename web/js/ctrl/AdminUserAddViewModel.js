@@ -28,19 +28,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 		this.csvImportStatus({type: "neutral", text: "emptyString_msg"});
 	}, this);
 	this.csvImportStatus = ko.observable({type: "neutral", text: "emptyString_msg"});
-
-    this._availableDomains = [];
-    var user = tutao.locator.userController.getLoggedInUser();
-    if (user.getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER){
-        this._availableDomains = this._availableDomains.concat(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
-    }
-    var customerInfo = this.adminUserListViewModel.customerInfo();
-    if (customerInfo){
-        for( var i=0; i< customerInfo.getDomainInfos().length; i++) {
-            this._availableDomains.unshift(customerInfo.getDomainInfos()[i].getDomain())
-        }
-    }
-
+    this._availableDomains = this.adminUserListViewModel.getAvailableDomains();
     this.addEmptyUser();
 };
 
