@@ -147,14 +147,6 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function()
     });
 };
 
-tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.cancel = function() {
-    if (this.busy()) {
-        return;
-    }
-    this.adminUserListViewModel.removeSelection();
-    tutao.locator.settingsView.showChangeSettingsColumn();
-};
-
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
     if (this.busy()) {
         return;
@@ -173,7 +165,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getDeleteButtonText = function() {
-    return this.userGroupInfo.getDeleted() == null ? 'delete_action': 'undelete_action';
+    return this.userGroupInfo.getDeleted() == null ? 'deactivate_action': 'activate_action';
 };
 
 /**

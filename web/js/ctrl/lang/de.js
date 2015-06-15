@@ -524,6 +524,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "deactivate_action": "Deaktivieren",
     "deactivateAlias_msg": "Der E-Mail-Alias '{1}' wird jetzt deaktiviert. Die Adresse bleibt für diesen Benutzer reserviert und kann später erneut aktiviert werden.",
     "deleteAlias_msg": "Der E-Mail-Alias '{1}' wird jetzt gelöscht. Die Adresse wird freigegeben und kann erneut als E-Mail-Alias verwendet oder für einen neuen Benutzer verwendet werden.",
-    "emailAliasStatusActivated_label": "Aktiviert",
-    "emailAliasStatusDeactivated_label": "Deaktiviert"
+    "activated_label": "Aktiviert",
+    "deactivated_label": "Deaktiviert",
+    "addMailAddressAlias_action": "Alias hinzufügen"
 };

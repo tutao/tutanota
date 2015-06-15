@@ -150,7 +150,7 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.getAliasStatusType = function(
 
 
 tutao.tutanota.ctrl.AdminAliasViewModel.prototype.getAliasStatusText = function(aliasListElement) {
-    return aliasListElement.enabled() ? "emailAliasStatusActivated_label" : "emailAliasStatusDeactivated_label";
+    return aliasListElement.enabled() ? "activated_label" : "deactivated_label";
 };
 
 

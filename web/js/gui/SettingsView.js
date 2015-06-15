@@ -21,7 +21,7 @@ tutao.tutanota.gui.SettingsView.prototype.init = function(external, updateColumn
 	this._swipeSlider = new tutao.tutanota.gui.SwipeSlider(this, 'settingsContent', updateColumnTitleCallback);
     tutao.tutanota.gui.SettingsView.COLUMN_SETTINGS = this._swipeSlider.addViewColumn(0, 200, 420, 'settingsColumn', function() { return tutao.lang("settings_label"); });
     tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsColumn', tutao.locator.settingsViewModel.getActiveSettingText);
-    tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsDetailsColumn');
+    tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS_DETAILS = this._swipeSlider.addViewColumn(1, 400, 600, 'changeSettingsDetailsColumn', function() { return tutao.lang("editUser_label"); });
 };
 
 /**
@@ -55,7 +55,7 @@ tutao.tutanota.gui.SettingsView.prototype.getSwipeSlider = function() {
  * @inherit
  */
 tutao.tutanota.gui.SettingsView.prototype.isShowLeftNeighbourColumnPossible = function() {
-    return (this._swipeSlider.getLeftmostVisibleColumnId() == tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS);
+    return (this._swipeSlider.getLeftmostVisibleColumnId() > tutao.tutanota.gui.SettingsView.COLUMN_SETTINGS);
 };
 
 /**

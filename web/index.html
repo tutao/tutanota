@@ -1738,7 +1738,6 @@
 			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
                 <!-- ko if: editing() -->
                     <div class="scrollable" data-bind="with: editing()">
-                        <h1 data-bind="lang: 'editUser_label'"></h1>
                         <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
@@ -1778,7 +1777,7 @@
                                 </div>
                             </div>
                             <div class="record" data-bind="if: userGroupInfo.getDeleted()">
-                                <label class="recordName" data-bind="lang: 'deleted_label'"></label>
+                                <label class="recordName" data-bind="lang: 'deactivated_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroupInfo.getDeleted())">
                                     </div>
@@ -1787,9 +1786,8 @@
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button id="submitUserChange" class="single fontImage confirm" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
+                                    <button id="submitUserChange" class="single" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
                                     <button id="deleteUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
-                                    <button id="cancelUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
                                     <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
                             </div>
@@ -1797,7 +1795,7 @@
 						<div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel($data)">
 							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true ">
 								<div class="record">
-									<label for="mailAddress" class="recordName" data-bind="lang: 'adminAddMailAddressAlias_label'"></label>
+									<label for="mailAddress" class="recordName" data-bind="lang: 'mailAddressAliases_label'"></label>
 									<div class="recordData">
 										<div class="recordValue">
 											<input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
@@ -1811,7 +1809,7 @@
 								<div class="record">
 									<div class="recordName"></div>
 									<div class="formAction">
-										<button id="submitAddAlias" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+										<button id="submitAddAlias" class="single" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'addMailAddressAlias_action'"></button>
 										<label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
 									</div>
 								</div>
@@ -1819,7 +1817,7 @@
 
 							<div class="recordContainer" data-bind="foreach: aliasList, form: true">
 								<div class="record">
-									<label class="recordName" data-bind="lang: 'adminEditMailAddressAlias_label'"></label>
+									<label class="recordName"></label>
 									<div class="recordData">
 										<div class="recordValue" data-bind="text: emailAddress"></div>
 										<label class="recordStatus" data-bind="css: $parent.getAliasStatusType($data), lang: $parent.getAliasStatusText($data)"></label>
