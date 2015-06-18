@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 	this.isEditable = ko.observable(true);
 	this.createStatus = ko.observable({type: "neutral", text: "emptyString_msg", params: {}});
 	this.csvDialogVisible = ko.observable(false);
-	this.csvData = ko.observable("name,mail.address,securePassword (optional)");
+	this.csvData = ko.observable("name;mail.address;securePassword (optional)");
 	this.csvData.subscribe(function(newValue) {
 		this.csvImportStatus({type: "neutral", text: "emptyString_msg"});
 	}, this);
@@ -48,8 +48,10 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.importCsv = function() {
 	var lines = this.csvData().split(/\r\n|\r|\n/);
 	var users = [];
 	for (var i = 0; i < lines.length; i++) {
-		var lineParts = lines[i].split(",");
-		if (lineParts.length < 2) {
+		var lineParts = lines[i].split(";");
+        if (lines[i] == "") {
+            // just skip blank lines
+        } else if (lineParts.length < 2) {
 			this.csvImportStatus({type: "invalid", text: "importCsvInvalid_msg", params: {'{1}': i }});
 			return;
 		} else {
