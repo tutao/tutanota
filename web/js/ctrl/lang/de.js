@@ -470,5 +470,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "xing_label": "XING",
   "yesterday_label": "gestern",
   "saveDownloadNotPossibleFirefoxAndroid_msg": "Leider unterstützt Firefox auf Android nicht das Abspeichern von Anhängen. Manche Dateitypen können aber im Browser durch Klicken auf den obigen Link angezeigt werden. Bitte installieren Sie andernfalls Google Chrome oder Opera.",
-    "canNotOpenFileOnDevice_msg": "Die Datei kann auf diesem Gerät nicht geöffnet werden."
+  "canNotOpenFileOnDevice_msg": "Die Datei kann auf diesem Gerät nicht geöffnet werden.",
+  "tooManyMails_msg": "Du hast wohl die maximale Anzahl erlaubter E-Mails überschritten. Bitte versuche es später erneut."
 };
