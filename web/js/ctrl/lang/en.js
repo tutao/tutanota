@@ -525,5 +525,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "deleteAlias_msg": "The email alias '{1}' will be deleted now. You can use the address as email alias again or use it for a new user.",
     "activated_label": "Activated",
     "deactivated_label": "Deactivated",
-    "addMailAddressAlias_action": "Add alias"
+    "addMailAddressAlias_action": "Add alias",
+    "tooManyMails_msg": "It looks like you exceeded the number of allowed emails. Please try again later or upgrade to Premium."
 };

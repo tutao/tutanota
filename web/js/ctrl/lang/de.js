@@ -526,5 +526,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "deleteAlias_msg": "Der E-Mail-Alias '{1}' wird jetzt gelöscht. Die Adresse wird freigegeben und kann erneut als E-Mail-Alias verwendet oder für einen neuen Benutzer verwendet werden.",
     "activated_label": "Aktiviert",
     "deactivated_label": "Deaktiviert",
-    "addMailAddressAlias_action": "Alias hinzufügen"
+    "addMailAddressAlias_action": "Alias hinzufügen",
+    "tooManyMails_msg": "Du hast wohl die maximale Anzahl erlaubter E-Mails überschritten. Bitte versuche es später erneut oder upgrade auf Premium."
 };
