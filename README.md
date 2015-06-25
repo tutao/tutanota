@@ -65,5 +65,5 @@ Server templates contains working installation instructions. Allows to create a 
 
 We use the following tools for testing:
 * Test runner: [Karma](http://karma-runner.github.io/)
-* Test framework: [Mocha doc](http://chaijs.com/api/assert/)
+* Test framework: [Mocha doc](http://mochajs.org/)
 * Assertion framework: [chai.js API doc](http://chaijs.com/api/assert/)
