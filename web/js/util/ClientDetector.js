@@ -223,6 +223,8 @@ tutao.tutanota.util.ClientDetector._setDeviceInfo = function(userAgent) {
         }
 	} else if (userAgent.match(/Windows Phone/) != null) {
         info._device = info.DEVICE_TYPE_WINDOWS_PHONE;
+    } else if (userAgent.match(/Windows NT/) != null){
+        info._device = info.DEVICE_TYPE_DESKTOP;
     } else if (userAgent.match(/BB10/) != null) {
         info._device = info.DEVICE_TYPE_BB;
     } else if (userAgent.match(/Mobile/) != null || userAgent.match(/Tablet/) != null) {
@@ -246,7 +248,7 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
 	var chromeIndex = userAgent.indexOf("Chrome/");
 	var safariIndex = userAgent.indexOf("Safari/");
 	var ieIndex = userAgent.indexOf("MSIE");
-	var ie11Index = userAgent.indexOf("Trident");
+	var ie11Index = userAgent.indexOf("Trident/7.0");
     var androidIndex = userAgent.indexOf("Android");
     var blackBerryIndex = userAgent.indexOf("BB10");
     var ubuntuMobileIndex = userAgent.indexOf("Ubuntu; Mobile");
