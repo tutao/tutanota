@@ -97,6 +97,36 @@ describe("ClientDetectorTest", function () {
         assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     });
 
+    it(" detect ie11 windows enterprise edition", function () {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Windows NT 6.1; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0; .NET4.0C; .NET4.0E; Tablet PC 2.0; rv:11.0) like Gecko");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+        assert.equal(11, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assert.equal(false, info.isMobileDevice());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
+    it(" detect ie7 windows contains Trident/7.0 tag", function () {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET4.0C; .NET4.0E; Media Center PC 6.0; InfoPath.3)");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+        assert.equal(7, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assert.equal(false, info.isMobileDevice());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED, info.getSupportedType());
+    });
+
+    it(" detect ie11 windows additional tags", function () {
+        var info = tutao.tutanota.util.ClientDetector;
+        info._setClientInfo("Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; .NET4.0C; .NET4.0E; Media Center PC 6.0; InfoPath.3; rv:11.0) like Gecko");
+        assert.equal(tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE, info.getBrowserType());
+        assert.equal(11, info.getBrowserVersion());
+        assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP, info.getDeviceType());
+        assert.equal(false, info.isMobileDevice());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED, info.getSupportedType());
+    });
+
     it(" detect ie11 windows", function () {
         var info = tutao.tutanota.util.ClientDetector;
         info._setClientInfo("Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko");
