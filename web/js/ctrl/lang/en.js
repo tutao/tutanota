@@ -543,9 +543,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "upgradePremium_label" : "Premium",
     "creditCardRedirect_msg" : "To enter your credit card data you will be redirected to {1}.",
     "countryMismatch_msg" : "Error while verifying your country.",
-    "invalidVatIdNumber_msg" : "The angegebene Umsatzsteueer-Identifikationsnummer ist ungültig.",
-    "paymentProviderNotAvailable_msg" : "Der Zahlungsdienstleister ist zur Zeit nicht verfügbar, bitte versuche es später erneut.",
-    "otherPaymentProviderError_msg" : "Es ist ein Fehler beim Zahlungsdienstleister aufgetreten, bitte versuche es später ernuet.",
+    "invalidVatIdNumber_msg" : "The value added tax identification number is invalid.",
+    "paymentProviderNotAvailable_msg" : "The payment provider is currently not available. Please try again later.",
+    "otherPaymentProviderError_msg" : "The payment provider returned an error. Please try again later.",
     "confirmCountry_msg" : "To calculate the value added tax we need you to confirm your country: {1}.",
     "enterCreditCartData_msg" :  "Please enter your credit card data."
 
