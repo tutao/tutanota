@@ -50,18 +50,18 @@ function getIpAddress() {
 var init = fs.readFileSync("js/util/init.js", 'utf8');
 
 var local_compiled = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000);\n\
+    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000, 'http://pay.localhots:9000');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
 
 var prod = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null);\n\
+    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null, 'https://pay.tutanota.de');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
 var test = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null);\n\
+    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null, 'https://pay.test.tutanota.de');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
@@ -184,6 +184,19 @@ gulp.task('index.html', function () {
         )))
         .pipe(gulp.dest('./'));
 });
+
+
+gulp.task('payment.html', function () {
+    return gulp.src('./payment.html')
+        .pipe(inject(merge(
+            //gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js files
+            gulp.src(["lib/jquery-1.9.1.js", "lib/dev/less-1.7.0.min.js", "lib/worker/base.js", "lib/knockout-2.2.1.js"], {read: false}).pipe(sort()),
+            gulp.src(["js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js" ], {read: false}).pipe(sort()),
+            gulp.src(["pay/**/*.js", "!pay/init.js"], {read: false}).pipe(sort())
+        )))
+        .pipe(gulp.dest('./'));
+});
+
 
 gulp.task('test.html', function () {
     return gulp.src('./test/index.html')

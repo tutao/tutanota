@@ -291,6 +291,9 @@
 <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
 <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServiceGetReturn.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServicePutData.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServicePutReturn.js"></script>
 <script src="/js/generated/entity/sys/PdfInvoiceServiceData.js"></script>
 <script src="/js/generated/entity/sys/PdfInvoiceServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/Permission.js"></script>
@@ -1686,6 +1689,19 @@
                                             <label for="paymentMethodInput"  class="recordInfo" data-bind="lang: 'invoicePaymentMethodInfo_msg'"></label>
                                         </div>
                                     </div>
+									<div class="record" data-bind="fadeVisible: isCreditCardInfoAvailable()" >
+										<label for="paymentMethodInfo"  class="recordName" data-bind="lang: 'emptyString_msg' "></label>
+										<div class="recordData">
+											<div class="recordValue" id="paymentMethodInfo" data-bind="text: accountingInfo().paymentMethodInfo()"></div>
+										</div>
+									</div>
+									<div class="record" data-bind="fadeVisible : isCreditCardButtonVisible() " >
+										<div class="recordName"></div>
+										<div class="formAction">
+											<button class="single" type="button" data-bind="lang: isCreditCardInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
+											<label class="recordStatus" data-bind="text: getRedirectMessage()"></label>
+										</div>
+									</div>
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
@@ -1713,8 +1729,8 @@
                                         <div class="recordData">
                                             <div class="recordValue">
                                                 <div id="externalWelcomeMessagePreview">
-                                                    <div class="outerExternalUserWelcomeMessage">
-                                                        <div class="innerExternalUserWelcomeMessage" data-bind="text: externalWelcomeMessage"></div>
+                                                    <div class="outerWelcomeMessage">
+                                                        <div class="innerWelcomeMessage" data-bind="text: externalWelcomeMessage"></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2017,9 +2033,9 @@
     </div>
 -->
 	<header id="main" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
-        <div id="externalUserWelcomeMessage">
-            <div class="outerExternalUserWelcomeMessage">
-                <div class="innerExternalUserWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
+        <div id="welcomeMessage">
+            <div class="outerWelcomeMessage">
+                <div class="innerWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
             </div>
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->

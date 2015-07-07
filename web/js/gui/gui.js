@@ -880,9 +880,9 @@ tutao.tutanota.gui.showTooltip = function(item, event) {
  */
 tutao.tutanota.gui.openLink = function(href) {
     if (tutao.env.mode == tutao.Mode.App) {
-        window.open(href, "_system");
+        return window.open(href, "_system");
     } else {
-        window.open(href, "_blank");
+        return window.open(href, "_blank");
     }
 };
 

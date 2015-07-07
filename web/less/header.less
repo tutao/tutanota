@@ -2,13 +2,13 @@
 @menuItemWidth: 80px;
 @menuItemWidthSmall: 45px;
 
-div.outerExternalUserWelcomeMessage {
+div.outerWelcomeMessage {
   display: table;
   width: 240px;
   height: @header-height - 1;
   margin: auto;
 
-  > div.innerExternalUserWelcomeMessage {
+  > div.innerWelcomeMessage {
     display: table-cell;
     font-size: @default-font-size;
     line-height: 1.2;
@@ -30,7 +30,7 @@ header#main {
     line-height: @header-height-small;
   }
 
-  > div#externalUserWelcomeMessage {
+  > div#welcomeMessage {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -42,7 +42,7 @@ header#main {
       display: none;
     }
 
-    // outerExternalUserWelcomeMessage is used here
+    // outerWelcomeMessage is used here
   }
 
   &.loggedIn {

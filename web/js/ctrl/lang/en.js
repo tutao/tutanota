@@ -526,5 +526,27 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "activated_label": "Activated",
     "deactivated_label": "Deactivated",
     "addMailAddressAlias_action": "Add alias",
-    "tooManyMails_msg": "It looks like you exceeded the number of allowed emails. Please try again later or upgrade to Premium."
+    "tooManyMails_msg": "It looks like you exceeded the number of allowed emails. Please try again later or upgrade to Premium.",
+    "paymentDataValidation_msg" : "Payment data verification",
+    "paymentDataValidation_action" : "Confirm",
+    "creditCardType_label": "Type",
+    "creditCardNumber_label": "Number",
+    "creditCardNumberFormat_msg": "Please enter your credit card number.",
+    "creditCardCVV_label": "Security code",
+    "creditCardCVVFormat_label" : "Please enter the 3 or 4 digit security code.",
+    "creditCardCVVFormatDetails_label" : "Please enter the {1} digit {2} code of your {3} card.",
+    "creditCardExpirationDate_label": "Valid until",
+    "creditCardExpirationDateFormat_msg": "Please enter the expiration date of your credit card. Format: MM/YYYY",
+    "creditCardNumberInvalid_msg" : "Credit card number is invalid.",
+    "creditCardCVVInvalid_msg" : "Security code is invalid.",
+    "creditCardExprationDateInvalid_msg" : "Expiration date is invalid.",
+    "upgradePremium_label" : "Premium",
+    "creditCardRedirect_msg" : "To enter your credit card data you will be redirected to {1}.",
+    "countryMismatch_msg" : "Error while verifying your country.",
+    "invalidVatIdNumber_msg" : "The angegebene Umsatzsteueer-Identifikationsnummer ist ungültig.",
+    "paymentProviderNotAvailable_msg" : "Der Zahlungsdienstleister ist zur Zeit nicht verfügbar, bitte versuche es später erneut.",
+    "otherPaymentProviderError_msg" : "Es ist ein Fehler beim Zahlungsdienstleister aufgetreten, bitte versuche es später ernuet.",
+    "confirmCountry_msg" : "To calculate the value added tax we need you to confirm your country: {1}.",
+    "enterCreditCartData_msg" :  "Please enter your credit card data."
+
 };

@@ -22,6 +22,9 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this._lastInvoiceTimestamp = null;
     this._paymentInterval = null;
     this._paymentMethod = null;
+    this._paymentMethodInfo = null;
+    this._paymentProviderCustomerId = null;
+    this._secondCountryInfo = null;
     this._invoiceInfo = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -45,6 +48,9 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this._lastInvoiceTimestamp = data.lastInvoiceTimestamp;
   this._paymentInterval = data.paymentInterval;
   this._paymentMethod = data.paymentMethod;
+  this._paymentMethodInfo = data.paymentMethodInfo;
+  this._paymentProviderCustomerId = data.paymentProviderCustomerId;
+  this._secondCountryInfo = data.secondCountryInfo;
   this._invoiceInfo = data.invoiceInfo;
 };
 
@@ -96,6 +102,9 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     lastInvoiceTimestamp: this._lastInvoiceTimestamp, 
     paymentInterval: this._paymentInterval, 
     paymentMethod: this._paymentMethod, 
+    paymentMethodInfo: this._paymentMethodInfo, 
+    paymentProviderCustomerId: this._paymentProviderCustomerId, 
+    secondCountryInfo: this._secondCountryInfo, 
     invoiceInfo: this._invoiceInfo
   };
 };
@@ -128,7 +137,7 @@ tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 759;
 /**
  * The id of the invoiceVatIdNo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 762;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 763;
 
 /**
  * The id of the lastInvoiceNbrOfSentSms attribute.
@@ -143,17 +152,32 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 59
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 764;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 766;
 
 /**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 763;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 764;
+
+/**
+ * The id of the paymentMethodInfo attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 765;
+
+/**
+ * The id of the paymentProviderCustomerId attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTPROVIDERCUSTOMERID_ATTRIBUTE_ID = 767;
+
+/**
+ * The id of the secondCountryInfo attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.SECONDCOUNTRYINFO_ATTRIBUTE_ID = 762;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 765;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 768;
 
 /**
  * Provides the id of this AccountingInfo.
@@ -358,6 +382,57 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMet
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethod = function() {
   return this._paymentMethod;
+};
+
+/**
+ * Sets the paymentMethodInfo of this AccountingInfo.
+ * @param {string} paymentMethodInfo The paymentMethodInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentMethodInfo = function(paymentMethodInfo) {
+  this._paymentMethodInfo = paymentMethodInfo;
+  return this;
+};
+
+/**
+ * Provides the paymentMethodInfo of this AccountingInfo.
+ * @return {string} The paymentMethodInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentMethodInfo = function() {
+  return this._paymentMethodInfo;
+};
+
+/**
+ * Sets the paymentProviderCustomerId of this AccountingInfo.
+ * @param {string} paymentProviderCustomerId The paymentProviderCustomerId of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentProviderCustomerId = function(paymentProviderCustomerId) {
+  this._paymentProviderCustomerId = paymentProviderCustomerId;
+  return this;
+};
+
+/**
+ * Provides the paymentProviderCustomerId of this AccountingInfo.
+ * @return {string} The paymentProviderCustomerId of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentProviderCustomerId = function() {
+  return this._paymentProviderCustomerId;
+};
+
+/**
+ * Sets the secondCountryInfo of this AccountingInfo.
+ * @param {string} secondCountryInfo The secondCountryInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setSecondCountryInfo = function(secondCountryInfo) {
+  this._secondCountryInfo = secondCountryInfo;
+  return this;
+};
+
+/**
+ * Provides the secondCountryInfo of this AccountingInfo.
+ * @return {string} The secondCountryInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getSecondCountryInfo = function() {
+  return this._secondCountryInfo;
 };
 
 /**

@@ -67,6 +67,14 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
             return tutao.locator.navigator.hash() == '#contact';
         }),
 
+
+        // all supported
+        new tutao.tutanota.ctrl.Button('upgradePremium_label', 28, function() {
+            tutao.locator.navigator.settings();
+            tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+        }, self._isFreeAccount, true, "menu_upgradePremium", "upgrade", 'upgradePremium_label'), // Execute this action direct to avoid pop up blockers
+
+
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
             tutao.locator.navigator.newMail().then(function (success) {
                 if (success) {

@@ -40,7 +40,7 @@ body {
                 @media @mobile {
                   margin-top: @header-height-small - 1;
 				}
-				left: -150px;
+				//left: -150px; // TODO why?
 				
 				// see below for the columns
 				> div.viewColumn {
@@ -52,6 +52,22 @@ body {
 					
 					// here the button bar is used
 				}
+			}
+		  	> div.singleColumnContent {
+			  position: absolute;
+			  .fill;
+			  //border-top: 1px solid @border-dark;
+			  margin-top: @header-height - 1;
+			  @media @mobile {
+				margin-top: @header-height-small - 1;
+			  }
+			  > div.centeredColumn {
+				padding-left: @padding;
+				padding-right: @padding;
+				margin: 0 auto;
+				min-width:240px;
+				max-width:500px;
+			  }
 			}
 		}
 	}
@@ -1137,6 +1153,29 @@ body {
       padding: 5px;
     }
   }
+
+
+  .siteLoadingSpinner{
+	width: 200px;
+	position: absolute;
+	left:50%;
+	margin-left:-100px;
+	top:50%;
+	margin-top:-40px;
+
+	> div.spinner {
+	  margin:auto;
+	  height:52px;
+	  width:35px;
+	  &:before {
+		font-size:35px;
+	  }
+	}
+	> div.loadingLabel {
+	  text-align:center;
+	}
+  }
+
 
 /*
     #attachmentDialog{
