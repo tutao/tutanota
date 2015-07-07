@@ -19,6 +19,7 @@ tutao.entity.sys.PaymentDataServicePutData = function(data) {
     this._invoiceVatIdNo = null;
     this._paymentInterval = null;
     this._paymentMethod = null;
+    this._paymentMethodInfo = null;
     this._paymentToken = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -39,6 +40,7 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.updateData = function(data)
   this._invoiceVatIdNo = data.invoiceVatIdNo;
   this._paymentInterval = data.paymentInterval;
   this._paymentMethod = data.paymentMethod;
+  this._paymentMethodInfo = data.paymentMethodInfo;
   this._paymentToken = data.paymentToken;
 };
 
@@ -75,6 +77,7 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.toJsonData = function() {
     invoiceVatIdNo: this._invoiceVatIdNo, 
     paymentInterval: this._paymentInterval, 
     paymentMethod: this._paymentMethod, 
+    paymentMethodInfo: this._paymentMethodInfo, 
     paymentToken: this._paymentToken
   };
 };
@@ -92,7 +95,7 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.BUSINESS_ATTRIBUTE_ID = 791
 /**
  * The id of the confirmedCountry attribute.
  */
-tutao.entity.sys.PaymentDataServicePutData.prototype.CONFIRMEDCOUNTRY_ATTRIBUTE_ID = 799;
+tutao.entity.sys.PaymentDataServicePutData.prototype.CONFIRMEDCOUNTRY_ATTRIBUTE_ID = 800;
 
 /**
  * The id of the invoiceAddress attribute.
@@ -117,7 +120,7 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.INVOICEVATIDNO_ATTRIBUTE_ID
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 797;
+tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 798;
 
 /**
  * The id of the paymentMethod attribute.
@@ -125,9 +128,14 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTINTERVAL_ATTRIBUTE_I
 tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 796;
 
 /**
+ * The id of the paymentMethodInfo attribute.
+ */
+tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 797;
+
+/**
  * The id of the paymentToken attribute.
  */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTTOKEN_ATTRIBUTE_ID = 798;
+tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTTOKEN_ATTRIBUTE_ID = 799;
 
 /**
  * Sets the format of this PaymentDataServicePutData.
@@ -280,6 +288,23 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.setPaymentMethod = function
  */
 tutao.entity.sys.PaymentDataServicePutData.prototype.getPaymentMethod = function() {
   return this._paymentMethod;
+};
+
+/**
+ * Sets the paymentMethodInfo of this PaymentDataServicePutData.
+ * @param {string} paymentMethodInfo The paymentMethodInfo of this PaymentDataServicePutData.
+ */
+tutao.entity.sys.PaymentDataServicePutData.prototype.setPaymentMethodInfo = function(paymentMethodInfo) {
+  this._paymentMethodInfo = paymentMethodInfo;
+  return this;
+};
+
+/**
+ * Provides the paymentMethodInfo of this PaymentDataServicePutData.
+ * @return {string} The paymentMethodInfo of this PaymentDataServicePutData.
+ */
+tutao.entity.sys.PaymentDataServicePutData.prototype.getPaymentMethodInfo = function() {
+  return this._paymentMethodInfo;
 };
 
 /**
