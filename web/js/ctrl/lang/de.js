@@ -542,11 +542,16 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "creditCardCVVInvalid_msg" : "Der Sicherheitscode ist ungültig.",
     "creditCardExprationDateInvalid_msg" : "Das Datumsformat ist ungültig",
     "upgradePremium_label" : "Premium",
-    "creditCardRedirect_msg" : "Zur Eingabe der Kreditkarten-Informationen wirst du auf {1} weitergeleitet",
+    "enterPaymentDataRedirect_msg" : "Zur Eingabe der Zahlungsdaten wirst du auf {1} weitergeleitet",
     "countryMismatch_msg" : "Das Land konnte nicht verifiziert werden.",
     "invalidVatIdNumber_msg" : "Die angegebene Umsatzsteuer-Identifikationsnummer ist ungültig.",
     "paymentProviderNotAvailable_msg" : "Der Zahlungsdienstleister ist zur Zeit nicht verfügbar. Bitte versuche es später erneut.",
     "otherPaymentProviderError_msg" : "Es ist ein Fehler beim Zahlungsdienstleister aufgetreten. Bitte versuche es später erneut.",
     "confirmCountry_msg" : "Zur Bestimmung der zu berechnenden Mehrwertsteuer benötigen wir die Bestätigung, dass du in {1} wohnst.",
-    "enterCreditCartData_msg" :  "Bitte gib deine Kreditkarten-Daten ein."
+    "enterPaymentData_msg" :  "Bitte gib deine Zahlungsdaten ein.",
+    "invalidPageLoad_msg" : "Es ist ein Fehler beim Öffnen der Seite aufgetreten.",
+    "invalidPageLoadUnsupported_msg" : "Die Zahlungsmethode wird vom Browser nicht unterstützt.",
+    "paymentDataPayPalConfirm_msg" : "Bitte bestätige deinen PayPal-Account.",
+    "paymentDataPayPalLogin_msg" : "Bitte klick auf den PayPal-Button um dich anzumelden."
+
 };

@@ -541,12 +541,15 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "creditCardCVVInvalid_msg" : "Security code is invalid.",
     "creditCardExprationDateInvalid_msg" : "Expiration date is invalid.",
     "upgradePremium_label" : "Premium",
-    "creditCardRedirect_msg" : "To enter your credit card data you will be redirected to {1}.",
+    "enterPaymentDataRedirect_msg" : "To enter your payment data you will be redirected to {1}.",
     "countryMismatch_msg" : "Error while verifying your country.",
     "invalidVatIdNumber_msg" : "The value added tax identification number is invalid.",
     "paymentProviderNotAvailable_msg" : "The payment provider is currently not available. Please try again later.",
     "otherPaymentProviderError_msg" : "The payment provider returned an error. Please try again later.",
     "confirmCountry_msg" : "To calculate the value added tax we need you to confirm your country: {1}.",
-    "enterCreditCartData_msg" :  "Please enter your credit card data."
-
+    "enterPaymentData_msg" :  "Please enter your payment data.",
+    "invalidPageLoad_msg" : "Error while opening web site.",
+    "invalidPageLoadUnsupported_msg" : "The payment method is not supported by your current browser.",
+    "paymentDataPayPalConfirm_msg" : "Please confirm your PayPal account.",
+    "paymentDataPayPalLogin_msg" : "Please click on the PayPal button to log in."
 };

@@ -71,14 +71,15 @@
 <script src="/js/gui/gui.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
 <script src="/js/util/FunctionUtils.js"></script>
+<script src="/js/util/StringUtils.js"></script>
 <script src="/pay/Bootstrap.js"></script>
-<script src="/pay/CreditCardValidationViewModel.js"></script>
+<script src="/pay/PaymentDataValidationViewModel.js"></script>
 <!-- endinject -->
 <!-- endbuild -->
 <script src="/pay/init.js"></script>
 
 
-<div type="text/html" id="tutanota" data-bind="with: tutao.locator.creditCardValidationViewModel">
+<div type="text/html" id="tutanota">
 
 	<header id="main" class="loggedIn" >
 		<div id="welcomeMessage">
@@ -100,14 +101,27 @@
 
 	</header>
 
-	<div class="siteLoadingSpinner" data-bind="fadeVisible: loading()">
-		<div class="fontImage spinner" ></div>
-		<div class="loadingLabel light" data-bind="lang: 'loading_msg'" ></div>
-	</div>
-
 	<div id="viewContainer">
-		<div class="singleColumnContent  scrollable" >
+		<div class="singleColumnContent  scrollable"  data-bind="with: tutao.locator.paymentDataValidationViewModel">
 			<div class="centeredColumn" >
+				<div class="statusBox" data-bind="fadeVisible: loading()">
+					<div class="fontImage spinner" ></div>
+					<div class="statusText" data-bind="lang: 'loading_msg'" ></div>
+				</div>
+
+				<div class="statusBox" data-bind="fadeVisible: (siteLoadingErrorStatus() != null)">
+					<div class="statusText" data-bind="text: siteLoadingErrorStatus()" ></div>
+				</div>
+
+				<div id="paymentDataPayPalForm" data-bind="fadeVisible: isPayPalFormEnabled()" >
+					<div class="paymentDataTitle" data-bind="lang: getPayPalFormTitle()" ></div>
+					<div id="paymentPaypalContainer" class="wide" ></div>
+					<div class="paymentDataButtons">
+						<button id="payPalDataValidationAction"  class="single" data-bind="lang: 'paymentDataValidation_action', css: { disabled: !isSubmitPayPalDataEnabled() }, click: submitPayPalData" ></button>
+						<button class="single" type="button" data-bind="lang: 'cancel_action', click: cancel, css: { disabled: busy }"></button>
+					</div>
+				</div>
+
 				<div data-bind="fadeVisible: isCreditCardFormEnabled()">
 					<form action="/" id="creditCardPaymentDataForm" class="recordContainer wide" data-bind="form: true, event:{submit: submitClicked}" >
 						<div class="record">

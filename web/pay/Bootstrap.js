@@ -21,10 +21,13 @@ tutao.tutanota.pay.Bootstrap.init = function () {
 };
 
 tutao.tutanota.pay.Bootstrap.initControllers = function () {
+
     tutao.tutanota.pay.Bootstrap.initLocator();
 
     // shortcuts
     tutao.lang = tutao.locator.languageViewModel.get;
+
+    tutao.locator.paymentDataValidationViewModel.init();
 };
 
 /**
@@ -33,7 +36,5 @@ tutao.tutanota.pay.Bootstrap.initControllers = function () {
 tutao.tutanota.pay.Bootstrap.initLocator = function() {
     tutao.locator = {};
     tutao.locator.languageViewModel = new tutao.tutanota.ctrl.LanguageViewModel();
-    tutao.locator.creditCardValidationViewModel = new tutao.tutanota.pay.CreditCardValidationViewModel();
-
-    tutao.locator.creditCardValidationViewModel.init();
+    tutao.locator.paymentDataValidationViewModel = new tutao.tutanota.pay.PaymentDataValidationViewModel();
 };

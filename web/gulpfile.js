@@ -191,7 +191,7 @@ gulp.task('payment.html', function () {
         .pipe(inject(merge(
             //gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js files
             gulp.src(["lib/jquery-1.9.1.js", "lib/dev/less-1.7.0.min.js", "lib/worker/base.js", "lib/knockout-2.2.1.js"], {read: false}).pipe(sort()),
-            gulp.src(["js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js" ], {read: false}).pipe(sort()),
+            gulp.src(["js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js" ], {read: false}).pipe(sort()),
             gulp.src(["pay/**/*.js", "!pay/init.js"], {read: false}).pipe(sort())
         )))
         .pipe(gulp.dest('./'));

@@ -5,6 +5,7 @@ tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE = "0";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD = "1";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_SEPA = "2";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL = "3";
 
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS = "0";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE = "1";
@@ -291,11 +292,10 @@ tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DOMAIN_NOT_AVAILABL
 
 
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_FORM_READY = "tutao.tutanota.pay.formready"; // contains no value
-tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_CLIENT_TOKEN = "tutao.tutanota.pay.clienttoken";
-tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN = "tutao.tutanota.pay.paymenttoken";
-tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_WINDOW_NAME = "tutao.tutanota.pay.windowname";
-tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TYPE = "tutao.tutanota.pay.paymenttype";
-tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_METHOD_DETAILS = "tutao.tutanota.pay.paymentmethoddetails";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_CLIENT_TOKEN = "tutao.tutanota.pay.clienttoken"; // contains one value <clientToken>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN = "tutao.tutanota.pay.paymenttoken"; //contains three values <token>:<method>:<methodInfo>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_WINDOW_NAME = "tutao.tutanota.pay.windowname"; // contains one value <windowName>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_METHOD = "tutao.tutanota.pay.paymentmethod"; // contains one value <paymentMethod> from tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_XXX
 
 
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_OK = "0";

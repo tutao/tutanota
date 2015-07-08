@@ -1155,13 +1155,12 @@ body {
   }
 
 
-  .siteLoadingSpinner{
-	width: 200px;
+  .statusBox{
+	width: 300px;
 	position: absolute;
+	top:100px;
 	left:50%;
-	margin-left:-100px;
-	top:50%;
-	margin-top:-40px;
+	margin-left:-150px;
 
 	> div.spinner {
 	  margin:auto;
@@ -1171,11 +1170,32 @@ body {
 		font-size:35px;
 	  }
 	}
-	> div.loadingLabel {
-	  text-align:center;
+	> div.statusText {
+	  .light;
+	  text-align: center;
 	}
   }
 
+  #paymentDataPayPalForm {
+	padding-top:40px;
+	> .paymentDataTitle {
+	  .light;
+	  text-align:center;
+	}
+
+	> #paymentPaypalContainer {
+	  padding-top:20px;
+	  padding-bottom:25px;
+	}
+
+	#braintree-paypal-button {
+	  margin:auto; //center pay pal button.
+	}
+
+	> .paymentDataButtons {
+	  text-align:center;
+	}
+  }
 
 /*
     #attachmentDialog{

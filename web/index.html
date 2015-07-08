@@ -1689,16 +1689,11 @@
                                             <label for="paymentMethodInput"  class="recordInfo" data-bind="lang: 'invoicePaymentMethodInfo_msg'"></label>
                                         </div>
                                     </div>
-									<div class="record" data-bind="fadeVisible: isCreditCardInfoAvailable()" >
-										<label for="paymentMethodInfo"  class="recordName" data-bind="lang: 'emptyString_msg' "></label>
-										<div class="recordData">
-											<div class="recordValue" id="paymentMethodInfo" data-bind="text: accountingInfo().paymentMethodInfo()"></div>
-										</div>
-									</div>
-									<div class="record" data-bind="fadeVisible : isCreditCardButtonVisible() " >
-										<div class="recordName"></div>
+									<div class="record" data-bind="fadeVisible : isEnterPaymentDataButtonVisible() " >
+										<label class="recordName" data-bind="lang: 'adminPayment_action'"></label>
 										<div class="formAction">
-											<button class="single" type="button" data-bind="lang: isCreditCardInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
+											<button class="single" type="button" data-bind="lang: isPaymentMethodInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
+											<label class="recordInfo" data-bind="text: accountingInfo().paymentMethodInfo(), fadeVisible: isPaymentMethodInfoAvailable()"></label>
 											<label class="recordStatus" data-bind="text: getRedirectMessage()"></label>
 										</div>
 									</div>
