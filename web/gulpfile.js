@@ -50,7 +50,7 @@ function getIpAddress() {
 var init = fs.readFileSync("js/util/init.js", 'utf8');
 
 var local_compiled = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000, 'http://pay.localhots:9000');\n\
+    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000, 'http://pay.localhost:9000/build');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
@@ -189,13 +189,42 @@ gulp.task('index.html', function () {
 gulp.task('payment.html', function () {
     return gulp.src('./payment.html')
         .pipe(inject(merge(
-            //gulp.src(['lib/**/*.js'], {read: false}).pipe(sort()), // base.js is included in lib, so it has to be injected before other js files
             gulp.src(["lib/jquery-1.9.1.js", "lib/dev/less-1.7.0.min.js", "lib/worker/base.js", "lib/knockout-2.2.1.js"], {read: false}).pipe(sort()),
             gulp.src(["js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js" ], {read: false}).pipe(sort()),
             gulp.src(["pay/**/*.js", "!pay/init.js"], {read: false}).pipe(sort())
         )))
         .pipe(gulp.dest('./'));
 });
+
+gulp.task('processPaymentHtml', function () {
+    return gulp.src('payment.html')
+        .pipe(htmlreplace({
+            'css': 'css/main.css',
+            'js': ['pay/pay.min.js']
+        }))
+        .pipe(gulp.dest('build/'));
+});
+
+gulp.task('copyPayment', function () {
+    return gulp.src( "pay/init.js" )
+        .pipe(gulp.dest('build/pay/'));
+});
+
+
+gulp.task('minifyPayment', function () {
+    return streamqueue({objectMode: true},
+        gulp.src(["lib/jquery-1.9.1.js", "lib/dev/less-1.7.0.min.js", "lib/worker/base.js", "lib/knockout-2.2.1.js", "js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js", "pay/**/*.js", "!pay/init.js"])
+            .pipe(sourcemaps.init())
+            .pipe(concat("pay.min.js"))
+            .pipe(uglify())
+            .pipe(sourcemaps.write('.'))
+            .pipe(gulp.dest('build/pay/')))
+});
+
+gulp.task('distPayment', function (cb) {
+    return runSequence(['copyPayment', 'minifyPayment', 'processPaymentHtml'], cb)
+});
+
 
 
 gulp.task('test.html', function () {
@@ -320,13 +349,13 @@ gulp.task('distCordovaLocal', ['clean'], function (cb) {
 gulp.task('distLocal', ['clean'], function (cb) {
     env = local_compiled;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('dist', ['clean'], function (cb) {
     env = prod;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'manifest', 'gzip', cb);
 });
 
 gulp.task('release', ['dist', 'tagRelease'], function (cb) {
