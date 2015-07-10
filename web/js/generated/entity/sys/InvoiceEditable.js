@@ -13,9 +13,9 @@ tutao.entity.sys.InvoiceEditable = function(invoice) {
 	this.date = ko.observable(invoice.getDate());
 	this.grandTotal = ko.observable(invoice.getGrandTotal());
 	this.number = ko.observable(invoice.getNumber());
-	this.paid = ko.observable(invoice.getPaid());
-	this.published = ko.observable(invoice.getPublished());
+	this.paymentMethod = ko.observable(invoice.getPaymentMethod());
 	this.source = ko.observable(invoice.getSource());
+	this.status = ko.observable(invoice.getStatus());
 	this.vat = ko.observable(invoice.getVat());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
@@ -40,9 +40,9 @@ tutao.entity.sys.InvoiceEditable.prototype.update = function() {
 	this._entity.setDate(this.date());
 	this._entity.setGrandTotal(this.grandTotal());
 	this._entity.setNumber(this.number());
-	this._entity.setPaid(this.paid());
-	this._entity.setPublished(this.published());
+	this._entity.setPaymentMethod(this.paymentMethod());
 	this._entity.setSource(this.source());
+	this._entity.setStatus(this.status());
 	this._entity.setVat(this.vat());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

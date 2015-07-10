@@ -59,7 +59,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         });
     });
 
-    window.addEventListener("message", this._paymentMessageHandler, false);
+    tutao.locator.eventListenerManager.addSingleEventListener("message", this._paymentMessageHandler);
     this._paymentWindow = null;
     this._paymentToken = ko.observable(null);
     this._paymentToken.subscribe(this._updatePaymentInfo, this);

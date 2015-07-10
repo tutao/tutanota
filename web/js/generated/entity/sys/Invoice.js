@@ -16,9 +16,9 @@ tutao.entity.sys.Invoice = function(data) {
     this._date = null;
     this._grandTotal = null;
     this._number = null;
-    this._paid = null;
-    this._published = null;
+    this._paymentMethod = null;
     this._source = null;
+    this._status = null;
     this._vat = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -36,9 +36,9 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
   this._date = data.date;
   this._grandTotal = data.grandTotal;
   this._number = data.number;
-  this._paid = data.paid;
-  this._published = data.published;
+  this._paymentMethod = data.paymentMethod;
   this._source = data.source;
+  this._status = data.status;
   this._vat = data.vat;
 };
 
@@ -84,9 +84,9 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
     date: this._date, 
     grandTotal: this._grandTotal, 
     number: this._number, 
-    paid: this._paid, 
-    published: this._published, 
+    paymentMethod: this._paymentMethod, 
     source: this._source, 
+    status: this._status, 
     vat: this._vat
   };
 };
@@ -112,19 +112,19 @@ tutao.entity.sys.Invoice.prototype.GRANDTOTAL_ATTRIBUTE_ID = 745;
 tutao.entity.sys.Invoice.prototype.NUMBER_ATTRIBUTE_ID = 743;
 
 /**
- * The id of the paid attribute.
+ * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.Invoice.prototype.PAID_ATTRIBUTE_ID = 748;
-
-/**
- * The id of the published attribute.
- */
-tutao.entity.sys.Invoice.prototype.PUBLISHED_ATTRIBUTE_ID = 747;
+tutao.entity.sys.Invoice.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 748;
 
 /**
  * The id of the source attribute.
  */
 tutao.entity.sys.Invoice.prototype.SOURCE_ATTRIBUTE_ID = 746;
+
+/**
+ * The id of the status attribute.
+ */
+tutao.entity.sys.Invoice.prototype.STATUS_ATTRIBUTE_ID = 747;
 
 /**
  * The id of the vat attribute.
@@ -228,37 +228,20 @@ tutao.entity.sys.Invoice.prototype.getNumber = function() {
 };
 
 /**
- * Sets the paid of this Invoice.
- * @param {boolean} paid The paid of this Invoice.
+ * Sets the paymentMethod of this Invoice.
+ * @param {string} paymentMethod The paymentMethod of this Invoice.
  */
-tutao.entity.sys.Invoice.prototype.setPaid = function(paid) {
-  this._paid = paid ? '1' : '0';
+tutao.entity.sys.Invoice.prototype.setPaymentMethod = function(paymentMethod) {
+  this._paymentMethod = paymentMethod;
   return this;
 };
 
 /**
- * Provides the paid of this Invoice.
- * @return {boolean} The paid of this Invoice.
+ * Provides the paymentMethod of this Invoice.
+ * @return {string} The paymentMethod of this Invoice.
  */
-tutao.entity.sys.Invoice.prototype.getPaid = function() {
-  return this._paid == '1';
-};
-
-/**
- * Sets the published of this Invoice.
- * @param {boolean} published The published of this Invoice.
- */
-tutao.entity.sys.Invoice.prototype.setPublished = function(published) {
-  this._published = published ? '1' : '0';
-  return this;
-};
-
-/**
- * Provides the published of this Invoice.
- * @return {boolean} The published of this Invoice.
- */
-tutao.entity.sys.Invoice.prototype.getPublished = function() {
-  return this._published == '1';
+tutao.entity.sys.Invoice.prototype.getPaymentMethod = function() {
+  return this._paymentMethod;
 };
 
 /**
@@ -276,6 +259,23 @@ tutao.entity.sys.Invoice.prototype.setSource = function(source) {
  */
 tutao.entity.sys.Invoice.prototype.getSource = function() {
   return this._source;
+};
+
+/**
+ * Sets the status of this Invoice.
+ * @param {string} status The status of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.setStatus = function(status) {
+  this._status = status;
+  return this;
+};
+
+/**
+ * Provides the status of this Invoice.
+ * @return {string} The status of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getStatus = function() {
+  return this._status;
 };
 
 /**
