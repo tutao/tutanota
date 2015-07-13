@@ -93,7 +93,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }, self.isFreeAccount, false, "menu_invite", "invite", 'invite_alt'),
 
         new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt', function () {
-            return tutao.locator.navigator.hash() == '#settings';
+            return tutao.locator.navigator.hash() == '#settings' && !(self.isFreeAccount() && tutao.locator.settingsViewModel.displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
         }),
 
         // external users
