@@ -17,7 +17,35 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
 
     this.deleteAccountStatus = ko.observable({ type: "neutral", text: "deleteAccountInfo_msg" });
     this.busy = ko.observable(false);
+
+    // unsubscribe premium
+    this.state = new tutao.tutanota.util.SubmitStateMachine();
+    this.state.entering(true);
 };
+
+
+/**
+ * Called when the confirm button is clicked by the user. Triggers the next state in the state machine.
+ */
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = function() {
+    if (!this.state.submitEnabled()) {
+        return;
+    }
+    var self = this;
+    this.state.submitting(true);
+    var service = new tutao.entity.sys.SwitchAccountTypeData();
+    service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+
+    service.setup({}, null).then(function() {
+        self.state.success(true);
+    }).caught(tutao.InvalidDataError, function(exception) {
+        self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
+        self.state.failure(true);
+    }).caught(function(error){
+        self.state.failure(true);
+    });
+};
+
 
 /**
  * Checks the entered old password and updates the password status.

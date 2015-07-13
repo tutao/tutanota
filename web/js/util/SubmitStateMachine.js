@@ -42,6 +42,10 @@ tutao.tutanota.util.SubmitStateMachine = function() {
         return this._state() == "entering" && !this._inputInvalidMessageListener();
     }, this);
 
+    this.cancelEnabled = ko.computed(function() {
+        return this._state() != "submitting" && this._state() != "success" && this._state() != "failure";
+    }, this);
+
     this.submitStatus = ko.computed(function() {
         if (this._state() == "entering") {
             var inputInvalidMessage = this._inputInvalidMessageListener();

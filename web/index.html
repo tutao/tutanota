@@ -132,7 +132,6 @@
 <script src="/js/ctrl/AdminMessagesViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
 <script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
-<script src="/js/ctrl/AdminSwitchAccountTypeViewModel.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
 <script src="/js/ctrl/AdminUserListViewModel.js"></script>
 <script src="/js/ctrl/AppCacheListener.js"></script>
@@ -1470,6 +1469,25 @@
 							<!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT -->
                             <div id="adminDeleteAccount" data-bind="with: new tutao.tutanota.ctrl.AdminDeleteAccountViewModel()">
+                                <h2 data-bind="visible: tutao.locator.viewManager.isPremiumAccount(), lang: 'unsubscribePremium_label'"></h2>
+                                <form class="recordContainer wide" data-bind="if: tutao.locator.viewManager.isPremiumAccount(), submit: unsubscribePremium, form: true">
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">Tutanota Free</div>
+                                            <label class="recordInfo" data-bind="lang: 'unsubscribePremiumMessage_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
+                                            <label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <h2 data-bind="lang: 'adminDeleteAccount_action'"></h2>
                                 <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                     <div class="record">
                                         <label for="deleteReason" class="recordName" data-bind="lang: 'deleteAccountReason_label'"></label>
@@ -1532,25 +1550,6 @@
                             </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES -->
-							<div id="adminSwitchAccountType" data-bind="with: new tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel()" >
-								<form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-									<div class="record">
-										<label for="accountTypeInput" class="recordName" data-bind="lang: 'bookingItemAccountType_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<select  id="accountTypeInput" data-bind="options: accountTypes, value: selectedAccountType, optionsText: getAccountTypeText"></select>
-											</div>
-										</div>
-									</div>
-									<div class="record">
-										<div class="recordName"></div>
-										<div class="formAction">
-											<button id="submitAccountType" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
-											<label  class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
-										</div>
-									</div>
-								</form>
-							</div>
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
                                 <form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                     <div class="record">
@@ -1571,7 +1570,7 @@
                                     </div>
                                 </form>
                             </div>
-							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel()">
+							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
 								<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
 									<div class="record">
 										<label class="recordName" data-bind="lang: 'adminCustomDomain_label'"></label>
@@ -1638,16 +1637,42 @@
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT -->
                             <div data-bind="with: new tutao.tutanota.ctrl.PaymentDataViewModel()" >
-                                <form class="recordContainer wide" data-bind="if: accountingInfo, submit: storeAccountingInfo, form: true">
+                                <h1 class="centered" data-bind="lang: 'upgradeToPremiumHeading_label', visible: (step() > -1)"></h1>
+                                <div class="light defaultMargin" data-bind="lang: 'paymentDataOrderPremiumInfo_msg', visible: step() == 0"></div>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 0, submit: enterAccountingInfo, form: true">
                                     <div class="record">
                                         <label for="paymentUsageInput" class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
                                                 <select id="paymentUsageInput" class="inputField wide" data-bind="options: usageOptions, value: accountingInfo().business, optionsText: 'name', optionsValue: 'value', enable: state.entering"></select>
                                             </div>
-                                            <label for="paymentUsageInput" class="recordStatus" data-bind="lang: usageStatus().text, css: usageStatus().type"></label>
                                         </div>
                                     </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <select id="subscriptionInput" class="inputField wide" data-bind="options: paymentIntervals, value: accountingInfo().paymentInterval, optionsText: 'textId', optionsValue: 'interval', enable: state.entering"></select>
+                                            </div>
+                                            <label for="subscriptionInput" class="recordInfo" data-bind="lang: 'renewedSubscriptionInfo_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'price_label'"></label>
+                                        <div class="recordData">
+                                            <div id="subscriptionPrice" class="recordValue" data-bind="text: getPriceText()"></div>
+                                            <label for="subscriptionPrice" class="recordInfo" data-bind="text: getPriceInfoText()"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: 'continue_action'"></button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="light defaultMargin" data-bind="lang: 'paymentDataEnterData_msg', visible: step() == 1"></div>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && (step() == 1 || step() == -1), submit: submitPaymentData, form: true">
                                     <div class="record">
                                         <label for="paymentInvoiceRecipientInput"  class="recordName" data-bind="lang: 'invoiceRecipient_label'"></label>
                                         <div class="recordData">
@@ -1694,7 +1719,7 @@
                                         </div>
                                     </div>
 									<div class="record" data-bind="fadeVisible : isEnterPaymentDataButtonVisible() " >
-										<label class="recordName" data-bind="lang: 'adminPayment_action'"></label>
+										<label class="recordName" data-bind="lang: 'paymentDetails_label'"></label>
 										<div class="formAction">
 											<button class="single" type="button" data-bind="lang: isPaymentMethodInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
 											<label class="recordInfo" data-bind="text: accountingInfo().paymentMethodInfo(), fadeVisible: isPaymentMethodInfoAvailable()"></label>
@@ -1704,7 +1729,42 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button class="single" type="submit" data-bind="lang: 'save_action', css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: getStoreButtonText(), css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single" type="button" data-bind="lang: 'back_action', visible: step() == 1, css: {disabled: !state.cancelEnabled()}, fastClick: back"></button>
+                                            <label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 2, submit: buy, form: true">
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummaryBookingText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummarySubscriptionText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'price_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummaryPriceText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: accountingInfo().paymentMethodInfo()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: 'buy_action', css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single" type="button" data-bind="lang: 'back_action', css: {disabled: !state.cancelEnabled()}, fastClick: back"></button>
                                             <label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
                                         </div>
                                     </div>

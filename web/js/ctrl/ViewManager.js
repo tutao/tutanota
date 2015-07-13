@@ -33,17 +33,19 @@ tutao.tutanota.ctrl.ViewManager = function() {
     this.buttonWithSubButtons = ko.observable(); // is set by the button whose sub-buttons shall be shown
 };
 
-
-
 tutao.tutanota.ctrl.ViewManager.prototype.getLoggedInUserAccountType = function(){
-    if ( this._internalUserLoggedIn() || this._externalUserLoggedIn()){
+    if (this._internalUserLoggedIn() || this._externalUserLoggedIn()) {
         return tutao.locator.userController.getLoggedInUser().getAccountType();
     }
     return null;
 };
 
-tutao.tutanota.ctrl.ViewManager.prototype._isFreeAccount = function() {
+tutao.tutanota.ctrl.ViewManager.prototype.isFreeAccount = function() {
     return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE;
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.isPremiumAccount = function() {
+    return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM;
 };
 
 /**
@@ -72,7 +74,9 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         new tutao.tutanota.ctrl.Button('upgradePremium_label', 28, function() {
             tutao.locator.navigator.settings();
             tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-        }, self._isFreeAccount, true, "menu_upgradePremium", "upgrade", 'upgradePremium_label'), // Execute this action direct to avoid pop up blockers
+        }, self.isFreeAccount, true, "menu_upgradePremium", "upgrade", 'upgradePremium_label', function() {
+            return tutao.locator.settingsViewModel.displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT;
+        }), // Execute this action direct to avoid pop up blockers
 
 
         new tutao.tutanota.ctrl.Button('invite_label', 28, function() {
@@ -86,7 +90,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
                 }
             });
 
-        }, self._isFreeAccount, false, "menu_invite", "invite", 'invite_alt'),
+        }, self.isFreeAccount, false, "menu_invite", "invite", 'invite_alt'),
 
         new tutao.tutanota.ctrl.Button('settings_label', 27, tutao.locator.navigator.settings, self.isInternalUserLoggedIn, false, "menu_settings", "settings", 'settings_alt', function () {
             return tutao.locator.navigator.hash() == '#settings';
@@ -100,7 +104,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         // all supported
         new tutao.tutanota.ctrl.Button('community_label', 26, function () {
             tutao.tutanota.gui.openLink("https://tutanota.com/community");
-        }, self._isFreeAccount, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
+        }, self.isFreeAccount, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {

@@ -7,6 +7,8 @@ tutao.provide('tutao.ctrl.UserController');
  * @constructor
  */
 tutao.ctrl.UserController = function () {
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
     this._user = ko.observable(null);
     this._userGroupInfo = ko.observable(null);
     this.reset();
@@ -21,7 +23,7 @@ tutao.ctrl.UserController.prototype.reset = function () {
     this._userGroupKey = null;
     this._authVerifier = null;
     this._userGroupId = null;
-    this._user(null);
+    this._updateUser(null);
     this._userPassphraseKey = null;
     this._userClientKey = null;
     this._hexSalt = null;
@@ -169,7 +171,7 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
             return tutao.entity.sys.User.load(self._userId);
         });
     }).then(function (user) {
-        self._user(user);
+        self._updateUser(user);
         self._userGroupId = user.getUserGroup().getGroup();
         self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
         self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
@@ -233,7 +235,7 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
         authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
         self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
         return tutao.entity.sys.User.load(self._userId).then(function (user) {
-            self._user(user);
+            self._updateUser(user);
             self._userGroupId = user.getUserGroup().getGroup();
             self._userGroupKey = tutao.locator.aesCrypter.decryptKey(self._userPassphraseKey, user.getUserGroup().getSymEncGKey());
             self._userClientKey = tutao.locator.aesCrypter.decryptKey(self._userGroupKey, user.getUserEncClientKey());
@@ -253,4 +255,22 @@ tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, passwo
  */
 tutao.ctrl.UserController.prototype.isExternalUserLoggedIn = function () {
     return (this._authToken != null); // only check auth token because this is already called when loading the user in loginExternalUser()
+};
+
+/**
+ * Must be used to set the internal user variable. Registers a listener on the user.
+ * @return {Promise.<>} Resolved when finished.
+ */
+tutao.ctrl.UserController.prototype._updateUser = function (user) {
+    if (this._user()) {
+        this._user().unregisterObserver(this._userChanged);
+    }
+    this._user(user);
+    if (this._user()) {
+        this._user().registerObserver(this._userChanged);
+    }
+};
+
+tutao.ctrl.UserController.prototype._userChanged = function () {
+    this._user.valueHasMutated();
 };

@@ -59,15 +59,17 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
     if (tutao.locator.userController.isLoggedInUserAdmin() ) {
         settings.push(s.DISPLAY_ADMIN_ACCOUNT_INFO);
         settings.push(s.DISPLAY_ADMIN_USER_LIST);
-        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+        if (!tutao.locator.viewManager.isFreeAccount()) {
             settings.push(s.DISPLAY_ADMIN_MESSAGES);
         }
-        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+        if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
         }
-        settings.push(s.DISPLAY_ADMIN_PAYMENT);
-        settings.push(s.DISPLAY_ADMIN_INVOICING);
-        if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+        settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
+        if (!tutao.locator.viewManager.isFreeAccount()) {
+            settings.push(s.DISPLAY_ADMIN_INVOICING);
+        }
+        if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         }
     }
@@ -80,7 +82,11 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
  * @return {String} text id for the setting number
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
-	return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "adminDeleteAccount_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action"][settings];
+    } else {
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
+    }
 };
 
 /**

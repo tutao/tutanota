@@ -11,15 +11,16 @@ tutao.tutanota.ctrl.AdminAccountInfoViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this.records = [];
-    this.records.push({ nameTextId: "accountType_label", infoTextId: null, valueObservable: ko.observable("") });
-    this.records.push({ nameTextId: "domains_label", infoTextId: null, valueObservable: ko.observable("") });
+    this.records.push({ nameTextId: "accountType_label", infoTextId: null, valueObservable: ko.computed(function() {
+        return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
+    }) });
+    this.records.push({ nameTextId: "domains_label", infoTextId: "addDomainInfo_msg", valueObservable: ko.observable("") });
     this.records.push({ nameTextId: "storageCapacity_label", infoTextId: null, valueObservable: ko.observable("") });
 
     var user = tutao.locator.userController.getLoggedInUser();
 
     var self = this;
     user.loadCustomer().then(function(customer) {
-        self.records[0].valueObservable("Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(customer.getType())]);
         customer.loadCustomerInfo().then(function(customerInfo) {
             var domainNames = "-";
             var domainInfos = customerInfo.getDomainInfos();

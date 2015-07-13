@@ -14,14 +14,6 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 
     this.usageOptions = [{name: tutao.lang("privateUse_label"), value: false}, {name: tutao.lang("businessUse_label"), value: true}];
 
-    this.usageStatus = ko.computed(function() {
-        if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE && this.accountingInfo() != null && this.accountingInfo().business()) {
-            return {type: "invalid", text: "emptyString_msg"};
-        } else {
-            return {type: "neutral", text: "emptyString_msg"};
-        }
-    }, this);
-
     this.availableCountries = [{n: tutao.lang('choose_label'), a: null, t: 0}].concat(tutao.util.CountryList.COUNTRIES);
 
     this.showVatIdNoField = ko.computed(function() {
@@ -64,6 +56,9 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this._paymentToken = ko.observable(null);
     this._paymentToken.subscribe(this._updatePaymentInfo, this);
 
+    // only for upgrade
+    this.step = ko.observable(tutao.locator.viewManager.isFreeAccount() ? 0 : -1);
+    this.paymentIntervals = [{ textId: tutao.lang("yearly_label"), interval: "12" }, { textId: tutao.lang("monthly_label"), interval: "1" }];
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = function() {
@@ -97,11 +92,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = fun
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.storeAccountingInfo = function() {
-    if (!this.state.submitEnabled()) {
-        return;
-    }
     var self = this;
-
     var service = new tutao.entity.sys.PaymentDataServicePutData();
     service.setBusiness(this.accountingInfo().business())
         .setInvoiceName(this.accountingInfo().invoiceName())
@@ -111,13 +102,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.storeAccountingInfo = functio
         .setPaymentMethod(this.accountingInfo().paymentMethod())
         .setPaymentMethodInfo(this.accountingInfo().paymentMethodInfo())
         .setPaymentInterval(this.accountingInfo().paymentInterval())
-        .setPaymentToken(this._paymentToken() != null ?  this._paymentToken().value : null)
+        .setPaymentToken(this._paymentToken() != null ? this._paymentToken().value : null)
         .setConfirmedCountry(null);
 
     this.state.submitting(true);
-    service.update({}, null).then(function(paymentResult) {
+    return service.update({}, null).then(function (paymentResult) {
         return self._handlePaymentDataServiceResult(paymentResult, service);
-    }).caught(function() {
+    }).caught(function () {
         self.state.failure(true);
     });
 };
@@ -215,5 +206,103 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
             console.log( tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN + ":" + token);
             this._paymentToken({value: token, method: paymentMethod, info: paymentMethodInfo});
         }
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.enterAccountingInfo = function() {
+    this.step(1);
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.back = function() {
+    if (!this.state.cancelEnabled()) {
+        return;
+    }
+    this.step(this.step() - 1);
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.submitPaymentData = function() {
+    if (!this.state.submitEnabled()) {
+        return;
+    }
+
+    if (this.step() == -1) {
+        this.storeAccountingInfo();
+    } else {
+        // show summary
+        this.step(2);
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
+    if (!this.state.submitEnabled()) {
+        return;
+    }
+
+    var self = this;
+    this.storeAccountingInfo().then(function() {
+        if (self.state.success()) {
+            var service = new tutao.entity.sys.SwitchAccountTypeData();
+            service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM);
+
+            self.state.submitting(true);
+            service.setup({}, null).then(function () {
+                self.state.success(true);
+                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+            }).caught(function (error) {
+                self.state.failure(true);
+            });
+        }
+    });
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
+    if (this.accountingInfo().paymentInterval() == "12") {
+        return "12,00 EUR " + tutao.lang('perYear_label');
+    } else {
+        return "1,20 EUR " + tutao.lang('perMonth_label');
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceInfoText = function() {
+    if (this.accountingInfo().business()) {
+        if (this.accountingInfo().paymentInterval() == "12") {
+            return "= 1,00 EUR " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+        } else {
+            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+        }
+    } else {
+        if (this.accountingInfo().paymentInterval() == "12") {
+            return "= 1,00 EUR " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+        } else {
+            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+        }
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getStoreButtonText = function() {
+    if (this.step() == -1) {
+        return "save_action";
+    } else {
+        return "continue_action";
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getSummaryBookingText = function() {
+    return 'Tutanota Premium ' + tutao.lang('for_label') + ' ' + tutao.locator.userController.getUserGroupInfo().getMailAddress();
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getSummarySubscriptionText = function() {
+    if (this.accountingInfo().paymentInterval() == "12") {
+        return tutao.lang("yearly_label") + ', ' + tutao.lang('automaticRenewal_label');
+    } else {
+        return tutao.lang("monthly_label") + ', ' + tutao.lang('automaticRenewal_label');
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getSummaryPriceText = function() {
+    if (this.accountingInfo().business()) {
+        return this.getPriceText() + " (" + tutao.lang("net_label") + ")";
+    } else {
+        return this.getPriceText() + " (" + tutao.lang("gross_label") + ")";
     }
 };
