@@ -32,17 +32,22 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
         return;
     }
     var self = this;
-    this.state.submitting(true);
-    var service = new tutao.entity.sys.SwitchAccountTypeData();
-    service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+    tutao.tutanota.gui.confirm(tutao.lang("unsubscribePremiumConfirm_msg")).then(function(confirmed) {
+        if (confirmed) {
+            self.state.submitting(true);
+            var service = new tutao.entity.sys.SwitchAccountTypeData();
+            service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
 
-    service.setup({}, null).then(function() {
-        self.state.success(true);
-    }).caught(tutao.InvalidDataError, function(exception) {
-        self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
-        self.state.failure(true);
-    }).caught(function(error){
-        self.state.failure(true);
+            service.setup({}, null).then(function () {
+                self.state.success(true);
+                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+            }).caught(tutao.InvalidDataError, function (exception) {
+                self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
+                self.state.failure(true);
+            }).caught(function (error) {
+                self.state.failure(true);
+            });
+        }
     });
 };
 

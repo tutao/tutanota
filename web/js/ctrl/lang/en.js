@@ -576,5 +576,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "unsubscribe_action": "Unsubscribe",
     "unsubscribePremium_label": "Unsubscribe Premium",
     "unsubscribePremiumMessage_msg": "Your Account will be reset to Tutanota Free.",
-    "addDomainInfo_msg": "Own domains can be configured in the 'Extension' menu for Premium accounts."
+    "addDomainInfo_msg": "Own domains can be configured in the 'Extension' menu for Premium accounts.",
+    "unsubscribePremiumConfirm_msg": "Do you really want to unsubscribe Tutanota Premium?"
 };
