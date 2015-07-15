@@ -30,19 +30,32 @@ tutao.tutanota.pay.PaymentDataValidationViewModel = function(){
     };
     this._parentWindowName = null;
     this._paymentType = ko.observable(null);
-    this.loading = ko.observable(true);
     this.busy = ko.observable(false);
-    this.siteLoadingErrorStatus = ko.observable(null);
+    this.siteLoadingErrorMessage = ko.observable(tutao.locator.languageViewModel.get("loading_msg"));
+    this.siteLoadingStatus = ko.observable(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING);
+
+    this.siteLoadingStatus.subscribe(function(newValue){
+        if ( newValue == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD){
+            this.siteLoadingErrorMessage(tutao.lang("invalidPageLoad_msg"));
+        } else if (newValue == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED) {
+            this.siteLoadingErrorMessage(tutao.lang("unsupportedBrowser_msg"));
+        } else if (newValue == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED_PAYMENTMETHOD) {
+            this.siteLoadingErrorMessage(tutao.lang("invalidPageLoadUnsupported_msg"));
+        } else if (newValue == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING) {
+            this.siteLoadingErrorMessage(tutao.lang("loading_msg"));
+        }
+    }, this);
 };
 
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.init = function(){
-    if ( window.opener){
+    if ( tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_IE ){
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED);
+    }else if (window.opener){
         window.addEventListener("message", this._receiveMessage, false);
         window.opener.postMessage(tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_FORM_READY , "*");
     } else {
-        this.loading = ko.observable(false);
-        this.siteLoadingErrorStatus(tutao.lang("invalidPageLoad_msg"));
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD);
     }
 };
 
@@ -72,15 +85,15 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._receiveMessage = fu
     var parts = event.data.split(":");
     if (parts.length == 2 && parts[0] == tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_CLIENT_TOKEN) {
         var clientToken = parts[1];
-        console.log("client token received: " + clientToken);
+        //console.log("client token received: " + clientToken);
         this._handleClientToken(clientToken);
     } else  if (parts.length == 2 && parts[0] == tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_WINDOW_NAME) {
-        console.log(event);
+        //console.log(event);
         var windowName = parts[1];
-        console.log("window name received: " + windowName);
+        //console.log("window name received: " + windowName);
         this._parentWindowName = windowName;
     } else  if (parts.length == 2 && parts[0] == tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_METHOD) {
-        console.log(event);
+        //console.log(event);
         this._paymentType(parts[1]);
     }
 };
@@ -117,11 +130,11 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.isSubmitEnabled = fu
 };
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.isCreditCardFormEnabled = function(){
-    return !this.loading() && this.siteLoadingErrorStatus() == null && this._paymentType() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD;
+    return this.siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK  && this._paymentType() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD;
 };
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.isPayPalFormEnabled = function(){
-    return !this.loading() && this.siteLoadingErrorStatus() == null && this._paymentType() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL;
+    return this.siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK  && this._paymentType() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL;
 };
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.getPayPalFormTitle = function(){
@@ -208,11 +221,10 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._handleClientToken =
             onPaymentMethodReceived: self._handlePaymentToken,
             locale: self._getCurrentLanguage(),
             onUnsupported: self._onUnsupported,
-            onCancelled: self._onCancelPayPalForm,
+            onCancelled: self._onCancelPayPalForm
         });
     } else {
-        this.loading = ko.observable(false);
-        this.siteLoadingErrorStatus(tutao.lang("invalidPageLoad_msg"));
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD);
     }
 };
 
@@ -241,7 +253,7 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._handleFieldEvent = 
     } else if (event.type === "blur") {
         // Handle blur
     } else if (event.type === "fieldStateChange") {
-        console.log(event);
+        //console.log(event);
         // check if the associated input is fully qualified for submission
         var fieldKey = event.target.fieldKey;
 
@@ -264,19 +276,23 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._handleFieldEvent = 
 
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onReady = function() {
-    console.log("onReady");
+    //console.log("onReady");
     if ( tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL == this._paymentType() ) {
         document.getElementById('braintree-paypal-button').click();
     }
-    this.loading(false);
+    // in case of errors the onReady callback might still be called, so check that no error has been occurred before.
+    if (this.siteLoadingStatus()== tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING ){
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK);
+    }
+
 };
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onError = function(error) {
-    this.loading(false);
     if (error.message){
-        this.siteLoadingErrorStatus(error.message);
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_ERROR);
+        this.siteLoadingErrorMessage(error.message);
     }else {
-        this.siteLoadingErrorStatus(tutao.lang("invalidPageLoad_msg"));
+        this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD);
     }
 };
 
@@ -286,10 +302,5 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onCancelPayPalForm 
 };
 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onUnsupported = function() {
-    this.loading(false);
-    this.siteLoadingErrorStatus(tutao.lang("invalidPageLoadUnsupported_msg") );
+    this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED);
 };
-
-
-
-

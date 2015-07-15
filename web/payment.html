@@ -104,13 +104,18 @@
 	<div id="viewContainer">
 		<div class="singleColumnContent  scrollable"  data-bind="with: tutao.locator.paymentDataValidationViewModel">
 			<div class="centeredColumn" >
-				<div class="statusBox" data-bind="fadeVisible: loading()">
-					<div class="fontImage spinner" ></div>
-					<div class="statusText" data-bind="lang: 'loading_msg'" ></div>
-				</div>
 
-				<div class="statusBox" data-bind="fadeVisible: (siteLoadingErrorStatus() != null)">
-					<div class="statusText" data-bind="text: siteLoadingErrorStatus()" ></div>
+				<div class="statusBox" data-bind="fadeVisible: siteLoadingStatus() != tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK">
+					<div class="fontImage spinner" data-bind="fadeVisible: siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING"></div>
+					<div class="statusText" data-bind="text: siteLoadingErrorMessage()" ></div>
+					<div class="notSupportedList" data-bind="fadeVisible: siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED" >
+						<ul>
+							<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
+							<li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
+							<li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
+							<li><a target="_blank" href="http://www.apple.com/de/safari">Safari (Desktop, iOS)</a></li>
+						</ul>
+					</div>
 				</div>
 
 				<div id="paymentDataPayPalForm" data-bind="fadeVisible: isPayPalFormEnabled()" >

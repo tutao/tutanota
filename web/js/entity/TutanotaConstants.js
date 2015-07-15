@@ -305,3 +305,11 @@ tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_CREDIT_
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_CREDIT_CARD_CVV_INVALID = "4";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_PAYMENT_PROVIDER_NOT_AVAILABLE = "5";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_OTHER_PAYMENT_PROVIDER_ERROR = "6";
+
+
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING = "0";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK = "1";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD = "2";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED = "3";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED_PAYMENTMETHOD = "4";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_ERROR = "5";
