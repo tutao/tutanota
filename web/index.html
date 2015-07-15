@@ -1946,7 +1946,7 @@
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}"/>
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}"/>
                                     </div>
                                     <label class="recordInfo" data-bind="lang: 'loginNameInfoAdmin_msg', attr: {for: 'userName' + $index()}"></label>
                                 </div>
@@ -1955,9 +1955,9 @@
                                 <label class="recordName" data-bind="lang: 'mailAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" />
+                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.state.entering(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" />
 										<span>@</span>
-										<select data-bind="options: availableDomains, value: domain"></select>
+										<select data-bind="enable: $parent.state.entering(), options: availableDomains, value: domain"></select>
                                     </div>
                                     <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
                                     <label class="recordInfo" data-bind="lang: 'mailAddressInfoAdmin_msg', attr: {for: 'userMailAddress' + $index()}"></label>
@@ -1967,7 +1967,7 @@
                                 <label class="recordName" data-bind="lang: 'password_label', attr: {for: 'password' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
                                         <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1981,12 +1981,18 @@
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button class="single" data-bind="lang: 'adminUserRemove_action', fastClick: $parent.removeUser"></button>
+                                    <button class="single" data-bind="lang: 'adminUserRemove_action', css: { disabled: !$parent.state.entering() }, fastClick: $parent.removeUser"></button>
                                 </div>
                             </div>
                         </form>
-                        <hr>
                         <!-- /ko -->
+                        <!-- ko if: (createdUsers().length > 0) -->
+                        <div class="light" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
+                        <ul class="defaultMargin" data-bind="foreach: createdUsers">
+                            <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
+                        </ul>
+                        <!-- /ko -->
+                        <hr>
                         <h1 data-bind="lang: 'bookingSummary_label'"></h1>
                         <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
                             <div class="record">
@@ -2019,18 +2025,12 @@
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: getCreateUsersButtonTextId()"></button>
-                                    <button class="single" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
-                                    <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
+                                    <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !state.submitEnabled() }, lang: getCreateUsersButtonTextId()"></button>
+                                    <button class="single" data-bind="lang: 'cancel_action', css: { disabled: !state.cancelEnabled() }, fastClick: cancel"></button>
+                                    <label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
                                 </div>
                             </div>
                         </form>
-                        <!-- ko if: (createdUsers().length > 0) -->
-                            <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
-                        <!-- /ko -->
-                        <ul data-bind="foreach: createdUsers">
-                            <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
-                        </ul>
                     <!-- /ko -->
                     </div>
 				<!-- /ko -->

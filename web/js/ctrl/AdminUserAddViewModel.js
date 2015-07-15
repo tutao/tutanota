@@ -20,8 +20,6 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
     this.newUsers.subscribe(this._updatePrice);
     this.createdUsers = ko.observableArray([]);
 
-	
-	this.isEditable = ko.observable(true);
 	this.createStatus = ko.observable({type: "neutral", text: "emptyString_msg", params: {}});
 	this.csvDialogVisible = ko.observable(false);
 	this.csvData = ko.observable("name;mail.address;securePassword (optional)");
@@ -33,33 +31,53 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 
     this.accountingInfo = ko.observable(null);
 
+    this.state = new tutao.tutanota.util.SubmitStateMachine();
+    this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
+    this.state.setSuccessMessage("createActionSuccess_msg");
+    this.state.setFailureMessage("createActionFailed_msg");
+
     var self = this;
     tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                 self.accountingInfo(accountingInfo);
+                self.state.entering(true);
                 self.addEmptyUser();
             });
         });
     });
 
     this._price = ko.observable(null);
+
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, null, false, "newUserAction", "add", "adminUserAdd_action"),
-        new tutao.tutanota.ctrl.Button("import_action", 11,  this.openCsvDialog, null, false, "newUserAction", "add", "import_action")
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, this._isEntering, false, "newUserAction", "add", "adminUserAdd_action"),
+        new tutao.tutanota.ctrl.Button("import_action", 11,  this.openCsvDialog, this._isEntering, false, "newUserAction", "add", "import_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._isEntering = function() {
+    return this.state.entering();
+};
+
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.addEmptyUser = function() {
+    if (!this._isEntering()) {
+        return;
+    }
 	this.newUsers.push(new tutao.tutanota.ctrl.AdminNewUser(this._availableDomains));
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.removeUser = function(user) {
+    if (!this._isEntering()) {
+        return;
+    }
     this.newUsers.remove(user);
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.openCsvDialog = function() {
+    if (!this.state.entering()) {
+        return;
+    }
 	this.csvDialogVisible(true);
 };
 
@@ -93,46 +111,46 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.importCsv = function() {
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.cancel = function() {
+    if (!this.state.cancelEnabled()) {
+        return;
+    }
     this.adminUserListViewModel.removeSelection();
     tutao.locator.settingsView.showChangeSettingsColumn();
 };
 
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isCreateAccountsPossible = function() {
-    if (!this.isEditable() || this.newUsers().length == 0 || !this._price()) {
-        return false;
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._getInputInvalidMessage = function() {
+    if (this.newUsers().length == 0 || !this._price()) {
+        return "emptyString_msg";
     }
     for(var i = 0; i < this.newUsers().length; i++) {
         if (!this.newUsers()[i].isCreateAccountPossible()) {
-            return false;
+            return "emptyString_msg";
         }
     }
-    return true;
+    return null;
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() {
-    if (!this.isCreateAccountsPossible()) {
+    if (!this.state.submitEnabled()) {
         // TODO (timely) search in html for "css: { disabled:", replace with sth like knockout enabled-binding and remove all statements like this
         return;
     }
     var self = this;
-    this.isEditable(false);
+    this.state.submitting(true);
 
     var count = this.newUsers().length;
-    self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"{index}": count - this.newUsers().length, "{count}": count}});
+    self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": count - self.newUsers().length, "{count}": count}));
     if (self.newUsers().length > 0) {
         return Promise.each(self.newUsers(), function(newUser) {
-            self.createStatus({type: "neutral", text: "createActionStatus_msg", params: {"{index}": count - self.newUsers().length, "{count}": count}});
+            self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": count - self.newUsers().length, "{count}": count}));
             return newUser.create().then(function() {
                 self.createdUsers.push(self.newUsers.shift());
             });
         }).then(function() {
-            self.addEmptyUser();
-            self.isEditable(true);
-            self.createStatus({type: "valid", text: "createActionSuccess_msg"});
+            self.state.success(true);
             self.adminUserListViewModel.update();
         }).caught(function(exception) {
-            self.isEditable(true);
-            self.createStatus({type: "invalid", text: "createActionFailed_msg"});
+            self.state.failure(true);
             throw exception;
         });
     }
@@ -207,6 +225,9 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getCreateUsersButtonTextId =
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._updatePrice = function() {
+    if (!this.state.entering()) {
+        return;
+    }
     this._price(null);
     var self = this;
     tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, this.newUsers().length).then(function(price) {

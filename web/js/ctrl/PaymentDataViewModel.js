@@ -24,7 +24,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         { name: tutao.lang('choose_label'), value: null },
         { name: tutao.lang('paymentMethodCreditCard_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD },
         { name: tutao.lang('@PayPal'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL },
-        { name: tutao.lang('paymentMethodInvoice_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE }
+        { name: tutao.lang('paymentMethodOnAccount_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE }
     ];
     var privateMethods = [businessMethods[0], businessMethods[1], businessMethods[2]];
 

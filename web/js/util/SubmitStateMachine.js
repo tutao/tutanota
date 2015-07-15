@@ -28,7 +28,7 @@ tutao.tutanota.util.SubmitStateMachine = function() {
 
     this._inputInvalidMessageListener = function() { return null; }; // default function that says the input is valid
 
-    this._submittingMessage = "save_msg";
+    this._submittingMessage = ko.observable("save_msg");
     this._successMessage = "saved_msg";
     this._failureMessage = "unknownError_msg";
 
@@ -55,7 +55,7 @@ tutao.tutanota.util.SubmitStateMachine = function() {
                 return {type: "neutral", text: "emptyString_msg"};
             }
         } else if (this._state() == "submitting") {
-            return {type: "neutral", text: this._submittingMessage};
+            return {type: "neutral", text: this._submittingMessage()};
         } else if (this._state() == "success") {
             return {type: "valid", text: this._successMessage};
         } else if (this._state() == "failure") {
@@ -90,7 +90,7 @@ tutao.tutanota.util.SubmitStateMachine.prototype.setInputInvalidMessageListener 
 };
 
 tutao.tutanota.util.SubmitStateMachine.prototype.setSubmittingMessage = function(message) {
-    this._submittingMessage = message;
+    this._submittingMessage(message);
 };
 
 tutao.tutanota.util.SubmitStateMachine.prototype.setSuccessMessage = function(message) {
