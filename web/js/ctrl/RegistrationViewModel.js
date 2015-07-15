@@ -465,27 +465,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsLink = function() {
     var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
-    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE){
-        return 'https://tutanota.com/'+ langIdentifier + 'terms#terms-free';
-    } else {
-        return 'https://tutanota.com/'+ langIdentifier + 'terms#terms-business';
-    }
+    return 'https://tutanota.com/'+ langIdentifier + 'terms';
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPrivacyLink = function() {
     var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
     return 'https://tutanota.com/' +langIdentifier + 'terms#privacy';
 };
-
-
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsLabel = function() {
-    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE){
-        return 'termsAndConditionsFree_label';
-    } else {
-        return 'termsAndConditionsStarter_label';
-    }
-};
-
-
-
-

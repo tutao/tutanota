@@ -303,6 +303,11 @@
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
 <script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
+<script src="/js/generated/entity/sys/PriceData.js"></script>
+<script src="/js/generated/entity/sys/PriceItemData.js"></script>
+<script src="/js/generated/entity/sys/PriceRequestData.js"></script>
+<script src="/js/generated/entity/sys/PriceServiceData.js"></script>
+<script src="/js/generated/entity/sys/PriceServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
 <script src="/js/generated/entity/sys/PushIdentifier.js"></script>
@@ -466,6 +471,7 @@
 <script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
+<script src="/js/util/BookingUtils.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
 <script src="/js/util/CountryList.js"></script>
 <script src="/js/util/CsvConverter.js"></script>
@@ -1286,7 +1292,7 @@
                                     <div class="recordData">
                                         <div class="recordValue">
                                             <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-                                            <label for="termsInput" data-bind="lang: getTermsLabel() "></label>
+                                            <label for="termsInput" data-bind="lang: 'termsAndConditions_label'"></label>
 											<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
 											<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
                                         </div>
@@ -1757,7 +1763,7 @@
                                     <div class="record">
                                         <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
                                         <div class="recordData">
-                                            <div class="recordValue" data-bind="text: accountingInfo().paymentMethodInfo()"></div>
+                                            <div class="recordValue" data-bind="text: getSummaryPaymentMethodInfoText()"></div>
                                         </div>
                                     </div>
                                     <div class="record">
@@ -1812,7 +1818,7 @@
 			</div>
 			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
                 <!-- ko if: editing() -->
-                    <div class="scrollable" data-bind="with: editing()">
+                    <div class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: editing()">
                         <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
@@ -1909,8 +1915,8 @@
                     </div>
                 <!-- /ko -->
                 <!-- ko if: newViewModel() -->
-                    <div id="newUsers" class="scrollable" data-bind="with: newViewModel()">
-
+                    <div class="actions" data-bind="domInit: function(domElement) { newViewModel().buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: 'buttonBar-template',  data: newViewModel().buttonBarViewModel }"></div>
+                    <div id="newUsers" class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: newViewModel()">
                         <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
                             <div class="dialogWindow">
                                 <span class="close" data-bind="fastClick: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
@@ -1933,9 +1939,8 @@
                             </div>
                         </div>
 
-                        <h1 data-bind="lang: 'adminUserAdd_action'"></h1>
+                        <h1 data-bind="lang: 'newUsers_label'"></h1>
                         <!-- ko foreach: newUsers -->
-                            <!-- ko if: ($index() > 0) --><hr><!-- /ko -->
                         <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
@@ -1973,26 +1978,60 @@
                                     <div class="recordInfo" data-bind="lang: 'notePassword_msg'"></div>
                                 </div>
                             </div>
-                        </form>
-                        <!-- /ko -->
-                            <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
-                                <div class="record">
-                                    <div class="recordName"></div>
-                                    <div class="formAction">
-                                        <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-                                        <button class="single" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button>
-                                        <button class="single" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
-                                        <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
-                                    </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button class="single" data-bind="lang: 'adminUserRemove_action', fastClick: $parent.removeUser"></button>
                                 </div>
-                            </form>
-                            <!-- ko if: (createdUsers().length > 0) -->
-                                <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
-                            <!-- /ko -->
-                            <ul data-bind="foreach: createdUsers">
-                                <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
-                            </ul>
+                            </div>
+                        </form>
+                        <hr>
                         <!-- /ko -->
+                        <h1 data-bind="lang: 'bookingSummary_label'"></h1>
+                        <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryBookingText()"></div>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummarySubscriptionText()"></div>
+                                    <label class="recordInfo" data-bind="text: getSummarySubscriptionInfoText()"></label>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'newTotalPrice_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryPriceText()"></div>
+                                    <label class="recordInfo" data-bind="text: getSummaryPriceInfo1Text()"></label>
+                                    <label class="recordInfo" data-bind="text: getSummaryPriceInfo2Text()"></label>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryPaymentMethodInfoText()"></div>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: getCreateUsersButtonTextId()"></button>
+                                    <button class="single" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
+                                    <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
+                                </div>
+                            </div>
+                        </form>
+                        <!-- ko if: (createdUsers().length > 0) -->
+                            <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
+                        <!-- /ko -->
+                        <ul data-bind="foreach: createdUsers">
+                            <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
+                        </ul>
+                    <!-- /ko -->
                     </div>
 				<!-- /ko -->
 			</div>

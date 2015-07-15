@@ -39,6 +39,9 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this.state = new tutao.tutanota.util.SubmitStateMachine();
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
 
+    this._pricePerMonth = ko.observable(null);
+    this._pricePerYear = ko.observable(null);
+
     var self = this;
     tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         self.accountType(customer.getType());
@@ -46,7 +49,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                 self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
                 self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
-                self.state.entering(true);
+                return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
+                    self._pricePerMonth(Number(pricePerMonth.getFuturePrice().getPrice()));
+                    return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 12, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerYear) {
+                        self._pricePerYear(Number(pricePerYear.getFuturePrice().getPrice()));
+                        self.state.entering(true);
+                    });
+                });
             });
         });
     });
@@ -257,22 +266,22 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
     if (this.accountingInfo().paymentInterval() == "12") {
-        return "12,00 EUR " + tutao.lang('perYear_label');
+        return tutao.util.BookingUtils.formatPrice(this._pricePerYear()) + " " + tutao.lang('perYear_label');
     } else {
-        return "1,20 EUR " + tutao.lang('perMonth_label');
+        return tutao.util.BookingUtils.formatPrice(this._pricePerMonth()) + " " + tutao.lang('perMonth_label');
     }
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceInfoText = function() {
     if (this.accountingInfo().business()) {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= 1,00 EUR " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
         } else {
             return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
         }
     } else {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= 1,00 EUR " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
         } else {
             return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
         }
@@ -304,5 +313,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getSummaryPriceText = functio
         return this.getPriceText() + " (" + tutao.lang("net_label") + ")";
     } else {
         return this.getPriceText() + " (" + tutao.lang("gross_label") + ")";
+    }
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getSummaryPaymentMethodInfoText = function() {
+    if (this.accountingInfo().paymentMethodInfo()) {
+        return this.accountingInfo().paymentMethodInfo();
+    } else {
+        return tutao.lang(tutao.util.BookingUtils.getPaymentMethodNameTextId(this.accountingInfo().paymentMethod()));
     }
 };

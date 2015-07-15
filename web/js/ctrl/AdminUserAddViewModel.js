@@ -17,6 +17,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
      * @type {function(Array<tutao.tutanota.ctrl.AdminNewUser>=): Array<tutao.tutanota.ctrl.AdminNewUser>}
      */
 	this.newUsers = ko.observableArray([]);
+    this.newUsers.subscribe(this._updatePrice);
     this.createdUsers = ko.observableArray([]);
 
 	
@@ -29,11 +30,33 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 	}, this);
 	this.csvImportStatus = ko.observable({type: "neutral", text: "emptyString_msg"});
     this._availableDomains = this.adminUserListViewModel.getAvailableDomains();
-    this.addEmptyUser();
+
+    this.accountingInfo = ko.observable(null);
+
+    var self = this;
+    tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        return customer.loadCustomerInfo().then(function(customerInfo) {
+            return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
+                self.accountingInfo(accountingInfo);
+                self.addEmptyUser();
+            });
+        });
+    });
+
+    this._price = ko.observable(null);
+    this.buttons = [
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, null, false, "newUserAction", "add", "adminUserAdd_action"),
+        new tutao.tutanota.ctrl.Button("import_action", 11,  this.openCsvDialog, null, false, "newUserAction", "add", "import_action")
+    ];
+    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.addEmptyUser = function() {
 	this.newUsers.push(new tutao.tutanota.ctrl.AdminNewUser(this._availableDomains));
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.removeUser = function(user) {
+    this.newUsers.remove(user);
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.openCsvDialog = function() {
@@ -75,7 +98,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.cancel = function() {
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isCreateAccountsPossible = function() {
-    if (!this.isEditable()) {
+    if (!this.isEditable() || this.newUsers().length == 0 || !this._price()) {
         return false;
     }
     for(var i = 0; i < this.newUsers().length; i++) {
@@ -113,4 +136,84 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
             throw exception;
         });
     }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryBookingText = function() {
+    return this.newUsers().length + " " + tutao.lang("accounts_label") + " Tutanota Premium";
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummarySubscriptionText = function() {
+    if (!this.accountingInfo()) {
+        return "";
+    } else if (this.accountingInfo().getPaymentInterval() == "12") {
+        return tutao.lang("yearly_label") + ', ' + tutao.lang('automaticRenewal_label');
+    } else {
+        return tutao.lang("monthly_label") + ', ' + tutao.lang('automaticRenewal_label');
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummarySubscriptionInfoText = function() {
+    if (!this.accountingInfo() || !this._price()) {
+        return tutao.lang("loading_msg")    ;
+    } else {
+        return tutao.lang("endOfSubscriptionPeriod_label") + " " + tutao.tutanota.util.Formatter.dateToSimpleString(this._price().getPeriodEndDate());
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceText = function() {
+    if (!this.accountingInfo() || !this._price()) {
+        return tutao.lang("loading_msg");
+    } else {
+        var netGrossText = this.accountingInfo().getBusiness() ? tutao.lang("net_label") : tutao.lang("gross_label");
+        var periodText = (this.accountingInfo().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
+        return tutao.util.BookingUtils.formatPrice(Number(this._price().getFuturePrice().getPrice())) + " " + periodText + " (" + netGrossText + ")";
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceInfo1Text = function() {
+    if (!this.accountingInfo() || !this._price()) {
+        return tutao.lang("loading_msg");
+    } else {
+        return tutao.lang("oldTotalPrice_label") + " " + tutao.util.BookingUtils.formatPrice(Number(this._price().getCurrentPrice().getPrice()));
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceInfo2Text = function() {
+    if (!this.accountingInfo() || !this._price()) {
+        return tutao.lang("loading_msg");
+    } else if (this._price().getCurrentPeriodAddedPrice() != null && this._price().getCurrentPeriodAddedPrice() > 0) {
+        return tutao.lang("priceForCurrentAccountingPeriod_label") + " " + tutao.util.BookingUtils.formatPrice(Number(this._price().getCurrentPeriodAddedPrice()));
+    } else {
+        return tutao.lang("emptyString_msg");
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPaymentMethodInfoText = function() {
+    if (!this.accountingInfo()) {
+        return "";
+    } else if (this.accountingInfo().getPaymentMethodInfo()) {
+        return this.accountingInfo().getPaymentMethodInfo();
+    } else {
+        return tutao.lang(tutao.util.BookingUtils.getPaymentMethodNameTextId(this.accountingInfo().getPaymentMethod()));
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getCreateUsersButtonTextId = function() {
+    if (this.isBuy()) {
+        return "buy_action";
+    } else {
+        return "createUsers_label";
+    }
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._updatePrice = function() {
+    this._price(null);
+    var self = this;
+    tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, this.newUsers().length).then(function(price) {
+        self._price(price);
+    });
+};
+
+tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isBuy = function() {
+    return  (this._price() && Number(this._price().getCurrentPrice().getPrice()) != Number(this._price().getFuturePrice().getPrice()));
 };

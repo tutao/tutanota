@@ -42,7 +42,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                         return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Invoice, invoiceInfo.getInvoices()).then(function(invoices) {
                             var publishedInvoices = [];
                             for (var i=0; i<invoices.length;i++) {
-                                if (invoices[i].getPublished()) {
+                                if (invoices[i].getStatus() > 0) {
                                     publishedInvoices.push(invoices[i]);
                                 }
                             }

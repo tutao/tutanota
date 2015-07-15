@@ -1094,10 +1094,24 @@ body {
 		div#changeSettingsDetailsColumn.viewColumn {
 			position: absolute;
 			
-			> div {
-				.fill;
-				padding: @padding;
-			}
+			> div.changeSettingsDetailsInnerColumn {
+              position: absolute;
+              left: 0;
+              right: 0;
+              top: @button-bar-height;
+              bottom: 0;
+              padding: @padding;
+
+              @media @desktop {
+                top: @button-bar-height;
+                bottom: 0;
+              }
+
+              @media @mobile {
+                top: 0;
+                bottom: @button-bar-height;
+              }
+            }
 			
 			> div#newUsers {
 				
