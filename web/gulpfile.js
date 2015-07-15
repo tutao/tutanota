@@ -213,7 +213,7 @@ gulp.task('copyPayment', function () {
 
 gulp.task('minifyPayment', function () {
     return streamqueue({objectMode: true},
-        gulp.src(["lib/jquery-1.9.1.js", "lib/dev/less-1.7.0.min.js", "lib/worker/base.js", "lib/knockout-2.2.1.js", "js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js", "pay/**/*.js", "!pay/init.js"])
+        gulp.src(["lib/jquery-1.9.1.js", "lib/worker/base.js", "lib/knockout-2.2.1.js", "js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js", "pay/**/*.js", "!pay/init.js"])
             .pipe(sourcemaps.init())
             .pipe(concat("pay.min.js"))
             .pipe(uglify())
