@@ -1,0 +1,110 @@
+{
+    "com.bridge.open": {
+        "source": {
+            "type": "registry",
+            "id": "com.bridge.open"
+        }
+    },
+    "com.ionic.keyboard": {
+        "source": {
+            "type": "registry",
+            "id": "com.ionic.keyboard"
+        }
+    },
+    "com.phonegap.plugins.PushPlugin": {
+        "source": {
+            "type": "git",
+            "url": "https://github.com/phonegap-build/PushPlugin.git",
+            "subdir": "."
+        }
+    },
+    "com.ququplay.websocket.WebSocket": {
+        "source": {
+            "type": "git",
+            "url": "https://github.com/mkuklis/phonegap-websocket",
+            "subdir": "."
+        }
+    },
+    "de.appplant.cordova.plugin.badge": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/de.appplant.cordova.plugin.badge/0.6.1/package"
+        }
+    },
+    "de.appplant.cordova.plugin.local-notification": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/de.appplant.cordova.plugin.local-notification/0.7.6/package"
+        }
+    },
+    "org.apache.cordova.contacts": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.contacts/0.2.13/package"
+        }
+    },
+    "org.apache.cordova.device": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.device/0.2.12/package"
+        }
+    },
+    "org.apache.cordova.file": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.file"
+        }
+    },
+    "org.apache.cordova.statusbar": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.statusbar/0.1.8/package"
+        }
+    },
+    "org.apache.cordova.vibration": {
+        "source": {
+            "type": "local",
+            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.vibration/0.3.11/package"
+        }
+    },
+    "cordova-plugin-android-support-v4": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-android-support-v4"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "org.apache.cordova.inappbrowser": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.inappbrowser"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-whitelist": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-whitelist"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "de.tutanota.native": {
+        "source": {
+            "type": "local",
+            "path": "../native"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "org.apache.cordova.splashscreen": {
+        "source": {
+            "type": "registry",
+            "id": "org.apache.cordova.splashscreen"
+        },
+        "is_top_level": true,
+        "variables": {}
+    }
+}

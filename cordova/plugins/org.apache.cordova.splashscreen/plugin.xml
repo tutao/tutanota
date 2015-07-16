@@ -20,7 +20,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
            id="org.apache.cordova.splashscreen"
-      version="0.3.4">
+      version="1.0.0">
     <name>Splashscreen</name>
     <description>Cordova Splashscreen Plugin</description>
     <license>Apache 2.0</license>
@@ -28,6 +28,9 @@
     <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-splashscreen.git</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320653</issue>
 
+    <engines>
+        <engine name="cordova-android" version=">=3.6.0" /><!-- Requires CordovaPlugin.preferences -->
+    </engines>
 
     <js-module src="www/splashscreen.js" name="SplashScreen">
         <clobbers target="navigator.splashscreen" />
@@ -37,7 +40,8 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="SplashScreen">
-            <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen"/>
+                <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen"/>
+                <param name="onload" value="true"/>
             </feature>
         </config-file>
 

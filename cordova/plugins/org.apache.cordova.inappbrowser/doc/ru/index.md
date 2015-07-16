@@ -77,17 +77,22 @@
     *   **presentationstyle**: набор `pagesheet` , `formsheet` или `fullscreen` чтобы задать [стиль презентации][1] (по умолчанию`fullscreen`).
     *   **transitionstyle**: набор `fliphorizontal` , `crossdissolve` или `coververtical` чтобы задать [стиль перехода][2] (по умолчанию`coververtical`).
     *   **toolbarposition**: значение `top` или `bottom` (по умолчанию `bottom` ). Вызывает панели инструментов, чтобы быть в верхней или нижней части окна.
+    
+    Windows только:
+    
+    *   **скрытые**: значение `yes` для создания браузера и загрузки страницы, но не показать его. Событие loadstop возникает, когда загрузка завершена. Опустить или набор `no` (по умолчанию), чтобы браузер открыть и загрузить нормально.
 
  [1]: http://developer.apple.com/library/ios/documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalPresentationStyle
  [2]: http://developer.apple.com/library/ios/#documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalTransitionStyle
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   BlackBerry 10
 *   Firefox OS
 *   iOS
+*   Windows 8 и 8.1
 *   Windows Phone 7 и 8
 
 ### Пример
@@ -96,7 +101,7 @@
     var ref2 = window.open(encodeURI('http://ja.m.wikipedia.org/wiki/ハングル'), '_blank', 'location=yes');
     
 
-### Firefox OS причуды
+### Особенности Firefox OS
 
 Как плагин не применять любой дизайн есть необходимость добавить некоторые правила CSS, если открыт с `target='_blank'` . Правила может выглядеть как эти
 
@@ -126,7 +131,7 @@
     }
     
 
-## InAppBrowser
+## Внутренний браузер
 
 Объект, возвращаемый из вызова`window.open`.
 
@@ -169,12 +174,13 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 и 8.1
 *   Windows Phone 7 и 8
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstart', function(event) { alert(event.url); });
@@ -200,12 +206,13 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 и 8.1
 *   Windows Phone 7 и 8
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     var myCallback = function(event) { alert(event.url); }
@@ -224,13 +231,14 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   Firefox OS
 *   iOS
+*   Windows 8 и 8.1
 *   Windows Phone 7 и 8
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.close();
@@ -247,11 +255,12 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 и 8.1
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'hidden=yes');
     // some time later...
@@ -278,11 +287,12 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   iOS
+*   Windows 8 и 8.1
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstop', function() {
@@ -308,11 +318,11 @@
 
 ### Поддерживаемые платформы
 
-*   Amazon Fire ОС
+*   Amazon Fire OS
 *   Android
 *   iOS
 
-### Быстрый пример
+### Краткий пример
 
     var ref = window.open('http://apache.org', '_blank', 'location=yes');
     ref.addEventListener('loadstop', function() {

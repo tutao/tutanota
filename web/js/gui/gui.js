@@ -27,7 +27,7 @@ tutao.tutanota.gui.initKnockout = function() {
 	};
     ko.bindingHandlers.fastClick = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-            if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+            if (typeof Hammer !== 'undefined') {
                 var m = new Hammer.Manager(element);
                 m.add(new Hammer.Tap({ threshold: 10 }));
                 var prevent = new PreventGhostClick(element);
@@ -401,7 +401,7 @@ tutao.tutanota.gui.initKnockout = function() {
 
 			// store the function that shall be called when swipe done
 			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
-			if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+			if (typeof Hammer !== 'undefined') {
 				var hammertime = new Hammer(element);
 				hammertime.on("hammer.input", function(ev) {
 					var swipeLeft = ev.deltaX < 0;
@@ -880,9 +880,9 @@ tutao.tutanota.gui.showTooltip = function(item, event) {
  */
 tutao.tutanota.gui.openLink = function(href) {
     if (tutao.env.mode == tutao.Mode.App) {
-        window.open(href, "_system");
+        return window.open(href, "_system");
     } else {
-        window.open(href, "_blank");
+        return window.open(href, "_blank");
     }
 };
 

@@ -13,8 +13,9 @@ tutao.entity.sys.InvoiceInfo = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
-    this._publishPdf = null;
-    this._specialPrice = null;
+    this._publishInvoices = null;
+    this._specialPriceUserSingle = null;
+    this._specialPriceUserTotal = null;
     this._invoices = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -29,8 +30,9 @@ tutao.entity.sys.InvoiceInfo.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
-  this._publishPdf = data.publishPdf;
-  this._specialPrice = data.specialPrice;
+  this._publishInvoices = data.publishInvoices;
+  this._specialPriceUserSingle = data.specialPriceUserSingle;
+  this._specialPriceUserTotal = data.specialPriceUserTotal;
   this._invoices = data.invoices;
 };
 
@@ -50,7 +52,7 @@ tutao.entity.sys.InvoiceInfo.PATH = '/rest/sys/invoiceinfo';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.InvoiceInfo.ROOT_INSTANCE_ID = 'A3N5cwAC3w';
+tutao.entity.sys.InvoiceInfo.ROOT_INSTANCE_ID = 'A3N5cwAC7Q';
 
 /**
  * The generated id type flag.
@@ -73,8 +75,9 @@ tutao.entity.sys.InvoiceInfo.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
-    publishPdf: this._publishPdf, 
-    specialPrice: this._specialPrice, 
+    publishInvoices: this._publishInvoices, 
+    specialPriceUserSingle: this._specialPriceUserSingle, 
+    specialPriceUserTotal: this._specialPriceUserTotal, 
     invoices: this._invoices
   };
 };
@@ -82,22 +85,27 @@ tutao.entity.sys.InvoiceInfo.prototype.toJsonData = function() {
 /**
  * The id of the InvoiceInfo type.
  */
-tutao.entity.sys.InvoiceInfo.prototype.TYPE_ID = 735;
+tutao.entity.sys.InvoiceInfo.prototype.TYPE_ID = 749;
 
 /**
- * The id of the publishPdf attribute.
+ * The id of the publishInvoices attribute.
  */
-tutao.entity.sys.InvoiceInfo.prototype.PUBLISHPDF_ATTRIBUTE_ID = 741;
+tutao.entity.sys.InvoiceInfo.prototype.PUBLISHINVOICES_ATTRIBUTE_ID = 756;
 
 /**
- * The id of the specialPrice attribute.
+ * The id of the specialPriceUserSingle attribute.
  */
-tutao.entity.sys.InvoiceInfo.prototype.SPECIALPRICE_ATTRIBUTE_ID = 740;
+tutao.entity.sys.InvoiceInfo.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 755;
+
+/**
+ * The id of the specialPriceUserTotal attribute.
+ */
+tutao.entity.sys.InvoiceInfo.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 754;
 
 /**
  * The id of the invoices attribute.
  */
-tutao.entity.sys.InvoiceInfo.prototype.INVOICES_ATTRIBUTE_ID = 742;
+tutao.entity.sys.InvoiceInfo.prototype.INVOICES_ATTRIBUTE_ID = 757;
 
 /**
  * Provides the id of this InvoiceInfo.
@@ -142,37 +150,54 @@ tutao.entity.sys.InvoiceInfo.prototype.getPermissions = function() {
 };
 
 /**
- * Sets the publishPdf of this InvoiceInfo.
- * @param {boolean} publishPdf The publishPdf of this InvoiceInfo.
+ * Sets the publishInvoices of this InvoiceInfo.
+ * @param {boolean} publishInvoices The publishInvoices of this InvoiceInfo.
  */
-tutao.entity.sys.InvoiceInfo.prototype.setPublishPdf = function(publishPdf) {
-  this._publishPdf = publishPdf ? '1' : '0';
+tutao.entity.sys.InvoiceInfo.prototype.setPublishInvoices = function(publishInvoices) {
+  this._publishInvoices = publishInvoices ? '1' : '0';
   return this;
 };
 
 /**
- * Provides the publishPdf of this InvoiceInfo.
- * @return {boolean} The publishPdf of this InvoiceInfo.
+ * Provides the publishInvoices of this InvoiceInfo.
+ * @return {boolean} The publishInvoices of this InvoiceInfo.
  */
-tutao.entity.sys.InvoiceInfo.prototype.getPublishPdf = function() {
-  return this._publishPdf == '1';
+tutao.entity.sys.InvoiceInfo.prototype.getPublishInvoices = function() {
+  return this._publishInvoices == '1';
 };
 
 /**
- * Sets the specialPrice of this InvoiceInfo.
- * @param {string} specialPrice The specialPrice of this InvoiceInfo.
+ * Sets the specialPriceUserSingle of this InvoiceInfo.
+ * @param {string} specialPriceUserSingle The specialPriceUserSingle of this InvoiceInfo.
  */
-tutao.entity.sys.InvoiceInfo.prototype.setSpecialPrice = function(specialPrice) {
-  this._specialPrice = specialPrice;
+tutao.entity.sys.InvoiceInfo.prototype.setSpecialPriceUserSingle = function(specialPriceUserSingle) {
+  this._specialPriceUserSingle = specialPriceUserSingle;
   return this;
 };
 
 /**
- * Provides the specialPrice of this InvoiceInfo.
- * @return {string} The specialPrice of this InvoiceInfo.
+ * Provides the specialPriceUserSingle of this InvoiceInfo.
+ * @return {string} The specialPriceUserSingle of this InvoiceInfo.
  */
-tutao.entity.sys.InvoiceInfo.prototype.getSpecialPrice = function() {
-  return this._specialPrice;
+tutao.entity.sys.InvoiceInfo.prototype.getSpecialPriceUserSingle = function() {
+  return this._specialPriceUserSingle;
+};
+
+/**
+ * Sets the specialPriceUserTotal of this InvoiceInfo.
+ * @param {string} specialPriceUserTotal The specialPriceUserTotal of this InvoiceInfo.
+ */
+tutao.entity.sys.InvoiceInfo.prototype.setSpecialPriceUserTotal = function(specialPriceUserTotal) {
+  this._specialPriceUserTotal = specialPriceUserTotal;
+  return this;
+};
+
+/**
+ * Provides the specialPriceUserTotal of this InvoiceInfo.
+ * @return {string} The specialPriceUserTotal of this InvoiceInfo.
+ */
+tutao.entity.sys.InvoiceInfo.prototype.getSpecialPriceUserTotal = function() {
+  return this._specialPriceUserTotal;
 };
 
 /**

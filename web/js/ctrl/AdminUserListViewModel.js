@@ -17,7 +17,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
     this._customerAccountType = ko.observable(null);
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.createAccounts, this.createAccountsPossible, false, "newUserAction", "add", "adminUserAdd_action")
+        new tutao.tutanota.ctrl.Button("addUsers_action", 10,  this.createAccounts, this.createAccountsPossible, false, "newUserAction", "add", "addUsers_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
@@ -90,6 +90,23 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = fun
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccountsPossible = function(){
     var addUserAccountTypes = [tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM];
-    return this.customerInfo() != null && tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customerAccountType()) ;
+    return this.customerInfo() != null && tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customerAccountType()) && (!this.newViewModel() || !tutao.locator.settingsView.isChangeSettingsDetailsColumnVisible());
 };
+
+tutao.tutanota.ctrl.AdminUserListViewModel.prototype.getAvailableDomains = function(){
+    var availableDomains = [];
+    var user = tutao.locator.userController.getLoggedInUser();
+    if (user.getAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER){
+        availableDomains = availableDomains.concat(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS);
+    }
+    var customerInfo = this.customerInfo();
+    if (customerInfo){
+        for( var i=0; i< customerInfo.getDomainInfos().length; i++) {
+           availableDomains.unshift(customerInfo.getDomainInfos()[i].getDomain())
+        }
+    }
+    return availableDomains;
+};
+
+
 

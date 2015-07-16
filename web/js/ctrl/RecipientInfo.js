@@ -15,7 +15,7 @@ tutao.tutanota.ctrl.RecipientInfo = function(mailAddress, name, contactWrapper, 
 	this._mailAddress = mailAddress;
 	this._name = name;
     this._type = ko.observable(tutao.tutanota.ctrl.RecipientInfo.TYPE_UNKNOWN);
-	if (external === false || this.isTutanotaMailAddress(mailAddress)) {
+	if (external === false || tutao.tutanota.util.Formatter.isTutanotaMailAddress(mailAddress)) {
 		this._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_INTERNAL);
 	} else if (external === true) {
         this._type(tutao.tutanota.ctrl.RecipientInfo.TYPE_EXTERNAL);

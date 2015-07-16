@@ -11,6 +11,7 @@ tutao.entity.sys.InvoiceServiceData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._date = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.InvoiceServiceData.prototype;
@@ -22,6 +23,7 @@ tutao.entity.sys.InvoiceServiceData = function(data) {
  */
 tutao.entity.sys.InvoiceServiceData.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._date = data.date;
 };
 
 /**
@@ -48,7 +50,8 @@ tutao.entity.sys.InvoiceServiceData.prototype.ENCRYPTED = false;
  */
 tutao.entity.sys.InvoiceServiceData.prototype.toJsonData = function() {
   return {
-    _format: this.__format
+    _format: this.__format, 
+    date: this._date
   };
 };
 
@@ -56,6 +59,11 @@ tutao.entity.sys.InvoiceServiceData.prototype.toJsonData = function() {
  * The id of the InvoiceServiceData type.
  */
 tutao.entity.sys.InvoiceServiceData.prototype.TYPE_ID = 594;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.InvoiceServiceData.prototype.DATE_ATTRIBUTE_ID = 826;
 
 /**
  * Sets the format of this InvoiceServiceData.
@@ -72,6 +80,33 @@ tutao.entity.sys.InvoiceServiceData.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.InvoiceServiceData.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the date of this InvoiceServiceData.
+ * @param {Date} date The date of this InvoiceServiceData.
+ */
+tutao.entity.sys.InvoiceServiceData.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this InvoiceServiceData.
+ * @return {Date} The date of this InvoiceServiceData.
+ */
+tutao.entity.sys.InvoiceServiceData.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**

@@ -172,15 +172,14 @@ img.helpIcon {
   padding-right: 3px;
   border: 1px solid @border;
 
-  &:focus, &.focus {
+  &:focus, &.focus, &.braintree-hosted-fields-focused {
     border-color: @focus-blue !important;
     box-shadow: 0 0 10px @focus-blue !important;
   }
-  &.invalid {
+  &.invalid, &.braintree-hosted-fields-invalid {
     border-color: @red;
     box-shadow: 0 0 10px @red;
   }
-
   &.wide {
     width: 100%;
   }
@@ -196,6 +195,10 @@ h2 {
   font-size: 20px;
   margin-bottom: 15px;
   font-weight: normal;
+
+  &.marginTop {
+    margin-top: 15px;
+  }
 }
 
 .heading {
@@ -209,6 +212,10 @@ h2 {
 
 .defaultMargin {
   margin-bottom: 10px;
+}
+
+.centered {
+  text-align: center;
 }
 
 .emphasizedText {
@@ -457,7 +464,12 @@ input#hiddenInput {
 @button-height: 35px;
 @button-padding: 5px;
 
-button {
+
+button{
+  .buttonElement
+}
+
+.buttonElement {
   position: relative;
   display: inline-block;
   height: @button-height;

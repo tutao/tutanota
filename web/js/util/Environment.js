@@ -36,12 +36,13 @@ tutao.env;
  * @param {string?} port
  * @constructor
  */
-tutao.Environment = function (type, ssl, server, port) {
+tutao.Environment = function (type, ssl, server, port, paymentDataUrl) {
     this.type = type;
     this.ssl = ssl;
     this.server = server;
     this.port = port;
     this.mode = tutao.Mode.Browser;
+    this.paymentDataServer = paymentDataUrl;
 };
 
 tutao.Environment.prototype.getWebsocketOrigin = function () {

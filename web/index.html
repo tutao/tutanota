@@ -132,7 +132,6 @@
 <script src="/js/ctrl/AdminMessagesViewModel.js"></script>
 <script src="/js/ctrl/AdminNewUser.js"></script>
 <script src="/js/ctrl/AdminPremiumFeatureViewModel.js"></script>
-<script src="/js/ctrl/AdminSwitchAccountTypeViewModel.js"></script>
 <script src="/js/ctrl/AdminUserAddViewModel.js"></script>
 <script src="/js/ctrl/AdminUserListViewModel.js"></script>
 <script src="/js/ctrl/AppCacheListener.js"></script>
@@ -170,7 +169,6 @@
 <script src="/js/ctrl/PaymentDataViewModel.js"></script>
 <script src="/js/ctrl/ProgressDialogModel.js"></script>
 <script src="/js/ctrl/RecipientInfo.js"></script>
-<script src="/js/ctrl/RegistrationVerifyDomainViewModel.js"></script>
 <script src="/js/ctrl/RegistrationViewModel.js"></script>
 <script src="/js/ctrl/SendMailFacade.js"></script>
 <script src="/js/ctrl/SendMailFromExternalFacade.js"></script>
@@ -238,9 +236,10 @@
 <script src="/js/generated/entity/sys/AutoLoginDataGet.js"></script>
 <script src="/js/generated/entity/sys/AutoLoginDataReturn.js"></script>
 <script src="/js/generated/entity/sys/AutoLoginPostReturn.js"></script>
+<script src="/js/generated/entity/sys/Booking.js"></script>
 <script src="/js/generated/entity/sys/BookingItem.js"></script>
-<script src="/js/generated/entity/sys/BookingItemsRef.js"></script>
-<script src="/js/generated/entity/sys/BookingItemsRefEditable.js"></script>
+<script src="/js/generated/entity/sys/BookingsRef.js"></script>
+<script src="/js/generated/entity/sys/BookingsRefEditable.js"></script>
 <script src="/js/generated/entity/sys/Bucket.js"></script>
 <script src="/js/generated/entity/sys/BucketPermission.js"></script>
 <script src="/js/generated/entity/sys/ChangePasswordData.js"></script>
@@ -273,15 +272,20 @@
 <script src="/js/generated/entity/sys/GroupRoot.js"></script>
 <script src="/js/generated/entity/sys/IncomingShare.js"></script>
 <script src="/js/generated/entity/sys/Invoice.js"></script>
+<script src="/js/generated/entity/sys/InvoiceEditable.js"></script>
 <script src="/js/generated/entity/sys/InvoiceInfo.js"></script>
 <script src="/js/generated/entity/sys/InvoiceInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
+<script src="/js/generated/entity/sys/InvoiceStatusIndex.js"></script>
+<script src="/js/generated/entity/sys/InvoiceStatusIndexEntry.js"></script>
+<script src="/js/generated/entity/sys/InvoiceStatusIndexFolder.js"></script>
 <script src="/js/generated/entity/sys/KeyPair.js"></script>
 <script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
 <script src="/js/generated/entity/sys/Login.js"></script>
 <script src="/js/generated/entity/sys/LongConfigValue.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAlias.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAliasServiceData.js"></script>
+<script src="/js/generated/entity/sys/MailAddressAliasServiceDataDelete.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAliasServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
@@ -289,11 +293,21 @@
 <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
 <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServiceGetReturn.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServicePutData.js"></script>
+<script src="/js/generated/entity/sys/PaymentDataServicePutReturn.js"></script>
+<script src="/js/generated/entity/sys/PdfInvoiceServiceData.js"></script>
+<script src="/js/generated/entity/sys/PdfInvoiceServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/Permission.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumber.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
 <script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
+<script src="/js/generated/entity/sys/PriceData.js"></script>
+<script src="/js/generated/entity/sys/PriceItemData.js"></script>
+<script src="/js/generated/entity/sys/PriceRequestData.js"></script>
+<script src="/js/generated/entity/sys/PriceServiceData.js"></script>
+<script src="/js/generated/entity/sys/PriceServiceReturn.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyData.js"></script>
 <script src="/js/generated/entity/sys/PublicKeyReturn.js"></script>
 <script src="/js/generated/entity/sys/PushIdentifier.js"></script>
@@ -416,7 +430,6 @@
 <script src="/js/gui/MailView.js"></script>
 <script src="/js/gui/NotFoundView.js"></script>
 <script src="/js/gui/NotSupportedView.js"></script>
-<script src="/js/gui/RegistrationVerifyDomainView.js"></script>
 <script src="/js/gui/RegistrationView.js"></script>
 <script src="/js/gui/SettingsView.js"></script>
 <script src="/js/gui/SwipeSlider.js"></script>
@@ -458,6 +471,7 @@
 <script src="/js/security/HtmlSanitizer.js"></script>
 <script src="/js/util/ArrayUtils.js"></script>
 <script src="/js/util/Assert.js"></script>
+<script src="/js/util/BookingUtils.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
 <script src="/js/util/CountryList.js"></script>
 <script src="/js/util/CsvConverter.js"></script>
@@ -465,6 +479,7 @@
 <script src="/js/util/EncodingConverter.js"></script>
 <script src="/js/util/Environment.js"></script>
 <script src="/js/util/ErrorFactory.js"></script>
+<script src="/js/util/EventListenerManager.js"></script>
 <script src="/js/util/Exporter.js"></script>
 <script src="/js/util/FileUtils.js"></script>
 <script src="/js/util/Formatter.js"></script>
@@ -835,7 +850,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="contactData">
-													<!-- ko if: tutao.tutanota.util.ClientDetector.isPhoneSupported() && (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
+													<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
 															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
@@ -1029,7 +1044,7 @@
 					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED ) -->
 						<div id="oldBrowserMessage" data-bind="lang: 'oldBrowser_msg'"></div>
 					<!-- /ko -->
-					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE) -->
+					<!-- ko if: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) -->
 						<div id="unsupportedBrowserMessage" data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
@@ -1168,14 +1183,14 @@
 								</div>
 							</form>
 						</div>
-						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE)">
+						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE)">
                             <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
                                 <label data-bind="lang: 'legacyDownloadNotPossible_msg'"></label>
                             <!-- /ko -->
                             <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID -->
                                 <label data-bind="lang: 'legacyNoReplyAndroid_msg'"></label>
                             <!-- /ko -->
-                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_IE_MOBILE -->
+                            <!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE -->
                                 <label data-bind="lang: 'legacyNoAttachmentsIeMobile_msg'"></label>
                             <!-- /ko -->
 							<ul>
@@ -1192,57 +1207,6 @@
                 <div id="welcomePicture"><div></div></div>
             </div>
 		</div>
-
-        <div id="pre_registration" class="login" data-bind="with: tutao.locator.registrationVerifyDomainViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationVerifyDomainView">
-            <div class="welcomeContainer">
-                <div class="panel">
-                    <div class="content scrollable">
-                        <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
-                        <h2 data-bind="lang: 'registrationSubHeadline1_msg'"></h2>
-                        <!-- ko if: state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED && state() != tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
-                            <form class="recordContainer wide" data-bind="submit: verifyDomain, form: true">
-                                <div class="record">
-                                    <label for="registrationDomain" class="recordName" data-bind="lang: 'domain_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide" id="registrationDomain" type="text" data-bind="enable: isFormEditable(), value: domain, valueUpdate: 'input', hasfocus: domainFieldFocused" />
-                                        </div>
-                                        <label for="registrationDomain" class="recordInfo" data-bind="lang: 'domainInfo_msg'"></label>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <label for="currentMailAddress" class="recordName" data-bind="lang: 'currentMailAddress_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide mailAddressPrefixInput" id="currentMailAddress" type="text" data-bind="enable: isFormEditable(), css: currentMailAddressStatus().type, value: currentMailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
-                                        </div>
-                                        <label for="currentMailAddress" class="recordStatus" data-bind="css: currentMailAddressStatus().type, lang: currentMailAddressStatus().text"></label>
-                                        <label for="currentMailAddress" class="recordInfo" data-bind="lang: 'currentMailAddressInfo_msg'"></label>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <div class="recordName"></div>
-                                    <div class="formAction">
-                                        <button id="submitPreRegistration" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isVerifyDomainPossible() }, lang: 'verifyDomain_action'"></button>
-                                        <label for="submitPreRegistration" class="recordStatus" data-bind="css: verifyDomainStatus().type, lang: verifyDomainStatus().text"></label>
-                                    </div>
-                                </div>
-                            </form>
-                        <!-- /ko -->
-                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_FINISHED -->
-                            <div class="smallInfoMessage" data-bind="lang: getFinishedMessage(), params: { '{1}': getMailAddress(), '{2}': getDomain() }"></div>
-                        <!-- /ko -->
-                        <!-- ko if: state() == tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel.PROCESS_STATE_DISABLED -->
-                            <div class="smallInfoMessage">
-                                <div data-bind="lang: 'regDisabledStarter_msg'"></div>
-                                <a href="https://tutanota.com/contact" target="_blank" data-bind="text: 'https://tutanota.com/contact'" tabindex="-1"></a>
-                            </div>
-                        <!-- /ko -->
-                    </div>
-                </div>
-                <div id="welcomePicture"><div></div></div>
-            </div>
-        </div>
 
 		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="welcomeContainer">
@@ -1328,7 +1292,7 @@
                                     <div class="recordData">
                                         <div class="recordValue">
                                             <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-                                            <label for="termsInput" data-bind="lang: getTermsLabel() "></label>
+                                            <label for="termsInput" data-bind="lang: 'termsAndConditions_label'"></label>
 											<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
 											<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
                                         </div>
@@ -1511,6 +1475,25 @@
 							<!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT -->
                             <div id="adminDeleteAccount" data-bind="with: new tutao.tutanota.ctrl.AdminDeleteAccountViewModel()">
+                                <h2 data-bind="visible: tutao.locator.viewManager.isPremiumAccount(), lang: 'unsubscribePremium_label'"></h2>
+                                <form class="recordContainer wide" data-bind="if: tutao.locator.viewManager.isPremiumAccount(), submit: unsubscribePremium, form: true">
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">Tutanota Free</div>
+                                            <label class="recordInfo" data-bind="lang: 'unsubscribePremiumMessage_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
+                                            <label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <h2 data-bind="lang: 'adminDeleteAccount_action'"></h2>
                                 <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                     <div class="record">
                                         <label for="deleteReason" class="recordName" data-bind="lang: 'deleteAccountReason_label'"></label>
@@ -1573,25 +1556,6 @@
                             </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES -->
-							<div id="adminSwitchAccountType" data-bind="with: new tutao.tutanota.ctrl.AdminSwitchAccountTypeViewModel()" >
-								<form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-									<div class="record">
-										<label for="accountTypeInput" class="recordName" data-bind="lang: 'bookingItemAccountType_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<select  id="accountTypeInput" data-bind="options: accountTypes, value: selectedAccountType, optionsText: getAccountTypeText"></select>
-											</div>
-										</div>
-									</div>
-									<div class="record">
-										<div class="recordName"></div>
-										<div class="formAction">
-											<button id="submitAccountType" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
-											<label  class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
-										</div>
-									</div>
-								</form>
-							</div>
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
                                 <form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
                                     <div class="record">
@@ -1612,30 +1576,7 @@
                                     </div>
                                 </form>
                             </div>
-                            <div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel()">
-                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-                                    <div class="record">
-                                        <label for="mailAddress" class="recordName" data-bind="lang: 'adminAddMailAddressAlias_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue">
-                                                <input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
-                                                <span>@</span>
-                                                <select data-bind="options: tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, value: domain, enable: inputEnabled()"></select>
-                                            </div>
-                                            <label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-                                            <label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
-                                        </div>
-                                    </div>
-                                    <div class="record">
-                                        <div class="recordName"></div>
-                                        <div class="formAction">
-                                            <button id="submitAddAlias" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-                                            <label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel()">
+							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
 								<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
 									<div class="record">
 										<label class="recordName" data-bind="lang: 'adminCustomDomain_label'"></label>
@@ -1659,6 +1600,7 @@
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING -->
                             <div data-bind="with: new tutao.tutanota.ctrl.AdminInvoicingViewModel()" >
+                                <h2 data-bind="lang: 'currentlyBooked_label'"></h2>
                                 <div class="bookingTable">
                                     <div class="bookingTableHeader">
                                         <div class="bookingCell" data-bind="lang: 'bookingFeature_label'"></div>
@@ -1678,20 +1620,65 @@
                                         <div class="bookingCell" data-bind="text: getTotalPrice() + ' €'"></div>
                                     </div>
                                 </div>
+                                <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
+                                <div class="bookingTable">
+                                    <div class="bookingTableHeader">
+                                        <div class="bookingCell" data-bind="lang: 'date_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'number_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'amount_label'"></div>
+                                        <div class="bookingCell" data-bind="text: 'PDF'"></div>
+                                    </div>
+                                    <!-- ko foreach: invoices -->
+                                    <div class="bookingItem">
+                                        <div class="bookingCell" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
+                                        <div class="bookingCell" data-bind="text: getNumber()"></div>
+                                        <div class="bookingCell" data-bind="text: getGrandTotal() + ' €'"></div>
+                                        <div class="bookingCell">
+                                            <button class="single" type="submit" data-bind="lang: 'download_label', fastClick: function() { $parent.downloadPdf($data); }"></button>
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
+                                </div>
                             </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT -->
                             <div data-bind="with: new tutao.tutanota.ctrl.PaymentDataViewModel()" >
-                                <form class="recordContainer wide" data-bind="if: accountingInfo, submit: storeAccountingInfo, form: true">
+                                <h1 class="centered" data-bind="lang: 'upgradeToPremiumHeading_label', visible: (step() > -1)"></h1>
+                                <div class="light defaultMargin" data-bind="lang: 'paymentDataOrderPremiumInfo_msg', visible: step() == 0"></div>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 0, submit: enterAccountingInfo, form: true">
                                     <div class="record">
                                         <label for="paymentUsageInput" class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue">
                                                 <select id="paymentUsageInput" class="inputField wide" data-bind="options: usageOptions, value: accountingInfo().business, optionsText: 'name', optionsValue: 'value', enable: state.entering"></select>
                                             </div>
-                                            <label for="paymentUsageInput" class="recordStatus" data-bind="lang: usageStatus().text, css: usageStatus().type"></label>
                                         </div>
                                     </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue">
+                                                <select id="subscriptionInput" class="inputField wide" data-bind="options: paymentIntervals, value: accountingInfo().paymentInterval, optionsText: 'textId', optionsValue: 'interval', enable: state.entering"></select>
+                                            </div>
+                                            <label for="subscriptionInput" class="recordInfo" data-bind="lang: 'renewedSubscriptionInfo_msg'"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'price_label'"></label>
+                                        <div class="recordData">
+                                            <div id="subscriptionPrice" class="recordValue" data-bind="text: getPriceText()"></div>
+                                            <label for="subscriptionPrice" class="recordInfo" data-bind="text: getPriceInfoText()"></label>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: 'continue_action'"></button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="light defaultMargin" data-bind="lang: 'paymentDataEnterData_msg', visible: step() == 1"></div>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && (step() == 1 || step() == -1), submit: submitPaymentData, form: true">
                                     <div class="record">
                                         <label for="paymentInvoiceRecipientInput"  class="recordName" data-bind="lang: 'invoiceRecipient_label'"></label>
                                         <div class="recordData">
@@ -1737,10 +1724,53 @@
                                             <label for="paymentMethodInput"  class="recordInfo" data-bind="lang: 'invoicePaymentMethodInfo_msg'"></label>
                                         </div>
                                     </div>
+									<div class="record" data-bind="fadeVisible : isEnterPaymentDataButtonVisible() " >
+										<label class="recordName" data-bind="lang: 'paymentDetails_label'"></label>
+										<div class="formAction">
+											<button class="single" type="button" data-bind="lang: isPaymentMethodInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
+											<label class="recordInfo" data-bind="text: accountingInfo().paymentMethodInfo(), fadeVisible: isPaymentMethodInfoAvailable()"></label>
+											<label class="recordStatus" data-bind="text: getRedirectMessage()"></label>
+										</div>
+									</div>
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button class="single" type="submit" data-bind="lang: 'save_action', css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: getStoreButtonText(), css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single" type="button" data-bind="lang: 'back_action', visible: step() == 1, css: {disabled: !state.cancelEnabled()}, fastClick: back"></button>
+                                            <label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
+                                        </div>
+                                    </div>
+                                </form>
+                                <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 2, submit: buy, form: true">
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummaryBookingText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummarySubscriptionText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'price_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummaryPriceText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                        <div class="recordData">
+                                            <div class="recordValue" data-bind="text: getSummaryPaymentMethodInfoText()"></div>
+                                        </div>
+                                    </div>
+                                    <div class="record">
+                                        <div class="recordName"></div>
+                                        <div class="formAction">
+                                            <button class="single fontImage confirm" type="submit" data-bind="lang: 'buy_action', css: { disabled: !state.submitEnabled() }"></button>
+                                            <button class="single" type="button" data-bind="lang: 'back_action', css: {disabled: !state.cancelEnabled()}, fastClick: back"></button>
                                             <label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
                                         </div>
                                     </div>
@@ -1764,8 +1794,8 @@
                                         <div class="recordData">
                                             <div class="recordValue">
                                                 <div id="externalWelcomeMessagePreview">
-                                                    <div class="outerExternalUserWelcomeMessage">
-                                                        <div class="innerExternalUserWelcomeMessage" data-bind="text: externalWelcomeMessage"></div>
+                                                    <div class="outerWelcomeMessage">
+                                                        <div class="innerWelcomeMessage" data-bind="text: externalWelcomeMessage"></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1788,8 +1818,7 @@
 			</div>
 			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
                 <!-- ko if: editing() -->
-                    <div class="scrollable" data-bind="with: editing()">
-                        <h1 data-bind="lang: 'editUser_label'"></h1>
+                    <div class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: editing()">
                         <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">
                                 <label for="userName" class="recordName" data-bind="lang: 'name_label'"></label>
@@ -1829,7 +1858,7 @@
                                 </div>
                             </div>
                             <div class="record" data-bind="if: userGroupInfo.getDeleted()">
-                                <label class="recordName" data-bind="lang: 'deleted_label'"></label>
+                                <label class="recordName" data-bind="lang: 'deactivated_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroupInfo.getDeleted())">
                                     </div>
@@ -1838,18 +1867,56 @@
                             <div class="record">
                                 <div class="recordName"></div>
                                 <div class="formAction">
-                                    <button id="submitUserChange" class="single fontImage confirm" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
+                                    <button id="submitUserChange" class="single" type="submit" data-bind="css: {disabled: !isChangeActionAllowed()}, lang: 'save_action'"></button>
                                     <button id="deleteUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: getDeleteButtonText(), fastClick: deleteUser, visible: deleteUserAllowed"></button>
-                                    <button id="cancelUserChange" class="single" type="button" data-bind="css: {disabled: busy}, lang: 'cancel_action', fastClick: cancel"></button>
                                     <label class="recordStatus" data-bind="css: saveStatus().type, lang: saveStatus().text"></label>
                                 </div>
                             </div>
                         </form>
+						<div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel($data)">
+							<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true ">
+								<div class="record">
+									<label for="mailAddress" class="recordName" data-bind="lang: 'mailAddressAliases_label'"></label>
+									<div class="recordData">
+										<div class="recordValue">
+											<input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+											<span>@</span>
+											<select data-bind="options: availableDomains, value: domain, enable: inputEnabled()"></select>
+										</div>
+										<label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+										<label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button id="submitAddAlias" class="single" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'addMailAddressAlias_action'"></button>
+										<label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
+									</div>
+								</div>
+							</form>
+
+							<div class="recordContainer" data-bind="foreach: aliasList, form: true">
+								<div class="record">
+									<label class="recordName"></label>
+									<div class="recordData">
+										<div class="recordValue" data-bind="text: emailAddress"></div>
+										<label class="recordStatus" data-bind="css: $parent.getAliasStatusType($data), lang: $parent.getAliasStatusText($data)"></label>
+									</div>
+								</div>
+								<div class="record">
+									<div class="recordName"></div>
+									<div class="formAction">
+										<button class="single" data-bind="lang: $parent.getDeleteAliasTextId($data), fastClick: function() {$parent.deleteAlias($data);}"></button>
+									</div>
+								</div>
+							</div>
+						</div>
                     </div>
                 <!-- /ko -->
                 <!-- ko if: newViewModel() -->
-                    <div id="newUsers" class="scrollable" data-bind="with: newViewModel()">
-
+                    <div class="actions" data-bind="domInit: function(domElement) { newViewModel().buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: 'buttonBar-template',  data: newViewModel().buttonBarViewModel }"></div>
+                    <div id="newUsers" class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: newViewModel()">
                         <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
                             <div class="dialogWindow">
                                 <span class="close" data-bind="fastClick: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
@@ -1872,15 +1939,14 @@
                             </div>
                         </div>
 
-                        <h1 data-bind="lang: 'adminUserAdd_action'"></h1>
+                        <h1 data-bind="lang: 'newUsers_label'"></h1>
                         <!-- ko foreach: newUsers -->
-                            <!-- ko if: ($index() > 0) --><hr><!-- /ko -->
                         <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}"/>
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: name, valueUpdate: 'input', attr: {id: 'userName' + $index()}"/>
                                     </div>
                                     <label class="recordInfo" data-bind="lang: 'loginNameInfoAdmin_msg', attr: {for: 'userName' + $index()}"></label>
                                 </div>
@@ -1889,9 +1955,9 @@
                                 <label class="recordName" data-bind="lang: 'mailAddress_label', attr: {for: 'userMailAddress' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.isEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" />
+                                        <input class="inputField wide mailAddress" type="text" data-bind="enable: $parent.state.entering(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr: {id: 'userMailAddress' + $index()}" />
 										<span>@</span>
-										<select data-bind="options: availableDomains, value: domain"></select>
+										<select data-bind="enable: $parent.state.entering(), options: availableDomains, value: domain"></select>
                                     </div>
                                     <label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text, attr: {for: 'userMailAddress' + $index()}"></label>
                                     <label class="recordInfo" data-bind="lang: 'mailAddressInfoAdmin_msg', attr: {for: 'userMailAddress' + $index()}"></label>
@@ -1901,7 +1967,7 @@
                                 <label class="recordName" data-bind="lang: 'password_label', attr: {for: 'password' + $index()}"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input class="inputField wide" type="text" data-bind="enable: $parent.isEditable(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
+                                        <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
                                         <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
@@ -1912,26 +1978,60 @@
                                     <div class="recordInfo" data-bind="lang: 'notePassword_msg'"></div>
                                 </div>
                             </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button class="single" data-bind="lang: 'adminUserRemove_action', css: { disabled: !$parent.state.entering() }, fastClick: $parent.removeUser"></button>
+                                </div>
+                            </div>
                         </form>
                         <!-- /ko -->
-                            <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
-                                <div class="record">
-                                    <div class="recordName"></div>
-                                    <div class="formAction">
-                                        <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !isCreateAccountsPossible() }, lang: 'create_action'"></button>
-                                        <button class="single" data-bind="lang: 'import_action', fastClick: openCsvDialog"></button>
-                                        <button class="single" data-bind="lang: 'cancel_action', fastClick: cancel"></button>
-                                        <label class="recordStatus" data-bind="css: createStatus().type, lang: createStatus().text, params: createStatus().params"></label>
-                                    </div>
-                                </div>
-                            </form>
-                            <!-- ko if: (createdUsers().length > 0) -->
-                                <div id="createdUsersInfo" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
-                            <!-- /ko -->
-                            <ul data-bind="foreach: createdUsers">
-                                <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
-                            </ul>
+                        <!-- ko if: (createdUsers().length > 0) -->
+                        <div class="light" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
+                        <ul class="defaultMargin" data-bind="foreach: createdUsers">
+                            <li class="createdUserEntry" data-bind="text: mailAddress() + ': ' + password()"></li>
+                        </ul>
                         <!-- /ko -->
+                        <hr>
+                        <h1 data-bind="lang: 'bookingSummary_label'"></h1>
+                        <form class="recordContainer wide" data-bind="submit: createAccounts, form: true">
+                            <div class="record">
+                                <label class="recordName" data-bind="lang: 'bookingOrder_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryBookingText()"></div>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummarySubscriptionText()"></div>
+                                    <label class="recordInfo" data-bind="text: getSummarySubscriptionInfoText()"></label>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'newTotalPrice_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryPriceText()"></div>
+                                    <label class="recordInfo" data-bind="text: getSummaryPriceInfo1Text()"></label>
+                                    <label class="recordInfo" data-bind="text: getSummaryPriceInfo2Text()"></label>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: isBuy()">
+                                <label class="recordName" data-bind="lang: 'paymentMethod_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue" data-bind="text: getSummaryPaymentMethodInfoText()"></div>
+                                </div>
+                            </div>
+                            <div class="record">
+                                <div class="recordName"></div>
+                                <div class="formAction">
+                                    <button type="submit" class="single fontImage confirm" data-bind="css: { disabled: !state.submitEnabled() }, lang: getCreateUsersButtonTextId()"></button>
+                                    <button class="single" data-bind="lang: 'cancel_action', css: { disabled: !state.cancelEnabled() }, fastClick: cancel"></button>
+                                    <label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
+                                </div>
+                            </div>
+                        </form>
+                    <!-- /ko -->
                     </div>
 				<!-- /ko -->
 			</div>
@@ -2031,9 +2131,9 @@
     </div>
 -->
 	<header id="main" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
-        <div id="externalUserWelcomeMessage">
-            <div class="outerExternalUserWelcomeMessage">
-                <div class="innerExternalUserWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
+        <div id="welcomeMessage">
+            <div class="outerWelcomeMessage">
+                <div class="innerWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
             </div>
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->

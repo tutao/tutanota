@@ -4,9 +4,15 @@ tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE = "0";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD = "1";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_SEPA = "2";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL = "3";
 
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS = "0";
 tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE = "1";
+
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_SINGLE = "0";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_PACKAGE = "1";
+tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_PRICE_TYPE_TOTAL = "2";
 
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_NONE = "0";
 tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY = "1";
@@ -274,6 +280,8 @@ tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS = "1";
 
 tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS = ["tutanota.com", "tutanota.de", "tutamail.com", "tuta.io", "keemail.me"];
 
+tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON = "graphics/ion-alert-circled.svg";
+
 
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_OK = 0;
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED = 1;
@@ -281,3 +289,27 @@ tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_MX_RECORD =
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_MISSING_SPF_RECORD = 3;
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD = 4;
 tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DOMAIN_NOT_AVAILABLE = 5;
+
+
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_FORM_READY = "tutao.tutanota.pay.formready"; // contains no value
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_CLIENT_TOKEN = "tutao.tutanota.pay.clienttoken"; // contains one value <clientToken>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN = "tutao.tutanota.pay.paymenttoken"; //contains three values <token>:<method>:<methodInfo>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_WINDOW_NAME = "tutao.tutanota.pay.windowname"; // contains one value <windowName>
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_METHOD = "tutao.tutanota.pay.paymentmethod"; // contains one value <paymentMethod> from tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_XXX
+
+
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_OK = "0";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_COUNTRY_MISMATCH = "1";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_INVALID_VATID_NUMBER = "2";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_CREDIT_CARD_DECLINED = "3";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_CREDIT_CARD_CVV_INVALID = "4";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_PAYMENT_PROVIDER_NOT_AVAILABLE = "5";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_OTHER_PAYMENT_PROVIDER_ERROR = "6";
+
+
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING = "0";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK = "1";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE_LOAD = "2";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED = "3";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED_PAYMENTMETHOD = "4";
+tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_ERROR = "5";

@@ -61,9 +61,7 @@ Foo ができれば 9 パッチファイル splashscreen ファイルの名前�
 
 `config.xml`ファイルの `AutoHideSplashScreen` 設定する必要があります `false` 。 遅延を 2 秒間スプラッシュ スクリーンを非表示、タイマーを追加しますで次のように `deviceready` イベント ハンドラー。
 
-        setTimeout(function() {
-            navigator.splashscreen.hide();
-        }, 2000);
+        setTimeout(function() {navigator.splashscreen.hide();}, 2000年);
     
 
 ## splashscreen.show

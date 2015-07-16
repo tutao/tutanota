@@ -61,8 +61,7 @@
 
 `config.xml`파일의 `AutoHideSplashScreen` 설정을 해야 합니다 `false` . 2 초 동안 시작 화면을 숨기고 지연에 다음과 같이 타이머 추가 `deviceready` 이벤트 처리기:
 
-        setTimeout(function() {
-            navigator.splashscreen.hide();
+        setTimeout(function() {navigator.splashscreen.hide();
         }, 2000);
     
 

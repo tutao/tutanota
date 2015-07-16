@@ -233,6 +233,7 @@ tutao.rest.EntityRestCache.prototype._addToCache = function(path, element) {
 	// do not overwrite existing elements to avoid multiple instances of the same element, update the content instead
     if (this._getListData(path, cacheListId)['entities'][id]) {
         this._getListData(path, cacheListId)['entities'][id].updateData(element.toJsonData());
+        this._getListData(path, cacheListId)['entities'][id]._entityHelper.notifyObservers();
     } else {
         this._getListData(path, cacheListId)['entities'][id] = element;
     }

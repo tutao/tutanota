@@ -45,10 +45,10 @@ function finishCreation() {                                             \
 }                                                                       \
 createObject()";
 
-const char EXIT_EVENT[] = "'exit'";
-const char LOADSTART_EVENT[] = "'loadstart'";
-const char LOADSTOP_EVENT[] = "'loadstop'";
-const char LOADERROR_EVENT[] = "'loaderror'";
+const char EXIT_EVENT[] = "{type: 'exit'}";
+const char LOADSTART_EVENT[] = "{type: 'loadstart'}";
+const char LOADSTOP_EVENT[] = "{type: 'loadstop'}";
+const char LOADERROR_EVENT[] = "{type: 'loaderror'}";
 
 void Inappbrowser::open(int cb, int, const QString &url, const QString &, const QString &) {
     assert(_eventCb == 0);
@@ -71,34 +71,35 @@ void Inappbrowser::close(int, int) {
     _eventCb = 0;
 }
 
-void Inappbrowser::injectStyleFile(int, int, const QString&, bool) {
-    // TODO:
-    qCritical() << "unimplemented " << __PRETTY_FUNCTION__;
+void Inappbrowser::injectStyleFile(int scId, int ecId, const QString& src, bool b) {
+    QString code("(function(d) { var c = d.createElement('link'); c.rel='stylesheet'; c.type='text/css'; c.href = %1; d.head.appendChild(c);})(document)");
+    code = code.arg(CordovaInternal::format(src));
+
+    injectScriptCode(scId, ecId, code, b);
 }
 
-void Inappbrowser::injectStyleCode(int, int, const QString&, bool) {
-    // TODO:
-    qCritical() << "unimplemented " << __PRETTY_FUNCTION__;
+void Inappbrowser::injectStyleCode(int scId, int ecId, const QString& src, bool b) {
+    QString code("(function(d) { var c = d.createElement('style'); c.innerHTML = %1; d.body.appendChild(c); })(document)");
+    code = code.arg(CordovaInternal::format(src));
+
+    injectScriptCode(scId, ecId, code, b);
 }
 
-void Inappbrowser::injectScriptFile(int, int, const QString&, bool) {
-    // TODO:
-    qCritical() << "unimplemented " << __PRETTY_FUNCTION__;
+void Inappbrowser::injectScriptFile(int scId, int ecId, const QString& src, bool b) {
+    QString code("(function(d) { var c = d.createElement('script'); c.src = %1; d.body.appendChild(c);})(document)");
+    code = code.arg(CordovaInternal::format(src));
+
+    injectScriptCode(scId, ecId, code, b);
 }
 
-void Inappbrowser::injectScriptCode(int, int, const QString&, bool) {
-    // TODO:
-    qCritical() << "unimplemented " << __PRETTY_FUNCTION__;
+void Inappbrowser::injectScriptCode(int scId, int, const QString& code, bool) {
+    m_cordova->execQML(QString("CordovaWrapper.global.inappbrowser.executeJS(%2, %1)").arg(CordovaInternal::format(code)).arg(scId));
 }
 
-void Inappbrowser::loadFinished(int status) {
-    if (status == 2) {
-        this->callbackWithoutRemove(_eventCb, LOADERROR_EVENT);
-    }
-    if (status == 0) {
-        this->callbackWithoutRemove(_eventCb, LOADSTART_EVENT);
-    }
-    if (status == 3) {
+void Inappbrowser::loadFinished(bool status) {
+    if (!status) {
         this->callbackWithoutRemove(_eventCb, LOADSTOP_EVENT);
+    } else {
+        this->callbackWithoutRemove(_eventCb, LOADSTART_EVENT);
     }
 }

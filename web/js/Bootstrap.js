@@ -87,10 +87,35 @@ tutao.tutanota.Bootstrap.init = function () {
 			}
             // listener to get notified when the app returns to foreground.
             document.addEventListener("resume", function(){
-                if (tutao.locator.userController.isInternalUserLoggedIn()){
-                    tutao.locator.eventBus.tryReconnect();
-                }
+                tutao.locator.eventBus.tryReconnect();
             }, false);
+			
+			
+			if (cordova.platformId == "ios") {
+				// Workaround for making the cursor position always visible when writing emails.
+				// Disable html navigation bar to save space.
+				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+				
+				// To be able to set an absolute body height
+				cordova.plugins.Keyboard.disableScroll(true);
+				
+				// Set an absolute body height to make the body end at the keyboard top.
+				window.addEventListener('native.keyboardshow', function (e){
+					var element = $("body");
+					var windowHeight = $(window).height();
+					var targetHeight = windowHeight - e.keyboardHeight;
+					if ( element.height() != targetHeight){
+						element.animate({height: targetHeight + "px"});
+					}
+				});
+			
+				window.addEventListener('native.keyboardhide', function (){
+					var element = $("body");
+					element.animate({height: "100%"}, 300);
+				});
+			}
+			
+			
         }
 
         // only for testing
@@ -188,8 +213,6 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         contactView: tutao.tutanota.gui.ContactView,
         fastMessageView: tutao.tutanota.gui.FastMessageView,
         notSupportedView: tutao.tutanota.gui.NotSupportedView,
-        registrationVerifyDomainView: tutao.tutanota.gui.RegistrationVerifyDomainView,
-        registrationVerifyDomainViewModel: tutao.tutanota.ctrl.RegistrationVerifyDomainViewModel,
         registrationView: tutao.tutanota.gui.RegistrationView,
         registrationViewModel: tutao.tutanota.ctrl.RegistrationViewModel,
         settingsView: tutao.tutanota.gui.SettingsView,
@@ -204,7 +227,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         legacyDownloadViewModel: tutao.tutanota.ctrl.LegacyDownloadViewModel,
         progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
         modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel,
-        folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel
+        folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel,
+        eventListenerManager: tutao.util.EventListenerManager
     };
 
     tutao.tutanota.legacy.Legacy.setup(singletons);

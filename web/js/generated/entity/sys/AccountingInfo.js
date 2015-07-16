@@ -20,7 +20,11 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this._invoiceVatIdNo = null;
     this._lastInvoiceNbrOfSentSms = null;
     this._lastInvoiceTimestamp = null;
+    this._paymentInterval = null;
     this._paymentMethod = null;
+    this._paymentMethodInfo = null;
+    this._paymentProviderCustomerId = null;
+    this._secondCountryInfo = null;
     this._invoiceInfo = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -42,7 +46,11 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this._invoiceVatIdNo = data.invoiceVatIdNo;
   this._lastInvoiceNbrOfSentSms = data.lastInvoiceNbrOfSentSms;
   this._lastInvoiceTimestamp = data.lastInvoiceTimestamp;
+  this._paymentInterval = data.paymentInterval;
   this._paymentMethod = data.paymentMethod;
+  this._paymentMethodInfo = data.paymentMethodInfo;
+  this._paymentProviderCustomerId = data.paymentProviderCustomerId;
+  this._secondCountryInfo = data.secondCountryInfo;
   this._invoiceInfo = data.invoiceInfo;
 };
 
@@ -92,7 +100,11 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     invoiceVatIdNo: this._invoiceVatIdNo, 
     lastInvoiceNbrOfSentSms: this._lastInvoiceNbrOfSentSms, 
     lastInvoiceTimestamp: this._lastInvoiceTimestamp, 
+    paymentInterval: this._paymentInterval, 
     paymentMethod: this._paymentMethod, 
+    paymentMethodInfo: this._paymentMethodInfo, 
+    paymentProviderCustomerId: this._paymentProviderCustomerId, 
+    secondCountryInfo: this._secondCountryInfo, 
     invoiceInfo: this._invoiceInfo
   };
 };
@@ -105,27 +117,27 @@ tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
 /**
  * The id of the business attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 743;
+tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 758;
 
 /**
  * The id of the invoiceAddress attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 745;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 760;
 
 /**
  * The id of the invoiceCountry attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 746;
+tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 761;
 
 /**
  * The id of the invoiceName attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 744;
+tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 759;
 
 /**
  * The id of the invoiceVatIdNo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 747;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 763;
 
 /**
  * The id of the lastInvoiceNbrOfSentSms attribute.
@@ -138,14 +150,34 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICENBROFSENTSMS_ATTRIBUTE_ID =
 tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 592;
 
 /**
+ * The id of the paymentInterval attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 766;
+
+/**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 748;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 764;
+
+/**
+ * The id of the paymentMethodInfo attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 765;
+
+/**
+ * The id of the paymentProviderCustomerId attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTPROVIDERCUSTOMERID_ATTRIBUTE_ID = 767;
+
+/**
+ * The id of the secondCountryInfo attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype.SECONDCOUNTRYINFO_ATTRIBUTE_ID = 762;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 749;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 768;
 
 /**
  * Provides the id of this AccountingInfo.
@@ -211,8 +243,7 @@ tutao.entity.sys.AccountingInfo.prototype.getBusiness = function() {
  * @param {string} invoiceAddress The invoiceAddress of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceAddress = function(invoiceAddress) {
-  var dataToEncrypt = invoiceAddress;
-  this._invoiceAddress = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._invoiceAddress = invoiceAddress;
   return this;
 };
 
@@ -221,11 +252,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceAddress = function(invoiceAd
  * @return {string} The invoiceAddress of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
-  if (this._invoiceAddress == "") {
-    return "";
-  }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceAddress);
-  return value;
+  return this._invoiceAddress;
 };
 
 /**
@@ -233,12 +260,7 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
  * @param {string} invoiceCountry The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCountry) {
-  if (invoiceCountry == null) {
-    this._invoiceCountry = null;
-  } else {
-    var dataToEncrypt = invoiceCountry;
-    this._invoiceCountry = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
-  }
+  this._invoiceCountry = invoiceCountry;
   return this;
 };
 
@@ -247,11 +269,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCo
  * @return {string} The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
-  if (this._invoiceCountry == null) {
-    return null;
-  }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceCountry);
-  return value;
+  return this._invoiceCountry;
 };
 
 /**
@@ -259,8 +277,7 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
  * @param {string} invoiceName The invoiceName of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceName = function(invoiceName) {
-  var dataToEncrypt = invoiceName;
-  this._invoiceName = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._invoiceName = invoiceName;
   return this;
 };
 
@@ -269,11 +286,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceName = function(invoiceName)
  * @return {string} The invoiceName of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
-  if (this._invoiceName == "") {
-    return "";
-  }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceName);
-  return value;
+  return this._invoiceName;
 };
 
 /**
@@ -281,8 +294,7 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
  * @param {string} invoiceVatIdNo The invoiceVatIdNo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVatIdNo) {
-  var dataToEncrypt = invoiceVatIdNo;
-  this._invoiceVatIdNo = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._invoiceVatIdNo = invoiceVatIdNo;
   return this;
 };
 
@@ -291,11 +303,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVa
  * @return {string} The invoiceVatIdNo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceVatIdNo = function() {
-  if (this._invoiceVatIdNo == "") {
-    return "";
-  }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceVatIdNo);
-  return value;
+  return this._invoiceVatIdNo;
 };
 
 /**
@@ -343,16 +351,28 @@ tutao.entity.sys.AccountingInfo.prototype.getLastInvoiceTimestamp = function() {
 };
 
 /**
+ * Sets the paymentInterval of this AccountingInfo.
+ * @param {string} paymentInterval The paymentInterval of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentInterval = function(paymentInterval) {
+  this._paymentInterval = paymentInterval;
+  return this;
+};
+
+/**
+ * Provides the paymentInterval of this AccountingInfo.
+ * @return {string} The paymentInterval of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentInterval = function() {
+  return this._paymentInterval;
+};
+
+/**
  * Sets the paymentMethod of this AccountingInfo.
  * @param {string} paymentMethod The paymentMethod of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMethod) {
-  if (paymentMethod == null) {
-    this._paymentMethod = null;
-  } else {
-    var dataToEncrypt = paymentMethod;
-    this._paymentMethod = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
-  }
+  this._paymentMethod = paymentMethod;
   return this;
 };
 
@@ -361,11 +381,58 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMet
  * @return {string} The paymentMethod of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethod = function() {
-  if (this._paymentMethod == null) {
-    return null;
-  }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
-  return value;
+  return this._paymentMethod;
+};
+
+/**
+ * Sets the paymentMethodInfo of this AccountingInfo.
+ * @param {string} paymentMethodInfo The paymentMethodInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentMethodInfo = function(paymentMethodInfo) {
+  this._paymentMethodInfo = paymentMethodInfo;
+  return this;
+};
+
+/**
+ * Provides the paymentMethodInfo of this AccountingInfo.
+ * @return {string} The paymentMethodInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentMethodInfo = function() {
+  return this._paymentMethodInfo;
+};
+
+/**
+ * Sets the paymentProviderCustomerId of this AccountingInfo.
+ * @param {string} paymentProviderCustomerId The paymentProviderCustomerId of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setPaymentProviderCustomerId = function(paymentProviderCustomerId) {
+  this._paymentProviderCustomerId = paymentProviderCustomerId;
+  return this;
+};
+
+/**
+ * Provides the paymentProviderCustomerId of this AccountingInfo.
+ * @return {string} The paymentProviderCustomerId of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getPaymentProviderCustomerId = function() {
+  return this._paymentProviderCustomerId;
+};
+
+/**
+ * Sets the secondCountryInfo of this AccountingInfo.
+ * @param {string} secondCountryInfo The secondCountryInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setSecondCountryInfo = function(secondCountryInfo) {
+  this._secondCountryInfo = secondCountryInfo;
+  return this;
+};
+
+/**
+ * Provides the secondCountryInfo of this AccountingInfo.
+ * @return {string} The secondCountryInfo of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getSecondCountryInfo = function() {
+  return this._secondCountryInfo;
 };
 
 /**

@@ -77,6 +77,10 @@ Apre un URL in una nuova `InAppBrowser` istanza, l'istanza corrente del browser 
     *   **presentationstyle**: impostare su `pagesheet` , `formsheet` o `fullscreen` per impostare lo [stile di presentazione][1] (default`fullscreen`).
     *   **transitionstyle**: impostare su `fliphorizontal` , `crossdissolve` o `coververtical` per impostare lo [stile di transizione][2] (default`coververtical`).
     *   **toolbarposition**: impostare su `top` o `bottom` (default è `bottom` ). Provoca la barra degli strumenti sia nella parte superiore o inferiore della finestra.
+    
+    Solo per Windows:
+    
+    *   **nascosti**: impostare su `yes` per creare il browser e caricare la pagina, ma non mostrarlo. L'evento loadstop viene generato quando il caricamento è completato. Omettere o impostata su `no` (impostazione predefinita) per avere il browser aperto e caricare normalmente.
 
  [1]: http://developer.apple.com/library/ios/documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalPresentationStyle
  [2]: http://developer.apple.com/library/ios/#documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalTransitionStyle
@@ -88,6 +92,7 @@ Apre un URL in una nuova `InAppBrowser` istanza, l'istanza corrente del browser 
 *   BlackBerry 10
 *   Firefox OS
 *   iOS
+*   Windows 8 e 8.1
 *   Windows Phone 7 e 8
 
 ### Esempio
@@ -172,6 +177,7 @@ L'oggetto restituito da una chiamata a`window.open`.
 *   Amazon fuoco OS
 *   Android
 *   iOS
+*   Windows 8 e 8.1
 *   Windows Phone 7 e 8
 
 ### Esempio rapido
@@ -203,6 +209,7 @@ L'oggetto restituito da una chiamata a`window.open`.
 *   Amazon fuoco OS
 *   Android
 *   iOS
+*   Windows 8 e 8.1
 *   Windows Phone 7 e 8
 
 ### Esempio rapido
@@ -228,6 +235,7 @@ L'oggetto restituito da una chiamata a`window.open`.
 *   Android
 *   Firefox OS
 *   iOS
+*   Windows 8 e 8.1
 *   Windows Phone 7 e 8
 
 ### Esempio rapido
@@ -250,6 +258,7 @@ L'oggetto restituito da una chiamata a`window.open`.
 *   Amazon fuoco OS
 *   Android
 *   iOS
+*   Windows 8 e 8.1
 
 ### Esempio rapido
 
@@ -281,6 +290,7 @@ L'oggetto restituito da una chiamata a`window.open`.
 *   Amazon fuoco OS
 *   Android
 *   iOS
+*   Windows 8 e 8.1
 
 ### Esempio rapido
 

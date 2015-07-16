@@ -218,7 +218,7 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "mailAddressDelay_msg": "Demasiadas solicitações. É favor tentar mais tarde.",
   "mailAddressInfoAdmin_msg": "O endereço de e-mail do utilizador.",
   "mailAddressInfoBusiness_msg": "Este é seu endereço de e-mail.",
-  "mailAddressInfo_msg": "Este será o seu novo endereço de e-mail. Registe-se com um nome único. A preferência é atribuída por ordem de chegada. São necessárias, pelo menos, quatro letras.",
+  "mailAddressInfo_msg": "Este será o seu novo endereço de e-mail. Registe-se com um nome único. A preferência é atribuída por ordem de chegada. São necessárias, pelo menos, três letras.",
   "mailAddressInvalid_msg": "O endereço de e-mail não é válido.",
   "mailAddressNA_msg": "Endereço de e-mail não disponível.",
   "mailAddressNeutral_msg": "Indicar o endereço de e-mail.",

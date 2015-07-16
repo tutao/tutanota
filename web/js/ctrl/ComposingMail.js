@@ -154,7 +154,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                 var unsecureRecipients = self._containsUnsecureRecipients();
                 if (self.confidentialButtonSecure() && unsecureRecipients) {
                     setTimeout(function () {
-                        var message = "noPasswordChannels_msg";
+                        var message = "noPreSharedPassword_msg";
                         tutao.tutanota.gui.alert(tutao.lang(message)).then(function () {
                             tutao.locator.mailView.showPasswordChannelColumn();
                         });
@@ -234,6 +234,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 }
                                 console.log("recipients not found", exception);
                                 return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
+                            }).caught(tutao.TooManyRequestsError, function (exception) {
+                                return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
                             });
 
                         });

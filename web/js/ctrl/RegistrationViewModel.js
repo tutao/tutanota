@@ -60,7 +60,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA = 3;
 tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING = 4;
 tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_FINISHED = 5;
 
-tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH = 4;
+tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH = 3;
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.activate = function(authToken) {
     var self = this;
@@ -409,7 +409,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressFree = function(newValue) {
 	var self = this;
     var cleanedValue = newValue.toLowerCase().trim();
-    if (self.mailAddressPrefix().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
+    if (self.mailAddressPrefix().trim().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     } else if (!self.isValidMailAddress()) {
@@ -465,27 +465,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsLink = function() {
     var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
-    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE){
-        return 'https://tutanota.com/'+ langIdentifier + 'terms#terms-free';
-    } else {
-        return 'https://tutanota.com/'+ langIdentifier + 'terms#terms-business';
-    }
+    return 'https://tutanota.com/'+ langIdentifier + 'terms';
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPrivacyLink = function() {
     var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
     return 'https://tutanota.com/' +langIdentifier + 'terms#privacy';
 };
-
-
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsLabel = function() {
-    if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE){
-        return 'termsAndConditionsFree_label';
-    } else {
-        return 'termsAndConditionsStarter_label';
-    }
-};
-
-
-
-

@@ -15,8 +15,8 @@ tutao.provide('tutao.tutanota.ctrl.SendMailFacade');
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
  * @param {Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>} attachments The new files that shall be attached to this mail.
  * @param {string} language Notification mail language.
- * @return {Promise.<string, tutao.RecipientsNotFoundError>} Resolved finished with the id of the senders mail (only element id, no list id). Rejected with a
- * RecipientsNotFoundError if some of the recipients could not be found
+ * @return {Promise.<string, tutao.RecipientsNotFoundError|tutao.TooManyRequestsError>} Resolved finished with the id of the senders mail (only element id, no list id). Rejected with a
+ * RecipientsNotFoundError if some of the recipients could not be found, rejected with TooManyRequestsError if the number allowed mails was exceeded
  */
 tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, senderMailAddress, senderName, toRecipients, ccRecipients, bccRecipients, conversationType, previousMessageId, attachments, language) {
 	var accountType = tutao.locator.userController.getLoggedInUser().getAccountType();

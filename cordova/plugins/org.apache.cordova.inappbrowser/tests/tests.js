@@ -19,16 +19,17 @@
  *
 */
 
+var cordova = require('cordova');
+var isWindows = cordova.platformId == 'windows';
+
+window.alert = window.alert || navigator.notification.alert;
+
 exports.defineManualTests = function (contentEl, createActionButton) {
 
     function doOpen(url, target, params, numExpectedRedirects) {
         numExpectedRedirects = numExpectedRedirects || 0;
         console.log("Opening " + url);
-        var iab = window.open(url, target, params);
-        if (!iab) {
-            alert('window.open returned ' + iab);
-            return;
-        }
+
         var counts;
         var lastLoadStartURL;
         var wasReset = false;
@@ -43,6 +44,17 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         }
         reset();
 
+        var iab = window.open(url, target, params, {
+            loaderror: logEvent,
+            loadstart: logEvent,
+            loadstop: logEvent,
+            exit: logEvent
+        });
+        if (!iab) {
+            alert('window.open returned ' + iab);
+            return;
+        }
+        
         function logEvent(e) {
             console.log('IAB event=' + JSON.stringify(e));
             counts[e.type]++;
@@ -80,10 +92,6 @@ exports.defineManualTests = function (contentEl, createActionButton) {
                 }
             }
         }
-        iab.addEventListener('loaderror', logEvent);
-        iab.addEventListener('loadstart', logEvent);
-        iab.addEventListener('loadstop', logEvent);
-        iab.addEventListener('exit', logEvent);
 
         return iab;
     }
@@ -167,7 +175,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     var info_div = '<h1>InAppBrowser</h1>' +
         '<div id="info">' +
-        'Make sure http://www.google.com and https://www.google.com are white listed. </br>' +
+        'Make sure http://cordova.apache.org and http://google.co.uk and https://www.google.co.uk are white listed. </br>' +
         'Make sure http://www.apple.com is not in the white list.</br>' +
         'In iOS, starred <span style="vertical-align:super">*</span> tests will put the app in a state with no way to return. </br>' +
         '<h4>User-Agent: <span id="user-agent"> </span></hr>' +
@@ -193,17 +201,17 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     var white_listed_tests = '<h1>White Listed URL</h1>' +
         '<div id="openWhiteListed"></div>' +
-        'Expected result: open successfully in CordovaWebView to www.google.com' +
+        'Expected result: open successfully in CordovaWebView to cordova.apache.org' +
         '<p/> <div id="openWhiteListedSelf"></div>' +
-        'Expected result: open successfully in CordovaWebView to www.google.com' +
+        'Expected result: open successfully in CordovaWebView to cordova.apache.org' +
         '<p/> <div id="openWhiteListedSystem"></div>' +
-        'Expected result: open successfully in system browser to www.google.com' +
+        'Expected result: open successfully in system browser to cordova.apache.org' +
         '<p/> <div id="openWhiteListedBlank"></div>' +
-        'Expected result: open successfully in InAppBrowser to www.google.com' +
+        'Expected result: open successfully in InAppBrowser to cordova.apache.org' +
         '<p/> <div id="openWhiteListedRandom"></div>' +
-        'Expected result: open successfully in InAppBrowser to www.google.com' +
+        'Expected result: open successfully in InAppBrowser to cordova.apache.org' +
         '<p/> <div id="openWhiteListedRandomNoLocation"></div>' +
-        'Expected result: open successfully in InAppBrowser to www.google.com with no location bar.';
+        'Expected result: open successfully in InAppBrowser to cordova.apache.org with no location bar.';
 
     var non_white_listed_tests = '<h1>Non White Listed URL</h1>' +
         '<div id="openNonWhiteListed"></div>' +
@@ -221,7 +229,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     var page_with_redirects_tests = '<h1>Page with redirect</h1>' +
         '<div id="openRedirect301"></div>' +
-        'Expected result: should 301 and open successfully in InAppBrowser to www.google.com.' +
+        'Expected result: should 301 and open successfully in InAppBrowser to https://www.google.co.uk.' +
         '<p/> <div id="openRedirect302"></div>' +
         'Expected result: should 302 and open successfully in InAppBrowser to www.zhihu.com/answer/16714076.';
 
@@ -263,11 +271,11 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         '<div id="openHidden"></div>' +
         'Expected result: no additional browser window. Alert appears with the text "background window loaded".' +
         '<p/> <div id="showHidden"></div>' +
-        'Expected result: after first clicking on previous test "create hidden", open successfully in InAppBrowser to google.com.' +
+        'Expected result: after first clicking on previous test "create hidden", open successfully in InAppBrowser to https://www.google.co.uk.' +
         '<p/> <div id="closeHidden"></div>' +
         'Expected result: no output. But click on "show hidden" again and nothing should be shown.' +
         '<p/> <div id="openHiddenShow"></div>' +
-        'Expected result: open successfully in InAppBrowser to www.google.com';
+        'Expected result: open successfully in InAppBrowser to https://www.google.co.uk';
 
     var clearing_cache_tests = '<h1>Clearing Cache</h1>' +
         '<div id="openClearCache"></div>' +
@@ -304,8 +312,8 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     var localhtml = basePath + 'local.html',
         localpdf = basePath + 'local.pdf',
         injecthtml = basePath + 'inject.html',
-        injectjs = 'inject.js',
-        injectcss = 'inject.css',
+        injectjs = isWindows ? basePath + 'inject.js' : 'inject.js',
+        injectcss = isWindows ? basePath + 'inject.css' : 'inject.css',
         videohtml = basePath + 'video.html';
 
     //Local
@@ -336,22 +344,22 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     //White Listed
     createActionButton('* target=Default', function () {
-        doOpen('https://www.google.com');
+        doOpen('http://cordova.apache.org');
     }, 'openWhiteListed');
     createActionButton('* target=_self', function () {
-        doOpen('https://www.google.com', '_self');
+        doOpen('http://cordova.apache.org', '_self');
     }, 'openWhiteListedSelf');
     createActionButton('target=_system', function () {
-        doOpen('https://www.google.com', '_system');
+        doOpen('http://cordova.apache.org', '_system');
     }, 'openWhiteListedSystem');
     createActionButton('target=_blank', function () {
-        doOpen('https://www.google.com', '_blank');
+        doOpen('http://cordova.apache.org', '_blank');
     }, 'openWhiteListedBlank');
     createActionButton('target=Random', function () {
-        doOpen('https://www.google.com', 'random_string');
+        doOpen('http://cordova.apache.org', 'random_string');
     }, 'openWhiteListedRandom');
     createActionButton('* target=Random, no location bar', function () {
-        doOpen('https://www.google.com', 'random_string', 'location=no');
+        doOpen('http://cordova.apache.org', 'random_string', 'location=no');
     }, 'openWhiteListedRandomNoLocation');
 
     //Non White Listed
@@ -375,8 +383,8 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     }, 'openNonWhiteListedRandomNoLocation');
 
     //Page with redirect
-    createActionButton('http://google.com', function () {
-        doOpen('http://google.com', 'random_string', '', 1);
+    createActionButton('http://google.co.uk', function () {
+        doOpen('http://google.co.uk', 'random_string', '', 1);
     }, 'openRedirect301');
     createActionButton('http://goo.gl/pUFqg', function () {
         doOpen('http://goo.gl/pUFqg', 'random_string', '', 2);
@@ -432,7 +440,7 @@ exports.defineManualTests = function (contentEl, createActionButton) {
 
     //Open hidden
     createActionButton('Create Hidden', function () {
-        openHidden('https://www.google.com', true);
+        openHidden('https://www.google.co.uk', true);
     }, 'openHidden');
     createActionButton('Show Hidden', function () {
         showHidden();
@@ -440,16 +448,16 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     createActionButton('Close Hidden', function () {
         closeHidden();
     }, 'closeHidden');
-    createActionButton('google.com Not Hidden', function () {
-        openHidden('https://www.google.com', false);
+    createActionButton('google.co.uk Not Hidden', function () {
+        openHidden('https://www.google.co.uk', false);
     }, 'openHiddenShow');
 
     //Clearing cache
     createActionButton('Clear Browser Cache', function () {
-        doOpen('https://www.google.com', '_blank', 'clearcache=yes');
+        doOpen('https://www.google.co.uk', '_blank', 'clearcache=yes');
     }, 'openClearCache');
     createActionButton('Clear Session Cache', function () {
-        doOpen('https://www.google.com', '_blank', 'clearsessioncache=yes');
+        doOpen('https://www.google.co.uk', '_blank', 'clearsessioncache=yes');
     }, 'openClearSessionCache');
 
     //Video tag

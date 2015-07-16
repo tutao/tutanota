@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<!--<script src="/lib/jquery-1.9.1.js"></script>-->
+<script src="https://js.braintreegateway.com/js/beta/braintree-hosted-fields-beta.17.js"></script>
+<head>
+	<meta charset="utf-8" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="The privacy-conscious email service Tutanota encrypts your emails automatically, no profiling possible. Open source and forever free." />
+	<title>Tutanota Pay</title>
+	<link rel="icon" href="graphics/favicon.png" type="image/png" />
+
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+	<noscript>
+		<style type="text/css">
+			div#fastMessage > div#fastMessageContainer > div.errorMessage, div#fastMessage > div#fastMessageContainer > div.message {
+				display: none;
+			}
+			div#fastMessage > div#fastMessageContainer > div.jsErrorMessage {
+				display: block;
+			}
+		</style>
+	</noscript>
+	<script src="https://js.braintreegateway.com/js/beta/braintree-hosted-fields-beta.17.js"></script>
+</head>
+<body>
+
+
+<!-- build:css -->
+<link href="less/main.less" rel="stylesheet" type="text/less" />
+<!-- endbuild -->
+<!-- build:js -->
+<!-- inject:js -->
+<script src="/lib/dev/less-1.7.0.min.js"></script>
+<script src="/lib/jquery-1.9.1.js"></script>
+<script src="/lib/knockout-2.2.1.js"></script>
+<script src="/lib/worker/base.js"></script>
+<script src="/js/ctrl/LanguageViewModel.js"></script>
+<script src="/js/ctrl/lang/ar.js"></script>
+<script src="/js/ctrl/lang/bg_bg.js"></script>
+<script src="/js/ctrl/lang/cy_gb.js"></script>
+<script src="/js/ctrl/lang/de.js"></script>
+<script src="/js/ctrl/lang/el.js"></script>
+<script src="/js/ctrl/lang/en.js"></script>
+<script src="/js/ctrl/lang/es.js"></script>
+<script src="/js/ctrl/lang/fa_af.js"></script>
+<script src="/js/ctrl/lang/fi.js"></script>
+<script src="/js/ctrl/lang/fr.js"></script>
+<script src="/js/ctrl/lang/hr.js"></script>
+<script src="/js/ctrl/lang/it.js"></script>
+<script src="/js/ctrl/lang/ko.js"></script>
+<script src="/js/ctrl/lang/lt_lt.js"></script>
+<script src="/js/ctrl/lang/mk.js"></script>
+<script src="/js/ctrl/lang/nl.js"></script>
+<script src="/js/ctrl/lang/pl.js"></script>
+<script src="/js/ctrl/lang/pt_br.js"></script>
+<script src="/js/ctrl/lang/pt_pt.js"></script>
+<script src="/js/ctrl/lang/ro.js"></script>
+<script src="/js/ctrl/lang/ru.js"></script>
+<script src="/js/ctrl/lang/sq.js"></script>
+<script src="/js/ctrl/lang/sr.js"></script>
+<script src="/js/ctrl/lang/tr.js"></script>
+<script src="/js/ctrl/lang/zh.js"></script>
+<script src="/js/ctrl/lang/zh_hant.js"></script>
+<script src="/js/entity/TutanotaConstants.js"></script>
+<script src="/js/gui/gui.js"></script>
+<script src="/js/util/ClientDetector.js"></script>
+<script src="/js/util/FunctionUtils.js"></script>
+<script src="/js/util/StringUtils.js"></script>
+<script src="/pay/Bootstrap.js"></script>
+<script src="/pay/PaymentDataValidationViewModel.js"></script>
+<!-- endinject -->
+<!-- endbuild -->
+<script src="/pay/init.js"></script>
+
+
+<div type="text/html" id="tutanota">
+
+	<header id="main" class="loggedIn" >
+		<div id="welcomeMessage">
+			<div class="outerWelcomeMessage">
+				<div class="innerWelcomeMessage" data-bind="lang: 'paymentDataValidation_msg'"> </div>
+			</div>
+		</div>
+
+		<div id="logo" >
+			<div class="path">
+				<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABKCAYAAAAsXNNQAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAABkuAAAZLgE9dTosAAAAB3RJTUUH3gEIDhUOxqcwuQAABTBJREFUeNrtm21sFEUYx39zIC9VAgIGvsndrkYTiQQVxHe+VBNEYkSCgELRCkWBEoQqiIRv4hcTUGMgDS2llWjhMNEIYsSQCKLRaCIkhJ3drQIhQAnI+9s9frg70xCB3vVu9/Y6/2aSNtubm/vtf+d55pk5RQftse1BwAQF04H7gIEYpYBDwPcC6xTsGuU4l7MXVfaXn2y7UkEjMNQwu74E9iioHO04//wHcLdtPw1sVYZPZyG2AfePcZxTPXbZ9iAF3wK3GTSd1gCBivoTJ7aqH217poJ6wySvybF/T4HpYljkq5qYpKOtUX5z4fCeAgONA/NWRcww6Jp6Gvd1FaAhaBxoABqABqBRfnmgAWgcaBxoHGgcaGQcaBxoHBiOrgpcUnAO6Af0Mg7MTT2AvgJ9BLYrOA9MCHIAsRTpjc+INwVUpoQKgbeCfO8YkvFixFumLDdKhE+DfN9yCSIe8BvwpsAzQe5vRwXgsUw7CvxNemPbBw4A+4HTz7vOuc0Ju0rBx9JNAJ4HXOAgsDcDwgWOCBw5Ae3VrvO/w/siYfdW0F/BYGA48MTmhF0NDA3684QB8B+gDvgKOPmC65y59h9aE7Z9OzzZmrCHAxYwBBiioC9wS6b1Jv33rdmUotzzQAEaJ7pO1XVcdbeC5cCUG3XQnRPptS+6zqwbXN8n6bwuUooFGPHrb2LPSQKHBC5HKYOKCcH8pJC6GwGc5DqbU6TuFWSsIHWC7AxqbF34TKiNCSvIqWW/pJda+iVXX+nMCzYmrIeBicBzwB2Z4NGHDodDQ1RSfRYswOzjugNomOLq9bm8riVhDVCQyETmkcCjwOMhlrOSqiUEgB10VmAR6aPF56e6Oq+xtCSsEcCkjFOHATGCCUhJ1RwuwKxOAl8KNE9z9faudLQhYQ1R8CAwKuPOxzJ5Y3EcuKE0AHbUXwKTX3b17kJ0tiFhKeDZTPL+SIHnzqRqKj2A2dv7i8DqVzzdVKgu1yeswSodjMYBlXTxXLhAUq2PW6VeTzgs8NR0Tx8oVIdNcSsGVAhUA++TfyU7qRpLH2D2bs+f4elVxei7MW7NBmYCD+UMsCEiADMQW4BpVZ4u+Jgb4lbvTNBJ5vBoJ6NWUJ0C/AF8UOiOZ3j6IvAd0G9d3PoEmN2ZgBOLYPV+ZX3cGlnMu1Tl6TnASIEznVgLR28LBFhcbKtXefp3gRECB8sOoMBda+JW0Vcar3paCzwgcKDcAAZWSXjN00cFKgXaywmgrvb01aAiV7WnfYFx5QTwo6DD/+ue3iNQUw4AG2Z5emcYOVQKGgSc7FhSEQToCdSGlYTWePqCwOQO2UCkAJ4WGF/j6VNhZvI1nv5VYFPUHuHDAvE5nt5bIkvK5ZI+WhcJgN+kYPQbnm4vlfVkKr23sy89B2ZONpVoew9h/FxPHyylBflcT18RoQmhV6kWE34Gauf5halKF+kxXg2MjZXgMb+pMRhTyvAA5vn6gsDXpeLAU8AWgfkL/HCjbI4ubFYfDgu9oLpOwbJaXx8iggrLgaeBnQLzFvraJcIKA+BKYO1CX2vKQEEBPAxsugQLlvjBVVHKAeBeYAWwY5Gvj1OGKgbAc4AD1C729Q7KXIUEeAxYBWyp8/WfdBN1FeAV0l89WPK2rxvphsoX4FnSR3aT7/j6B7qxcgGYAtqBd5f4eg1GNwGYvaA4CbQCrUt9vc0guxbg9S14HJivhM+Bq0vbtPludicc2AZsA5qXtYWzcRNBgALp+ludgt3L2tyLBksOWnFn4h5DIX/9C2Ztxw3suQIzAAAAAElFTkSuQmCC"/>
+			</div>
+			<div class="tutanota">
+				<img src="data:image/png;base64,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"/>
+			</div>
+		</div>
+
+		<div id="title" data-bind="lang: 'adminPayment_action'"></div>
+
+	</header>
+
+	<div id="viewContainer">
+		<div class="singleColumnContent  scrollable"  data-bind="with: tutao.locator.paymentDataValidationViewModel">
+			<div class="centeredColumn" >
+
+				<div class="statusBox" data-bind="fadeVisible: siteLoadingStatus() != tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK">
+					<div class="fontImage spinner" data-bind="fadeVisible: siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING"></div>
+					<div class="statusText" data-bind="text: siteLoadingErrorMessage()" ></div>
+					<div class="notSupportedList" data-bind="fadeVisible: siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED" >
+						<ul>
+							<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
+							<li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
+							<li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
+							<li><a target="_blank" href="http://www.apple.com/de/safari">Safari (Desktop, iOS)</a></li>
+						</ul>
+					</div>
+				</div>
+
+				<div id="paymentDataPayPalForm" data-bind="fadeVisible: isPayPalFormEnabled()" >
+					<div class="paymentDataTitle" data-bind="lang: getPayPalFormTitle()" ></div>
+					<div id="paymentPaypalContainer" class="wide" ></div>
+					<div class="paymentDataButtons">
+						<button id="payPalDataValidationAction"  class="single" data-bind="lang: 'paymentDataValidation_action', css: { disabled: !isSubmitPayPalDataEnabled() }, click: submitPayPalData" ></button>
+						<button class="single" type="button" data-bind="lang: 'cancel_action', click: cancel, css: { disabled: busy }"></button>
+					</div>
+				</div>
+
+				<div data-bind="fadeVisible: isCreditCardFormEnabled()">
+					<form action="/" id="creditCardPaymentDataForm" class="recordContainer wide" data-bind="form: true, event:{submit: submitClicked}" >
+						<div class="record">
+							<label for="paymentCreditCardNumber"  class="recordName" data-bind="lang: 'creditCardNumber_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<div id="paymentCreditCardNumber" class="inputField wide"></div>
+								</div>
+								<label for="paymentCreditCardNumber"  class="recordStatus" data-bind="lang: 'creditCardNumberFormat_msg'"></label>
+							</div>
+						</div>
+						<div class="record">
+							<label for="paymentCreditCardCVV"  class="recordName" data-bind="lang: 'creditCardCVV_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<div id="paymentCreditCardCVV" class="inputField wide"></div>
+								</div>
+								<label for="paymentCreditCardCVV"  class="recordStatus" data-bind="text: getSecurityCodeStatus()"></label>
+							</div>
+						</div>
+
+						<div class="record">
+							<label for="paymentCreditCardExpirationDate"  class="recordName" data-bind="lang: 'creditCardExpirationDate_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<div id="paymentCreditCardExpirationDate" class="inputField wide"></div>
+								</div>
+								<label for="paymentCreditCardExpirationDate"  class="recordStatus" data-bind="lang: 'creditCardExpirationDateFormat_msg'"></label>
+							</div>
+						</div>
+
+						<div class="record">
+							<div class="recordName"></div>
+							<div class="formAction">
+								<input id="paymentDataValidationAction" type="submit" class="buttonElement single" data-bind="value: tutao.lang('paymentDataValidation_action'), css: { disabled: !isSubmitEnabled() } , attr: {disabled: !isSubmitEnabled()}" />
+								<button class="single" type="button" data-bind="lang: 'cancel_action', click: cancel, css: { disabled: busy }"></button>
+								<label for="paymentDataValidationAction"  class="recordStatus" data-bind="css: getSubmitStatus().type, lang: getSubmitStatus().text"></label>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of viewContainer -->
+</div>
+
+</body>
+</html>

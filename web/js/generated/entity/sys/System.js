@@ -16,6 +16,7 @@ tutao.entity.sys.System = function(data) {
     this._lastInvoiceNbr = null;
     this._freeCustomerInfos = null;
     this._freeGroup = null;
+    this._invoiceStatusIndex = null;
     this._premiumCustomerInfos = null;
     this._premiumGroup = null;
     this._registrationDataList = null;
@@ -43,6 +44,7 @@ tutao.entity.sys.System.prototype.updateData = function(data) {
   this._lastInvoiceNbr = data.lastInvoiceNbr;
   this._freeCustomerInfos = data.freeCustomerInfos;
   this._freeGroup = data.freeGroup;
+  this._invoiceStatusIndex = data.invoiceStatusIndex;
   this._premiumCustomerInfos = data.premiumCustomerInfos;
   this._premiumGroup = data.premiumGroup;
   this._registrationDataList = data.registrationDataList;
@@ -98,6 +100,7 @@ tutao.entity.sys.System.prototype.toJsonData = function() {
     lastInvoiceNbr: this._lastInvoiceNbr, 
     freeCustomerInfos: this._freeCustomerInfos, 
     freeGroup: this._freeGroup, 
+    invoiceStatusIndex: this._invoiceStatusIndex, 
     premiumCustomerInfos: this._premiumCustomerInfos, 
     premiumGroup: this._premiumGroup, 
     registrationDataList: this._registrationDataList, 
@@ -131,6 +134,11 @@ tutao.entity.sys.System.prototype.FREECUSTOMERINFOS_ATTRIBUTE_ID = 183;
  * The id of the freeGroup attribute.
  */
 tutao.entity.sys.System.prototype.FREEGROUP_ATTRIBUTE_ID = 191;
+
+/**
+ * The id of the invoiceStatusIndex attribute.
+ */
+tutao.entity.sys.System.prototype.INVOICESTATUSINDEX_ATTRIBUTE_ID = 825;
 
 /**
  * The id of the premiumCustomerInfos attribute.
@@ -286,6 +294,31 @@ tutao.entity.sys.System.prototype.getFreeGroup = function() {
  */
 tutao.entity.sys.System.prototype.loadFreeGroup = function() {
   return tutao.entity.sys.Group.load(this._freeGroup);
+};
+
+/**
+ * Sets the invoiceStatusIndex of this System.
+ * @param {string} invoiceStatusIndex The invoiceStatusIndex of this System.
+ */
+tutao.entity.sys.System.prototype.setInvoiceStatusIndex = function(invoiceStatusIndex) {
+  this._invoiceStatusIndex = invoiceStatusIndex;
+  return this;
+};
+
+/**
+ * Provides the invoiceStatusIndex of this System.
+ * @return {string} The invoiceStatusIndex of this System.
+ */
+tutao.entity.sys.System.prototype.getInvoiceStatusIndex = function() {
+  return this._invoiceStatusIndex;
+};
+
+/**
+ * Loads the invoiceStatusIndex of this System.
+ * @return {Promise.<tutao.entity.sys.InvoiceStatusIndex>} Resolves to the loaded invoiceStatusIndex of this System or an exception if the loading failed.
+ */
+tutao.entity.sys.System.prototype.loadInvoiceStatusIndex = function() {
+  return tutao.entity.sys.InvoiceStatusIndex.load(this._invoiceStatusIndex);
 };
 
 /**

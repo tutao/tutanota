@@ -54,23 +54,22 @@ Où foo est le nom du fichier splashscreen, préférablement un fichier de 9 cor
 
 Faire disparaître de l'écran de démarrage.
 
-    navigator.splashscreen.hide();
+    Navigator.SplashScreen.Hide() ;
     
 
 ### BlackBerry 10, WP8, iOS Quirk
 
 La `config.xml` du fichier `AutoHideSplashScreen` doit être `false` . Pour retarder la cacher l'écran de démarrage pendant deux secondes, ajouter un minuteur comme suit dans la `deviceready` gestionnaire d'événements :
 
-        setTimeout(function() {
-            navigator.splashscreen.hide();
-        }, 2000);
+        setTimeout(function() {navigator.splashscreen.hide() ;
+        }, 2000) ;
     
 
 ## splashscreen.Show
 
 Affiche l'écran de démarrage.
 
-    navigator.splashscreen.show();
+    Navigator.SplashScreen.Show() ;
     
 
 Votre application ne peut pas appeler `navigator.splashscreen.show()` jusqu'à ce que l'application a commencé et le `deviceready` événement a été déclenché. Mais puisqu'en général, l'écran de démarrage est destiné à être visible avant que votre application a commencé, qui semblerait à l'encontre des objectifs de l'écran de démarrage. Fournir une configuration en `config.xml` sera automatiquement `show` l'écran de démarrage immédiatement après votre lancement de l'app et avant qu'il a complètement démarré et a reçu le `deviceready` événement. Voir les [icônes et les écrans de démarrage][1] pour plus d'informations sur la conduite de cette configuration. Pour cette raison, il est peu probable que vous devez appeler `navigator.splashscreen.show()` pour rendre l'écran de démarrage visible pour le démarrage de l'application.

@@ -2,7 +2,7 @@
 
 Tutanota is the end-to-end encrypted email client that enables you to communicate securely with anyone.
 
-* Official website: https://tutanota.de
+* Official website: https://tutanota.com
 * Issue and feature tracker: https://tutanota.uservoice.com/forums/237921-general
 
 ## WebStorm
@@ -22,7 +22,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 1.9.2): `git checkout tutanota-release-1.9.2`
+3. Checkout latest release (currently 1.9.7): `git checkout tutanota-release-1.9.7`
 4. Install dependencies: `npm install`
 5. Build Tutanota: `gulp dist`
 6. Switch into the build directory: `cd build`
@@ -34,37 +34,42 @@ If you build and install the Tutanota Android app by yourself, keep in mind that
 
 Pre-requisites:
 * An up-to-date version of git is installed
-* An up-to-date version of ant is installed
 * An up-to-date version of node js is installed
-* An up-to-date version of the Android SDK (API 19 and API 21) is installed
+* An up-to-date version of the Android SDK (API 22) is installed
 
 Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 1.9.2): `git checkout tutanota-android-release-1.9.2`
-4. Install cordova globally: `sudo npm install -g cordova`
+3. Checkout latest android release (currently 1.9.6): `git checkout tutanota-android-release-1.9.6`
+4. Install cordova globally: `npm install -g cordova`
 5. Install dependencies: `npm install`
 6. Change into the cordova directory: `cd cordova`
 7. Build the app: `gulp androidProdDistUnsigned`
 8. Create a keystore: `keytool -genkey -v -keystore MyKeystore.keystore -alias TutanotaKey -keyalg RSA -keysize 2048 -validity 10000`
-9. Sign the app: `jarsigner -verbose -keystore MyKeystore.keystore platforms/android/ant-build/Tutanota-release-unsigned.apk TutanotaKey`
-10. Align the app: `<path_to_android_sdk_>/build-tools/21.0.2/zipalign -v 4 platforms/android/ant-build/Tutanota-release-unsigned.apk platforms/android/ant-build/Tutanota-release.apk`
-11. Install the app on your device: `adb install ./platforms/android/ant-build/Tutanota-release.apk`
+9. Sign the app: `jarsigner -verbose -keystore MyKeystore.keystore platforms/android/build/outputs/apk/android-release-unsigned.apk TutanotaKey`
+10. Align the app: `<path_to_android_sdk_>/build-tools/22.0.1/zipalign -v 4 platforms/android/build/outputs/apk/android-release-unsigned.apk platforms/android/build/outputs/apk/Tutanota-release.apk`
+11. Install the app on your device: `adb install platforms/android/build/outputs/apk/Tutanota-release.apk`
 
 ## Server templates
 
 Server templates contains working installation instructions. Allows to create a temporary server to test, deploy production servers and fork configurations for customization.
-* [Debian Wheezy] (https://manageacloud.com/cookbook/tutanota_email_client_debian_wheezy_70)
-* [Ubuntu 14.04] (https://manageacloud.com/cookbook/tutanota_email_client_ubuntu_trusty_tahr_1404)
-* [Ubuntu 14.10] (https://manageacloud.com/cookbook/tutanota_email_client_ubuntu_utopic_unicorn_1410)
-* [Amazon Linux] (https://manageacloud.com/cookbook/tutanota_email_client_amazon_2014032)
-* [CentOS 6.5] (https://manageacloud.com/cookbook/tutanota_email_client)
-* [CentOS 7] (https://manageacloud.com/cookbook/tutanota_email_client_centos_7)
+
+Distribution  | Status
+------------- | -------------
+[Debian Wheezy] (https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70) | [![Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/build/1/image)](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/builds)
+[Debian Jessie] (https://manageacloud.com/configuration/tutanota_debian_jessie) | [![Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie/build/7/image)](https://manageacloud.com/configuration/tutanota_debian_jessie/builds)
+[Ubuntu 14.04] (https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404)  | [![Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/build/2/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/builds)
+[Ubuntu 14.10] (https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410) | [![Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/build/6/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/builds)
+[Ubuntu 15.04] (https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04) | [![Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/build/8/image)](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/builds)
+[CentOS 6.5] (https://manageacloud.com/configuration/tutanota_email_client) | [![CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client/build/3/image)](https://manageacloud.com/configuration/tutanota_email_client/builds)
+[CentOS 7] (https://manageacloud.com/configuration/tutanota_email_client_centos_7) | [![CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7/build/5/image)](https://manageacloud.com/configuration/tutanota_email_client_centos_7/builds)
+
+
 
 ## Tests
 
 We use the following tools for testing:
 * Test runner: [Karma](http://karma-runner.github.io/)
-* Test framework: [Mocha doc](http://chaijs.com/api/assert/)
+* Test framework: [Mocha doc](http://mochajs.org/)
 * Assertion framework: [chai.js API doc](http://chaijs.com/api/assert/)
