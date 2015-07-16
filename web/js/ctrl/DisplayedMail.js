@@ -25,11 +25,6 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     var isExternalAnswerPossible = function () {
         return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID;
     };
-    var isExternalExportPossible = function () {
-        // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
-        // we deactivate export for mobile browsers generally because it is useless
-        return tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.locator.userController.isExternalUserLoggedIn();
-    };
     var isInternalUserLoggedIn = function() {
         return tutao.locator.userController.isInternalUserLoggedIn();
     };
@@ -52,10 +47,6 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.buttons.push(new tutao.tutanota.ctrl.Button("replyConfidential_action", 10, function () {
         tutao.locator.mailViewModel.replyMail(self);
     }, isExternalAnswerPossible, false, "replyConfidentialAction", "reply"));
-
-    this.buttons.push(new tutao.tutanota.ctrl.Button("export_action", 7, function () {
-        tutao.locator.mailViewModel.exportMail(self);
-    }, isExternalExportPossible, false, "exportAction", "download"));
 
     // internal
     var replyButtons = [
@@ -82,6 +73,14 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     this.buttons.push(new tutao.tutanota.ctrl.Button("move_action", 9, function () {}, null, false, "moveAction", "moveToFolder", null, null, null, function() {
         var buttons = [];
         self._createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders());
+        var isExternalExportPossible = function () {
+            // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
+            // we deactivate export for mobile browsers generally because it is useless
+            return tutao.tutanota.util.ClientDetector.isSupported() && !tutao.tutanota.util.ClientDetector.isMobileDevice();
+        };
+        buttons.push(new tutao.tutanota.ctrl.Button("export_action", 7, function () {
+            tutao.locator.mailViewModel.exportMail(self);
+        }, isExternalExportPossible, false, "exportAction", "download"));
         return buttons;
     }));
 
