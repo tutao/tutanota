@@ -9,6 +9,7 @@ describe("ViewManagerTest", function () {
         var uc = mock(new tutao.ctrl.UserController());
         when(uc.isExternalUserLoggedIn)().thenReturn(false);
         when(uc.isInternalUserLoggedIn)().thenReturn(true);
+        when(uc.getLoggedInUser)().thenReturn({ getAccountType: function() { return tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE; }})
         tutao.locator.replace("userController", uc);
         if (!tutao.tutanota.gui) {
             tutao.tutanota.gui = {};
