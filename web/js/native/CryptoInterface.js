@@ -41,6 +41,23 @@ tutao.native.CryptoInterface.prototype.rsaEncrypt = function (publicKey, bytes) 
 tutao.native.CryptoInterface.prototype.rsaDecrypt = function (privateKey, bytes) {};
 
 /**
+ * Sign bytes with the provided privateKey
+ * @param {tutao.native.PrivateKey} privateKey
+ * @param {Uint8Array} bytes
+ * @return {Promise.<Uint8Array, Error>} will return the signature.
+ */
+tutao.native.CryptoInterface.prototype.sign = function (privateKey, bytes) {};
+
+/**
+ * Verify the signature.
+ * @param {tutao.native.PublicKey} publicKey
+ * @param {Uint8Array} bytes
+ * @param {Uint8Array} signature
+ * @return {Promise.<Error>} an error will occur if the signature is not valid.
+ */
+tutao.native.CryptoInterface.prototype.verifySignature = function (publicKey, bytes, signature) {};
+
+/**
  * Returns the newly generated key
  * @return {Uint8Array} will return the key.
  */

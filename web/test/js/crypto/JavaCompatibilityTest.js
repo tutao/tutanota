@@ -59,4 +59,32 @@ describe("JavaCompatibilityTest", function () {
             });
         });
     });
+
+    for (var i = 0; i < compatibilityTestData.encryptionTests.length; i++) {
+        var td = compatibilityTestData.encryptionTests[i];
+
+        it("verify rsa implementation and padding: " + i, function () {
+            var crypto = new tutao.native.CryptoBrowser();
+            crypto._random = function(byteLength) {
+                if (byteLength != 32) {
+                    throw new Error(byteLength + "!");
+                } else {
+                    return tutao.util.EncodingConverter.hexToBytes(td.seed);
+                }
+            };
+
+            var rsaUtils = new tutao.native.RsaUtils();
+            var publicKey = rsaUtils.hexToPublicKey(td.publicKey);
+
+
+            return crypto.rsaEncrypt(publicKey, tutao.util.EncodingConverter.hexToBytes(td.input)).then(function (encryptedData) {
+                assert.equal(td.result, tutao.util.EncodingConverter.bytesToHex(encryptedData));
+
+                var privateKey = rsaUtils.hexToPrivateKey(td.privateKey);
+                return crypto.rsaDecrypt(privateKey, encryptedData).then(function (data) {
+                    assert.equal(td.input, tutao.util.EncodingConverter.bytesToHex(data));
+                });
+            });
+        });
+    }
 });

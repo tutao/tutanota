@@ -134,7 +134,7 @@ gulp.task('concat', function () {
         .pipe(gulp.dest('build/'));
 });
 
-var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/util/EncodingConverter.js"];
+var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js"];
 
 gulp.task('minifyWorker', function () {
     gulp.src(WORKER_LIBS)

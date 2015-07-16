@@ -4,13 +4,14 @@ tutao.provide('tutao.crypto.Oaep');
 
 /**
  * @constructor
+ * @see https://tools.ietf.org/html/rfc3447#section-7.1
  */
 tutao.crypto.Oaep = function () {
-
+    this.utils = new tutao.crypto.Utils();
 };
 
 /**
- * @param {Array.<number>} value The byte array to pad.
+ * @param {Array.<number>} value The byte array to encode.
  * @param {number} keyLength The length of the RSA key in bit.
  * @param {Array.<number>} seed An array of random bytes of 256 bytes.
  * @return {Array.<number>} The padded byte array.
@@ -26,14 +27,14 @@ tutao.crypto.Oaep.prototype.pad = function (value, keyLength, seed) {
 
     var block = this._getPSBlock(value, keyLength);
 
-    var dbMask = this._mgf1(seed, block.length - hashLength);
+    var dbMask = this.utils.mgf1(seed, block.length - hashLength);
 
     for (var i = hashLength; i < block.length; i++) {
         block[i] ^= dbMask[i - hashLength];
     }
 
     // same as invoking sha256 directly because only one block is hashed
-    var seedMask = this._mgf1(block.slice(hashLength, block.length), hashLength);
+    var seedMask = this.utils.mgf1(block.slice(hashLength, block.length), hashLength);
 
     for (var i = 0; i < seedMask.length; i++) {
         block[i] = seed[i] ^ seedMask[i];
@@ -53,14 +54,14 @@ tutao.crypto.Oaep.prototype.unpad = function (value, keyLength) {
         throw new Error("invalid value length: " + value.length + ". expected: " + (keyLength / 8 - 1) + " bytes!");
     }
 
-    var seedMask = this._mgf1(value.slice(hashLength, value.length), hashLength);
+    var seedMask = this.utils.mgf1(value.slice(hashLength, value.length), hashLength);
     var seed = [];
     seed.length = hashLength;
     for (var i = 0; i < seedMask.length; i++) {
         seed[i] = value[i] ^ seedMask[i];
     }
 
-    var dbMask = this._mgf1(seed, value.length - hashLength);
+    var dbMask = this.utils.mgf1(seed, value.length - hashLength);
 
     for (var i = hashLength; i < value.length; i++) {
         value[i] ^= dbMask[i - hashLength];
@@ -83,7 +84,7 @@ tutao.crypto.Oaep.prototype.unpad = function (value, keyLength) {
  * Provides a block of keyLength / 8 - 1 bytes with the following format:
  * [ zeros ] [ label hash ] [ zeros ] [ 1 ] [ value ]
  *    32           32    keyLen-2*32-2  1  value.length
- * The label is the hash of an empty string like defines in PKCS#1 v2.1
+ * The label is the hash of an empty string like defined in PKCS#1 v2.1
  */
 tutao.crypto.Oaep.prototype._getPSBlock = function (value, keyLength) {
     var hashLength = 32; // bytes sha256
@@ -108,41 +109,4 @@ tutao.crypto.Oaep.prototype._getPSBlock = function (value, keyLength) {
         }
     }
     return block;
-};
-
-/**
- * @param {Array.<Number>} seed An array of byte values.
- * @param {Number} length The length of the return value in bytes.
- */
-tutao.crypto.Oaep.prototype._mgf1 = function (seed, length) {
-    var C = null;
-    var counter = 0;
-    var hash = new sjcl.hash.sha256();
-    var T = [];
-
-    var seedSjclArray = sjcl.codec.bytes.toBits(seed);
-
-    do {
-        C = this._i2osp(counter);
-        var cSjclArray = sjcl.codec.bytes.toBits(C);
-
-        hash.update(seedSjclArray);
-        hash.update(cSjclArray);
-        T = sjcl.bitArray.concat(T, hash.finalize());
-    } while (++counter < Math.ceil(length / (256 / 8)));
-
-    var slice = sjcl.bitArray.bitSlice(T, 0, length * 8);
-    return sjcl.codec.bytes.fromBits(slice);
-};
-
-/**
- * converts an integer to a 4 byte array
- */
-tutao.crypto.Oaep.prototype._i2osp = function (i) {
-    var array = [];
-    array.push((i >> 24) & 255);
-    array.push((i >> 16) & 255);
-    array.push((i >> 8) & 255);
-    array.push((i >> 0) & 255);
-    return array;
 };

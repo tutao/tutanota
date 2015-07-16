@@ -5,6 +5,9 @@ tutao.provide('tutao.native.CryptoBrowser');
 /**
  * @implements {tutao.native.CryptoInterface}
  * @constructor
+ *
+ * Signatures: http://world.std.com/~dtd/sign_encrypt/sign_encrypt7.html
+ *
  */
 tutao.native.CryptoBrowser = function () {
     this.defaultKeyLengthInBits = 2048;
@@ -93,6 +96,56 @@ tutao.native.CryptoBrowser._workerFunctions = {
             callback({ type: 'result', result: new Uint8Array(bytes)});
         } catch (e) {
             callback({ type: 'error', msg: e.stack});
+        }
+    },
+    sign: function(privateKey, bytes, randomBytes, callback) {
+        try {
+            var rsa = new RSAKey();
+            // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+            rsa.n = new BigInteger(new Int8Array(this.base64ToArray(privateKey.modulus)));
+            rsa.d = new BigInteger(new Int8Array(this.base64ToArray(privateKey.privateExponent)));
+            rsa.p = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeP)));
+            rsa.q = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeQ)));
+            rsa.dmp1 = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeExponentP)));
+            rsa.dmq1 = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeExponentQ)));
+            rsa.coeff = new BigInteger(new Int8Array(this.base64ToArray(privateKey.crtCoefficient)));
+
+            var paddedBytes = new tutao.crypto.Pss().encode(bytes, privateKey.keyLength - 1, randomBytes);
+            var paddedHex = this._bytesToHex(paddedBytes);
+
+            var bigInt = parseBigInt(paddedHex, 16);
+            var signed = rsa.doPrivate(bigInt);
+
+            var signedHex = signed.toString(16);
+            if ((signedHex.length % 2) == 1) {
+                signedHex = "0" + signedHex;
+            }
+
+            callback({ type: 'result', result: new Uint8Array(this._hexToBytes(signedHex))});
+        } catch (e) {
+            callback({ type: 'error', msg: e.stack});
+        }
+    },
+    verifySignature: function (publicKey, bytes, signature) {
+        try {
+            var rsa = new RSAKey();
+            rsa.n = new BigInteger(new Int8Array(this.base64ToArray(publicKey.modulus))); // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
+            rsa.e = publicKey.publicExponent;
+
+            var signatureHex = this._bytesToHex(signature);
+            var bigInt = parseBigInt(signatureHex, 16);
+            var padded = rsa.doPublic(bigInt);
+
+            var paddedHex = padded.toString(16);
+            if ((paddedHex.length % 2) == 1) {
+                paddedHex = "0" + paddedHex;
+            }
+
+            new tutao.crypto.Pss().verify(bytes, this._hexToBytes(paddedHex), publicKey.keyLength - 1);
+
+            callback({ type: 'result', result: undefined});
+        } catch (e) {
+            callback({ type: 'error', msg: e.stack });
         }
     },
     base64ToArray: function(base64) {
@@ -255,6 +308,8 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
                 libsPath + 'crypto-sjcl-2012-08-09_1.js',
                 srcPath + 'crypto/SecureRandom.js',
                 srcPath + 'crypto/Oaep.js',
+                srcPath + 'crypto/Pss.js',
+                srcPath + 'crypto/Utils.js',
                 srcPath + 'util/EncodingConverter.js'
         ];
     } else {
@@ -290,6 +345,22 @@ tutao.native.CryptoBrowser.prototype.rsaDecrypt = function (privateKey, bytes) {
         self.worker.rsaDecrypt(privateKey, bytes, self._createReturnHandler(resolve, reject));
     });
 };
+
+tutao.native.CryptoBrowser.prototype.sign = function (privateKey, bytes) {
+    var self = this;
+    var random = this._random(32);
+    return new Promise(function (resolve, reject) {
+        self.worker.sign(privateKey, bytes, random, self._createReturnHandler(resolve, reject));
+    });
+};
+
+tutao.native.CryptoBrowser.prototype.verifySignature = function (publicKey, bytes, signature) {
+    var self = this;
+    return new Promise(function (resolve, reject) {
+        self.worker.verifySignature(publicKey, bytes, signature, self._createReturnHandler(resolve, reject));
+    });
+};
+
 
 /**
  * Returns the newly generated key
