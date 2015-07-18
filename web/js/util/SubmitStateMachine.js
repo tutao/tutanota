@@ -22,8 +22,12 @@ tutao.provide('tutao.tutanota.util.SubmitStateMachine');
  * Call "state.success(true)" if the submit was successful. Call "setSuccessMessage(message)" with a success message (id) if the default message 'saved_msg' shall be replaced.
  * Call "state.failure(true)" if the submit was not successful. Call "setFailureMessage(message)" with a failure message (id) if the default message 'unknownError_msg' shall be replaced.
  * Set the lang binding of the submit button record status to "state.submitStatus().text" and the css binding to "state.submitStatus().type".
+ * @param {boolean=} allowEnteringWhenFailure When true goes into both failure and entering state at failure.
  */
-tutao.tutanota.util.SubmitStateMachine = function() {
+tutao.tutanota.util.SubmitStateMachine = function(allowEnteringWhenFailure) {
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
+    this._allowEnteringWhenFailure = (allowEnteringWhenFailure == undefined) ? false : allowEnteringWhenFailure;
 	this._state = ko.observable("loading");
 
     this._inputInvalidMessageListener = function() { return null; }; // default function that says the input is valid
@@ -39,11 +43,13 @@ tutao.tutanota.util.SubmitStateMachine = function() {
     this.failure = this._createStateObservable("failure");
 
     this.submitEnabled = ko.computed(function() {
+        // only allow entering, but not failure+allowEnteringWhenFailure
         return this._state() == "entering" && !this._inputInvalidMessageListener();
     }, this);
 
     this.cancelEnabled = ko.computed(function() {
-        return this._state() != "submitting" && this._state() != "success" && this._state() != "failure";
+        // allow entering and failure+allowEnteringWhenFailure
+        return this.loading() || this.entering();
     }, this);
 
     this.submitStatus = ko.computed(function() {
@@ -67,12 +73,17 @@ tutao.tutanota.util.SubmitStateMachine = function() {
 };
 
 tutao.tutanota.util.SubmitStateMachine.prototype._createStateObservable = function(name) {
+    var self = this;
     return ko.computed({
         read: function () {
-            return this._state() == name;
+            if (self._allowEnteringWhenFailure && this._state() == "failure" && name == "entering") {
+                return true;
+            } else {
+                return this._state() == name;
+            }
         },
         write: function (value) {
-            if (!value) { // false is not allowed
+            if (!value) {
                 throw new Error("false is not allowed");
             }
             this._state(name);

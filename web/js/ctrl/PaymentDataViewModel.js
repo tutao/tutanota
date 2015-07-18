@@ -36,7 +36,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         }
     }, this);
 
-    this.state = new tutao.tutanota.util.SubmitStateMachine();
+    this.state = new tutao.tutanota.util.SubmitStateMachine(true);
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
 
     this._pricePerMonth = ko.observable(null);
@@ -224,6 +224,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
             }
             console.log( tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN + ":" + token);
             this._paymentToken({value: token, method: paymentMethod, info: paymentMethodInfo});
+            this.state.entering(true); // makes any previous failure message disappear
         }
     }
 };
