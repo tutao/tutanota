@@ -20,7 +20,17 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
 
     // unsubscribe premium
     this.state = new tutao.tutanota.util.SubmitStateMachine();
-    this.state.entering(true);
+
+    this.customer = null;
+    // if we access the user in the user controller directly (without setTimeout), a new AdminDeleteAccountViewModel is created as soon as the user controller fires the update event on the user
+    // to avoid that, we have to do all user dependent calls in a setTimeout.
+    var self = this;
+    setTimeout(function() {
+        tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
+            self.customer = customer;
+            self.state.entering(true);
+        });
+    });
 };
 
 
@@ -38,9 +48,10 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
             var service = new tutao.entity.sys.SwitchAccountTypeData();
             service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
 
+            self.customer.registerObserver(self._customerUpdated);
             service.setup({}, null).then(function () {
                 self.state.success(true);
-                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+                // we wait for _customerUpdated to switch to the account view
             }).caught(tutao.InvalidDataError, function (exception) {
                 self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
                 self.state.failure(true);
@@ -51,6 +62,10 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
     });
 };
 
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._customerUpdated = function() {
+    this.customer.unregisterObserver(this._customerUpdated);
+    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+};
 
 /**
  * Checks the entered old password and updates the password status.
