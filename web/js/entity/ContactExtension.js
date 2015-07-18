@@ -17,7 +17,7 @@ tutao.entity.tutanota.ContactExtension = function(editableContact) {
         	if (editableContact.birthdayString() == null) {
         		// the birthday string is requested the first time and must be inititialized
         		if (editableContact.birthday()) {
-        			editableContact.birthdayString(tutao.tutanota.util.Formatter.dateToSimpleString(editableContact.birthday()));
+        			editableContact.birthdayString(tutao.tutanota.util.Formatter.dateToDashString(editableContact.birthday()));
         		} else {
         			editableContact.birthdayString("");
         		}
@@ -29,7 +29,7 @@ tutao.entity.tutanota.ContactExtension = function(editableContact) {
         		editableContact.birthdayStringInvalid(false);
         		editableContact.birthday(null);
         	} else {
-	        	var date = tutao.tutanota.util.Formatter.simpleStringToDate(value);
+	        	var date = tutao.tutanota.util.Formatter.dashStringToDate(value);
 	        	if (date != null) {
 	        		editableContact.birthdayStringInvalid(false);
 	        		editableContact.birthday(date);

@@ -54,32 +54,32 @@ tutao.entity.sys.PriceRequestData.prototype.toJsonData = function() {
 /**
  * The id of the PriceRequestData type.
  */
-tutao.entity.sys.PriceRequestData.prototype.TYPE_ID = 828;
+tutao.entity.sys.PriceRequestData.prototype.TYPE_ID = 832;
 
 /**
  * The id of the accountType attribute.
  */
-tutao.entity.sys.PriceRequestData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 834;
+tutao.entity.sys.PriceRequestData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 838;
 
 /**
  * The id of the business attribute.
  */
-tutao.entity.sys.PriceRequestData.prototype.BUSINESS_ATTRIBUTE_ID = 832;
+tutao.entity.sys.PriceRequestData.prototype.BUSINESS_ATTRIBUTE_ID = 836;
 
 /**
  * The id of the count attribute.
  */
-tutao.entity.sys.PriceRequestData.prototype.COUNT_ATTRIBUTE_ID = 831;
+tutao.entity.sys.PriceRequestData.prototype.COUNT_ATTRIBUTE_ID = 835;
 
 /**
  * The id of the featureType attribute.
  */
-tutao.entity.sys.PriceRequestData.prototype.FEATURETYPE_ATTRIBUTE_ID = 830;
+tutao.entity.sys.PriceRequestData.prototype.FEATURETYPE_ATTRIBUTE_ID = 834;
 
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.PriceRequestData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 833;
+tutao.entity.sys.PriceRequestData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 837;
 
 /**
  * Sets the id of this PriceRequestData.

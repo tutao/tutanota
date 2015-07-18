@@ -146,6 +146,8 @@ tutao.Locator = function(services, initializer) {
     this.folderNameDialogViewModel = null;
     // @type {tutao.util.EventListenerManager}
     this.eventListenerManager = null;
+    // @type {tutao.tutanota.ctrl.BuyDialogViewModel}
+    this.buyDialogViewModel = null;
 
 	this.reset();
 };

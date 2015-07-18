@@ -27,10 +27,10 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function(adminEditUserViewModel) {
     var self = this;
     tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
         self.maxNbrOfAliases(mailAddressAliasServiceReturn.getNbrOfFreeAliases());
-        if (self.maxNbrOfAliases() > self._editUserViewModel.userGroupInfo.getMailAddressAliases().length) {
-            self.inputEnabled(true);
-        } else {
+        if (self.maxNbrOfAliases() <= self._editUserViewModel.userGroupInfo.getMailAddressAliases().length) {
             self.mailAddressStatus({ type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
+        } else if (adminEditUserViewModel.isActive()) {
+            self.inputEnabled(true);
         }
     });
 

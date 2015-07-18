@@ -18,6 +18,9 @@ tutao.entity.sys.RegistrationServiceData = function(data) {
     this._language = null;
     this._mailAddress = null;
     this._mobilePhoneNumber = null;
+    this._source = null;
+    this._specialPriceUserSingle = null;
+    this._specialPriceUserTotal = null;
     this._state = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -37,6 +40,9 @@ tutao.entity.sys.RegistrationServiceData.prototype.updateData = function(data) {
   this._language = data.language;
   this._mailAddress = data.mailAddress;
   this._mobilePhoneNumber = data.mobilePhoneNumber;
+  this._source = data.source;
+  this._specialPriceUserSingle = data.specialPriceUserSingle;
+  this._specialPriceUserTotal = data.specialPriceUserTotal;
   this._state = data.state;
 };
 
@@ -72,6 +78,9 @@ tutao.entity.sys.RegistrationServiceData.prototype.toJsonData = function() {
     language: this._language, 
     mailAddress: this._mailAddress, 
     mobilePhoneNumber: this._mobilePhoneNumber, 
+    source: this._source, 
+    specialPriceUserSingle: this._specialPriceUserSingle, 
+    specialPriceUserTotal: this._specialPriceUserTotal, 
     state: this._state
   };
 };
@@ -115,6 +124,21 @@ tutao.entity.sys.RegistrationServiceData.prototype.MAILADDRESS_ATTRIBUTE_ID = 32
  * The id of the mobilePhoneNumber attribute.
  */
 tutao.entity.sys.RegistrationServiceData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_ID = 323;
+
+/**
+ * The id of the source attribute.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.SOURCE_ATTRIBUTE_ID = 864;
+
+/**
+ * The id of the specialPriceUserSingle attribute.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 865;
+
+/**
+ * The id of the specialPriceUserTotal attribute.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 866;
 
 /**
  * The id of the state attribute.
@@ -255,6 +279,57 @@ tutao.entity.sys.RegistrationServiceData.prototype.setMobilePhoneNumber = functi
  */
 tutao.entity.sys.RegistrationServiceData.prototype.getMobilePhoneNumber = function() {
   return this._mobilePhoneNumber;
+};
+
+/**
+ * Sets the source of this RegistrationServiceData.
+ * @param {string} source The source of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.setSource = function(source) {
+  this._source = source;
+  return this;
+};
+
+/**
+ * Provides the source of this RegistrationServiceData.
+ * @return {string} The source of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.getSource = function() {
+  return this._source;
+};
+
+/**
+ * Sets the specialPriceUserSingle of this RegistrationServiceData.
+ * @param {string} specialPriceUserSingle The specialPriceUserSingle of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.setSpecialPriceUserSingle = function(specialPriceUserSingle) {
+  this._specialPriceUserSingle = specialPriceUserSingle;
+  return this;
+};
+
+/**
+ * Provides the specialPriceUserSingle of this RegistrationServiceData.
+ * @return {string} The specialPriceUserSingle of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.getSpecialPriceUserSingle = function() {
+  return this._specialPriceUserSingle;
+};
+
+/**
+ * Sets the specialPriceUserTotal of this RegistrationServiceData.
+ * @param {string} specialPriceUserTotal The specialPriceUserTotal of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.setSpecialPriceUserTotal = function(specialPriceUserTotal) {
+  this._specialPriceUserTotal = specialPriceUserTotal;
+  return this;
+};
+
+/**
+ * Provides the specialPriceUserTotal of this RegistrationServiceData.
+ * @return {string} The specialPriceUserTotal of this RegistrationServiceData.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.getSpecialPriceUserTotal = function() {
+  return this._specialPriceUserTotal;
 };
 
 /**

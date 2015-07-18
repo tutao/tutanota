@@ -54,27 +54,27 @@ tutao.entity.sys.PriceData.prototype.toJsonData = function() {
 /**
  * The id of the PriceData type.
  */
-tutao.entity.sys.PriceData.prototype.TYPE_ID = 843;
+tutao.entity.sys.PriceData.prototype.TYPE_ID = 847;
 
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.PriceData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 847;
+tutao.entity.sys.PriceData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 851;
 
 /**
  * The id of the price attribute.
  */
-tutao.entity.sys.PriceData.prototype.PRICE_ATTRIBUTE_ID = 845;
+tutao.entity.sys.PriceData.prototype.PRICE_ATTRIBUTE_ID = 849;
 
 /**
  * The id of the taxIncluded attribute.
  */
-tutao.entity.sys.PriceData.prototype.TAXINCLUDED_ATTRIBUTE_ID = 846;
+tutao.entity.sys.PriceData.prototype.TAXINCLUDED_ATTRIBUTE_ID = 850;
 
 /**
  * The id of the items attribute.
  */
-tutao.entity.sys.PriceData.prototype.ITEMS_ATTRIBUTE_ID = 848;
+tutao.entity.sys.PriceData.prototype.ITEMS_ATTRIBUTE_ID = 852;
 
 /**
  * Sets the id of this PriceData.

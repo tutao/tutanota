@@ -13,8 +13,9 @@ tutao.entity.sys.PriceServiceReturn = function(data) {
     this.__format = "0";
     this._currentPeriodAddedPrice = null;
     this._periodEndDate = null;
-    this._currentPrice = null;
-    this._futurePrice = null;
+    this._currentPriceNextPeriod = null;
+    this._currentPriceThisPeriod = null;
+    this._futurePriceNextPeriod = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.PriceServiceReturn.prototype;
@@ -28,8 +29,9 @@ tutao.entity.sys.PriceServiceReturn.prototype.updateData = function(data) {
   this.__format = data._format;
   this._currentPeriodAddedPrice = data.currentPeriodAddedPrice;
   this._periodEndDate = data.periodEndDate;
-  this._currentPrice = (data.currentPrice) ? new tutao.entity.sys.PriceData(this, data.currentPrice) : null;
-  this._futurePrice = (data.futurePrice) ? new tutao.entity.sys.PriceData(this, data.futurePrice) : null;
+  this._currentPriceNextPeriod = (data.currentPriceNextPeriod) ? new tutao.entity.sys.PriceData(this, data.currentPriceNextPeriod) : null;
+  this._currentPriceThisPeriod = (data.currentPriceThisPeriod) ? new tutao.entity.sys.PriceData(this, data.currentPriceThisPeriod) : null;
+  this._futurePriceNextPeriod = (data.futurePriceNextPeriod) ? new tutao.entity.sys.PriceData(this, data.futurePriceNextPeriod) : null;
 };
 
 /**
@@ -59,35 +61,41 @@ tutao.entity.sys.PriceServiceReturn.prototype.toJsonData = function() {
     _format: this.__format, 
     currentPeriodAddedPrice: this._currentPeriodAddedPrice, 
     periodEndDate: this._periodEndDate, 
-    currentPrice: tutao.entity.EntityHelper.aggregatesToJsonData(this._currentPrice), 
-    futurePrice: tutao.entity.EntityHelper.aggregatesToJsonData(this._futurePrice)
+    currentPriceNextPeriod: tutao.entity.EntityHelper.aggregatesToJsonData(this._currentPriceNextPeriod), 
+    currentPriceThisPeriod: tutao.entity.EntityHelper.aggregatesToJsonData(this._currentPriceThisPeriod), 
+    futurePriceNextPeriod: tutao.entity.EntityHelper.aggregatesToJsonData(this._futurePriceNextPeriod)
   };
 };
 
 /**
  * The id of the PriceServiceReturn type.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.TYPE_ID = 849;
+tutao.entity.sys.PriceServiceReturn.prototype.TYPE_ID = 853;
 
 /**
  * The id of the currentPeriodAddedPrice attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPERIODADDEDPRICE_ATTRIBUTE_ID = 852;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPERIODADDEDPRICE_ATTRIBUTE_ID = 856;
 
 /**
  * The id of the periodEndDate attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.PERIODENDDATE_ATTRIBUTE_ID = 851;
+tutao.entity.sys.PriceServiceReturn.prototype.PERIODENDDATE_ATTRIBUTE_ID = 855;
 
 /**
- * The id of the currentPrice attribute.
+ * The id of the currentPriceNextPeriod attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICE_ATTRIBUTE_ID = 853;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICENEXTPERIOD_ATTRIBUTE_ID = 858;
 
 /**
- * The id of the futurePrice attribute.
+ * The id of the currentPriceThisPeriod attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.FUTUREPRICE_ATTRIBUTE_ID = 854;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICETHISPERIOD_ATTRIBUTE_ID = 857;
+
+/**
+ * The id of the futurePriceNextPeriod attribute.
+ */
+tutao.entity.sys.PriceServiceReturn.prototype.FUTUREPRICENEXTPERIOD_ATTRIBUTE_ID = 859;
 
 /**
  * Sets the format of this PriceServiceReturn.
@@ -144,37 +152,54 @@ tutao.entity.sys.PriceServiceReturn.prototype.getPeriodEndDate = function() {
 };
 
 /**
- * Sets the currentPrice of this PriceServiceReturn.
- * @param {tutao.entity.sys.PriceData} currentPrice The currentPrice of this PriceServiceReturn.
+ * Sets the currentPriceNextPeriod of this PriceServiceReturn.
+ * @param {tutao.entity.sys.PriceData} currentPriceNextPeriod The currentPriceNextPeriod of this PriceServiceReturn.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.setCurrentPrice = function(currentPrice) {
-  this._currentPrice = currentPrice;
+tutao.entity.sys.PriceServiceReturn.prototype.setCurrentPriceNextPeriod = function(currentPriceNextPeriod) {
+  this._currentPriceNextPeriod = currentPriceNextPeriod;
   return this;
 };
 
 /**
- * Provides the currentPrice of this PriceServiceReturn.
- * @return {tutao.entity.sys.PriceData} The currentPrice of this PriceServiceReturn.
+ * Provides the currentPriceNextPeriod of this PriceServiceReturn.
+ * @return {tutao.entity.sys.PriceData} The currentPriceNextPeriod of this PriceServiceReturn.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.getCurrentPrice = function() {
-  return this._currentPrice;
+tutao.entity.sys.PriceServiceReturn.prototype.getCurrentPriceNextPeriod = function() {
+  return this._currentPriceNextPeriod;
 };
 
 /**
- * Sets the futurePrice of this PriceServiceReturn.
- * @param {tutao.entity.sys.PriceData} futurePrice The futurePrice of this PriceServiceReturn.
+ * Sets the currentPriceThisPeriod of this PriceServiceReturn.
+ * @param {tutao.entity.sys.PriceData} currentPriceThisPeriod The currentPriceThisPeriod of this PriceServiceReturn.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.setFuturePrice = function(futurePrice) {
-  this._futurePrice = futurePrice;
+tutao.entity.sys.PriceServiceReturn.prototype.setCurrentPriceThisPeriod = function(currentPriceThisPeriod) {
+  this._currentPriceThisPeriod = currentPriceThisPeriod;
   return this;
 };
 
 /**
- * Provides the futurePrice of this PriceServiceReturn.
- * @return {tutao.entity.sys.PriceData} The futurePrice of this PriceServiceReturn.
+ * Provides the currentPriceThisPeriod of this PriceServiceReturn.
+ * @return {tutao.entity.sys.PriceData} The currentPriceThisPeriod of this PriceServiceReturn.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.getFuturePrice = function() {
-  return this._futurePrice;
+tutao.entity.sys.PriceServiceReturn.prototype.getCurrentPriceThisPeriod = function() {
+  return this._currentPriceThisPeriod;
+};
+
+/**
+ * Sets the futurePriceNextPeriod of this PriceServiceReturn.
+ * @param {tutao.entity.sys.PriceData} futurePriceNextPeriod The futurePriceNextPeriod of this PriceServiceReturn.
+ */
+tutao.entity.sys.PriceServiceReturn.prototype.setFuturePriceNextPeriod = function(futurePriceNextPeriod) {
+  this._futurePriceNextPeriod = futurePriceNextPeriod;
+  return this;
+};
+
+/**
+ * Provides the futurePriceNextPeriod of this PriceServiceReturn.
+ * @return {tutao.entity.sys.PriceData} The futurePriceNextPeriod of this PriceServiceReturn.
+ */
+tutao.entity.sys.PriceServiceReturn.prototype.getFuturePriceNextPeriod = function() {
+  return this._futurePriceNextPeriod;
 };
 
 /**

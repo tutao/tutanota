@@ -3,7 +3,7 @@
 tutao.provide('tutao.util.CountryList');
 
 tutao.util.CountryList.TYPE_GERMANY = 0;
-tutao.util.CountryList.TYPE_EU_OR_SIMILAR = 1; // also contains Switzerland
+tutao.util.CountryList.TYPE_EU = 1;
 tutao.util.CountryList.TYPE_OTHER = 2;
 
 // taken from https://en.wikipedia.org/wiki/ISO_3166-1
@@ -224,7 +224,7 @@ tutao.util.CountryList.COUNTRIES = [
     {n: "Svalbard and Jan Mayen", a: "SJ", t: 2},
     {n: "Swaziland", a: "SZ", t: 2},
     {n: "Sweden", a: "SE", t: 1},
-    {n: "Switzerland", a: "CH", t: 1},
+    {n: "Switzerland", a: "CH", t: 2},
     {n: "Syrian Arab Republic", a: "SY", t: 2},
     {n: "Taiwan", a: "TW", t: 2},
     {n: "Tajikistan", a: "TJ", t: 2},

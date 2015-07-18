@@ -17,7 +17,6 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
      * @type {function(Array<tutao.tutanota.ctrl.AdminNewUser>=): Array<tutao.tutanota.ctrl.AdminNewUser>}
      */
 	this.newUsers = ko.observableArray([]);
-    this.newUsers.subscribe(this._updatePrice);
     this.createdUsers = ko.observableArray([]);
 
 	this.createStatus = ko.observable({type: "neutral", text: "emptyString_msg", params: {}});
@@ -29,25 +28,12 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
 	this.csvImportStatus = ko.observable({type: "neutral", text: "emptyString_msg"});
     this._availableDomains = this.adminUserListViewModel.getAvailableDomains();
 
-    this.accountingInfo = ko.observable(null);
-
     this.state = new tutao.tutanota.util.SubmitStateMachine();
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
     this.state.setSuccessMessage("createActionSuccess_msg");
     this.state.setFailureMessage("createActionFailed_msg");
-
-    var self = this;
-    tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
-        return customer.loadCustomerInfo().then(function(customerInfo) {
-            return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                self.accountingInfo(accountingInfo);
-                self.state.entering(true);
-                self.addEmptyUser();
-            });
-        });
-    });
-
-    this._price = ko.observable(null);
+    this.state.entering(true);
+    this.addEmptyUser();
 
     this.buttons = [
         new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, this._isEntering, false, "newUserAction", "add", "adminUserAdd_action"),
@@ -119,7 +105,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.cancel = function() {
 };
 
 tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._getInputInvalidMessage = function() {
-    if (this.newUsers().length == 0 || !this._price()) {
+    if (this.newUsers().length == 0) {
         return "emptyString_msg";
     }
     for(var i = 0; i < this.newUsers().length; i++) {
@@ -136,105 +122,26 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
         return;
     }
     var self = this;
-    this.state.submitting(true);
-
-    var count = this.newUsers().length;
-    self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": count - self.newUsers().length, "{count}": count}));
-    if (self.newUsers().length > 0) {
-        return Promise.each(self.newUsers(), function(newUser) {
-            self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": count - self.newUsers().length, "{count}": count}));
-            return newUser.create().then(function() {
-                self.createdUsers.push(self.newUsers.shift());
+    var count = self.newUsers().length;
+    var itemName = count + " " + tutao.lang("accounts_label") + " Tutanota Premium";
+    self.state.submitting(true);
+    tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count, itemName).then(function(confirmed) {
+        if (confirmed) {
+            self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": 0, "{count}": count}));
+            return Promise.each(self.newUsers(), function(newUser) {
+                self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": count - self.newUsers().length, "{count}": count}));
+                return newUser.create().then(function() {
+                    self.createdUsers.push(self.newUsers.shift());
+                });
+            }).then(function() {
+                self.state.success(true);
+                self.adminUserListViewModel.update();
+            }).caught(function(exception) {
+                self.state.failure(true);
+                throw exception;
             });
-        }).then(function() {
-            self.state.success(true);
-            self.adminUserListViewModel.update();
-        }).caught(function(exception) {
-            self.state.failure(true);
-            throw exception;
-        });
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryBookingText = function() {
-    return this.newUsers().length + " " + tutao.lang("accounts_label") + " Tutanota Premium";
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummarySubscriptionText = function() {
-    if (!this.accountingInfo()) {
-        return "";
-    } else if (this.accountingInfo().getPaymentInterval() == "12") {
-        return tutao.lang("yearly_label") + ', ' + tutao.lang('automaticRenewal_label');
-    } else {
-        return tutao.lang("monthly_label") + ', ' + tutao.lang('automaticRenewal_label');
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummarySubscriptionInfoText = function() {
-    if (!this.accountingInfo() || !this._price()) {
-        return tutao.lang("loading_msg")    ;
-    } else {
-        return tutao.lang("endOfSubscriptionPeriod_label") + " " + tutao.tutanota.util.Formatter.dateToSimpleString(this._price().getPeriodEndDate());
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceText = function() {
-    if (!this.accountingInfo() || !this._price()) {
-        return tutao.lang("loading_msg");
-    } else {
-        var netGrossText = this.accountingInfo().getBusiness() ? tutao.lang("net_label") : tutao.lang("gross_label");
-        var periodText = (this.accountingInfo().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
-        return tutao.util.BookingUtils.formatPrice(Number(this._price().getFuturePrice().getPrice())) + " " + periodText + " (" + netGrossText + ")";
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceInfo1Text = function() {
-    if (!this.accountingInfo() || !this._price()) {
-        return tutao.lang("loading_msg");
-    } else {
-        return tutao.lang("oldTotalPrice_label") + " " + tutao.util.BookingUtils.formatPrice(Number(this._price().getCurrentPrice().getPrice()));
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPriceInfo2Text = function() {
-    if (!this.accountingInfo() || !this._price()) {
-        return tutao.lang("loading_msg");
-    } else if (this._price().getCurrentPeriodAddedPrice() != null && this._price().getCurrentPeriodAddedPrice() > 0) {
-        return tutao.lang("priceForCurrentAccountingPeriod_label") + " " + tutao.util.BookingUtils.formatPrice(Number(this._price().getCurrentPeriodAddedPrice()));
-    } else {
-        return tutao.lang("emptyString_msg");
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getSummaryPaymentMethodInfoText = function() {
-    if (!this.accountingInfo()) {
-        return "";
-    } else if (this.accountingInfo().getPaymentMethodInfo()) {
-        return this.accountingInfo().getPaymentMethodInfo();
-    } else {
-        return tutao.lang(tutao.util.BookingUtils.getPaymentMethodNameTextId(this.accountingInfo().getPaymentMethod()));
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.getCreateUsersButtonTextId = function() {
-    if (this.isBuy()) {
-        return "buy_action";
-    } else {
-        return "createUsers_label";
-    }
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype._updatePrice = function() {
-    if (!this.state.entering()) {
-        return;
-    }
-    this._price(null);
-    var self = this;
-    tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, this.newUsers().length).then(function(price) {
-        self._price(price);
+        } else {
+            self.state.entering(true);
+        }
     });
-};
-
-tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.isBuy = function() {
-    return  (this._price() && Number(this._price().getCurrentPrice().getPrice()) != Number(this._price().getFuturePrice().getPrice()));
 };
