@@ -98,4 +98,11 @@ describe("HtmlSanitizerTest", function () {
         assert.equal('<video poster="' +  tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '" height="1" width="1"></video>', result.text);
     });
 
+    it("detect list style images", function () {
+        var result =  tutao.locator.htmlSanitizer.sanitize('<ul style="list-style-image: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif);"><li>Zeile 1</li></ul>', true);
+        assert.equal("http://www.heise.de/icons/ho/heise_online_logo_top.gif", result.externalImages[0]);
+        assert.equal('<ul style="list-style-image: url(&quot;replacement_1&quot;)"><li>Zeile 1</li></ul>', result.text);
+    });
+
+
 });
