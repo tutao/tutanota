@@ -96,7 +96,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			if (unwrappedDate == null) {
 				ko.bindingHandlers.text.update(element, function() { return defaultText; });
 			} else {
-				ko.bindingHandlers.text.update(element, function() { return tutao.tutanota.util.Formatter.dateToSimpleString(unwrappedDate); });
+				ko.bindingHandlers.text.update(element, function() { return tutao.tutanota.util.Formatter.dateToDashString(unwrappedDate); });
 			}
 	    }
 	};

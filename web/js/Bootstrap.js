@@ -228,7 +228,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         progressDialogModel: tutao.tutanota.ctrl.ProgressDialogModel,
         modalDialogViewModel: tutao.tutanota.ctrl.ModalDialogViewModel,
         folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel,
-        eventListenerManager: tutao.util.EventListenerManager
+        eventListenerManager: tutao.util.EventListenerManager,
+        buyDialogViewModel: tutao.tutanota.ctrl.BuyDialogViewModel
     };
 
     tutao.tutanota.legacy.Legacy.setup(singletons);

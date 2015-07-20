@@ -313,3 +313,6 @@ tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_INVALID_PAGE
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED = "3";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED_PAYMENTMETHOD = "4";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_ERROR = "5";
+
+/* Sets the current date for testing date dependent services. Only available in test environments.*/
+tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE = null;

@@ -15,6 +15,7 @@ tutao.entity.sys.CustomerData = function(data) {
     this._adminEncAccountingInfoSessionKey = null;
     this._authToken = null;
     this._company = null;
+    this._date = null;
     this._domain = null;
     this._salt = null;
     this._symEncAccountGroupKey = null;
@@ -41,6 +42,7 @@ tutao.entity.sys.CustomerData.prototype.updateData = function(data) {
   this._adminEncAccountingInfoSessionKey = data.adminEncAccountingInfoSessionKey;
   this._authToken = data.authToken;
   this._company = data.company;
+  this._date = data.date;
   this._domain = data.domain;
   this._salt = data.salt;
   this._symEncAccountGroupKey = data.symEncAccountGroupKey;
@@ -83,6 +85,7 @@ tutao.entity.sys.CustomerData.prototype.toJsonData = function() {
     adminEncAccountingInfoSessionKey: this._adminEncAccountingInfoSessionKey, 
     authToken: this._authToken, 
     company: this._company, 
+    date: this._date, 
     domain: this._domain, 
     salt: this._salt, 
     symEncAccountGroupKey: this._symEncAccountGroupKey, 
@@ -121,6 +124,11 @@ tutao.entity.sys.CustomerData.prototype.AUTHTOKEN_ATTRIBUTE_ID = 376;
  * The id of the company attribute.
  */
 tutao.entity.sys.CustomerData.prototype.COMPANY_ATTRIBUTE_ID = 377;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.CustomerData.prototype.DATE_ATTRIBUTE_ID = 868;
 
 /**
  * The id of the domain attribute.
@@ -260,6 +268,33 @@ tutao.entity.sys.CustomerData.prototype.setCompany = function(company) {
  */
 tutao.entity.sys.CustomerData.prototype.getCompany = function() {
   return this._company;
+};
+
+/**
+ * Sets the date of this CustomerData.
+ * @param {Date} date The date of this CustomerData.
+ */
+tutao.entity.sys.CustomerData.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this CustomerData.
+ * @return {Date} The date of this CustomerData.
+ */
+tutao.entity.sys.CustomerData.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**

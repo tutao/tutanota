@@ -79,18 +79,12 @@ tutao.tutanota.util.Formatter.formatSmtpDateTime = function(date) {
 };
 
 /**
- * Provides the date as a string with the year skipped if it is the current year.
- * TODO (timely) switch to google Date tools for all date formattings, esp. for different locales?
- *
- * @see http://www.elated.com/articles/working-with-dates/
+ * Formats the date into a string that is convenient for the user to read. Use this function if there is no need to convert the string back to a date.
  * @param {Date} date The date to format.
- * @return {string} the formatted date in the form '[d]d. Month [yyyy]'.
+ * @return {string} the formatted date in the form '[d]d. Month yyyy'.
  */
 tutao.tutanota.util.Formatter.formatDate = function(date) {
-	var monthNames = tutao.locator.languageViewModel.get("monthNames_label");
-	var currentYear = new Date().getYear();
-	var yearString = (date.getYear() == currentYear) ? "" : " " + (1900 + date.getYear());
-	return date.getDate() + ". " + monthNames[date.getMonth()] + yearString;
+	return date.toLocaleDateString();
 };
 
 /**
@@ -107,16 +101,7 @@ tutao.tutanota.util.Formatter.formatDateWithWeekday = function(date) {
 };
 
 /**
- * Converts a date to a string.
- * @param {Date} date The date to format.
- * @return {string} the formatted date in the form 'dd.mm.yyyy'.
- */
-tutao.tutanota.util.Formatter.dateToSimpleString = function(date) {
-	return tutao.util.StringUtils.pad(date.getDate(), 2) + "." + tutao.util.StringUtils.pad(date.getMonth() + 1, 2) + "." + tutao.util.StringUtils.pad(date.getFullYear(), 4);
-};
-
-/**
- * Converts a date to a string.
+ * Converts a date to a string. Use this function for datetime attributes or if the conversion from string to date is needed (dashStringToDate).
  * @param {Date} date The date to format.
  * @return {string} the formatted date in the form 'yyyy-mm-dd'.
  */
@@ -136,28 +121,6 @@ tutao.tutanota.util.Formatter.dashStringToDate = function(string) {
 	} else {
 		return date;
 	}
-};
-
-/**
- * Converts a string to a date.
- * @param  {string} string The string to convert in the form '[d]d.[m]m.yyyy'.
- * @return {Date=} date The date or null if the string could not be parsed.
- */
-tutao.tutanota.util.Formatter.simpleStringToDate = function(string) {
-	if (string.indexOf("-") != -1) {
-		return null;
-	}
-	var s = string.split('.');
-	if (s.length != 3 || (s[0].length != 1 && s[0].length != 2) || (s[1].length != 1 && s[1].length != 2) || s[2].length != 4 || isNaN(s[0]) || isNaN(s[1]) || isNaN(s[2])) {
-		return null;
-	}
-	var day = Number(s[0]);
-	var month = Number(s[1]);
-	var year = Number(s[2]);
-	if (day < 1 || day > 31 || month < 1 || month > 12) {
-		return null;
-	}
-	return new Date(year, month - 1, day, 0, 0, 0, 0);
 };
 
 /**

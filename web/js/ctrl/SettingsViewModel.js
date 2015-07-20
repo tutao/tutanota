@@ -21,6 +21,7 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
                 }, 0);
             }
 	}, this);
+    this._bookingAvailable = ko.observable(false);
 };
 
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO = 0;
@@ -65,8 +66,10 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
         }
-        settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
-        if (!tutao.locator.viewManager.isFreeAccount()) {
+        if (tutao.env.mode == tutao.Mode.Browser) {
+            settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
+        }
+        if (!tutao.locator.viewManager.isFreeAccount() || this._bookingAvailable()) {
             settings.push(s.DISPLAY_ADMIN_INVOICING);
         }
         if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
@@ -96,6 +99,19 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(set
 tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
 	this.displayed(settings);
 	tutao.locator.settingsView.showChangeSettingsColumn();
+
+    if (!this._bookingAvailable() && tutao.locator.viewManager.isFreeAccount()) {
+        // check if this was a premium user before and the payment data settings should be visible
+        var self = this;
+        var user = tutao.locator.userController.getLoggedInUser();
+        user.loadCustomer().then(function(customer) {
+            return customer.loadCustomerInfo().then(function(customerInfo) {
+                return tutao.entity.sys.Booking.loadRange(customerInfo.getBookings().getItems(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, 1, true).then(function(bookings) {
+                    self._bookingAvailable(bookings.length > 0);
+                });
+            });
+        });
+    }
 };
 
 

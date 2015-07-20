@@ -86,7 +86,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStatus = functio
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isChangeActionAllowed = function() {
-    return (!this.passwordChanged() || this.isChangePasswordActionAllowed()) && !this.busy();
+    return (!this.passwordChanged() || this.isChangePasswordActionAllowed()) && !this.busy() && this.isActive();
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isChangePasswordActionAllowed = function() {
@@ -238,13 +238,19 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
     var self = this;
     this.userGroupInfo.loadGroup().then(function(group) {
         var restore = self.userGroupInfo.getDeleted() != null;
-        new tutao.entity.sys.UserDataDelete()
-            .setUser(group.getUser())
-            .setRestore(restore)
-            .erase({}, null).then(function(deleteUserReturn) {
-                self.adminUserListViewModel.updateUserGroupInfo();
-                tutao.locator.settingsView.showChangeSettingsColumn();
-            });
+        var itemName = ((restore) ? tutao.lang('activateUser_label') : tutao.lang('deactivateUser_label'));
+        tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, (restore) ? 1 : -1, itemName).then(function(confirmed) {
+            if (confirmed) {
+                new tutao.entity.sys.UserDataDelete()
+                    .setUser(group.getUser())
+                    .setRestore(restore)
+                    .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
+                    .erase({}, null).then(function(deleteUserReturn) {
+                        self.adminUserListViewModel.updateUserGroupInfo();
+                        tutao.locator.settingsView.showChangeSettingsColumn();
+                    });
+            }
+        });
     });
 };
 
@@ -258,4 +264,8 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getDeleteButtonText = funct
  */
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStrength = function() {
     return tutao.tutanota.util.PasswordUtils.getPasswordStrength(this.password(), []);
+};
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isActive = function() {
+    return (this.userGroupInfo.getDeleted() == null);
 };

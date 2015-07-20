@@ -17,7 +17,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this.availableCountries = [{n: tutao.lang('choose_label'), a: null, t: 0}].concat(tutao.util.CountryList.COUNTRIES);
 
     this.showVatIdNoField = ko.computed(function() {
-        return this.accountingInfo() != null && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU_OR_SIMILAR;
+        return this.accountingInfo() != null && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
     }, this);
 
     var businessMethods = [
@@ -42,23 +42,31 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this._pricePerMonth = ko.observable(null);
     this._pricePerYear = ko.observable(null);
 
+    this.customer = null;
+
+    // if we access the user in the user controller directly (without setTimeout), a new PaymentDataViewModel is created as soon as the user controller fires the update event on the user
+    // to avoid that, we have to do all user dependent calls in a setTimeout.
     var self = this;
-    tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
-        self.accountType(customer.getType());
-        return customer.loadCustomerInfo().then(function(customerInfo) {
-            return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
-                self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
-                return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
-                    self._pricePerMonth(Number(pricePerMonth.getFuturePrice().getPrice()));
-                    return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 12, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerYear) {
-                        self._pricePerYear(Number(pricePerYear.getFuturePrice().getPrice()));
-                        self.state.entering(true);
+    setTimeout(function() {
+        self.step(tutao.locator.viewManager.isFreeAccount() ? 0 : -1);
+        tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+            self.accountType(customer.getType());
+            self.customer = customer;
+            return customer.loadCustomerInfo().then(function(customerInfo) {
+                return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
+                    self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
+                    self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
+                    return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
+                        self._pricePerMonth(Number(pricePerMonth.getFuturePriceNextPeriod().getPrice()));
+                        return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 12, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerYear) {
+                            self._pricePerYear(Number(pricePerYear.getFuturePriceNextPeriod().getPrice()));
+                            self.state.entering(true);
+                        });
                     });
                 });
             });
         });
-    });
+    }, 0);
 
     tutao.locator.eventListenerManager.addSingleEventListener("message", this._paymentMessageHandler);
     this._paymentWindow = null;
@@ -66,7 +74,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this._paymentToken.subscribe(this._updatePaymentInfo, this);
 
     // only for upgrade
-    this.step = ko.observable(tutao.locator.viewManager.isFreeAccount() ? 0 : -1);
+    this.step = ko.observable(); // is initialized above in setTimeout
     this.paymentIntervals = [{ textId: tutao.lang("yearly_label"), interval: "12" }, { textId: tutao.lang("monthly_label"), interval: "1" }];
 };
 
@@ -157,6 +165,8 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._handlePaymentDataServiceResu
                     }).caught(function() {
                         self.state.failure(true);
                     });
+                } else {
+                    self.state.entering(true);
                 }
             });
         } else if( statusCode == tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_INVALID_VATID_NUMBER){
@@ -188,7 +198,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getRedirectMessage = function
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.enterCreditCardData = function() {
-    window.name = "paymentTest" + new Date().getTime(); // set a unique window name to
+    window.name = "payment" + new Date().getTime(); // set a unique window name to
     this._paymentWindow = tutao.tutanota.gui.openLink(tutao.env.paymentDataServer + "/payment.html");
 };
 
@@ -252,16 +262,23 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
         if (self.state.success()) {
             var service = new tutao.entity.sys.SwitchAccountTypeData();
             service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM);
+            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
             self.state.submitting(true);
+            self.customer.registerObserver(self._customerUpdated);
             service.setup({}, null).then(function () {
                 self.state.success(true);
-                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+                // we wait for _customerUpdated to switch to the account view
             }).caught(function (error) {
                 self.state.failure(true);
             });
         }
     });
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype._customerUpdated = function() {
+    this.customer.unregisterObserver(this._customerUpdated);
+    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {

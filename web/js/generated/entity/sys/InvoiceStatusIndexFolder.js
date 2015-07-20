@@ -46,7 +46,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.PATH = '/rest/sys/invoicestatusindexfo
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.InvoiceStatusIndexFolder.ROOT_INSTANCE_ID = 'A3N5cwADLQ';
+tutao.entity.sys.InvoiceStatusIndexFolder.ROOT_INSTANCE_ID = 'A3N5cwADLg';
 
 /**
  * The generated id type flag.
@@ -76,12 +76,12 @@ tutao.entity.sys.InvoiceStatusIndexFolder.prototype.toJsonData = function() {
 /**
  * The id of the InvoiceStatusIndexFolder type.
  */
-tutao.entity.sys.InvoiceStatusIndexFolder.prototype.TYPE_ID = 813;
+tutao.entity.sys.InvoiceStatusIndexFolder.prototype.TYPE_ID = 814;
 
 /**
  * The id of the entries attribute.
  */
-tutao.entity.sys.InvoiceStatusIndexFolder.prototype.ENTRIES_ATTRIBUTE_ID = 818;
+tutao.entity.sys.InvoiceStatusIndexFolder.prototype.ENTRIES_ATTRIBUTE_ID = 819;
 
 /**
  * Sets the custom id of this InvoiceStatusIndexFolder.
