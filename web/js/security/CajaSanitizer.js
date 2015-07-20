@@ -16,7 +16,7 @@ tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) 
 	//console.log(url);
 	if (this._blockExternalContent){
 		// only external links
-		if ( tutao.util.StringUtils.startsWith( url.getScheme(),  "http") ){
+		if (url.getScheme() && tutao.util.StringUtils.startsWith( url.getScheme(),  "http") ){
 			var originalUrl = url.toString();
 			// Replace the external url with a non existing local reference and store
 			// the replacement in a map.
