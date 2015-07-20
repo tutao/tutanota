@@ -587,7 +587,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
     "addUsers_action": "Benutzer hinzufügen",
     "createUsers_label": "Benutzer anlegen",
     "newUsers_label": "Neue Benutzer",
-    "administrator_label": "Admin"
+    "administrator_label": "Admin",
     "activateUser_label": "Benutzer aktivieren",
     "deactivateUser_label": "Benutzer deaktivieren",
     "priceNotChanged_msg": "Der Gesamtpreis ändert sich nicht.",
