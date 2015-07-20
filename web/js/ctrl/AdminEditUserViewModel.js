@@ -160,6 +160,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
                 new tutao.entity.sys.UserDataDelete()
                     .setUser(group.getUser())
                     .setRestore(restore)
+                    .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
                     .erase({}, null).then(function(deleteUserReturn) {
                         self.adminUserListViewModel.updateUserGroupInfo();
                         tutao.locator.settingsView.showChangeSettingsColumn();

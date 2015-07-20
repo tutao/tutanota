@@ -50,7 +50,7 @@ tutao.entity.sys.MailAddressAlias.prototype.TYPE_ID = 684;
 /**
  * The id of the enabled attribute.
  */
-tutao.entity.sys.MailAddressAlias.prototype.ENABLED_ATTRIBUTE_ID = 780;
+tutao.entity.sys.MailAddressAlias.prototype.ENABLED_ATTRIBUTE_ID = 781;
 
 /**
  * The id of the mailAddress attribute.

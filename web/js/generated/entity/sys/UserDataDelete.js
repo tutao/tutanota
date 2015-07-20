@@ -11,6 +11,7 @@ tutao.entity.sys.UserDataDelete = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._date = null;
     this._restore = null;
     this._user = null;
   }
@@ -24,6 +25,7 @@ tutao.entity.sys.UserDataDelete = function(data) {
  */
 tutao.entity.sys.UserDataDelete.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._date = data.date;
   this._restore = data.restore;
   this._user = data.user;
 };
@@ -53,6 +55,7 @@ tutao.entity.sys.UserDataDelete.prototype.ENCRYPTED = false;
 tutao.entity.sys.UserDataDelete.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
+    date: this._date, 
     restore: this._restore, 
     user: this._user
   };
@@ -62,6 +65,11 @@ tutao.entity.sys.UserDataDelete.prototype.toJsonData = function() {
  * The id of the UserDataDelete type.
  */
 tutao.entity.sys.UserDataDelete.prototype.TYPE_ID = 404;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.UserDataDelete.prototype.DATE_ATTRIBUTE_ID = 870;
 
 /**
  * The id of the restore attribute.
@@ -88,6 +96,33 @@ tutao.entity.sys.UserDataDelete.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.UserDataDelete.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the date of this UserDataDelete.
+ * @param {Date} date The date of this UserDataDelete.
+ */
+tutao.entity.sys.UserDataDelete.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this UserDataDelete.
+ * @return {Date} The date of this UserDataDelete.
+ */
+tutao.entity.sys.UserDataDelete.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**

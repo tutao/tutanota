@@ -383,7 +383,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
                                 .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
                                 .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
                                 .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
-                                .setSymEncAccountGroupKey(symEncAccountGroupKey);
+                                .setSymEncAccountGroupKey(symEncAccountGroupKey)
+                                .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
                             return customerService.setup({}, null).then(function(adminUserData) {
                                 return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {

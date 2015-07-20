@@ -128,17 +128,17 @@ tutao.entity.sys.RegistrationServiceData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_I
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.RegistrationServiceData.prototype.SOURCE_ATTRIBUTE_ID = 864;
+tutao.entity.sys.RegistrationServiceData.prototype.SOURCE_ATTRIBUTE_ID = 865;
 
 /**
  * The id of the specialPriceUserSingle attribute.
  */
-tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 865;
+tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 866;
 
 /**
  * The id of the specialPriceUserTotal attribute.
  */
-tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 866;
+tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 867;
 
 /**
  * The id of the state attribute.

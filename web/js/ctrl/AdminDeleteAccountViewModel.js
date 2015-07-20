@@ -47,6 +47,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
             self.state.submitting(true);
             var service = new tutao.entity.sys.SwitchAccountTypeData();
             service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE);
+            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
             self.customer.registerObserver(self._customerUpdated);
             service.setup({}, null).then(function () {
