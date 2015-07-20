@@ -116,12 +116,14 @@
 <script src="/js/crypto/JBCryptAdapter.js"></script>
 <script src="/js/crypto/KdfInterface.js"></script>
 <script src="/js/crypto/Oaep.js"></script>
+<script src="/js/crypto/Pss.js"></script>
 <script src="/js/crypto/RandomizerInterface.js"></script>
 <script src="/js/crypto/SecureRandom.js"></script>
 <script src="/js/crypto/ShaInterface.js"></script>
 <script src="/js/crypto/SjclAes.js"></script>
 <script src="/js/crypto/SjclRandomizer.js"></script>
 <script src="/js/crypto/SjclSha256.js"></script>
+<script src="/js/crypto/Utils.js"></script>
 <script src="/js/crypto/WorkerRandomizer.js"></script>
 <script src="/js/ctrl/AdminAccountInfoViewModel.js"></script>
 <script src="/js/ctrl/AdminAliasViewModel.js"></script>
@@ -290,8 +292,10 @@
 <script src="/js/generated/entity/sys/MailAddressAvailabilityData.js"></script>
 <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
 <script src="/js/generated/entity/sys/MembershipAddData.js"></script>
+<script src="/js/generated/entity/sys/MembershipRemoveData.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
 <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
+<script src="/js/generated/entity/sys/MigrateToV9Data.js"></script>
 <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
 <script src="/js/generated/entity/sys/PaymentDataServiceGetReturn.js"></script>
 <script src="/js/generated/entity/sys/PaymentDataServicePutData.js"></script>
@@ -1861,6 +1865,14 @@
                                 <label class="recordName" data-bind="lang: 'deactivated_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(userGroupInfo.getDeleted())">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="record" data-bind="visible: modifyAdminAllowed">
+                                <label for="admin" class="recordName" data-bind="lang: 'administrator_label'"></label>
+                                <div class="recordData">
+                                    <div class="recordValue">
+                                        <input type="checkbox" id="admin" data-bind="checked: admin, enable: !busy()" />
                                     </div>
                                 </div>
                             </div>
