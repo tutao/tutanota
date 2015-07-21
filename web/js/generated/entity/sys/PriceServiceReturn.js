@@ -70,32 +70,32 @@ tutao.entity.sys.PriceServiceReturn.prototype.toJsonData = function() {
 /**
  * The id of the PriceServiceReturn type.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.TYPE_ID = 854;
+tutao.entity.sys.PriceServiceReturn.prototype.TYPE_ID = 855;
 
 /**
  * The id of the currentPeriodAddedPrice attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPERIODADDEDPRICE_ATTRIBUTE_ID = 857;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPERIODADDEDPRICE_ATTRIBUTE_ID = 858;
 
 /**
  * The id of the periodEndDate attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.PERIODENDDATE_ATTRIBUTE_ID = 856;
+tutao.entity.sys.PriceServiceReturn.prototype.PERIODENDDATE_ATTRIBUTE_ID = 857;
 
 /**
  * The id of the currentPriceNextPeriod attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICENEXTPERIOD_ATTRIBUTE_ID = 859;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICENEXTPERIOD_ATTRIBUTE_ID = 860;
 
 /**
  * The id of the currentPriceThisPeriod attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICETHISPERIOD_ATTRIBUTE_ID = 858;
+tutao.entity.sys.PriceServiceReturn.prototype.CURRENTPRICETHISPERIOD_ATTRIBUTE_ID = 859;
 
 /**
  * The id of the futurePriceNextPeriod attribute.
  */
-tutao.entity.sys.PriceServiceReturn.prototype.FUTUREPRICENEXTPERIOD_ATTRIBUTE_ID = 860;
+tutao.entity.sys.PriceServiceReturn.prototype.FUTUREPRICENEXTPERIOD_ATTRIBUTE_ID = 861;
 
 /**
  * Sets the format of this PriceServiceReturn.

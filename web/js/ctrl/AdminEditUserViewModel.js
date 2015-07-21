@@ -116,7 +116,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
             tutao.locator.settingsView.showChangeSettingsColumn();
         }
 	}).then(function () {
-        var adminGroupMembership = self._getGroupMembershipOfAdmin();
+        var adminGroupMembership = self._getAdminGroupMembership();
         if (self.admin() && !self._isAdmin(self.user())) {
             var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
             return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
@@ -172,7 +172,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function() {
     try {
-        var adminGroupMembership = this._getGroupMembershipOfAdmin();
+        var adminGroupMembership = this._getAdminGroupMembership();
         var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
 
         var self = this;
@@ -197,7 +197,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function()
     }
 };
 
-tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getGroupMembershipOfAdmin = function () {
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getAdminGroupMembership = function () {
     var memberships = tutao.locator.userController.getLoggedInUser().getMemberships();
     for (var i = 0; i < memberships.length; i++) {
         if (memberships[i].getAdmin()) {
@@ -227,9 +227,9 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getMailAddressForAccountTy
     } else if (tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER)    {
         return 'starter@tutanota.de';
     }else {
-        throw new Error("unsupported account type: " + customer.getType());
+        throw new Error("unsupported account type: " + accountType);
     }
-}
+};
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
     if (this.busy()) {

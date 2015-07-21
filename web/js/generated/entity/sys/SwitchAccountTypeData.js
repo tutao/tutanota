@@ -71,7 +71,7 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 772;
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.SwitchAccountTypeData.prototype.DATE_ATTRIBUTE_ID = 772;
+tutao.entity.sys.SwitchAccountTypeData.prototype.DATE_ATTRIBUTE_ID = 773;
 
 /**
  * Sets the format of this SwitchAccountTypeData.

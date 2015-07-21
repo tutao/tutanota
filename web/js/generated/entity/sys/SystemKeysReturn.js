@@ -16,6 +16,8 @@ tutao.entity.sys.SystemKeysReturn = function(data) {
     this._starterGroupKey = null;
     this._systemAdminPubKey = null;
     this._systemAdminPubKeyVersion = null;
+    this._freeGroup = null;
+    this._premiumGroup = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SystemKeysReturn.prototype;
@@ -32,6 +34,8 @@ tutao.entity.sys.SystemKeysReturn.prototype.updateData = function(data) {
   this._starterGroupKey = data.starterGroupKey;
   this._systemAdminPubKey = data.systemAdminPubKey;
   this._systemAdminPubKeyVersion = data.systemAdminPubKeyVersion;
+  this._freeGroup = data.freeGroup;
+  this._premiumGroup = data.premiumGroup;
 };
 
 /**
@@ -63,7 +67,9 @@ tutao.entity.sys.SystemKeysReturn.prototype.toJsonData = function() {
     premiumGroupKey: this._premiumGroupKey, 
     starterGroupKey: this._starterGroupKey, 
     systemAdminPubKey: this._systemAdminPubKey, 
-    systemAdminPubKeyVersion: this._systemAdminPubKeyVersion
+    systemAdminPubKeyVersion: this._systemAdminPubKeyVersion, 
+    freeGroup: this._freeGroup, 
+    premiumGroup: this._premiumGroup
   };
 };
 
@@ -96,6 +102,16 @@ tutao.entity.sys.SystemKeysReturn.prototype.SYSTEMADMINPUBKEY_ATTRIBUTE_ID = 303
  * The id of the systemAdminPubKeyVersion attribute.
  */
 tutao.entity.sys.SystemKeysReturn.prototype.SYSTEMADMINPUBKEYVERSION_ATTRIBUTE_ID = 304;
+
+/**
+ * The id of the freeGroup attribute.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.FREEGROUP_ATTRIBUTE_ID = 876;
+
+/**
+ * The id of the premiumGroup attribute.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.PREMIUMGROUP_ATTRIBUTE_ID = 877;
 
 /**
  * Sets the format of this SystemKeysReturn.
@@ -197,6 +213,56 @@ tutao.entity.sys.SystemKeysReturn.prototype.setSystemAdminPubKeyVersion = functi
  */
 tutao.entity.sys.SystemKeysReturn.prototype.getSystemAdminPubKeyVersion = function() {
   return this._systemAdminPubKeyVersion;
+};
+
+/**
+ * Sets the freeGroup of this SystemKeysReturn.
+ * @param {string} freeGroup The freeGroup of this SystemKeysReturn.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.setFreeGroup = function(freeGroup) {
+  this._freeGroup = freeGroup;
+  return this;
+};
+
+/**
+ * Provides the freeGroup of this SystemKeysReturn.
+ * @return {string} The freeGroup of this SystemKeysReturn.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.getFreeGroup = function() {
+  return this._freeGroup;
+};
+
+/**
+ * Loads the freeGroup of this SystemKeysReturn.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded freeGroup of this SystemKeysReturn or an exception if the loading failed.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.loadFreeGroup = function() {
+  return tutao.entity.sys.Group.load(this._freeGroup);
+};
+
+/**
+ * Sets the premiumGroup of this SystemKeysReturn.
+ * @param {string} premiumGroup The premiumGroup of this SystemKeysReturn.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.setPremiumGroup = function(premiumGroup) {
+  this._premiumGroup = premiumGroup;
+  return this;
+};
+
+/**
+ * Provides the premiumGroup of this SystemKeysReturn.
+ * @return {string} The premiumGroup of this SystemKeysReturn.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.getPremiumGroup = function() {
+  return this._premiumGroup;
+};
+
+/**
+ * Loads the premiumGroup of this SystemKeysReturn.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded premiumGroup of this SystemKeysReturn or an exception if the loading failed.
+ */
+tutao.entity.sys.SystemKeysReturn.prototype.loadPremiumGroup = function() {
+  return tutao.entity.sys.Group.load(this._premiumGroup);
 };
 
 /**

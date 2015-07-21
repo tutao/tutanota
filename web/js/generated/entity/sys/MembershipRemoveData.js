@@ -61,17 +61,17 @@ tutao.entity.sys.MembershipRemoveData.prototype.toJsonData = function() {
 /**
  * The id of the MembershipRemoveData type.
  */
-tutao.entity.sys.MembershipRemoveData.prototype.TYPE_ID = 860;
+tutao.entity.sys.MembershipRemoveData.prototype.TYPE_ID = 863;
 
 /**
  * The id of the group attribute.
  */
-tutao.entity.sys.MembershipRemoveData.prototype.GROUP_ATTRIBUTE_ID = 863;
+tutao.entity.sys.MembershipRemoveData.prototype.GROUP_ATTRIBUTE_ID = 866;
 
 /**
  * The id of the user attribute.
  */
-tutao.entity.sys.MembershipRemoveData.prototype.USER_ATTRIBUTE_ID = 862;
+tutao.entity.sys.MembershipRemoveData.prototype.USER_ATTRIBUTE_ID = 865;
 
 /**
  * Sets the format of this MembershipRemoveData.

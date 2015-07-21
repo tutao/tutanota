@@ -53,6 +53,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
             service.setup({}, null).then(function () {
                 self.state.success(true);
                 // we wait for _customerUpdated to switch to the account view
+                self._switchPremiumToFreeGroup();
             }).caught(tutao.InvalidDataError, function (exception) {
                 self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
                 self.state.failure(true);
@@ -60,6 +61,24 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
                 self.state.failure(true);
             });
         }
+    });
+};
+
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._switchPremiumToFreeGroup = function() {
+    return tutao.entity.sys.SystemKeysReturn.load({}, null).then(function(keyData) {
+        return new tutao.entity.sys.MembershipAddData()
+            .setUser(tutao.locator.userController.getLoggedInUser().getId())
+            .setGroup(keyData.getFreeGroup())
+            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.locator.aesCrypter.base64ToKey(keyData.getFreeGroupKey())))
+            .setup({}, null)
+            .then(function() {
+                return new tutao.entity.sys.MembershipRemoveData()
+                    .setUser(tutao.locator.userController.getLoggedInUser().getId())
+                    .setGroup(keyData.getPremiumGroup())
+                    .erase({}, null);
+            });
+    }).caught(function(e) {
+        console.log("error switching premium to free group", e);
     });
 };
 
