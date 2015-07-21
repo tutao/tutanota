@@ -36,7 +36,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         }
     }, this);
 
-    this.state = new tutao.tutanota.util.SubmitStateMachine();
+    this.state = new tutao.tutanota.util.SubmitStateMachine(true);
     this.state.setInputInvalidMessageListener(this._getInputInvalidMessage);
 
     this._pricePerMonth = ko.observable(null);
@@ -111,6 +111,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = fun
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.storeAccountingInfo = function() {
     var self = this;
     var service = new tutao.entity.sys.PaymentDataServicePutData();
+    service._entityHelper.setSessionKey(this.accountingInfo().getAccountingInfo()._entityHelper.getSessionKey());
     service.setBusiness(this.accountingInfo().business())
         .setInvoiceName(this.accountingInfo().invoiceName())
         .setInvoiceAddress(this.accountingInfo().invoiceAddress())
@@ -224,6 +225,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
             }
             console.log( tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN + ":" + token);
             this._paymentToken({value: token, method: paymentMethod, info: paymentMethodInfo});
+            this.state.entering(true); // makes any previous failure message disappear
         }
     }
 };
@@ -266,13 +268,32 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
 
             self.state.submitting(true);
             self.customer.registerObserver(self._customerUpdated);
-            service.setup({}, null).then(function () {
+            service.setup({}, null).then(function() {
                 self.state.success(true);
                 // we wait for _customerUpdated to switch to the account view
+                self._switchFreeToPremiumGroup();
             }).caught(function (error) {
                 self.state.failure(true);
             });
         }
+    });
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype._switchFreeToPremiumGroup = function() {
+    return tutao.entity.sys.SystemKeysReturn.load({}, null).then(function(keyData) {
+        return new tutao.entity.sys.MembershipAddData()
+            .setUser(tutao.locator.userController.getLoggedInUser().getId())
+            .setGroup(keyData.getPremiumGroup())
+            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.locator.aesCrypter.base64ToKey(keyData.getPremiumGroupKey())))
+            .setup({}, null)
+            .then(function() {
+                return new tutao.entity.sys.MembershipRemoveData()
+                    .setUser(tutao.locator.userController.getLoggedInUser().getId())
+                    .setGroup(keyData.getFreeGroup())
+                    .erase({}, null);
+            });
+    }).caught(function(e) {
+        console.log("error switching free to premium group", e);
     });
 };
 

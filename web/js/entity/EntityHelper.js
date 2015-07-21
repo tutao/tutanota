@@ -130,14 +130,20 @@ tutao.entity.EntityHelper._getListKey = function(listId, startId) {
     var self = this;
     return tutao.entity.sys.Permission.loadRange(listId, startId, 1, false).then(function(permissions) {
         var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
-        if (listKey == null){
-            if (permissions.length > 0){
+        if (listKey != null) {
+            return listKey;
+        }
+        // we have to create a dummy EntityHelper here because _tryGetPubEncSessionKey is not static. Pass an empty entity to allow updating a public list permission in _updateWithSymPermissionKey()
+        return new tutao.entity.EntityHelper({})._tryGetPubEncSessionKey(permissions).then(function(listKey) {
+            if (listKey != null) {
+                return listKey;
+            }
+            if (permissions.length > 0) {
                 return self._getListKey(listId, permissions[permissions.length -1].getId()[1]);
             } else {
                 throw new Error("no list permission found");
             }
-        }
-        return listKey;
+        });
     });
 };
 

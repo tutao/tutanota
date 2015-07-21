@@ -52,12 +52,12 @@ tutao.entity.sys.PriceServiceData.prototype.toJsonData = function() {
 /**
  * The id of the PriceServiceData type.
  */
-tutao.entity.sys.PriceServiceData.prototype.TYPE_ID = 840;
+tutao.entity.sys.PriceServiceData.prototype.TYPE_ID = 841;
 
 /**
  * The id of the priceRequest attribute.
  */
-tutao.entity.sys.PriceServiceData.prototype.PRICEREQUEST_ATTRIBUTE_ID = 842;
+tutao.entity.sys.PriceServiceData.prototype.PRICEREQUEST_ATTRIBUTE_ID = 843;
 
 /**
  * Sets the format of this PriceServiceData.

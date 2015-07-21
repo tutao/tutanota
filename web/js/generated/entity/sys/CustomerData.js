@@ -128,7 +128,7 @@ tutao.entity.sys.CustomerData.prototype.COMPANY_ATTRIBUTE_ID = 377;
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.CustomerData.prototype.DATE_ATTRIBUTE_ID = 868;
+tutao.entity.sys.CustomerData.prototype.DATE_ATTRIBUTE_ID = 873;
 
 /**
  * The id of the domain attribute.

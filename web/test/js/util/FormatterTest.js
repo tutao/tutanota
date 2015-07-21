@@ -61,32 +61,9 @@ describe("FormatterTest", function () {
         assert.equal("05:30", tutao.tutanota.util.Formatter.formatDateTimeFromYesterdayOn(today));
     });
 
-    it(" dateToSimpleString", function () {
-        assert.equal("12.02.1973", tutao.tutanota.util.Formatter.dateToSimpleString(new Date(1973, 1, 12, 0, 0, 0)));
-        assert.equal("12.02.1968", tutao.tutanota.util.Formatter.dateToSimpleString(new Date(1968, 1, 12, 0, 0, 0)));
-    });
-
     it(" dateToDashString", function () {
         assert.equal("1973-02-12", tutao.tutanota.util.Formatter.dateToDashString(new Date(1973, 1, 12, 0, 0, 0)));
         assert.equal("1968-02-12", tutao.tutanota.util.Formatter.dateToDashString(new Date(1968, 1, 12, 0, 0, 0)));
-    });
-
-    it(" simpleStringToDate", function () {
-        assert.deepEqual(new Date(1973, 1, 12, 0, 0, 0), tutao.tutanota.util.Formatter.simpleStringToDate("12.02.1973"));
-        assert.deepEqual(new Date(1968, 1, 12, 0, 0, 0), tutao.tutanota.util.Formatter.simpleStringToDate("12.02.1968"));
-        assert.deepEqual(new Date(1968, 1, 2, 0, 0, 0), tutao.tutanota.util.Formatter.simpleStringToDate("2.02.1968"));
-        assert.deepEqual(new Date(1968, 1, 12, 0, 0, 0), tutao.tutanota.util.Formatter.simpleStringToDate("12.2.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("1a.02.123"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.a2.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.02.1a68"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("00.02.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.00.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.00.0000"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("32.02.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.13.1968"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.11.-239"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("11.11"));
-        assert.isNull(tutao.tutanota.util.Formatter.simpleStringToDate("1111"));
     });
 
     it(" isMailAddress", function () {

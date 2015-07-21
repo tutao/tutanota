@@ -69,7 +69,7 @@ tutao.entity.sys.UserDataDelete.prototype.TYPE_ID = 404;
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.UserDataDelete.prototype.DATE_ATTRIBUTE_ID = 870;
+tutao.entity.sys.UserDataDelete.prototype.DATE_ATTRIBUTE_ID = 875;
 
 /**
  * The id of the restore attribute.

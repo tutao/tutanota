@@ -47,7 +47,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                             if (item.type == priceItemData.getFeatureType()) {
                                 item.nextAmount(Number(priceItemData.getCount()));
                                 item.nextPrice(Number(priceItemData.getPrice()));
-                                self.showNextPeriodInfo(true);
+                                if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
+                                    self.showNextPeriodInfo(true);
+                                }
                                 break;
                             }
                         }
@@ -148,6 +150,8 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.downloadPdf = function(inv
     var data = new tutao.entity.sys.PdfInvoiceServiceData();
     data.setInvoice(invoice.getId());
     return tutao.entity.sys.PdfInvoiceServiceReturn.load(data, {}, null).then(function(returnData) {
+        // the session key for the pdf data is the same as the invoice session key
+        returnData._entityHelper.setSessionKey(invoice._entityHelper.getSessionKey());
         var pdfBytes = tutao.util.EncodingConverter.base64ToArray(returnData.getData());
         var tmpFile = new tutao.entity.tutanota.File();
         tmpFile.setName(String(invoice.getNumber()) + ".pdf");
