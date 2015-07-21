@@ -42,7 +42,7 @@ tutao.entity.sys.PdfInvoiceServiceReturn.PATH = '/rest/sys/pdfinvoiceservice';
  * The encrypted flag.
  * @const
  */
-tutao.entity.sys.PdfInvoiceServiceReturn.prototype.ENCRYPTED = false;
+tutao.entity.sys.PdfInvoiceServiceReturn.prototype.ENCRYPTED = true;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
@@ -58,12 +58,12 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.toJsonData = function() {
 /**
  * The id of the PdfInvoiceServiceReturn type.
  */
-tutao.entity.sys.PdfInvoiceServiceReturn.prototype.TYPE_ID = 776;
+tutao.entity.sys.PdfInvoiceServiceReturn.prototype.TYPE_ID = 777;
 
 /**
  * The id of the data attribute.
  */
-tutao.entity.sys.PdfInvoiceServiceReturn.prototype.DATA_ATTRIBUTE_ID = 778;
+tutao.entity.sys.PdfInvoiceServiceReturn.prototype.DATA_ATTRIBUTE_ID = 779;
 
 /**
  * Sets the format of this PdfInvoiceServiceReturn.
@@ -87,7 +87,8 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getFormat = function() {
  * @param {string} data The data of this PdfInvoiceServiceReturn.
  */
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.setData = function(data) {
-  this._data = data;
+  var dataToEncrypt = data;
+  this._data = tutao.locator.aesCrypter.encryptBytes(this._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -96,7 +97,11 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.setData = function(data) {
  * @return {string} The data of this PdfInvoiceServiceReturn.
  */
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getData = function() {
-  return this._data;
+  if (this._data == "") {
+    return "";
+  }
+  var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._data);
+  return value;
 };
 
 /**

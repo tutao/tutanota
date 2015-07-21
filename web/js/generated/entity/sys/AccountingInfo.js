@@ -117,27 +117,27 @@ tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
 /**
  * The id of the business attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 758;
+tutao.entity.sys.AccountingInfo.prototype.BUSINESS_ATTRIBUTE_ID = 759;
 
 /**
  * The id of the invoiceAddress attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 760;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 761;
 
 /**
  * The id of the invoiceCountry attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 761;
+tutao.entity.sys.AccountingInfo.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 762;
 
 /**
  * The id of the invoiceName attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 759;
+tutao.entity.sys.AccountingInfo.prototype.INVOICENAME_ATTRIBUTE_ID = 760;
 
 /**
  * The id of the invoiceVatIdNo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 763;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 764;
 
 /**
  * The id of the lastInvoiceNbrOfSentSms attribute.
@@ -152,32 +152,32 @@ tutao.entity.sys.AccountingInfo.prototype.LASTINVOICETIMESTAMP_ATTRIBUTE_ID = 59
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 766;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 767;
 
 /**
  * The id of the paymentMethod attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 764;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 765;
 
 /**
  * The id of the paymentMethodInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 765;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 766;
 
 /**
  * The id of the paymentProviderCustomerId attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.PAYMENTPROVIDERCUSTOMERID_ATTRIBUTE_ID = 767;
+tutao.entity.sys.AccountingInfo.prototype.PAYMENTPROVIDERCUSTOMERID_ATTRIBUTE_ID = 768;
 
 /**
  * The id of the secondCountryInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.SECONDCOUNTRYINFO_ATTRIBUTE_ID = 762;
+tutao.entity.sys.AccountingInfo.prototype.SECONDCOUNTRYINFO_ATTRIBUTE_ID = 763;
 
 /**
  * The id of the invoiceInfo attribute.
  */
-tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 768;
+tutao.entity.sys.AccountingInfo.prototype.INVOICEINFO_ATTRIBUTE_ID = 769;
 
 /**
  * Provides the id of this AccountingInfo.
@@ -243,7 +243,8 @@ tutao.entity.sys.AccountingInfo.prototype.getBusiness = function() {
  * @param {string} invoiceAddress The invoiceAddress of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceAddress = function(invoiceAddress) {
-  this._invoiceAddress = invoiceAddress;
+  var dataToEncrypt = invoiceAddress;
+  this._invoiceAddress = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -252,7 +253,11 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceAddress = function(invoiceAd
  * @return {string} The invoiceAddress of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
-  return this._invoiceAddress;
+  if (this._invoiceAddress == "") {
+    return "";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceAddress);
+  return value;
 };
 
 /**
@@ -260,7 +265,12 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
  * @param {string} invoiceCountry The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCountry) {
-  this._invoiceCountry = invoiceCountry;
+  if (invoiceCountry == null) {
+    this._invoiceCountry = null;
+  } else {
+    var dataToEncrypt = invoiceCountry;
+    this._invoiceCountry = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -269,7 +279,11 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCo
  * @return {string} The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
-  return this._invoiceCountry;
+  if (this._invoiceCountry == null) {
+    return null;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceCountry);
+  return value;
 };
 
 /**
@@ -277,7 +291,8 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
  * @param {string} invoiceName The invoiceName of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceName = function(invoiceName) {
-  this._invoiceName = invoiceName;
+  var dataToEncrypt = invoiceName;
+  this._invoiceName = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -286,7 +301,11 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceName = function(invoiceName)
  * @return {string} The invoiceName of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
-  return this._invoiceName;
+  if (this._invoiceName == "") {
+    return "";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceName);
+  return value;
 };
 
 /**
@@ -294,7 +313,8 @@ tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
  * @param {string} invoiceVatIdNo The invoiceVatIdNo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVatIdNo) {
-  this._invoiceVatIdNo = invoiceVatIdNo;
+  var dataToEncrypt = invoiceVatIdNo;
+  this._invoiceVatIdNo = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -303,7 +323,11 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVa
  * @return {string} The invoiceVatIdNo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceVatIdNo = function() {
-  return this._invoiceVatIdNo;
+  if (this._invoiceVatIdNo == "") {
+    return "";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceVatIdNo);
+  return value;
 };
 
 /**
@@ -372,7 +396,12 @@ tutao.entity.sys.AccountingInfo.prototype.getPaymentInterval = function() {
  * @param {string} paymentMethod The paymentMethod of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMethod) {
-  this._paymentMethod = paymentMethod;
+  if (paymentMethod == null) {
+    this._paymentMethod = null;
+  } else {
+    var dataToEncrypt = paymentMethod;
+    this._paymentMethod = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -381,7 +410,11 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMet
  * @return {string} The paymentMethod of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethod = function() {
-  return this._paymentMethod;
+  if (this._paymentMethod == null) {
+    return null;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
+  return value;
 };
 
 /**
@@ -389,7 +422,12 @@ tutao.entity.sys.AccountingInfo.prototype.getPaymentMethod = function() {
  * @param {string} paymentMethodInfo The paymentMethodInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setPaymentMethodInfo = function(paymentMethodInfo) {
-  this._paymentMethodInfo = paymentMethodInfo;
+  if (paymentMethodInfo == null) {
+    this._paymentMethodInfo = null;
+  } else {
+    var dataToEncrypt = paymentMethodInfo;
+    this._paymentMethodInfo = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -398,7 +436,11 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethodInfo = function(paymen
  * @return {string} The paymentMethodInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethodInfo = function() {
-  return this._paymentMethodInfo;
+  if (this._paymentMethodInfo == null) {
+    return null;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethodInfo);
+  return value;
 };
 
 /**
@@ -406,7 +448,12 @@ tutao.entity.sys.AccountingInfo.prototype.getPaymentMethodInfo = function() {
  * @param {string} paymentProviderCustomerId The paymentProviderCustomerId of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setPaymentProviderCustomerId = function(paymentProviderCustomerId) {
-  this._paymentProviderCustomerId = paymentProviderCustomerId;
+  if (paymentProviderCustomerId == null) {
+    this._paymentProviderCustomerId = null;
+  } else {
+    var dataToEncrypt = paymentProviderCustomerId;
+    this._paymentProviderCustomerId = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -415,7 +462,11 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentProviderCustomerId = functio
  * @return {string} The paymentProviderCustomerId of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentProviderCustomerId = function() {
-  return this._paymentProviderCustomerId;
+  if (this._paymentProviderCustomerId == null) {
+    return null;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentProviderCustomerId);
+  return value;
 };
 
 /**
@@ -423,7 +474,8 @@ tutao.entity.sys.AccountingInfo.prototype.getPaymentProviderCustomerId = functio
  * @param {string} secondCountryInfo The secondCountryInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.setSecondCountryInfo = function(secondCountryInfo) {
-  this._secondCountryInfo = secondCountryInfo;
+  var dataToEncrypt = secondCountryInfo;
+  this._secondCountryInfo = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -432,7 +484,11 @@ tutao.entity.sys.AccountingInfo.prototype.setSecondCountryInfo = function(second
  * @return {string} The secondCountryInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getSecondCountryInfo = function() {
-  return this._secondCountryInfo;
+  if (this._secondCountryInfo == "") {
+    return "0";
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._secondCountryInfo);
+  return value;
 };
 
 /**

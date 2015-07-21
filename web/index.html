@@ -1636,7 +1636,7 @@
                                         <div class="bookingCell" data-bind="text: getTotalPriceText()"></div>
                                     </div>
                                 </div>
-                                <div class="light defaultMargin" data-bind="if: showNextPeriodInfo, text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
+                                <div class="light defaultMargin" data-bind="visible: showNextPeriodInfo(), text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
                                 <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
                                 <div class="bookingTable">
                                     <div class="bookingTableHeader">
