@@ -468,7 +468,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "xing_label": "XING",
   "yesterday_label": "gestern",
 
-  "adminCustomDomainInfo_msg" : "Bitte konfiguriere vorher die MX- und SPF-Einträge im DNS. Siehe {1}.",
+  "adminCustomDomainInfo_msg" : "Bitte konfiguriere vorher die MX- und SPF-Einträge im DNS.",
   "adminCustomDomain_label" : "Eigene Domain",
   "customDomainNeutral_msg" : "Bitte gib hier deine Domain ein.",
   "customDomainErrorDnsLookupFailure_msg" : "Fehler beim Abfragen der DNS-Informationen.",

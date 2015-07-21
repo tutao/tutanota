@@ -75,6 +75,15 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.confirm = function() {
     });
 };
 
+tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.getCustomDomainSetupLink = function() {
+    var setupLink = "https://tutanota.uservoice.com/knowledgebase/articles/666088";
+    if ( tutao.locator.languageViewModel.getCurrentLanguage() == "de" ){
+        setupLink = "https://tutanota.uservoice.com/knowledgebase/articles/666070"
+    }
+    return setupLink;
+};
+
+
 
 
 
