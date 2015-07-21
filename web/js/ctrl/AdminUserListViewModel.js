@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
     if (this.editing()) {
         // update the saved instance in our list
         var self = this;
-        tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId()).then(function(updatedUserGroupInfo) {
+        return tutao.entity.sys.GroupInfo.load(this.editing().userGroupInfo.getId()).then(function(updatedUserGroupInfo) {
             var savedIndex = self.userGroups.indexOf(self.editing().userGroupInfo);
             self.userGroups.splice(savedIndex, 1);
             self.userGroups.splice(savedIndex, 0, updatedUserGroupInfo);
@@ -55,7 +55,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
                 tutao.locator.userController.setUserGroupInfo(updatedUserGroupInfo);
             }
             self.editing(null);
-        })
+        });
     }
 };
 

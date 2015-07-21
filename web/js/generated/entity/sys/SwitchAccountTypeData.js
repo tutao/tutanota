@@ -12,6 +12,7 @@ tutao.entity.sys.SwitchAccountTypeData = function(data) {
   } else {
     this.__format = "0";
     this._accountType = null;
+    this._date = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SwitchAccountTypeData.prototype;
@@ -24,6 +25,7 @@ tutao.entity.sys.SwitchAccountTypeData = function(data) {
 tutao.entity.sys.SwitchAccountTypeData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._accountType = data.accountType;
+  this._date = data.date;
 };
 
 /**
@@ -51,7 +53,8 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.ENCRYPTED = false;
 tutao.entity.sys.SwitchAccountTypeData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    accountType: this._accountType
+    accountType: this._accountType, 
+    date: this._date
   };
 };
 
@@ -64,6 +67,11 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.TYPE_ID = 770;
  * The id of the accountType attribute.
  */
 tutao.entity.sys.SwitchAccountTypeData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 772;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.SwitchAccountTypeData.prototype.DATE_ATTRIBUTE_ID = 772;
 
 /**
  * Sets the format of this SwitchAccountTypeData.
@@ -97,6 +105,33 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.setAccountType = function(accou
  */
 tutao.entity.sys.SwitchAccountTypeData.prototype.getAccountType = function() {
   return this._accountType;
+};
+
+/**
+ * Sets the date of this SwitchAccountTypeData.
+ * @param {Date} date The date of this SwitchAccountTypeData.
+ */
+tutao.entity.sys.SwitchAccountTypeData.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this SwitchAccountTypeData.
+ * @return {Date} The date of this SwitchAccountTypeData.
+ */
+tutao.entity.sys.SwitchAccountTypeData.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**

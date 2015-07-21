@@ -123,7 +123,8 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
                         .setUserGroupData(userGroupData)
                         .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))
                         .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
-                        .setMobilePhoneNumber("");
+                        .setMobilePhoneNumber("")
+                        .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
                     return userService.setup({}, null).then(function(userReturn, exception) {
                         return tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey);

@@ -11,6 +11,7 @@ tutao.entity.sys.UserData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._date = null;
     this._mobilePhoneNumber = null;
     this._salt = null;
     this._userEncClientKey = null;
@@ -28,6 +29,7 @@ tutao.entity.sys.UserData = function(data) {
  */
 tutao.entity.sys.UserData.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._date = data.date;
   this._mobilePhoneNumber = data.mobilePhoneNumber;
   this._salt = data.salt;
   this._userEncClientKey = data.userEncClientKey;
@@ -61,6 +63,7 @@ tutao.entity.sys.UserData.prototype.ENCRYPTED = false;
 tutao.entity.sys.UserData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
+    date: this._date, 
     mobilePhoneNumber: this._mobilePhoneNumber, 
     salt: this._salt, 
     userEncClientKey: this._userEncClientKey, 
@@ -74,6 +77,11 @@ tutao.entity.sys.UserData.prototype.toJsonData = function() {
  * The id of the UserData type.
  */
 tutao.entity.sys.UserData.prototype.TYPE_ID = 396;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.UserData.prototype.DATE_ATTRIBUTE_ID = 869;
 
 /**
  * The id of the mobilePhoneNumber attribute.
@@ -120,6 +128,33 @@ tutao.entity.sys.UserData.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.UserData.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the date of this UserData.
+ * @param {Date} date The date of this UserData.
+ */
+tutao.entity.sys.UserData.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this UserData.
+ * @return {Date} The date of this UserData.
+ */
+tutao.entity.sys.UserData.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**

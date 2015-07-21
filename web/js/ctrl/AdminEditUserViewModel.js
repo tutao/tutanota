@@ -30,19 +30,26 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
         }
     }, this);
 
+    this.user = ko.observable();
+    this.admin = ko.observable();
+
 	this.busy = ko.observable(false);
     this.saveStatus = ko.observable({type: "neutral", text: "emptyString_msg" });
 
     this.passwordChangeAllowed = ko.observable(false);
     this.deleteUserAllowed = ko.observable(false);
+    this.modifyAdminAllowed = ko.observable(false);
     var self = this;
     tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {
         if (userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
             tutao.entity.sys.User.load(userGroup.getUser()).then(function(user) {
+                self.user(user);
+                self.admin(self._isAdmin(self.user()));
                 if (!self._isAdmin(user) && self.adminUserListViewModel.createAccountsPossible()) {
                     self.passwordChangeAllowed(true);
                     self.deleteUserAllowed(true);
                 }
+                self.modifyAdminAllowed(tutao.locator.userController.getLoggedInUser().getId() != user.getId());
             });
         }
     });
@@ -105,11 +112,57 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
 
             })
         } else {
-            self.saveStatus({type: "neutral", text: "saved_msg" });
             self.adminUserListViewModel.updateUserGroupInfo();
             tutao.locator.settingsView.showChangeSettingsColumn();
         }
-	}).caught(function(e) {
+	}).then(function () {
+        var adminGroupMembership = self._getGroupMembershipOfAdmin();
+        if (self.admin() && !self._isAdmin(self.user())) {
+            var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
+            return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
+                var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
+
+                return new tutao.entity.sys.MembershipAddData()
+                    .setUser(self.user().getId())
+                    .setGroup(adminGroupMembership.getGroup())
+                    .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey))
+                    .setup({}, null)
+                    .then(function () {
+                        return self.user().loadCustomer();
+                    }).then(function (customer) {
+                        return self._getMailAddressForAccountType(customer.getType());
+                    }).then(function (mailAddress) {
+                        return self._getGroupMembershipOfAdmin(mailAddress); // membership in starter@tutanota.de or premium@tutanota.de
+                    }).then(function(groupMembership) {
+                        return new tutao.entity.sys.MembershipAddData()
+                            .setUser(self.user().getId())
+                            .setGroup(groupMembership.getGroup())
+                            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(),groupMembership.getSymEncGKey())))
+                            .setup({}, null);
+                    });
+            });
+
+        } else if (!self.admin() && self._isAdmin(self.user())) {
+            return new tutao.entity.sys.MembershipRemoveData()
+                .setUser(self.user().getId())
+                .setGroup(adminGroupMembership.getGroup())
+                .erase({}, null)
+            .then(function () {
+                return self.user().loadCustomer();
+            }).then(function (customer) {
+                return self._getMailAddressForAccountType(customer.getType());
+            }).then(function (mailAddress) {
+                return self._getGroupMembershipOfAdmin(mailAddress);
+            }).then(function(groupMembership) {
+                return new tutao.entity.sys.MembershipRemoveData()
+                    .setUser(self.user().getId())
+                    .setGroup(groupMembership.getGroup())
+                    .erase({}, null);
+            });
+        }
+    }).then(function() {
+        self.saveStatus({type: "neutral", text: "saved_msg" });
+    }).caught(function(e) {
         self.saveStatus({type: "neutral", text: "emptyString_msg" });
         throw e;
     }).lastly(function() {
@@ -118,34 +171,65 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
 };
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function() {
-    var adminGroupKey = null;
+    try {
+        var adminGroupMembership = this._getGroupMembershipOfAdmin();
+        var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
+
+        var self = this;
+        return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
+            var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
+            var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
+            return tutao.locator.crypto.generateKeyFromPassphrase(self.password(), hexSalt).then(function(userPassphraseKeyHex) {
+                var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
+                var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey);
+                var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
+
+                var service = new tutao.entity.sys.ResetPasswordData();
+                service.setUser(userGroup.getUser());
+                service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
+                service.setVerifier(verifier);
+                service.setPwEncUserGroupKey(pwEncUserGroupKey);
+                return service.setup({}, null);
+            });
+        });
+    } catch(e) {
+        return Promise.reject(new tutao.entity.EntityRestException(e));
+    }
+};
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getGroupMembershipOfAdmin = function () {
     var memberships = tutao.locator.userController.getLoggedInUser().getMemberships();
     for (var i = 0; i < memberships.length; i++) {
         if (memberships[i].getAdmin()) {
-            adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[i].getSymEncGKey());
+            return memberships[i];
         }
     }
-    if (adminGroupKey == null) {
-        return Promise.reject(new tutao.entity.EntityRestException(new Error("could not find admin key")));
-    }
-    var self = this;
-    return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
-        var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
-        var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-        return tutao.locator.crypto.generateKeyFromPassphrase(self.password(), hexSalt).then(function(userPassphraseKeyHex) {
-            var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
-            var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey);
-            var verifier = tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex);
+    throw new Error("The currently logged in user is not an admin");
+};
 
-            var service = new tutao.entity.sys.ResetPasswordData();
-            service.setUser(userGroup.getUser());
-            service.setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt));
-            service.setVerifier(verifier);
-            service.setPwEncUserGroupKey(pwEncUserGroupKey);
-            return service.setup({}, null);
-        });
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getGroupMembershipOfAdmin = function (mailAddress) {
+    var memberships = tutao.locator.userController.getLoggedInUser().getMemberships();
+    var groupMembership = null;
+    return Promise.each(memberships, function (membership) {
+       return membership.loadGroupInfo().then(function(info) {
+           if (info.getMailAddress() == mailAddress) {
+               groupMembership = membership;
+           }
+       });
+    }).then(function() {
+        return groupMembership;
     });
 };
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._getMailAddressForAccountType = function(accountType) {
+    if (accountType == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM) {
+        return 'premium@tutanota.de';
+    } else if (tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER)    {
+        return 'starter@tutanota.de';
+    }else {
+        throw new Error("unsupported account type: " + customer.getType());
+    }
+}
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
     if (this.busy()) {
@@ -160,6 +244,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
                 new tutao.entity.sys.UserDataDelete()
                     .setUser(group.getUser())
                     .setRestore(restore)
+                    .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
                     .erase({}, null).then(function(deleteUserReturn) {
                         self.adminUserListViewModel.updateUserGroupInfo();
                         tutao.locator.settingsView.showChangeSettingsColumn();

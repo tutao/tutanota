@@ -16,13 +16,13 @@ tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) 
 	//console.log(url);
 	if (this._blockExternalContent){
 		// only external links
-		if ( tutao.util.StringUtils.startsWith( url.getScheme(),  "http") ){
+		if (url.getScheme() && tutao.util.StringUtils.startsWith( url.getScheme(),  "http") ){
 			var originalUrl = url.toString();
 			// Replace the external url with a non existing local reference and store
 			// the replacement in a map.
 			url = URI.parse("replacement_" + (this._urlReplacementMap.length + 1));
 			var replacementUrl = url.toString();
-			this._urlReplacementMap.push( {replacement:replacementUrl, original: originalUrl });
+			this._urlReplacementMap.push( {replacement:replacementUrl, original: originalUrl, isLink: false });
 		}
 	}
 	return url;
@@ -31,9 +31,9 @@ tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) 
 
 tutao.tutanota.security.CajaSanitizer.prototype._reverseUrlTransformer = function(url) {
 	var path = url.toString();
-	var originalUrl = this._getOriginalLink(path);
-	if ( originalUrl){
-		return URI.parse(originalUrl);
+	var replacementEntry = this._getReplacementEntry(path);
+	if ( replacementEntry){
+		return URI.parse(replacementEntry.original);
 	}
 	return url;
 };
@@ -70,10 +70,14 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 			var htmlNodes = $.parseHTML(cleanHtml);
             // htmlNodes may be null if the body text is empty
             if (htmlNodes) {
-                externalImages = this._preventExternalImageLoading(htmlNodes);
-                // Restore all other external links to the original reference.
-                cleanHtml = html_sanitize($('<div>').append(htmlNodes).html(), this._reverseUrlTransformer, this._nameIdClassTransformer);
+                this._preventExternalImageLoading(htmlNodes, externalImages);
             }
+			for ( var i=0;i< this._urlReplacementMap.length; i++){
+				if (this._urlReplacementMap[i].isLink == false ) {
+					externalImages.push(this._urlReplacementMap[i].original)
+				}
+			}
+			cleanHtml = $('<div>').append(htmlNodes).html();
 		}
 
 		// set target="_blank" for all links
@@ -89,61 +93,68 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 
 
 
-tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = function(htmlNodes) {
-	var externalImages = [];
-	// find external images
-	this._replaceImageTags(htmlNodes, externalImages);
-	// find external background images
-	this._replaceBackgroundImages(htmlNodes, externalImages);
+tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = function(htmlNodes, externalImages) {
+	for( var i=0; i<htmlNodes.length; i++) {
+		var htmlNode = htmlNodes[i];
+		// find external images
+		this._replaceImageTags(htmlNode, externalImages);
+		// find external background images
+		this._replaceBackgroundImages(htmlNode, externalImages);
+		// restore html links
+		this._restoreHtmlLink(htmlNode);
+
+		this._preventExternalImageLoading(htmlNodes[i].childNodes, externalImages);
+	}
 	return externalImages;
 };
 
 
-tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htmlNodes, externalImages) {
-	for( var i=0; i<htmlNodes.length; i++){
-		var htmlNode = htmlNodes[i];
-		var imageSrc = htmlNode.src || htmlNode.poster;
-		if (imageSrc){
-			var originalLink = this._getOriginalLink(imageSrc);
-			if (originalLink){
-				externalImages.push(originalLink);
-				if (htmlNode.src){
-					htmlNode.src = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-				}
-				if (htmlNode.poster){
-					htmlNode.poster = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-				}
+tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htmlNode, externalImages) {
+	var imageSrc = htmlNode.src || htmlNode.poster;
+	if (imageSrc){
+		var replacementEntry = this._getReplacementEntry(imageSrc);
+		if (replacementEntry){
+			if (htmlNode.src){
+				htmlNode.src = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
+			}
+			if (htmlNode.poster){
+				htmlNode.poster = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
 			}
 		}
-		this._replaceImageTags(htmlNodes[i].childNodes, externalImages);
 	}
 };
 
-
-tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNodes, externalImages) {
-	for( var i=0; i<htmlNodes.length; i++){
-		var htmlNode = htmlNodes[i];
-		if (htmlNode.style && htmlNode.style.backgroundImage){
-			var originalLink = this._getOriginalLink(htmlNode.style.backgroundImage);
-			if(originalLink){
-				externalImages.push(originalLink);
-				htmlNode.style.backgroundImage = "url(" + tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + ")";
-			}
+tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNode, externalImages) {
+	if (htmlNode.style && htmlNode.style.backgroundImage){
+		var replacementEntry = this._getReplacementEntry(htmlNode.style.backgroundImage);
+		if(replacementEntry){
+			htmlNode.style.backgroundImage = "url(" + tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + ")";
 		}
-		this._replaceBackgroundImages(htmlNodes[i].childNodes, externalImages);
 	}
 };
+
+tutao.tutanota.security.CajaSanitizer.prototype._restoreHtmlLink = function(htmlNode) {
+	var originalReference = htmlNode.href;
+	if (htmlNode.href && htmlNode.localName == "a"){
+		var replacementEntry = this._getReplacementEntry(htmlNode.href);
+		if (replacementEntry){
+			htmlNode.href = replacementEntry.original;
+			replacementEntry.isLink = true;
+		}
+	}
+};
+
 
 
 /**
  * Returns the original link for the given link from the replacement map. Returns null if the link
  * is not available.
  */
-tutao.tutanota.security.CajaSanitizer.prototype._getOriginalLink = function(link) {
+tutao.tutanota.security.CajaSanitizer.prototype._getReplacementEntry = function(link) {
 	for( var i=0; i<this._urlReplacementMap.length; i++){
 		// use indexOf here because link contains url(replacement_1) for background images.
 		if (link.indexOf(this._urlReplacementMap[i].replacement)  != -1){
-			return this._urlReplacementMap[i].original;
+			return this._urlReplacementMap[i];
 		}
 	}
 	return null;

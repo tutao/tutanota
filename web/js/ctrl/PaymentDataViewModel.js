@@ -264,6 +264,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
         if (self.state.success()) {
             var service = new tutao.entity.sys.SwitchAccountTypeData();
             service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM);
+            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
             self.state.submitting(true);
             self.customer.registerObserver(self._customerUpdated);
