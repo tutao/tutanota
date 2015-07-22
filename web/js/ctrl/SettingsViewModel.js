@@ -63,10 +63,10 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         if (!tutao.locator.viewManager.isFreeAccount()) {
             settings.push(s.DISPLAY_ADMIN_MESSAGES);
         }
-        if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
-            settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
-        }
-        if (tutao.env.mode == tutao.Mode.Browser) {
+        if (this.isActivateExtensionEnabled()) {
+            if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
+                settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
+            }
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
         if (!tutao.locator.viewManager.isFreeAccount() || this._bookingAvailable()) {
@@ -132,5 +132,5 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsDetailsColumnText = f
 };
 
 tutao.tutanota.ctrl.SettingsViewModel.prototype.isActivateExtensionEnabled = function() {
-    return !(tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios');
+    return tutao.env.mode == tutao.Mode.Browser;
 };

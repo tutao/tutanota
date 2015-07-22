@@ -355,7 +355,12 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.getPaymentMethodInfo = func
  * @param {string} paymentToken The paymentToken of this PaymentDataServicePutData.
  */
 tutao.entity.sys.PaymentDataServicePutData.prototype.setPaymentToken = function(paymentToken) {
-  this._paymentToken = paymentToken;
+  if (paymentToken == null) {
+    this._paymentToken = null;
+  } else {
+    var dataToEncrypt = paymentToken;
+    this._paymentToken = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  }
   return this;
 };
 
@@ -364,7 +369,11 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.setPaymentToken = function(
  * @return {string} The paymentToken of this PaymentDataServicePutData.
  */
 tutao.entity.sys.PaymentDataServicePutData.prototype.getPaymentToken = function() {
-  return this._paymentToken;
+  if (this._paymentToken == null) {
+    return null;
+  }
+  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentToken);
+  return value;
 };
 
 /**

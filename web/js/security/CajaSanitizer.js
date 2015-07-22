@@ -28,17 +28,6 @@ tutao.tutanota.security.CajaSanitizer.prototype._urlTransformer = function(url) 
 	return url;
 };
 
-
-tutao.tutanota.security.CajaSanitizer.prototype._reverseUrlTransformer = function(url) {
-	var path = url.toString();
-	var replacementEntry = this._getReplacementEntry(path);
-	if ( replacementEntry){
-		return URI.parse(replacementEntry.original);
-	}
-	return url;
-};
-
-
 tutao.tutanota.security.CajaSanitizer.prototype._nameIdClassTransformer = function(s) {
 	//console.log(s);
 	return s;
@@ -70,7 +59,7 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 			var htmlNodes = $.parseHTML(cleanHtml);
             // htmlNodes may be null if the body text is empty
             if (htmlNodes) {
-                this._preventExternalImageLoading(htmlNodes, externalImages);
+                this._preventExternalImageLoading(htmlNodes);
             }
 			for ( var i=0;i< this._urlReplacementMap.length; i++){
 				if (this._urlReplacementMap[i].isLink == false ) {
@@ -93,23 +82,22 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 
 
 
-tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = function(htmlNodes, externalImages) {
+tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = function(htmlNodes) {
 	for( var i=0; i<htmlNodes.length; i++) {
 		var htmlNode = htmlNodes[i];
 		// find external images
-		this._replaceImageTags(htmlNode, externalImages);
+		this._replaceImageTags(htmlNode);
 		// find external background images
-		this._replaceBackgroundImages(htmlNode, externalImages);
+		this._replaceBackgroundImages(htmlNode);
 		// restore html links
 		this._restoreHtmlLink(htmlNode);
 
-		this._preventExternalImageLoading(htmlNodes[i].childNodes, externalImages);
+		this._preventExternalImageLoading(htmlNodes[i].childNodes);
 	}
-	return externalImages;
 };
 
 
-tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htmlNode, externalImages) {
+tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htmlNode) {
 	var imageSrc = htmlNode.src || htmlNode.poster;
 	if (imageSrc){
 		var replacementEntry = this._getReplacementEntry(imageSrc);
@@ -124,7 +112,7 @@ tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htm
 	}
 };
 
-tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNode, externalImages) {
+tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNode) {
 	if (htmlNode.style && htmlNode.style.backgroundImage){
 		var replacementEntry = this._getReplacementEntry(htmlNode.style.backgroundImage);
 		if(replacementEntry){

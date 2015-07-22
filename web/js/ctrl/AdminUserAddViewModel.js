@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     }
     var self = this;
     var count = self.newUsers().length;
-    var itemName = count + " " + tutao.lang("accounts_label") + " Tutanota Premium";
+    var itemName = count + " " + tutao.lang("accounts_label") + " Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[tutao.locator.viewManager.getLoggedInUserAccountType()];
     self.state.submitting(true);
     tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count, itemName).then(function(confirmed) {
         if (confirmed) {
