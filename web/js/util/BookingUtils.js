@@ -12,7 +12,8 @@ tutao.provide('tutao.util.BookingUtils');
  * @return {Promise.<tutao.entity.sys.PriceServiceReturn>} Resolves to PriceServiceReturn or an exception if the loading failed.
  */
 tutao.util.BookingUtils.getPrice = function(bookingItemFeatureType, count, paymentInterval, accountType, business) {
-    var data = new tutao.entity.sys.PriceServiceData();
+    var data = new tutao.entity.sys.PriceServiceData()
+        .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
     var priceRequestData = new tutao.entity.sys.PriceRequestData(data)
         .setFeatureType(bookingItemFeatureType)
         .setCount(String(count))

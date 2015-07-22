@@ -181,17 +181,17 @@ tutao.entity.sys.RegistrationData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_ID = 172
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.RegistrationData.prototype.SOURCE_ATTRIBUTE_ID = 867;
+tutao.entity.sys.RegistrationData.prototype.SOURCE_ATTRIBUTE_ID = 868;
 
 /**
  * The id of the specialPriceUserSingle attribute.
  */
-tutao.entity.sys.RegistrationData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 868;
+tutao.entity.sys.RegistrationData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 869;
 
 /**
  * The id of the specialPriceUserTotal attribute.
  */
-tutao.entity.sys.RegistrationData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 869;
+tutao.entity.sys.RegistrationData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 870;
 
 /**
  * The id of the state attribute.

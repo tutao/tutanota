@@ -106,12 +106,12 @@ tutao.entity.sys.SystemKeysReturn.prototype.SYSTEMADMINPUBKEYVERSION_ATTRIBUTE_I
 /**
  * The id of the freeGroup attribute.
  */
-tutao.entity.sys.SystemKeysReturn.prototype.FREEGROUP_ATTRIBUTE_ID = 876;
+tutao.entity.sys.SystemKeysReturn.prototype.FREEGROUP_ATTRIBUTE_ID = 877;
 
 /**
  * The id of the premiumGroup attribute.
  */
-tutao.entity.sys.SystemKeysReturn.prototype.PREMIUMGROUP_ATTRIBUTE_ID = 877;
+tutao.entity.sys.SystemKeysReturn.prototype.PREMIUMGROUP_ATTRIBUTE_ID = 878;
 
 /**
  * Sets the format of this SystemKeysReturn.

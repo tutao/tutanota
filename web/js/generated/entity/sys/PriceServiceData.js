@@ -11,6 +11,7 @@ tutao.entity.sys.PriceServiceData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._date = null;
     this._priceRequest = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -23,6 +24,7 @@ tutao.entity.sys.PriceServiceData = function(data) {
  */
 tutao.entity.sys.PriceServiceData.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._date = data.date;
   this._priceRequest = (data.priceRequest) ? new tutao.entity.sys.PriceRequestData(this, data.priceRequest) : null;
 };
 
@@ -45,6 +47,7 @@ tutao.entity.sys.PriceServiceData.prototype.ENCRYPTED = false;
 tutao.entity.sys.PriceServiceData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
+    date: this._date, 
     priceRequest: tutao.entity.EntityHelper.aggregatesToJsonData(this._priceRequest)
   };
 };
@@ -53,6 +56,11 @@ tutao.entity.sys.PriceServiceData.prototype.toJsonData = function() {
  * The id of the PriceServiceData type.
  */
 tutao.entity.sys.PriceServiceData.prototype.TYPE_ID = 841;
+
+/**
+ * The id of the date attribute.
+ */
+tutao.entity.sys.PriceServiceData.prototype.DATE_ATTRIBUTE_ID = 844;
 
 /**
  * The id of the priceRequest attribute.
@@ -74,6 +82,33 @@ tutao.entity.sys.PriceServiceData.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.PriceServiceData.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the date of this PriceServiceData.
+ * @param {Date} date The date of this PriceServiceData.
+ */
+tutao.entity.sys.PriceServiceData.prototype.setDate = function(date) {
+  if (date == null) {
+    this._date = null;
+  } else {
+    this._date = String(date.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the date of this PriceServiceData.
+ * @return {Date} The date of this PriceServiceData.
+ */
+tutao.entity.sys.PriceServiceData.prototype.getDate = function() {
+  if (this._date == null) {
+    return null;
+  }
+  if (isNaN(this._date)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._date);
+  }
+  return new Date(Number(this._date));
 };
 
 /**
