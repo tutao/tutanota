@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "creditCardCVVFormat_label": "Bitte gib hier den drei- oder vierstelligen Sicherheitscode ein.",
   "creditCardCVVInvalid_msg": "Der Sicherheitscode ist ungültig.",
   "creditCardCVV_label": "Sicherheitscode",
-  "creditCardData_label": "Keditkarten\\\\u00ADdaten",
+  "creditCardData_label": "Keditkartendaten",
   "creditCardExpirationDateFormat_msg": "Bitte gib hier das Gültigkeitsdatum der Kreditkarte ein. Format: MM/YYYY",
   "creditCardExpirationDate_label": "Gültig bis",
   "creditCardExprationDateInvalid_msg": "Das Datumsformat ist ungültig.",
