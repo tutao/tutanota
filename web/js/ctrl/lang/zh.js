@@ -81,7 +81,7 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "defaultSenderMailAddress_label": "默认发件人",
   "deleteAccountConfirm_msg": "您是否真的要删除您的账户？",
   "deleteAccountDeleted_msg": "你的帐号已被删除。",
-  "deleteAccountInfo_msg": "您的账户会被彻底删除。",
+  "deleteAccountInfo_msg": "您的账户会被完全删除。",
   "deleteAccountReason_label": "为什么?",
   "deleteAccountWait_msg": "正在删除账户...",
   "deleteAlias_msg": "邮件别名{1}即将被删除。您可以再次使用该别名或指定其为新用户。",
