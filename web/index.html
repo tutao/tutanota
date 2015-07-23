@@ -1647,7 +1647,7 @@
                                     <div class="bookingTableHeader">
                                         <div class="bookingCell" data-bind="lang: 'date_label'"></div>
                                         <div class="bookingCell" data-bind="lang: 'number_label'"></div>
-                                        <div class="bookingCell" data-bind="lang: 'amount_label'"></div>
+                                        <div class="bookingCell" data-bind="lang: 'invoiceTotal_label'"></div>
                                         <div class="bookingCell" data-bind="text: 'PDF'"></div>
                                     </div>
                                     <!-- ko foreach: invoices -->
@@ -1751,7 +1751,7 @@
                                             </div>
                                         </div>
                                         <div class="record" data-bind="fadeVisible : isEnterPaymentDataButtonVisible() " >
-                                            <label class="recordName" data-bind="lang: 'paymentDetails_label'"></label>
+                                            <label class="recordName" data-bind="lang: getPaymentMethodDataTextId()"></label>
                                             <div class="formAction">
                                                 <button class="single" type="button" data-bind="lang: isPaymentMethodInfoAvailable()? 'edit_action' : 'add_action', fastClick: enterCreditCardData, enable: state.entering, css: { disabled: !state.entering() }"></button>
                                                 <label class="recordInfo" data-bind="text: accountingInfo().paymentMethodInfo(), fadeVisible: isPaymentMethodInfoAvailable()"></label>
@@ -1895,7 +1895,7 @@
                                 <label for="admin" class="recordName" data-bind="lang: 'administrator_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input type="checkbox" id="admin" data-bind="checked: admin, enable: !busy()" />
+                                        <input type="checkbox" id="admin" data-bind="checked: admin, enable: !busy() && isActive()" />
                                     </div>
                                 </div>
                             </div>

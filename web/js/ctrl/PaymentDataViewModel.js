@@ -190,6 +190,18 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.isEnterPaymentDataButtonVisib
     return this.accountingInfo() != null && (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD || this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL );
 };
 
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPaymentMethodDataTextId = function() {
+    if (this.accountingInfo() == null) {
+        return "emptyString_msg";
+    } else if (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD) {
+        return "creditCardData_label";
+    } else if (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL) {
+        return "paypalData_label";
+    } else {
+        return "emptyString_msg";
+    }
+};
+
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.isPaymentMethodInfoAvailable = function() {
     return this.isEnterPaymentDataButtonVisible() && this.accountingInfo().paymentMethodInfo() != null;
 };

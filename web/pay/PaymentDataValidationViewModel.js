@@ -304,3 +304,13 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onCancelPayPalForm 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onUnsupported = function() {
     this.siteLoadingStatus(tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_NOT_SUPPORTED);
 };
+
+tutao.tutanota.pay.PaymentDataValidationViewModel.prototype.getPaymentMethodDataTextId = function() {
+    if (this.isCreditCardFormEnabled()) {
+        return "creditCardData_label";
+    } else if (this.isPayPalFormEnabled()) {
+        return "paypalData_label";
+    } else {
+        return "emptyString_msg";
+    }
+};
