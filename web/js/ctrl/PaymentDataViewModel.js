@@ -48,7 +48,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     // to avoid that, we have to do all user dependent calls in a setTimeout.
     var self = this;
     setTimeout(function() {
-        self.step(tutao.locator.viewManager.isFreeAccount() ? 0 : -1);
+        self.step((tutao.locator.viewManager.isFreeAccount() && !tutao.locator.settingsViewModel.bookingAvailable()) ? 0 : -1);
         tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
             self.accountType(customer.getType());
             self.customer = customer;
