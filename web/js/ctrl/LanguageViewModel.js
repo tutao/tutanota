@@ -93,11 +93,21 @@ tutao.tutanota.ctrl.LanguageViewModel.prototype.getLanguages = function() {
 		{ id: tutao.tutanota.ctrl.lang.ru.id, textId: 'languageRussian_label'},
 		{ id: tutao.tutanota.ctrl.lang.es.id, textId: 'languageSpanish_label' },
 		{ id: tutao.tutanota.ctrl.lang.tr.id, textId: 'languageTurkish_label'},
-		//{ id: tutao.tutanota.ctrl.lang.bg_bg.id, textId: 'languageBulgarian_label'},
 		{ id: tutao.tutanota.ctrl.lang.fi.id, textId: 'languageFinnish_label'},
 		{ id: tutao.tutanota.ctrl.lang.lt_lt.id, textId: 'languageLithuanian_label'},
 		{ id: tutao.tutanota.ctrl.lang.mk.id, textId: 'languageMacedonian_label'},
-		{ id: tutao.tutanota.ctrl.lang.sr.id, textId: 'languageSerbian_label'}
+		{ id: tutao.tutanota.ctrl.lang.sr.id, textId: 'languageSerbian_label'},
+        { id: tutao.tutanota.ctrl.lang.bg_bg.id, textId: 'languageBulgarian_label'},
+        { id: tutao.tutanota.ctrl.lang.cs_cz.id, textId: 'languageCzech_label'},
+        { id: tutao.tutanota.ctrl.lang.da_dk.id, textId: 'languageDanish_label'},
+        { id: tutao.tutanota.ctrl.lang.et_ee.id, textId: 'languageEstonian_label'},
+        { id: tutao.tutanota.ctrl.lang.fil_ph.id, textId: 'languageFilipino_label'},
+        { id: tutao.tutanota.ctrl.lang.hu.id, textId: 'languageHungarian_label'},
+        { id: tutao.tutanota.ctrl.lang.id.id, textId: 'languageIndonesian_label'},
+        { id: tutao.tutanota.ctrl.lang.no.id, textId: 'languageNorwegian_label'},
+        { id: tutao.tutanota.ctrl.lang.sk_sk.id, textId: 'languageSlovak_label'},
+        { id: tutao.tutanota.ctrl.lang.sv.id, textId: 'languageSwedish_label'},
+        { id: tutao.tutanota.ctrl.lang.ta_in.id, textId: 'languageTamil_label'}
 	]
 };
 

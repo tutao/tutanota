@@ -20,17 +20,17 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
         return this.accountingInfo() != null && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
     }, this);
 
-    var businessMethods = [
+    this.businessMethods = [
         { name: tutao.lang('choose_label'), value: null },
         { name: tutao.lang('paymentMethodCreditCard_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD },
         { name: tutao.lang('@PayPal'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL },
         { name: tutao.lang('paymentMethodOnAccount_label'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE }
     ];
-    var privateMethods = [businessMethods[0], businessMethods[1], businessMethods[2]];
+    var privateMethods = [this.businessMethods[0], this.businessMethods[1], this.businessMethods[2]];
 
     this.availablePaymentMethods = ko.computed(function() {
         if (this.accountingInfo() && this.accountingInfo().business()) {
-            return businessMethods;
+            return this.businessMethods;
         } else {
             return privateMethods;
         }
@@ -54,6 +54,10 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
             self.customer = customer;
             return customer.loadCustomerInfo().then(function(customerInfo) {
                 return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
+                    // allow SEPA if it is already selected
+                    if (accountingInfo.getPaymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_SEPA) {
+                        self.businessMethods.push({ name: tutao.lang('@SEPA'), value: tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_SEPA });
+                    }
                     self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
                     self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
                     return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
@@ -188,6 +192,18 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._handlePaymentDataServiceResu
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.isEnterPaymentDataButtonVisible = function() {
     return this.accountingInfo() != null && (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD || this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL );
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPaymentMethodDataTextId = function() {
+    if (this.accountingInfo() == null) {
+        return "emptyString_msg";
+    } else if (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD) {
+        return "creditCardData_label";
+    } else if (this.accountingInfo().paymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL) {
+        return "paypalData_label";
+    } else {
+        return "emptyString_msg";
+    }
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.isPaymentMethodInfoAvailable = function() {

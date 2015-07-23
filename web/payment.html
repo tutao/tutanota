@@ -43,27 +43,47 @@
 <script src="/js/ctrl/LanguageViewModel.js"></script>
 <script src="/js/ctrl/lang/ar.js"></script>
 <script src="/js/ctrl/lang/bg_bg.js"></script>
+<script src="/js/ctrl/lang/bs_ba.js"></script>
+<script src="/js/ctrl/lang/ca_es.js"></script>
+<script src="/js/ctrl/lang/cs_cz.js"></script>
 <script src="/js/ctrl/lang/cy_gb.js"></script>
+<script src="/js/ctrl/lang/da_dk.js"></script>
 <script src="/js/ctrl/lang/de.js"></script>
 <script src="/js/ctrl/lang/el.js"></script>
 <script src="/js/ctrl/lang/en.js"></script>
+<script src="/js/ctrl/lang/en_us.js"></script>
 <script src="/js/ctrl/lang/es.js"></script>
+<script src="/js/ctrl/lang/et_ee.js"></script>
 <script src="/js/ctrl/lang/fa_af.js"></script>
+<script src="/js/ctrl/lang/fa_ir.js"></script>
 <script src="/js/ctrl/lang/fi.js"></script>
+<script src="/js/ctrl/lang/fil_ph.js"></script>
 <script src="/js/ctrl/lang/fr.js"></script>
+<script src="/js/ctrl/lang/he_il.js"></script>
+<script src="/js/ctrl/lang/hi_in.js"></script>
 <script src="/js/ctrl/lang/hr.js"></script>
+<script src="/js/ctrl/lang/hu.js"></script>
+<script src="/js/ctrl/lang/id.js"></script>
+<script src="/js/ctrl/lang/is.js"></script>
 <script src="/js/ctrl/lang/it.js"></script>
+<script src="/js/ctrl/lang/ja.js"></script>
 <script src="/js/ctrl/lang/ko.js"></script>
 <script src="/js/ctrl/lang/lt_lt.js"></script>
 <script src="/js/ctrl/lang/mk.js"></script>
 <script src="/js/ctrl/lang/nl.js"></script>
+<script src="/js/ctrl/lang/no.js"></script>
 <script src="/js/ctrl/lang/pl.js"></script>
 <script src="/js/ctrl/lang/pt_br.js"></script>
 <script src="/js/ctrl/lang/pt_pt.js"></script>
 <script src="/js/ctrl/lang/ro.js"></script>
 <script src="/js/ctrl/lang/ru.js"></script>
+<script src="/js/ctrl/lang/sk_sk.js"></script>
+<script src="/js/ctrl/lang/sl_si.js"></script>
 <script src="/js/ctrl/lang/sq.js"></script>
+<script src="/js/ctrl/lang/sq_al.js"></script>
 <script src="/js/ctrl/lang/sr.js"></script>
+<script src="/js/ctrl/lang/sv.js"></script>
+<script src="/js/ctrl/lang/ta_in.js"></script>
 <script src="/js/ctrl/lang/tr.js"></script>
 <script src="/js/ctrl/lang/zh.js"></script>
 <script src="/js/ctrl/lang/zh_hant.js"></script>
@@ -79,12 +99,12 @@
 <script src="/pay/init.js"></script>
 
 
-<div type="text/html" id="tutanota">
+<div type="text/html" id="tutanota" data-bind="with: tutao.locator.paymentDataValidationViewModel">
 
 	<header id="main" class="loggedIn" >
 		<div id="welcomeMessage">
 			<div class="outerWelcomeMessage">
-				<div class="innerWelcomeMessage" data-bind="lang: 'paymentDataValidation_msg'"> </div>
+				<div class="innerWelcomeMessage" data-bind="lang: getPaymentMethodDataTextId()"> </div>
 			</div>
 		</div>
 
@@ -102,7 +122,7 @@
 	</header>
 
 	<div id="viewContainer">
-		<div class="singleColumnContent  scrollable"  data-bind="with: tutao.locator.paymentDataValidationViewModel">
+		<div class="singleColumnContent  scrollable">
 			<div class="centeredColumn" >
 
 				<div class="statusBox" data-bind="fadeVisible: siteLoadingStatus() != tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK">
