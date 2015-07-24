@@ -4,15 +4,6 @@ describe("FormatterTest", function () {
 
     var assert = chai.assert;
 
-    it(" formatDate", function () {
-        tutao.locator.languageViewModel.setCurrentLanguage("de");
-        assert.equal("7. Dez 2011", tutao.tutanota.util.Formatter.formatDate(new Date(2011, 11, 7, 4, 3, 2)));
-        tutao.locator.languageViewModel.setCurrentLanguage("en");
-        assert.equal("7. Dec 2011", tutao.tutanota.util.Formatter.formatDate(new Date(2011, 11, 7, 4, 3, 2)));
-        assert.equal("12. Dec 2011", tutao.tutanota.util.Formatter.formatDate(new Date(2011, 11, 12, 4, 3, 2)));
-        assert.isTrue(tutao.tutanota.util.Formatter.formatDate(new Date()).length <= 7); // no year
-    });
-
     it(" formatFullDateTime", function () {
         tutao.locator.languageViewModel.setCurrentLanguage("de");
         assert.equal("7. Dez 2011 04:03", tutao.tutanota.util.Formatter.formatFullDateTime(new Date(2011, 11, 7, 4, 3, 2)));
