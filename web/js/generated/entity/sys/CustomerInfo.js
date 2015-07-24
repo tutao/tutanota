@@ -158,7 +158,7 @@ tutao.entity.sys.CustomerInfo.prototype.REGISTRATIONMAILADDRESS_ATTRIBUTE_ID = 5
 /**
  * The id of the source attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 723;
+tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 725;
 
 /**
  * The id of the storageCapacity attribute.
@@ -178,7 +178,7 @@ tutao.entity.sys.CustomerInfo.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 159;
 /**
  * The id of the bookings attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.BOOKINGS_ATTRIBUTE_ID = 725;
+tutao.entity.sys.CustomerInfo.prototype.BOOKINGS_ATTRIBUTE_ID = 727;
 
 /**
  * The id of the customer attribute.
@@ -188,7 +188,7 @@ tutao.entity.sys.CustomerInfo.prototype.CUSTOMER_ATTRIBUTE_ID = 158;
 /**
  * The id of the domainInfos attribute.
  */
-tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 724;
+tutao.entity.sys.CustomerInfo.prototype.DOMAININFOS_ATTRIBUTE_ID = 726;
 
 /**
  * Provides the id of this CustomerInfo.

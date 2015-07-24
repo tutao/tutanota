@@ -61,17 +61,17 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.toJsonData = function() {
 /**
  * The id of the SwitchAccountTypeData type.
  */
-tutao.entity.sys.SwitchAccountTypeData.prototype.TYPE_ID = 770;
+tutao.entity.sys.SwitchAccountTypeData.prototype.TYPE_ID = 772;
 
 /**
  * The id of the accountType attribute.
  */
-tutao.entity.sys.SwitchAccountTypeData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 772;
+tutao.entity.sys.SwitchAccountTypeData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 774;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.SwitchAccountTypeData.prototype.DATE_ATTRIBUTE_ID = 773;
+tutao.entity.sys.SwitchAccountTypeData.prototype.DATE_ATTRIBUTE_ID = 775;
 
 /**
  * Sets the format of this SwitchAccountTypeData.

@@ -50,7 +50,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.PATH = '/rest/sys/invoicestatusindexent
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.ROOT_INSTANCE_ID = 'A3N5cwADJw';
+tutao.entity.sys.InvoiceStatusIndexEntry.ROOT_INSTANCE_ID = 'A3N5cwADKQ';
 
 /**
  * The generated id type flag.
@@ -82,22 +82,22 @@ tutao.entity.sys.InvoiceStatusIndexEntry.prototype.toJsonData = function() {
 /**
  * The id of the InvoiceStatusIndexEntry type.
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.prototype.TYPE_ID = 807;
+tutao.entity.sys.InvoiceStatusIndexEntry.prototype.TYPE_ID = 809;
 
 /**
  * The id of the accountingInfo attribute.
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 813;
+tutao.entity.sys.InvoiceStatusIndexEntry.prototype.ACCOUNTINGINFO_ATTRIBUTE_ID = 815;
 
 /**
  * The id of the customer attribute.
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.prototype.CUSTOMER_ATTRIBUTE_ID = 812;
+tutao.entity.sys.InvoiceStatusIndexEntry.prototype.CUSTOMER_ATTRIBUTE_ID = 814;
 
 /**
  * The id of the invoice attribute.
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.prototype.INVOICE_ATTRIBUTE_ID = 814;
+tutao.entity.sys.InvoiceStatusIndexEntry.prototype.INVOICE_ATTRIBUTE_ID = 816;
 
 /**
  * Provides the id of this InvoiceStatusIndexEntry.

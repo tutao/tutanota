@@ -63,7 +63,7 @@ tutao.entity.sys.InvoiceServiceData.prototype.TYPE_ID = 594;
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.InvoiceServiceData.prototype.DATE_ATTRIBUTE_ID = 828;
+tutao.entity.sys.InvoiceServiceData.prototype.DATE_ATTRIBUTE_ID = 830;
 
 /**
  * Sets the format of this InvoiceServiceData.

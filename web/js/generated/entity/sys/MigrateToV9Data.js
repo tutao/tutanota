@@ -58,12 +58,12 @@ tutao.entity.sys.MigrateToV9Data.prototype.toJsonData = function() {
 /**
  * The id of the MigrateToV9Data type.
  */
-tutao.entity.sys.MigrateToV9Data.prototype.TYPE_ID = 830;
+tutao.entity.sys.MigrateToV9Data.prototype.TYPE_ID = 832;
 
 /**
  * The id of the noop attribute.
  */
-tutao.entity.sys.MigrateToV9Data.prototype.NOOP_ATTRIBUTE_ID = 832;
+tutao.entity.sys.MigrateToV9Data.prototype.NOOP_ATTRIBUTE_ID = 834;
 
 /**
  * Sets the format of this MigrateToV9Data.

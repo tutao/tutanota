@@ -138,7 +138,7 @@ tutao.entity.sys.System.prototype.FREEGROUP_ATTRIBUTE_ID = 191;
 /**
  * The id of the invoiceStatusIndex attribute.
  */
-tutao.entity.sys.System.prototype.INVOICESTATUSINDEX_ATTRIBUTE_ID = 827;
+tutao.entity.sys.System.prototype.INVOICESTATUSINDEX_ATTRIBUTE_ID = 829;
 
 /**
  * The id of the premiumCustomerInfos attribute.

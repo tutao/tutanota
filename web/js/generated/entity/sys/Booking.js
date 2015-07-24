@@ -10,8 +10,10 @@ tutao.entity.sys.Booking = function(data) {
   if (data) {
     this.updateData(data);
   } else {
+    this.__area = null;
     this.__format = "0";
     this.__id = null;
+    this.__owner = null;
     this.__permissions = null;
     this._business = null;
     this._createDate = null;
@@ -29,8 +31,10 @@ tutao.entity.sys.Booking = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.sys.Booking.prototype.updateData = function(data) {
+  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
+  this.__owner = data._owner;
   this.__permissions = data._permissions;
   this._business = data.business;
   this._createDate = data.createDate;
@@ -79,8 +83,10 @@ tutao.entity.sys.Booking.prototype.ENCRYPTED = false;
  */
 tutao.entity.sys.Booking.prototype.toJsonData = function() {
   return {
+    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
+    _owner: this.__owner, 
     _permissions: this.__permissions, 
     business: this._business, 
     createDate: this._createDate, 
@@ -97,34 +103,44 @@ tutao.entity.sys.Booking.prototype.toJsonData = function() {
 tutao.entity.sys.Booking.prototype.TYPE_ID = 709;
 
 /**
+ * The id of the _area attribute.
+ */
+tutao.entity.sys.Booking.prototype._AREA_ATTRIBUTE_ID = 715;
+
+/**
+ * The id of the _owner attribute.
+ */
+tutao.entity.sys.Booking.prototype._OWNER_ATTRIBUTE_ID = 714;
+
+/**
  * The id of the business attribute.
  */
-tutao.entity.sys.Booking.prototype.BUSINESS_ATTRIBUTE_ID = 718;
+tutao.entity.sys.Booking.prototype.BUSINESS_ATTRIBUTE_ID = 720;
 
 /**
  * The id of the createDate attribute.
  */
-tutao.entity.sys.Booking.prototype.CREATEDATE_ATTRIBUTE_ID = 714;
+tutao.entity.sys.Booking.prototype.CREATEDATE_ATTRIBUTE_ID = 716;
 
 /**
  * The id of the endDate attribute.
  */
-tutao.entity.sys.Booking.prototype.ENDDATE_ATTRIBUTE_ID = 716;
+tutao.entity.sys.Booking.prototype.ENDDATE_ATTRIBUTE_ID = 718;
 
 /**
  * The id of the paymentInterval attribute.
  */
-tutao.entity.sys.Booking.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 717;
+tutao.entity.sys.Booking.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 719;
 
 /**
  * The id of the paymentMonths attribute.
  */
-tutao.entity.sys.Booking.prototype.PAYMENTMONTHS_ATTRIBUTE_ID = 715;
+tutao.entity.sys.Booking.prototype.PAYMENTMONTHS_ATTRIBUTE_ID = 717;
 
 /**
  * The id of the items attribute.
  */
-tutao.entity.sys.Booking.prototype.ITEMS_ATTRIBUTE_ID = 719;
+tutao.entity.sys.Booking.prototype.ITEMS_ATTRIBUTE_ID = 721;
 
 /**
  * Provides the id of this Booking.
@@ -132,6 +148,23 @@ tutao.entity.sys.Booking.prototype.ITEMS_ATTRIBUTE_ID = 719;
  */
 tutao.entity.sys.Booking.prototype.getId = function() {
   return this.__id;
+};
+
+/**
+ * Sets the area of this Booking.
+ * @param {string} area The area of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.setArea = function(area) {
+  this.__area = area;
+  return this;
+};
+
+/**
+ * Provides the area of this Booking.
+ * @return {string} The area of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.getArea = function() {
+  return this.__area;
 };
 
 /**
@@ -149,6 +182,23 @@ tutao.entity.sys.Booking.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.Booking.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the owner of this Booking.
+ * @param {string} owner The owner of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.setOwner = function(owner) {
+  this.__owner = owner;
+  return this;
+};
+
+/**
+ * Provides the owner of this Booking.
+ * @return {string} The owner of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.getOwner = function() {
+  return this.__owner;
 };
 
 /**
@@ -297,6 +347,20 @@ tutao.entity.sys.Booking.loadMultiple = function(ids) {
 };
 
 /**
+ * Stores Booking on the server and updates this instance with _id and _permission values generated on the server.
+ * @param {string} listId The list id of the Booking.
+ * @return {Promise.<>} Resolves when finished, rejected if the post failed.
+ */
+tutao.entity.sys.Booking.prototype.setup = function(listId) {
+  var self = this;
+  self._entityHelper.notifyObservers(false);
+  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.Booking.PATH, self, listId, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+      self.__id = [listId, entity.getGeneratedId()];
+      self.setPermissions(entity.getPermissionListId());
+  });
+};
+
+/**
  * Updates the listEncSessionKey on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
@@ -305,6 +369,41 @@ tutao.entity.sys.Booking.prototype.updateListEncSessionKey = function() {
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
   params["v"] = 9;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
+ * Updates this Booking on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.Booking.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
+};
+
+/**
+ * Deletes this Booking on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the delete failed.
+ */
+tutao.entity.sys.Booking.prototype.erase = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.Booking.PATH, this.__id[1], this.__id[0], {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+    self._entityHelper.notifyObservers(true);
+  });
+};
+
+/**
+ * Creates a new Booking list on the server.
+ * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on the list shall be created.
+ * @return {Promise.<string=>} Resolves to the id of the new tutao.entity.sys.Booking list or rejects with an exception if the createList failed.
+ */
+tutao.entity.sys.Booking.createList = function(bucketData) {
+  var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, false);
+  params["v"] = 9;
+  return tutao.locator.entityRestClient.postList(tutao.entity.sys.Booking.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
+    return returnEntity.getGeneratedId();
+  });
 };
 
 /**

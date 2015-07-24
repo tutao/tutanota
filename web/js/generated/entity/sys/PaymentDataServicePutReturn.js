@@ -52,12 +52,12 @@ tutao.entity.sys.PaymentDataServicePutReturn.prototype.toJsonData = function() {
 /**
  * The id of the PaymentDataServicePutReturn type.
  */
-tutao.entity.sys.PaymentDataServicePutReturn.prototype.TYPE_ID = 803;
+tutao.entity.sys.PaymentDataServicePutReturn.prototype.TYPE_ID = 805;
 
 /**
  * The id of the result attribute.
  */
-tutao.entity.sys.PaymentDataServicePutReturn.prototype.RESULT_ATTRIBUTE_ID = 805;
+tutao.entity.sys.PaymentDataServicePutReturn.prototype.RESULT_ATTRIBUTE_ID = 807;
 
 /**
  * Sets the format of this PaymentDataServicePutReturn.
