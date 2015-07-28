@@ -1395,7 +1395,7 @@
 						<div data-bind="foreach: getUserSettings()">
 							<div class="menuItem" tabIndex="0" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
 						</div>
-                        <div class="menuItemHeading marginTop" data-bind="if: getAccountSettings().length > 0, lang: 'accountSettings_label'"></div>
+                        <div class="menuItemHeading marginTop" data-bind="visible: getAccountSettings().length > 0, lang: 'accountSettings_label'"></div>
                         <div data-bind="foreach: getAccountSettings()">
                             <div class="menuItem" tabIndex="0" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
                         </div>
