@@ -73,6 +73,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 
                     self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
                     self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
+
+                    // subscribe to those fields that may lead to failing server request
+                    self.accountingInfo().business.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().paymentMethod.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().invoiceCountry.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().invoiceVatIdNo.subscribe(self._paymentDataChanged);
+
                     return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
                         self._pricePerMonth(Number(pricePerMonth.getFuturePriceNextPeriod().getPrice()));
                         return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 12, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerYear) {
@@ -93,6 +100,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     // only for upgrade
     this.step = ko.observable(); // is initialized above in setTimeout
     this.paymentIntervals = [{ textId: tutao.lang("yearly_label"), interval: "12" }, { textId: tutao.lang("monthly_label"), interval: "1" }];
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentDataChanged = function() {
+    // if the server request failed, e.g. the vat id number was wrong, then allow submitting again by setting state "entering"
+    if (this.state.failure()) {
+        this.state.entering(true);
+    }
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = function() {
@@ -254,7 +268,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
             }
             console.log( tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN + ":" + token);
             this._paymentToken({value: token, method: paymentMethod, info: paymentMethodInfo});
-            this.state.entering(true); // makes any previous failure message disappear
+            this._paymentDataChanged();
         }
     }
 };
