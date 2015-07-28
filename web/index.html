@@ -1997,7 +1997,7 @@
 
                         <h1 data-bind="lang: 'newUsers_label'"></h1>
                         <!-- ko foreach: newUsers -->
-                        <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
+                        <div class="recordContainer wide" data-bind="form: true">
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
                                 <div class="recordData">
@@ -2040,7 +2040,7 @@
                                     <button class="single" data-bind="lang: 'adminUserRemove_action', css: { disabled: !$parent.state.entering() }, fastClick: $parent.removeUser"></button>
                                 </div>
                             </div>
-                        </form>
+                        </div>
                         <!-- /ko -->
                         <!-- ko if: (createdUsers().length > 0) -->
                         <div class="light" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>
