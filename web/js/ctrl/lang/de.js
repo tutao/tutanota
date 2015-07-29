@@ -597,5 +597,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+    "packageUpgradeUserAccounts_label": "Paketerweiterung auf {1} Benutzer-Accounts",
+    "packageDowngradeUserAccounts_label": "Paketreduzierung auf {1} Benutzer-Accounts",
+    "cancelUserAccounts_label": "Abbestellung von {1} Benutzer-Accounts"
 };

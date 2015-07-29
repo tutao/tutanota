@@ -81,7 +81,7 @@ tutao.entity.sys.UserData.prototype.TYPE_ID = 396;
 /**
  * The id of the date attribute.
  */
-tutao.entity.sys.UserData.prototype.DATE_ATTRIBUTE_ID = 877;
+tutao.entity.sys.UserData.prototype.DATE_ATTRIBUTE_ID = 878;
 
 /**
  * The id of the mobilePhoneNumber attribute.

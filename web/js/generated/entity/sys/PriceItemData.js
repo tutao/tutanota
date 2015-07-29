@@ -15,6 +15,7 @@ tutao.entity.sys.PriceItemData = function(parent, data) {
     this._count = null;
     this._featureType = null;
     this._price = null;
+    this._singleType = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.PriceItemData.prototype;
@@ -30,6 +31,7 @@ tutao.entity.sys.PriceItemData.prototype.updateData = function(parent, data) {
   this._count = data.count;
   this._featureType = data.featureType;
   this._price = data.price;
+  this._singleType = data.singleType;
 };
 
 /**
@@ -41,7 +43,8 @@ tutao.entity.sys.PriceItemData.prototype.toJsonData = function() {
     _id: this.__id, 
     count: this._count, 
     featureType: this._featureType, 
-    price: this._price
+    price: this._price, 
+    singleType: this._singleType
   };
 };
 
@@ -64,6 +67,11 @@ tutao.entity.sys.PriceItemData.prototype.FEATURETYPE_ATTRIBUTE_ID = 849;
  * The id of the price attribute.
  */
 tutao.entity.sys.PriceItemData.prototype.PRICE_ATTRIBUTE_ID = 851;
+
+/**
+ * The id of the singleType attribute.
+ */
+tutao.entity.sys.PriceItemData.prototype.SINGLETYPE_ATTRIBUTE_ID = 852;
 
 /**
  * Sets the id of this PriceItemData.
@@ -131,4 +139,21 @@ tutao.entity.sys.PriceItemData.prototype.setPrice = function(price) {
  */
 tutao.entity.sys.PriceItemData.prototype.getPrice = function() {
   return this._price;
+};
+
+/**
+ * Sets the singleType of this PriceItemData.
+ * @param {boolean} singleType The singleType of this PriceItemData.
+ */
+tutao.entity.sys.PriceItemData.prototype.setSingleType = function(singleType) {
+  this._singleType = singleType ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the singleType of this PriceItemData.
+ * @return {boolean} The singleType of this PriceItemData.
+ */
+tutao.entity.sys.PriceItemData.prototype.getSingleType = function() {
+  return this._singleType == '1';
 };
