@@ -566,7 +566,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "unsecureMailSendFailureSubject_msg": "E-Mail konnte nicht zugestellt werden",
   "unsecureMail_title": "Die E-Mail wird unverschlüsselt an externe Empfänger gesendet.",
   "unsubscribePremiumConfirm_msg": "Möchtest du Tutanota Premium wirklich kündigen?",
-  "unsubscribePremiumMessage_msg": "Dein Account wird auf Tutanota Free zurückgesetzt.",
+  "unsubscribePremiumMessage_msg": "Dein Account wird am Ende des aktuellen Abrechnungszeitraums auf Tutanota Free zurückgesetzt.",
   "unsubscribePremium_label": "Premium abbestellen",
   "unsubscribe_action": "Abbestellen",
   "unsupportedBrowser_msg": "Oh! Das tut uns leid. Dieser Browser wird von uns nicht unterstützt. Bitte nutze einen der folgenden Browser:",
