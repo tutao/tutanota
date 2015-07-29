@@ -277,6 +277,9 @@ tutao.tutanota.ctrl.MailViewModel.prototype._findOwnMailAddressInMail = function
  * @param {tutao.tutanota.ctrl.DisplayedMail} displayedMail The mail we want to export.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail) {
+    var self = this;
+    displayedMail.buttonBarViewModel.visibleButtons([]);
+    self.showSpinner(true);
     return tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
         var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
         var tmpFile = new tutao.entity.tutanota.File();
@@ -288,6 +291,9 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
         tmpFile.setMimeType("message/rfc822");
         tmpFile.setSize(String(buffer.byteLength));
         tutao.locator.fileFacade.open(new tutao.tutanota.util.DataFile(buffer, tmpFile));
+    }).finally(function() {
+        self.showSpinner(false);
+        displayedMail.buttonBarViewModel.updateVisibleButtons();
     });
 };
 

@@ -1618,7 +1618,10 @@
 										<div class="recordName"></div>
 										<div class="formAction">
 											<button id="submitCustomDomain" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-											<label for="submitCustomDomain" class="recordStatus" data-bind="css: customDomainSubmitStatus().type, lang: customDomainSubmitStatus().text"></label>
+											<label  class="recordStatus" data-bind="css: customDomainSubmitStatus().type, lang: customDomainSubmitStatus().text"></label>
+											<div  data-bind="foreach: invalidDnsRecords" >
+												<label class="recordStatus" data-bind="css: $parent.customDomainSubmitStatus().type, text: getValue()"></label>
+											</div>
 										</div>
 									</div>
 								</form>
