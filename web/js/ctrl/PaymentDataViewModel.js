@@ -19,6 +19,11 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this.showVatIdNoField = ko.computed(function() {
         return this.accountingInfo() != null && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
     }, this);
+    this.showVatIdNoField.subscribe(function(showVatIdNo) {
+        if (this.accountingInfo() != null && !showVatIdNo) {
+            this.accountingInfo().invoiceVatIdNo("");
+        }
+    }, this);
 
     this._allowSEPAPaymentMethod = false;
 
