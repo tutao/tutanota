@@ -25,6 +25,9 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
     // if we access the user in the user controller directly (without setTimeout), a new AdminDeleteAccountViewModel is created as soon as the user controller fires the update event on the user
     // to avoid that, we have to do all user dependent calls in a setTimeout.
     var self = this;
+
+    this.state.setInputInvalidMessageListener(this._stateInputInvalidListener);
+
     setTimeout(function() {
         tutao.locator.userController.getLoggedInUser().loadCustomer().then(function (customer) {
             self.customer = customer;
@@ -85,6 +88,14 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._switchPremiumToFreeGr
 tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._customerUpdated = function() {
     this.customer.unregisterObserver(this._customerUpdated);
     tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+};
+
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._stateInputInvalidListener = function() {
+    var currentMailAddress = tutao.locator.userController.getUserGroupInfo().getMailAddress();
+    if ( !tutao.tutanota.util.Formatter.isTutanotaMailAddress(currentMailAddress) ){
+        return "deactivatePremiumWithCustomDomainError_msg";
+    }
+    return null;
 };
 
 /**
