@@ -451,7 +451,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Soll die E-Mail trotzdem gesendet werden?",
   "presharedPassword_label": "Vereinbartes Passwort",
   "priceChangeValidFrom_label": "Preisänderung wird wirksam ab {1}.",
-  "priceExcludesTaxes_msg": "Nettopreis",
+  "priceExcludesTaxes_msg": "Nettopreis.",
   "priceForCurrentAccountingPeriod_label": "Anteiliger Preis für aktuellen Abrechnungszeitraum ist {1}.",
   "priceIncludesTaxes_msg": "Preis enthält Mehrwertsteuer.",
   "priceNotChanged_msg": "Der Gesamtpreis ändert sich nicht.",
@@ -540,7 +540,10 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "storePassword_action": "Passwort speichern",
   "subject_label": "Betreff",
   "subscriptionPriceInfo_msg": "Bei jährlicher Zahlung gibt es zwei Monate kostenlos. Der Betrag wird zu Beginn der Laufzeit fällig.",
-  "subscription_label": "Abrechnungszeitraum",
+    "amountDueBeginOfSubscriptionPeriod_msg": "Der Betrag wird zu Beginn der Laufzeit fällig.",
+    "twoMonthsForFreeIncluded_msg": "Gegenüber monatlicher Zahlung sind zwei Monate Rabatt enthalten.",
+    "twoMonthsForFreeYearly_msg": "Bei jährlicher Zahlung gibt es zwei Monate kostenlos.",
+    "subscription_label": "Abrechnungszeitraum",
   "successfullyCreatedUsers_msg": "Die folgenden Benutzer wurden erfolgreich angelegt. Bitte die Passwörter notieren und an die Benutzer weitergeben.",
   "technicalError_msg": "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an deinen Administrator, falls der Fehler erneut auftreten sollte.",
   "termsAcceptedNeutral_msg": "Bitte akzeptiere die AGB.",
@@ -600,5 +603,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "yesterday_label": "gestern",
     "packageUpgradeUserAccounts_label": "Paketerweiterung auf {1} Benutzer-Accounts",
     "packageDowngradeUserAccounts_label": "Paketreduzierung auf {1} Benutzer-Accounts",
-    "cancelUserAccounts_label": "Abbestellung von {1} Benutzer-Accounts"
+    "cancelUserAccounts_label": "Abbestellung von {1} Benutzer-Accounts",
+    "moreInfo_msg": "Mehr Infos:"
 };

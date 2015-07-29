@@ -361,15 +361,15 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceInfoText = function() {
     if (this.accountingInfo().business()) {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
         } else {
-            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeYearly_msg');
         }
     } else {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceIncludesTaxes_msg') + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
         } else {
-            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeYearly_msg');
         }
     }
 };

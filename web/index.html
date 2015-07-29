@@ -1690,7 +1690,10 @@
                                 </div>
                                 <div data-bind="if: !state.loading()">
                                     <h1 class="centered" data-bind="lang: 'upgradeToPremiumHeading_label', visible: (step() > -1)"></h1>
-                                    <div class="light defaultMargin" data-bind="lang: 'paymentDataOrderPremiumInfo_msg', visible: step() == 0"></div>
+                                    <div class="light defaultMargin" data-bind="visible: step() == 0">
+                                        <span data-bind="lang: 'paymentDataOrderPremiumInfo_msg'"></span>
+                                        <span data-bind="lang: 'moreInfo_msg'"></span> <a target="_blank" href="https://tutanota.com/pricing">https://tutanota.com/pricing</a>
+                                    </div>
                                     <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 0, submit: enterAccountingInfo, form: true">
                                         <div class="record">
                                             <label for="paymentUsageInput" class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
