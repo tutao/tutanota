@@ -451,7 +451,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "presharedPasswordNotStrongEnough_msg": "Mindestens eines der eingegebenen Passwörter ist nicht sicher genug. Soll die E-Mail trotzdem gesendet werden?",
   "presharedPassword_label": "Vereinbartes Passwort",
   "priceChangeValidFrom_label": "Preisänderung wird wirksam ab {1}.",
-  "priceExcludesTaxes_msg": "Nettopreis.",
+  "priceExcludesTaxes_msg": "Preis ist netto.",
   "priceForCurrentAccountingPeriod_label": "Anteiliger Preis für aktuellen Abrechnungszeitraum ist {1}.",
   "priceIncludesTaxes_msg": "Preis enthält Mehrwertsteuer.",
   "priceNotChanged_msg": "Der Gesamtpreis ändert sich nicht.",

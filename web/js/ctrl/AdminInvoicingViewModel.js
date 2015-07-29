@@ -99,6 +99,14 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getUsageTextId = function(
     }
 };
 
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getNetGrossInfoTextId = function() {
+    if (!this.price()) {
+        return 'loading_msg';
+    } else {
+        return (this.price().getCurrentPriceNextPeriod().getTaxIncluded()) ? 'priceIncludesTaxes_msg' : 'priceExcludesTaxes_msg';
+    }
+};
+
 tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getAmountText = function(item) {
     var unitPostfix = "";
     if (item.type == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE) {
