@@ -539,7 +539,10 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "storageCapacity_label": "Storage capacity",
   "storePassword_action": "Store password",
   "subject_label": "Subject",
-  "subscriptionPriceInfo_msg": "You get two months for free when paying yearly. The amount is due at the beginning of the subscription period.",
+  "subscriptionPriceInfo_msg": "You get two months for free when paying yearly. ",
+    "amountDueBeginOfSubscriptionPeriod_msg": "The amount is due at the beginning of the subscription period.",
+    "twoMonthsForFreeIncluded_msg": "The price includes two free months compared to monthly payment.",
+    "twoMonthsForFreeYearly_msg": "You get two months for free when paying yearly.",
   "subscription_label": "Subscription",
   "successfullyCreatedUsers_msg": "The following users have been created successfully. Please note down the passwords carefully and provide them to the users.",
   "technicalError_msg": "A technical error occured. Please try again later. Inform your administrator if this error occurs again.",
@@ -566,8 +569,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "unsecureMailSendFailureSubject_msg": "Email could not be delivered",
   "unsecureMail_title": "Email is not encrypted for external recipients.",
   "unsubscribePremiumConfirm_msg": "Do you really want to unsubscribe from Tutanota Premium?",
-  "unsubscribePremiumMessage_msg": "Your Account will be reset to Tutanota Free.",
-  "unsubscribePremium_label": "Unsubscribe Premium",
+  "unsubscribePremiumMessage_msg": "Your Account will be reset to Tutanota Free at the end of the current subscription period.",
+  "unsubscribePremium_label": "Unsubscribe from Premium",
   "unsubscribe_action": "Unsubscribe",
   "unsupportedBrowser_msg": "Oh! We are sorry. Unfortunately, your browser is not supported. Please use one of the following browsers:",
   "unsupportedMailFeature_msg": "You have selected voting options or a deferred delivery time. Unfortunately these functions are not yet supported by Tutanota. Would you like to send the email anyway?",
@@ -597,5 +600,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+    "packageUpgradeUserAccounts_label": "Package upgrade to {1} user accounts",
+    "packageDowngradeUserAccounts_label": "Package downgrade to {1} user accounts",
+    "cancelUserAccounts_label": "Cancel {1} user accounts",
+    "moreInfo_msg": "More Info:"
 };

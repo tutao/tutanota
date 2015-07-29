@@ -535,7 +535,10 @@ tutao.rest.EntityRestCache.prototype.notifyNewDataReceived = function(data) {
         var element = this._getElementFromCache(path,data.getInstanceId(), data.getInstanceListId());
         if (element){
             var elementTypeModelVersion = tutao.entity[data.getApplication().toLowerCase()][data.getType()].MODEL_VERSION;
-            this._getElementFromTarget(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {"v": elementTypeModelVersion}, tutao.entity.EntityHelper.createAuthHeaders());
+            this._getElementFromTarget(element.constructor, path, data.getInstanceId(), data.getInstanceListId(), {"v": elementTypeModelVersion}, tutao.entity.EntityHelper.createAuthHeaders()).caught(function(e) {
+                // do not care about exceptions here. 401 may be throw if the password is changed and the changed user is loaded while the change password request is still running
+                console.log(e);
+            });
         }
     }
 };

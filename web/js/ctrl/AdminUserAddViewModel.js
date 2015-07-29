@@ -123,9 +123,8 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     }
     var self = this;
     var count = self.newUsers().length;
-    var itemName = count + " " + tutao.lang("accounts_label") + " Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[tutao.locator.viewManager.getLoggedInUserAccountType()];
     self.state.submitting(true);
-    tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count, itemName).then(function(confirmed) {
+    tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count).then(function(confirmed) {
         if (confirmed) {
             self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": 0, "{count}": count}));
             return Promise.each(self.newUsers(), function(newUser) {

@@ -9,22 +9,24 @@ tutao.provide('tutao.tutanota.ctrl.BuyDialogViewModel');
 tutao.tutanota.ctrl.BuyDialogViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.itemName = ko.observable("");
     this.visible = ko.observable(false);
     this._resolveFunction = null;
     this._accountingInfo = null;
     this._price = null;
     this.loaded = ko.observable(false);
+    this._featureType = null;
+    this._count = 0;
 };
 
 /**
  * Shows the dialog.
  * @return {Promise<?boolean>} Provides true if the dialog was accepted, false otherwise.
  */
-tutao.tutanota.ctrl.BuyDialogViewModel.prototype.showDialog = function(featureType, count, itemName) {
+tutao.tutanota.ctrl.BuyDialogViewModel.prototype.showDialog = function(featureType, count) {
     var self = this;
-    self.itemName(itemName);
     self.loaded(false);
+    this._featureType = featureType;
+    this._count = count;
     return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
@@ -47,6 +49,16 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.showDialog = function(featureTy
     })
 };
 
+tutao.tutanota.ctrl.BuyDialogViewModel.prototype._getItem = function(priceData) {
+    var items = priceData.getItems();
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].getFeatureType() == this._featureType) {
+            return items[i];
+        }
+    }
+    return null; // should not happen
+};
+
 tutao.tutanota.ctrl.BuyDialogViewModel.prototype.ok = function() {
     this.visible(false);
     this._resolveFunction(true);
@@ -60,7 +72,25 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.cancel = function() {
 
 
 tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getBookingText = function() {
-    return this.itemName();
+    if (!this.loaded()) {
+        return tutao.lang("loading_msg");
+    } else {
+        var item = this._getItem(this._price.getFuturePriceNextPeriod());
+        if (item.getSingleType()) {
+            if (this._count > 0) {
+                return this._count + " " + tutao.lang("bookingItemUsers_label");
+            } else {
+                return tutao.lang("cancelUserAccounts_label", {"{1}": Math.abs(this._count)});
+            }
+        } else {
+            var newPackageCount = item.getCount();
+            if (this._count > 0) {
+                return tutao.lang("packageUpgradeUserAccounts_label", {"{1}": newPackageCount});
+            } else {
+                return tutao.lang("packageDowngradeUserAccounts_label", {"{1}": newPackageCount});
+            }
+        }
+    }
 };
 
 tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getSubscriptionText = function() {
@@ -87,7 +117,11 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
     } else {
         var netGrossText = this._price.getFuturePriceNextPeriod().getTaxIncluded() ? tutao.lang("gross_label") : tutao.lang("net_label");
         var periodText = (this._price.getFuturePriceNextPeriod().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
-        return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()) - Number(this._price.getCurrentPriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
+        if (this._getItem(this._price.getFuturePriceNextPeriod()).getSingleType()) {
+            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()) - Number(this._price.getCurrentPriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
+        } else {
+            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()));
+        }
     }
 };
 

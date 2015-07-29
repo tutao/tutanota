@@ -77,7 +77,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
         }, function() {
             return self.isFreeAccount() && tutao.locator.settingsViewModel.isActivateExtensionEnabled();
         }, true, "menu_upgradePremium", "upgrade", 'upgradePremium_label', function() {
-            return tutao.locator.settingsViewModel.displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT;
+            return tutao.locator.navigator.hash() == '#settings' && (self.isFreeAccount() && tutao.locator.settingsViewModel.displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
         }), // Execute this action direct to avoid pop up blockers
 
 

@@ -1395,7 +1395,7 @@
 						<div data-bind="foreach: getUserSettings()">
 							<div class="menuItem" tabIndex="0" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
 						</div>
-                        <div class="menuItemHeading marginTop" data-bind="if: getAccountSettings().length > 0, lang: 'accountSettings_label'"></div>
+                        <div class="menuItemHeading marginTop" data-bind="visible: getAccountSettings().length > 0, lang: 'accountSettings_label'"></div>
                         <div data-bind="foreach: getAccountSettings()">
                             <div class="menuItem" tabIndex="0" data-bind="lang: $parent.getSettingsTextId($data), css: { selected: ($data == $parent.displayed()) }, fastClick: function() { $parent.show($data); }"></div>
                         </div>
@@ -1512,7 +1512,7 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'activate_action'"></button>
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !state.submitEnabled() }, lang: 'unsubscribe_action'"></button>
                                             <label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
                                         </div>
                                     </div>
@@ -1635,6 +1635,7 @@
                                         <label class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
                                         <div class="recordData">
                                             <div class="recordValue" data-bind="lang: getUsageTextId()"></div>
+                                            <div class="recordInfo" data-bind="lang: getNetGrossInfoTextId()"></div>
                                         </div>
                                     </div>
                                     <div class="record">
@@ -1693,7 +1694,10 @@
                                 </div>
                                 <div data-bind="if: !state.loading()">
                                     <h1 class="centered" data-bind="lang: 'upgradeToPremiumHeading_label', visible: (step() > -1)"></h1>
-                                    <div class="light defaultMargin" data-bind="lang: 'paymentDataOrderPremiumInfo_msg', visible: step() == 0"></div>
+                                    <div class="light defaultMargin" data-bind="visible: step() == 0">
+                                        <span data-bind="lang: 'paymentDataOrderPremiumInfo_msg'"></span>
+                                        <span data-bind="lang: 'moreInfo_msg'"></span> <a target="_blank" href="https://tutanota.com/pricing">https://tutanota.com/pricing</a>
+                                    </div>
                                     <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 0, submit: enterAccountingInfo, form: true">
                                         <div class="record">
                                             <label for="paymentUsageInput" class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
@@ -2000,7 +2004,7 @@
 
                         <h1 data-bind="lang: 'newUsers_label'"></h1>
                         <!-- ko foreach: newUsers -->
-                        <form class="recordContainer wide" data-bind="submit: $parent.createAccounts, form: true">
+                        <div class="recordContainer wide" data-bind="form: true">
                             <div class="record">
                                 <label class="recordName" data-bind="lang: 'name_label', attr: {for: 'userName' + $index()}"></label>
                                 <div class="recordData">
@@ -2043,7 +2047,7 @@
                                     <button class="single" data-bind="lang: 'adminUserRemove_action', css: { disabled: !$parent.state.entering() }, fastClick: $parent.removeUser"></button>
                                 </div>
                             </div>
-                        </form>
+                        </div>
                         <!-- /ko -->
                         <!-- ko if: (createdUsers().length > 0) -->
                         <div class="light" data-bind="lang: 'successfullyCreatedUsers_msg'"></div>

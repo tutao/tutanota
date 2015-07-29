@@ -19,6 +19,11 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     this.showVatIdNoField = ko.computed(function() {
         return this.accountingInfo() != null && this.accountingInfo().business() && this.accountingInfo().invoiceCountry() && tutao.util.CountryList.getByAbbreviation(this.accountingInfo().invoiceCountry()).t == tutao.util.CountryList.TYPE_EU;
     }, this);
+    this.showVatIdNoField.subscribe(function(showVatIdNo) {
+        if (this.accountingInfo() != null && !showVatIdNo) {
+            this.accountingInfo().invoiceVatIdNo("");
+        }
+    }, this);
 
     this._allowSEPAPaymentMethod = false;
 
@@ -73,6 +78,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
 
                     self.accountingInfo(new tutao.entity.sys.AccountingInfoEditable(accountingInfo));
                     self.accountingInfo().paymentMethod.subscribe(self._updatePaymentInfo, self);
+
+                    // subscribe to those fields that may lead to failing server request
+                    self.accountingInfo().business.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().paymentMethod.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().invoiceCountry.subscribe(self._paymentDataChanged);
+                    self.accountingInfo().invoiceVatIdNo.subscribe(self._paymentDataChanged);
+
                     return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 1, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerMonth) {
                         self._pricePerMonth(Number(pricePerMonth.getFuturePriceNextPeriod().getPrice()));
                         return tutao.util.BookingUtils.getPrice(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, 1, 12, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, false).then(function(pricePerYear) {
@@ -93,6 +105,13 @@ tutao.tutanota.ctrl.PaymentDataViewModel = function() {
     // only for upgrade
     this.step = ko.observable(); // is initialized above in setTimeout
     this.paymentIntervals = [{ textId: tutao.lang("yearly_label"), interval: "12" }, { textId: tutao.lang("monthly_label"), interval: "1" }];
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentDataChanged = function() {
+    // if the server request failed, e.g. the vat id number was wrong, then allow submitting again by setting state "entering"
+    if (this.state.failure()) {
+        this.state.entering(true);
+    }
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = function() {
@@ -254,7 +273,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
             }
             console.log( tutao.entity.tutanota.TutanotaConstants.PAYMENT_MESSAGE_PAYMENT_TOKEN + ":" + token);
             this._paymentToken({value: token, method: paymentMethod, info: paymentMethodInfo});
-            this.state.entering(true); // makes any previous failure message disappear
+            this._paymentDataChanged();
         }
     }
 };
@@ -342,15 +361,15 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceInfoText = function() {
     if (this.accountingInfo().business()) {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
         } else {
-            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceExcludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeYearly_msg');
         }
     } else {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return "= " + tutao.util.BookingUtils.formatPrice(this._pricePerYear() / 12) + " " + tutao.lang('perMonth_label') + ". " + tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceIncludesTaxes_msg') + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
         } else {
-            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('subscriptionPriceInfo_msg');
+            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeYearly_msg');
         }
     }
 };
