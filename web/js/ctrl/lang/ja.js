@@ -29,7 +29,6 @@ tutao.tutanota.ctrl.lang.ja.keys = {
   "contacts_label": "連絡先",
   "createAccountInvalidCaptcha_msg": "申し訳ありませんが、回答が間違っています。もう一度やり直して下さい。",
   "createAccountRunning_msg": "アカウントを作成しています...",
-  "create_action": "作成",
   "custom_label": "カスタム",
   "db_label": "データベース",
   "defaultExternalDelivery_label": "デフォルトの送信設定",

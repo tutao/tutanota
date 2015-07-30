@@ -13,7 +13,6 @@ tutao.tutanota.ctrl.lang.ko.keys = {
   "company_placeholder": "회사",
   "contactImage_alt": "사진",
   "contacts_alt": "연락처",
-  "create_action": "만들기",
   "creditCardNumber_label": "번호",
   "db_label": "데이터베이스",
   "defaultExternalDelivery_label": "기본 전송",

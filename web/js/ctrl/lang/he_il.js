@@ -41,7 +41,6 @@ tutao.tutanota.ctrl.lang.he_il.keys = {
   "contactImage_alt": "תמונה",
   "contacts_alt": "אנשי קשר",
   "createAccount_action": "צור חשבון",
-  "create_action": "צור",
   "customers_label": "לקוחות",
   "date_label": "תאריך",
   "defaultExternalDelivery_label": "שיטת משלוח ראשית",

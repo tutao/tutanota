@@ -50,7 +50,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "createActionFailed_msg": "فشل في إنشاء حساب. يرجى المحاولة مرة أخرى في وقت لاحق.",
   "createActionStatus_msg": "إنشاء المستخدمين ... إنهاء{index} من{count}  حسابات.",
   "created_label": "تم إنشاؤوه",
-  "create_action": "إنشاء",
   "customers_label": "الزبائن",
   "db_label": "قاعدة البيانات",
   "deleteAccountConfirm_msg": "هل حقا تريد مسح حسابك?",

@@ -6,7 +6,6 @@ tutao.tutanota.ctrl.lang.is.keys = {
   "changeNotificationMailLanguage_msg": "Tungumál tilkynningarpósts",
   "company_placeholder": "Fyrirtæki",
   "contactImage_alt": "Mynd",
-  "create_action": "Stofna",
   "defaultExternalDelivery_label": "Sjálfgefin afhending",
   "deleteMail_msg": "Eyða nýjum tölvupósti án þess að senda?",
   "externalNotificationMailBody3_msg": "Sýna dulkóðaðan tölvupóst",
