@@ -19,7 +19,7 @@ tutao.util.BookingUtils.getPrice = function(bookingItemFeatureType, count, payme
         .setCount(String(count))
         .setPaymentInterval(paymentInterval ? String(paymentInterval) : null)
         .setAccountType(accountType ? accountType : null)
-        .setBusiness(business ? true : false);
+        .setBusiness((business == undefined) ? null : business);
     data.setPriceRequest(priceRequestData);
 
     return tutao.entity.sys.PriceServiceReturn.load(data, {}, null);

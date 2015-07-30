@@ -120,7 +120,7 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
         if (this._getItem(this._price.getFuturePriceNextPeriod()).getSingleType()) {
             return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()) - Number(this._price.getCurrentPriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
         } else {
-            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()));
+            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
         }
     }
 };

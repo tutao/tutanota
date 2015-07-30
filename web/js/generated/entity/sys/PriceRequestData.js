@@ -120,7 +120,11 @@ tutao.entity.sys.PriceRequestData.prototype.getAccountType = function() {
  * @param {boolean} business The business of this PriceRequestData.
  */
 tutao.entity.sys.PriceRequestData.prototype.setBusiness = function(business) {
-  this._business = business ? '1' : '0';
+  if (business == null) {
+    this._business = null;
+  } else {
+    this._business = business ? '1' : '0';
+  }
   return this;
 };
 
@@ -129,6 +133,9 @@ tutao.entity.sys.PriceRequestData.prototype.setBusiness = function(business) {
  * @return {boolean} The business of this PriceRequestData.
  */
 tutao.entity.sys.PriceRequestData.prototype.getBusiness = function() {
+  if (this._business == null) {
+    return null;
+  }
   return this._business == '1';
 };
 
