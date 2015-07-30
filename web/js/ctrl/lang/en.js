@@ -539,7 +539,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "storageCapacity_label": "Storage capacity",
   "storePassword_action": "Store password",
   "subject_label": "Subject",
-  "subscriptionPriceInfo_msg": "You get two months for free when paying yearly. ",
+  "subscriptionPriceInfo_msg": "You get two months for free when paying yearly.",
     "amountDueBeginOfSubscriptionPeriod_msg": "The amount is due at the beginning of the subscription period.",
     "twoMonthsForFreeIncluded_msg": "The price includes two free months compared to monthly payment.",
     "twoMonthsForFreeYearly_msg": "You get two months for free when paying yearly.",

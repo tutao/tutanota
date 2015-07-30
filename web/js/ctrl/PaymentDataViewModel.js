@@ -367,7 +367,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceInfoText = function()
         }
     } else {
         if (this.accountingInfo().paymentInterval() == "12") {
-            return tutao.lang('priceIncludesTaxes_msg') + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
+            return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeIncluded_msg');
         } else {
             return tutao.lang('priceIncludesTaxes_msg') + " " + tutao.lang('amountDueBeginOfSubscriptionPeriod_msg') + " " + tutao.lang('twoMonthsForFreeYearly_msg');
         }
