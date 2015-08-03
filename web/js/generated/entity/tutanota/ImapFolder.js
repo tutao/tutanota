@@ -157,3 +157,10 @@ tutao.entity.tutanota.ImapFolder.prototype.setSyncInfo = function(syncInfo) {
 tutao.entity.tutanota.ImapFolder.prototype.getSyncInfo = function() {
   return this._syncInfo;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.ImapFolder.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

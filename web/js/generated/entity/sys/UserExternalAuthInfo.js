@@ -182,3 +182,10 @@ tutao.entity.sys.UserExternalAuthInfo.prototype.setVariableAuthInfo = function(v
 tutao.entity.sys.UserExternalAuthInfo.prototype.getVariableAuthInfo = function() {
   return this._variableAuthInfo;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.UserExternalAuthInfo.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

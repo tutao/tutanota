@@ -75,10 +75,24 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
             self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
             return self._entity;
 		}).caught(function(e) {
-            return self._loadSessionKeyOfSinglePermission();
+            return self._loadSessionKeyOfSinglePermission().caught(function(e) {
+                if (e instanceof tutao.crypto.CryptoError) {
+                    console.log("could not load session key", e);
+                    return self._entity;
+                } else {
+                    throw e;
+                }
+            });
         });
 	} else {
-		return this._loadSessionKeyOfSinglePermission();
+		return this._loadSessionKeyOfSinglePermission().caught(function(e) {
+            if (e instanceof tutao.crypto.CryptoError) {
+                console.log("could not load session key", e);
+                return self._entity;
+            } else {
+                throw e;
+            }
+        });
 	}
 };
 

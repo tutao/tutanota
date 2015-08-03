@@ -107,3 +107,10 @@ tutao.entity.sys.Exception.prototype.setType = function(type) {
 tutao.entity.sys.Exception.prototype.getType = function() {
   return this._type;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Exception.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -113,7 +113,7 @@ tutao.entity.tutanota.CreateMailFolderData.prototype.setFolderName = function(fo
  * @return {string} The folderName of this CreateMailFolderData.
  */
 tutao.entity.tutanota.CreateMailFolderData.prototype.getFolderName = function() {
-  if (this._folderName == "") {
+  if (this._folderName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._folderName);
@@ -175,4 +175,11 @@ tutao.entity.tutanota.CreateMailFolderData.prototype.setup = function(parameters
   parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.CreateMailFolderData.PATH, this, parameters, headers, tutao.entity.tutanota.CreateMailFolderReturn);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.CreateMailFolderData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

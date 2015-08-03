@@ -232,3 +232,10 @@ tutao.entity.sys.CreateGroupData.prototype.setSymEncPrivKey = function(symEncPri
 tutao.entity.sys.CreateGroupData.prototype.getSymEncPrivKey = function() {
   return this._symEncPrivKey;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.CreateGroupData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

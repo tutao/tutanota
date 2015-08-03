@@ -100,3 +100,10 @@ tutao.entity.sys.PdfInvoiceServiceData.prototype.getInvoice = function() {
 tutao.entity.sys.PdfInvoiceServiceData.prototype.loadInvoice = function() {
   return tutao.entity.sys.Invoice.load(this._invoice);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PdfInvoiceServiceData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -216,3 +216,10 @@ tutao.entity.sys.PriceServiceReturn.load = function(entity, parameters, headers)
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PriceServiceReturn, tutao.entity.sys.PriceServiceReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PriceServiceReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

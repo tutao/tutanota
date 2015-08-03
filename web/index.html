@@ -550,6 +550,7 @@
                                             <div class="mailHeaderImage fontImage attachment-small" data-bind="visible: (getAttachments().length > 0), attr: {alt: tutao.lang('mailWithAttachment_alt')}"></div>
 											<div class="mailHeaderImage fontImage trash-small" data-bind="visible: getTrashed(), attr: {alt: tutao.lang('trashedMail_alt')}"></div>
 											<div class="mailHeaderImage fontImage lock-closed-small" data-bind="visible: getConfidential(), attr: {title: tutao.lang('confidentialMail_alt'), alt: tutao.lang('confidentialMail_alt')}"></div>
+                                            <div class="mailHeaderImage fontImage warn-small" data-bind="visible: !getEntityHelper().getSessionKey(), attr: {title: tutao.lang('corrupted_msg'), alt: tutao.lang('corrupted_msg')}"></div>
 										</div>
 										<div class="subject" data-bind="text: (getSubject().trim()) ? getSubject() : tutao.lang('emptyString_msg')"></div>
 										<div class="mailInfo">

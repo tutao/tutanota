@@ -97,7 +97,7 @@ tutao.entity.tutanota.ContactSocialId.prototype.setCustomTypeName = function(cus
  * @return {string} The customTypeName of this ContactSocialId.
  */
 tutao.entity.tutanota.ContactSocialId.prototype.getCustomTypeName = function() {
-  if (this._customTypeName == "") {
+  if (this._customTypeName == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._customTypeName);
@@ -119,7 +119,7 @@ tutao.entity.tutanota.ContactSocialId.prototype.setSocialId = function(socialId)
  * @return {string} The socialId of this ContactSocialId.
  */
 tutao.entity.tutanota.ContactSocialId.prototype.getSocialId = function() {
-  if (this._socialId == "") {
+  if (this._socialId == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._socialId);
@@ -141,9 +141,16 @@ tutao.entity.tutanota.ContactSocialId.prototype.setType = function(type) {
  * @return {string} The type of this ContactSocialId.
  */
 tutao.entity.tutanota.ContactSocialId.prototype.getType = function() {
-  if (this._type == "") {
+  if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
   return value;
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.ContactSocialId.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

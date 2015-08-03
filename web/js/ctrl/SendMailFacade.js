@@ -27,7 +27,7 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
     var aes = tutao.locator.aesCrypter;
     var groupKey = tutao.locator.userController.getUserGroupKey();
     var bucketKey = aes.generateRandomKey();
-    var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox()._entityHelper.getSessionKey();
+    var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox().getEntityHelper().getSessionKey();
 
     var service = new tutao.entity.tutanota.SendMailData();
     service.setLanguage(language)
@@ -36,13 +36,13 @@ tutao.tutanota.ctrl.SendMailFacade.sendMail = function(subject, bodyText, sender
         .setSenderMailAddress(senderMailAddress)
         .setSenderName(senderName)
         .setSenderNameUnencrypted(senderName)
-        .setListEncSessionKey(aes.encryptKey(mailBoxKey, service._entityHelper.getSessionKey())) // for sender
-        .setSymEncSessionKey(aes.encryptKey(groupKey, service._entityHelper.getSessionKey())) // for sender
-        .setBucketEncSessionKey(aes.encryptKey(bucketKey, service._entityHelper.getSessionKey())) // for recipeints
+        .setListEncSessionKey(aes.encryptKey(mailBoxKey, service.getEntityHelper().getSessionKey())) // for sender
+        .setSymEncSessionKey(aes.encryptKey(groupKey, service.getEntityHelper().getSessionKey())) // for sender
+        .setBucketEncSessionKey(aes.encryptKey(bucketKey, service.getEntityHelper().getSessionKey())) // for recipeints
         .setConfidential(true);
 
     if (tutao.locator.userController.isInternalUserLoggedIn()) {
-        service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service._entityHelper.getSessionKey())); // for sharing the mailbox
+        service.setSharableEncSessionKey(aes.encryptKey(tutao.locator.mailBoxController.getUserMailBoxBucketData().getBucketKey(), service.getEntityHelper().getSessionKey())); // for sharing the mailbox
     } else {
         service.setSharableEncSessionKey(null);
     }
@@ -72,7 +72,7 @@ tutao.tutanota.ctrl.SendMailFacade.createAttachment = function(attachment, dataF
     var aes = tutao.locator.aesCrypter;
     if (dataFile instanceof tutao.entity.tutanota.File) {
         // forwarded attachment
-        var fileSessionKey = dataFile._entityHelper.getSessionKey();
+        var fileSessionKey = dataFile.getEntityHelper().getSessionKey();
         attachment.setFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
     } else if (dataFile instanceof tutao.tutanota.util.DataFile || dataFile instanceof tutao.native.AndroidFile) {

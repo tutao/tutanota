@@ -82,3 +82,10 @@ tutao.entity.sys.Bucket.prototype.setBucketPermissions = function(bucketPermissi
 tutao.entity.sys.Bucket.prototype.getBucketPermissions = function() {
   return this._bucketPermissions;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Bucket.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

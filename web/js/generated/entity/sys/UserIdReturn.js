@@ -121,3 +121,10 @@ tutao.entity.sys.UserIdReturn.load = function(entity, parameters, headers) {
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.UserIdReturn, tutao.entity.sys.UserIdReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.UserIdReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -113,3 +113,10 @@ tutao.entity.sys.PhoneNumberTypeReturn.load = function(entity, parameters, heade
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PhoneNumberTypeReturn, tutao.entity.sys.PhoneNumberTypeReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PhoneNumberTypeReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

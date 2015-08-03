@@ -137,3 +137,10 @@ tutao.entity.sys.ExternalPropertiesReturn.load = function(parameters, headers) {
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.ExternalPropertiesReturn, tutao.entity.sys.ExternalPropertiesReturn.PATH, null, null, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

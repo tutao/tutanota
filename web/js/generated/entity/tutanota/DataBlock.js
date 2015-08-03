@@ -107,3 +107,10 @@ tutao.entity.tutanota.DataBlock.prototype.setSize = function(size) {
 tutao.entity.tutanota.DataBlock.prototype.getSize = function() {
   return this._size;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.DataBlock.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

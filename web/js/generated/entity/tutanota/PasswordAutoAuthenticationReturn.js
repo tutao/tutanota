@@ -87,3 +87,10 @@ tutao.entity.tutanota.PasswordAutoAuthenticationReturn.load = function(parameter
   parameters["v"] = 8;
   return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.PasswordAutoAuthenticationReturn, tutao.entity.tutanota.PasswordAutoAuthenticationReturn.PATH, null, null, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.PasswordAutoAuthenticationReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

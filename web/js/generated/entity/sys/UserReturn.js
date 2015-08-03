@@ -133,3 +133,10 @@ tutao.entity.sys.UserReturn.prototype.getUserGroup = function() {
 tutao.entity.sys.UserReturn.prototype.loadUserGroup = function() {
   return tutao.entity.sys.Group.load(this._userGroup);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.UserReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

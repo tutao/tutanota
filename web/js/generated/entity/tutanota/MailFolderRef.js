@@ -82,3 +82,10 @@ tutao.entity.tutanota.MailFolderRef.prototype.setFolders = function(folders) {
 tutao.entity.tutanota.MailFolderRef.prototype.getFolders = function() {
   return this._folders;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.MailFolderRef.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

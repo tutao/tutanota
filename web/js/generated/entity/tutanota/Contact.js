@@ -310,7 +310,7 @@ tutao.entity.tutanota.Contact.prototype.setAutoTransmitPassword = function(autoT
  * @return {string} The autoTransmitPassword of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getAutoTransmitPassword = function() {
-  if (this._autoTransmitPassword == "") {
+  if (this._autoTransmitPassword == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._autoTransmitPassword);
@@ -336,7 +336,7 @@ tutao.entity.tutanota.Contact.prototype.setBirthday = function(birthday) {
  * @return {Date} The birthday of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getBirthday = function() {
-  if (this._birthday == null) {
+  if (this._birthday == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._birthday);
@@ -361,7 +361,7 @@ tutao.entity.tutanota.Contact.prototype.setComment = function(comment) {
  * @return {string} The comment of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getComment = function() {
-  if (this._comment == "") {
+  if (this._comment == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._comment);
@@ -383,7 +383,7 @@ tutao.entity.tutanota.Contact.prototype.setCompany = function(company) {
  * @return {string} The company of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getCompany = function() {
-  if (this._company == "") {
+  if (this._company == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._company);
@@ -405,7 +405,7 @@ tutao.entity.tutanota.Contact.prototype.setFirstName = function(firstName) {
  * @return {string} The firstName of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getFirstName = function() {
-  if (this._firstName == "") {
+  if (this._firstName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._firstName);
@@ -427,7 +427,7 @@ tutao.entity.tutanota.Contact.prototype.setLastName = function(lastName) {
  * @return {string} The lastName of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getLastName = function() {
-  if (this._lastName == "") {
+  if (this._lastName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._lastName);
@@ -453,7 +453,7 @@ tutao.entity.tutanota.Contact.prototype.setPresharedPassword = function(preshare
  * @return {string} The presharedPassword of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getPresharedPassword = function() {
-  if (this._presharedPassword == null) {
+  if (this._presharedPassword == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._presharedPassword);
@@ -475,7 +475,7 @@ tutao.entity.tutanota.Contact.prototype.setTitle = function(title) {
  * @return {string} The title of this Contact.
  */
 tutao.entity.tutanota.Contact.prototype.getTitle = function() {
-  if (this._title == "") {
+  if (this._title == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._title);
@@ -654,4 +654,11 @@ tutao.entity.tutanota.Contact.prototype.registerObserver = function(listener, id
  */
 tutao.entity.tutanota.Contact.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.Contact.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

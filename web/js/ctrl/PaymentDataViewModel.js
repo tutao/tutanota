@@ -147,7 +147,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._getInputInvalidMessage = fun
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.storeAccountingInfo = function() {
     var self = this;
     var service = new tutao.entity.sys.PaymentDataServicePutData();
-    service._entityHelper.setSessionKey(this.accountingInfo().getAccountingInfo()._entityHelper.getSessionKey());
+    service.getEntityHelper().setSessionKey(this.accountingInfo().getAccountingInfo().getEntityHelper().getSessionKey());
     service.setBusiness(this.accountingInfo().business())
         .setInvoiceName(this.accountingInfo().invoiceName())
         .setInvoiceAddress(this.accountingInfo().invoiceAddress())

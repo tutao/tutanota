@@ -113,3 +113,10 @@ tutao.entity.tutanota.PasswordRetrievalReturn.load = function(entity, parameters
   parameters["v"] = 8;
   return tutao.locator.entityRestClient.getService(tutao.entity.tutanota.PasswordRetrievalReturn, tutao.entity.tutanota.PasswordRetrievalReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.PasswordRetrievalReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

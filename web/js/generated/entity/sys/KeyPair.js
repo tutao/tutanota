@@ -132,3 +132,10 @@ tutao.entity.sys.KeyPair.prototype.setVersion = function(version) {
 tutao.entity.sys.KeyPair.prototype.getVersion = function() {
   return this._version;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.KeyPair.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

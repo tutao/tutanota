@@ -100,3 +100,10 @@ tutao.entity.tutanota.CreateFolderReturn.prototype.getFile = function() {
 tutao.entity.tutanota.CreateFolderReturn.prototype.loadFile = function() {
   return tutao.entity.tutanota.File.load(this._file);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.CreateFolderReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -242,3 +242,10 @@ tutao.entity.sys.WebsocketWrapper.prototype.setException = function(exception) {
 tutao.entity.sys.WebsocketWrapper.prototype.getException = function() {
   return this._exception;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

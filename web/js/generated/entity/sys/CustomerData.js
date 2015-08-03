@@ -498,3 +498,10 @@ tutao.entity.sys.CustomerData.prototype.setup = function(parameters, headers) {
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomerData.PATH, this, parameters, headers, tutao.entity.sys.CustomerReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.CustomerData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

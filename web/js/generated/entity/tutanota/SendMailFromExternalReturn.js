@@ -100,3 +100,10 @@ tutao.entity.tutanota.SendMailFromExternalReturn.prototype.getSenderMail = funct
 tutao.entity.tutanota.SendMailFromExternalReturn.prototype.loadSenderMail = function() {
   return tutao.entity.tutanota.Mail.load(this._senderMail);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.SendMailFromExternalReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

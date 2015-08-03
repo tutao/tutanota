@@ -100,3 +100,10 @@ tutao.entity.tutanota.CreateMailFolderReturn.prototype.getNewFolder = function()
 tutao.entity.tutanota.CreateMailFolderReturn.prototype.loadNewFolder = function() {
   return tutao.entity.tutanota.MailFolder.load(this._newFolder);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.CreateMailFolderReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

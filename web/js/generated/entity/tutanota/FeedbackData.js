@@ -163,3 +163,10 @@ tutao.entity.tutanota.FeedbackData.prototype.setup = function(parameters, header
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.FeedbackData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.FeedbackData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

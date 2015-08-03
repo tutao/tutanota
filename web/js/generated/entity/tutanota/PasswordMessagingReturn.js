@@ -92,3 +92,10 @@ tutao.entity.tutanota.PasswordMessagingReturn.prototype.setAutoAuthenticationId 
 tutao.entity.tutanota.PasswordMessagingReturn.prototype.getAutoAuthenticationId = function() {
   return this._autoAuthenticationId;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.PasswordMessagingReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

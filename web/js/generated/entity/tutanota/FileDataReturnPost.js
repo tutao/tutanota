@@ -100,3 +100,10 @@ tutao.entity.tutanota.FileDataReturnPost.prototype.getFileData = function() {
 tutao.entity.tutanota.FileDataReturnPost.prototype.loadFileData = function() {
   return tutao.entity.tutanota.FileData.load(this._fileData);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.FileDataReturnPost.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

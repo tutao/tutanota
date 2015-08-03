@@ -132,3 +132,10 @@ tutao.entity.sys.CreateGroupListData.prototype.setCreateGroupData = function(cre
 tutao.entity.sys.CreateGroupListData.prototype.getCreateGroupData = function() {
   return this._createGroupData;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.CreateGroupListData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

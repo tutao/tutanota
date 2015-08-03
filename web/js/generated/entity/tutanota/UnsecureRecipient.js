@@ -107,3 +107,10 @@ tutao.entity.tutanota.UnsecureRecipient.prototype.setName = function(name) {
 tutao.entity.tutanota.UnsecureRecipient.prototype.getName = function() {
   return this._name;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.UnsecureRecipient.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

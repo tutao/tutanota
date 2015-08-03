@@ -212,7 +212,11 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getPermissions = funct
  * @param {boolean} bool The bool of this EtZeroOrOneValues.
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setBool = function(bool) {
-  this._bool = bool ? '1' : '0';
+  if (bool == null) {
+    this._bool = null;
+  } else {
+    this._bool = bool ? '1' : '0';
+  }
   return this;
 };
 
@@ -221,6 +225,9 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setBool = function(boo
  * @return {boolean} The bool of this EtZeroOrOneValues.
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getBool = function() {
+  if (this._bool == null) {
+    return null;
+  }
   return this._bool == '1';
 };
 

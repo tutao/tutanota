@@ -208,7 +208,7 @@ tutao.entity.sys.Invoice.prototype.setDate = function(date) {
  * @return {Date} The date of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getDate = function() {
-  if (this._date == "") {
+  if (this._date == "" || !this._entityHelper.getSessionKey()) {
     return new Date(0);
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
@@ -233,7 +233,7 @@ tutao.entity.sys.Invoice.prototype.setGrandTotal = function(grandTotal) {
  * @return {string} The grandTotal of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getGrandTotal = function() {
-  if (this._grandTotal == "") {
+  if (this._grandTotal == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._grandTotal);
@@ -255,7 +255,7 @@ tutao.entity.sys.Invoice.prototype.setNumber = function(number) {
  * @return {string} The number of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getNumber = function() {
-  if (this._number == "") {
+  if (this._number == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
@@ -277,7 +277,7 @@ tutao.entity.sys.Invoice.prototype.setPaymentMethod = function(paymentMethod) {
  * @return {string} The paymentMethod of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getPaymentMethod = function() {
-  if (this._paymentMethod == "") {
+  if (this._paymentMethod == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
@@ -299,7 +299,7 @@ tutao.entity.sys.Invoice.prototype.setSource = function(source) {
  * @return {string} The source of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getSource = function() {
-  if (this._source == "") {
+  if (this._source == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._source);
@@ -338,7 +338,7 @@ tutao.entity.sys.Invoice.prototype.setVat = function(vat) {
  * @return {string} The vat of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getVat = function() {
-  if (this._vat == "") {
+  if (this._vat == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._vat);
@@ -419,4 +419,11 @@ tutao.entity.sys.Invoice.prototype.registerObserver = function(listener, id) {
  */
 tutao.entity.sys.Invoice.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Invoice.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

@@ -4,7 +4,7 @@ tutao.tutanota.ctrl.lang.de.id = "de";
 tutao.tutanota.ctrl.lang.de.keys = {
   "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
   "accountSettings_label": "Account",
-  "accountSwitchTooManyActiveUsers_msg": "Bitte lösche alle zusätzlichen Benutzer, dann kann der Account-Typ gewechselt werden.",
+  "accountSwitchTooManyActiveUsers_msg": "Bitte deaktiviere alle zusätzlichen Benutzer, dann kann der Account-Typ gewechselt werden.",
   "accountType_label": "Account-Typ",
   "account_label": "Benutzer",
   "activated_label": "Aktiviert",
@@ -103,6 +103,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "contacts_label": "Kontakte",
   "contentBlocked_msg": "Das automatische Nachladen von Bildern wurde zum Schutz deiner Privatsphäre verhindert.",
   "continue_action": "Weiter",
+  "corrupted_msg": "Dieses Element ist fehlerhaft und kann nicht korrekt dargestellt werden.",
   "couldNotAttachFile_msg": "Die Datei konnte leider nicht geladen werden.",
   "countryMismatch_msg": "Das Land konnte nicht verifiziert werden.",
   "createAccountAccessDeactivated_msg": "Es wurden zu viele Anfragen gestellt. Bitte versuche es später erneut.",

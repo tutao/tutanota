@@ -145,3 +145,10 @@ tutao.entity.tutanota.DeleteFileData.prototype.update = function(parameters, hea
   parameters["v"] = 8;
   return tutao.locator.entityRestClient.putService(tutao.entity.tutanota.DeleteFileData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.DeleteFileData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

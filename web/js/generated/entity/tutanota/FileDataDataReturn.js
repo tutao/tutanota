@@ -112,3 +112,10 @@ tutao.entity.tutanota.FileDataDataReturn.prototype.update = function(parameters,
   parameters["v"] = 8;
   return tutao.locator.entityRestClient.putService(tutao.entity.tutanota.FileDataDataReturn.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.FileDataDataReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

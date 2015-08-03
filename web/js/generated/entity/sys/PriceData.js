@@ -151,3 +151,10 @@ tutao.entity.sys.PriceData.prototype.getTaxIncluded = function() {
 tutao.entity.sys.PriceData.prototype.getItems = function() {
   return this._items;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PriceData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

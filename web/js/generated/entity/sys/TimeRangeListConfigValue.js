@@ -101,3 +101,10 @@ tutao.entity.sys.TimeRangeListConfigValue.prototype.getName = function() {
 tutao.entity.sys.TimeRangeListConfigValue.prototype.getTimeRanges = function() {
   return this._timeRanges;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.TimeRangeListConfigValue.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

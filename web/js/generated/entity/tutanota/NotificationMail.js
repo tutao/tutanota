@@ -182,3 +182,10 @@ tutao.entity.tutanota.NotificationMail.prototype.setSubject = function(subject) 
 tutao.entity.tutanota.NotificationMail.prototype.getSubject = function() {
   return this._subject;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.NotificationMail.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

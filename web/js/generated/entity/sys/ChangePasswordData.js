@@ -188,3 +188,10 @@ tutao.entity.sys.ChangePasswordData.prototype.setup = function(parameters, heade
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.ChangePasswordData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.ChangePasswordData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

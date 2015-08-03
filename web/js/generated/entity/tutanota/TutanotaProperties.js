@@ -319,3 +319,10 @@ tutao.entity.tutanota.TutanotaProperties.prototype.registerObserver = function(l
 tutao.entity.tutanota.TutanotaProperties.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

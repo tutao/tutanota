@@ -152,6 +152,8 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody = function (blockExternalC
             tutao.locator.mailViewModel.notificationBarViewModel.showNotification("contentBlocked_msg", function() {
                 self._loadBody(false);
             });
+        } else if (!self.mail.getEntityHelper().getSessionKey() || !body.getEntityHelper().getSessionKey()) {
+            tutao.locator.mailViewModel.notificationBarViewModel.showNotification("corrupted_msg");
         }
 
         var text = tutao.tutanota.util.Formatter.urlify(result.text);

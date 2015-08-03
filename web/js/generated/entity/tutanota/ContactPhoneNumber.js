@@ -97,7 +97,7 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setCustomTypeName = function(
  * @return {string} The customTypeName of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getCustomTypeName = function() {
-  if (this._customTypeName == "") {
+  if (this._customTypeName == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._customTypeName);
@@ -119,7 +119,7 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setNumber = function(number) 
  * @return {string} The number of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getNumber = function() {
-  if (this._number == "") {
+  if (this._number == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._number);
@@ -141,9 +141,16 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setType = function(type) {
  * @return {string} The type of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getType = function() {
-  if (this._type == "") {
+  if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
   return value;
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.ContactPhoneNumber.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

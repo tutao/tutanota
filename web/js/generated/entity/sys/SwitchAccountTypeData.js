@@ -148,3 +148,10 @@ tutao.entity.sys.SwitchAccountTypeData.prototype.setup = function(parameters, he
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.SwitchAccountTypeData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.SwitchAccountTypeData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -152,3 +152,10 @@ tutao.entity.sys.TimeRangeConfigValue.prototype.getStart = function() {
   }
   return new Date(Number(this._start));
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.TimeRangeConfigValue.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

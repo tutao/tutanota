@@ -128,3 +128,10 @@ tutao.entity.sys.AutoLoginDataReturn.prototype.setup = function(parameters, head
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.AutoLoginDataReturn.PATH, this, parameters, headers, tutao.entity.sys.AutoLoginPostReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.AutoLoginDataReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

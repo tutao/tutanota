@@ -137,3 +137,10 @@ tutao.entity.sys.RegistrationCaptchaServiceReturn.load = function(parameters, he
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationCaptchaServiceReturn, tutao.entity.sys.RegistrationCaptchaServiceReturn.PATH, null, null, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationCaptchaServiceReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

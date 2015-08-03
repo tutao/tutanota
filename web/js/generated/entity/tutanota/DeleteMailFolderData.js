@@ -104,3 +104,10 @@ tutao.entity.tutanota.DeleteMailFolderData.prototype.erase = function(parameters
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.tutanota.DeleteMailFolderData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.DeleteMailFolderData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

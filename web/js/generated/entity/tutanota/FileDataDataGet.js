@@ -125,3 +125,10 @@ tutao.entity.tutanota.FileDataDataGet.prototype.getFile = function() {
 tutao.entity.tutanota.FileDataDataGet.prototype.loadFile = function() {
   return tutao.entity.tutanota.File.load(this._file);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.FileDataDataGet.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

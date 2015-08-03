@@ -113,3 +113,10 @@ tutao.entity.sys.DomainMailAddressAvailabilityReturn.load = function(entity, par
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.DomainMailAddressAvailabilityReturn, tutao.entity.sys.DomainMailAddressAvailabilityReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

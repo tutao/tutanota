@@ -92,3 +92,10 @@ tutao.entity.sys.DomainMailAddressAvailabilityData.prototype.setMailAddress = fu
 tutao.entity.sys.DomainMailAddressAvailabilityData.prototype.getMailAddress = function() {
   return this._mailAddress;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.DomainMailAddressAvailabilityData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -413,3 +413,10 @@ tutao.entity.sys.Customer.prototype.registerObserver = function(listener, id) {
 tutao.entity.sys.Customer.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Customer.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

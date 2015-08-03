@@ -97,7 +97,7 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.setData = function(data) {
  * @return {string} The data of this PdfInvoiceServiceReturn.
  */
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getData = function() {
-  if (this._data == "") {
+  if (this._data == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._data);
@@ -117,4 +117,11 @@ tutao.entity.sys.PdfInvoiceServiceReturn.load = function(entity, parameters, hea
   }
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PdfInvoiceServiceReturn, tutao.entity.sys.PdfInvoiceServiceReturn.PATH, entity, parameters, headers);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

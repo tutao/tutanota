@@ -331,7 +331,7 @@ tutao.entity.tutanota.Mail.prototype.setConfidential = function(confidential) {
  * @return {boolean} The confidential of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getConfidential = function() {
-  if (this._confidential == "") {
+  if (this._confidential == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
@@ -376,7 +376,7 @@ tutao.entity.tutanota.Mail.prototype.setReplyType = function(replyType) {
  * @return {string} The replyType of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getReplyType = function() {
-  if (this._replyType == "") {
+  if (this._replyType == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._replyType);
@@ -435,7 +435,7 @@ tutao.entity.tutanota.Mail.prototype.setSubject = function(subject) {
  * @return {string} The subject of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getSubject = function() {
-  if (this._subject == "") {
+  if (this._subject == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
@@ -649,4 +649,11 @@ tutao.entity.tutanota.Mail.prototype.registerObserver = function(listener, id) {
  */
 tutao.entity.tutanota.Mail.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.Mail.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

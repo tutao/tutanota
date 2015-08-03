@@ -158,3 +158,10 @@ tutao.entity.sys.ConfigDataReturn.prototype.update = function(parameters, header
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.ConfigDataReturn.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.ConfigDataReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

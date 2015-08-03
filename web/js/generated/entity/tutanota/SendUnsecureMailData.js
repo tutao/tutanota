@@ -439,3 +439,10 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.setup = function(parameters
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendUnsecureMailData.PATH, this, parameters, headers, tutao.entity.tutanota.SendUnsecureMailReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.SendUnsecureMailData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

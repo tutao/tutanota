@@ -163,3 +163,10 @@ tutao.entity.tutanota.PasswordMessagingData.prototype.setup = function(parameter
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.PasswordMessagingData.PATH, this, parameters, headers, tutao.entity.tutanota.PasswordMessagingReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.PasswordMessagingData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

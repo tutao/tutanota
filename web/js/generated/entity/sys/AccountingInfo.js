@@ -253,7 +253,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceAddress = function(invoiceAd
  * @return {string} The invoiceAddress of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceAddress = function() {
-  if (this._invoiceAddress == "") {
+  if (this._invoiceAddress == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceAddress);
@@ -279,7 +279,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceCountry = function(invoiceCo
  * @return {string} The invoiceCountry of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceCountry = function() {
-  if (this._invoiceCountry == null) {
+  if (this._invoiceCountry == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceCountry);
@@ -301,7 +301,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceName = function(invoiceName)
  * @return {string} The invoiceName of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceName = function() {
-  if (this._invoiceName == "") {
+  if (this._invoiceName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceName);
@@ -323,7 +323,7 @@ tutao.entity.sys.AccountingInfo.prototype.setInvoiceVatIdNo = function(invoiceVa
  * @return {string} The invoiceVatIdNo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getInvoiceVatIdNo = function() {
-  if (this._invoiceVatIdNo == "") {
+  if (this._invoiceVatIdNo == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._invoiceVatIdNo);
@@ -410,7 +410,7 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethod = function(paymentMet
  * @return {string} The paymentMethod of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethod = function() {
-  if (this._paymentMethod == null) {
+  if (this._paymentMethod == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
@@ -436,7 +436,7 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentMethodInfo = function(paymen
  * @return {string} The paymentMethodInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentMethodInfo = function() {
-  if (this._paymentMethodInfo == null) {
+  if (this._paymentMethodInfo == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethodInfo);
@@ -462,7 +462,7 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentProviderCustomerId = functio
  * @return {string} The paymentProviderCustomerId of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentProviderCustomerId = function() {
-  if (this._paymentProviderCustomerId == null) {
+  if (this._paymentProviderCustomerId == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentProviderCustomerId);
@@ -484,7 +484,7 @@ tutao.entity.sys.AccountingInfo.prototype.setSecondCountryInfo = function(second
  * @return {string} The secondCountryInfo of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getSecondCountryInfo = function() {
-  if (this._secondCountryInfo == "") {
+  if (this._secondCountryInfo == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._secondCountryInfo);
@@ -589,4 +589,11 @@ tutao.entity.sys.AccountingInfo.prototype.registerObserver = function(listener, 
  */
 tutao.entity.sys.AccountingInfo.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

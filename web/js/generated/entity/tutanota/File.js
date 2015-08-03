@@ -254,7 +254,7 @@ tutao.entity.tutanota.File.prototype.setMimeType = function(mimeType) {
  * @return {string} The mimeType of this File.
  */
 tutao.entity.tutanota.File.prototype.getMimeType = function() {
-  if (this._mimeType == null) {
+  if (this._mimeType == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
@@ -276,7 +276,7 @@ tutao.entity.tutanota.File.prototype.setName = function(name) {
  * @return {string} The name of this File.
  */
 tutao.entity.tutanota.File.prototype.getName = function() {
-  if (this._name == "") {
+  if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
@@ -441,4 +441,11 @@ tutao.entity.tutanota.File.prototype.registerObserver = function(listener, id) {
  */
 tutao.entity.tutanota.File.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.File.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

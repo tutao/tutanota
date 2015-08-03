@@ -92,3 +92,10 @@ tutao.entity.sys.PhoneNumberTypeData.prototype.setPhoneNumber = function(phoneNu
 tutao.entity.sys.PhoneNumberTypeData.prototype.getPhoneNumber = function() {
   return this._phoneNumber;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PhoneNumberTypeData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

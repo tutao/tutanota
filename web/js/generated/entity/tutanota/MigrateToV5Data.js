@@ -92,3 +92,10 @@ tutao.entity.tutanota.MigrateToV5Data.prototype.setNoop = function(noop) {
 tutao.entity.tutanota.MigrateToV5Data.prototype.getNoop = function() {
   return this._noop == '1';
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.MigrateToV5Data.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

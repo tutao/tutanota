@@ -115,3 +115,10 @@ tutao.entity.sys.Authentication.prototype.getUserId = function() {
 tutao.entity.sys.Authentication.prototype.loadUserId = function() {
   return tutao.entity.sys.User.load(this._userId);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Authentication.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

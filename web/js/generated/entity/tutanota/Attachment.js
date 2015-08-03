@@ -223,3 +223,10 @@ tutao.entity.tutanota.Attachment.prototype.getFileData = function() {
 tutao.entity.tutanota.Attachment.prototype.loadFileData = function() {
   return tutao.entity.tutanota.FileData.load(this._fileData);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.Attachment.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

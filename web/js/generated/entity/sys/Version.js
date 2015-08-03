@@ -201,3 +201,10 @@ tutao.entity.sys.Version.prototype.getAuthorGroupInfo = function() {
 tutao.entity.sys.Version.prototype.loadAuthorGroupInfo = function() {
   return tutao.entity.sys.GroupInfo.load(this._authorGroupInfo);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Version.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -114,7 +114,7 @@ tutao.entity.tutanota.MailAddress.prototype.setName = function(name) {
  * @return {string} The name of this MailAddress.
  */
 tutao.entity.tutanota.MailAddress.prototype.getName = function() {
-  if (this._name == "") {
+  if (this._name == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
@@ -144,4 +144,11 @@ tutao.entity.tutanota.MailAddress.prototype.getContact = function() {
  */
 tutao.entity.tutanota.MailAddress.prototype.loadContact = function() {
   return tutao.entity.tutanota.Contact.load(this._contact);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.MailAddress.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

@@ -25,6 +25,11 @@ tutao.tutanota.ctrl.NotificationBarViewModel = function() {
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };
 
+/**
+ * Shows a notification. If showAction is set, a show button is displayed in addition to the hide button.
+ * @param {string} textId The text to show
+ * @param {function=} showAction The function to call when the show button is clicked or null if no show button shall be displayed.
+ */
 tutao.tutanota.ctrl.NotificationBarViewModel.prototype.showNotification = function(textId, showAction) {
     this._showAction(showAction);
     this.isVisible(true);

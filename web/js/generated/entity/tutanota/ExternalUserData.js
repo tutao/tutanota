@@ -238,3 +238,10 @@ tutao.entity.tutanota.ExternalUserData.prototype.setup = function(parameters, he
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.ExternalUserData.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

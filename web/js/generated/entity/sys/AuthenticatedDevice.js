@@ -132,3 +132,10 @@ tutao.entity.sys.AuthenticatedDevice.prototype.setDeviceToken = function(deviceT
 tutao.entity.sys.AuthenticatedDevice.prototype.getDeviceToken = function() {
   return this._deviceToken;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.AuthenticatedDevice.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

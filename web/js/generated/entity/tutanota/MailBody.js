@@ -190,7 +190,7 @@ tutao.entity.tutanota.MailBody.prototype.setText = function(text) {
  * @return {string} The text of this MailBody.
  */
 tutao.entity.tutanota.MailBody.prototype.getText = function() {
-  if (this._text == "") {
+  if (this._text == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._text);
@@ -235,4 +235,11 @@ tutao.entity.tutanota.MailBody.prototype.registerObserver = function(listener, i
  */
 tutao.entity.tutanota.MailBody.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.MailBody.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

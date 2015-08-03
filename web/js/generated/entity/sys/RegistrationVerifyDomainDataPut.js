@@ -112,3 +112,10 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.update = function(par
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.RegistrationVerifyDomainDataPut.PATH, this, parameters, headers, null);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

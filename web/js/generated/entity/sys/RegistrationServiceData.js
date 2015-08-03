@@ -377,3 +377,10 @@ tutao.entity.sys.RegistrationServiceData.prototype.setup = function(parameters, 
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.RegistrationServiceData.PATH, this, parameters, headers, tutao.entity.sys.RegistrationReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationServiceData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

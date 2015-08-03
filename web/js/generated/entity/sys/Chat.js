@@ -132,3 +132,10 @@ tutao.entity.sys.Chat.prototype.setText = function(text) {
 tutao.entity.sys.Chat.prototype.getText = function() {
   return this._text;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.Chat.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

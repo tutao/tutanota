@@ -267,7 +267,7 @@ tutao.entity.sys.GroupInfo.prototype.setName = function(name) {
  * @return {string} The name of this GroupInfo.
  */
 tutao.entity.sys.GroupInfo.prototype.getName = function() {
-  if (this._name == "") {
+  if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
@@ -381,4 +381,11 @@ tutao.entity.sys.GroupInfo.prototype.registerObserver = function(listener, id) {
  */
 tutao.entity.sys.GroupInfo.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.GroupInfo.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

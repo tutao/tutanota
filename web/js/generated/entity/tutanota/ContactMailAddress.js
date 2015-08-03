@@ -97,7 +97,7 @@ tutao.entity.tutanota.ContactMailAddress.prototype.setAddress = function(address
  * @return {string} The address of this ContactMailAddress.
  */
 tutao.entity.tutanota.ContactMailAddress.prototype.getAddress = function() {
-  if (this._address == "") {
+  if (this._address == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._address);
@@ -119,7 +119,7 @@ tutao.entity.tutanota.ContactMailAddress.prototype.setCustomTypeName = function(
  * @return {string} The customTypeName of this ContactMailAddress.
  */
 tutao.entity.tutanota.ContactMailAddress.prototype.getCustomTypeName = function() {
-  if (this._customTypeName == "") {
+  if (this._customTypeName == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._customTypeName);
@@ -141,9 +141,16 @@ tutao.entity.tutanota.ContactMailAddress.prototype.setType = function(type) {
  * @return {string} The type of this ContactMailAddress.
  */
 tutao.entity.tutanota.ContactMailAddress.prototype.getType = function() {
-  if (this._type == "") {
+  if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
   return value;
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.ContactMailAddress.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

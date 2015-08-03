@@ -111,3 +111,10 @@ tutao.entity.sys.CustomDomainReturn.prototype.getStatusCode = function() {
 tutao.entity.sys.CustomDomainReturn.prototype.getInvalidDnsRecords = function() {
   return this._invalidDnsRecords;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.CustomDomainReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

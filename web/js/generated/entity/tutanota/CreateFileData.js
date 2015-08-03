@@ -137,7 +137,7 @@ tutao.entity.tutanota.CreateFileData.prototype.setFileName = function(fileName) 
  * @return {string} The fileName of this CreateFileData.
  */
 tutao.entity.tutanota.CreateFileData.prototype.getFileName = function() {
-  if (this._fileName == "") {
+  if (this._fileName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._fileName);
@@ -193,7 +193,7 @@ tutao.entity.tutanota.CreateFileData.prototype.setMimeType = function(mimeType) 
  * @return {string} The mimeType of this CreateFileData.
  */
 tutao.entity.tutanota.CreateFileData.prototype.getMimeType = function() {
-  if (this._mimeType == "") {
+  if (this._mimeType == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
@@ -263,4 +263,11 @@ tutao.entity.tutanota.CreateFileData.prototype.setup = function(parameters, head
   parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.CreateFileData.PATH, this, parameters, headers, tutao.entity.tutanota.CreateFileReturn);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.CreateFileData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

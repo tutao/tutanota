@@ -82,3 +82,10 @@ tutao.entity.tutanota.Subfiles.prototype.setFiles = function(files) {
 tutao.entity.tutanota.Subfiles.prototype.getFiles = function() {
   return this._files;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.Subfiles.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

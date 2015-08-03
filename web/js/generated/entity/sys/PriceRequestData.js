@@ -189,3 +189,10 @@ tutao.entity.sys.PriceRequestData.prototype.setPaymentInterval = function(paymen
 tutao.entity.sys.PriceRequestData.prototype.getPaymentInterval = function() {
   return this._paymentInterval;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PriceRequestData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

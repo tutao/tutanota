@@ -107,3 +107,10 @@ tutao.entity.sys.VersionReturn.load = function(entity, parameters, headers) {
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.VersionReturn, tutao.entity.sys.VersionReturn.PATH, entity, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.VersionReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

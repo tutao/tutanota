@@ -127,3 +127,10 @@ tutao.entity.sys.PriceServiceData.prototype.setPriceRequest = function(priceRequ
 tutao.entity.sys.PriceServiceData.prototype.getPriceRequest = function() {
   return this._priceRequest;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PriceServiceData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

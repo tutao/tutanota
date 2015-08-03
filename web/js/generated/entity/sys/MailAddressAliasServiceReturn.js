@@ -112,3 +112,10 @@ tutao.entity.sys.MailAddressAliasServiceReturn.load = function(parameters, heade
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.MailAddressAliasServiceReturn, tutao.entity.sys.MailAddressAliasServiceReturn.PATH, null, null, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -87,3 +87,10 @@ tutao.entity.sys.SmsMonitorReceiverData.load = function(parameters, headers) {
   parameters["v"] = 9;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.SmsMonitorReceiverData, tutao.entity.sys.SmsMonitorReceiverData.PATH, null, null, parameters, headers);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.SmsMonitorReceiverData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

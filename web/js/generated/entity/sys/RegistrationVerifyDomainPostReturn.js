@@ -92,3 +92,10 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.setMailSent = func
 tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.getMailSent = function() {
   return this._mailSent == '1';
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

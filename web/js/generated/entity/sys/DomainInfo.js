@@ -107,3 +107,10 @@ tutao.entity.sys.DomainInfo.prototype.setValidatedMxRecord = function(validatedM
 tutao.entity.sys.DomainInfo.prototype.getValidatedMxRecord = function() {
   return this._validatedMxRecord == '1';
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.DomainInfo.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

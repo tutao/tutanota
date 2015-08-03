@@ -113,3 +113,10 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.CustomDomainData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -82,3 +82,10 @@ tutao.entity.sys.PushIdentifierList.prototype.setList = function(list) {
 tutao.entity.sys.PushIdentifierList.prototype.getList = function() {
   return this._list;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PushIdentifierList.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

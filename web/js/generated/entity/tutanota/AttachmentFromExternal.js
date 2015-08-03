@@ -190,3 +190,10 @@ tutao.entity.tutanota.AttachmentFromExternal.prototype.getFileData = function() 
 tutao.entity.tutanota.AttachmentFromExternal.prototype.loadFileData = function() {
   return tutao.entity.tutanota.FileData.load(this._fileData);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.AttachmentFromExternal.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

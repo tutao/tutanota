@@ -138,3 +138,10 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.setup = function(par
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.RegistrationVerifyDomainDataPost.PATH, this, parameters, headers, tutao.entity.sys.RegistrationVerifyDomainPostReturn);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

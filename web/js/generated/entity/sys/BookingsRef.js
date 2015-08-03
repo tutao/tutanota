@@ -82,3 +82,10 @@ tutao.entity.sys.BookingsRef.prototype.setItems = function(items) {
 tutao.entity.sys.BookingsRef.prototype.getItems = function() {
   return this._items;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.BookingsRef.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

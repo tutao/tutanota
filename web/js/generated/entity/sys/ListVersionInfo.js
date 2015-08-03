@@ -325,3 +325,10 @@ tutao.entity.sys.ListVersionInfo.prototype.registerObserver = function(listener,
 tutao.entity.sys.ListVersionInfo.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.ListVersionInfo.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

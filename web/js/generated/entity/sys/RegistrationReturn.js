@@ -92,3 +92,10 @@ tutao.entity.sys.RegistrationReturn.prototype.setAuthToken = function(authToken)
 tutao.entity.sys.RegistrationReturn.prototype.getAuthToken = function() {
   return this._authToken;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.RegistrationReturn.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

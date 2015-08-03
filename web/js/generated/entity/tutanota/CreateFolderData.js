@@ -129,7 +129,7 @@ tutao.entity.tutanota.CreateFolderData.prototype.setFileName = function(fileName
  * @return {string} The fileName of this CreateFolderData.
  */
 tutao.entity.tutanota.CreateFolderData.prototype.getFileName = function() {
-  if (this._fileName == "") {
+  if (this._fileName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._fileName);
@@ -225,4 +225,11 @@ tutao.entity.tutanota.CreateFolderData.prototype.setup = function(parameters, he
   parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.CreateFolderData.PATH, this, parameters, headers, tutao.entity.tutanota.CreateFolderReturn);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.CreateFolderData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

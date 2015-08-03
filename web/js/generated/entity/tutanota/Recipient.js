@@ -206,7 +206,7 @@ tutao.entity.tutanota.Recipient.prototype.setName = function(name) {
  * @return {string} The name of this Recipient.
  */
 tutao.entity.tutanota.Recipient.prototype.getName = function() {
-  if (this._name == "") {
+  if (this._name == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
@@ -355,4 +355,11 @@ tutao.entity.tutanota.Recipient.prototype.getType = function() {
  */
 tutao.entity.tutanota.Recipient.prototype.getPasswordChannelPhoneNumbers = function() {
   return this._passwordChannelPhoneNumbers;
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.Recipient.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

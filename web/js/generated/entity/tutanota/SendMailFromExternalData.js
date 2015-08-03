@@ -180,7 +180,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setBodyText = function(
  * @return {string} The bodyText of this SendMailFromExternalData.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.getBodyText = function() {
-  if (this._bodyText == "") {
+  if (this._bodyText == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bodyText);
@@ -202,7 +202,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setConfidential = funct
  * @return {boolean} The confidential of this SendMailFromExternalData.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.getConfidential = function() {
-  if (this._confidential == "") {
+  if (this._confidential == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
@@ -295,7 +295,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setSenderName = functio
  * @return {string} The senderName of this SendMailFromExternalData.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.getSenderName = function() {
-  if (this._senderName == "") {
+  if (this._senderName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._senderName);
@@ -334,7 +334,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setSubject = function(s
  * @return {string} The subject of this SendMailFromExternalData.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.getSubject = function() {
-  if (this._subject == "") {
+  if (this._subject == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
@@ -379,4 +379,11 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setup = function(parame
   parameters["v"] = 8;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailFromExternalData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailFromExternalReturn);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.SendMailFromExternalData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

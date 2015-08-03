@@ -157,3 +157,10 @@ tutao.entity.sys.PriceItemData.prototype.setSingleType = function(singleType) {
 tutao.entity.sys.PriceItemData.prototype.getSingleType = function() {
   return this._singleType == '1';
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.sys.PriceItemData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};
