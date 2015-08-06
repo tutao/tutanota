@@ -26,6 +26,7 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO = 0;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD = 1;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_SIGNATURE = 11;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST = 2;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_DELETE_ACCOUNT = 3;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES = 4;
@@ -42,7 +43,7 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getUserSettings = function() {
 	var s = tutao.tutanota.ctrl.SettingsViewModel;
-	var settings = [s.DISPLAY_USER_INFO, s.DISPLAY_CHANGE_PASSWORD];
+	var settings = [s.DISPLAY_USER_INFO, s.DISPLAY_CHANGE_PASSWORD, s.DISPLAY_CHANGE_SIGNATURE];
     if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
         settings.push(s.DISPLAY_MAIL_SETTINGS);
     }

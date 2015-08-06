@@ -76,6 +76,9 @@ tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE = 26214400;
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.setBody = function(bodyText) {
     tutao.locator.mailView.setComposingBody(bodyText);
+tutao.tutanota.ctrl.ComposingMail.prototype.setFooter = function(footerText){
+    tutao.locater.mailView.setComposingFooter(11)
+}
 };
 
 /**
