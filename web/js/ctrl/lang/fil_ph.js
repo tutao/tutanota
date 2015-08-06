@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "export_action": "i-Export",
   "externalMailPassword_msg": "Ang iyong Tutanota Password: \"{1}\" o pindutin lamang ito: {2}",
   "externalNotificationMailBody1_msg": "Kamusta,",
-  "externalNotificationMailBody2_msg": "Nagpadala ako sa iyo ng kompidensyal na email mula sa {1}. Ang Tutanota ay nag-eencrypt ng mga email end-to-end, kasama lahat ng mga attachments. Maari mong marating ang iyong encrypted na mailbox at sumagot ng encrypted email gamit ng link na ito:",
+  "externalNotificationMailBody2_msg": "Nagpadala ako sa iyo ng kompidensyal na email mula sa Tutanota ({1}). Ang Tutanota ay nag-eencrypt ng mga email end-to-end, kasama lahat ng mga attachments. Maari mong marating ang iyong encrypted na mailbox at sumagot ng encrypted email gamit ng link na ito:",
   "externalNotificationMailBody3_msg": "Ipakita ang encrypted na email",
   "externalNotificationMailBody4_msg": "i-paste ang link na ito sa iyong browser:",
   "externalNotificationMailBody5_msg": "Itong email na ito ay kusang nalikha para sa pagpadala ng link. Ang link na ito ay may bisa hanggang makatanggap ka ng panibagong kompidensyal na email mula sakin.",

@@ -170,7 +170,7 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "export_action": "Eksporter",
   "externalMailPassword_msg": "Din Tutanota adgangskode: \"{1}\" eller klik blot: {2}",
   "externalNotificationMailBody1_msg": "Hej,",
-  "externalNotificationMailBody2_msg": "Jeg har sendt dig en fortrolig email via {1}. Tutanota krypterer emails automatisk ende-til-ende, inklusiv all vedhæftede filer. Du kan få din krypterede mailboks og også svare med en krypteret email via følgende link:",
+  "externalNotificationMailBody2_msg": "Jeg har sendt dig en fortrolig email via Tutanota ({1}). Tutanota krypterer emails automatisk ende-til-ende, inklusiv all vedhæftede filer. Du kan få din krypterede mailboks og også svare med en krypteret email via følgende link:",
   "externalNotificationMailBody3_msg": "Vis krypteret e-mail",
   "externalNotificationMailBody4_msg": "Eller kopier dette link ind i din browser:",
   "externalNotificationMailBody5_msg": "Denne email er automatisk genereret til at sende linket. Linket er gyldigt indtil du modtager en ny fortrolig email fra mig.",

@@ -117,7 +117,7 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "export_action": "Eksportuoti",
   "externalMailPassword_msg": "Jūsų Tutanota slaptažodis: \"{1}\" arba paspauskite: {2}",
   "externalNotificationMailBody1_msg": "Sveiki,",
-  "externalNotificationMailBody2_msg": "Išsiunčiau jums konfidencialų laišką per {1}. Tutanota automatiškai šifruoja laiškus nuo jūsų iki gavėjo kompiuterio, įskaitant ir prisegtus failus. Atsakyti į laišką šifruotu būdu ar atidaryti savo šifruotą pašto dėžutę galite per šią nuorodą:",
+  "externalNotificationMailBody2_msg": "Išsiunčiau jums konfidencialų laišką per Tutanota ({1}). Tutanota automatiškai šifruoja laiškus nuo jūsų iki gavėjo kompiuterio, įskaitant ir prisegtus failus. Atsakyti į laišką šifruotu būdu ar atidaryti savo šifruotą pašto dėžutę galite per šią nuorodą:",
   "externalNotificationMailBody3_msg": "Rodyti šifruotą laišką",
   "externalNotificationMailBody4_msg": "Arba įklijuokite šią nuorodą į savo naršyklę:",
   "externalNotificationMailBody5_msg": "Šis laiškas buvo automatiškai sugeneruotas nuorodos siuntimui. Nuoroda galios tol, kol iš manęs gausite naują konfidencialų laišką.",

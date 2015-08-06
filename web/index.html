@@ -1405,7 +1405,7 @@
 			</div>
 			<div id="changeSettingsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel">
                 <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
-                <div class="actions" data-bind='domInit: function(domElement) { adminUserListViewModel().buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: "buttonBar-template", data: adminUserListViewModel().buttonBarViewModel }'></div>
+				<div class="actions" data-bind='domInit: function(domElement) { adminUserListViewModel().buttonBarViewModelUserList.setButtonBarWidth($(domElement).width()) }, template: { name: "buttonBar-template", data: adminUserListViewModel().buttonBarViewModelUserList }'></div>
                 <!-- /ko -->
 				<div id="changeSettingsInnerColumn" class="scrollable">
 					<div id="changeSettingsData">
@@ -1872,7 +1872,19 @@
 				</div>
 			</div>
 			<div id="changeSettingsDetailsColumn" class="viewColumn" data-bind="with: tutao.locator.settingsViewModel.adminUserListViewModel">
+
+				<!-- ko if: !editing() && !newViewModel() -->
+					<div class="actions" data-bind='domInit: function(domElement) { buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: "buttonBar-template", data: buttonBarViewModel }'></div>
+					<div class="changeSettingsDetailsInnerColumn scrollable" data-bind="visible: tutao.locator.viewManager.isPremiumAccount()" >
+						<div class="infoMessage" >
+							<div data-bind="lang: 'userManagementAddAlias_msg'"></div>
+							<div data-bind="lang: 'emptyString_msg' "></div>
+							<div data-bind="lang: 'userManagementAddUser_msg'"></div>
+						</div>
+					</div>
+				<!-- /ko -->
                 <!-- ko if: editing() -->
+					<div class="actions" data-bind='domInit: function(domElement) { buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: "buttonBar-template", data: buttonBarViewModel }'></div>
                     <div class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: editing()">
                         <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { save(); }, 0); }, form: true">
                             <div class="record">

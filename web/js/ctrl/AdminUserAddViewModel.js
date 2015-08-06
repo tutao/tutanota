@@ -36,8 +36,8 @@ tutao.tutanota.ctrl.AdminUserAddViewModel = function(adminUserListViewModel) {
     this.addEmptyUser();
 
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, this._isEntering, false, "newUserAction", "add", "adminUserAdd_action"),
-        new tutao.tutanota.ctrl.Button("import_action", 11,  this.openCsvDialog, this._isEntering, false, "newUserAction", "add", "import_action")
+        new tutao.tutanota.ctrl.Button("import_action", 11,  this.openCsvDialog, this._isEntering, false, "newUserAction", "add", "import_action"),
+        new tutao.tutanota.ctrl.Button("adminUserAdd_action", 10,  this.addEmptyUser, this._isEntering, false, "newUserAction", "add", "adminUserAdd_action")
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 };

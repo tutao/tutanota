@@ -146,7 +146,7 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "export_action": "Ekspor",
   "externalMailPassword_msg": "Sandi Tutanota anda: \"{1}\" atau klik saja: {2}",
   "externalNotificationMailBody1_msg": "Halo,",
-  "externalNotificationMailBody2_msg": "Saya telah mengirimi Anda sebuah email rahasia melalui {1}. Tutanota mengenkripsi email secara otomatis dari ujung-ke-ujung, termasuk semua lampiran. Anda dapat meraih kotak surat terenkripsi Anda dan juga membalas dengan sebuah email yang terenkripsi menggunakan tautan berikut:",
+  "externalNotificationMailBody2_msg": "Saya telah mengirimi Anda sebuah email rahasia melalui Tutanota ({1}). Tutanota mengenkripsi email secara otomatis dari ujung-ke-ujung, termasuk semua lampiran. Anda dapat meraih kotak surat terenkripsi Anda dan juga membalas dengan sebuah email yang terenkripsi menggunakan tautan berikut:",
   "externalNotificationMailBody3_msg": "Tampilkan email terenkripsi",
   "externalNotificationMailBody4_msg": "Atau tempel tautan ini ke dalam peramban Anda:",
   "externalNotificationMailBody5_msg": "Email ini secara otomatis dibuat untuk mengirim tautan. Tautan akan tetap valid sampai Anda menerima email rahasia baru dari saya.",

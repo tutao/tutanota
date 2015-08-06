@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "expiredLink_msg": "對不起，這個鏈接是無效的。你應該已經收到新的通知電子郵件，包含有效的鏈接。上一個連結已經無效基於安全原因。",
   "export_action": "匯出",
   "externalNotificationMailBody1_msg": "嗨,",
-  "externalNotificationMailBody2_msg": "本人已透過 {1} 向您發送了加密郵件。Tutanota 會自動點對點加密電子郵件，包括所有附件。請點選以下的連結進入您的加密信箱並回覆郵件：",
+  "externalNotificationMailBody2_msg": "本人已透過 Tutanota ({1}) 向您發送了加密郵件。Tutanota 會自動點對點加密電子郵件，包括所有附件。請點選以下的連結進入您的加密信箱並回覆郵件：",
   "externalNotificationMailBody3_msg": "顯示已加密郵件",
   "externalNotificationMailBody4_msg": "或在瀏覽器中貼上這個連結:",
   "externalNotificationMailBody5_msg": "這封電子郵件的連結已自動建立。該連結一直有效直到您收到我的新加密郵件。",

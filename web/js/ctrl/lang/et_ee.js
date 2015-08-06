@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "export_action": "Eksport",
   "externalMailPassword_msg": "Teie Tutanota salasõna: \"{1}\" või klikkige: {2}",
   "externalNotificationMailBody1_msg": "Tere, ",
-  "externalNotificationMailBody2_msg": "Olen saatnud Teile konfidentsiaalse e-kirja läbi {1}. Tutanota krüpteerib e-kirjad automaatselt lõpuni (end-to-end) sealhulgas kõik manused. Pääsete ligi oma krüpteeritud postkastile, ning saate ka vastata krüpteeritud e-kirjaga, klikkides järgneval linkil:",
+  "externalNotificationMailBody2_msg": "Olen saatnud Teile konfidentsiaalse e-kirja läbi Tutanota ({1}). Tutanota krüpteerib e-kirjad automaatselt lõpuni (end-to-end) sealhulgas kõik manused. Pääsete ligi oma krüpteeritud postkastile, ning saate ka vastata krüpteeritud e-kirjaga, klikkides järgneval linkil:",
   "externalNotificationMailBody3_msg": "Näita krüpteeritud e-kirja",
   "externalNotificationMailBody4_msg": "Või kopeeri see link brauserisse:",
   "externalNotificationMailBody5_msg": "See e-kiri on automaatselt loodud saatmaks linki. Link püsib kehtivana nii kaua, kuni saate uue konfidentsiaalse e-kirja minult.",
