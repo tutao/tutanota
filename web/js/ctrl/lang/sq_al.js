@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "export_action": "Nxirr",
   "externalMailPassword_msg": "Fjalëkalimi yt te Tutanota është \"{1}\" Përndryshe, vetëm kliko këtu: {2}",
   "externalNotificationMailBody1_msg": "Tung,",
-  "externalNotificationMailBody2_msg": "Ta kam dërgu një mesazh nbesë përmes shërbimit {1}. Tutanota vetiu i kripton fundekrye mesazhet, duke i përfshi edhe bashkangjitjet. Mesazhin tim mund ta lexosh dhe t'i përgjigjesh me mesazh të kriptuar duke kliku mbi këtë vegëz:",
+  "externalNotificationMailBody2_msg": "Ta kam dërgu një mesazh nbesë përmes shërbimit Tutanota ({1}). Tutanota vetiu i kripton fundekrye mesazhet, duke i përfshi edhe bashkangjitjet. Mesazhin tim mund ta lexosh dhe t'i përgjigjesh me mesazh të kriptuar duke kliku mbi këtë vegëz:",
   "externalNotificationMailBody3_msg": "Shfaqe mesazhin e kriptuar",
   "externalNotificationMailBody4_msg": "Ose hape këtë link në shfletuesin e rrjetit:",
   "externalNotificationMailBody5_msg": "Ky mesazh u përftu vetiu për ta dërgu vegëzën për mesazhin kryesor. Vegëza mbetet e vlefshme deri kur të marrësh prej meje tjetër mesazh nbesë.",

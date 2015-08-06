@@ -185,7 +185,7 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "expiredLink_msg": "Désolé, ce lien n'est plus valide. Vous devriez avoir reçu un nouveau message de notification avec un lien valide. Les liens précédents ont été désactivés pour des raisons de sécurité.",
   "export_action": "Exporter",
   "externalNotificationMailBody1_msg": "Bonjour,",
-  "externalNotificationMailBody2_msg": "Je vous ai envoyé un message confidentiel via {1}. Tutanota chiffre automatiquement les messages, y compris leurs pièces jointes. Vous pouvez accéder à votre boîte aux lettres chiffrée et répondre par un message chiffré grâce au lien suivant :",
+  "externalNotificationMailBody2_msg": "Je vous ai envoyé un message confidentiel via Tutanota ({1}). Tutanota chiffre automatiquement les messages, y compris leurs pièces jointes. Vous pouvez accéder à votre boîte aux lettres chiffrée et répondre par un message chiffré grâce au lien suivant :",
   "externalNotificationMailBody3_msg": "Afficher le message chiffré",
   "externalNotificationMailBody4_msg": "Ou ouvrez ce lien dans votre navigateur :",
   "externalNotificationMailBody5_msg": "Cet email a été généré automatiquement afin d'envoyer le lien. Ce lien reste valide tant que vous ne recevrez aucun nouvel e-mail confidentiel de ma part.",

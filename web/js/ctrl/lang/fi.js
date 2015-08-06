@@ -120,7 +120,7 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "export_action": "Vie",
   "externalMailPassword_msg": "Sinun Tutanota-salasanasi: \"{1}\" tai klikkaa: {2}",
   "externalNotificationMailBody1_msg": "Hei,",
-  "externalNotificationMailBody2_msg": "Olen lähettänyt sinulle luottamuksellisen sähköpostin {1}n kautta. Tutanota salaa viestit ja niiden liitteet automaattisesti. Voit kirjautua salattuun sähköpostiisi ja vastata viestiin tämän linkin kautta:",
+  "externalNotificationMailBody2_msg": "Olen lähettänyt sinulle luottamuksellisen sähköpostin Tutanotan ({1}) kautta. Tutanota salaa viestit ja niiden liitteet automaattisesti. Voit kirjautua salattuun sähköpostiisi ja vastata viestiin tämän linkin kautta:",
   "externalNotificationMailBody3_msg": "Näytä salattu sähköposti",
   "externalNotificationMailBody4_msg": "Tai liitä tämä linkki selaimesi osoiteriville:",
   "externalNotificationMailBody5_msg": "Tämä sähköposti lähetettiin automaattisesti linkin välittämistä varten. Linkki pysyy aktiivisena kunnes vastaanotat uuden luottamuksellisen sähköpostin minulta.",

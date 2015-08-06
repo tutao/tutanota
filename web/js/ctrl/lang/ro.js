@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.lang.ro.keys = {
   "expiredLink_msg": "Ne scuzati, acest link nu mai este valid. Ar fi trebuit sa fi primit un e-mail nou de notificare, cu link-ul actual valid. Link-urile anterioare sunt dezactivate din ratiuni de securitate.",
   "export_action": "Exporta",
   "externalNotificationMailBody1_msg": "Buna,",
-  "externalNotificationMailBody2_msg": "V-am trimis un e-mail confidential prin {1}. Tutanota cripteaza e-mail-urile automat, de la un capat la altul, inclusiv toate atasamentele. Puteti avea acces la casuta dv. postala criptata si sa raspundeti cu un e-mail criptat, la urmatorul link:",
+  "externalNotificationMailBody2_msg": "V-am trimis un e-mail confidential prin Tutanota ({1}). Tutanota cripteaza e-mail-urile automat, de la un capat la altul, inclusiv toate atasamentele. Puteti avea acces la casuta dv. postala criptata si sa raspundeti cu un e-mail criptat, la urmatorul link:",
   "externalNotificationMailBody3_msg": "Arată e-mail criptat",
   "externalNotificationMailBody4_msg": "Sau lipiti acest link in browserul dv.:",
   "externalNotificationMailBody5_msg": "Acest e-mail a fost generat automat pentru trimiterea link-ului. Link-ul ramane valid pana cand primiti un e-mail confidential nou de la mine.",

@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "export_action": "Exportovat",
   "externalMailPassword_msg": "Vaše heslo ke službě Tutanota: \"{1}\" nebo jen klepněte: {2}",
   "externalNotificationMailBody1_msg": "Dobrý den,",
-  "externalNotificationMailBody2_msg": "Odeslal jsem Vám důvěrný email prostřednictvím {1}. Tutanota používá k odesílání emailových zpráv i příloh end-to-end šifrování. Na následujícím odkazu můžete vstoupit do vaší zašifrované schránky a odpovědět šifrovaným emailem:",
+  "externalNotificationMailBody2_msg": "Odeslal jsem Vám důvěrný email prostřednictvím Tutanota ({1}). Tutanota používá k odesílání emailových zpráv i příloh end-to-end šifrování. Na následujícím odkazu můžete vstoupit do vaší zašifrované schránky a odpovědět šifrovaným emailem:",
   "externalNotificationMailBody3_msg": "Zobrazit zašifrovaný email",
   "externalNotificationMailBody4_msg": "Nebo vložte odkaz do Vašeho prohlížeče:",
   "externalNotificationMailBody5_msg": "Tato zpráva byla generována automaticky k odeslání odkazu. Odkaz je platný až do doby, dokud ode mě neobdržíte další důvěrný email..",

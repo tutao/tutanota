@@ -180,7 +180,7 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "export_action": "Export",
   "externalMailPassword_msg": "Tvoje Tutanota heslo: \"{1}\" alebo klikni na: {2}",
   "externalNotificationMailBody1_msg": "Ahoj,",
-  "externalNotificationMailBody2_msg": "Poslal som ti dôverný email cez {1}. Tutanota šifruje maily automaticky end-to-end, v čítane príloh. K prístupu na tvoju šifrovanú schránku a pre šifrovanú odpoveď klikni na linku:",
+  "externalNotificationMailBody2_msg": "Poslal som ti dôverný email cez Tutanota ({1}). Tutanota šifruje maily automaticky end-to-end, v čítane príloh. K prístupu na tvoju šifrovanú schránku a pre šifrovanú odpoveď klikni na linku:",
   "externalNotificationMailBody3_msg": "Zobraz šifrovaný email",
   "externalNotificationMailBody4_msg": "Alebo vlož túto linku do prehliadača:",
   "externalNotificationMailBody5_msg": "Tento email bol vygenerovaný automaticky pre odoslanie linky. Táto linka bude platná, kým nedostaneš nový email odo mňa.",

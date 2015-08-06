@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "export_action": "Export",
   "externalMailPassword_msg": "Tutanota jelszavad: \"{1}\" vagy csak kattints: {2}",
   "externalNotificationMailBody1_msg": "Szervusz,",
-  "externalNotificationMailBody2_msg": "Küldtem neked egy bizalmas e-mailt a {1}. Tutanotán keresztül. A szolgáltatás küldőtől címzettig automatikusan titkosítja az üzeneteket, a mellékletekkel egyetemben. Alábbi linkre kattintva válaszolhatsz az üzenetre, illetve készíthetsz magadnak saját postafiókot.",
+  "externalNotificationMailBody2_msg": "Küldtem neked egy bizalmas e-mailt a Tutanota ({1}). Tutanotán keresztül. A szolgáltatás küldőtől címzettig automatikusan titkosítja az üzeneteket, a mellékletekkel egyetemben. Alábbi linkre kattintva válaszolhatsz az üzenetre, illetve készíthetsz magadnak saját postafiókot.",
   "externalNotificationMailBody3_msg": "Titkosított e-mail megtekintése",
   "externalNotificationMailBody4_msg": "Vagy illeszd be a linket a böngésző címsorába:",
   "externalNotificationMailBody5_msg": "Az e-mail automatikusan generált egy üzenethez vezető linket, mely a megválaszolásáig érvényben marad.",

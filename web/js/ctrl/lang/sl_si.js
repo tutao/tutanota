@@ -78,7 +78,7 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "enterPresharedPassword_msg": "Vnesite geslo, ki ste ga določili s prejemnikom.",
   "errorNotification_label": "Obvestilo o napaki",
   "externalMailPassword_msg": "Vaše Tutanota geslo: \"{1}\" ali kliknite: {2}",
-  "externalNotificationMailBody2_msg": "Poslal(a) sem ti zaupno e-pošto prek {1}. Tutanota uporablja samodejno end-to-end šifriranje e-poštnih sporočil in njihovih priponk. S klikom na spodnji link lahko dostopaš do svojih zaupnih sporočil in nanje tudi odgovoriš:",
+  "externalNotificationMailBody2_msg": "Poslal(a) sem ti zaupno e-pošto prek Tutanota ({1}). Tutanota uporablja samodejno end-to-end šifriranje e-poštnih sporočil in njihovih priponk. S klikom na spodnji link lahko dostopaš do svojih zaupnih sporočil in nanje tudi odgovoriš:",
   "externalNotificationMailBody3_msg": "Prikaži šifrirano sporočilo",
   "externalNotificationMailBody4_msg": "Ali pa v svoj brskalnik prilepite sledečo povezavo:",
   "externalNotificationMailBody5_msg": "To sporočilo je bilo samodejno ustvarjeno za pošiljanje povezave. Dokler ne dobite novega zaupnega sporočila, ostane povezava veljavna.",

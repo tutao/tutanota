@@ -21,6 +21,13 @@ tutao.tutanota.ctrl.AdminUserListViewModel = function() {
     ];
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
+
+    var self = this;
+    this.buttonsUserList = [
+        new tutao.tutanota.ctrl.Button("addUsers_action", 10,  this.createAccounts, function() { return !tutao.locator.settingsView.isChangeSettingsDetailsColumnVisible() && self.createAccountsPossible();}, false, "newUserAction", "add", "addUsers_action")
+    ];
+    this.buttonBarViewModelUserList = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttonsUserList, null, tutao.tutanota.gui.measureActionBarEntry);
+
     this.update();
 };
 
