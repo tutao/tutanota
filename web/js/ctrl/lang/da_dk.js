@@ -220,7 +220,7 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "invalidRecipients_msg": "Ret venligst den ugyldige e-mail adresse i modtager felterne.",
   "invalidSwVersion_msg": "Der er en opdatering til Tutanota. Når du genstarter Outlook, vil den nyeste version automatisk blive hentet og installeret.",
   "invalidVatIdNumber_msg": "Momsnummeret (CVR nummer) er ikke gyldigt.",
-  "invitationMailBody_msg": "Hej!<br><br>Dette er min nye e-mail adresse. Med Tutanota er alle vores e-mails krypterede automatisk så ingen kan læse med. Alle data på serverne er også krypterede, ingen profilering mulig.<br><br>Bliv medlem af Tutanota nu:<br><a\nhref=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Venlig hilsen,<br>{1}<br><br>PS: Tutanota er gratis og med 1 GB gratis plads inkluderet. Samtidig er det open source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Hej!<br><br>Dette er min nye e-mail adresse. Med Tutanota er alle vores e-mails krypterede automatisk så ingen kan læse med. Alle data på serverne er også krypterede, ingen profilering mulig.<br><br>Bliv medlem af Tutanota nu:<br><a\nhref=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Venlig hilsen,<br>{1}<br><br>PS: Tutanota er gratis og med 1 GB gratis plads inkluderet. Samtidig er det open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Lad os tage dit privatliv tilbage med Tutanota!",
   "invite_alt": "Invitér",
   "invite_label": "Inviter",

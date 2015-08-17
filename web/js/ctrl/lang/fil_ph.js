@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "invalidPassword_msg": "Maling password. Paki-suriin ito ulit.",
   "invalidRecipients_msg": "Pakitama ang mga hindi wastong email address sa field ng mga tagatanggap.",
   "invalidSwVersion_msg": "Ang iyong Tutanota addin ay kailangan mai-update. Kapag binuksan ulet ang Outlook, ang bagong bersyon ay kusang mag-dodownload at mag-iinstall.",
-  "invitationMailBody_msg": "Kamusta!<br><br>Ito ang aking panibagong email address. Sa Tutanota, lahat ng ating email ay kusang na-eencrypt kaya walang makakabasa nito. Lahat ng data sa mga server ay encrypted rin, walang profiling na maaring maganap. <br><br>Sumali na sa Tutanota ngayon:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Sumasaiyo,<br>{1}<br><br>PS: Ang Tutanota ay libre at may kasamang 1 GB na libreng storage. Sa karagdagan, ito ay open source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Kamusta!<br><br>Ito ang aking panibagong email address. Sa Tutanota, lahat ng ating email ay kusang na-eencrypt kaya walang makakabasa nito. Lahat ng data sa mga server ay encrypted rin, walang profiling na maaring maganap. <br><br>Sumali na sa Tutanota ngayon:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Sumasaiyo,<br>{1}<br><br>PS: Ang Tutanota ay libre at may kasamang 1 GB na libreng storage. Sa karagdagan, ito ay open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Ibalik ang ating pagkapribado sa tulong ng Tutanota!",
   "invite_alt": "Mangimbita",
   "invite_label": "Mangmbita",

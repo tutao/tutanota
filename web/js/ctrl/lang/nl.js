@@ -232,7 +232,7 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "invalidRecipients_msg": "Corrigeer a.u.b. het onjuiste e-mailadres in het veld met geadresseerden.",
   "invalidSwVersion_msg": "Uw Tutanota plugin moet worden bijgewerkt. Zodra u Outlook herstart wordt deze plugin automatisch gedownload en geïnstalleerd.",
   "invalidVatIdNumber_msg": "Het BTW nummer is ongeldig.",
-  "invitationMailBody_msg": "Hallo!<br><br>Dit is mijn nieuwe e-maildres. Met Tutanota zijn al onze e-mails automatisch versleuteld, zodat niemand mee kan lezen. Alle data op de servers zijn ook versleuteld; geen profilering mogelijk.<br><br>Meldt je ook aan bij Tutanota:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Met vriendelijke groet,<br>{1}<br><br>PS: Tutanota heeft gratis 1 GB opslag. Het is ook nog open source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Hallo!<br><br>Dit is mijn nieuwe e-maildres. Met Tutanota zijn al onze e-mails automatisch versleuteld, zodat niemand mee kan lezen. Alle data op de servers zijn ook versleuteld; geen profilering mogelijk.<br><br>Meldt je ook aan bij Tutanota:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Met vriendelijke groet,<br>{1}<br><br>PS: Tutanota heeft gratis 1 GB opslag. Het is ook nog open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Laten we weer baas worden over onze eigen privacy met Tutanota!",
   "invite_alt": "Uitnodigen",
   "invite_label": "Uitnodiging",

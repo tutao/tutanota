@@ -237,7 +237,7 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "invalidRecipients_msg": "Vänligen rätta de ogiltiga adresserna i mottagarfälten.",
   "invalidSwVersion_msg": "Din Tutanota pluggin måste uppdateras. När du startar om Outlook kommer den nya versionen automatiskt laddas ner och installeras.",
   "invalidVatIdNumber_msg": "Mervärdesskattenummer (VAT-ID) är ogiltigt.",
-  "invitationMailBody_msg": "Hej! <br><br> Detta är min nya e-postadress. Med Tutanota är alla våra mejl automatiskt krypterade så att ingen annan kan läsa. All data på servrarna krypteras också, så ingen \"profilering\" är möjlig. <br><br> Gå med Tutanota nu:. <br> <a Href=\\\"https://app.tutanota.de/#register\\\"> https: //app.tutanota.de/#register </a> <br> Vänliga hälsningar, <br> {1} <br> PS: Tutanota är gratis,1 GB data lagrings utrymme ingår. Dessutom är det öppen källkod: <a href=\\\"https://github.com/tutao/tutanota\\\"> https://github.com/tutao/tutanota </a>",
+  "invitationMailBody_msg": "Hej! <br><br> Detta är min nya e-postadress. Med Tutanota är alla våra mejl automatiskt krypterade så att ingen annan kan läsa. All data på servrarna krypteras också, så ingen \"profilering\" är möjlig. <br><br> Gå med Tutanota nu:. <br> <a Href=\"https://app.tutanota.de/#register\"> https: //app.tutanota.de/#register </a> <br> Vänliga hälsningar, <br> {1} <br> PS: Tutanota är gratis,1 GB data lagrings utrymme ingår. Dessutom är det öppen källkod: <a href=\"https://github.com/tutao/tutanota\"> https://github.com/tutao/tutanota </a>",
   "invitationMailSubject_msg": "Låt oss ta tillbaka vår integritet med Tutanota!",
   "invite_alt": "Bjud in",
   "invite_label": "Bjud in",

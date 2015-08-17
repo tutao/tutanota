@@ -237,7 +237,7 @@ tutao.tutanota.ctrl.lang.no.keys = {
   "invalidRecipients_msg": "Korriger de ugyldige e-post adressene i mottakerfeltene.",
   "invalidSwVersion_msg": "Tutanota addin må oppdateres. Ved å starte Outlook på nytt vil den nye versjonen automatisk ble nedlastet og innstallert.",
   "invalidVatIdNumber_msg": "MVA organisasjonsnummeret (VAT-ID) er ugyldig.",
-  "invitationMailBody_msg": "Hei!<br><br>Dette er min nye e-postadresse. Med Tutanota vil all e-post korrespondanse oss i mellom være kryptert så ingen andre kan lese det. Informasjonen på serveren forblir også kryptert, ingen profilering blir mulig.<br><br>Registrer deg hos Tutanota nå:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Vennlig hilsen,<br>{1}<br><br>PS: Tutanota er gratis med 1 GB lagringsplass inkludert. I tillegg, så er det åpen kildekode: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Hei!<br><br>Dette er min nye e-postadresse. Med Tutanota vil all e-post korrespondanse oss i mellom være kryptert så ingen andre kan lese det. Informasjonen på serveren forblir også kryptert, ingen profilering blir mulig.<br><br>Registrer deg hos Tutanota nå:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Vennlig hilsen,<br>{1}<br><br>PS: Tutanota er gratis med 1 GB lagringsplass inkludert. I tillegg, så er det åpen kildekode: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "La oss ta privatlivet tilbake med Tutanota!",
   "invite_alt": "invitere",
   "invite_label": "Inviter",

@@ -230,7 +230,7 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "invalidRecipients_msg": "Prosím oprav chybnú emailovú adresu príjemcu.",
   "invalidSwVersion_msg": "Tvoj Tutanota addin musí byť aktualizovaný. Keď reštartuješ Outlook, nová verzia bude automaticky stiahnutá a nainštalovaná.",
   "invalidVatIdNumber_msg": "Daňové identifikačné číslo z pridanej hodnoty (DPH-ID) je nesprávne.",
-  "invitationMailBody_msg": "Ahok!<br><br>Toto je moja nová emailová adresa Pomocou Tutanota budú všetky naše maily automaticky šifrované, takže ich nikto cudzí nevie prečítať. Všetky dáta na servri sú tiež šifrované, a sú pre druhých neprístupné.<br><br>Pripoj sa k Tutanota:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>S priateľským pozdravom,<br>{1}<br><br>PS: Tutanota je zadarmo s 1 GB voľným úložným priestorom. Zdrojový text je prístupny ako Open Source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Ahok!<br><br>Toto je moja nová emailová adresa Pomocou Tutanota budú všetky naše maily automaticky šifrované, takže ich nikto cudzí nevie prečítať. Všetky dáta na servri sú tiež šifrované, a sú pre druhých neprístupné.<br><br>Pripoj sa k Tutanota:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>S priateľským pozdravom,<br>{1}<br><br>PS: Tutanota je zadarmo s 1 GB voľným úložným priestorom. Zdrojový text je prístupny ako Open Source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Získajme späť naše súkromie s Tutanota!",
   "invite_alt": "Pozvi",
   "invite_label": "Pozvi",

@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "invalidPassword_msg": "Fjalëkalimi i gabuar. Të lutem, provo sërish.",
   "invalidRecipients_msg": "Të lutem, korrigjoji adresat e pavlefshme në fushat e marrësve.",
   "invalidSwVersion_msg": "Shtojca Tutanota duhet të përditësohet. Kur ta rinisësh Outlookun, versioni i ri do shkarkohet dhe instalohet automatikisht",
-  "invitationMailBody_msg": "Tung!<br><br>Qe adresa ime e re e postelit. Me Tutanotën, postelat tanë kriptohen vetiu, kështu që askush s'mundet me na i lexu. Të gjitha të dhënat në servera janë gjithashtu të kriptuara; është e pamundshme me na profilizu.<br><br>Bashkangjitju Tutanotës:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Të fala,<br>{1}<br><br>PS: Tutanota mundëson shërbim falas me 1 GB hapësirë për rujtje. Gjithashtu, është ndërtu me softver të lirë dhe kod burimor të hapur: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Tung!<br><br>Qe adresa ime e re e postelit. Me Tutanotën, postelat tanë kriptohen vetiu, kështu që askush s'mundet me na i lexu. Të gjitha të dhënat në servera janë gjithashtu të kriptuara; është e pamundshme me na profilizu.<br><br>Bashkangjitju Tutanotës:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Të fala,<br>{1}<br><br>PS: Tutanota mundëson shërbim falas me 1 GB hapësirë për rujtje. Gjithashtu, është ndërtu me softver të lirë dhe kod burimor të hapur: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Ta rikthejmë privatësinë me Tutanotën!",
   "invite_alt": "Fto",
   "invite_label": "Fto",

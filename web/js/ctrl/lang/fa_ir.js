@@ -168,7 +168,7 @@ tutao.tutanota.ctrl.lang.fa_ir.keys = {
   "invalidPassword_msg": "رمز عبور متاسفانه نامعتبر است.",
   "invalidRecipients_msg": "لطفا آدرس ایمیل نامعتبر دریافت کنندگان را تصحیح کنید.",
   "invalidSwVersion_msg": "الدین شما در Tutanotaباید  به روز شد. هنگامی که شما outlook را روشن کنید ، نسخه جدید به صورت خودکار دانلود و نصب میشود.",
-  "invitationMailBody_msg": "سلام  <br> <br> اینجا آدرس ایمیل جدید من است. Tutanota همه ایمیل های ما به طور خودکار رمز گذاری میکند، به طوری که هیچ کس نمی تواند ان را بخواند. علاوه بر این، تمام داده ها در سرورها رمزگذاری میشوند، در نتیجه آن امکان پذیر نمی باشد، داده ها  به مقصود تبلیغات اسکن شوند.  <br> <br>\nثبت نام رایگان:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br>Viele Grüße<br>{1}<br><br>\nPS: رایگان با 1GB حافظه گنجانده شده است. این نیز متن باز: <a href=\\\"https://github.com/tutao/tutanota\\\"> https://github.com/tutao/tutanota ",
+  "invitationMailBody_msg": "سلام  <br> <br> اینجا آدرس ایمیل جدید من است. Tutanota همه ایمیل های ما به طور خودکار رمز گذاری میکند، به طوری که هیچ کس نمی تواند ان را بخواند. علاوه بر این، تمام داده ها در سرورها رمزگذاری میشوند، در نتیجه آن امکان پذیر نمی باشد، داده ها  به مقصود تبلیغات اسکن شوند.  <br> <br>\nثبت نام رایگان:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br>Viele Grüße<br>{1}<br><br>\nPS: رایگان با 1GB حافظه گنجانده شده است. این نیز متن باز: <a href=\"https://github.com/tutao/tutanota\"> https://github.com/tutao/tutanota ",
   "invitationMailSubject_msg": "با ما همراه باش: با Tutanota ما حریم خصوصی را برمیگردانیم!",
   "invite_alt": "دعوت",
   "invite_label": "دعوت",

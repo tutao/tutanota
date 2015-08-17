@@ -237,7 +237,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "invalidRecipients_msg": "Por favor, corrige el correo electrónico erróneo en el campo de destinatario.",
   "invalidSwVersion_msg": "Tu extensión Tutanota debe actualizarse. Cuando reinicies Outlook, la nueva versión se descargará e instalará automáticamente.",
   "invalidVatIdNumber_msg": "El número de identificación del impuesto sobre el valor agregado (IVA-ID) no es válido.",
-  "invitationMailBody_msg": "¡Hola!<br><br>Esta es mi nueva dirección de correo. Con Tutanota todos nuestros correos estarán encriptados automáticamente para que nadie pueda verlos. Todos los datos en el servidor están también encriptados.<br><br>Únete a Tutanota ahora<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Saludos,<br>{1}<br><br>PD: Tutanota es gratuito y con 1 GB de espacio incluído. Además, es de código abierto: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "¡Hola!<br><br>Esta es mi nueva dirección de correo. Con Tutanota todos nuestros correos estarán encriptados automáticamente para que nadie pueda verlos. Todos los datos en el servidor están también encriptados.<br><br>Únete a Tutanota ahora<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Saludos,<br>{1}<br><br>PD: Tutanota es gratuito y con 1 GB de espacio incluído. Además, es de código abierto: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "¡Recuperemos nuestra privacidad con Tutanota!",
   "invite_alt": "Invitar",
   "invite_label": "Invitar",

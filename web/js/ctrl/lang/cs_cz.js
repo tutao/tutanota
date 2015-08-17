@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "invalidPassword_msg": "Neplatné heslo. Prosím znovu zkontrolujte.",
   "invalidRecipients_msg": "Opravte neplatné emailové adresy v polích příjemce.",
   "invalidSwVersion_msg": "Váš doplněk Tutanota je třeba aktualizovat. Nová verze bude automaticky stažena a nainstalována při novém spuštění aplikace Outlook.",
-  "invitationMailBody_msg": "Zdravím vás!<br><br>Toto je moje nová emailová adresa. Se službou Tutanota je veškerá naše emailová komunikace automaticky šifrována a nikdo do ní proto nemůže nahlížet. Veškerá data uložená na serverech jsou také šifrována a neexistuje tedy možnost profilování uživatelů.<br><br>Přidejte se i vy:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>S pozdravem,<br>{1}<br><br>PS: Tutanota je zdarma včetně 1 GB úložné kapacity a navíc je open source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Zdravím vás!<br><br>Toto je moje nová emailová adresa. Se službou Tutanota je veškerá naše emailová komunikace automaticky šifrována a nikdo do ní proto nemůže nahlížet. Veškerá data uložená na serverech jsou také šifrována a neexistuje tedy možnost profilování uživatelů.<br><br>Přidejte se i vy:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>S pozdravem,<br>{1}<br><br>PS: Tutanota je zdarma včetně 1 GB úložné kapacity a navíc je open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Pojďme vzít zpět naše soukromí s Tutanota!",
   "invite_alt": "Pozvat",
   "invite_label": "Pozvat",

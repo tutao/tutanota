@@ -108,7 +108,7 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "invalidPassword_msg": "Neveljavno geslo. Prosimo, preverite ga.",
   "invalidRecipients_msg": "Prosimo, popravite nepravilnosti v prejemnikovem naslovu.",
   "invalidSwVersion_msg": "Vaš Tutanota dodatek je potrebno posodobiti. Ob ponovnem zagonu Outlooka se bo nova verzija samodejno prenesla in namestila.",
-  "invitationMailBody_msg": "Živjo!<br><br>To je moj novi e-poštni naslov. Ker Tutanota samodejno šifrira vsa naša sporočila, so varna pred nepovabljenimi pogledi. Tudi podatki na strežnikih so šifrirani, zato nihče ne more dostopati do njih, razen tebe.<br><br>Pridruži se nam:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Pozdrav,<br>{1}<br><br>PS: Tutanota je brezplačna in odprtokodna, na voljo imaš 1 GB prostora. Več na: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Živjo!<br><br>To je moj novi e-poštni naslov. Ker Tutanota samodejno šifrira vsa naša sporočila, so varna pred nepovabljenimi pogledi. Tudi podatki na strežnikih so šifrirani, zato nihče ne more dostopati do njih, razen tebe.<br><br>Pridruži se nam:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Pozdrav,<br>{1}<br><br>PS: Tutanota je brezplačna in odprtokodna, na voljo imaš 1 GB prostora. Več na: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Naj bo zasebnost spet naša s Tutanoto!",
   "invite_alt": "Povabi",
   "invite_label": "Povabi",

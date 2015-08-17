@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "invalidPassword_msg": "A jelszó nem megfelelő. Kérlek, ellenőrizd.",
   "invalidRecipients_msg": "Kérlek, javítsd ki a helytelen e-mail címet a címzett mezőben.",
   "invalidSwVersion_msg": "Tutanota frissítés érhető el. Az Outlook következő újraindításakor automatikusan letölthető és telepíthető.",
-  "invitationMailBody_msg": "Szervusz!<br><br>Ez az új e-mail címed. A Tutanotával az üzeneteid automatikusan titkosításra kerülnek és más nem olvashatja azokat. A szerveren minden adat kódolva van, így a profilalkotás nem lehetséges.<br><br>Csatlakozz a Tutanotához minél előbb:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Szívélyes üdvözlettel,<br>{1}<br><br>P.S.: A nyílt forráskódú Tutanotán 1 GB tárhely áll a rendelkezésedre: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Szervusz!<br><br>Ez az új e-mail címed. A Tutanotával az üzeneteid automatikusan titkosításra kerülnek és más nem olvashatja azokat. A szerveren minden adat kódolva van, így a profilalkotás nem lehetséges.<br><br>Csatlakozz a Tutanotához minél előbb:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Szívélyes üdvözlettel,<br>{1}<br><br>P.S.: A nyílt forráskódú Tutanotán 1 GB tárhely áll a rendelkezésedre: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Vegyük vissza a magánéletünket Tutanotával!",
   "invite_alt": "Ajánlás",
   "invite_label": "Meghívás",

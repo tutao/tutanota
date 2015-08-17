@@ -191,7 +191,7 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "invalidPassword_msg": "Sandi tidak valid. Mohon periksa lagi.",
   "invalidRecipients_msg": "Mohon perbaiki alamat email yang tidak valid di ruas penerima.",
   "invalidSwVersion_msg": "Pengaya Tutanota Anda harus dimutakhirkan. Saat Anda memulai ulang Outlook, versi baru akan secara otomatis diunduh dan dipasang.",
-  "invitationMailBody_msg": "Halo!<br><br>Ini alamat email baru saya. Dengan Tutanota, semua email kita dienkripsi secara otomatis sehingga tidak seorangpun dapat membacanya. Semua data di server juga dienkripsi, mustahil terjadi perekaman profil.<br><br>Gabung Tutanota sekarang:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Salam hormat,<br>{1}<br><br>NB: Tutanota bebas biaya dengan penyimpanan sebesar 1 GB. Sebagai tambahan, Tutanota juga bersumber terbuka: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Halo!<br><br>Ini alamat email baru saya. Dengan Tutanota, semua email kita dienkripsi secara otomatis sehingga tidak seorangpun dapat membacanya. Semua data di server juga dienkripsi, mustahil terjadi perekaman profil.<br><br>Gabung Tutanota sekarang:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Salam hormat,<br>{1}<br><br>NB: Tutanota bebas biaya dengan penyimpanan sebesar 1 GB. Sebagai tambahan, Tutanota juga bersumber terbuka: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Mari ambil kembali privasi kita bersama Tutanota!",
   "invite_alt": "Undang",
   "invite_label": "Undang",

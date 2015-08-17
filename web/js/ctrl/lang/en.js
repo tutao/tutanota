@@ -237,7 +237,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "invalidRecipients_msg": "Please correct the invalid email addresses in the recipient fields.",
   "invalidSwVersion_msg": "Your Tutanota addin has to be updated. When you restart Outlook, the new version will automatically be downloaded and installed.",
   "invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
-  "invitationMailBody_msg": "Hello!<br><br>This is my new email address. With Tutanota all our emails are encrypted automatically so no one can read along. All data on the servers is encrypted as well, no profiling possible.<br><br>Join Tutanota now:<br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Best regards,<br>{1}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Hello!<br><br>This is my new email address. With Tutanota all our emails are encrypted automatically so no one can read along. All data on the servers is encrypted as well, no profiling possible.<br><br>Join Tutanota now:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Best regards,<br>{1}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Let's take back our privacy with Tutanota!",
   "invite_alt": "Invite",
   "invite_label": "Invite",

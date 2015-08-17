@@ -236,7 +236,7 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "invalidRecipients_msg": "Molimo ispravite nevažeće adrese e-pošte u polju primatelja.",
   "invalidSwVersion_msg": "Vaš Tutanota dodatak mora biti nadograđen. Kada ponovo pokrenete Outlook, nova verzija će se automatski preuzeti i instalirati.",
   "invalidVatIdNumber_msg": "Porezni identifikacijski broj na dodanu vrijednost (PDV-ID) nije valjan.",
-  "invitationMailBody_msg": "Pozdrav!<br><br>Ovo je moja nova email adresa. S Tutanotom svi naši emailovi su šifrirani automatski te ih nitko ne može pročitati. Svi podaci na serverima su također šifrirani, nije moguće profiliranje.<br><br> Pridruži se Tutanoti odmah:<br>\n<a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Lijepi pozdrav,<br>{1}<br><br>P.S.: Tutanota je besplatna s 1 GB besplatnog prostora. Program je otvorenog kôda (open source): <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Pozdrav!<br><br>Ovo je moja nova email adresa. S Tutanotom svi naši emailovi su šifrirani automatski te ih nitko ne može pročitati. Svi podaci na serverima su također šifrirani, nije moguće profiliranje.<br><br> Pridruži se Tutanoti odmah:<br>\n<a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Lijepi pozdrav,<br>{1}<br><br>P.S.: Tutanota je besplatna s 1 GB besplatnog prostora. Program je otvorenog kôda (open source): <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Idemo uzeti natrag svoju privatnost s Tutanotom!",
   "invite_alt": "Pozivnica",
   "invite_label": "Pozovi",

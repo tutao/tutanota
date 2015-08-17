@@ -164,7 +164,7 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "invalidPassword_msg": "Väärä salasana. Tarkista salasanasi.",
   "invalidRecipients_msg": "Korjaa vastaanottajan sähköpostiosoite",
   "invalidSwVersion_msg": "Tutanota-lisäosa on ladattu. Kun käynnistät Outlookin uudestaan, uusi versio ladataan ja asennetaan automaattisesti.",
-  "invitationMailBody_msg": "Hei! <br><br>Tässä on uusi sähköpostiosoitteeni. Kun käytät Tutanotaa, kaikki sähköpostit ovat automaattisesti salattuja, eikä kukaan muu voi lukea niitä. Kaikki palvelimillamme oleva tieto on myös salattua emmekä pysty profiloimaan käyttäjiä mitenkään. <br><br>Liity Tutanotaan nyt:<br><br><a href=\\\"https://app.tutanota.de/#register\\\">https://app.tutanota.de/#register</a><br><br><br>Terveisin,<br>{1}<br><br>PS: Tutanota on ilmainen ja sisältää 1 GB:n tallennustilaa. Lisäksi sen lähdekoodi on avointa: <a href=\\\"https://github.com/tutao/tutanota\\\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Hei! <br><br>Tässä on uusi sähköpostiosoitteeni. Kun käytät Tutanotaa, kaikki sähköpostit ovat automaattisesti salattuja, eikä kukaan muu voi lukea niitä. Kaikki palvelimillamme oleva tieto on myös salattua emmekä pysty profiloimaan käyttäjiä mitenkään. <br><br>Liity Tutanotaan nyt:<br><br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Terveisin,<br>{1}<br><br>PS: Tutanota on ilmainen ja sisältää 1 GB:n tallennustilaa. Lisäksi sen lähdekoodi on avointa: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
   "invitationMailSubject_msg": "Ota yksityisyytesi takaisin Tutanotan avulla!",
   "invite_alt": "Kutsu",
   "invite_label": "Kutsu",
