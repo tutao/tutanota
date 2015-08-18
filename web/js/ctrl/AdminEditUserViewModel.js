@@ -97,11 +97,16 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
     if (!this.isChangeActionAllowed()) {
         return;
     }
-    this.busy(true);
-	this.userGroupInfo.setName(this.name());
-	this.saveStatus({type: "neutral", text: "save_msg" });
+    this.busy(true)
     var self = this;
-	this.userGroupInfo.update().then(function() {
+    tutao.entity.sys.GroupInfo.load(this.userGroupInfo.getId()).then(function (groupInfo) {
+        // must refresh, might be changed by an addded alias
+        self.userGroupInfo = groupInfo;
+    }).then(function() {
+        self.userGroupInfo.setName(self.name());
+        self.saveStatus({type: "neutral", text: "save_msg" });
+        return self.userGroupInfo.update();
+    }).then(function() {
         if (self.isChangePasswordActionAllowed()) {
             return self._resetPassword().then(function(exception) {
                 self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
