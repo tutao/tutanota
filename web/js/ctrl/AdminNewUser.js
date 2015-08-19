@@ -29,6 +29,11 @@ tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(cleaned
         this.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
         return;
     }
+    if (tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS.indexOf(self.domain()) != -1
+        && self.mailAddressPrefix().trim().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH) {
+            self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
+        return
+    }
     if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
