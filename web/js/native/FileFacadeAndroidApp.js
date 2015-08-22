@@ -8,6 +8,7 @@ tutao.provide('tutao.native.FileFacadeAndroidApp');
  */
 tutao.native.FileFacadeAndroidApp = function() {
     this.fileUtil = new tutao.native.device.FileUtil();
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 };
 
 /**
@@ -83,7 +84,7 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
         }).lastly(function () {
             self.fileUtil.deleteFile(downloadedFileUri);
         });
-    })
+    });
 };
 
 /**
@@ -91,9 +92,19 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
  */
 tutao.native.FileFacadeAndroidApp.prototype.open = function(file) {
     var self = this;
-    self.fileUtil.open(file.getLocation()).caught(function() {
+    self.fileUtil.open(file.getLocation(), file.getMimeType()).caught(function() {
         return tutao.tutanota.gui.alert(tutao.lang("canNotOpenFileOnDevice_msg"));
     }).lastly(function () {
         self.fileUtil.deleteFile(file.getLocation());
+    });
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.native.FileFacadeAndroidApp.prototype.bytesToFile = function(bytes, file) {
+    var fileUri = this.configFile = cordova.file.dataDirectory + "temp/decrypted/" + file.getName();
+    return this.fileUtil.write(fileUri, bytes).then(function () {
+        return new tutao.native.AndroidFile(fileUri, file.getName(), file.getMimeType(), bytes.byteLength);
     });
 };

@@ -8,7 +8,7 @@ tutao.provide('tutao.native.FileFacadeBrowser');
  * @constructor
  */
 tutao.native.FileFacadeBrowser = function() {
-
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 };
 
 // this flag disables showing the file chooser when running with watir as watir handles file uploads in another way
@@ -143,6 +143,12 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
 	});
 };
 
+/**
+ * @inheritDoc
+ */
+tutao.native.FileFacadeBrowser.prototype.bytesToFile = function(bytes, file) {
+    return Promise.resolve(new tutao.tutanota.util.DataFile(bytes.buffer, file));
+};
 
 /**
  * @inheritDoc

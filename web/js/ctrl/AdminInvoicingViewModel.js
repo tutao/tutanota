@@ -165,6 +165,6 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.downloadPdf = function(inv
         tmpFile.setName(String(invoice.getNumber()) + ".pdf");
         tmpFile.setMimeType("application/pdf");
         tmpFile.setSize(String(pdfBytes.byteLength));
-        tutao.locator.fileFacade.open(new tutao.tutanota.util.DataFile(pdfBytes.buffer, tmpFile));
+        tutao.locator.fileFacade.bytesToFile(pdfBytes, tmpFile).then(tutao.locator.fileFacade.open)
     });
 };

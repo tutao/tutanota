@@ -42,7 +42,7 @@ public class FileUtil extends CordovaPlugin {
 			CallbackContext callbackContext) throws JSONException {
 		try {
 			if (action.equals("open")) {
-				this.openFile(args.getString(0), callbackContext);
+				this.openFile(args.getString(0), args.getString(1), callbackContext);
 			} else if (action.equals("openFileChooser")) {
 				this.openFileChooser(callbackContext);
 			} else if (action.equals("write")) {
@@ -121,7 +121,7 @@ public class FileUtil extends CordovaPlugin {
 	}
 
 	// @see: https://developer.android.com/reference/android/support/v4/content/FileProvider.html
-	private void openFile(String fileName, CallbackContext callbackContext) {
+	private void openFile(String fileName, String mimeType, CallbackContext callbackContext) {
 		java.io.File file = Utils.uriToFile(webView.getContext(), fileName);
 
 		if (file.exists()) {
@@ -130,7 +130,7 @@ public class FileUtil extends CordovaPlugin {
 				path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "de.tutao.fileprovider", file);
 			}
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(path);
+			intent.setDataAndType(path, mimeType);
 			intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			// @see http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
 			this.callbackContext = callbackContext;

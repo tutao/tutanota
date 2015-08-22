@@ -43,3 +43,11 @@ tutao.native.FileFacade.prototype.readFileData = function(file) {};
  * @return {Promise.<>} Resolves after the file has been opened, rejected if failed.
  */
 tutao.native.FileFacade.prototype.open = function(file) {};
+
+/**
+ * Converts a byte array into a file and opens the file.
+ * @param {Uint8Array} bytes The binary data.
+ * @param {tutao.entity.tutanota.File} file The File.
+ * @return {Promise.<tutao.tutanota.util.DataFile|tutao.native.AndroidFile>} Resolves after the file has been created, rejected if failed.
+ */
+tutao.native.FileFacade.prototype.bytesToFile = function(bytes, file) {};

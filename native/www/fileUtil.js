@@ -8,11 +8,12 @@ var FileUtil = function () {};
 /**
  * Open the file
  * @param {string} file The uri of the file
+ * @param {string} mimeType The mimeType of the file
  * @return {Promise.<undefined, Error>}.
  */
-FileUtil.prototype.open = function(file) {
+FileUtil.prototype.open = function(file, mimeType) {
     return new Promise(function (resolve, reject) {
-        exec(resolve, reject,"FileUtil", "open",[file]);
+        exec(resolve, reject,"FileUtil", "open",[file, mimeType]);
     });
 };
 
@@ -107,8 +108,9 @@ FileUtil.prototype.getSize = function(file) {
  * @returns {Promise}
  */
 FileUtil.prototype.upload = function(file, targetUrl, headers) {
+    var self = this;
     return new Promise(function (resolve, reject) {
-        exec(resolve, reject,"FileUtil", "upload",[file, targetUrl, headers]);
+        exec(resolve, self._createConnectionErrorHandler(reject),"FileUtil", "upload",[file, targetUrl, headers]);
     });
 };
 
@@ -120,10 +122,24 @@ FileUtil.prototype.upload = function(file, targetUrl, headers) {
  * @returns {Promise.<string>} Resolves to the URI of the downloaded file
  */
 FileUtil.prototype.download = function(sourceUrl, filename, headers) {
+    var self = this;
     return new Promise(function (resolve, reject) {
-        exec(resolve, reject,"FileUtil", "download",[sourceUrl, filename, headers]);
+        exec(resolve, self._createConnectionErrorHandler(reject),"FileUtil", "download",[sourceUrl, filename, headers]);
     });
 };
+
+FileUtil.prototype._createConnectionErrorHandler = function(rejectFunction) {
+    return function(errorString) {
+        if (errorString.indexOf("java.net.SocketTimeoutException") == 0 ||
+            errorString.indexOf("javax.net.ssl.SSLException") == 0 ||
+            errorString.indexOf("java.io.EOFException") == 0) {
+            rejectFunction(new tutao.ConnectionError(errorString));
+        } else {
+            rejectFunction(new Error(errorString));
+        }
+    }
+}
+
 
 var fileUtil = FileUtil;
 module.exports = fileUtil;
