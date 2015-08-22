@@ -360,9 +360,13 @@ gulp.task('dist', ['clean'], function (cb) {
     return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'manifest', 'gzip', cb);
 });
 
-gulp.task('release', ['dist', 'tagRelease'], function (cb) {
+gulp.task('copyRelease', function() {
     return gulp.src('build/**')
         .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version));
+});
+
+gulp.task('release', ['dist', 'tagRelease'], function (cb) {
+    return runSequence('dist', 'tagRelease', 'copyRelease', cb);
 });
 
 gulp.task('tagRelease', shell.task([
