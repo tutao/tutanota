@@ -41,6 +41,22 @@
                             "count": 1
                         },
                         {
+                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Util\"><param name=\"android-package\" value=\"de.tutao.plugin.Util\" /></feature>",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
+                            "count": 1
+                        },
+                        {
                             "xml": "<feature name=\"Contacts\"><param name=\"android-package\" value=\"org.apache.cordova.contacts.ContactManager\" /></feature>",
                             "count": 1
                         },
@@ -62,22 +78,6 @@
                         },
                         {
                             "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Util\"><param name=\"android-package\" value=\"de.tutao.plugin.Util\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
                             "count": 1
                         }
                     ]
@@ -181,6 +181,9 @@
         "de.appplant.cordova.plugin.local-notification": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "org.apache.cordova.contacts": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
@@ -197,9 +200,6 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "org.apache.cordova.vibration": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
