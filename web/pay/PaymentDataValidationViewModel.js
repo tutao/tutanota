@@ -278,7 +278,8 @@ tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._handleFieldEvent = 
 tutao.tutanota.pay.PaymentDataValidationViewModel.prototype._onReady = function() {
     //console.log("onReady");
     if ( tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL == this._paymentType() ) {
-        document.getElementById('braintree-paypal-button').click();
+        // removed because of iss1226 (Paypal screen makes paying very hard on production systems)
+        //document.getElementById('braintree-paypal-button').click();
     }
     // in case of errors the onReady callback might still be called, so check that no error has been occurred before.
     if (this.siteLoadingStatus()== tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING ){
