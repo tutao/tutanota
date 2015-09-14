@@ -147,7 +147,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "defaultExternalDelivery_label": "Default delivery",
   "defaultSenderMailAddressInfo_msg": "The default sender mail address for new emails.",
   "defaultSenderMailAddress_label": "Default sender",
-  "deleteAccountConfirm_msg": "Do you really want to delete your account?",
+  "deleteAccountConfirm_msg": "Do you really want to delete your account? The account can't be restored and the email address can't be registered again.\n",
   "deleteAccountDeleted_msg": "Your account is being deleted now.",
   "deleteAccountInfo_msg": "Your complete account will be deleted and can't be restored.",
   "deleteAccountReasonInfo_msg": "Optional: We would appreciate it if you gave us a reason why you want to delete the account so that we can improve Tutanota further.",

@@ -147,7 +147,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "defaultExternalDelivery_label": "Standard-Übertragung",
   "defaultSenderMailAddressInfo_msg": "Die voreingestellte Absender-Adresse für neue E-Mails.",
   "defaultSenderMailAddress_label": "Standard-Absender",
-  "deleteAccountConfirm_msg": "Möchtest du den Account wirklich löschen?",
+  "deleteAccountConfirm_msg": "Möchtest du den Account wirklich löschen? Der Account kann nicht wiederhergestellt werden und die E-Mail-Adresse kann nicht erneut registriert werden.",
   "deleteAccountDeleted_msg": "Dein Account ist jetzt gelöscht.",
   "deleteAccountInfo_msg": "Der gesamte Account wird gelöscht und kann nicht wiederhergestellt werden.",
   "deleteAccountReasonInfo_msg": "Optional: Wir freuen uns über einen kurzen Hinweis gibst, warum du deinen Account löschen möchtest, damit wir Tutanota verbessern können.",
