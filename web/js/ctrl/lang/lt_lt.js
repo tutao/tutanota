@@ -159,7 +159,7 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "invalidPassword_msg": "Slaptažodis neteisingas. Patikrinkite ir bandykite dar kartą.",
   "invalidRecipients_msg": "Prašome pataisyti neteisingus gavėjų elektroninio pašto adresus.",
   "invalidSwVersion_msg": "Jūsų Tutanota komponentas turi būti atnaujintas. Kai perkrausite Outlook programą, nauja komponento versija bus automatiškai atsiųsta ir įrašyta.",
-  "invitationMailBody_msg": "Sveiki!<br><br>Tai yra mano naujas el. pašto adresas. Su Tutanota visi mūsų laiškai yra automatiškai šifruojami, kad niekas jų negalėtų perskaityti. Serveryje visi duomenys taip pat yra šifruojami, tad ir profiliavimas nėra įmanomas. Prisijunkite prie Tutanota jau dabar:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Su geriausiai linkėjimais,<br> {1}<br><br>P.S. Tutanota su 1 GB talpa galima naudotis visiškai nemokamai, be to ji yra atviro kodo: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Sveiki!<br><br>Tai yra mano naujas el. pašto adresas. Su Tutanota visi mūsų laiškai yra automatiškai šifruojami, kad niekas jų negalėtų perskaityti. Serveryje visi duomenys taip pat yra šifruojami, tad ir profiliavimas nėra įmanomas. Prisijunkite prie Tutanota jau dabar:<br>{registrationLink}<br><br><br>Su geriausiai linkėjimais,<br> {username}<br><br>P.S. Tutanota su 1 GB talpa galima naudotis visiškai nemokamai, be to ji yra atviro kodo: {githubLink}",
   "invitationMailSubject_msg": "Susigrąžinkime savo privatumą su Tutanota!",
   "invite_alt": "Pakviesti",
   "invite_label": "Pakviesti",

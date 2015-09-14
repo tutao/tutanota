@@ -30,7 +30,7 @@ tutao.entity.sys.MailAddressAvailabilityReturn.prototype.updateData = function(d
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAvailabilityReturn.MODEL_VERSION = '9';
+tutao.entity.sys.MailAddressAvailabilityReturn.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -110,7 +110,7 @@ tutao.entity.sys.MailAddressAvailabilityReturn.load = function(entity, parameter
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 9;
+  parameters["v"] = 10;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.MailAddressAvailabilityReturn, tutao.entity.sys.MailAddressAvailabilityReturn.PATH, entity, parameters, headers);
 };
 /**

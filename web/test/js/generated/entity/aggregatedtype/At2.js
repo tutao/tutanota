@@ -319,3 +319,10 @@ tutao.entity.aggregatedtype.At2.prototype.getOneResource = function() {
 tutao.entity.aggregatedtype.At2.prototype.loadOneResource = function() {
   return tutao.entity.aggregatedtype.Et1.load(this._oneResource);
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.aggregatedtype.At2.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

@@ -148,7 +148,7 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "invalidPassword_msg": "Λάθος κωδικός, παρακαλώ προσπαθήστε ξανά.",
   "invalidRecipients_msg": "Παρακαλώ διορθώστε τις διευθύνσεις των παραληπτών του μηνύματος.",
   "invalidSwVersion_msg": "To addin του Tutanota πρέπει να ενημερωθεί. Όταν ξεκινήσετε το Outlook, η νέα έκδοση θα εγκατασταθεί αυτόματα.",
-  "invitationMailBody_msg": "Για σας!<br><br>Αυτή είναι η νέα μου διεύθυνση email. Με το Tutanota όλα τα μηνύματα που ανταλάσσουμε κρυπτογραφούνται αυτόματα, ώστε να μην μπορεί να τα διαβάσει άλλος. Επίσης, όλα τα δεδομένα που αποθηκεύτονται στα συστήματα του Tutanota κρυπτογραφούνται, διασφαλίζοντας την ανωνυμία μας.<br><br>Ελάτε στο Tutanota:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Best regards,<br>{1}<br><br>ΥΓ: Το Tutanota είναι δωρεάν, με 1 GB αποθηκευτικού χώρου και είναι λογισμικό ανοικτού κώδικα (open source): <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Για σας!<br><br>Αυτή είναι η νέα μου διεύθυνση email. Με το Tutanota όλα τα μηνύματα που ανταλάσσουμε κρυπτογραφούνται αυτόματα, ώστε να μην μπορεί να τα διαβάσει άλλος. Επίσης, όλα τα δεδομένα που αποθηκεύτονται στα συστήματα του Tutanota κρυπτογραφούνται, διασφαλίζοντας την ανωνυμία μας.<br><br>Ελάτε στο Tutanota:<br><{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>ΥΓ: Το Tutanota είναι δωρεάν, με 1 GB αποθηκευτικού χώρου και είναι λογισμικό ανοικτού κώδικα (open source): {githubLink}",
   "invitationMailSubject_msg": "Προστατέψτε την ελεύθερη και ασφαλή επικοινωνία: Tutanota!",
   "invite_alt": "Πρόσκληση",
   "invite_label": "Πρόσκληση",

@@ -161,3 +161,10 @@ tutao.entity.tutanotaunencrypted.SendMailService.prototype.setSender = function(
 tutao.entity.tutanotaunencrypted.SendMailService.prototype.getSender = function() {
   return this._sender;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanotaunencrypted.SendMailService.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

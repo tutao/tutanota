@@ -166,7 +166,7 @@ tutao.tutanota.ctrl.lang.pt_br.keys = {
   "invalidPassword_msg": "Senha inválida. Por favor, insira novamente.",
   "invalidRecipients_msg": "Por favor, corrija os endereços inválidos nos campos de destinatário.",
   "invalidSwVersion_msg": "Seu Tutanota Addin precisa ser atualizado. Após reiniciar o Outlook, a nova versão será automaticamente descarregada e instalada.",
-  "invitationMailBody_msg": "Olá!<br><br>Este é meu novo endereço de e-mail. Com o Tutanota, os e-mails são sempre criptografados para que ninguém os possa ler, inadvertidamente. Os dados armazenados no servidor são igualmente cifrados, não podendo ser objeto de análise ou rastreio.<br><br>Junte-se agora ao Tutanota:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Atenciosamente,<br>{1}<br><br>PS: O Tutanota é gratuito e inclui 1 GB de armazenamento. E mais, é em código aberto: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Olá!<br><br>Este é meu novo endereço de e-mail. Com o Tutanota, os e-mails são sempre criptografados para que ninguém os possa ler, inadvertidamente. Os dados armazenados no servidor são igualmente cifrados, não podendo ser objeto de análise ou rastreio.<br><br>Junte-se agora ao Tutanota:<br>{registrationLink}<br><br><br>Atenciosamente,<br>{username}<br><br>PS: O Tutanota é gratuito e inclui 1 GB de armazenamento. E mais, é em código aberto: {githubLink}",
   "invitationMailSubject_msg": "Vamos recuperar nossa privacidade com o Tutanota!",
   "invite_alt": "Convidar",
   "invite_label": "Convidar",
