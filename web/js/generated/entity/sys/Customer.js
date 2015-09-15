@@ -13,6 +13,7 @@ tutao.entity.sys.Customer = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._canceledPremiumAccount = null;
     this._type = null;
     this._adminGroup = null;
     this._adminGroups = null;
@@ -35,6 +36,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._canceledPremiumAccount = data.canceledPremiumAccount;
   this._type = data.type;
   this._adminGroup = data.adminGroup;
   this._adminGroups = data.adminGroups;
@@ -85,6 +87,7 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    canceledPremiumAccount: this._canceledPremiumAccount, 
     type: this._type, 
     adminGroup: this._adminGroup, 
     adminGroups: this._adminGroups, 
@@ -101,6 +104,11 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
  * The id of the Customer type.
  */
 tutao.entity.sys.Customer.prototype.TYPE_ID = 31;
+
+/**
+ * The id of the canceledPremiumAccount attribute.
+ */
+tutao.entity.sys.Customer.prototype.CANCELEDPREMIUMACCOUNT_ATTRIBUTE_ID = 888;
 
 /**
  * The id of the type attribute.
@@ -187,6 +195,23 @@ tutao.entity.sys.Customer.prototype.setPermissions = function(permissions) {
  */
 tutao.entity.sys.Customer.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the canceledPremiumAccount of this Customer.
+ * @param {boolean} canceledPremiumAccount The canceledPremiumAccount of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setCanceledPremiumAccount = function(canceledPremiumAccount) {
+  this._canceledPremiumAccount = canceledPremiumAccount ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the canceledPremiumAccount of this Customer.
+ * @return {boolean} The canceledPremiumAccount of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getCanceledPremiumAccount = function() {
+  return this._canceledPremiumAccount == '1';
 };
 
 /**

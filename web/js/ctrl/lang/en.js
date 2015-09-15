@@ -446,6 +446,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "perYear_label": "per year",
   "phone_label": "Phone",
   "pleaseWait_msg": "Please wait ...",
+  "premiumAccountCanceled_msg": "The premium account has already been canceled.",
   "presharedPasswordAndStrength_msg": "Password strength:",
   "presharedPasswordHeading_label": "Agreed:",
   "preSharedPasswordNeeded_label": "Please enter an agreed password for each external recipient.",
