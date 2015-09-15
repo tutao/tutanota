@@ -95,6 +95,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "confidential_action": "Confidential",
   "config_label": "config",
   "confirmCountry_msg": "To calculate the value added tax we need you to confirm your country: {1}.",
+  "confirmDeleteCustomFolder_msg": "Do you really want to delete the folder '{1}' and all of its emails?",
+  "confirmDeleteSystemFolder_msg": "Do you really want to delete all folders and emails from the system folder '{1}'?",
   "confirmDeleteTrashCustomFolder_msg": "Do you really want to finally delete the folder '{1}' and all of its emails?",
   "confirmDeleteTrashFolder_msg": "Do you really want to finally delete all emails and folders from the trash?",
   "confirmDeleteTrash_msg": "Do you really want to finally delete all emails from this folder?",
@@ -588,7 +590,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "Sa"
   ],
   "welcomeMailBody1_msg": "We are happy that you have signed up for Tutanota, and we congratulate you to your encrypted mailbox. Only you can decrypt your emails and contacts with your password. Please make sure not to lose your password, we cannot reset it.",
-  "welcomeMailBody2_msg": "Invite your friends to Tutanota and you can send end-to-end encrypted emails with a tip of your finger. You can also encrypt emails to external recipients with a password. Tutanota encrypts subject, content and attachments automatically. Even emails that you send or receive unencrypted are stored encrypted on our servers. If you want to support our fight for privacy, you can upgrade to Premium for only 1 Euro per month.",
+  "welcomeMailBody2_msg": "Invite your friends to Tutanota and you can send end-to-end encrypted emails with a tip of your finger. You can also encrypt emails to external recipients with a password. Tutanota encrypts subject, content and attachments automatically. Even emails that you send or receive unencrypted are stored encrypted on our servers. Join our fight for privacy by upgrading to Premium for only 1 Euro per month. Please click on Premium in the main menu of your Tutanota account while being logged in in a browser.",
   "welcomeMailBody3_msg": "Show the world that you are protecting your privacy:",
   "welcomeMailBody4_msg": "Your Tutanota team",
   "welcomeMailBody5_msg": "PS: Tutanota is open source, so feel free to inspect and review the source code:",
