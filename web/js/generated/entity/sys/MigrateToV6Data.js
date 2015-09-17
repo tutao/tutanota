@@ -96,7 +96,7 @@ tutao.entity.sys.MigrateToV6Data.prototype.setNoop = function(noop) {
  * @return {boolean} The noop of this MigrateToV6Data.
  */
 tutao.entity.sys.MigrateToV6Data.prototype.getNoop = function() {
-  return this._noop == '1';
+  return this._noop != '0';
 };
 
 /**

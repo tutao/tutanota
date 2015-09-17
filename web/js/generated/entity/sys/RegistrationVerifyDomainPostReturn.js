@@ -90,7 +90,7 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.setMailSent = func
  * @return {boolean} The mailSent of this RegistrationVerifyDomainPostReturn.
  */
 tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.getMailSent = function() {
-  return this._mailSent == '1';
+  return this._mailSent != '0';
 };
 /**
  * Provides the entity helper of this entity.

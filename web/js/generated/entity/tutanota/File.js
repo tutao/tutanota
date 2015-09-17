@@ -257,8 +257,17 @@ tutao.entity.tutanota.File.prototype.getMimeType = function() {
   if (this._mimeType == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -279,8 +288,17 @@ tutao.entity.tutanota.File.prototype.getName = function() {
   if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

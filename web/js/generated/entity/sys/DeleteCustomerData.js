@@ -129,7 +129,7 @@ tutao.entity.sys.DeleteCustomerData.prototype.setUndelete = function(undelete) {
  * @return {boolean} The undelete of this DeleteCustomerData.
  */
 tutao.entity.sys.DeleteCustomerData.prototype.getUndelete = function() {
-  return this._undelete == '1';
+  return this._undelete != '0';
 };
 
 /**

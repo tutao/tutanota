@@ -183,8 +183,17 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getBodyText = function(
   if (this._bodyText == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bodyText);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bodyText);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -205,11 +214,17 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getConfidential = funct
   if (this._confidential == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
-  if (value != '0' && value != '1') {
-    throw new tutao.InvalidDataError('invalid boolean data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
+    return value != '0';
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
   }
-  return value == '1';
 };
 
 /**
@@ -298,8 +313,17 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getSenderName = functio
   if (this._senderName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._senderName);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._senderName);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -337,8 +361,17 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getSubject = function()
   if (this._subject == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

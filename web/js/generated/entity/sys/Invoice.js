@@ -211,11 +211,21 @@ tutao.entity.sys.Invoice.prototype.getDate = function() {
   if (this._date == "" || !this._entityHelper.getSessionKey()) {
     return new Date(0);
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
-  if (isNaN(value)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
+    if (isNaN(value)) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    }
+    return new Date(Number(value));
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    } else {
+      throw e;
+    }
   }
-  return new Date(Number(value));
 };
 
 /**
@@ -236,8 +246,17 @@ tutao.entity.sys.Invoice.prototype.getGrandTotal = function() {
   if (this._grandTotal == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._grandTotal);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._grandTotal);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -258,8 +277,17 @@ tutao.entity.sys.Invoice.prototype.getNumber = function() {
   if (this._number == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -280,8 +308,17 @@ tutao.entity.sys.Invoice.prototype.getPaymentMethod = function() {
   if (this._paymentMethod == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentMethod);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -302,8 +339,17 @@ tutao.entity.sys.Invoice.prototype.getSource = function() {
   if (this._source == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._source);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._source);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -341,8 +387,17 @@ tutao.entity.sys.Invoice.prototype.getVat = function() {
   if (this._vat == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._vat);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._vat);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

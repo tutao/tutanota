@@ -87,5 +87,5 @@ tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype.getNumber = function(
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

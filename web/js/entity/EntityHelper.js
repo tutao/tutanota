@@ -189,6 +189,14 @@ tutao.entity.EntityHelper.prototype.setSessionKey = function(sessionKey) {
 };
 
 /**
+ * Makes sure that the session key is invalid. This indicates that an error occurred during decryption.
+ */
+tutao.entity.EntityHelper.prototype.invalidateSessionKey = function() {
+    this._sessionKey = null;
+    console.log("invalidating session key");
+};
+
+/**
  * Provides the session key via an externally encrypted session key.
  * @param {Array.<tutao.entity.sys.Permission>} permissions The permissions of the user on this entity.
  * @return {Promise.<Object>} Resolves to null if no permission was found and the session key otherwise. Rejects, if decrypting the session key failed.

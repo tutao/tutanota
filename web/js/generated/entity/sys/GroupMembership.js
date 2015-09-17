@@ -112,7 +112,7 @@ tutao.entity.sys.GroupMembership.prototype.setAdmin = function(admin) {
  * @return {boolean} The admin of this GroupMembership.
  */
 tutao.entity.sys.GroupMembership.prototype.getAdmin = function() {
-  return this._admin == '1';
+  return this._admin != '0';
 };
 
 /**
@@ -211,5 +211,5 @@ tutao.entity.sys.GroupMembership.prototype.loadGroupMember = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.GroupMembership.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

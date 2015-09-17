@@ -222,7 +222,7 @@ tutao.entity.valueencrypted.Et.prototype.setBool = function(bool) {
  * @return {boolean} The bool of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getBool = function() {
-  if (this._bool == "") {
+  if (this._bool == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bool);
@@ -247,7 +247,7 @@ tutao.entity.valueencrypted.Et.prototype.setBytes = function(bytes) {
  * @return {string} The bytes of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getBytes = function() {
-  if (this._bytes == "") {
+  if (this._bytes == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._bytes);
@@ -269,7 +269,7 @@ tutao.entity.valueencrypted.Et.prototype.setDate = function(date) {
  * @return {Date} The date of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getDate = function() {
-  if (this._date == "") {
+  if (this._date == "" || !this._entityHelper.getSessionKey()) {
     return new Date(0);
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
@@ -294,7 +294,7 @@ tutao.entity.valueencrypted.Et.prototype.setNumber = function(number) {
  * @return {string} The number of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getNumber = function() {
-  if (this._number == "") {
+  if (this._number == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
@@ -316,7 +316,7 @@ tutao.entity.valueencrypted.Et.prototype.setString = function(string) {
  * @return {string} The string of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getString = function() {
-  if (this._string == "") {
+  if (this._string == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._string);
@@ -399,4 +399,11 @@ tutao.entity.valueencrypted.Et.prototype.registerObserver = function(listener, i
  */
 tutao.entity.valueencrypted.Et.prototype.unregisterObserver = function(listener) {
   this._entityHelper.unregisterObserver(listener);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.valueencrypted.Et.prototype.getEntityHelper = function() {
+  return this._entityHelper;
 };

@@ -163,7 +163,7 @@ tutao.entity.sys.InvoiceInfo.prototype.setPublishInvoices = function(publishInvo
  * @return {boolean} The publishInvoices of this InvoiceInfo.
  */
 tutao.entity.sys.InvoiceInfo.prototype.getPublishInvoices = function() {
-  return this._publishInvoices == '1';
+  return this._publishInvoices != '0';
 };
 
 /**

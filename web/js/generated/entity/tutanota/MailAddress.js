@@ -117,8 +117,17 @@ tutao.entity.tutanota.MailAddress.prototype.getName = function() {
   if (this._name == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -150,5 +159,5 @@ tutao.entity.tutanota.MailAddress.prototype.loadContact = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.tutanota.MailAddress.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

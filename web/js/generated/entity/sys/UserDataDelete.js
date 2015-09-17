@@ -139,7 +139,7 @@ tutao.entity.sys.UserDataDelete.prototype.setRestore = function(restore) {
  * @return {boolean} The restore of this UserDataDelete.
  */
 tutao.entity.sys.UserDataDelete.prototype.getRestore = function() {
-  return this._restore == '1';
+  return this._restore != '0';
 };
 
 /**

@@ -277,7 +277,7 @@ tutao.entity.sys.User.prototype.setEnabled = function(enabled) {
  * @return {boolean} The enabled of this User.
  */
 tutao.entity.sys.User.prototype.getEnabled = function() {
-  return this._enabled == '1';
+  return this._enabled != '0';
 };
 
 /**

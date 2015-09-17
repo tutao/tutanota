@@ -296,7 +296,7 @@ tutao.entity.sys.ShareData.prototype.setWritePermission = function(writePermissi
  * @return {boolean} The writePermission of this ShareData.
  */
 tutao.entity.sys.ShareData.prototype.getWritePermission = function() {
-  return this._writePermission == '1';
+  return this._writePermission != '0';
 };
 
 /**

@@ -57,3 +57,10 @@ tutao.entity.aggregatedtype.At1.prototype.setId = function(id) {
 tutao.entity.aggregatedtype.At1.prototype.getId = function() {
   return this.__id;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.aggregatedtype.At1.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};

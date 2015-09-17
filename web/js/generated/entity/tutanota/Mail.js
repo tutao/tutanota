@@ -334,11 +334,17 @@ tutao.entity.tutanota.Mail.prototype.getConfidential = function() {
   if (this._confidential == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
-  if (value != '0' && value != '1') {
-    throw new tutao.InvalidDataError('invalid boolean data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
+    return value != '0';
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
   }
-  return value == '1';
 };
 
 /**
@@ -379,8 +385,17 @@ tutao.entity.tutanota.Mail.prototype.getReplyType = function() {
   if (this._replyType == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._replyType);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._replyType);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -438,8 +453,17 @@ tutao.entity.tutanota.Mail.prototype.getSubject = function() {
   if (this._subject == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -456,7 +480,7 @@ tutao.entity.tutanota.Mail.prototype.setTrashed = function(trashed) {
  * @return {boolean} The trashed of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getTrashed = function() {
-  return this._trashed == '1';
+  return this._trashed != '0';
 };
 
 /**
@@ -473,7 +497,7 @@ tutao.entity.tutanota.Mail.prototype.setUnread = function(unread) {
  * @return {boolean} The unread of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getUnread = function() {
-  return this._unread == '1';
+  return this._unread != '0';
 };
 
 /**

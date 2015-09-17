@@ -187,5 +187,5 @@ tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getSymEncGKey = func
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

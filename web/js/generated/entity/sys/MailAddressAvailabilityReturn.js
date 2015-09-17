@@ -96,7 +96,7 @@ tutao.entity.sys.MailAddressAvailabilityReturn.prototype.setAvailable = function
  * @return {boolean} The available of this MailAddressAvailabilityReturn.
  */
 tutao.entity.sys.MailAddressAvailabilityReturn.prototype.getAvailable = function() {
-  return this._available == '1';
+  return this._available != '0';
 };
 
 /**

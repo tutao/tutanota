@@ -112,5 +112,5 @@ tutao.entity.sys.StringConfigValue.prototype.getValue = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.StringConfigValue.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

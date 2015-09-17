@@ -232,7 +232,7 @@ tutao.entity.sys.Booking.prototype.setBusiness = function(business) {
  * @return {boolean} The business of this Booking.
  */
 tutao.entity.sys.Booking.prototype.getBusiness = function() {
-  return this._business == '1';
+  return this._business != '0';
 };
 
 /**

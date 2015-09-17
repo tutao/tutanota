@@ -184,11 +184,10 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._loadAttachments = function () {
     var self = this;
     //TODO (timely) implement loading of multiple LET instances
     for (var i = 0; i < this.mail.getAttachments().length; i++) {
-        tutao.entity.tutanota.File.load(this.mail.getAttachments()[i]).then(function (file, exception) {
-            if (!exception) {
-                self.attachments.push(file);
-            } else {
-                console.log(exception);
+        tutao.entity.tutanota.File.load(this.mail.getAttachments()[i]).then(function (file) {
+            self.attachments.push(file);
+            if (!file.getEntityHelper().getSessionKey()) {
+                tutao.locator.mailViewModel.notificationBarViewModel.showNotification("corrupted_msg");
             }
         });
     }
