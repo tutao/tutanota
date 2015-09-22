@@ -114,7 +114,13 @@ tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htm
 
 tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNode) {
 	if (htmlNode.style && htmlNode.style.backgroundImage){
-		var replacementEntry = this._getReplacementEntry(htmlNode.style.backgroundImage);
+
+		// remove surrounding url definition. url(<link>)
+		var backgroundImage = htmlNode.style.backgroundImage;
+		backgroundImage = backgroundImage.replace(/^url\(/, "");
+		backgroundImage = backgroundImage.replace(/\)$/, "");
+
+		var replacementEntry = this._getReplacementEntry(backgroundImage);
 		if(replacementEntry){
 			htmlNode.style.backgroundImage = "url(" + tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + ")";
 		}
@@ -140,8 +146,7 @@ tutao.tutanota.security.CajaSanitizer.prototype._restoreHtmlLink = function(html
  */
 tutao.tutanota.security.CajaSanitizer.prototype._getReplacementEntry = function(link) {
 	for( var i=0; i<this._urlReplacementMap.length; i++){
-		// use indexOf here because link contains url(replacement_1) for background images.
-		if (link.indexOf(this._urlReplacementMap[i].replacement)  != -1){
+		if (tutao.util.StringUtils.endsWith(link, this._urlReplacementMap[i].replacement)){
 			return this._urlReplacementMap[i];
 		}
 	}

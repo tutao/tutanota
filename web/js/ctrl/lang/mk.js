@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.mk.keys = {
   "invalidPassword_msg": "Погрешна лозинка . Ве молиме проверете ја повторно .",
   "invalidRecipients_msg": "Ве молиме поправете ги грешните е-маил адреси во\nполето на приматели .",
   "invalidSwVersion_msg": "Вашиот Тутанота додаток е надграден .Кога ќе рестартирате Outlook новата верзија ќе биде автоматски симната и инсталирана .",
-  "invitationMailBody_msg": "Здраво!<br><br>Ова е мојата нова е-маил адреса. Со Тутанота сите наши пораки се енкриптирани автоматски така да никој друг не ќе може да ги чита .<br><br>Придружи се на Тутанота сега:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Best regards,<br>{1}<br><br>PS: Тутанота е бесплатна за користење со 1 GB капацитет.Плус на сето тоа,таа е напишана во отворен код: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Здраво!<br><br>Ова е мојата нова е-маил адреса. Со Тутанота сите наши пораки се енкриптирани автоматски така да никој друг не ќе може да ги чита .<br><br>Придружи се на Тутанота сега:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Тутанота е бесплатна за користење со 1 GB капацитет.Плус на сето тоа,таа е напишана во отворен код: {githubLink}",
   "invitationMailSubject_msg": "Ајде да си ја земеме приватноста назад со Тутанота !",
   "invite_alt": "Покани",
   "invite_label": "Покани",

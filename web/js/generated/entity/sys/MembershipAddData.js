@@ -34,7 +34,7 @@ tutao.entity.sys.MembershipAddData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MembershipAddData.MODEL_VERSION = '9';
+tutao.entity.sys.MembershipAddData.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -175,7 +175,7 @@ tutao.entity.sys.MembershipAddData.prototype.setup = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 9;
+  parameters["v"] = 10;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.MembershipAddData.PATH, this, parameters, headers, null);
 };

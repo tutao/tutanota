@@ -298,6 +298,7 @@
 <script src="/js/generated/entity/sys/InvoiceEditable.js"></script>
 <script src="/js/generated/entity/sys/InvoiceInfo.js"></script>
 <script src="/js/generated/entity/sys/InvoiceInfoEditable.js"></script>
+<script src="/js/generated/entity/sys/InvoiceOverviewServiceData.js"></script>
 <script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
 <script src="/js/generated/entity/sys/InvoiceStatusIndex.js"></script>
 <script src="/js/generated/entity/sys/InvoiceStatusIndexEntry.js"></script>
@@ -1671,14 +1672,12 @@
                                 <div class="bookingTable">
                                     <div class="bookingTableHeader">
                                         <div class="bookingCell" data-bind="lang: 'date_label'"></div>
-                                        <div class="bookingCell" data-bind="lang: 'number_label'"></div>
                                         <div class="bookingCell" data-bind="lang: 'invoiceTotal_label'"></div>
                                         <div class="bookingCell" data-bind="text: 'PDF'"></div>
                                     </div>
                                     <!-- ko foreach: invoices -->
                                     <div class="bookingItem">
                                         <div class="bookingCell" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
-                                        <div class="bookingCell" data-bind="text: getNumber()"></div>
                                         <div class="bookingCell" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
                                         <div class="bookingCell">
                                             <button class="single" type="submit" data-bind="lang: 'download_label', fastClick: function() { $parent.downloadPdf($data); }"></button>

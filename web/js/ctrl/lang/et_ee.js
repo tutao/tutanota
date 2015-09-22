@@ -167,7 +167,7 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "invalidPassword_msg": "Vale salasõna. Palun kontrollige uuesti.",
   "invalidRecipients_msg": "Palun korrastage vigased e-posti aadressid saajate väljadel.",
   "invalidSwVersion_msg": "Teie Tutanota Addin vajab uuendamist. Uusim versioon laetakse alla ja installitakse automaatselt, kui taaskäivitate Outlook'i.",
-  "invitationMailBody_msg": "Tere!<br><br>See on mu uus e-posti aadress. Tutanotaga on kõik meie e-kirjad automaatselt krüpteeritud, nii et keegi teine peale meie neid lugeda ei saa. Kõik andmed serverites on samuti krüpteeritud, seega, profileerimine ei ole samuti võimalik.<br><br>Liitu Tutanotaga nüüd:<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>Parimate soovidega,<br>{1}<br><br>PS: Tutanota on täiesti tasuta, 1 GB mälu kaasa arvatud. Lisaks kõigele on see avatud lähtekoodiga: <a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "Tere!<br><br>See on mu uus e-posti aadress. Tutanotaga on kõik meie e-kirjad automaatselt krüpteeritud, nii et keegi teine peale meie neid lugeda ei saa. Kõik andmed serverites on samuti krüpteeritud, seega, profileerimine ei ole samuti võimalik.<br><br>Liitu Tutanotaga nüüd:<br>{registrationLink}<br><br><br>Parimate soovidega,<br>{username}<br><br>PS: Tutanota on täiesti tasuta, 1 GB mälu kaasa arvatud. Lisaks kõigele on see avatud lähtekoodiga: {githubLink}",
   "invitationMailSubject_msg": "Võtame Tutanotaga oma privaatsuse tagasi!",
   "invite_alt": "Kutsu",
   "invite_label": "Kutsu",

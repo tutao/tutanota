@@ -30,7 +30,7 @@ tutao.entity.sys.PaymentDataServicePutReturn.prototype.updateData = function(dat
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PaymentDataServicePutReturn.MODEL_VERSION = '9';
+tutao.entity.sys.PaymentDataServicePutReturn.MODEL_VERSION = '10';
 
 /**
  * The encrypted flag.

@@ -89,7 +89,6 @@ describe("HtmlSanitizerTest", function () {
         var result =  tutao.locator.htmlSanitizer.sanitize('<input src="https://emailprivacytester.com/cb/04e69deda1be1c37/image_submit" type="image">', true);
         assert.equal("https://emailprivacytester.com/cb/04e69deda1be1c37/image_submit", result.externalImages[0]);
         assert.equal('<input src="' +  tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON +  '" type="image">', result.text);
-
     });
 
     it(" detect video posters", function () {
@@ -102,6 +101,14 @@ describe("HtmlSanitizerTest", function () {
         var result =  tutao.locator.htmlSanitizer.sanitize('<ul style="list-style-image: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif);"><li>Zeile 1</li></ul>', true);
         assert.equal("http://www.heise.de/icons/ho/heise_online_logo_top.gif", result.externalImages[0]);
         assert.equal('<ul style="list-style-image: url(&quot;replacement_1&quot;)"><li>Zeile 1</li></ul>', result.text);
+    });
+
+    it(" replace images and links", function () {
+        var result =  tutao.locator.htmlSanitizer.sanitize('<html><img src="https://localhost/1.png"><img src="https://localhost/2.png"><img src="https://localhost/3.png"><img src="https://localhost/4.png"><img src="https://localhost/5.png"><img src="https://localhost/6.png"><img src="https://localhost/7.png"><img src="https://localhost/8.png"><img src="https://localhost/9"><a href="http://localhost/index.html"></a> </html>', true);
+        assert.equal(9, result.externalImages.length);
+        var domHtml = $('<div>').append(result.text);
+        // do not replace links
+        assert.equal(domHtml.find("a").attr("href"), "http://localhost/index.html");
     });
 
 

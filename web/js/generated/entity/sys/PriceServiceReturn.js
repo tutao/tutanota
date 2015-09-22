@@ -38,7 +38,7 @@ tutao.entity.sys.PriceServiceReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PriceServiceReturn.MODEL_VERSION = '9';
+tutao.entity.sys.PriceServiceReturn.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -213,7 +213,7 @@ tutao.entity.sys.PriceServiceReturn.load = function(entity, parameters, headers)
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 9;
+  parameters["v"] = 10;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.PriceServiceReturn, tutao.entity.sys.PriceServiceReturn.PATH, entity, parameters, headers);
 };
 /**

@@ -515,12 +515,20 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFold
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(confirm) {
     var promise = null;
-    if (confirm && this.isTrashFolder()) {
+    if (confirm) {
         var message = null;
-        if (this.isCustomFolder()) {
-            message = "confirmDeleteTrashCustomFolder_msg";
+        if (this.isTrashFolder()) {
+            if (this.isCustomFolder()) {
+                message = "confirmDeleteTrashCustomFolder_msg";
+            } else {
+                message = "confirmDeleteTrashFolder_msg";
+            }
         } else {
-            message = "confirmDeleteTrashFolder_msg";
+            if (this.isCustomFolder()) {
+                message = "confirmDeleteCustomFolder_msg";
+            } else {
+                message = "confirmDeleteSystemFolder_msg";
+            }
         }
         promise = tutao.tutanota.gui.confirm(tutao.lang(message, { "{1}": this.getName() }));
     } else {

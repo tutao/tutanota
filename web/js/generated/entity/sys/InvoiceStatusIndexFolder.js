@@ -34,7 +34,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceStatusIndexFolder.MODEL_VERSION = '9';
+tutao.entity.sys.InvoiceStatusIndexFolder.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -156,7 +156,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.prototype.getEntries = function() {
  * @return {Promise.<tutao.entity.sys.InvoiceStatusIndexFolder>} Resolves to the InvoiceStatusIndexFolder or an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexFolder.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, id[1], id[0], {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, id[1], id[0], {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -167,7 +167,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceStatusIndexFolder>>} Resolves to an array of InvoiceStatusIndexFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexFolder.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -179,7 +179,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.loadMultiple = function(ids) {
 tutao.entity.sys.InvoiceStatusIndexFolder.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 9;
+  params["v"] = 10;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceStatusIndexFolder.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -192,7 +192,7 @@ tutao.entity.sys.InvoiceStatusIndexFolder.prototype.updateListEncSessionKey = fu
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceStatusIndexFolder>>} Resolves to an array of InvoiceStatusIndexFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexFolder.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, listId, start, count, reverse, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceStatusIndexFolder, tutao.entity.sys.InvoiceStatusIndexFolder.PATH, listId, start, count, reverse, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

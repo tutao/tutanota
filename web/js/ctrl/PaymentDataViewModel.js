@@ -320,7 +320,11 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
                 self.state.success(true);
                 // we wait for _customerUpdated to switch to the account view
                 self._switchFreeToPremiumGroup();
-            }).caught(function (error) {
+            }).caught(tutao.PreconditionFailedError, function (error) {
+                self.state.setFailureMessage("paymentProviderTransactionFailedError_msg");
+                self.state.failure(true);
+            }).caught(tutao.BadGatewayError, function (error) {
+                self.state.setFailureMessage("paymentProviderNotAvailableError_msg");
                 self.state.failure(true);
             });
         }

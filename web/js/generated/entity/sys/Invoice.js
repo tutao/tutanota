@@ -21,6 +21,7 @@ tutao.entity.sys.Invoice = function(data) {
     this._source = null;
     this._status = null;
     this._vat = null;
+    this._bookings = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.Invoice.prototype;
@@ -42,13 +43,14 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
   this._source = data.source;
   this._status = data.status;
   this._vat = data.vat;
+  this._bookings = data.bookings;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Invoice.MODEL_VERSION = '9';
+tutao.entity.sys.Invoice.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -90,7 +92,8 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
     paymentMethod: this._paymentMethod, 
     source: this._source, 
     status: this._status, 
-    vat: this._vat
+    vat: this._vat, 
+    bookings: this._bookings
   };
 };
 
@@ -133,6 +136,11 @@ tutao.entity.sys.Invoice.prototype.STATUS_ATTRIBUTE_ID = 750;
  * The id of the vat attribute.
  */
 tutao.entity.sys.Invoice.prototype.VAT_ATTRIBUTE_ID = 747;
+
+/**
+ * The id of the bookings attribute.
+ */
+tutao.entity.sys.Invoice.prototype.BOOKINGS_ATTRIBUTE_ID = 882;
 
 /**
  * Provides the id of this Invoice.
@@ -401,12 +409,20 @@ tutao.entity.sys.Invoice.prototype.getVat = function() {
 };
 
 /**
+ * Provides the bookings of this Invoice.
+ * @return {Array.<Array.<string>>} The bookings of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getBookings = function() {
+  return this._bookings;
+};
+
+/**
  * Loads a Invoice from the server.
  * @param {Array.<string>} id The id of the Invoice.
  * @return {Promise.<tutao.entity.sys.Invoice>} Resolves to the Invoice or an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, id[1], id[0], {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, id[1], id[0], {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -417,7 +433,7 @@ tutao.entity.sys.Invoice.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Invoice>>} Resolves to an array of Invoice or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -429,7 +445,7 @@ tutao.entity.sys.Invoice.loadMultiple = function(ids) {
 tutao.entity.sys.Invoice.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 9;
+  params["v"] = 10;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -439,7 +455,7 @@ tutao.entity.sys.Invoice.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.Invoice.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -453,7 +469,7 @@ tutao.entity.sys.Invoice.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Invoice>>} Resolves to an array of Invoice or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, listId, start, count, reverse, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, listId, start, count, reverse, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

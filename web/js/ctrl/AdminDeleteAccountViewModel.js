@@ -95,6 +95,9 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._stateInputInvalidList
     if ( !tutao.tutanota.util.Formatter.isTutanotaMailAddress(currentMailAddress) ){
         return "deactivatePremiumWithCustomDomainError_msg";
     }
+    if ( this.customer != null && this.customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM && this.customer.getCanceledPremiumAccount()) {
+        return "premiumAccountCanceled_msg";
+    }
     return null;
 };
 

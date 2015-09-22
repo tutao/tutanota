@@ -164,7 +164,7 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "invalidPassword_msg": "无效密码，请再次核对。",
   "invalidRecipients_msg": "请在收件人栏中修正无效的电邮地址",
   "invalidSwVersion_msg": "您的Tutanota插件需要更新。重新启动Outlook，新版本会自动下载安装。",
-  "invitationMailBody_msg": "嗨！<br><br>这是我的新电子邮件地址。 Tutanota自动加密我们所有的邮件，所以没有人可以偷看。所有在服务器上的资料也会被加密，没有被监控的可能。 <br><br>立即加入Tutanota：<br><a href=\"https://app.tutanota.de/#register\">https://app.tutanota.de/#register</a><br><br><br>敬上，<br>{1}<br><br>PS：Tutanota赠送1GB空间，而且Tutanota是开源的：<a href=\"https://github.com/tutao/tutanota\">https://github.com/tutao/tutanota</a>",
+  "invitationMailBody_msg": "嗨！<br><br>这是我的新电子邮件地址。 Tutanota自动加密我们所有的邮件，所以没有人可以偷看。所有在服务器上的资料也会被加密，没有被监控的可能。 <br><br>立即加入Tutanota：<br>{registrationLink}<br><br><br>敬上，<br>{username}<br><br>PS：Tutanota赠送1GB空间，而且Tutanota是开源的：{githubLink}",
   "invitationMailSubject_msg": "让我们与Tutanota协力夺回我们的隐私。",
   "invite_alt": "邀请朋友",
   "invite_label": "邀请",

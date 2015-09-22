@@ -52,10 +52,14 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
             return new tutao.NotAuthorizedError();
         case 404:
             return new tutao.NotFoundError();
+        case 412:
+            return new tutao.PreconditionFailedError();
         case 429:
             return new tutao.TooManyRequestsError();
         case 500:
             return new tutao.InternalServerError();
+        case 502:
+            return new tutao.BadGatewayError();
         default:
             return new tutao.ResourceError(errorCode + ":" + (typeof message == "string" ? message : ""));
     }
@@ -93,6 +97,8 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
         return RestError;
     }
 
+    tutao.BadGatewayError = createCustomError(502, "BadGatewayError");
+    tutao.PreconditionFailedError = createCustomError(412, "PreconditionFailedError");
     tutao.AccessBlockedError = createCustomError(472, "AccessBlockedError");
     tutao.AccessDeactivatedError = createCustomError(470, "AccessDeactivatedError");
     tutao.AccessExpiredError = createCustomError(471, "AccessExpiredError");
