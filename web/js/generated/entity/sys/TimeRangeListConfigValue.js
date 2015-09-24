@@ -106,5 +106,5 @@ tutao.entity.sys.TimeRangeListConfigValue.prototype.getTimeRanges = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.TimeRangeListConfigValue.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

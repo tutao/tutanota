@@ -96,7 +96,7 @@ tutao.entity.sys.MigrateToV9Data.prototype.setNoop = function(noop) {
  * @return {boolean} The noop of this MigrateToV9Data.
  */
 tutao.entity.sys.MigrateToV9Data.prototype.getNoop = function() {
-  return this._noop == '1';
+  return this._noop != '0';
 };
 
 /**

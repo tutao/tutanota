@@ -105,12 +105,12 @@ tutao.entity.sys.DomainInfo.prototype.setValidatedMxRecord = function(validatedM
  * @return {boolean} The validatedMxRecord of this DomainInfo.
  */
 tutao.entity.sys.DomainInfo.prototype.getValidatedMxRecord = function() {
-  return this._validatedMxRecord == '1';
+  return this._validatedMxRecord != '0';
 };
 /**
  * Provides the entity helper of this entity.
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.DomainInfo.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

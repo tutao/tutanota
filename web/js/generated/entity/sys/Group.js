@@ -231,7 +231,7 @@ tutao.entity.sys.Group.prototype.setEnabled = function(enabled) {
  * @return {boolean} The enabled of this Group.
  */
 tutao.entity.sys.Group.prototype.getEnabled = function() {
-  return this._enabled == '1';
+  return this._enabled != '0';
 };
 
 /**

@@ -104,7 +104,7 @@ tutao.entity.sys.RegistrationConfigReturn.prototype.setFreeEnabled = function(fr
  * @return {boolean} The freeEnabled of this RegistrationConfigReturn.
  */
 tutao.entity.sys.RegistrationConfigReturn.prototype.getFreeEnabled = function() {
-  return this._freeEnabled == '1';
+  return this._freeEnabled != '0';
 };
 
 /**
@@ -121,7 +121,7 @@ tutao.entity.sys.RegistrationConfigReturn.prototype.setStarterEnabled = function
  * @return {boolean} The starterEnabled of this RegistrationConfigReturn.
  */
 tutao.entity.sys.RegistrationConfigReturn.prototype.getStarterEnabled = function() {
-  return this._starterEnabled == '1';
+  return this._starterEnabled != '0';
 };
 
 /**

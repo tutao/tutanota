@@ -88,7 +88,7 @@ tutao.entity.sys.MailAddressAlias.prototype.setEnabled = function(enabled) {
  * @return {boolean} The enabled of this MailAddressAlias.
  */
 tutao.entity.sys.MailAddressAlias.prototype.getEnabled = function() {
-  return this._enabled == '1';
+  return this._enabled != '0';
 };
 
 /**
@@ -112,5 +112,5 @@ tutao.entity.sys.MailAddressAlias.prototype.getMailAddress = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.MailAddressAlias.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

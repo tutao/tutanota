@@ -129,7 +129,7 @@ tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.setRestore = functi
  * @return {boolean} The restore of this MailAddressAliasServiceDataDelete.
  */
 tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.getRestore = function() {
-  return this._restore == '1';
+  return this._restore != '0';
 };
 
 /**

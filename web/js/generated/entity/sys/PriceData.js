@@ -141,7 +141,7 @@ tutao.entity.sys.PriceData.prototype.setTaxIncluded = function(taxIncluded) {
  * @return {boolean} The taxIncluded of this PriceData.
  */
 tutao.entity.sys.PriceData.prototype.getTaxIncluded = function() {
-  return this._taxIncluded == '1';
+  return this._taxIncluded != '0';
 };
 
 /**
@@ -156,5 +156,5 @@ tutao.entity.sys.PriceData.prototype.getItems = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.PriceData.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

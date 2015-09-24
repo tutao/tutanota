@@ -146,7 +146,7 @@ tutao.entity.aggregatedtype.At2.prototype.setBooleanValue = function(BooleanValu
  * @return {boolean} The BooleanValue of this At2.
  */
 tutao.entity.aggregatedtype.At2.prototype.getBooleanValue = function() {
-  return this._BooleanValue == '1';
+  return this._BooleanValue != '0';
 };
 
 /**
@@ -324,5 +324,5 @@ tutao.entity.aggregatedtype.At2.prototype.loadOneResource = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.aggregatedtype.At2.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

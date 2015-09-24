@@ -108,7 +108,7 @@ tutao.entity.sys.Customer.prototype.TYPE_ID = 31;
 /**
  * The id of the canceledPremiumAccount attribute.
  */
-tutao.entity.sys.Customer.prototype.CANCELEDPREMIUMACCOUNT_ATTRIBUTE_ID = 888;
+tutao.entity.sys.Customer.prototype.CANCELEDPREMIUMACCOUNT_ATTRIBUTE_ID = 902;
 
 /**
  * The id of the type attribute.
@@ -211,7 +211,7 @@ tutao.entity.sys.Customer.prototype.setCanceledPremiumAccount = function(cancele
  * @return {boolean} The canceledPremiumAccount of this Customer.
  */
 tutao.entity.sys.Customer.prototype.getCanceledPremiumAccount = function() {
-  return this._canceledPremiumAccount == '1';
+  return this._canceledPremiumAccount != '0';
 };
 
 /**

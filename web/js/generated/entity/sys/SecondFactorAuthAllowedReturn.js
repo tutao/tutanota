@@ -96,7 +96,7 @@ tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.setAllowed = function(a
  * @return {boolean} The allowed of this SecondFactorAuthAllowedReturn.
  */
 tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.getAllowed = function() {
-  return this._allowed == '1';
+  return this._allowed != '0';
 };
 
 /**

@@ -228,7 +228,7 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getBool = function() {
   if (this._bool == null) {
     return null;
   }
-  return this._bool == '1';
+  return this._bool != '0';
 };
 
 /**

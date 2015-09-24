@@ -199,7 +199,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setDefaultUnconfidential = fu
  * @return {boolean} The defaultUnconfidential of this TutanotaProperties.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getDefaultUnconfidential = function() {
-  return this._defaultUnconfidential == '1';
+  return this._defaultUnconfidential != '0';
 };
 
 /**

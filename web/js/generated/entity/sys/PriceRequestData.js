@@ -136,7 +136,7 @@ tutao.entity.sys.PriceRequestData.prototype.getBusiness = function() {
   if (this._business == null) {
     return null;
   }
-  return this._business == '1';
+  return this._business != '0';
 };
 
 /**
@@ -194,5 +194,5 @@ tutao.entity.sys.PriceRequestData.prototype.getPaymentInterval = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.PriceRequestData.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

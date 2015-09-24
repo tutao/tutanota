@@ -175,7 +175,7 @@ tutao.entity.tutanota.FileData.prototype.setUnreferenced = function(unreferenced
  * @return {boolean} The unreferenced of this FileData.
  */
 tutao.entity.tutanota.FileData.prototype.getUnreferenced = function() {
-  return this._unreferenced == '1';
+  return this._unreferenced != '0';
 };
 
 /**

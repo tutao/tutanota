@@ -98,7 +98,7 @@ tutao.entity.tutanota.FileDataDataGet.prototype.setBase64 = function(base64) {
  * @return {boolean} The base64 of this FileDataDataGet.
  */
 tutao.entity.tutanota.FileDataDataGet.prototype.getBase64 = function() {
-  return this._base64 == '1';
+  return this._base64 != '0';
 };
 
 /**

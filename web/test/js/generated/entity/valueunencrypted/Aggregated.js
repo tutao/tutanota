@@ -112,7 +112,7 @@ tutao.entity.valueunencrypted.Aggregated.prototype.setBool = function(bool) {
  * @return {boolean} The bool of this Aggregated.
  */
 tutao.entity.valueunencrypted.Aggregated.prototype.getBool = function() {
-  return this._bool == '1';
+  return this._bool != '0';
 };
 
 /**
@@ -190,5 +190,5 @@ tutao.entity.valueunencrypted.Aggregated.prototype.getString = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.valueunencrypted.Aggregated.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

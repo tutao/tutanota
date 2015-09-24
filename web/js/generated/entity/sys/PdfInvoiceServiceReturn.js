@@ -100,8 +100,17 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getData = function() {
   if (this._data == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._data);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._data);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

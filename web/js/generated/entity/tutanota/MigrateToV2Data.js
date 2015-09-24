@@ -96,7 +96,7 @@ tutao.entity.tutanota.MigrateToV2Data.prototype.setNoop = function(noop) {
  * @return {boolean} The noop of this MigrateToV2Data.
  */
 tutao.entity.tutanota.MigrateToV2Data.prototype.getNoop = function() {
-  return this._noop == '1';
+  return this._noop != '0';
 };
 
 /**

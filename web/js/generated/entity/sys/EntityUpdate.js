@@ -187,5 +187,5 @@ tutao.entity.sys.EntityUpdate.prototype.getType = function() {
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.sys.EntityUpdate.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

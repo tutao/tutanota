@@ -96,7 +96,7 @@ tutao.entity.sys.CustomerInfoReturn.prototype.setSendMailDisabled = function(sen
  * @return {boolean} The sendMailDisabled of this CustomerInfoReturn.
  */
 tutao.entity.sys.CustomerInfoReturn.prototype.getSendMailDisabled = function() {
-  return this._sendMailDisabled == '1';
+  return this._sendMailDisabled != '0';
 };
 
 /**
