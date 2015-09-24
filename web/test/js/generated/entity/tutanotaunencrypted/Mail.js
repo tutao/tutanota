@@ -268,7 +268,7 @@ tutao.entity.tutanotaunencrypted.Mail.prototype.setRead = function(read) {
  * @return {boolean} The read of this Mail.
  */
 tutao.entity.tutanotaunencrypted.Mail.prototype.getRead = function() {
-  return this._read == '1';
+  return this._read != '0';
 };
 
 /**

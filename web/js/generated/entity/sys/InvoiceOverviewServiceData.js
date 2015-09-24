@@ -11,8 +11,9 @@ tutao.entity.sys.InvoiceOverviewServiceData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._month = null;
-    this._year = null;
+    this._endDate = null;
+    this._onlyAccountingPostings = null;
+    this._startDate = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.InvoiceOverviewServiceData.prototype;
@@ -24,8 +25,9 @@ tutao.entity.sys.InvoiceOverviewServiceData = function(data) {
  */
 tutao.entity.sys.InvoiceOverviewServiceData.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._month = data.month;
-  this._year = data.year;
+  this._endDate = data.endDate;
+  this._onlyAccountingPostings = data.onlyAccountingPostings;
+  this._startDate = data.startDate;
 };
 
 /**
@@ -53,25 +55,31 @@ tutao.entity.sys.InvoiceOverviewServiceData.prototype.ENCRYPTED = false;
 tutao.entity.sys.InvoiceOverviewServiceData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    month: this._month, 
-    year: this._year
+    endDate: this._endDate, 
+    onlyAccountingPostings: this._onlyAccountingPostings, 
+    startDate: this._startDate
   };
 };
 
 /**
  * The id of the InvoiceOverviewServiceData type.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.TYPE_ID = 883;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.TYPE_ID = 896;
 
 /**
- * The id of the month attribute.
+ * The id of the endDate attribute.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.MONTH_ATTRIBUTE_ID = 886;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.ENDDATE_ATTRIBUTE_ID = 899;
 
 /**
- * The id of the year attribute.
+ * The id of the onlyAccountingPostings attribute.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.YEAR_ATTRIBUTE_ID = 885;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.ONLYACCOUNTINGPOSTINGS_ATTRIBUTE_ID = 900;
+
+/**
+ * The id of the startDate attribute.
+ */
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.STARTDATE_ATTRIBUTE_ID = 898;
 
 /**
  * Sets the format of this InvoiceOverviewServiceData.
@@ -91,37 +99,60 @@ tutao.entity.sys.InvoiceOverviewServiceData.prototype.getFormat = function() {
 };
 
 /**
- * Sets the month of this InvoiceOverviewServiceData.
- * @param {string} month The month of this InvoiceOverviewServiceData.
+ * Sets the endDate of this InvoiceOverviewServiceData.
+ * @param {Date} endDate The endDate of this InvoiceOverviewServiceData.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.setMonth = function(month) {
-  this._month = month;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.setEndDate = function(endDate) {
+  this._endDate = String(endDate.getTime());
   return this;
 };
 
 /**
- * Provides the month of this InvoiceOverviewServiceData.
- * @return {string} The month of this InvoiceOverviewServiceData.
+ * Provides the endDate of this InvoiceOverviewServiceData.
+ * @return {Date} The endDate of this InvoiceOverviewServiceData.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.getMonth = function() {
-  return this._month;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.getEndDate = function() {
+  if (isNaN(this._endDate)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._endDate);
+  }
+  return new Date(Number(this._endDate));
 };
 
 /**
- * Sets the year of this InvoiceOverviewServiceData.
- * @param {string} year The year of this InvoiceOverviewServiceData.
+ * Sets the onlyAccountingPostings of this InvoiceOverviewServiceData.
+ * @param {boolean} onlyAccountingPostings The onlyAccountingPostings of this InvoiceOverviewServiceData.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.setYear = function(year) {
-  this._year = year;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.setOnlyAccountingPostings = function(onlyAccountingPostings) {
+  this._onlyAccountingPostings = onlyAccountingPostings ? '1' : '0';
   return this;
 };
 
 /**
- * Provides the year of this InvoiceOverviewServiceData.
- * @return {string} The year of this InvoiceOverviewServiceData.
+ * Provides the onlyAccountingPostings of this InvoiceOverviewServiceData.
+ * @return {boolean} The onlyAccountingPostings of this InvoiceOverviewServiceData.
  */
-tutao.entity.sys.InvoiceOverviewServiceData.prototype.getYear = function() {
-  return this._year;
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.getOnlyAccountingPostings = function() {
+  return this._onlyAccountingPostings != '0';
+};
+
+/**
+ * Sets the startDate of this InvoiceOverviewServiceData.
+ * @param {Date} startDate The startDate of this InvoiceOverviewServiceData.
+ */
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.setStartDate = function(startDate) {
+  this._startDate = String(startDate.getTime());
+  return this;
+};
+
+/**
+ * Provides the startDate of this InvoiceOverviewServiceData.
+ * @return {Date} The startDate of this InvoiceOverviewServiceData.
+ */
+tutao.entity.sys.InvoiceOverviewServiceData.prototype.getStartDate = function() {
+  if (isNaN(this._startDate)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._startDate);
+  }
+  return new Date(Number(this._startDate));
 };
 
 /**

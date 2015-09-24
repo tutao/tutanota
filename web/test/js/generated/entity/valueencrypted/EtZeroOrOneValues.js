@@ -229,11 +229,17 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBool = function() {
   if (this._bool == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bool);
-  if (value != '0' && value != '1') {
-    throw new tutao.InvalidDataError('invalid boolean data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bool);
+    return value != '0';
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
   }
-  return value == '1';
 };
 
 /**
@@ -258,8 +264,17 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBytes = function() {
   if (this._bytes == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._bytes);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._bytes);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -284,11 +299,21 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getDate = function() {
   if (this._date == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
-  if (isNaN(value)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
+    if (isNaN(value)) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    }
+    return new Date(Number(value));
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    } else {
+      throw e;
+    }
   }
-  return new Date(Number(value));
 };
 
 /**
@@ -313,8 +338,17 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getNumber = function() {
   if (this._number == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -339,8 +373,17 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getString = function() {
   if (this._string == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._string);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._string);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

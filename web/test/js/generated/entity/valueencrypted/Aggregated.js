@@ -116,11 +116,17 @@ tutao.entity.valueencrypted.Aggregated.prototype.getBool = function() {
   if (this._bool == "" || !this._parent._entityHelper.getSessionKey()) {
     return false;
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._bool);
-  if (value != '0' && value != '1') {
-    throw new tutao.InvalidDataError('invalid boolean data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._bool);
+    return value != '0';
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
   }
-  return value == '1';
 };
 
 /**
@@ -141,8 +147,17 @@ tutao.entity.valueencrypted.Aggregated.prototype.getBytes = function() {
   if (this._bytes == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptBytes(this._parent._entityHelper.getSessionKey(), this._bytes);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptBytes(this._parent._entityHelper.getSessionKey(), this._bytes);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -163,11 +178,21 @@ tutao.entity.valueencrypted.Aggregated.prototype.getDate = function() {
   if (this._date == "" || !this._parent._entityHelper.getSessionKey()) {
     return new Date(0);
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._date);
-  if (isNaN(value)) {
-    throw new tutao.InvalidDataError('invalid time data: ' + value);
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._date);
+    if (isNaN(value)) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    }
+    return new Date(Number(value));
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return new Date(0);
+    } else {
+      throw e;
+    }
   }
-  return new Date(Number(value));
 };
 
 /**
@@ -188,8 +213,17 @@ tutao.entity.valueencrypted.Aggregated.prototype.getNumber = function() {
   if (this._number == "" || !this._parent._entityHelper.getSessionKey()) {
     return "0";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._number);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._number);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -210,13 +244,22 @@ tutao.entity.valueencrypted.Aggregated.prototype.getString = function() {
   if (this._string == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
-  var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._string);
-  return value;
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._string);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 /**
  * Provides the entity helper of this entity.
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.valueencrypted.Aggregated.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };

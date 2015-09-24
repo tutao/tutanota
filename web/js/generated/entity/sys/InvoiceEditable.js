@@ -10,6 +10,7 @@ tutao.provide('tutao.entity.sys.InvoiceEditable');
 tutao.entity.sys.InvoiceEditable = function(invoice) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = invoice;
+	this.country = ko.observable(invoice.getCountry());
 	this.date = ko.observable(invoice.getDate());
 	this.grandTotal = ko.observable(invoice.getGrandTotal());
 	this.number = ko.observable(invoice.getNumber());
@@ -17,6 +18,7 @@ tutao.entity.sys.InvoiceEditable = function(invoice) {
 	this.source = ko.observable(invoice.getSource());
 	this.status = ko.observable(invoice.getStatus());
 	this.vat = ko.observable(invoice.getVat());
+	this.vatRate = ko.observable(invoice.getVatRate());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -37,6 +39,7 @@ tutao.entity.sys.InvoiceEditable.prototype.getInvoice = function() {
  * Updates the underlying Invoice with the modified attributes.
  */
 tutao.entity.sys.InvoiceEditable.prototype.update = function() {
+	this._entity.setCountry(this.country());
 	this._entity.setDate(this.date());
 	this._entity.setGrandTotal(this.grandTotal());
 	this._entity.setNumber(this.number());
@@ -44,5 +47,6 @@ tutao.entity.sys.InvoiceEditable.prototype.update = function() {
 	this._entity.setSource(this.source());
 	this._entity.setStatus(this.status());
 	this._entity.setVat(this.vat());
+	this._entity.setVatRate(this.vatRate());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

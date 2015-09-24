@@ -241,7 +241,7 @@ tutao.entity.valueunencrypted.Let.prototype.setBool = function(bool) {
  * @return {boolean} The bool of this Let.
  */
 tutao.entity.valueunencrypted.Let.prototype.getBool = function() {
-  return this._bool == '1';
+  return this._bool != '0';
 };
 
 /**

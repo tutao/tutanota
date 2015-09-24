@@ -16,6 +16,7 @@ tutao.entity.sys.System = function(data) {
     this._lastInvoiceNbr = null;
     this._freeCustomerInfos = null;
     this._freeGroup = null;
+    this._invoiceHistory = null;
     this._invoiceStatusIndex = null;
     this._premiumCustomerInfos = null;
     this._premiumGroup = null;
@@ -44,6 +45,7 @@ tutao.entity.sys.System.prototype.updateData = function(data) {
   this._lastInvoiceNbr = data.lastInvoiceNbr;
   this._freeCustomerInfos = data.freeCustomerInfos;
   this._freeGroup = data.freeGroup;
+  this._invoiceHistory = (data.invoiceHistory) ? new tutao.entity.sys.InvoiceHistory(this, data.invoiceHistory) : null;
   this._invoiceStatusIndex = data.invoiceStatusIndex;
   this._premiumCustomerInfos = data.premiumCustomerInfos;
   this._premiumGroup = data.premiumGroup;
@@ -100,6 +102,7 @@ tutao.entity.sys.System.prototype.toJsonData = function() {
     lastInvoiceNbr: this._lastInvoiceNbr, 
     freeCustomerInfos: this._freeCustomerInfos, 
     freeGroup: this._freeGroup, 
+    invoiceHistory: tutao.entity.EntityHelper.aggregatesToJsonData(this._invoiceHistory), 
     invoiceStatusIndex: this._invoiceStatusIndex, 
     premiumCustomerInfos: this._premiumCustomerInfos, 
     premiumGroup: this._premiumGroup, 
@@ -134,6 +137,11 @@ tutao.entity.sys.System.prototype.FREECUSTOMERINFOS_ATTRIBUTE_ID = 183;
  * The id of the freeGroup attribute.
  */
 tutao.entity.sys.System.prototype.FREEGROUP_ATTRIBUTE_ID = 191;
+
+/**
+ * The id of the invoiceHistory attribute.
+ */
+tutao.entity.sys.System.prototype.INVOICEHISTORY_ATTRIBUTE_ID = 910;
 
 /**
  * The id of the invoiceStatusIndex attribute.
@@ -294,6 +302,23 @@ tutao.entity.sys.System.prototype.getFreeGroup = function() {
  */
 tutao.entity.sys.System.prototype.loadFreeGroup = function() {
   return tutao.entity.sys.Group.load(this._freeGroup);
+};
+
+/**
+ * Sets the invoiceHistory of this System.
+ * @param {tutao.entity.sys.InvoiceHistory} invoiceHistory The invoiceHistory of this System.
+ */
+tutao.entity.sys.System.prototype.setInvoiceHistory = function(invoiceHistory) {
+  this._invoiceHistory = invoiceHistory;
+  return this;
+};
+
+/**
+ * Provides the invoiceHistory of this System.
+ * @return {tutao.entity.sys.InvoiceHistory} The invoiceHistory of this System.
+ */
+tutao.entity.sys.System.prototype.getInvoiceHistory = function() {
+  return this._invoiceHistory;
 };
 
 /**

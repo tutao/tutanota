@@ -14,6 +14,7 @@ tutao.entity.sys.Invoice = function(data) {
     this.__id = null;
     this.__listEncSessionKey = null;
     this.__permissions = null;
+    this._country = null;
     this._date = null;
     this._grandTotal = null;
     this._number = null;
@@ -21,7 +22,9 @@ tutao.entity.sys.Invoice = function(data) {
     this._source = null;
     this._status = null;
     this._vat = null;
+    this._vatRate = null;
     this._bookings = [];
+    this._changes = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.Invoice.prototype;
@@ -36,6 +39,7 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__listEncSessionKey = data._listEncSessionKey;
   this.__permissions = data._permissions;
+  this._country = data.country;
   this._date = data.date;
   this._grandTotal = data.grandTotal;
   this._number = data.number;
@@ -43,7 +47,9 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
   this._source = data.source;
   this._status = data.status;
   this._vat = data.vat;
+  this._vatRate = data.vatRate;
   this._bookings = data.bookings;
+  this._changes = data.changes;
 };
 
 /**
@@ -86,6 +92,7 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
     _id: this.__id, 
     _listEncSessionKey: this.__listEncSessionKey, 
     _permissions: this.__permissions, 
+    country: this._country, 
     date: this._date, 
     grandTotal: this._grandTotal, 
     number: this._number, 
@@ -93,7 +100,9 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
     source: this._source, 
     status: this._status, 
     vat: this._vat, 
-    bookings: this._bookings
+    vatRate: this._vatRate, 
+    bookings: this._bookings, 
+    changes: this._changes
   };
 };
 
@@ -101,6 +110,11 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
  * The id of the Invoice type.
  */
 tutao.entity.sys.Invoice.prototype.TYPE_ID = 739;
+
+/**
+ * The id of the country attribute.
+ */
+tutao.entity.sys.Invoice.prototype.COUNTRY_ATTRIBUTE_ID = 892;
 
 /**
  * The id of the date attribute.
@@ -138,9 +152,19 @@ tutao.entity.sys.Invoice.prototype.STATUS_ATTRIBUTE_ID = 750;
 tutao.entity.sys.Invoice.prototype.VAT_ATTRIBUTE_ID = 747;
 
 /**
+ * The id of the vatRate attribute.
+ */
+tutao.entity.sys.Invoice.prototype.VATRATE_ATTRIBUTE_ID = 893;
+
+/**
  * The id of the bookings attribute.
  */
-tutao.entity.sys.Invoice.prototype.BOOKINGS_ATTRIBUTE_ID = 882;
+tutao.entity.sys.Invoice.prototype.BOOKINGS_ATTRIBUTE_ID = 894;
+
+/**
+ * The id of the changes attribute.
+ */
+tutao.entity.sys.Invoice.prototype.CHANGES_ATTRIBUTE_ID = 895;
 
 /**
  * Provides the id of this Invoice.
@@ -199,6 +223,37 @@ tutao.entity.sys.Invoice.prototype.setPermissions = function(permissions) {
  */
 tutao.entity.sys.Invoice.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the country of this Invoice.
+ * @param {string} country The country of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.setCountry = function(country) {
+  var dataToEncrypt = country;
+  this._country = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the country of this Invoice.
+ * @return {string} The country of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getCountry = function() {
+  if (this._country == "" || !this._entityHelper.getSessionKey()) {
+    return "";
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._country);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
@@ -409,11 +464,50 @@ tutao.entity.sys.Invoice.prototype.getVat = function() {
 };
 
 /**
+ * Sets the vatRate of this Invoice.
+ * @param {string} vatRate The vatRate of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.setVatRate = function(vatRate) {
+  var dataToEncrypt = vatRate;
+  this._vatRate = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the vatRate of this Invoice.
+ * @return {string} The vatRate of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getVatRate = function() {
+  if (this._vatRate == "" || !this._entityHelper.getSessionKey()) {
+    return "0";
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._vatRate);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "0";
+    } else {
+      throw e;
+    }
+  }
+};
+
+/**
  * Provides the bookings of this Invoice.
  * @return {Array.<Array.<string>>} The bookings of this Invoice.
  */
 tutao.entity.sys.Invoice.prototype.getBookings = function() {
   return this._bookings;
+};
+
+/**
+ * Provides the changes of this Invoice.
+ * @return {Array.<Array.<string>>} The changes of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getChanges = function() {
+  return this._changes;
 };
 
 /**

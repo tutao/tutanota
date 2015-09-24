@@ -145,5 +145,5 @@ tutao.entity.tutanotaunencrypted.MailAddress.prototype.loadContact = function() 
  * @return {tutao.entity.EntityHelper} The entity helper.
  */
 tutao.entity.tutanotaunencrypted.MailAddress.prototype.getEntityHelper = function() {
-  return this._entityHelper;
+  return this._parent.getEntityHelper();
 };
