@@ -34,7 +34,17 @@ tutao.tutanota.Bootstrap.init = function () {
         Promise.longStackTraces();
         Promise.onPossiblyUnhandledRejection(function (e) {
             if (e instanceof tutao.ConnectionError) {
-                tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+                var checkForMaintenance = function () {
+                    var img = document.createElement("img");
+                    img.onload = function() {
+                        tutao.tutanota.gui.alert(tutao.lang("serverDownForMaintenance_msg"));
+                    };
+                    img.onerror = function() {
+                        tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+                    };
+                    img.src = "https://tutanota.com/images/maintenancecheck.png";
+                };
+                checkForMaintenance();
             } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
                 tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
             } else {

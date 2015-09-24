@@ -169,7 +169,15 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.loadEntropy = function() {
                 resolve();
             }
         } catch (exception) {
-            reject(exception);
+            // when an exception occurs while decrypting the entropy, then fetch the missing entropy.
+            if (exception instanceof tutao.crypto.CryptoError) {
+                return tutao.locator.entropyCollector.fetchMissingEntropy(function() {
+                    self.storeEntropy();
+                    resolve();
+                });
+            } else {
+                reject(exception);
+            }
         }
     });
 };
