@@ -117,8 +117,8 @@ tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = funct
 
 		// remove surrounding url definition. url(<link>)
 		var backgroundImage = htmlNode.style.backgroundImage;
-		backgroundImage = backgroundImage.replace(/^url\(/, "");
-		backgroundImage = backgroundImage.replace(/\)$/, "");
+		backgroundImage = backgroundImage.replace(/^url\("*/, "");
+		backgroundImage = backgroundImage.replace(/"*\)$/, "");
 
 		var replacementEntry = this._getReplacementEntry(backgroundImage);
 		if(replacementEntry){
