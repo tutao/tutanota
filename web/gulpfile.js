@@ -365,7 +365,7 @@ gulp.task('copyRelease', function() {
         .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version));
 });
 
-gulp.task('release', ['dist', 'tagRelease'], function (cb) {
+gulp.task('release', function (cb) {
     return runSequence('dist', 'tagRelease', 'copyRelease', cb);
 });
 
