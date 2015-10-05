@@ -41,7 +41,7 @@ tutao.entity.tutanota.FileData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileData.MODEL_VERSION = '8';
+tutao.entity.tutanota.FileData.MODEL_VERSION = '9';
 
 /**
  * The url path to the resource.
@@ -192,7 +192,7 @@ tutao.entity.tutanota.FileData.prototype.getBlocks = function() {
  * @return {Promise.<tutao.entity.tutanota.FileData>} Resolves to the FileData or an exception if the loading failed.
  */
 tutao.entity.tutanota.FileData.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, id, null, {"v" : 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, id, null, {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -203,7 +203,7 @@ tutao.entity.tutanota.FileData.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileData>>} Resolves to an array of FileData or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileData.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

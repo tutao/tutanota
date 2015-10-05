@@ -13,8 +13,10 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._customEmailSignature = null;
     this._defaultSender = null;
     this._defaultUnconfidential = null;
+    this._emailSignatureType = null;
     this._groupEncEntropy = null;
     this._notificationMailLanguage = null;
     this._imapSyncConfig = [];
@@ -32,8 +34,10 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._customEmailSignature = data.customEmailSignature;
   this._defaultSender = data.defaultSender;
   this._defaultUnconfidential = data.defaultUnconfidential;
+  this._emailSignatureType = data.emailSignatureType;
   this._groupEncEntropy = data.groupEncEntropy;
   this._notificationMailLanguage = data.notificationMailLanguage;
   this._imapSyncConfig = [];
@@ -47,7 +51,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '8';
+tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '9';
 
 /**
  * The url path to the resource.
@@ -71,7 +75,7 @@ tutao.entity.tutanota.TutanotaProperties.GENERATED_ID = true;
  * The encrypted flag.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.prototype.ENCRYPTED = false;
+tutao.entity.tutanota.TutanotaProperties.prototype.ENCRYPTED = true;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
@@ -82,8 +86,10 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    customEmailSignature: this._customEmailSignature, 
     defaultSender: this._defaultSender, 
     defaultUnconfidential: this._defaultUnconfidential, 
+    emailSignatureType: this._emailSignatureType, 
     groupEncEntropy: this._groupEncEntropy, 
     notificationMailLanguage: this._notificationMailLanguage, 
     imapSyncConfig: tutao.entity.EntityHelper.aggregatesToJsonData(this._imapSyncConfig), 
@@ -97,6 +103,11 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
 tutao.entity.tutanota.TutanotaProperties.prototype.TYPE_ID = 216;
 
 /**
+ * The id of the customEmailSignature attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.CUSTOMEMAILSIGNATURE_ATTRIBUTE_ID = 471;
+
+/**
  * The id of the defaultSender attribute.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.DEFAULTSENDER_ATTRIBUTE_ID = 469;
@@ -105,6 +116,11 @@ tutao.entity.tutanota.TutanotaProperties.prototype.DEFAULTSENDER_ATTRIBUTE_ID = 
  * The id of the defaultUnconfidential attribute.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.DEFAULTUNCONFIDENTIAL_ATTRIBUTE_ID = 470;
+
+/**
+ * The id of the emailSignatureType attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.EMAILSIGNATURETYPE_ATTRIBUTE_ID = 472;
 
 /**
  * The id of the groupEncEntropy attribute.
@@ -169,6 +185,37 @@ tutao.entity.tutanota.TutanotaProperties.prototype.getPermissions = function() {
 };
 
 /**
+ * Sets the customEmailSignature of this TutanotaProperties.
+ * @param {string} customEmailSignature The customEmailSignature of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setCustomEmailSignature = function(customEmailSignature) {
+  var dataToEncrypt = customEmailSignature;
+  this._customEmailSignature = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the customEmailSignature of this TutanotaProperties.
+ * @return {string} The customEmailSignature of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getCustomEmailSignature = function() {
+  if (this._customEmailSignature == "" || !this._entityHelper.getSessionKey()) {
+    return "";
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._customEmailSignature);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
+};
+
+/**
  * Sets the defaultSender of this TutanotaProperties.
  * @param {string} defaultSender The defaultSender of this TutanotaProperties.
  */
@@ -200,6 +247,23 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setDefaultUnconfidential = fu
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getDefaultUnconfidential = function() {
   return this._defaultUnconfidential != '0';
+};
+
+/**
+ * Sets the emailSignatureType of this TutanotaProperties.
+ * @param {string} emailSignatureType The emailSignatureType of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setEmailSignatureType = function(emailSignatureType) {
+  this._emailSignatureType = emailSignatureType;
+  return this;
+};
+
+/**
+ * Provides the emailSignatureType of this TutanotaProperties.
+ * @return {string} The emailSignatureType of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getEmailSignatureType = function() {
+  return this._emailSignatureType;
 };
 
 /**
@@ -275,8 +339,8 @@ tutao.entity.tutanota.TutanotaProperties.prototype.loadLastPushedMail = function
  * @return {Promise.<tutao.entity.tutanota.TutanotaProperties>} Resolves to the TutanotaProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity;
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+    return entity._entityHelper.loadSessionKey();
   });
 };
 
@@ -286,8 +350,8 @@ tutao.entity.tutanota.TutanotaProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.TutanotaProperties>>} Resolves to an array of TutanotaProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
-    return entities;
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+    return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
@@ -297,7 +361,7 @@ tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

@@ -148,7 +148,6 @@ tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
 	var result = tutao.locator.htmlSanitizer.sanitize(text, false);
     composeBody.append(result.text);
     this.addSubmitCheckToDivs(composeBody);
-
 };
 
 /**
@@ -162,6 +161,16 @@ tutao.tutanota.gui.MailView.prototype.getComposingBody = function() {
     var text = tutao.tutanota.util.Formatter.urlify(result.text);
 	return text;
 };
+
+
+tutao.tutanota.gui.MailView.prototype.clearComposingBody = function() {
+	var composeBody = $(".conversation").find(".composeBody");
+	if (composeBody.length == 0) {
+		throw new Error("no composing mail created");
+	}
+	composeBody.html("");
+};
+
 
 /**
  * Splits the highest parent of current below boundary into two parts. The parts are separated

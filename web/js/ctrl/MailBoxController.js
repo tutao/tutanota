@@ -122,6 +122,18 @@ tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = functio
     return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
         return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
             self._properties = properties;
+        }).catch(tutao.NotAuthorizedError, function(error) {
+            // Migrate tutanota properties
+            var migrationService = new tutao.entity.tutanota.EncryptTutanotaPropertiesData();
+            var sessionKey = tutao.locator.aesCrypter.generateRandomKey();
+            var groupEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), sessionKey);
+            migrationService.setProperties(root.getReference())
+                .setSymEncSessionKey(groupEncSessionKey);
+            return migrationService.setup({}, null).then(function() {
+                return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
+                    self._properties = properties;
+                })
+            });
         });
     });
 };
@@ -195,4 +207,16 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserShares = function() {
  */
 tutao.tutanota.ctrl.MailBoxController.prototype.getUserProperties = function() {
     return this._properties;
+};
+
+
+tutao.tutanota.ctrl.MailBoxController.prototype.getEmailSignature = function() {
+    var type = this.getUserProperties().getEmailSignatureType();
+    if ( type == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT ) {
+        return tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, { "{1}" : "https://app.tutanota.de/#register"} );
+    } else if (type == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
+        return this.getUserProperties().getCustomEmailSignature();
+    } else {
+        return "";
+    }
 };

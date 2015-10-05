@@ -316,3 +316,9 @@ tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_ERROR = "5";
 
 /* Sets the current date for testing date dependent services. Only available in test environments.*/
 tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE = null;
+
+tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE = "defaultEmailSignature_msg";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT = "0";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM = "1";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_NONE = "2";
+
