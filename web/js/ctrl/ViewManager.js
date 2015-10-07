@@ -196,9 +196,13 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		}
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
 			this._internalUserLoggedIn(true);
+            document.title = tutao.locator.userController.getUserGroupInfo().getMailAddress() + " - Tutanota";
 		} else if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			this._externalUserLoggedIn(true);
+            document.title = tutao.locator.userController.getUserGroupInfo().getMailAddress() + " - Tutanota";
 		} else {
+            // reset the document title
+            document.title = "Tutanota";
             // reset the custom logos
             this.updateLogos(new tutao.entity.sys.CustomerProperties());
         }
