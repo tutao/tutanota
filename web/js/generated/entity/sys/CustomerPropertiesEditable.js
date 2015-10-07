@@ -1,0 +1,54 @@
+"use strict";
+
+tutao.provide('tutao.entity.sys.CustomerPropertiesEditable');
+
+/**
+ * Provides a knockout observable mechanism for a CustomerProperties.
+ * @param {tutao.entity.sys.CustomerProperties} customerproperties The actual CustomerProperties.
+ * @constructor
+ */
+tutao.entity.sys.CustomerPropertiesEditable = function(customerproperties) {
+	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+	this._entity = customerproperties;
+	this.externalUserWelcomeMessage = ko.observable(customerproperties.getExternalUserWelcomeMessage());
+	if (customerproperties.getBigLogo()) {
+		this.bigLogo = ko.observable(new tutao.entity.sys.FileEditable(customerproperties.getBigLogo()));
+	} else {
+	    this.bigLogo = ko.observable(null);
+	}
+	if (customerproperties.getSmallLogo()) {
+		this.smallLogo = ko.observable(new tutao.entity.sys.FileEditable(customerproperties.getSmallLogo()));
+	} else {
+	    this.smallLogo = ko.observable(null);
+	}
+
+	this.lastUpdatedTimestamp = ko.observable(null);
+
+	if (tutao.entity.sys.CustomerPropertiesExtension) {
+		tutao.entity.sys.CustomerPropertiesExtension(this);
+	}
+};
+
+/**
+ * Provides the actual CustomerProperties.
+ * @return {tutao.entity.sys.CustomerProperties} The CustomerProperties.
+ */
+tutao.entity.sys.CustomerPropertiesEditable.prototype.getCustomerProperties = function() {
+	return this._entity;
+};
+
+/**
+ * Updates the underlying CustomerProperties with the modified attributes.
+ */
+tutao.entity.sys.CustomerPropertiesEditable.prototype.update = function() {
+	this._entity.setExternalUserWelcomeMessage(this.externalUserWelcomeMessage());
+		if (this.bigLogo()) {
+			this.bigLogo().update();
+			this._entity.setBigLogo(this.bigLogo().getFile());
+		}
+		if (this.smallLogo()) {
+			this.smallLogo().update();
+			this._entity.setSmallLogo(this.smallLogo().getFile());
+		}
+	this.lastUpdatedTimestamp(new Date().getTime());
+};

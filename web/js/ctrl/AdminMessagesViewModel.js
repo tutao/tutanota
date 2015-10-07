@@ -5,33 +5,79 @@ tutao.provide('tutao.tutanota.ctrl.AdminMessagesViewModel');
 tutao.tutanota.ctrl.AdminMessagesViewModel = function() {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    this.externalWelcomeMessage = ko.observable("");
-    this.externalWelcomeMessageStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
-
+    this.saveStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
     this.busy = ko.observable(true);
     this.properties = ko.observable(null);
 
     var self = this;
     tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         return customer.loadProperties().then(function(properties) {
-            self.properties = properties;
-            self.externalWelcomeMessage(properties.getExternalUserWelcomeMessage());
+            self.properties(new tutao.entity.sys.CustomerPropertiesEditable(properties));
             self.busy(false);
         });
     });
 };
 
-/**
- * Called when the confirm button is clicked by the user. Triggers the next state in the state machine.
- */
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.confirm = function() {
     if (this.busy()) {
         return;
     }
-    this.properties.setExternalUserWelcomeMessage(this.externalWelcomeMessage());
     this.busy(true);
     var self = this;
-    this.properties.update().then(function() {
-        self.externalWelcomeMessageStatus({ type: "valid", text: "externalWelcomeMessageUpdated_msg" });
+    this.properties().update();
+    this.properties().getCustomerProperties().update().then(function() {
+        self.saveStatus({ type: "valid", text: "saved_msg" });
     });
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._updateLogos = function() {
+    var properties = new tutao.entity.sys.CustomerProperties();
+    if (this.properties().smallLogo()) {
+        properties.setSmallLogo(new tutao.entity.sys.File(properties).setMimeType(this.properties().smallLogo().mimeType()).setData(this.properties().smallLogo().data()));
+    }
+    if (this.properties().bigLogo()) {
+        properties.setBigLogo(new tutao.entity.sys.File(properties).setMimeType(this.properties().bigLogo().mimeType()).setData(this.properties().bigLogo().data()));
+    }
+    tutao.locator.viewManager.updateLogos(properties);
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectSmallLogo = function() {
+    this._selectLogo(this.properties().smallLogo);
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectBigLogo = function() {
+    this._selectLogo(this.properties().bigLogo);
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._selectLogo = function(logoObservable) {
+    var self = this;
+    tutao.locator.fileFacade.showFileChooser().then(function(fileList) {
+        if (fileList.length > 1) {
+            tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        } else {
+            var logo = new tutao.entity.sys.FileEditable(new tutao.entity.sys.File(self.properties)
+                .setName(fileList[0].getName())
+                .setMimeType(fileList[0].getMimeType())
+                .setData(tutao.util.EncodingConverter.arrayBufferToBase64(fileList[0].getData())));
+            logoObservable(logo);
+            self._updateLogos();
+        }
+    }).caught(function(error) {
+        tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        console.log(error);
+    });
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteSmallLogo = function() {
+    this.properties().smallLogo(null);
+    this._updateLogos();
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteBigLogo = function() {
+    this.properties().bigLogo(null);
+    this._updateLogos();
+};
+
+tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.getLogoInfoLink = function() {
+    return tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "http://tutanota.uservoice.com/knowledgebase/articles/746151" : "http://tutanota.uservoice.com/knowledgebase/articles/746133";
 };

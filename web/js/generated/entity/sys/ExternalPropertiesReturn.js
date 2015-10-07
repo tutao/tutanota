@@ -13,6 +13,8 @@ tutao.entity.sys.ExternalPropertiesReturn = function(data) {
     this.__format = "0";
     this._accountType = null;
     this._message = null;
+    this._bigLogo = null;
+    this._smallLogo = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.ExternalPropertiesReturn.prototype;
@@ -26,13 +28,15 @@ tutao.entity.sys.ExternalPropertiesReturn.prototype.updateData = function(data) 
   this.__format = data._format;
   this._accountType = data.accountType;
   this._message = data.message;
+  this._bigLogo = (data.bigLogo) ? new tutao.entity.sys.File(this, data.bigLogo) : null;
+  this._smallLogo = (data.smallLogo) ? new tutao.entity.sys.File(this, data.smallLogo) : null;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ExternalPropertiesReturn.MODEL_VERSION = '10';
+tutao.entity.sys.ExternalPropertiesReturn.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -54,7 +58,9 @@ tutao.entity.sys.ExternalPropertiesReturn.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     accountType: this._accountType, 
-    message: this._message
+    message: this._message, 
+    bigLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._bigLogo), 
+    smallLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._smallLogo)
   };
 };
 
@@ -72,6 +78,16 @@ tutao.entity.sys.ExternalPropertiesReturn.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 6
  * The id of the message attribute.
  */
 tutao.entity.sys.ExternalPropertiesReturn.prototype.MESSAGE_ATTRIBUTE_ID = 665;
+
+/**
+ * The id of the bigLogo attribute.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.BIGLOGO_ATTRIBUTE_ID = 925;
+
+/**
+ * The id of the smallLogo attribute.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.SMALLLOGO_ATTRIBUTE_ID = 924;
 
 /**
  * Sets the format of this ExternalPropertiesReturn.
@@ -125,6 +141,40 @@ tutao.entity.sys.ExternalPropertiesReturn.prototype.getMessage = function() {
 };
 
 /**
+ * Sets the bigLogo of this ExternalPropertiesReturn.
+ * @param {tutao.entity.sys.File} bigLogo The bigLogo of this ExternalPropertiesReturn.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.setBigLogo = function(bigLogo) {
+  this._bigLogo = bigLogo;
+  return this;
+};
+
+/**
+ * Provides the bigLogo of this ExternalPropertiesReturn.
+ * @return {tutao.entity.sys.File} The bigLogo of this ExternalPropertiesReturn.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.getBigLogo = function() {
+  return this._bigLogo;
+};
+
+/**
+ * Sets the smallLogo of this ExternalPropertiesReturn.
+ * @param {tutao.entity.sys.File} smallLogo The smallLogo of this ExternalPropertiesReturn.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.setSmallLogo = function(smallLogo) {
+  this._smallLogo = smallLogo;
+  return this;
+};
+
+/**
+ * Provides the smallLogo of this ExternalPropertiesReturn.
+ * @return {tutao.entity.sys.File} The smallLogo of this ExternalPropertiesReturn.
+ */
+tutao.entity.sys.ExternalPropertiesReturn.prototype.getSmallLogo = function() {
+  return this._smallLogo;
+};
+
+/**
  * Loads from the service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
@@ -134,7 +184,7 @@ tutao.entity.sys.ExternalPropertiesReturn.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 10;
+  parameters["v"] = 11;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.ExternalPropertiesReturn, tutao.entity.sys.ExternalPropertiesReturn.PATH, null, null, parameters, headers);
 };
 /**

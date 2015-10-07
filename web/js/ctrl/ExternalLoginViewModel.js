@@ -305,6 +305,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                         } else {
                             tutao.locator.viewManager.externalUserWelcomeMessage(data.getMessage());
                         }
+                        var properties = new tutao.entity.sys.CustomerProperties()
+                            .setSmallLogo(data.getSmallLogo())
+                            .setBigLogo(data.getBigLogo());
+                        tutao.locator.viewManager.updateLogos(properties);
                         tutao.locator.mailListViewModel.loadInitial();
                         tutao.locator.navigator.mail();
                     });

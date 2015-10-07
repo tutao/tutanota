@@ -36,7 +36,7 @@ tutao.entity.sys.InvoiceServicePutData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceServicePutData.MODEL_VERSION = '10';
+tutao.entity.sys.InvoiceServicePutData.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -195,7 +195,7 @@ tutao.entity.sys.InvoiceServicePutData.prototype.update = function(parameters, h
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 10;
+  parameters["v"] = 11;
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.InvoiceServicePutData.PATH, this, parameters, headers, null);
 };
 /**

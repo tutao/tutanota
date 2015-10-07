@@ -603,5 +603,9 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+    "smallLogo_label": "Kleines eigenes Logo",
+    "bigLogo_label": "Großes eigenes Logo",
+    "select_action": "Auswählen",
+    "display_action": "Anzeige"
 };

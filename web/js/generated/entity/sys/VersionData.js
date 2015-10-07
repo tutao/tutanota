@@ -36,7 +36,7 @@ tutao.entity.sys.VersionData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.VersionData.MODEL_VERSION = '10';
+tutao.entity.sys.VersionData.MODEL_VERSION = '11';
 
 /**
  * The encrypted flag.

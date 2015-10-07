@@ -15,14 +15,11 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._activeView = ko.observable(new tutao.tutanota.gui.NotFoundView()); // just a dummy view because null must be avoided
 	this._internalUserLoggedIn = ko.observable(false);
 	this._externalUserLoggedIn = ko.observable(false);
-	this._bigWindowWidth = ko.observable(tutao.tutanota.gui.getWindowWidth() >= 480);
-    this.windowWidthObservable = ko.observable(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
+    this._windowWidthObservable = ko.observable(window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
     this.headerBarViewModel = null;
 
-	// if the window width is small, just show the logo without "Tutanota" to save space
 	tutao.tutanota.gui.addWindowResizeListener(function(width, height) {
-		self._bigWindowWidth(tutao.tutanota.gui.getWindowWidth() >= 480);
-        self.windowWidthObservable(width);
+        self._windowWidthObservable(width);
 	});
 	this._buttons = [];
     this.currentColumnTitle = ko.observable("");
@@ -31,6 +28,26 @@ tutao.tutanota.ctrl.ViewManager = function() {
     this.externalUserWelcomeMessage = ko.observable("");
 
     this.buttonWithSubButtons = ko.observable(); // is set by the button whose sub-buttons shall be shown
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.loadCustomLogos = function() {
+    var self = this;
+    return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        return customer.loadProperties().then(function(properties) {
+            self.updateLogos(properties);
+        });
+    });
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.updateLogos = function(properties) {
+    var css = "";
+    if (properties.getSmallLogo()) {
+        css += "@media (max-width: 719px) { #logo { background-image: url('data:" + properties.getSmallLogo().getMimeType() + ";base64," + properties.getSmallLogo().getData() + "') !important; } }\n"
+    }
+    if (properties.getBigLogo()) {
+        css += "@media (min-width: 720px) { #logo { background-image: url('data:" + properties.getBigLogo().getMimeType() + ";base64," + properties.getBigLogo().getData() + "') !important; } }\n"
+    }
+    document.getElementById("customStyle").innerHTML = css;
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.getLoggedInUserAccountType = function(){
@@ -146,7 +163,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     setTimeout(function () {
         self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
     }, 0);
-    this.windowWidthObservable.subscribe(function () {
+    this._windowWidthObservable.subscribe(function () {
         self.headerBarViewModel.setButtonBarWidth(getRightNavbarSize());
     });
 };
@@ -180,7 +197,10 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 			this._internalUserLoggedIn(true);
 		} else if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			this._externalUserLoggedIn(true);
-		}
+		} else {
+            // reset the custom logos
+            this.updateLogos(new tutao.entity.sys.CustomerProperties());
+        }
         this._activeView(view);
         view.activate(params);
         tutao.tutanota.gui.adjustPanelHeight();

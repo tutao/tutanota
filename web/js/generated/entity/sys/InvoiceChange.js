@@ -42,7 +42,7 @@ tutao.entity.sys.InvoiceChange.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceChange.MODEL_VERSION = '10';
+tutao.entity.sys.InvoiceChange.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -267,7 +267,7 @@ tutao.entity.sys.InvoiceChange.prototype.loadInvoice = function() {
  * @return {Promise.<tutao.entity.sys.InvoiceChange>} Resolves to the InvoiceChange or an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceChange.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, id[1], id[0], {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, id[1], id[0], {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -278,7 +278,7 @@ tutao.entity.sys.InvoiceChange.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceChange>>} Resolves to an array of InvoiceChange or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceChange.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -290,7 +290,7 @@ tutao.entity.sys.InvoiceChange.loadMultiple = function(ids) {
 tutao.entity.sys.InvoiceChange.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 10;
+  params["v"] = 11;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceChange.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -300,7 +300,7 @@ tutao.entity.sys.InvoiceChange.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.InvoiceChange.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceChange.PATH, this, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceChange.PATH, this, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -311,7 +311,7 @@ tutao.entity.sys.InvoiceChange.prototype.update = function() {
  */
 tutao.entity.sys.InvoiceChange.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.InvoiceChange.PATH, this.__id[1], this.__id[0], {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.InvoiceChange.PATH, this.__id[1], this.__id[0], {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -325,7 +325,7 @@ tutao.entity.sys.InvoiceChange.prototype.erase = function() {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceChange>>} Resolves to an array of InvoiceChange or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceChange.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, listId, start, count, reverse, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceChange, tutao.entity.sys.InvoiceChange.PATH, listId, start, count, reverse, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

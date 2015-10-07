@@ -34,7 +34,7 @@ tutao.entity.sys.InvoiceStatusIndex.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceStatusIndex.MODEL_VERSION = '10';
+tutao.entity.sys.InvoiceStatusIndex.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -148,7 +148,7 @@ tutao.entity.sys.InvoiceStatusIndex.prototype.getFolders = function() {
  * @return {Promise.<tutao.entity.sys.InvoiceStatusIndex>} Resolves to the InvoiceStatusIndex or an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndex.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndex, tutao.entity.sys.InvoiceStatusIndex.PATH, id, null, {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndex, tutao.entity.sys.InvoiceStatusIndex.PATH, id, null, {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -159,7 +159,7 @@ tutao.entity.sys.InvoiceStatusIndex.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceStatusIndex>>} Resolves to an array of InvoiceStatusIndex or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndex.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndex, tutao.entity.sys.InvoiceStatusIndex.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndex, tutao.entity.sys.InvoiceStatusIndex.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

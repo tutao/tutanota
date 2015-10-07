@@ -30,7 +30,7 @@ tutao.entity.sys.AutoLoginDataReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AutoLoginDataReturn.MODEL_VERSION = '10';
+tutao.entity.sys.AutoLoginDataReturn.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -110,7 +110,7 @@ tutao.entity.sys.AutoLoginDataReturn.load = function(entity, parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 10;
+  parameters["v"] = 11;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.AutoLoginDataReturn, tutao.entity.sys.AutoLoginDataReturn.PATH, entity, parameters, headers);
 };
 
@@ -124,7 +124,7 @@ tutao.entity.sys.AutoLoginDataReturn.prototype.setup = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 10;
+  parameters["v"] = 11;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.AutoLoginDataReturn.PATH, this, parameters, headers, tutao.entity.sys.AutoLoginPostReturn);
 };

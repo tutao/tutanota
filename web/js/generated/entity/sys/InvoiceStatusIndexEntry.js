@@ -38,7 +38,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceStatusIndexEntry.MODEL_VERSION = '10';
+tutao.entity.sys.InvoiceStatusIndexEntry.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -222,7 +222,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.prototype.loadInvoice = function() {
  * @return {Promise.<tutao.entity.sys.InvoiceStatusIndexEntry>} Resolves to the InvoiceStatusIndexEntry or an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexEntry.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, id[1], id[0], {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, id[1], id[0], {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -233,7 +233,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceStatusIndexEntry>>} Resolves to an array of InvoiceStatusIndexEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexEntry.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -245,7 +245,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.loadMultiple = function(ids) {
 tutao.entity.sys.InvoiceStatusIndexEntry.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 10;
+  params["v"] = 11;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceStatusIndexEntry.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -258,7 +258,7 @@ tutao.entity.sys.InvoiceStatusIndexEntry.prototype.updateListEncSessionKey = fun
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceStatusIndexEntry>>} Resolves to an array of InvoiceStatusIndexEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceStatusIndexEntry.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, listId, start, count, reverse, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.InvoiceStatusIndexEntry, tutao.entity.sys.InvoiceStatusIndexEntry.PATH, listId, start, count, reverse, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

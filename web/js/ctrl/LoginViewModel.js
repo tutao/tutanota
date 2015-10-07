@@ -137,6 +137,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         });
     }).then(function () {
         return self.loadEntropy();
+    }).then(function () {
+        return tutao.locator.viewManager.loadCustomLogos();
     }).then(function() {
         // load all contacts to have them available in cache, e.g. for RecipientInfos
         return tutao.locator.contactListViewModel.init();

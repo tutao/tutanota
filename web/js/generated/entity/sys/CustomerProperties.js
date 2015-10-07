@@ -14,6 +14,8 @@ tutao.entity.sys.CustomerProperties = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._externalUserWelcomeMessage = null;
+    this._bigLogo = null;
+    this._smallLogo = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerProperties.prototype;
@@ -28,13 +30,15 @@ tutao.entity.sys.CustomerProperties.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__permissions = data._permissions;
   this._externalUserWelcomeMessage = data.externalUserWelcomeMessage;
+  this._bigLogo = (data.bigLogo) ? new tutao.entity.sys.File(this, data.bigLogo) : null;
+  this._smallLogo = (data.smallLogo) ? new tutao.entity.sys.File(this, data.smallLogo) : null;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerProperties.MODEL_VERSION = '10';
+tutao.entity.sys.CustomerProperties.MODEL_VERSION = '11';
 
 /**
  * The url path to the resource.
@@ -69,7 +73,9 @@ tutao.entity.sys.CustomerProperties.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
-    externalUserWelcomeMessage: this._externalUserWelcomeMessage
+    externalUserWelcomeMessage: this._externalUserWelcomeMessage, 
+    bigLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._bigLogo), 
+    smallLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._smallLogo)
   };
 };
 
@@ -82,6 +88,16 @@ tutao.entity.sys.CustomerProperties.prototype.TYPE_ID = 656;
  * The id of the externalUserWelcomeMessage attribute.
  */
 tutao.entity.sys.CustomerProperties.prototype.EXTERNALUSERWELCOMEMESSAGE_ATTRIBUTE_ID = 661;
+
+/**
+ * The id of the bigLogo attribute.
+ */
+tutao.entity.sys.CustomerProperties.prototype.BIGLOGO_ATTRIBUTE_ID = 923;
+
+/**
+ * The id of the smallLogo attribute.
+ */
+tutao.entity.sys.CustomerProperties.prototype.SMALLLOGO_ATTRIBUTE_ID = 922;
 
 /**
  * Provides the id of this CustomerProperties.
@@ -143,12 +159,46 @@ tutao.entity.sys.CustomerProperties.prototype.getExternalUserWelcomeMessage = fu
 };
 
 /**
+ * Sets the bigLogo of this CustomerProperties.
+ * @param {tutao.entity.sys.File} bigLogo The bigLogo of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.setBigLogo = function(bigLogo) {
+  this._bigLogo = bigLogo;
+  return this;
+};
+
+/**
+ * Provides the bigLogo of this CustomerProperties.
+ * @return {tutao.entity.sys.File} The bigLogo of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.getBigLogo = function() {
+  return this._bigLogo;
+};
+
+/**
+ * Sets the smallLogo of this CustomerProperties.
+ * @param {tutao.entity.sys.File} smallLogo The smallLogo of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.setSmallLogo = function(smallLogo) {
+  this._smallLogo = smallLogo;
+  return this;
+};
+
+/**
+ * Provides the smallLogo of this CustomerProperties.
+ * @return {tutao.entity.sys.File} The smallLogo of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.getSmallLogo = function() {
+  return this._smallLogo;
+};
+
+/**
  * Loads a CustomerProperties from the server.
  * @param {string} id The id of the CustomerProperties.
  * @return {Promise.<tutao.entity.sys.CustomerProperties>} Resolves to the CustomerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -159,7 +209,7 @@ tutao.entity.sys.CustomerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerProperties>>} Resolves to an array of CustomerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -170,7 +220,7 @@ tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
  */
 tutao.entity.sys.CustomerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

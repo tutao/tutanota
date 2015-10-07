@@ -86,9 +86,9 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
     if (tutao.locator.viewManager.isFreeAccount()) {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action"][settings];
     } else {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "adminMessages_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
     }
 };
 
