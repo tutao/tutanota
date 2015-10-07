@@ -40,7 +40,7 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getEmailSignatureText = fun
     } else if (type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
         return this._currentCustomEmailSignature.length == 0 ? tutao.lang("emptyString_msg"): this._currentCustomEmailSignature; // handle empty email signature for firefox browser.
     } else {
-        return tutao.lang("emptyString_msg");
+        return "";
     }
 };
 
@@ -51,14 +51,6 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype.getEmailSignatureMsg = funct
         return tutao.lang("customEmailSignatureEnter_msg") + " " + tutao.lang("customEmailSignatureAppend_msg");
     } else {
         return tutao.lang("customEmailSignatureNone_msg");
-    }
-};
-
-tutao.tutanota.ctrl.MailSettingsViewModel.prototype.getPlaceholder = function() {
-    if ( this.selectedEmailSignatureType().value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_NONE ) {
-        return "emptyString_msg";
-    } else {
-        return "";
     }
 };
 
