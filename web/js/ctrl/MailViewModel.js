@@ -147,7 +147,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createReplySubject = function(prefi
       return oldSubject;
    else
       return prefix + oldSubject;
-}
+};
 
 /**
  * Lets the user write a reply mail to the given displayed mail.
@@ -316,6 +316,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
             // any selected mails in the mail list shall be deselected
             tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
 
+            var emailSignature = tutao.locator.mailBoxController.getEmailSignature();
             var mailCreatedPromise;
             if (previousMail) {
                 var previousMessageId = null;
@@ -327,11 +328,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
                     // the conversation key may be null if the mail was e.g. received from an external via smtp
                     self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId, previousMail.mail));
                     self.mail().confidentialButtonSecure(previousMail.mail.getConfidential());
-                    self.mail().setBody(bodyText);
+                    self.mail().setBody(emailSignature + bodyText);
                 });
             } else {
                 mailCreatedPromise = Promise.resolve();
                 self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null, null));
+                self.mail().setBody(emailSignature);
             }
 
             return mailCreatedPromise.then(function() {

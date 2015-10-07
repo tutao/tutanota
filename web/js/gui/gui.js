@@ -160,6 +160,22 @@ tutao.tutanota.gui.initKnockout = function() {
 			ko.bindingHandlers.fadeText.update(element, function() { return tutao.locator.languageViewModel.get(valueAccessor(), params); });
 	    }
 	};
+
+
+	// Custom binding to handle editable text in contenteditable divs.
+	ko.bindingHandlers.editableText = {
+		init: function(element, valueAccessor) {
+			$(element).on('blur', function() {
+				var observable = valueAccessor();
+				observable( $(this).html() );
+			});
+		},
+		update: function(element, valueAccessor) {
+			var value = ko.utils.unwrapObservable(valueAccessor());
+			$(element).html(value);
+		}
+	};
+
 	
 	// sets a wide class on all forms that are wider than 500px
 	var updateForm = function(element, container) {

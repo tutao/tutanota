@@ -201,7 +201,9 @@
 <script src="/js/ctrl/lang/el.js"></script>
 <script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/ctrl/lang/en_us.js"></script>
+<script src="/js/ctrl/lang/eo.js"></script>
 <script src="/js/ctrl/lang/es.js"></script>
+<script src="/js/ctrl/lang/es_ar.js"></script>
 <script src="/js/ctrl/lang/et_ee.js"></script>
 <script src="/js/ctrl/lang/fa_af.js"></script>
 <script src="/js/ctrl/lang/fa_ir.js"></script>
@@ -231,6 +233,7 @@
 <script src="/js/ctrl/lang/sq.js"></script>
 <script src="/js/ctrl/lang/sq_al.js"></script>
 <script src="/js/ctrl/lang/sr.js"></script>
+<script src="/js/ctrl/lang/sr_ba-cyrl.js"></script>
 <script src="/js/ctrl/lang/sv.js"></script>
 <script src="/js/ctrl/lang/ta_in.js"></script>
 <script src="/js/ctrl/lang/tr.js"></script>
@@ -412,6 +415,7 @@
 <script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteMailFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/EncryptTutanotaPropertiesData.js"></script>
 <script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
 <script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
 <script src="/js/generated/entity/tutanota/File.js"></script>
@@ -1580,10 +1584,27 @@
                                             <label for="defaultConfidential" class="recordInfo" data-bind="lang: 'defaultExternalDeliveryInfo_msg'"></label>
                                         </div>
                                     </div>
+									<div class="record">
+										<label for="userEmailSignature" class="recordName" data-bind="lang: 'userEmailSignature_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<select id="defaultEmailSignature" data-bind="enable: inputEnabled, options: emailSignatureTypes, value: selectedEmailSignatureType, optionsText: 'text'"></select>
+											</div>
+										</div>
+									</div>
+									<div class="record">
+										<div class="recordName"></div>
+										<div class="recordData">
+											<div class="recordValue">
+												<div id="userEmailSignature" data-bind="css: {inputArea: isEmailSignatureInputEnabled()},  attr: { contenteditable : isEmailSignatureInputEnabled() }, editableText: displayedEmailSignature" />
+											</div>
+											<label for="userEmailSignature" class="recordInfo" data-bind="text: getEmailSignatureMsg()"></label>
+										</div>
+									</div>
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDefaultMailSettings" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+                                            <button id="submitDefaultMailSettings" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'save_action'"></button>
                                             <label for="submitDefaultMailSettings" class="recordStatus" data-bind="css: mailSettingsStatus().type, lang: mailSettingsStatus().text"></label>
                                         </div>
                                     </div>

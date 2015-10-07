@@ -50,7 +50,7 @@ tutao.entity.tutanota.File.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.File.MODEL_VERSION = '8';
+tutao.entity.tutanota.File.MODEL_VERSION = '9';
 
 /**
  * The url path to the resource.
@@ -391,7 +391,7 @@ tutao.entity.tutanota.File.prototype.getSubFiles = function() {
  * @return {Promise.<tutao.entity.tutanota.File>} Resolves to the File or an exception if the loading failed.
  */
 tutao.entity.tutanota.File.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, id[1], id[0], {"v" : 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, id[1], id[0], {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -402,7 +402,7 @@ tutao.entity.tutanota.File.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.File>>} Resolves to an array of File or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.File.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, ids, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -414,7 +414,7 @@ tutao.entity.tutanota.File.loadMultiple = function(ids) {
 tutao.entity.tutanota.File.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 8;
+  params["v"] = 9;
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.File.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -424,7 +424,7 @@ tutao.entity.tutanota.File.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.tutanota.File.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.File.PATH, this, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.File.PATH, this, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -438,7 +438,7 @@ tutao.entity.tutanota.File.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.File>>} Resolves to an array of File or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.File.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, listId, start, count, reverse, {"v": 8}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.File, tutao.entity.tutanota.File.PATH, listId, start, count, reverse, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

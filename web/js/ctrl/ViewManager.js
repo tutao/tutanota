@@ -105,6 +105,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
                     mail.composerSubject(tutao.locator.languageViewModel.get("invitationMailSubject_msg"));
                     mail.confidentialButtonSecure(false);
                     var username = tutao.locator.userController.getUserGroupInfo().getName();
+                    tutao.locator.mailView.clearComposingBody(); // clear composing body to avoid signature in invitation email
                     tutao.locator.mailView.setComposingBody(tutao.locator.htmlSanitizer.sanitize(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{registrationLink}': "https://app.tutanota.de/#register", '{username}' : username, '{githubLink}':"https://github.com/tutao/tutanota"} ), true).text);
                 }
             });
