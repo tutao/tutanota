@@ -1136,9 +1136,9 @@
 							<div class="record">
 								<div class="recordName"></div>
 								<div class="formAction">
-									<button id="submitLogin" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+									<button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
                                     <button class="single" data-bind="css: { disabled: !loginPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
-									<label id="submitLoginLabel" for="submitLogin" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+									<label class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 								</div>
 							</div>
 
@@ -1216,8 +1216,8 @@
 								<div class="record">
 									<div class="recordName"></div>
 									<div class="formAction">
-										<button id="showMailButton" class="single fontImage confirm" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
-										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+										<button class="single fontImage confirm" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
+										<label class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
 									</div>
 								</div>
 							</form>
@@ -1361,9 +1361,9 @@
                                 <div class="record">
                                     <div class="recordName"></div>
                                     <div class="formAction">
-                                        <button id="submitRegistration1" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
+                                        <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !isCreateAccountPossible() }, lang: 'createAccount_action'"></button>
                                         <button class="single" data-bind="fastClick: login, lang: 'backTologin_action'"></button>
-                                        <label id="submitRegistration1Label" for="submitRegistration1" class="recordStatus invalid" data-bind="lang: getCreateAccountErrorMessage()"></label>
+                                        <label class="recordStatus invalid" data-bind="lang: getCreateAccountErrorMessage()"></label>
                                     </div>
                                 </div>
 
@@ -1484,8 +1484,8 @@
                                             <div class="record">
                                                 <div class="recordName"></div>
                                                 <div class="formAction">
-                                                    <button id="submitPasswordChange" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
-                                                    <label for="submitPasswordChange" class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text"></label>
+                                                    <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
+                                                    <label class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text"></label>
                                                 </div>
                                             </div>
                                         </form>
@@ -1555,8 +1555,8 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDeleteAccount" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
-                                            <label for="submitDeleteAccount" class="recordStatus" data-bind="css: deleteAccountStatus().type, lang: deleteAccountStatus().text"></label>
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'adminDeleteAccount_action'"></button>
+                                            <label class="recordStatus" data-bind="css: deleteAccountStatus().type, lang: deleteAccountStatus().text"></label>
                                         </div>
                                     </div>
                                 </form>
@@ -1596,7 +1596,7 @@
 										<div class="recordName"></div>
 										<div class="recordData">
 											<div class="recordValue">
-												<div id="userEmailSignature" data-bind="css: {inputArea: isEmailSignatureInputEnabled()},  attr: { contenteditable : isEmailSignatureInputEnabled() }, editableText: displayedEmailSignature" />
+												<div id="userEmailSignature" data-bind="css: {inputArea: isEmailSignatureInputEnabled()},  attr: { contenteditable : isEmailSignatureInputEnabled() }, editableText: displayedEmailSignature"></div>
 											</div>
 											<label for="userEmailSignature" class="recordInfo" data-bind="text: getEmailSignatureMsg()"></label>
 										</div>
@@ -1604,8 +1604,8 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitDefaultMailSettings" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'save_action'"></button>
-                                            <label for="submitDefaultMailSettings" class="recordStatus" data-bind="css: mailSettingsStatus().type, lang: mailSettingsStatus().text"></label>
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'save_action'"></button>
+                                            <label class="recordStatus" data-bind="css: mailSettingsStatus().type, lang: mailSettingsStatus().text"></label>
                                         </div>
                                     </div>
                                 </form>
@@ -1626,8 +1626,8 @@
                                     <div class="record">
                                         <div class="recordName"></div>
                                         <div class="formAction">
-                                            <button id="submitPromotionCode" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-											<label for="submitExternalWelcomeMessage" class="recordStatus" data-bind="css: promotionCodeSubmitStatus().type, lang: promotionCodeSubmitStatus().text"></label>
+                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
+											<label class="recordStatus" data-bind="css: promotionCodeSubmitStatus().type, lang: promotionCodeSubmitStatus().text"></label>
                                         </div>
                                     </div>
                                 </form>
@@ -2020,8 +2020,8 @@
 								<div class="record">
 									<div class="recordName"></div>
 									<div class="formAction">
-										<button id="submitAddAlias" class="single" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'addMailAddressAlias_action'"></button>
-										<label for="submitAddAlias" class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
+										<button class="single" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'addMailAddressAlias_action'"></button>
+										<label class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
 									</div>
 								</div>
 							</form>
