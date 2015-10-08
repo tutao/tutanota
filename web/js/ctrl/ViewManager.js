@@ -248,10 +248,10 @@ tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, he
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
+
     if (!currentTitle) {
         currentTitle = "";
     }
-
     if (!previousTitle) {
         previousTitle = tutao.lang("back_action");
     }
@@ -259,7 +259,6 @@ tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentT
     if (!this.getActiveView().isShowLeftNeighbourColumnPossible()) {
         previousTitle = "";
     }
-
 
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);

@@ -8,7 +8,6 @@ tutao.provide('tutao.tutanota.gui.LoginView');
  */
 tutao.tutanota.gui.LoginView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-
 };
 
 /**
