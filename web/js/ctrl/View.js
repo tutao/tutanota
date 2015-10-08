@@ -49,3 +49,10 @@ tutao.tutanota.ctrl.View.prototype.isShowLeftNeighbourColumnPossible = function(
  * @return {boolean} True if the right neighbour column can be shown, false otherwise.
  */
 tutao.tutanota.ctrl.View.prototype.isShowRightNeighbourColumnPossible = function() {};
+
+
+/**
+ * Returns a text for the welcome message for this view.
+ * @return {String} The welcome message  for this vew.
+ */
+tutao.tutanota.ctrl.View.prototype.getWelcomeMessage = function() {return ""};

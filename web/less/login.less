@@ -1,9 +1,4 @@
 
-
-div.fastMessage {
-	.fill;
-}
-
 div#externalLogin {
 	label#sendMailPasswordStatus {
 		margin-bottom: 10px;
@@ -21,34 +16,52 @@ div#externalLogin {
 	}
 }
 
+
+
+
+div.loginBox {
+  // avoid blurry elements when using translateY
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+
+
+  > div.loginBoxContent {
+	margin:0 auto; // center horizontally
+	border: 1px solid @border;
+	@media @mobile {
+	  border: none;
+	}
+	border-radius: 10px;
+	max-width:360px;
+	padding: 35px;
+
+	position:relative;
+	top: 50%;
+	transform: translateY(-60%); // center vertically
+	-webkit-transform: translateY(-60%);
+	-ms-transform: translateY(-60%);
+
+  }
+
+  > .smallInfoMessage {
+	margin-top: @header-height;
+  }
+
+  .inputField {
+	border : 0;
+	border-bottom: 1px solid @border
+  }
+}
+
+
 div.login {
-	.fill;
-	
+
 	> div.welcomeContainer {
 		display: table;
 		width: 100%;
 		height: 100%;
-		
-		> div#welcomePicture {
-			@media @mobile {
-				display:none;
-			}
-			/*
-			position: absolute;
-			top: 0px;
-			left: 450px;
-			right: 0px;
-			bottom: 0px;
-			*/
-			overflow:hidden;
-			height: 100%;
-			display: table-cell;
-			background: url(../graphics/beach_1000.jpg) no-repeat center center; 
-		  	-webkit-background-size: cover;
-		  	-moz-background-size: cover;
-		  	-o-background-size: cover;
-		  	background-size: cover;
-		}
+
 		
 		> div.panel {
 			display: table-cell;

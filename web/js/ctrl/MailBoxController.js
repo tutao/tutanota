@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = functio
     return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
         return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
             self._properties = properties;
-        }).catch(tutao.NotAuthorizedError, function(error) {
+        }).catch(function(error) {
             // Migrate tutanota properties
             var migrationService = new tutao.entity.tutanota.EncryptTutanotaPropertiesData();
             var sessionKey = tutao.locator.aesCrypter.generateRandomKey();

@@ -56,6 +56,24 @@
 }
 
 
+.appStoreLinkImage{
+  .fontImage;
+  font-size: 30px;
+  line-height: 30px;
+  text-decoration: none;
+  padding-right:15px;
+  padding-left:15px;
+}
+
+.socialMediaLinkImage{
+  .fontImage;
+  font-size: 25px;
+  line-height: 25px;
+  text-decoration: none;
+  padding-right:15px;
+  padding-left:15px;
+}
+
 
 .fontImage {
 
@@ -493,9 +511,31 @@
     content: "\e615";
   }
 
+  &.android-store:before {
+    .ion;
+    content: @ionicon-var-social-android;
+  }
+  &.ios-store:before {
+    .ion;
+    content: @ionicon-var-social-apple;
+  }
 
-
-
+  &.amazon-store:before {
+    .ion;
+    content: @ionicon-var-ios7-cart;
+  }
+  &.social-twitter:before {
+    .ion;
+    content: @ionicon-var-social-twitter;
+  }
+  &.social-facebook:before {
+    .ion;
+    content: @ionicon-var-social-facebook;
+  }
+  &.social-googleplus:before {
+    .ion;
+    content: @ionicon-var-social-google;
+  }
 
   @-moz-keyframes spin {
     from { -moz-transform: rotate(0); }
