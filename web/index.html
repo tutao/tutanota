@@ -208,9 +208,7 @@
 <script src="/js/ctrl/lang/el.js"></script>
 <script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/ctrl/lang/en_us.js"></script>
-<script src="/js/ctrl/lang/eo.js"></script>
 <script src="/js/ctrl/lang/es.js"></script>
-<script src="/js/ctrl/lang/es_ar.js"></script>
 <script src="/js/ctrl/lang/et_ee.js"></script>
 <script src="/js/ctrl/lang/fa_af.js"></script>
 <script src="/js/ctrl/lang/fa_ir.js"></script>
@@ -240,7 +238,6 @@
 <script src="/js/ctrl/lang/sq.js"></script>
 <script src="/js/ctrl/lang/sq_al.js"></script>
 <script src="/js/ctrl/lang/sr.js"></script>
-<script src="/js/ctrl/lang/sr_ba-cyrl.js"></script>
 <script src="/js/ctrl/lang/sv.js"></script>
 <script src="/js/ctrl/lang/ta_in.js"></script>
 <script src="/js/ctrl/lang/tr.js"></script>
@@ -2240,26 +2237,17 @@
         </a>
     </div>
 -->
-	<header id="main" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
+	<header id="main" class="loggedIn" data-bind="with: tutao.locator.viewManager">
         <div id="welcomeMessage">
             <div class="outerWelcomeMessage">
-                <div class="innerWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
+                <div class="innerWelcomeMessage" data-bind="text: welcomeMessage"></div>
             </div>
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
         <button class="leftViewButton fontImage leftIndicator" data-bind="text: previousColumnTitle(), fadeVisible: getActiveView().isShowLeftNeighbourColumnPossible(), fastClick: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }"></button>
-        <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()">
-            <div id="claim" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn()">
-                <!-- ko if: tutao.locator.languageViewModel.getCurrentLanguage() == 'de' -->
-                <img src="data:image/png;base64,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" />
-                <!-- /ko -->
-                <!-- ko if: tutao.locator.languageViewModel.getCurrentLanguage() == 'en' -->
-                <img src="data:image/png;base64,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" />
-                <!-- /ko -->
-            </div>
-        </div>
+        <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()"></div>
 
         <div id="right-navbar" >
             <menu data-bind="with: headerBarViewModel">
@@ -2303,17 +2291,16 @@
     </script>
 
     <script type="text/html" id="appInfo-template">
-        <div class="recordName"></div>
-        <div class="recordData">
-            <div class="recordValue">
-                <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
-                    <img src="graphics/android_en.png" data-bind="attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
-                </a>
-                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD">
-                    <img src="graphics/ios_en.png" data-bind="attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }" />
-                </a>
+            <div class="centered">
+                <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" class="appStoreLinkImage android-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
+                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" class="appStoreLinkImage ios-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }"></a>
+				<a href="http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE" class="appStoreLinkImage amazon-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
+<!--
+				<a href="https://twitter.com/Tutanota_de" class="externalLinkImage social-twitter" target="_blank"></a>
+				<a href="https://www.facebook.com/tutanota" class="externalLinkImage social-facebook" target="_blank"></a>
+				<a href="https://plus.google.com/+Tutanota" class="externalLinkImage social-googleplus" target="_blank"></a>
+-->
             </div>
-        </div>
     </script>
 
 	<script type="text/html" id="displayedRecord-template">
