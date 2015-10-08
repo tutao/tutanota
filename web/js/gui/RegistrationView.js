@@ -13,9 +13,11 @@ tutao.tutanota.gui.RegistrationView = function() {
 /**
  * @inherit
  */
-tutao.tutanota.gui.RegistrationView.prototype.init = function() {
+tutao.tutanota.gui.RegistrationView.prototype.init = function(external, updateColumnTitleCallback) {
     this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
+    this._updateColumnTitle = updateColumnTitleCallback;
 };
+
 
 /**
  * @inherit
@@ -29,6 +31,7 @@ tutao.tutanota.gui.RegistrationView.prototype.isForInternalUserOnly = function()
  */
 tutao.tutanota.gui.RegistrationView.prototype.activate = function(parameters) {
     tutao.locator.registrationViewModel.activate(parameters.authToken);
+    this._updateColumnTitle(this.getWelcomeMessage(), null);
 };
 
 /**
@@ -58,3 +61,11 @@ tutao.tutanota.gui.RegistrationView.prototype.isShowLeftNeighbourColumnPossible 
 tutao.tutanota.gui.RegistrationView.prototype.isShowRightNeighbourColumnPossible = function() {
     return false;
 };
+
+/**
+ * @inherit
+ */
+tutao.tutanota.gui.RegistrationView.prototype.getWelcomeMessage = function() {
+    return tutao.lang('registrationHeadline_msg');
+};
+
