@@ -8,13 +8,15 @@ tutao.provide('tutao.tutanota.gui.LoginView');
  */
 tutao.tutanota.gui.LoginView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
 };
 
 /**
  * @inherit
  */
-tutao.tutanota.gui.LoginView.prototype.init = function() {
+tutao.tutanota.gui.LoginView.prototype.init = function(external, updateColumnTitleCallback) {
     this._swipeSlider = tutao.tutanota.gui.SwipeSlider.none();
+    this._updateColumnTitle = updateColumnTitleCallback;
 };
 
 /**
@@ -28,7 +30,7 @@ tutao.tutanota.gui.LoginView.prototype.isForInternalUserOnly = function() {
  * @inherit
  */
 tutao.tutanota.gui.LoginView.prototype.activate = function() {
-
+    this._updateColumnTitle(this.getWelcomeMessage(), null);
 };
 
 /**
@@ -57,4 +59,8 @@ tutao.tutanota.gui.LoginView.prototype.isShowLeftNeighbourColumnPossible = funct
  */
 tutao.tutanota.gui.LoginView.prototype.isShowRightNeighbourColumnPossible = function() {
     return false;
+};
+
+tutao.tutanota.gui.LoginView.prototype.getWelcomeMessage = function() {
+    return tutao.lang("login_action");
 };

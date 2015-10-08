@@ -545,6 +545,10 @@ button{
   &:focus, &.focus {
 
   }
+
+  &.wide {
+    width: 100%;
+  }
 }
 
 button#measureButton {
@@ -879,6 +883,9 @@ form.recordContainer, div.recordContainer {
 
     > div.formAction, div.recordData {
       text-align: left;
+      &.centered {
+        text-align: center;
+      }
       padding-bottom: 15px;
       label.recordStatus {
         display: block;

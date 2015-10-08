@@ -24,8 +24,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
 	this._buttons = [];
     this.currentColumnTitle = ko.observable("");
     this.previousColumnTitle = ko.observable("");
-
-    this.externalUserWelcomeMessage = ko.observable("");
+    this.welcomeMessage = ko.observable("");
 
     this.buttonWithSubButtons = ko.observable(); // is set by the button whose sub-buttons shall be shown
 };
@@ -204,6 +203,9 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
         }
         this._activeView(view);
         view.activate(params);
+
+        this.welcomeMessage( view.getWelcomeMessage == undefined ? "" : view.getWelcomeMessage() );
+
         tutao.tutanota.gui.adjustPanelHeight();
 	}
 };
@@ -246,10 +248,10 @@ tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, he
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentTitle, previousTitle) {
-
     if (!currentTitle) {
         currentTitle = "";
     }
+
     if (!previousTitle) {
         previousTitle = tutao.lang("back_action");
     }
@@ -257,6 +259,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentT
     if (!this.getActiveView().isShowLeftNeighbourColumnPossible()) {
         previousTitle = "";
     }
+
 
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);

@@ -27,44 +27,55 @@
 		margin: 0;
 		padding: 0;
 	}
+	body {
+		position: absolute;
+		height: 100%;
+		left:0;
+		right:0;
+	}
 
 	div#fastMessage {
 		background-color: #fff;
-		padding-top: 100px;
+		height:100%;
+		width:240px;
+		margin: 0 auto;
 	}
-	div#fastMessage > div#fastMessageContainer {
-		margin-top: 40px;
-		margin-left: 10px;
-		padding: 0;
-		max-width: 300px;
-		font-size: 20px;
+	div#fastMessageDistance {
+		position:relative;
+		height: 50%;
+		margin-bottom: -25px;
+		width: 1px;
+		float: left;
+	}
+	div#fastMessageContainer {
+		clear: left;
+		position: relative;
+		width: 240px;
+		height: 50px;
+		margin: 0 auto;
+		text-align:center;
 		font-family: sans-serif;
 		line-height: 1.5;
 	}
 	div#fastMessageContainer > div.jsErrorMessage {
 		display: none;
 	}
-
-	div#fastMessageContainer > div > p {
-		font-size: 14px;
-		margin: 0;
-		margin-left: 25px;
-		padding: 0;
-	}
-	div#fastMessageSpinner {
-		width: 16px;
-		height: 16px;
-		display: inline-block;
-		background-image: url("data:image/png;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==");
-		margin-right: 9px;
+	div#fastMessageSpinner:before {
+		font-size:40px;
 	}
 	</style>
 	<noscript>
 		<style type="text/css">
-			div#fastMessage > div#fastMessageContainer > div.errorMessage, div#fastMessage > div#fastMessageContainer > div.message {
+			div#fastMessageDistance {
+				margin-bottom: -120px;
+			}
+			div#fastMessageContainer {
+				height: 240px;
+			}
+			div#fastMessageSpinner {
 				display: none;
 			}
-			div#fastMessage > div#fastMessageContainer > div.jsErrorMessage {
+			div#fastMessageContainer > div.jsErrorMessage {
 				display: block;
 			}
 		</style>
@@ -72,14 +83,10 @@
 </head>
 <body>
 
-<div id="fastMessage" class="view" data-bind="visible: tutao.locator.viewManager.getActiveView() == tutao.locator.fastMessageView">
+<div id="fastMessage" data-bind="fadeVisible: tutao.locator.viewManager.getActiveView() == tutao.locator.fastMessageView">
+	<div id="fastMessageDistance"></div>
 	<div id="fastMessageContainer">
-		<div class="message">
-				<div id="fastMessageSpinner"></div>Loading...
-				<p>
-					<br>please wait...<br> bitte warten...<br> espere por favor...<br>
-				</p>
-		</div>
+		<div id="fastMessageSpinner" class="fontImage spinner"></div>
 		<div class="jsErrorMessage">
 				Error...
 				<p>
@@ -201,9 +208,7 @@
 <script src="/js/ctrl/lang/el.js"></script>
 <script src="/js/ctrl/lang/en.js"></script>
 <script src="/js/ctrl/lang/en_us.js"></script>
-<script src="/js/ctrl/lang/eo.js"></script>
 <script src="/js/ctrl/lang/es.js"></script>
-<script src="/js/ctrl/lang/es_ar.js"></script>
 <script src="/js/ctrl/lang/et_ee.js"></script>
 <script src="/js/ctrl/lang/fa_af.js"></script>
 <script src="/js/ctrl/lang/fa_ir.js"></script>
@@ -233,7 +238,6 @@
 <script src="/js/ctrl/lang/sq.js"></script>
 <script src="/js/ctrl/lang/sq_al.js"></script>
 <script src="/js/ctrl/lang/sr.js"></script>
-<script src="/js/ctrl/lang/sr_ba-cyrl.js"></script>
 <script src="/js/ctrl/lang/sv.js"></script>
 <script src="/js/ctrl/lang/ta_in.js"></script>
 <script src="/js/ctrl/lang/tr.js"></script>
@@ -1099,67 +1103,51 @@
 			</div>
 		</div>
 
-		<div id="login" class="login" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
-			<div class="welcomeContainer">
-				<div class="panel">
-					<div class="content scrollable">
-						<h1 data-bind="text: welcomeText"></h1>
-						<form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
-							<div class="record">
-								<label for="loginMailAddress" class="recordName" data-bind="lang: 'mailAddress_label'"></label>
-								<div class="recordData">
-									<div class="recordValue">
-										<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused" />
-									</div>
-								</div>
+
+
+		<div id="loginPage" class="loginBox singleColumnContent scrollable" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
+			<div class="loginBoxContent">
+				<form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
+					<div class="record">
+						<div class="recordData">
+							<div class="recordValue">
+								<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused, attr:{placeholder: tutao.lang('mailAddress_label')}" />
 							</div>
-							<div class="record">
-								<label for="loginPassphrase" class="recordName" data-bind="lang: 'password_label'"></label>
-								<div class="recordData">
-									<div class="recordValue">
-										<input   class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused" />
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="record">
+						<div class="recordData">
+							<div class="recordValue">
+								<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{ placeholder: tutao.lang('password_label')}" />
 							</div>
-
-                            <div class="record">
-                                <div class="recordName"></div>
-                                <div class="recordData">
-                                    <div class="recordValue">
-                                        <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
-                                        <label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
-                                    </div>
-                                    <label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
-                                </div>
-                            </div>
-
-							<div class="record">
-								<div class="recordName"></div>
-								<div class="formAction">
-									<button id="submitLogin" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-                                    <button class="single" data-bind="css: { disabled: !loginPossible() }, fastClick: createAccount, lang: 'createAccount_action'"></button>
-									<label id="submitLoginLabel" for="submitLogin" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
-								</div>
+						</div>
+					</div>
+					<div class="record">
+						<div class="recordName"></div>
+						<div class="recordData">
+							<div class="recordValue">
+								<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
+								<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
 							</div>
-
-                            <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
-
-                            <div class="record" data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
-                                <div class="recordName"></div>
-                                <div class="recordData">
-                                    <div class="recordValue socialMediaLinks">
-                                        <div data-bind="lang: 'socialMedia_label'"></div>
-                                        <a href="https://twitter.com/Tutanota_de" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
-                                        <a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
-                                        <a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
-                                    </div>
-                                </div>
-                            </div>
-
-    					</form>
-                    </div>
-				</div>
-				<div id="welcomePicture"><div></div></div>
+							<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+						</div>
+					</div>
+					<div class="record">
+						<div class="recordName"></div>
+						<div class="recordData">
+							<button id="submitLogin" class="single wide" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+							<label id="submitLoginLabel" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+						</div>
+					</div>
+					<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+					<div data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
+						<div class="centered">
+							<a href="https://twitter.com/Tutanota_de" class="socialMediaLinkImage social-twitter" target="_blank"></a>
+							<a href="https://www.facebook.com/tutanota" class="socialMediaLinkImage social-facebook" target="_blank"></a>
+							<a href="https://plus.google.com/+Tutanota" class="socialMediaLinkImage social-googleplus" target="_blank"></a>
+						</div>
+					</div>
+				</form>
 			</div>
 		</div>
 
@@ -1173,171 +1161,142 @@
             </div>
         </div>
 
-		<div id="externalLogin" class="login" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
-			<div class="welcomeContainer">
-				<div class="panel">
-					<div class="content scrollable">
-						<h1 data-bind="lang: 'receiveMsg_label'"></h1>
-						<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
-						<div data-bind="visible: !errorMessageId()">
-							<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
-								<div class="record">
-									<label class="recordName" data-bind="lang: 'phone_label'"></label>
-									<div class="recordData">
-										<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
-										<!-- ko foreach: phoneNumbers -->
-										<div class="extPhoneNumberRow recordValue">
-											<div data-bind="text: getNumber()"></div>
-											<button class="recordAction single" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
-										</div>
-										<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
-										<!-- /ko -->
-									</div>
-								</div>
+		<div id="externalLogin" class="loginBox singleColumnContent scrollable" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
+			<div class="smallInfoMessage verticallyCentered" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
+			<div class="loginBoxContent" data-bind="visible: !errorMessageId()">
+				<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
+					<div class="record">
+						<label class="recordName" data-bind="lang: 'phone_label'"></label>
+						<div class="recordData">
+							<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
+							<!-- ko foreach: phoneNumbers -->
+							<div class="extPhoneNumberRow recordValue">
+								<div data-bind="text: getNumber()"></div>
+								<button class="recordAction single" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
 							</div>
-							<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
-								<div class="record">
-									<label for="externalMailPasswordInput" class="recordName" data-bind="lang: 'password_label'"></label>
-									<div class="recordData">
-										<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused"/>
-										<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
-									</div>
-								</div>
-								<div class="record">
-									<div class="recordName"></div>
-									<div class="recordData">
-										<div class="recordValue">
-											<input id="storePasswordCheckboxExternal" type="checkbox" data-bind="checked: storePassword" />
-											<label for="storePasswordCheckboxExternal" data-bind="lang: 'storePassword_action'"></label>
-										</div>
-										<label for="storePasswordCheckboxExternal" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
-									</div>
-								</div>
-								<div class="record">
-									<div class="recordName"></div>
-									<div class="formAction">
-										<button id="showMailButton" class="single fontImage confirm" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
-										<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
-									</div>
-								</div>
-							</form>
+							<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
+							<!-- /ko -->
 						</div>
-						<div id="supportedTypeLegacyMessage" class="smallInfoMessage" data-bind="visible: (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI) || (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) || (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE)">
-                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI -->
-                                <label data-bind="lang: 'legacyDownloadNotPossible_msg'"></label>
-                            <!-- /ko -->
-                            <!-- ko if: tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID -->
-                                <label data-bind="lang: 'legacyNoReplyAndroid_msg'"></label>
-                            <!-- /ko -->
-                            <!-- ko if: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE -->
-                                <label data-bind="lang: 'legacyNoAttachmentsIeMobile_msg'"></label>
-                            <!-- /ko -->
-							<ul>
-                                <li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
-                                <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
-                                <li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
-                                <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (Desktop, iOS)</a></li>
-                                <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
-                                <li><a target="_blank" href="http://de.blackberry.com/software/smartphones/blackberry-10-os.html">Blackberry 10</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div id="welcomePicture"><div></div></div>
-            </div>
+					</div>
+				</div>
+				<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
+					<div class="record">
+						<div class="recordData">
+							<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{placeholder: tutao.lang('password_label') }"/>
+							<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+						</div>
+					</div>
+					<div class="record">
+						<div class="recordName"></div>
+						<div class="recordData">
+							<div class="recordValue">
+								<input id="storePasswordCheckboxExternal" type="checkbox" data-bind="checked: storePassword" />
+								<label for="storePasswordCheckboxExternal" data-bind="lang: 'storePassword_action'"></label>
+							</div>
+							<label for="storePasswordCheckboxExternal" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+						</div>
+					</div>
+					<div class="record">
+						<div class="recordName"></div>
+						<div class="formAction">
+							<button id="showMailButton" class="single fontImage confirmw wide" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
+							<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+						</div>
+					</div>
+				</form>
+			</div>
 		</div>
 
-		<div id="registration" class="login" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
-			<div class="welcomeContainer">
-				<div class="panel">
-					<div class="content scrollable">
-                        <h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
-						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
-                            <!-- ko if: getRegistrationType() != 'Free' -->
-                            <h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
-                            <!-- /ko -->
-                            <form class="recordContainer wide" data-bind="submit: createAccount, form: true">
-                                <!-- ko if: getRegistrationType() != 'Free' -->
-                                <div class="record">
-                                    <label class="recordName" data-bind="lang: 'company_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <label class="recordName" data-bind="lang: 'domain_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <div data-bind="text: domain"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- /ko -->
-                                <!-- ko if: getRegistrationType() != 'Free' -->
-                                <div class="record">
-                                    <label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
-                                        </div>
-                                        <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-                                        <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
-                                    </div>
-                                </div>
-                                <!-- /ko -->
-                                <!-- ko if: getRegistrationType() == 'Free' -->
-                                <div class="record">
-                                    <label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
-											<span>@</span>
-										    <select data-bind="options: availableDomains, enable: isFormEditable(), value: domain"></select>
-                                        </div>
-                                        <label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-                                        <label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
-                                    </div>
-                                </div>
-                                <!-- /ko -->
-                                <div class="record">
-                                    <label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
-                                        </div>
-                                        <label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
-                                            <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-                                                <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
-                                            </div>
-                                            <div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
-                                        </label>
-                                        <label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
-                                        <div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
-                                        </div>
-                                        <label for="newpassword2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
-                                    </div>
-                                </div>
-                                <div class="record">
-                                    <label for="termsInput" class="recordName" data-bind="lang: 'terms_label'"></label>
-                                    <div class="recordData">
-                                        <div class="recordValue">
-                                            <input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
-                                            <label for="termsInput" data-bind="lang: 'termsAndConditions_label'"></label>
-											<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
-											<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
-                                        </div>
-                                        <label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
-                                    </div>
-                                </div>
+
+		<div id="registration" class="singleColumnContent login scrollable" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
+			<div class="centeredColumn login" >
+				<h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
+				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
+					<!-- ko if: getRegistrationType() != 'Free' -->
+					<h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
+					<!-- /ko -->
+					<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
+						<!-- ko if: getRegistrationType() != 'Free' -->
+						<div class="record">
+							<label class="recordName" data-bind="lang: 'company_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input class="inputField wide" id="companyName" type="text" data-bind="enable: isFormEditable(), value: companyName" />
+								</div>
+							</div>
+						</div>
+						<div class="record">
+							<label class="recordName" data-bind="lang: 'domain_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<div data-bind="text: domain"></div>
+								</div>
+							</div>
+						</div>
+						<!-- /ko -->
+						<!-- ko if: getRegistrationType() != 'Free' -->
+						<div class="record">
+							<label for="mailAddress" class="recordName" data-bind="lang: 'currentMailAddressAdmin_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input'" /><span data-bind="text: '@' + domain()"></span>
+								</div>
+								<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+								<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfoBusiness_msg'"></label>
+							</div>
+						</div>
+						<!-- /ko -->
+						<!-- ko if: getRegistrationType() == 'Free' -->
+						<div class="record">
+							<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input class="inputField wide mailAddressPrefixInput" id="mailAddress" type="text" data-bind="enable: isFormEditable(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
+									<span>@</span>
+									<select data-bind="options: availableDomains, enable: isFormEditable(), value: domain"></select>
+								</div>
+								<label for="mailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+								<label for="mailAddress" class="recordInfo" data-bind="lang: 'mailAddressInfo_msg'"></label>
+							</div>
+						</div>
+						<!-- /ko -->
+						<div class="record">
+							<label for="newpassword" class="recordName" data-bind="lang: 'password_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+								</div>
+								<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
+									<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+										<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+									</div>
+									<div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
+								</label>
+								<label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
+								<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
+							</div>
+						</div>
+						<div class="record">
+							<label for="newpassword2" class="recordName" data-bind="lang: 'repeatedPassword_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input id="newpassword2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+								</div>
+								<label for="newpassword2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+							</div>
+						</div>
+						<div class="record">
+							<label for="termsInput" class="recordName" data-bind="lang: 'terms_label'"></label>
+							<div class="recordData">
+								<div class="recordValue">
+									<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
+									<label for="termsInput" data-bind="lang: 'termsAndConditions_label'"></label>
+									<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
+									<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
+								</div>
+								<label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
+							</div>
+						</div>
 
                                 <div class="record" data-bind="if: isCaptchaVisible()">
                                     <label for="captchaDisplay" class="recordName" data-bind="lang: 'captchaDisplay_label'"></label>
@@ -1367,37 +1326,34 @@
                                     </div>
                                 </div>
 
-                                <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
-                            </form>
-						<!-- /ko -->
-						<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
-                            <div class="smallInfoMessage">
-                                <span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
-                                <ul>
-                                    <li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-                                    <li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-                                    <li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
-                                </ul>
-                                <br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
-                            </div>
-						<!-- /ko -->
-                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK -->
-                            <div class="smallInfoMessage" data-bind="lang: 'regLinkInvalid_msg'"></div>
-                        <!-- /ko -->
-                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING -->
-                            <div class="smallInfoMessage" data-bind="lang: 'loading_msg'"></div>
-                        <!-- /ko -->
-                        <!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED -->
-                            <div class="smallInfoMessage socialMediaLinks">
-                                <div data-bind="lang: 'regDisabledFree_msg'"></div>
-                                <a href="https://twitter.com/Tutanota_de" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
-                                <a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
-                                <a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
-                            </div>
-                        <!-- /ko -->
+						<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+					</form>
+				<!-- /ko -->
+				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_NOT_SUPPORTED -->
+					<div class="smallInfoMessage">
+						<span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
+						<ul>
+							<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
+							<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+							<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
+						</ul>
+						<br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
 					</div>
-				</div>
-				<div id="welcomePicture"><div></div></div>
+				<!-- /ko -->
+				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_INVALID_LINK -->
+					<div class="smallInfoMessage" data-bind="lang: 'regLinkInvalid_msg'"></div>
+				<!-- /ko -->
+				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_LOADING -->
+					<div class="smallInfoMessage" data-bind="lang: 'loading_msg'"></div>
+				<!-- /ko -->
+				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED -->
+					<div class="smallInfoMessage socialMediaLinks">
+						<div data-bind="lang: 'regDisabledFree_msg'"></div>
+						<a href="https://twitter.com/Tutanota_de" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
+						<a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
+						<a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
+					</div>
+				<!-- /ko -->
 			</div>
 		</div>
 
@@ -2281,26 +2237,17 @@
         </a>
     </div>
 -->
-	<header id="main" data-bind="with: tutao.locator.viewManager, css: {loggedIn: tutao.locator.viewManager.isUserLoggedIn() }">
+	<header id="main" class="loggedIn" data-bind="with: tutao.locator.viewManager">
         <div id="welcomeMessage">
             <div class="outerWelcomeMessage">
-                <div class="innerWelcomeMessage" data-bind="text: externalUserWelcomeMessage"></div>
+                <div class="innerWelcomeMessage" data-bind="text: welcomeMessage"></div>
             </div>
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
         <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
         <button class="leftViewButton fontImage leftIndicator" data-bind="text: previousColumnTitle(), fadeVisible: getActiveView().isShowLeftNeighbourColumnPossible(), fastClick: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }"></button>
-        <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()">
-            <div id="claim" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn()">
-                <!-- ko if: tutao.locator.languageViewModel.getCurrentLanguage() == 'de' -->
-                <img src="data:image/png;base64,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" />
-                <!-- /ko -->
-                <!-- ko if: tutao.locator.languageViewModel.getCurrentLanguage() == 'en' -->
-                <img src="data:image/png;base64,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" />
-                <!-- /ko -->
-            </div>
-        </div>
+        <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()"></div>
 
         <div id="right-navbar" >
             <menu data-bind="with: headerBarViewModel">
@@ -2344,17 +2291,16 @@
     </script>
 
     <script type="text/html" id="appInfo-template">
-        <div class="recordName"></div>
-        <div class="recordData">
-            <div class="recordValue">
-                <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID">
-                    <img src="graphics/android_en.png" data-bind="attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }" />
-                </a>
-                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD">
-                    <img src="graphics/ios_en.png" data-bind="attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }" />
-                </a>
+            <div class="centered">
+                <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" class="appStoreLinkImage android-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
+                <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" class="appStoreLinkImage ios-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }"></a>
+				<a href="http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE" class="appStoreLinkImage amazon-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
+<!--
+				<a href="https://twitter.com/Tutanota_de" class="externalLinkImage social-twitter" target="_blank"></a>
+				<a href="https://www.facebook.com/tutanota" class="externalLinkImage social-facebook" target="_blank"></a>
+				<a href="https://plus.google.com/+Tutanota" class="externalLinkImage social-googleplus" target="_blank"></a>
+-->
             </div>
-        </div>
     </script>
 
 	<script type="text/html" id="displayedRecord-template">
