@@ -42,10 +42,16 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._updateLogos = function() {
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectSmallLogo = function() {
+    if (this.busy()) {
+        return;
+    }
     this._selectLogo(this.properties().smallLogo);
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectBigLogo = function() {
+    if (this.busy()) {
+        return;
+    }
     this._selectLogo(this.properties().bigLogo);
 };
 
@@ -69,11 +75,17 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._selectLogo = function(logo
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteSmallLogo = function() {
+    if (this.busy() || !this.properties().smallLogo()) {
+        return;
+    }
     this.properties().smallLogo(null);
     this._updateLogos();
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteBigLogo = function() {
+    if (this.busy() || !this.properties().smallLogo()) {
+        return;
+    }
     this.properties().bigLogo(null);
     this._updateLogos();
 };

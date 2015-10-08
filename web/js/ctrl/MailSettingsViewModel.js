@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getEmailSignatureText = fun
     if ( type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT ) {
         return tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, { "{1}" : "https://app.tutanota.de/#register"} );
     } else if (type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-        return this._currentCustomEmailSignature.length == 0 ? tutao.lang("emptyString_msg"): this._currentCustomEmailSignature; // handle empty email signature for firefox browser.
+        return this._currentCustomEmailSignature; // handle empty email signature for firefox browser.
     } else {
         return "";
     }
