@@ -130,7 +130,16 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
     var self = this;
-    return tutao.locator.mailBoxController.initForUser().then(function() {
+    return tutao.locator.mailBoxController.initForUser().caught(function(error) {
+        if (error instanceof tutao.NotFoundError) {
+            // redo the InitGroupService because it has failed at registration
+            return tutao.locator.registrationViewModel.initGroup().then(function () {
+                return tutao.locator.mailBoxController.initForUser();
+            });
+        } else {
+            throw error;
+        }
+    }).then(function() {
         // this should be the user id instead of the name later
         return new Promise(function(resolve, reject) {
             tutao.locator.dao.init("Tutanota_" + self.mailAddress(), resolve);

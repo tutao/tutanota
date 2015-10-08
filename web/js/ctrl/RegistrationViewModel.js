@@ -297,8 +297,11 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys
             self._reset();
             return tutao.tutanota.gui.alert( tutao.lang("createAccountAccessDeactivated_msg" ));
         }).lastly(function() {
-            tutao.locator.progressDialogModel.progress(0);
-            self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+            // setTimeout to avoid a visible progress of 0
+            setTimeout(function() {
+                tutao.locator.progressDialogModel.progress(0);
+                self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_NOT_RUNNING);
+            }, 0);
         });
     });
 };
@@ -388,13 +391,10 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 
                             return customerService.setup({}, null).then(function(adminUserData) {
                                 return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                    //TODO (before release) create root instances and welcome mail before next login if it failed here
-                                    return tutao.tutanota.ctrl.AdminNewUser.initGroup(adminUserData.getAdminUserGroup(), userGroupKey).then(function() {
-                                        if (self.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                                            new tutao.entity.tutanota.WelcomeMailData()
-                                                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                                                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-                                        }
+                                    return self.initGroup().caught(function(error) {
+                                        // the init group service will be run at login again
+                                        console.log(error);
+                                    }).lastly(function() {
                                         tutao.locator.progressDialogModel.progress(100);
                                     });
                                 });
@@ -405,6 +405,16 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 			});
 		});
 	});
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.prototype.initGroup = function() {
+    return tutao.tutanota.ctrl.AdminNewUser.initGroup(tutao.locator.userController.getUserGroupId(), tutao.locator.userController.getUserGroupKey()).then(function() {
+        if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+            new tutao.entity.tutanota.WelcomeMailData()
+                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
+        }
+    });
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._verifyMailAddressFree = function(newValue) {
