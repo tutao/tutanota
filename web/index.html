@@ -43,7 +43,7 @@
 	div#fastMessageDistance {
 		position:relative;
 		height: 50%;
-		margin-bottom: -25px;
+		margin-bottom: -50px;
 		width: 1px;
 		float: left;
 	}
@@ -1162,7 +1162,7 @@
         </div>
 
 		<div id="externalLogin" class="loginBox singleColumnContent scrollable" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
-			<div class="smallInfoMessage verticallyCentered" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
+			<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
 			<div class="loginBoxContent" data-bind="visible: !errorMessageId()">
 				<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
 					<div class="record">
@@ -2290,11 +2290,6 @@
                 <a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota" class="appStoreLinkImage android-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
                 <a target="itunes_store" href="https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb" class="appStoreLinkImage ios-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD, attr: { alt: tutao.lang('appInfoIosImageAlt_alt') }"></a>
 				<a href="http://www.amazon.com/Tutao-GmbH-Tutanota-einfach-sicher/dp/B00TH6BIAE" class="appStoreLinkImage amazon-store" data-bind="visible: tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, attr: {alt: tutao.lang('appInfoAndroidImageAlt_alt') }"></a>
-<!--
-				<a href="https://twitter.com/Tutanota_de" class="externalLinkImage social-twitter" target="_blank"></a>
-				<a href="https://www.facebook.com/tutanota" class="externalLinkImage social-facebook" target="_blank"></a>
-				<a href="https://plus.google.com/+Tutanota" class="externalLinkImage social-googleplus" target="_blank"></a>
--->
             </div>
     </script>
 
