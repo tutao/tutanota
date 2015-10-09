@@ -95,15 +95,21 @@ gulp.task('minify', function () {
             .pipe(insert.prepend("\"use strict\";"))
             .pipe(uglify()),
 
-        gulp.src('js/generated/entity/sys/**/*.js')
+        gulp.src('js/generated/entity/sys/**/[A-M]*.js')
             .pipe(sourcemaps.init())
             .pipe(concat('gen2.js'))
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()),
 
-        gulp.src(['js/generated/entity/base/**/*.js'])
+        gulp.src('js/generated/entity/sys/**/[O-Z]*.js')
             .pipe(sourcemaps.init())
             .pipe(concat('gen3.js'))
+            .pipe(replace("\"use strict\";", ""))
+            .pipe(uglify()),
+
+        gulp.src(['js/generated/entity/base/**/*.js'])
+            .pipe(sourcemaps.init())
+            .pipe(concat('gen4.js'))
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()),
 
