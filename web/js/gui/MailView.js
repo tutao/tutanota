@@ -10,6 +10,7 @@ tutao.tutanota.gui.MailView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._mailsHeight = 0;
 	this._passwordChannelsHeight = 0;
+	this._welcomeMessage = "";
 };
 
 /**
@@ -352,4 +353,15 @@ tutao.tutanota.gui.MailView.prototype.addSubmitCheckToDivs = function(jQueryDivs
             event.preventDefault();
         }
     });
+};
+
+/**
+ * @inherit
+ */
+tutao.tutanota.gui.MailView.prototype.getWelcomeMessage = function() {
+	return this._welcomeMessage;
+};
+
+tutao.tutanota.gui.MailView.prototype.setWelcomeMessage = function(newValue) {
+	return this._welcomeMessage = newValue;
 };
