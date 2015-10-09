@@ -36,7 +36,7 @@ tutao.tutanota.ctrl.MailSettingsViewModel = function() {
 
 tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getEmailSignatureText = function(type) {
     if ( type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT ) {
-        return tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, { "{1}" : "https://app.tutanota.de/#register"} );
+        return tutao.tutanota.ctrl.MailBoxController.getDefaultSignature();
     } else if (type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
         return this._currentCustomEmailSignature; // handle empty email signature for firefox browser.
     } else {

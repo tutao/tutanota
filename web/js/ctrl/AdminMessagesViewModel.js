@@ -83,7 +83,7 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteSmallLogo = function(
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.deleteBigLogo = function() {
-    if (this.busy() || !this.properties().smallLogo()) {
+    if (this.busy() || !this.properties().bigLogo()) {
         return;
     }
     this.properties().bigLogo(null);

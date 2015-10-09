@@ -55,4 +55,4 @@ tutao.tutanota.ctrl.View.prototype.isShowRightNeighbourColumnPossible = function
  * Returns a text for the welcome message for this view.
  * @return {String} The welcome message  for this vew.
  */
-tutao.tutanota.ctrl.View.prototype.getWelcomeMessage = function() {return ""};
+tutao.tutanota.ctrl.View.prototype.getWelcomeMessage = function() {};

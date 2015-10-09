@@ -209,14 +209,20 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserProperties = function() {
     return this._properties;
 };
 
-
+/**
+ * @return {String} The signature text.
+ */
 tutao.tutanota.ctrl.MailBoxController.prototype.getEmailSignature = function() {
     var type = this.getUserProperties().getEmailSignatureType();
     if ( type == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT ) {
-        return tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, { "{1}" : "https://app.tutanota.de/#register"} );
+        return tutao.tutanota.ctrl.MailBoxController.getDefaultSignature();
     } else if (type == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
         return this.getUserProperties().getCustomEmailSignature();
     } else {
         return "";
     }
+};
+
+tutao.tutanota.ctrl.MailBoxController.getDefaultSignature = function() {
+    return tutao.locator.htmlSanitizer.sanitize(tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, {"{1}": "https://app.tutanota.de/#register"}), true).text;
 };
