@@ -301,9 +301,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                     self._showingMail = true;
                     tutao.entity.sys.ExternalPropertiesReturn.load({}, null).then(function (data) {
                         if (data.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-                            tutao.locator.viewManager.welcomeMessage(tutao.lang("externalWelcomeMessageFree_msg"));
+                            tutao.locator.mailView.setWelcomeMessage(tutao.lang("externalWelcomeMessageFree_msg"));
                         } else {
-                            tutao.locator.viewManager.welcomeMessage(data.getMessage());
+                            tutao.locator.mailView.setWelcomeMessage(data.getMessage());
                         }
                         var properties = new tutao.entity.sys.CustomerProperties()
                             .setSmallLogo(data.getSmallLogo())
