@@ -316,7 +316,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
             // any selected mails in the mail list shall be deselected
             tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
 
-            var emailSignature = tutao.locator.mailBoxController.getEmailSignature();
+            var emailSignature = "";
+            if (tutao.locator.userController.isInternalUserLoggedIn()) {
+                emailSignature = tutao.locator.mailBoxController.getEmailSignature();
+            }
             var mailCreatedPromise;
             if (previousMail) {
                 var previousMessageId = null;
