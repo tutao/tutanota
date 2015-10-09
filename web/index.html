@@ -1134,9 +1134,9 @@
 					</div>
 					<div class="record">
 						<div class="recordName"></div>
-						<div class="recordData">
+						<div class="recordData disablePadding">
 							<button id="submitLogin" class="single wide" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-							<label id="submitLoginLabel" class="recordStatus" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+							<label id="submitLoginLabel" class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 						</div>
 					</div>
 					<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
@@ -1166,7 +1166,6 @@
 			<div class="loginBoxContent" data-bind="visible: !errorMessageId()">
 				<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
 					<div class="record">
-						<label class="recordName" data-bind="lang: 'phone_label'"></label>
 						<div class="recordData">
 							<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
 							<!-- ko foreach: phoneNumbers -->
@@ -1181,9 +1180,9 @@
 				</div>
 				<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
 					<div class="record">
-						<div class="recordData">
+						<div class="recordData disablePadding">
 							<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{placeholder: tutao.lang('password_label') }"/>
-							<label for="externalMailPasswordInput" class="recordStatus" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+							<label for="externalMailPasswordInput" class="recordStatus highStatusField" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
 						</div>
 					</div>
 					<div class="record">
@@ -1198,9 +1197,9 @@
 					</div>
 					<div class="record">
 						<div class="recordName"></div>
-						<div class="formAction">
+						<div class="formAction disablePadding" >
 							<button id="showMailButton" class="single fontImage confirmw wide" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
-							<label for="showMailButton" class="recordStatus" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+							<label for="showMailButton" class="recordStatus highStatusField" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
 						</div>
 					</div>
 				</form>
@@ -1210,11 +1209,7 @@
 
 		<div id="registration" class="singleColumnContent login scrollable" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
 			<div class="centeredColumn login" >
-				<h1 data-bind="lang: 'registrationHeadline_msg'"></h1>
 				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
-					<!-- ko if: getRegistrationType() != 'Free' -->
-					<h2 data-bind="lang: 'registrationSubHeadline2_msg'"></h2>
-					<!-- /ko -->
 					<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
 						<!-- ko if: getRegistrationType() != 'Free' -->
 						<div class="record">

@@ -20,69 +20,38 @@ div#externalLogin {
 
 
 div.loginBox {
-  // avoid blurry elements when using translateY
-  -webkit-transform-style: preserve-3d;
-  -moz-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-
 
   > div.loginBoxContent {
+	position:relative;
 	margin:0 auto; // center horizontally
 	border: 1px solid @border;
-	@media @mobile {
-	  border: none;
-	}
+	top: @header-height;
 	border-radius: 10px;
 	max-width:360px;
 	padding: 35px;
-
-	position:relative;
-	top: 50%;
-	transform: translateY(-60%); // center vertically
-	-webkit-transform: translateY(-60%);
-	-ms-transform: translateY(-60%);
+	@media @mobile {
+	  border: none;
+	  top: @header-height-small;
+	  padding-top:0;
+	}
 
   }
 
   > .smallInfoMessage {
-	margin-top: @header-height;
+	top: @header-height;
+	@media @mobile {
+	  top: @header-height-small;
+	}
   }
 
   .inputField {
 	border : 0;
 	border-bottom: 1px solid @border
   }
-}
 
-
-div.login {
-
-	> div.welcomeContainer {
-		display: table;
-		width: 100%;
-		height: 100%;
-
-		
-		> div.panel {
-			display: table-cell;
-			width: 650px;
-			background: @background;
-			height: 100%;
-			
-			bottom: 0px;
-			padding-top: 70px;
-			padding-left: @padding;
-
-			> div.content {
-				height: 100%;
-				padding-right: @padding;
-
-                > h1 {
-                    margin-top: 20px;
-                }
-			}
-		}
-	}
+  .highStatusField {
+	min-height: 36px; // minimum two rows of status messages
+  }
 }
 
 div.failContent {
