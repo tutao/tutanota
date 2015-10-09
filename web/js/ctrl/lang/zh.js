@@ -326,7 +326,6 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "received_action": "收件箱",
   "receiveMsg_label": "接收信息",
   "register_alt": "注册",
-  "registrationHeadline_msg": "注册 Tutanota",
   "registrationSubHeadline2_msg": "输入注册资料（第 2 步 共 2 步）",
   "regLinkInvalid_msg": "对不起，这个注册链接无效。",
   "removeAddress_alt": "删除该地址",

@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "regDisabledFree_msg": "Az ingyenes Tutanota fiók regisztrációja jelenleg szünetel, kérlek maradjunk kapcsolatban, hogy értesíteni tudjunk a változásokról:",
   "register_alt": "Regisztráció",
   "register_label": "Regisztráció",
-  "registrationHeadline_msg": "Tutanota Regisztráció",
   "registrationSubHeadline2_msg": "Add meg a regisztrációs adataidat (2/2. lépés)",
   "regLinkInvalid_msg": "Sajnáljuk, ez a regisztrációs link nem érvényes.",
   "removeAddress_alt": "Cím törlése.",

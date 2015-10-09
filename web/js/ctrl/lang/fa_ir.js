@@ -385,7 +385,6 @@ tutao.tutanota.ctrl.lang.fa_ir.keys = {
   "regDisabledFree_msg": "تعداد ثبت نام رایگان برای Tutanota محدود و در حال حاضر امکان پذیر نیست. لطفا اینجا ما را دنبال کنید تا به اطلاع شما برسانیم هنگامیکه ثبت نام بیشتر امکان پذیر است:",
   "register_alt": "ثبت نام",
   "register_label": "ثبت نام",
-  "registrationHeadline_msg": "ثبت نام Tutanota",
   "registrationSubHeadline2_msg": "اطلاعات ثبت نام را وارد کنید (مرحله ۲ از ۲)",
   "regLinkInvalid_msg": "با عرض پوزش، این لینک ثبت نام معتبر نیست.",
   "removeAddress_alt": "حذف آدرس",

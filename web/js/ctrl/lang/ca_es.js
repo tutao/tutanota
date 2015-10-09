@@ -334,7 +334,6 @@ tutao.tutanota.ctrl.lang.ca_es.keys = {
   "received_action": "Safata d'entrada",
   "receiveMsg_label": "Rebre missatges",
   "register_label": "Registre",
-  "registrationHeadline_msg": "Registre Tutanota",
   "registrationSubHeadline2_msg": "Introduïu les dades de registre (pas 2 de 2)",
   "removeAddress_alt": "Elimina l'adreça",
   "removeAttachment_alt": "Elimina l'adjunt",

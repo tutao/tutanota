@@ -222,7 +222,6 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "receivedMails_alt": "Prejeto",
   "receiveMsg_label": "Prejmi sporočilo",
   "register_alt": "Registriraj se",
-  "registrationHeadline_msg": "Tutanota registracija",
   "registrationSubHeadline2_msg": "Vnesi podatke za registracijo (korak 2 od 2)",
   "removeAddress_alt": "Izbriši izbrani naslov",
   "removeAttachment_alt": "Odstani priponko",

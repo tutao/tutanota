@@ -382,7 +382,6 @@ tutao.tutanota.ctrl.lang.ru.keys = {
   "regDisabledFree_msg": "Количество бесплатных пользователей Tutanota ограничено и регистрация в настоящее время отключена. Пожалуйста, поддерживайте с нами связь здесь, чтобы получить уведомление, как только регистрация будет возможно снова:",
   "register_alt": "Регистрация",
   "register_label": "Регистрация",
-  "registrationHeadline_msg": "Регистрация Tutanota",
   "registrationSubHeadline2_msg": "Введите регистрационные данные (шаг 2 из 2)",
   "regLinkInvalid_msg": "Извините, ссылка регистрации негодна.",
   "removeAddress_alt": "Удалить этот адрес",

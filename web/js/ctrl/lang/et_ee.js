@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "regDisabledFree_msg": "Tutanota tasuta kasutajakontode piirang on täis ja registreerimine on hetkel keelatud. Palun jälgige meid siin, samaks teavitatud, kui registreerimine on taas võimalik:",
   "register_alt": "Registreeri",
   "register_label": "Registreeri",
-  "registrationHeadline_msg": "Tutanota Registreerimine",
   "registrationSubHeadline2_msg": "Sisestage registreerimisandmed (2 samm 2st)",
   "regLinkInvalid_msg": "Vabandage, see registreerimise link ei ole kehtiv.",
   "removeAddress_alt": "Kustuta see aadress",

@@ -488,7 +488,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "regDisabledFree_msg": "Jumlah pengguna Tutanota Gratis dibatasi dan pendaftaran saat ini dinonaktifkan. Mohon ikuti kami di sini, untuk mendapatkan notifikasi segera setelah pendaftaran dibuka kembali:",
   "register_alt": "Daftar",
   "register_label": "Daftar",
-  "registrationHeadline_msg": "Pendaftaran Tutanota",
   "registrationSubHeadline2_msg": "Masukkan data pendaftaran (langkah 2 dari 2)",
   "regLinkInvalid_msg": "Maaf, tautan pendaftaran ini tidak valid.",
   "removeAddress_alt": "Hapus alamat ini",

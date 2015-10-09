@@ -350,7 +350,6 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "regDisabledFree_msg": "Počet uživatelů, kteří službu Tutanota používají zdarma, je omezený a registrace je nyní zablokována. V následujícím kroku si můžete vyžádat upozornění, jakmile bude registrace opět možná:",
   "register_alt": "Zaregistruj se!",
   "register_label": "Zaregistrovat se",
-  "registrationHeadline_msg": "Tutanota registrace",
   "registrationSubHeadline2_msg": "Zadejte registrační údaje (krok 2 ze 2)",
   "regLinkInvalid_msg": "Omlouváme se, ale tento registrační odkaz není platný.",
   "removeAddress_alt": "Odstranit tuto adresu",

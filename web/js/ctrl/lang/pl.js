@@ -462,7 +462,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "regDisabledFree_msg": "Liczba użytkowników Tutanota Free jest ograniczona, i rejestracja jest obecnie niemożliwa. Obserwuj nas, powiadomimy Cię jak tylko rejestracja będzie znowu możliwa.",
   "register_alt": "Zarejestruj",
   "register_label": "Zarejestruj",
-  "registrationHeadline_msg": "Rejestracja w serwisie Tutanota",
   "registrationSubHeadline2_msg": "Wprowadź dane w formularzu rejestracyjnym (krok 2 z 2)",
   "regLinkInvalid_msg": "Przepraszamy, link do rejestracji jest niepoprawny.",
   "removeAddress_alt": "Usuń ten adres",

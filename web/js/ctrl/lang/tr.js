@@ -294,7 +294,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "receiveMsg_label": "",
   "register_alt": "Kayıt ol",
   "register_label": "Kayıt ol",
-  "registrationHeadline_msg": "Tutanota kayıt",
   "registrationSubHeadline2_msg": "Kayıt bilgilerini giriniz (2 / 2 )",
   "regLinkInvalid_msg": "Üzgünüz, bu kayıt bağlantısı geçerli değil.",
   "removeAddress_alt": "Adresi sil",

@@ -488,7 +488,6 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "regDisabledFree_msg": "O número de utilizadores do Tutanota Free está limitado e o registo atualmente desativado. Por favor siga-nos aqui, para ser avisado assim que o registo for reativado.",
   "register_alt": "Registar",
   "register_label": "Registar",
-  "registrationHeadline_msg": "Registo Tutanota",
   "registrationSubHeadline2_msg": "Introuza os dados do registo (passo 2 de 2)",
   "regLinkInvalid_msg": "Lamentamos, mas esta ligação de registo não é válida.",
   "removeAddress_alt": "Apagar este endereço",

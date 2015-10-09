@@ -476,7 +476,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "regDisabledFree_msg": "El número de usuarios gratuitos de Tutanota es limitado y se ha deshabilitado el registro. Por favor sigue aquí para notificarte en cuanto esté disponible:",
   "register_alt": "Registrar",
   "register_label": "Registrar",
-  "registrationHeadline_msg": "Registro en Tutanota",
   "registrationSubHeadline2_msg": "Datos de registro (paso 2 de 2)",
   "regLinkInvalid_msg": "Lo sentimos, este enlace de registro no es válido.",
   "removeAddress_alt": "Borrar esta dirección",

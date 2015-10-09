@@ -473,7 +473,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "regDisabledFree_msg": "عدد مستخدمي Tutanota الحرة محدودة والتسجيل معطل حاليا. يرجى اتباعنا هنا، ليتم إعلامك في أقرب وقت ممكن للتسجيل مرة أخرى:",
   "register_alt": "تسجيل",
   "register_label": "تسجيل",
-  "registrationHeadline_msg": "تسجيل Tutanota",
   "registrationSubHeadline2_msg": "أدخل بيانات التسجيل (الخطوة 2 من 2)",
   "regLinkInvalid_msg": "عفرا، رابط التسجيل هذا غير صالح.",
   "removeAddress_alt": "حذف هذا العنوان",

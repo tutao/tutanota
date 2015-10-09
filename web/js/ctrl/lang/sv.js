@@ -472,7 +472,6 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "regDisabledFree_msg": "Antalet Tutanota gratis konton är begränsat och anmälan för närvarande inaktiverad. Följ oss här, att få meddelande så snart som registreringen är möjligt igen:",
   "register_alt": "Registrera",
   "register_label": "Registrera",
-  "registrationHeadline_msg": "Tutanota Registrering",
   "registrationSubHeadline2_msg": "Ange registreringsdata (steg 2 av 2)",
   "regLinkInvalid_msg": "Tyvärr är denna registreringslänk ogiltig.",
   "removeAddress_alt": "Ta bort den här adressen",

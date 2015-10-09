@@ -361,7 +361,6 @@ tutao.tutanota.ctrl.lang.ta_in.keys = {
   "regDisabledFree_msg": "Tutanota வில் இலவச பயனர் கணக்குகள் அளவானவை மற்றும் புதிய பதிவுகள் தற்போது முடக்கப்பட்டுள்ளன. புதிய பதிவுகள் மீண்டும் ஏற்கப்படுவது பற்றி விவரம் தெரிந்துக்கொள்ள தயவுசெய்து எங்களை இங்கே பின்பற்றவும்:",
   "register_alt": "பதிவு",
   "register_label": "பதிவு",
-  "registrationHeadline_msg": "Tutanota பதிவு",
   "registrationSubHeadline2_msg": "தரவை பதியவும் (நிலை 2/2)",
   "regLinkInvalid_msg": "மன்னிக்கவும், இந்த பதிவு இணைப்பு சரியானது அல்ல.",
   "removeAddress_alt": "இந்த முகவரியை அழித்துவிடு",

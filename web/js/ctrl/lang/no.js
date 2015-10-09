@@ -472,7 +472,6 @@ tutao.tutanota.ctrl.lang.no.keys = {
   "regDisabledFree_msg": "Antall Tutanota Free brukerkontoer er begrenset og registrering er foreløpig deaktivert. Vennligst følg oss her for å bli varslet så snart registrering er åpen igjen:",
   "register_alt": "Registrer",
   "register_label": "Registrer",
-  "registrationHeadline_msg": "Tutanota Registrering",
   "registrationSubHeadline2_msg": "Fyll inn feltene (Trinn 2 av 2)",
   "regLinkInvalid_msg": "Beklager, registreringslinken er ugyldig.",
   "removeAddress_alt": "Slett denne adressen",

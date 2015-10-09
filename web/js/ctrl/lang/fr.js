@@ -478,7 +478,6 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "regDisabledFree_msg": "Le nombre d'utilisateurs pouvant profiter de Tutanota gratuitement est limité, et les inscriptions sont actuellement fermées. Veuillez nous suivre ici, afin d'être notifié dès l'ouverture à de nouvelles inscriptions :",
   "register_alt": "S'inscrire",
   "register_label": "S'inscrire",
-  "registrationHeadline_msg": "Inscription Tutanota",
   "registrationSubHeadline2_msg": "Saisissez les données d'enregistrement (étape 2 sur 2)",
   "regLinkInvalid_msg": "Désolé, ce lien d'enregistrement n'est pas valide.",
   "removeAddress_alt": "Supprimer cette adresse postale",

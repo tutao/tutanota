@@ -423,7 +423,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "regDisabledFree_msg": "Antallet af gratis Tutanota brugere er begrænset og registreringen er midlertidigt blevet slået fra. Følg os venligst her, for at blive notificeret så snart registrering igen er mulig:",
   "register_alt": "Registrer",
   "register_label": "Registrer",
-  "registrationHeadline_msg": "Tutanota Registrering",
   "registrationSubHeadline2_msg": "Indtast registreringsdata (trin 2 af 2)",
   "regLinkInvalid_msg": "Beklager dette registreringslink er ikke gyldigt.",
   "removeAddress_alt": "Slet denne adresse",

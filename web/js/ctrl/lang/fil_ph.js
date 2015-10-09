@@ -336,7 +336,6 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "regDisabledFree_msg": "Ang bilang ng mga user ng Tutanota Free ay limitado at ang rehistro ay kasalukuyang nakahinto. Sundan kami dito upang mabigyan ng abiso kapag maaari nang magrehistro ulit.",
   "register_alt": "Rehistro",
   "register_label": "Rehistro",
-  "registrationHeadline_msg": "Rehistro sa Tutanota",
   "registrationSubHeadline2_msg": "Ipasok ang registration data (habang 2 ng 2)",
   "regLinkInvalid_msg": "Pasensya na, ang link ng pagrehistro ay wala nang bisa.",
   "removeAddress_alt": "Burahin itong address",

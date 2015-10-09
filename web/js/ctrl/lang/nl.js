@@ -486,7 +486,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "regDisabledFree_msg": "Het aantal Tutanota Gratis gebruikers is beperkt en inschrijving is momenteel uitgeschakeld. Volgt u ons alstublieft hier zodat u een melding krijgt zodra inschrijving weer mogelijk is:",
   "register_alt": "Registreer",
   "register_label": "Registreer",
-  "registrationHeadline_msg": "Tutanota Inschrijven",
   "registrationSubHeadline2_msg": "Vul registratiegegevens in (stap 2 van 2)",
   "regLinkInvalid_msg": "Sorry, deze registratielink is ongeldig.",
   "removeAddress_alt": "Verwijder dit adres",

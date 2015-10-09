@@ -319,7 +319,6 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "regDisabledFree_msg": "Nemokamų Tutanota naudotojų skaičius yra ribotas, todėl registracija šiuo metu išjungta. Jeigu norite būti informuoti apie registracijos aktyvavimą sekite mus čia:",
   "register_alt": "Registruotis",
   "register_label": "Registruokitės",
-  "registrationHeadline_msg": "Tutanota registracija",
   "registrationSubHeadline2_msg": "Įveskite registracijos duomenis (žingsnis 2 iš 2)",
   "regLinkInvalid_msg": "Atsiprašome, registracijos nuoroda neteisinga.",
   "removeAddress_alt": "Pašalinti adresą",

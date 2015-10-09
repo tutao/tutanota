@@ -286,7 +286,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "regDisabledFree_msg": "Ο αριθμός των χρηστών της υπηρεσίας Tutanota Free είναι περιορισμένος και οι εγγραφές αυτή τη στιγμή είναι απενεργοποιημένες. Παρακαλούμε κάνετε follow εδώ, ώστε να σας ενημερώσουμε όταν οι εγγραφές ενεργοποιηθούν για νέους χρήστες:",
   "register_alt": "Καταχώρηση",
   "register_label": "Καταχώρηση",
-  "registrationHeadline_msg": "Εγγραφή στο Tutanota",
   "registrationSubHeadline2_msg": "Εισάγετε πληροφορίες εγγραφής (βήμα 2ο από 2)",
   "regLinkInvalid_msg": "Λυπούμαστε, ο σύνδεσμος εγγραφής δεν είναι έγκυρος.",
   "removeAddress_alt": "Διαγραφή αυτής της διεύθυνσης",

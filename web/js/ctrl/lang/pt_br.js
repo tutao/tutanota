@@ -334,7 +334,6 @@ tutao.tutanota.ctrl.lang.pt_br.keys = {
   "regDisabledFree_msg": "O número de usuários do Tutanota Free está limitado e o cadastro atualmente desativado. Por favor, nos siga aqui, para ser avisado assim que o cadastro for reativado:",
   "register_alt": "Cadastre-se",
   "register_label": "Cadastre-se",
-  "registrationHeadline_msg": "Cadastro Tutanota",
   "registrationSubHeadline2_msg": "Digite seus dados para cadastro (passo 2 de 2)",
   "regLinkInvalid_msg": "Desculpe, este link de cadastro não é válido.",
   "removeAddress_alt": "Apagar este endereço",

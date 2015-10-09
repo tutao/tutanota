@@ -472,7 +472,6 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "regDisabledFree_msg": "Broj besplatnih Tutanota korisnika je ograničen i registracija trenutno nije moguća. Molimo da nas pratite ovde kako biste bili obavešteni čim registracije bude opet moguća:",
   "register_alt": "Registracija",
   "register_label": "Registruj",
-  "registrationHeadline_msg": "Tutanota Registracija",
   "registrationSubHeadline2_msg": "Unos podataka za registraciju (korak 2 od 2)",
   "regLinkInvalid_msg": "Žao nam je, ovaj link za registraciju nije važeći.",
   "removeAddress_alt": "Obriši ovu adresu",

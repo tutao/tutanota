@@ -335,7 +335,6 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "regDisabledFree_msg": "Numri i përdorësve të Tutanotës falas është i kufizuar dhe regjistrimi tashpërtash është pezullu. Të lutem, ndiqna këtu që të marrësh njoftim sapo të rifillojë regjistrimi:",
   "register_alt": "Regjistrohu",
   "register_label": "Regjistromë",
-  "registrationHeadline_msg": "Regjistrimi në Tutanotë",
   "registrationSubHeadline2_msg": "Jepi të dhënat e regjistrimit (hapi i fundit)",
   "regLinkInvalid_msg": "Na vjen keq, kjo vegëz regjistrimi nuk është e vlefshme.",
   "removeAddress_alt": "Fshije këtë adresë",

@@ -335,7 +335,6 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "regDisabledFree_msg": "Tutanota免費用戶的數量是有限的，目前禁止註冊。請在這裡關注我們，以盡快得知註冊已再次開啟：",
   "register_alt": "註冊",
   "register_label": "註冊",
-  "registrationHeadline_msg": "Tutanota 註冊",
   "registrationSubHeadline2_msg": "輸入註冊資料 (步驟2之2)",
   "regLinkInvalid_msg": "抱歉，這個註冊連結無效。",
   "removeAddress_alt": "刪除這個地址",

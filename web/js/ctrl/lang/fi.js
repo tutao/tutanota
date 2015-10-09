@@ -332,7 +332,6 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "regDisabledFree_msg": "Tutanota Free käyttäjien määrä on rajattu ja rekisteröityminen on tällä hetkellä poissa käytöstä. Klikkaa tähän, ja saat ilmoituksen heti kun rekisteröityminen on taas käytössä.",
   "register_alt": "Rekisteröidy",
   "register_label": "Rekisteröidy",
-  "registrationHeadline_msg": "Tutanota-rekisteröityminen",
   "registrationSubHeadline2_msg": "Syötä rekisteröitymistiedot (vaihe 2/2)",
   "regLinkInvalid_msg": "Valitettavasti rekisteröintilinkki ei ole voimassa.",
   "removeAddress_alt": "Poista osoite",

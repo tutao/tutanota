@@ -321,7 +321,6 @@ tutao.tutanota.ctrl.lang.ro.keys = {
   "regDisabledFree_msg": "Numarul de utilizatori care folosesc Tutanota gratuit este limitat iar inregistrarea este oprita momentan. Va rugam sa ne urmariti aici, pentru a primi o notificare imediat ce inregistrarea va fi posibila din nou:",
   "register_alt": "Inregistrare",
   "register_label": "Inregistrare",
-  "registrationHeadline_msg": "Înregistrare Tutanota",
   "registrationSubHeadline2_msg": "Introduceti datele de inregistrare (pasul 2 din 2)",
   "regLinkInvalid_msg": "Ne scuzati, acest link de inregistrare nu este valid.",
   "removeAddress_alt": "Ștergeți această adresă",

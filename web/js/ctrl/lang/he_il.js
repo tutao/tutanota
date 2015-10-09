@@ -194,7 +194,6 @@ tutao.tutanota.ctrl.lang.he_il.keys = {
   "receiveMsg_label": "קבל הודעה",
   "register_alt": "הרשם",
   "register_label": "הרשם",
-  "registrationHeadline_msg": "רישום טוטנוטה",
   "registrationSubHeadline2_msg": "הקלד מידע רישום (צעד 2 מתוך 2)",
   "removeAddress_alt": "מחק כתובת זו",
   "removeAttachment_alt": "הסר קובץ מצורף",
