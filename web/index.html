@@ -2240,9 +2240,8 @@
         </div>
 		<!-- <select id="fontSelector" data-bind="options: tutao.locator.fontViewModel.fonts, value: tutao.locator.fontViewModel.font, valueUpdate: 'keyup'"></select>-->
 		<!-- <select id="themeSelector" data-bind="options: tutao.locator.themeViewModel.themes, value: tutao.locator.themeViewModel.theme"></select> -->
-        <!-- if the window width is small, just show the logo without "Tutanota" to save space -->
         <button class="leftViewButton fontImage leftIndicator" data-bind="text: previousColumnTitle(), fadeVisible: getActiveView().isShowLeftNeighbourColumnPossible(), fastClick: function() { if (getActiveView().isShowLeftNeighbourColumnPossible()){ getActiveView().getSwipeSlider().showLeftNeighbourColumn();} }"></button>
-        <div id="logo" data-bind="fadeVisible: !tutao.locator.viewManager.isUserLoggedIn() || !getActiveView().isShowLeftNeighbourColumnPossible()"></div>
+        <div id="logo" data-bind="fadeVisible: !getActiveView().isShowLeftNeighbourColumnPossible()"></div>
 
         <div id="right-navbar" >
             <menu data-bind="with: headerBarViewModel">
