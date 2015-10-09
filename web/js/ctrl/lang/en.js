@@ -605,8 +605,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
     "Fr",
     "Sa"
   ],
-  "welcomeMailBody1_msg": "We are happy that you have signed up for Tutanota, and we congratulate you to your encrypted mailbox. Only you can decrypt your emails and contacts with your password. Please make sure not to lose your password, we cannot reset it.",
-  "welcomeMailBody2_msg": "Invite your friends to Tutanota and you can send end-to-end encrypted emails with a tip of your finger. You can also encrypt emails to external recipients with a password. Tutanota encrypts subject, content and attachments automatically. Even emails that you send or receive unencrypted are stored encrypted on our servers. Join our fight for privacy by upgrading to Premium for only 1 Euro per month. Please click on Premium in the main menu of your Tutanota account while being logged in in a browser.",
+  "welcomeMailBody1_msg": "We are happy that you have signed up for Tutanota, and we welcome you to your encrypted mailbox. Only you can decrypt your emails and contacts with your password. Please make sure you don't lose your password as it cannot be reset.",
+  "welcomeMailBody2_msg": "Invite your friends to Tutanota and you can send end-to-end encrypted emails simply and easily. You can also encrypt emails to external recipients with a password. Tutanota encrypts subject, content and attachments automatically. Even emails that you send or receive unencrypted are stored encrypted on our servers. Join our fight for privacy by upgrading to Premium for only 1 Euro per month. Please click on Premium in the main menu of your Tutanota account while logged in in a browser.",
   "welcomeMailBody3_msg": "Show the world that you are protecting your privacy:",
   "welcomeMailBody4_msg": "Your Tutanota team",
   "welcomeMailBody5_msg": "PS: Tutanota is open source, so feel free to inspect and review the source code:",
