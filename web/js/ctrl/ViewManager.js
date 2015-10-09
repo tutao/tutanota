@@ -74,7 +74,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.getViews = function() {
 /**
  * @return {Array.<tutao.tutanota.ctrl.Button>} views The buttons of the navigation bar.
  */
-tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
+tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
     var self = this;
     var buttons = [
         // internalUsers
@@ -117,8 +117,16 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function() {
 
         // external users
         new tutao.tutanota.ctrl.Button('register_label', 27, function () {
-            tutao.tutanota.gui.openLink("https://app.tutanota.de/#register");
-        }, self._externalUserLoggedIn, true, "menu_register", "register", 'register_alt'), // Execute this action direct to avoid pop up blockers
+            if (self.getActiveView() == tutao.locator.loginView) {
+                // use same tab
+                tutao.locator.navigator.register();
+            } else {
+                // open new tab
+                tutao.tutanota.gui.openLink("https://app.tutanota.de/#register");
+            }
+        }, function() {
+            return (external && self._externalUserLoggedIn()) || (self.getActiveView() == tutao.locator.loginView);
+        }, true, "menu_register", "register", 'register_alt'), // Execute this action direct to avoid pop up blockers
 
         // all supported
         new tutao.tutanota.ctrl.Button('community_label', 26, function () {
@@ -155,7 +163,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.init = function(external) {
     var self = this;
 
 
-    this._buttons = this._createButtons();
+    this._buttons = this._createButtons(external);
     var getRightNavbarSize = function () {
         return $(document.getElementById("right-navbar")).innerWidth();
     };

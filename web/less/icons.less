@@ -63,6 +63,7 @@
   text-decoration: none;
   padding-right:15px;
   padding-left:15px;
+  color: @link-icons !important;
 }
 
 .socialMediaLinkImage{
@@ -72,6 +73,7 @@
   text-decoration: none;
   padding-right:15px;
   padding-left:15px;
+  color: @link-icons !important;
 }
 
 
@@ -342,7 +344,7 @@
 
   &.register:before {
     .icomoon;
-    content: "\e185";
+    content: "\e800";
   }
 
   &.upgrade:before {
@@ -516,14 +518,16 @@
     content: @ionicon-var-social-android;
   }
   &.ios-store:before {
+    position: relative;
+    top: -2px;
     .ion;
     content: @ionicon-var-social-apple;
   }
-
   &.amazon-store:before {
     .ion;
     content: @ionicon-var-ios7-cart;
   }
+
   &.social-twitter:before {
     .ion;
     content: @ionicon-var-social-twitter;
