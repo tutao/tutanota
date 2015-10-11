@@ -45,10 +45,14 @@ tutao.entity.sys.CustomerPropertiesEditable.prototype.update = function() {
 		if (this.bigLogo()) {
 			this.bigLogo().update();
 			this._entity.setBigLogo(this.bigLogo().getFile());
+		} else {
+			this._entity.setBigLogo(null);
 		}
 		if (this.smallLogo()) {
 			this.smallLogo().update();
 			this._entity.setSmallLogo(this.smallLogo().getFile());
+		} else {
+			this._entity.setSmallLogo(null);
 		}
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

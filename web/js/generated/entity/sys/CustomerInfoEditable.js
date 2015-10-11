@@ -62,6 +62,8 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 		if (this.bookings()) {
 			this.bookings().update();
 			this._entity.setBookings(this.bookings().getBookingsRef());
+		} else {
+			this._entity.setBookings(null);
 		}
 	this._entity.getDomainInfos().length = 0;
 	for (var i = 0; i < this.domainInfos().length; i++) {
