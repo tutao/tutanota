@@ -293,8 +293,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
     self.showMailStatus({ type: "neutral", text: "loadingMail_msg" });
     return tutao.locator.userController.loginExternalUser(self.userId, password, self.saltHex).then(function() {
         self.state.event("passwordValid");
-        return tutao.locator.mailBoxController.initForUser().then(function(exception) {
-            return tutao.locator.loginViewModel.loadEntropy().then(function() {
+        return tutao.locator.loginViewModel.loadEntropy().then(function() {
+            return tutao.locator.mailBoxController.initForUser().then(function() {
                 return self._storePasswordIfPossible(password).then(function() {
                     // no indexing for external users
                     tutao.locator.replace('dao', new tutao.db.DummyDb);
