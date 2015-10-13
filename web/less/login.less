@@ -17,13 +17,10 @@ div#externalLogin {
 }
 
 
-
-
-div.loginBox {
-
-  > div.loginBoxContent {
+div.loginBoxContent {
 	position:relative;
 	margin:0 auto; // center horizontally
+    margin-bottom: @header-height;
 	border: 1px solid @border;
 	top: @header-height;
 	border-radius: 10px;
@@ -32,25 +29,18 @@ div.loginBox {
 	@media @mobile {
 	  border: none;
 	  top: @header-height-small;
+      margin-bottom: @header-height-small;
 	  padding-top:0;
+      padding-bottom:0;
 	}
-
-  }
-
-  > .smallInfoMessage {
-	top: @header-height;
-	@media @mobile {
-	  top: @header-height-small;
-	}
-  }
 
   .inputField {
-	border : 0;
-	border-bottom: 1px solid @border
+    border : 0;
+    border-bottom: 1px solid @border
   }
 
   .highStatusField {
-	min-height: 36px; // minimum two rows of status messages
+    min-height: 36px; // minimum two rows of status messages
   }
 }
 

@@ -24,11 +24,7 @@ body {
 		}
 
 		> div#viewContainer {
-			position: absolute;
-			left: 0px;
-			right: 0px;
-			top: 0px;
-			bottom: 0px;
+			.fill;
 			overflow: hidden;
 			
 			
@@ -53,24 +49,22 @@ body {
 					// here the button bar is used
 				}
 			}
-		  	> div.singleColumnContent {
-			  margin: 0 auto;
-			  min-width:240px;
-			  max-width:500px;
-			  height:100%;
-			  //border-top: 1px solid @border-dark;
-			  margin-top: @header-height - 1;
-			  @media @mobile {
-				margin-top: @header-height-small - 1;
-			  }
-			  > div.centeredColumn {
-				padding-left: @padding;
-				padding-right: @padding;
-				margin: 0 auto;
-				min-width:240px;
-				max-width:500px;
-			  }
-			}
+
+            > div.singleColumnView {
+              .fill;
+              top: @header-height;
+              @media @mobile {
+                top: @header-height-small;
+              }
+
+              > div.singleColumnContent {
+                position:relative;
+                margin: 0 auto;
+                min-width:240px;
+                max-width:500px;
+                height:100%;
+              }
+            }
 		}
 	}
 
@@ -1192,6 +1186,7 @@ body {
 
   #paymentDataPayPalForm {
 	padding-top:40px;
+    padding-bottom: 40px;
 	> .paymentDataTitle {
 	  .light;
 	  text-align:center;

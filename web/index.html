@@ -1105,50 +1105,52 @@
 
 
 
-		<div id="loginPage" class="loginBox singleColumnContent scrollable" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
-			<div class="loginBoxContent">
-				<form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
-					<div class="record">
-						<div class="recordData">
-							<div class="recordValue">
-								<input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused, attr:{placeholder: tutao.lang('mailAddress_label')}" />
-							</div>
-						</div>
-					</div>
-					<div class="record">
-						<div class="recordData">
-							<div class="recordValue">
-								<input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{ placeholder: tutao.lang('password_label')}" />
-							</div>
-						</div>
-					</div>
-					<div class="record">
-						<div class="recordName"></div>
-						<div class="recordData">
-							<div class="recordValue">
-								<input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
-								<label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
-							</div>
-							<label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
-						</div>
-					</div>
-					<div class="record">
-						<div class="recordName"></div>
-						<div class="recordData disablePadding">
-							<button id="submitLogin" class="single wide" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-							<label id="submitLoginLabel" class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
-						</div>
-					</div>
-					<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
-					<div data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
-						<div class="centered">
-							<a href="https://www.facebook.com/tutanota" class="socialMediaLinkImage social-facebook" target="_blank"></a>
-                            <a href="https://twitter.com/Tutanota_de" class="socialMediaLinkImage social-twitter" target="_blank"></a>
-                            <a href="https://plus.google.com/+Tutanota" class="socialMediaLinkImage social-googleplus" target="_blank"></a>
-						</div>
-					</div>
-				</form>
-			</div>
+		<div id="loginPage" class="singleColumnView" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
+            <div class="singleColumnContent scrollable">
+                <div class="loginBoxContent">
+                    <form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
+                        <div class="record">
+                            <div class="recordData">
+                                <div class="recordValue">
+                                    <input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused, attr:{placeholder: tutao.lang('mailAddress_label')}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="record">
+                            <div class="recordData">
+                                <div class="recordValue">
+                                    <input class="inputField wide" id="loginPassphrase" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: passphrase, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{ placeholder: tutao.lang('password_label')}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="record">
+                            <div class="recordName"></div>
+                            <div class="recordData">
+                                <div class="recordValue">
+                                    <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
+                                    <label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
+                                </div>
+                                <label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+                            </div>
+                        </div>
+                        <div class="record">
+                            <div class="recordName"></div>
+                            <div class="recordData disablePadding">
+                                <button id="submitLogin" class="single wide" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
+                                <label id="submitLoginLabel" class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+                            </div>
+                        </div>
+                        <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+                        <div data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
+                            <div class="centered">
+                                <a href="https://www.facebook.com/tutanota" class="socialMediaLinkImage social-facebook" target="_blank"></a>
+                                <a href="https://twitter.com/Tutanota_de" class="socialMediaLinkImage social-twitter" target="_blank"></a>
+                                <a href="https://plus.google.com/+Tutanota" class="socialMediaLinkImage social-googleplus" target="_blank"></a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
 		</div>
 
         <div id="notFound" class="failContent" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.notFoundView">
@@ -1161,54 +1163,56 @@
             </div>
         </div>
 
-		<div id="externalLogin" class="loginBox singleColumnContent scrollable" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
-			<div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
-			<div class="loginBoxContent" data-bind="visible: !errorMessageId()">
-				<div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
-					<div class="record">
-						<div class="recordData">
-							<label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
-							<!-- ko foreach: phoneNumbers -->
-							<div class="extPhoneNumberRow recordValue">
-								<div data-bind="text: getNumber()"></div>
-								<button class="recordAction single" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
-							</div>
-							<label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
-							<!-- /ko -->
-						</div>
-					</div>
-				</div>
-				<form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
-					<div class="record">
-						<div class="recordData disablePadding">
-							<input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{placeholder: tutao.lang('password_label') }"/>
-							<label for="externalMailPasswordInput" class="recordStatus highStatusField" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
-						</div>
-					</div>
-					<div class="record">
-						<div class="recordName"></div>
-						<div class="recordData">
-							<div class="recordValue">
-								<input id="storePasswordCheckboxExternal" type="checkbox" data-bind="checked: storePassword" />
-								<label for="storePasswordCheckboxExternal" data-bind="lang: 'storePassword_action'"></label>
-							</div>
-							<label for="storePasswordCheckboxExternal" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
-						</div>
-					</div>
-					<div class="record">
-						<div class="recordName"></div>
-						<div class="formAction disablePadding" >
-							<button class="single fontImage confirmw wide" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
-							<label class="recordStatus highStatusField" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
-						</div>
-					</div>
-				</form>
-			</div>
+		<div id="externalLogin" class="singleColumnView" data-bind="with: tutao.locator.externalLoginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.externalLoginView">
+            <div class="singleColumnContent scrollable">
+                <div class="smallInfoMessage" data-bind="visible: errorMessageId(), lang: errorMessageId()"></div>
+                <div class="loginBoxContent" data-bind="visible: !errorMessageId()">
+                    <div class="recordContainer wide" data-bind="ifnot: phoneNumbers().length == 0, form: true">
+                        <div class="record">
+                            <div class="recordData">
+                                <label id="sendMailPasswordStatus" class="recordStatus" data-bind="css: sendPasswordStatus().type, lang: sendPasswordStatus().text"></label>
+                                <!-- ko foreach: phoneNumbers -->
+                                <div class="extPhoneNumberRow recordValue">
+                                    <div data-bind="text: getNumber()"></div>
+                                    <button class="recordAction single" data-bind="lang: 'sendSms_action', css: { disabled: !$parent.sendSmsAllowed() }, fastClick: $parent.sendSms"></button>
+                                </div>
+                                <label class="recordStatus" data-bind="css: $parent.getSendSmsStatus(getId()).type, lang: $parent.getSendSmsStatus(getId()).text"></label>
+                                <!-- /ko -->
+                            </div>
+                        </div>
+                    </div>
+                    <form class="recordContainer wide" data-bind="submit: checkEnteredPassword, form: true">
+                        <div class="record">
+                            <div class="recordData disablePadding">
+                                <input id="externalMailPasswordInput" class="inputField wide recordValue" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: password, valueUpdate: 'input', hasfocus: passphraseFieldFocused, attr:{placeholder: tutao.lang('password_label') }"/>
+                                <label for="externalMailPasswordInput" class="recordStatus highStatusField" data-bind="css: passwordStatus().type, lang: passwordStatus().text"></label>
+                            </div>
+                        </div>
+                        <div class="record">
+                            <div class="recordName"></div>
+                            <div class="recordData">
+                                <div class="recordValue">
+                                    <input id="storePasswordCheckboxExternal" type="checkbox" data-bind="checked: storePassword" />
+                                    <label for="storePasswordCheckboxExternal" data-bind="lang: 'storePassword_action'"></label>
+                                </div>
+                                <label for="storePasswordCheckboxExternal" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
+                            </div>
+                        </div>
+                        <div class="record">
+                            <div class="recordName"></div>
+                            <div class="formAction disablePadding" >
+                                <button class="single fontImage confirmw wide" data-bind="text: tutao.lang('showMail_action'), css: { disabled: !showMailAllowed() }, fastClick: checkEnteredPassword, attr: { alt: tutao.lang('showMail_action')}"></button>
+                                <label class="recordStatus highStatusField" data-bind="css: showMailStatus().type, lang: showMailStatus().text"></label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
 		</div>
 
 
-		<div id="registration" class="singleColumnContent login scrollable" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
-			<div class="centeredColumn login" >
+		<div id="registration" class="singleColumnView" data-bind="with: tutao.locator.registrationViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.registrationView">
+			<div class="singleColumnContent scrollable" >
 				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_OK -->
 					<form class="recordContainer wide" data-bind="submit: createAccount, form: true">
 						<!-- ko if: getRegistrationType() != 'Free' -->

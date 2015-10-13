@@ -115,8 +115,8 @@
 	</header>
 
 	<div id="viewContainer">
-		<div class="singleColumnContent scrollable">
-			<div class="centeredColumn" >
+		<div class="singleColumnView">
+			<div class="singleColumnContent scrollable" >
 				<div class="statusBox" data-bind="fadeVisible: siteLoadingStatus() != tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_OK">
 					<div class="fontImage spinner" data-bind="fadeVisible: siteLoadingStatus() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_SITE_LOADING_STATUS_LOADING"></div>
 					<div class="statusText" data-bind="text: siteLoadingErrorMessage()" ></div>
