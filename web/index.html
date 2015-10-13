@@ -1269,7 +1269,7 @@
 									<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 										<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 									</div>
-									<div class="password1Status" data-bind="lang: getPassword1Status().text"></div>
+									<div class="passwordStatus" data-bind="lang: getPassword1Status().text"></div>
 								</label>
 								<label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
 								<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
@@ -1419,10 +1419,10 @@
                                                         <input id="changePasswordNew" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
                                                     </div>
                                                     <label for="changePasswordNew" class="recordStatus" data-bind="css: getPassword1Status().type">
-                                                        <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                                        <div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                                         </div>
-                                                        <div class="password1Status" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
+                                                        <div class="passwordStatus" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
                                                     </label>
                                                     <div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
                                                 </div>
@@ -2055,7 +2055,7 @@
                                         <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
-                                        <div class="pwStrengthBg defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                        <div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
