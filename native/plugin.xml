@@ -68,10 +68,10 @@
       </feature>
     </config-file>
     <framework src="Foundation.framework"/>
-	<source-file src="src/ios/Crypto.m"/>
+	<source-file src="src/ios/Crypto.m" compiler-flags="-ITutanota/include/"/>
     <header-file src="src/ios/Crypto.h"/>
 	<header-file src="src/ios/rsa_oaep_sha256.h"/>
-	<source-file src="src/ios/rsa_oaep_sha256.c"/>
+	<source-file src="src/ios/rsa_oaep_sha256.c" compiler-flags="-ITutanota/include/"/>
 	<source-file src="lib/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
 	<header-file src="src/ios/JFBCrypt.h"/>
 	<source-file src="src/ios/JFBCrypt.m"/>

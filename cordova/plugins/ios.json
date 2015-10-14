@@ -9,49 +9,49 @@
                 "parents": {
                     "QuickLook.framework": [
                         {
-                            "xml": "false",
+                            "xml": false,
                             "count": 1
                         }
                     ],
                     "Foundation.framework": [
                         {
-                            "xml": "false",
+                            "xml": false,
                             "count": 2
                         }
                     ],
                     "AddressBook.framework": [
                         {
-                            "xml": "true",
+                            "xml": true,
                             "count": 1
                         }
                     ],
                     "AddressBookUI.framework": [
                         {
-                            "xml": "true",
+                            "xml": true,
                             "count": 1
                         }
                     ],
                     "CoreGraphics.framework": [
                         {
-                            "xml": "false",
+                            "xml": false,
                             "count": 3
                         }
                     ],
                     "AssetsLibrary.framework": [
                         {
-                            "xml": "false",
+                            "xml": false,
                             "count": 1
                         }
                     ],
                     "MobileCoreServices.framework": [
                         {
-                            "xml": "false",
+                            "xml": false,
                             "count": 1
                         }
                     ],
                     "AudioToolbox.framework": [
                         {
-                            "xml": "true",
+                            "xml": true,
                             "count": 1
                         }
                     ]
@@ -136,6 +136,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "de.appplant.cordova.plugin.badge": {
