@@ -38,7 +38,12 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getEmailSignatureText = fun
     if ( type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT ) {
         return tutao.tutanota.ctrl.MailBoxController.getDefaultSignature();
     } else if (type.value == tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM) {
-        return this._currentCustomEmailSignature; // handle empty email signature for firefox browser.
+        if (this._currentCustomEmailSignature == "") {
+			// show the default signature initially
+            return tutao.tutanota.ctrl.MailBoxController.getDefaultSignature();
+        } else {
+            return this._currentCustomEmailSignature;
+        }
     } else {
         return "";
     }

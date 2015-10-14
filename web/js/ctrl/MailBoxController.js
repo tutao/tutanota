@@ -224,5 +224,5 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getEmailSignature = function() {
 };
 
 tutao.tutanota.ctrl.MailBoxController.getDefaultSignature = function() {
-    return tutao.locator.htmlSanitizer.sanitize(tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, {"{1}": "https://app.tutanota.de/#register"}), true).text;
+    return tutao.locator.htmlSanitizer.sanitize(tutao.lang(tutao.entity.tutanota.TutanotaConstants.DEFAULT_EMAIL_SIGNATURE, {"{1}": "https://tutanota.com"}), true).text;
 };

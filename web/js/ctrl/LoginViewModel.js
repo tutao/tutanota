@@ -130,22 +130,26 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
     var self = this;
-    return tutao.locator.mailBoxController.initForUser().caught(function(error) {
+    return self.loadEntropy().caught(function(error) {
         if (error instanceof tutao.NotFoundError) {
-            // redo the InitGroupService because it has failed at registration
-            return tutao.locator.registrationViewModel.initGroup().then(function () {
-                return tutao.locator.mailBoxController.initForUser();
+            // redo the InitGroupService because it has failed at registration. and fetch entropy before because it could not yet be loaded.
+            return new Promise(function (resolve, reject) {
+                return tutao.locator.entropyCollector.fetchMissingEntropy(function () {
+                    resolve();
+                });
+            }).then(function () {
+                return tutao.locator.registrationViewModel.initGroup();
             });
         } else {
             throw error;
         }
     }).then(function() {
+        return tutao.locator.mailBoxController.initForUser();
+    }).then(function() {
         // this should be the user id instead of the name later
         return new Promise(function(resolve, reject) {
             tutao.locator.dao.init("Tutanota_" + self.mailAddress(), resolve);
         });
-    }).then(function () {
-        return self.loadEntropy();
     }).then(function () {
         return tutao.locator.viewManager.loadCustomLogos();
     }).then(function() {
@@ -166,30 +170,39 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.loadEntropy = function() {
     var self = this;
-    return new Promise(function(resolve, reject) {
-        try  {
-            var groupEncEntropy = tutao.locator.mailBoxController.getUserProperties().getGroupEncEntropy();
+    return this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
+        return new Promise(function(resolve, reject) {
+            var groupEncEntropy = tutanotaProperties.getGroupEncEntropy();
             if (!groupEncEntropy) {
-                tutao.locator.entropyCollector.fetchMissingEntropy(function() {
+                tutao.locator.entropyCollector.fetchMissingEntropy(function () {
                     self.storeEntropy();
                     resolve();
                 });
             } else {
-                var entropy = tutao.locator.aesCrypter.decryptBytes(tutao.locator.userController.getUserGroupKey(), groupEncEntropy);
-                tutao.locator.entropyCollector.addStaticEntropy(entropy);
-                resolve();
-            }
-        } catch (exception) {
-            // when an exception occurs while decrypting the entropy, then fetch the missing entropy.
-            if (exception instanceof tutao.crypto.CryptoError) {
-                return tutao.locator.entropyCollector.fetchMissingEntropy(function() {
-                    self.storeEntropy();
+                try  {
+                    var entropy = tutao.locator.aesCrypter.decryptBytes(tutao.locator.userController.getUserGroupKey(), groupEncEntropy);
+                    tutao.locator.entropyCollector.addStaticEntropy(entropy);
                     resolve();
-                });
-            } else {
-                reject(exception);
+                } catch (exception) {
+                    // when an exception occurs while decrypting the entropy, then fetch the missing entropy.
+                    if (exception instanceof tutao.crypto.CryptoError) {
+                        return tutao.locator.entropyCollector.fetchMissingEntropy(function() {
+                            self.storeEntropy();
+                            resolve();
+                        });
+                    } else {
+                        reject(exception);
+                    }
+                }
             }
-        }
+        });
+    });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._loadTutanotaPropertiesUnencrypted = function() {
+    var rootId = [tutao.locator.userController.getUserGroupId(), tutao.entity.tutanota.TutanotaProperties.ROOT_INSTANCE_ID];
+    return tutao.entity.sys.RootInstance.load(rootId).then(function(root) {
+        return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, root.getReference(), null, {"v": tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION}, tutao.entity.EntityHelper.createAuthHeaders());
     });
 };
 
@@ -197,9 +210,11 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.loadEntropy = function() {
  * Stores entropy from the randomizer for the next login.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
-    var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
-    tutao.locator.mailBoxController.getUserProperties().setGroupEncEntropy(groupEncEntropy);
-    tutao.locator.mailBoxController.getUserProperties().update();
+    this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
+        var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
+        tutanotaProperties.setGroupEncEntropy(groupEncEntropy);
+        tutanotaProperties.update();
+    });
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
@@ -208,7 +223,6 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
 
 /**
  * Stores the password locally if chosen by user.
- * @param {string} password The password to store.
  * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
