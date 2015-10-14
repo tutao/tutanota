@@ -115,7 +115,12 @@ tutao.tutanota.util.Formatter.dateToDashString = function(date) {
  * @return {Date} The date or null if the dash string has no valid format.
  */
 tutao.tutanota.util.Formatter.dashStringToDate = function(string) {
-	var date = new Date(string);
+    // the constructor Date(string) would be in UTC, so in order to get local time we use Date(yyyy,mm,dd)
+    var parts = string.split("-");
+    if (parts.length != 3) {
+        return null;
+    }
+	var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
 	if (isNaN(date.getTime())) {
 		return null;
 	} else {
