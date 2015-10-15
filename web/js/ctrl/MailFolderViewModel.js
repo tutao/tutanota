@@ -339,8 +339,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getName = function() {
 };
 
 /**
- * Provides the name of the given folder.
- * @return {string} The name of the folder.
+ * Updates the name of the current folder.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype._updateName = function() {
     if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_CUSTOM) {
@@ -353,8 +352,12 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype._updateName = function() {
         this._mailFolderName(tutao.lang("trash_action"));
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
         this._mailFolderName(tutao.lang("archive_action"));
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
+        this._mailFolderName(tutao.lang("draft_action"));
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM) {
+        this._mailFolderName(tutao.lang("spam_action"));
     }else{
-        throw new Error("No text id for tag");
+        this._mailFolderName(tutao.lang("emptyString_msg"));
     }
 };
 
@@ -371,6 +374,10 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getTooltipTextId = function() 
         return  "trashedMails_alt";
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
         return  "archivedMails_alt";
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM) {
+        return  "spamMails_alt";
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
+        return  "draftMails_alt";
     } else {
         return null;
     }
@@ -389,6 +396,10 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
         return  "trash";
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE) {
         return  "file";
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM) {
+        return  "spam";
+    } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
+        return  "draft";
     } else {
         return "folder";
     }

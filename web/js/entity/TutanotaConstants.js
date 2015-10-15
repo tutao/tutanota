@@ -24,6 +24,9 @@ tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX = "1";
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT = "2";
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH = "3";
 tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE = "4";
+tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM = "5";
+tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT = "6";
+
 
 tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_CREATE = "0";
 tutao.entity.tutanota.TutanotaConstants.OPERATION_TYPE_UPDATE = "1";
