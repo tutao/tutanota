@@ -41,7 +41,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 2.2.3): `git checkout tutanota-android-release-2.2.3`
+3. Checkout latest android release (currently 2.2.4): `git checkout tutanota-android-release-2.2.4`
 4. Install cordova globally: `npm install -g cordova`
 5. Install dependencies: `npm install`
 6. Change into the cordova directory: `cd cordova`
