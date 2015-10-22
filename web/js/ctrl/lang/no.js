@@ -139,7 +139,6 @@ tutao.tutanota.ctrl.lang.no.keys = {
   "custom_label": "Egendefinert",
   "date_label": "Dato",
   "db_label": "db",
-  "deactivateAlias_msg": "E-postaliaset '{1}' blir nå deaktivert. Adressen forblir reservert for denne kontoen og kan aktiveres senere.",
   "deactivated_label": "Deaktivert",
   "deactivatePremiumWithCustomDomainError_msg": "Kan ikke bytte til Tutanota Free når innlogget med eget domene.",
   "deactivate_action": "Deaktiver",

@@ -124,7 +124,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "custom_label": "Brugerdefineret",
   "date_label": "Dato",
   "db_label": "db",
-  "deactivateAlias_msg": "E-mail aliaset '{1}' er nu deaktiveret. Adressen er forsat reseveret til denne konto og kan aktiveres igen.",
   "deactivated_label": "Deaktiveret",
   "deactivate_action": "Deaktivér",
   "defaultExternalDeliveryInfo_msg": "Standard indstillingen til at sende en ny email til en ekstern modtager: fortrolig (ende-til-ende krypteret) eller ikke fortrolig (ikke ende-til-ende krypteret).",

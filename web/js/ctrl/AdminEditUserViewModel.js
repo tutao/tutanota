@@ -243,16 +243,30 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
     var self = this;
     this.userGroupInfo.loadGroup().then(function(group) {
         var restore = self.userGroupInfo.getDeleted() != null;
-        tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, (restore) ? 1 : -1).then(function(confirmed) {
-            if (confirmed) {
-                new tutao.entity.sys.UserDataDelete()
-                    .setUser(group.getUser())
-                    .setRestore(restore)
-                    .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
-                    .erase({}, null).then(function(deleteUserReturn) {
-                        self.adminUserListViewModel.updateUserGroupInfo();
-                        tutao.locator.settingsView.showChangeSettingsColumn();
-                    });
+        var availablePromise = null;
+        if (restore) {
+            availablePromise = tutao.entity.sys.DomainMailAddressAvailabilityReturn.load(new tutao.entity.sys.DomainMailAddressAvailabilityData().setMailAddress(self.userGroupInfo.getMailAddress()), [], tutao.entity.EntityHelper.createAuthHeaders()).then(function(domainMailAddressAvailabilityReturn) {
+                return domainMailAddressAvailabilityReturn.getAvailable();
+            });
+        } else {
+            availablePromise = Promise.resolve(true);
+        }
+        return availablePromise.then(function(available) {
+            if (available) {
+                tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, (restore) ? 1 : -1).then(function (confirmed) {
+                    if (confirmed) {
+                        new tutao.entity.sys.UserDataDelete()
+                            .setUser(group.getUser())
+                            .setRestore(restore)
+                            .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
+                            .erase({}, null).then(function (deleteUserReturn) {
+                                self.adminUserListViewModel.updateUserGroupInfo();
+                                tutao.locator.settingsView.showChangeSettingsColumn();
+                            });
+                    }
+                });
+            } else {
+                self.saveStatus({type: "invalid", text: "emailAddressInUse_msg" });
             }
         });
     });

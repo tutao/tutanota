@@ -139,7 +139,6 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "custom_label": "Anpassad",
   "date_label": "Datum",
   "db_label": "db",
-  "deactivateAlias_msg": "E-postalias '{1}' kommer att avaktiveras nu. Adressen är fortfarande reserverade för detta konto och kan aktiveras igen.",
   "deactivated_label": "Inaktiverad",
   "deactivatePremiumWithCustomDomainError_msg": "Det går inte att byta till en Tutanota gratis konto när du är inloggad med en egen domän användare.",
   "deactivate_action": "Inaktivera",

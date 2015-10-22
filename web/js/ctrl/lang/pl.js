@@ -138,7 +138,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "custom_label": "Personalizuj",
   "date_label": "Data",
   "db_label": "db",
-  "deactivateAlias_msg": "Email alias '{1}' zostanie teraz zdezaktywowany. Adres pozostanie zarezerwowany dla tego konta, i może być aktywowany ponownie.",
   "deactivated_label": "Zdezaktywowane",
   "deactivatePremiumWithCustomDomainError_msg": "Nie można przejść do konta Tutanota Free, jeżeli zalogowano się z niestandardowej domeny.",
   "deactivate_action": "Deaktywuj",

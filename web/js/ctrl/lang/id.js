@@ -145,7 +145,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "custom_label": "Ubahsuai",
   "date_label": "Tanggal",
   "db_label": "db",
-  "deactivateAlias_msg": "Alias surel '{1}' akan dinonaktifkan sekarang. Alamat tetap akan disediakan untuk akun ini dan dapat diaktifkan kembali.",
   "deactivated_label": "Dinonaktifkan",
   "deactivatePremiumWithCustomDomainError_msg": "Tidak beralih beralih ke akun Tutanota gratis saat masuk menggunakan pengguna domain khusus.",
   "deactivate_action": "Nonaktifkan",

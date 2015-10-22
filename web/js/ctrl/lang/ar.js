@@ -139,7 +139,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "custom_label": "مخصص",
   "date_label": "التاريخ",
   "db_label": "قاعدة البيانات",
-  "deactivateAlias_msg": "سيتم إلغاء الاسم المستعار للبريد الإلكتروني '{1}' الآن. سيبقى العنوان محجوز لهذا الحساب ويمكن تفعيلها مرة أخرى.",
   "deactivated_label": "تم التعطيل",
   "deactivatePremiumWithCustomDomainError_msg": "لا يمكن التبديل إلى حساب Tutanota مجاني عند تسجيل الدخول مع مستخدم ذي خادم مخصص.",
   "deactivate_action": "تعطيل",

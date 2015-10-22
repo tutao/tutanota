@@ -141,7 +141,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "custom_label": "Personalizado",
   "date_label": "Fecha",
   "db_label": "db",
-  "deactivateAlias_msg": "El alias de correo electrónico '{1}' se desactivará ahora. La dirección sigue estando reservada para esta cuenta y se puede activar de nuevo.",
   "deactivated_label": "Desactivada",
   "deactivatePremiumWithCustomDomainError_msg": "No se puede cambiar a una cuenta gratis Tutanota cuando se haya identificado con un usuario de dominio personalizado.",
   "deactivate_action": "Desactivar",

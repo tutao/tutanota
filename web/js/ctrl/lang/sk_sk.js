@@ -138,7 +138,6 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "custom_label": "Vlastný",
   "date_label": "Dátum",
   "db_label": "db",
-  "deactivateAlias_msg": "Alias '{1}' bude deaktivovaný. Adresa zostane vyhradená pre tento účet a môže byť znovu aktivovaná.",
   "deactivated_label": "Zušené",
   "deactivate_action": "Zrušiť",
   "defaultExternalDeliveryInfo_msg": "Preddefinované nastavenie pre nové emaily pre externého príjemcu: dôverné (end-to-end šifrované) alebo neutajované (end-to-end nešifrované).",

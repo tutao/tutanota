@@ -145,7 +145,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "custom_label": "Vlastito",
   "date_label": "Datum",
   "db_label": "db",
-  "deactivateAlias_msg": "Pseudonim (alias) e-pošte '{1}' bit će sada deaktiviran. Adresa ostaje rezervirana za ovaj račun i može ponovo biti aktivirana.",
   "deactivated_label": "Deaktivirana",
   "deactivatePremiumWithCustomDomainError_msg": "Nije moguće prebaciti se na Tutanota besplatni račun kada ste prijavljeni kao korisnik s vlastitom domenom.",
   "deactivate_action": "Deaktiviraj",

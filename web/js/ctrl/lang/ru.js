@@ -104,7 +104,6 @@ tutao.tutanota.ctrl.lang.ru.keys = {
   "custom_label": "Индивидуальный",
   "date_label": "Дата",
   "db_label": "db",
-  "deactivateAlias_msg": "Псевдоним электронной почты '{1}' сейчас будет отключен. Адрес остается зарезервированным для этой учетной записи, и может быть активирован снова.",
   "deactivated_label": "Деактивировано",
   "deactivatePremiumWithCustomDomainError_msg": "Не возможно подключиться на бесплатный аккаунт Tutanota при входе в качестве пользователя личного домена.",
   "deactivate_action": "Деактивировать",
