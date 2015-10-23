@@ -38,7 +38,7 @@ tutao.entity.tutanota.MailBody.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailBody.MODEL_VERSION = '9';
+tutao.entity.tutanota.MailBody.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -212,7 +212,7 @@ tutao.entity.tutanota.MailBody.prototype.getText = function() {
  * @return {Promise.<tutao.entity.tutanota.MailBody>} Resolves to the MailBody or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBody.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, id, null, {"v" : 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, id, null, {"v" : 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -223,7 +223,7 @@ tutao.entity.tutanota.MailBody.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBody>>} Resolves to an array of MailBody or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBody.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": 9}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": 10}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

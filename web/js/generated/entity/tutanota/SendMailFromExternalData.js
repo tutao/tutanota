@@ -53,7 +53,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.updateData = function(d
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '9';
+tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '10';
 
 /**
  * The url path to the resource.
@@ -409,7 +409,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.setup = function(parame
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 9;
+  parameters["v"] = 10;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailFromExternalData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailFromExternalReturn);
 };
