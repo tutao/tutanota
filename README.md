@@ -22,7 +22,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 2.2.3): `git checkout tutanota-release-2.2.3`
+3. Checkout latest release (currently 2.3.0): `git checkout tutanota-release-2.3.0`
 4. Install dependencies: `npm install`
 5. Build Tutanota: `gulp dist`
 6. Switch into the build directory: `cd build`
