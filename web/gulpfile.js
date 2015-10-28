@@ -50,18 +50,18 @@ function getIpAddress() {
 var init = fs.readFileSync("js/util/init.js", 'utf8');
 
 var local_compiled = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000, 'http://pay.localhost:9000/build');\n\
+    tutao.env = new tutao.Environment(tutao.Env.LOCAL_COMPILED, false, '" + getIpAddress() + "', 9000, 'http://pay.localhost:9000/build', '" + package.version + "');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
 
 var prod = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null, 'https://pay.tutanota.de');\n\
+    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null, 'https://pay.tutanota.de', '" + package.version + "');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
 var test = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null, 'https://pay.test.tutanota.de');\n\
+    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null, 'https://pay.test.tutanota.de', '" + package.version + "');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 

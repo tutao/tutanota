@@ -42,8 +42,15 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
         facade = tutao.tutanota.ctrl.SendMailFacade;
         previousMessageId = null;
     }
-    var message = this.message()
-        + "\n\n User agent: \n" + navigator.userAgent;
+    var message = this.message();
+
+    message += "\n\n Client: " + (tutao.env.mode == tutao.Mode.App ? cordova.platformId + " app": "Browser");
+
+    message += "\n Tutanota version: " + tutao.env.versionNumber;
+
+    message += "\n Timestamp (UTC): " +  new Date().toUTCString();
+
+    message  += "\n User agent: \n" + navigator.userAgent;
 
     message += "\n\n Stacktrace: \n" + this.stack();
     message = message.split("\n").join("<br>");
