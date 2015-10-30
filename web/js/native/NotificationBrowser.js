@@ -32,14 +32,23 @@ tutao.native.NotificationBrowser.prototype.updateBadge = function(number) {
 
 tutao.native.NotificationBrowser.prototype._showIfGranted = function(message, resolve) {
     if (Notification.permission === "granted") {
-        var notification = new Notification("Tutanota", {body: message, icon: 'graphics/apple-touch-icon-114x114-precomposed.png'});
-        notification.onshow = function () {
-            setTimeout(function() { notification.close(); }, 5000);
-        };
-        notification.onclick = function () {
-            notification.close();
+        try {
+            var notification = new Notification("Tutanota", {body: message, icon: 'graphics/apple-touch-icon-114x114-precomposed.png'});
+            notification.onshow = function () {
+                setTimeout(function() { notification.close(); }, 5000);
+            };
+            notification.onclick = function () {
+                notification.close();
+                resolve();
+            };
+        } catch (e) {
+            // new Notification() throws an error in new chrome browsers on android devices.
+            // According to the error message ServiceWorkerRegistration.showNotification() should be used instead.
+            // This is currently not available on our test devices, so ignore notification errors.
+            // Setails: http://stackoverflow.com/questions/29774836/failed-to-construct-notification-illegal-constructor
+            console.log("notificaiton error");
             resolve();
-        };
+        }
     }
 };
 
