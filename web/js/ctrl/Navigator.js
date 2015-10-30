@@ -43,11 +43,8 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function
 	}
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.logout = function(autoLoginAllowed, storeEntropy) {
-    if (storeEntropy){
-        tutao.locator.loginViewModel.storeEntropy();
-    }
-	this._login(autoLoginAllowed);
+tutao.tutanota.ctrl.Navigator.prototype.logout = function() {
+	this._login(false);
 };
 
 tutao.tutanota.ctrl.Navigator.prototype._login = function(autoLoginAllowed) {

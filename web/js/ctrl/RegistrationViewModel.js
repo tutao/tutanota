@@ -288,7 +288,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys
     self._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_RUNNING);
     tutao.locator.entropyCollector.fetchMissingEntropy(function() {
         self._generateKeys().then(function() {
-            tutao.locator.navigator.logout(false, false); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
+            tutao.locator.navigator.logout(); // the user is still logged in at this moment. This is why the navigator will re-initialize the whole application.
             setTimeout(function() {
                 tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
                 tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
@@ -470,7 +470,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaEditable = function
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {
-    tutao.locator.navigator.logout(false, false);
+    tutao.locator.navigator.logout();
 };
 
 

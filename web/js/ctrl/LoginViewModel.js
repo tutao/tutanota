@@ -210,7 +210,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._loadTutanotaPropertiesUnencrypted 
  * Stores entropy from the randomizer for the next login.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
-    this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
+    return this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
         var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
         tutanotaProperties.setGroupEncEntropy(groupEncEntropy);
         tutanotaProperties.update();

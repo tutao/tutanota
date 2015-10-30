@@ -149,7 +149,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirm = function() {
             tutao.locator.eventBus.notifyNewDataReceived = function() {}; // avoid NotAuthenticatedError
             return customerService.erase({}, null).then(function() {
                 return tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("deleteAccountDeleted_msg")).then(function() {
-                    tutao.locator.navigator.logout(false, false);
+                    tutao.locator.navigator.logout();
                 });
             });
         }

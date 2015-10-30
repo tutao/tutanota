@@ -616,5 +616,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "xing_label": "XING",
   "yearly_label": "Yearly",
   "yesterday_label": "yesterday",
-    "waitingForApproval_msg": "Sorry, you are currently not allowed to send emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 24 hours."
+    "waitingForApproval_msg": "Sorry, you are currently not allowed to send emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 24 hours.",
+    "loggingOut_msg": "Logging out..."
 };

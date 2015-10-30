@@ -135,7 +135,13 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
-            tutao.locator.navigator.logout(false, true);
+            tutao.locator.progressDialogModel.open("loggingOut_msg");
+            tutao.locator.progressDialogModel.updateProgress(33);
+            tutao.locator.loginViewModel.storeEntropy().finally(function() {
+                tutao.locator.progressDialogModel.updateProgress(100);
+                tutao.locator.navigator.logout();
+                tutao.locator.progressDialogModel.close();
+            });
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt')
 
         // all logged in
