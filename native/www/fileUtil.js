@@ -132,13 +132,14 @@ FileUtil.prototype._createConnectionErrorHandler = function(rejectFunction) {
     return function(errorString) {
         if (errorString.indexOf("java.net.SocketTimeoutException") == 0 ||
             errorString.indexOf("javax.net.ssl.SSLException") == 0 ||
-            errorString.indexOf("java.io.EOFException") == 0) {
+            errorString.indexOf("java.io.EOFException") == 0 ||
+            errorString.indexOf("java.net.UnknownHostException") == 0) {
             rejectFunction(new tutao.ConnectionError(errorString));
         } else {
             rejectFunction(new Error(errorString));
         }
     }
-}
+};
 
 
 var fileUtil = FileUtil;

@@ -105,7 +105,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
 tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	var self = this;
 	if (!this.loginPossible()) {
-		Promise.reject();
+        // should not happen login is ongoing, may happen if the login button has been clicked twice.
+		return Promise.resolve();
 	}
 	this.loginOngoing(true);
 	// in private browsing mode in mobile safari local storage is not available and throws an exception
