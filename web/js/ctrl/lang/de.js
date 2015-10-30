@@ -324,6 +324,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "loading_msg": "Lade ...",
   "loadMoreMails_action": "Weitere E-Mails laden",
   "loadMore_action": "Weitere laden",
+  "loggingOut_msg": "Du wirst abgemeldet...",
   "loginAction_msg": "Nach dem Login können sichere Nachrichten versendet und empfangen werden.",
   "loginFailedOften_msg": "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuch es später erneut.",
   "loginFailed_msg": "Ungültige E-Mail-Adresse oder Passwort. Bitte versuch es erneut.",
@@ -595,6 +596,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "userSettings_label": "Benutzer",
   "validInputFormat_msg": "Format ok.",
   "version_label": "Version:",
+  "waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden, da dein Account erst freigegeben werden muss. Dies ist notwendig, um Missbrauch, wie Spam, zu verhindern. Das Tutanota-Team wird deinen Account innerhalb von 24 Stunden freigeben.",
   "weekDays_label": [
     "So",
     "Mo",
@@ -615,7 +617,5 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern",
-    "waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden, da dein Account erst freigegeben werden muss. Dies ist notwendig, um Missbrauch, wie Spam, zu verhindern. Das Tutanota-Team wird deinen Account innerhalb von 24 Stunden freigeben.",
-    "loggingOut_msg": "Du wirst abgemeldet..."
+  "yesterday_label": "gestern"
 };

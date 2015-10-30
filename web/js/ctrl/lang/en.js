@@ -324,6 +324,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "loading_msg": "Loading ...",
   "loadMoreMails_action": "Load more emails",
   "loadMore_action": "Load more",
+  "loggingOut_msg": "Logging out...",
   "loginAction_msg": "You will only receive secure Tutanota emails after logging in.",
   "loginFailedOften_msg": "Too many failed login attempts. Please try again later.",
   "loginFailed_msg": "Invalid login credentials. Please try again.",
@@ -595,6 +596,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "userSettings_label": "User",
   "validInputFormat_msg": "Format ok.",
   "version_label": "Version:",
+  "waitingForApproval_msg": "Sorry, you are currently not allowed to send emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 24 hours.",
   "weekDays_label": [
     "Su",
     "Mo",
@@ -615,7 +617,5 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday",
-    "waitingForApproval_msg": "Sorry, you are currently not allowed to send emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 24 hours.",
-    "loggingOut_msg": "Logging out..."
+  "yesterday_label": "yesterday"
 };
