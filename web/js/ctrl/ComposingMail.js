@@ -236,8 +236,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
                             }).caught(tutao.TooManyRequestsError, function (exception) {
                                 return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
+                            }).caught(tutao.AccessBlockedError, function (exception) {
+                                return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
                             });
-
                         });
                     } else {
                         tutao.locator.mailView.showPasswordChannelColumn();
