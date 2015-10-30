@@ -307,7 +307,9 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
             return Promise.resolve(self._provideFromCache(path, listId, start, count, reverse));
         }
     } else {
-        var msg = "invalid range request. Path: " + path + " start:" + start + " count: " + count + " reverse:" + reverse;
+        var lower = tutao.locator.entityRestClient._db[path][listId].lowerRangeId;
+        var upper = tutao.locator.entityRestClient._db[path][listId].upperRangeId;
+        var msg = "invalid range request. Path: " + path + " list: " + listId + " start: " + start + " count: " + count + " reverse: " + reverse + " lower: " + lower + " upper: " + upper;
         return Promise.reject(new tutao.InvalidDataError(msg));
 	}
 };
