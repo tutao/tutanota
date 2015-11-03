@@ -213,12 +213,10 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                 url = URL.createObjectURL(blob);
             }
             // firefox on android, safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text
-            if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID || (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX && tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID)) {
+            if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID ) {
                 var textId = 'saveDownloadNotPossibleSafariDesktop_msg';
                 if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
                     textId = 'saveDownloadNotPossibleAndroid_msg';
-                } else if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_FIREFOX && tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
-                    textId = 'saveDownloadNotPossibleFirefoxAndroid_msg';
                 } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                     textId = 'saveDownloadNotPossibleSafariMobile_msg';
                 }
@@ -229,21 +227,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                     }, 1);
                 });
             } else {
-                var link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", dataFile.getName()); // only chrome currently supports the download link, but it does not cause problems in other browsers
-                link.setAttribute("target", "_blank"); // makes sure that data urls are opened in a new tab instead of replacing the tutanota window on mobile safari
-                /*
-                 var event = document.createEvent('MouseEvents');
-                 event.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
-                 link.dispatchEvent(event);
-                 */
-                this._simulatedClick(link, {});
-
-                // the blob must be deleted after usage. delete it after 1 ms in case some save operation is done async
-                setTimeout(function() {
-                    URL.revokeObjectURL(url);
-                }, 1);
+                fileSaverSaveAs(new Blob([dataFile.getData()], {type: mimeType}), dataFile.getName());
                 return Promise.resolve();
             }
         }
@@ -257,52 +241,4 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
  */
 tutao.native.FileFacadeBrowser.prototype.provideDownload = function(dataFile) {
 
-};
-
-// see http://stackoverflow.com/a/6158160
-tutao.native.FileFacadeBrowser.prototype._simulatedClick = function (target, options) {
-
-    var event = target.ownerDocument.createEvent('MouseEvents');
-    var options = options || {};
-
-    //Set your default options to the right of ||
-    var opts = {
-        type: options.type                  || 'click',
-        canBubble:options.canBubble             || true,
-        cancelable:options.cancelable           || true,
-        view:options.view                       || target.ownerDocument.defaultView,
-        detail:options.detail                   || 1,
-        screenX:options.screenX                 || 0, //The coordinates within the entire page
-        screenY:options.screenY                 || 0,
-        clientX:options.clientX                 || 0, //The coordinates within the viewport
-        clientY:options.clientY                 || 0,
-        ctrlKey:options.ctrlKey                 || false,
-        altKey:options.altKey                   || false,
-        shiftKey:options.shiftKey               || false,
-        metaKey:options.metaKey                 || false, //I *think* 'meta' is 'Cmd/Apple' on Mac, and 'Windows key' on Win. Not sure, though!
-        button:options.button                   || 0, //0 = left, 1 = middle, 2 = right
-        relatedTarget:options.relatedTarget     || null
-    };
-
-    //Pass in the options
-    event.initMouseEvent(
-        opts.type,
-        opts.canBubble,
-        opts.cancelable,
-        opts.view,
-        opts.detail,
-        opts.screenX,
-        opts.screenY,
-        opts.clientX,
-        opts.clientY,
-        opts.ctrlKey,
-        opts.altKey,
-        opts.shiftKey,
-        opts.metaKey,
-        opts.button,
-        opts.relatedTarget
-    );
-
-    //Fire the event
-    target.dispatchEvent(event);
 };
