@@ -124,9 +124,13 @@ tutao.tutanota.Bootstrap.init = function () {
 					element.animate({height: "100%"}, 300);
 				});
 			}
-			
-			
         }
+
+        // try reconnect the websocket as soon as the network state is online
+        window.addEventListener('online',  function(event) {
+            console.log("network online");
+            tutao.locator.eventBus.tryReconnect();
+        });
 
         // only for testing
 		//tutao.locator.developerViewModel.open();
