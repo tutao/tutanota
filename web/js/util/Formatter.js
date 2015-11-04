@@ -317,3 +317,15 @@ tutao.tutanota.util.Formatter.urlify = function(text) {
 		}
 	}});
 };
+
+/**
+ * Replaces all starting and ending html tag symbols with their url code representation.
+ * @param text The text containing html nodes
+ * @returns The encoded string.
+ */
+tutao.tutanota.util.Formatter.urlEncodeHtmlTags = function(text) {
+	return text.replace(/</g, "%3C").replace(/>/g, "%3E");
+};
+
+
+

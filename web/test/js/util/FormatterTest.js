@@ -215,5 +215,10 @@ describe("FormatterTest", function () {
         assert.equal("(555)555-5555", tutao.tutanota.util.Formatter.urlify("(555)555-5555"));
     });
 
+    it(" url encode html tags", function() {
+        // no html links
+        assert.equal("Hello",  tutao.tutanota.util.Formatter.urlEncodeHtmlTags("Hello"));
+        assert.equal("%3Cdiv%3Eab cd%3C/div%3E",  tutao.tutanota.util.Formatter.urlEncodeHtmlTags("<div>ab cd</div>"));
+    });
 
 });
