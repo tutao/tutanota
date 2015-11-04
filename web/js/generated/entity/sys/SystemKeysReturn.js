@@ -42,7 +42,7 @@ tutao.entity.sys.SystemKeysReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SystemKeysReturn.MODEL_VERSION = '11';
+tutao.entity.sys.SystemKeysReturn.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -275,7 +275,7 @@ tutao.entity.sys.SystemKeysReturn.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 11;
+  parameters["v"] = 12;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.SystemKeysReturn, tutao.entity.sys.SystemKeysReturn.PATH, null, null, parameters, headers);
 };
 /**

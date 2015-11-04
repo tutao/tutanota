@@ -311,70 +311,76 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText, senderMailAddress) {
 	var self = this;
 
-	return self.tryCancelAllComposingMails(false).then(function(confirmed) {
-        if (confirmed) {
-            // any selected mails in the mail list shall be deselected
-            tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
-
-            var emailSignature = "";
-            if (tutao.locator.userController.isInternalUserLoggedIn()) {
-                emailSignature = tutao.locator.mailBoxController.getEmailSignature();
-            }
-            var mailCreatedPromise;
-            if (previousMail) {
-                var previousMessageId = null;
-                mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
-                    previousMessageId = ce.getMessageId();
-                }).caught(function(e) {
-                    console.log("could not load conversation entry", e);
-                }).then(function() {
-                    // the conversation key may be null if the mail was e.g. received from an external via smtp
-                    self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId, previousMail.mail));
-                    self.mail().confidentialButtonSecure(previousMail.mail.getConfidential());
-                    self.mail().setBody(emailSignature + bodyText);
-                });
-            } else {
-                mailCreatedPromise = Promise.resolve();
-                self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null, null));
-                self.mail().setBody(emailSignature);
-            }
-
-            return mailCreatedPromise.then(function() {
-                if (senderMailAddress) {
-                    self.getComposingMail().sender(senderMailAddress);
-                }
-                self.getComposingMail().composerSubject(subject);
-                for (var i = 0; i < toRecipients.length; i++) {
-                    self.getComposingMail().addToRecipient(toRecipients[i]);
-                }
-                for (i = 0; i < ccRecipients.length; i++) {
-                    self.getComposingMail().addCcRecipient(ccRecipients[i]);
-                }
-
-                self.getComposingMail().showBccCc(self.getComposingMail().containsCcOrBccReceipients());
-                //	not needed currently as we scroll the complete window when editing a mail
-                tutao.locator.mailView.showConversationColumn();
-
-
-                // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
-                //self.editor = new Quill('div.composeBody', {theme: 'snow'});
-                //self.editor.addModule('toolbar', {
-                //    container: '#toolbar-toolbar'     // Selector for toolbar container
-                //});
-                ////TODO (story send html email): test on mobiles and move to view
-                //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
-                //		toolbar:      null, // id of toolbar element
-                //		parserRules:  wysihtml5ParserRules // defined in parser rules set
-                //	});
-                //	var onChange = function() {
-                //		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
-                //	};
-                //	this.editor.on("change", onChange);
-
-                return true;
-            });
+    return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        if (customer.getApprovalNeeded()) {
+            return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
         } else {
-            return false;
+            return self.tryCancelAllComposingMails(false).then(function(confirmed) {
+                if (confirmed) {
+                    // any selected mails in the mail list shall be deselected
+                    tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
+
+                    var emailSignature = "";
+                    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+                        emailSignature = tutao.locator.mailBoxController.getEmailSignature();
+                    }
+                    var mailCreatedPromise;
+                    if (previousMail) {
+                        var previousMessageId = null;
+                        mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
+                            previousMessageId = ce.getMessageId();
+                        }).caught(function(e) {
+                            console.log("could not load conversation entry", e);
+                        }).then(function() {
+                            // the conversation key may be null if the mail was e.g. received from an external via smtp
+                            self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, previousMessageId, previousMail.mail));
+                            self.mail().confidentialButtonSecure(previousMail.mail.getConfidential());
+                            self.mail().setBody(emailSignature + bodyText);
+                        });
+                    } else {
+                        mailCreatedPromise = Promise.resolve();
+                        self.mail(new tutao.tutanota.ctrl.ComposingMail(conversationType, null, null));
+                        self.mail().setBody(emailSignature);
+                    }
+
+                    return mailCreatedPromise.then(function() {
+                        if (senderMailAddress) {
+                            self.getComposingMail().sender(senderMailAddress);
+                        }
+                        self.getComposingMail().composerSubject(subject);
+                        for (var i = 0; i < toRecipients.length; i++) {
+                            self.getComposingMail().addToRecipient(toRecipients[i]);
+                        }
+                        for (i = 0; i < ccRecipients.length; i++) {
+                            self.getComposingMail().addCcRecipient(ccRecipients[i]);
+                        }
+
+                        self.getComposingMail().showBccCc(self.getComposingMail().containsCcOrBccReceipients());
+                        //	not needed currently as we scroll the complete window when editing a mail
+                        tutao.locator.mailView.showConversationColumn();
+
+
+                        // uncomment for test sending html emails (also switch to composeBodyTextArea in index.html)
+                        //self.editor = new Quill('div.composeBody', {theme: 'snow'});
+                        //self.editor.addModule('toolbar', {
+                        //    container: '#toolbar-toolbar'     // Selector for toolbar container
+                        //});
+                        ////TODO (story send html email): test on mobiles and move to view
+                        //	this.editor = new wysihtml5.Editor("composeBodyTextArea", { // id of textarea element
+                        //		toolbar:      null, // id of toolbar element
+                        //		parserRules:  wysihtml5ParserRules // defined in parser rules set
+                        //	});
+                        //	var onChange = function() {
+                        //		self.conversation()[0].composerBody($("#composeBodyTextArea").val());
+                        //	};
+                        //	this.editor.on("change", onChange);
+
+                        return true;
+                    });
+                } else {
+                    return false;
+                }
+            });
         }
     });
 };
