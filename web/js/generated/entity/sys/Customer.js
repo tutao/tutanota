@@ -13,7 +13,7 @@ tutao.entity.sys.Customer = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
-    this._approvalNeeded = null;
+    this._approvalStatus = null;
     this._canceledPremiumAccount = null;
     this._type = null;
     this._adminGroup = null;
@@ -37,7 +37,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
-  this._approvalNeeded = data.approvalNeeded;
+  this._approvalStatus = data.approvalStatus;
   this._canceledPremiumAccount = data.canceledPremiumAccount;
   this._type = data.type;
   this._adminGroup = data.adminGroup;
@@ -89,7 +89,7 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
-    approvalNeeded: this._approvalNeeded, 
+    approvalStatus: this._approvalStatus, 
     canceledPremiumAccount: this._canceledPremiumAccount, 
     type: this._type, 
     adminGroup: this._adminGroup, 
@@ -109,9 +109,9 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
 tutao.entity.sys.Customer.prototype.TYPE_ID = 31;
 
 /**
- * The id of the approvalNeeded attribute.
+ * The id of the approvalStatus attribute.
  */
-tutao.entity.sys.Customer.prototype.APPROVALNEEDED_ATTRIBUTE_ID = 926;
+tutao.entity.sys.Customer.prototype.APPROVALSTATUS_ATTRIBUTE_ID = 926;
 
 /**
  * The id of the canceledPremiumAccount attribute.
@@ -206,20 +206,20 @@ tutao.entity.sys.Customer.prototype.getPermissions = function() {
 };
 
 /**
- * Sets the approvalNeeded of this Customer.
- * @param {boolean} approvalNeeded The approvalNeeded of this Customer.
+ * Sets the approvalStatus of this Customer.
+ * @param {string} approvalStatus The approvalStatus of this Customer.
  */
-tutao.entity.sys.Customer.prototype.setApprovalNeeded = function(approvalNeeded) {
-  this._approvalNeeded = approvalNeeded ? '1' : '0';
+tutao.entity.sys.Customer.prototype.setApprovalStatus = function(approvalStatus) {
+  this._approvalStatus = approvalStatus;
   return this;
 };
 
 /**
- * Provides the approvalNeeded of this Customer.
- * @return {boolean} The approvalNeeded of this Customer.
+ * Provides the approvalStatus of this Customer.
+ * @return {string} The approvalStatus of this Customer.
  */
-tutao.entity.sys.Customer.prototype.getApprovalNeeded = function() {
-  return this._approvalNeeded != '0';
+tutao.entity.sys.Customer.prototype.getApprovalStatus = function() {
+  return this._approvalStatus;
 };
 
 /**
@@ -443,6 +443,17 @@ tutao.entity.sys.Customer.load = function(id) {
 tutao.entity.sys.Customer.loadMultiple = function(ids) {
   return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this Customer on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.Customer.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

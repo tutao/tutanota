@@ -312,7 +312,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
 	var self = this;
 
     return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
-        if (customer.getApprovalNeeded()) {
+        if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
             return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
         } else {
             return self.tryCancelAllComposingMails(false).then(function(confirmed) {
