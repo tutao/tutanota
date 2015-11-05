@@ -34,7 +34,7 @@ tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.updateData = functi
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAliasServiceDataDelete.MODEL_VERSION = '11';
+tutao.entity.sys.MailAddressAliasServiceDataDelete.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -167,7 +167,7 @@ tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.erase = function(pa
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 11;
+  parameters["v"] = 12;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.MailAddressAliasServiceDataDelete.PATH, this, parameters, headers, null);
 };

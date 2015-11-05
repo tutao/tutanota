@@ -13,6 +13,7 @@ tutao.entity.sys.Customer = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._approvalStatus = null;
     this._canceledPremiumAccount = null;
     this._type = null;
     this._adminGroup = null;
@@ -36,6 +37,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._approvalStatus = data.approvalStatus;
   this._canceledPremiumAccount = data.canceledPremiumAccount;
   this._type = data.type;
   this._adminGroup = data.adminGroup;
@@ -52,7 +54,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Customer.MODEL_VERSION = '11';
+tutao.entity.sys.Customer.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -87,6 +89,7 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    approvalStatus: this._approvalStatus, 
     canceledPremiumAccount: this._canceledPremiumAccount, 
     type: this._type, 
     adminGroup: this._adminGroup, 
@@ -104,6 +107,11 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
  * The id of the Customer type.
  */
 tutao.entity.sys.Customer.prototype.TYPE_ID = 31;
+
+/**
+ * The id of the approvalStatus attribute.
+ */
+tutao.entity.sys.Customer.prototype.APPROVALSTATUS_ATTRIBUTE_ID = 926;
 
 /**
  * The id of the canceledPremiumAccount attribute.
@@ -195,6 +203,23 @@ tutao.entity.sys.Customer.prototype.setPermissions = function(permissions) {
  */
 tutao.entity.sys.Customer.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the approvalStatus of this Customer.
+ * @param {string} approvalStatus The approvalStatus of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setApprovalStatus = function(approvalStatus) {
+  this._approvalStatus = approvalStatus;
+  return this;
+};
+
+/**
+ * Provides the approvalStatus of this Customer.
+ * @return {string} The approvalStatus of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getApprovalStatus = function() {
+  return this._approvalStatus;
 };
 
 /**
@@ -405,7 +430,7 @@ tutao.entity.sys.Customer.prototype.getUserGroups = function() {
  * @return {Promise.<tutao.entity.sys.Customer>} Resolves to the Customer or an exception if the loading failed.
  */
 tutao.entity.sys.Customer.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -416,8 +441,19 @@ tutao.entity.sys.Customer.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Customer>>} Resolves to an array of Customer or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Customer.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this Customer on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.Customer.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 
