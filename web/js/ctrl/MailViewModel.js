@@ -234,7 +234,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 		}
 		infoLine += "<br>";
 	}
-	infoLine += tutao.lang("subject_label") + ": " + displayedMail.mail.getSubject();
+	infoLine += tutao.lang("subject_label") + ": " + tutao.tutanota.util.Formatter.urlEncodeHtmlTags(displayedMail.mail.getSubject());
 	var body = "<br><br>" + infoLine + "<br><br><blockquote class=\"tutanota_quote\">" + displayedMail.bodyText() + "</blockquote>";
     var senderMailAddress = this._findOwnMailAddressInMail(displayedMail.mail);
     var self = this;
