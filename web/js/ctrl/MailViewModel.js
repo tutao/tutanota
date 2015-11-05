@@ -325,7 +325,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationT
                 var previousMessageId = null;
                 mailCreatedPromise = previousMail.mail.loadConversationEntry().then(function(ce) {
                     previousMessageId = ce.getMessageId();
-                }).caught(function(e) {
+                }).caught(tutao.NotFoundError, function() {
                     console.log("could not load conversation entry", e);
                 }).then(function() {
                     // the conversation key may be null if the mail was e.g. received from an external via smtp
