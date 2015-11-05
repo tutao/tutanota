@@ -28,6 +28,7 @@ import java.security.spec.RSAPublicKeySpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
@@ -43,6 +44,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import de.tutao.crypto.TutaoCipherInputStream;
 
@@ -62,6 +64,7 @@ public class Crypto extends CordovaPlugin {
 	private final static String TAG = "tutao.Crypto";
 	private SecureRandom randomizer;
 
+	private static final Integer ANDROID_6_SDK_VERSION = 23;
 	static {
 		// see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
 		PRNGFixes.apply();
@@ -294,7 +297,7 @@ public class Crypto extends CordovaPlugin {
 			Cipher cipher = Cipher.getInstance(AES_MODE_PADDING);
 			IvParameterSpec params = new IvParameterSpec(iv);
 			cipher.init(Cipher.ENCRYPT_MODE, bytesToKey(key), params);
-			encrypted = new TutaoCipherInputStream(in, cipher);
+			encrypted = getCipherInputStream(in, cipher);
 			out.write(iv);
 			IOUtils.copy(encrypted, out);
 		} finally {
@@ -355,12 +358,22 @@ public class Crypto extends CordovaPlugin {
 			Cipher cipher = Cipher.getInstance(AES_MODE_PADDING);
 			IvParameterSpec params = new IvParameterSpec(iv);
 			cipher.init(Cipher.DECRYPT_MODE, bytesToKey(key), params);
-			decrypted = new TutaoCipherInputStream(in, cipher);
+			decrypted = getCipherInputStream(in, cipher);
 			IOUtils.copy(decrypted, out);
 		} finally {
 			IOUtils.closeQuietly(in);
 			IOUtils.closeQuietly(decrypted);
 			IOUtils.closeQuietly(out);
+		}
+	}
+
+	private InputStream getCipherInputStream(InputStream in, Cipher cipher) {
+		if (Build.VERSION.SDK_INT < ANDROID_6_SDK_VERSION) {
+			// Use the tutao cipher suite implementation to increase download performance.
+			return new TutaoCipherInputStream(in, cipher);
+		} else {
+			// Cipher.getOutputSize returns to small buffer in some case in android 6.0.
+			return new CipherInputStream(in, cipher);
 		}
 	}
 
