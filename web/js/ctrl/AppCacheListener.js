@@ -70,6 +70,6 @@ tutao.tutanota.ctrl.AppCacheListener.prototype._handleUpdateReady = function(eve
 };
 
 tutao.tutanota.ctrl.AppCacheListener.prototype._handleCacheError = function(event) {
-    console.log("cache error");
+    console.log("cache error", event);
     this._progressDialog.close();
 };
