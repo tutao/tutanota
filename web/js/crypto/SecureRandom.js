@@ -26,10 +26,9 @@ SecureRandom.prototype.nextBytes = function(array) {
 };
 
 /**
- * Adds bytes to this randomizer which are provided in the subsequent calls to generateRandomData().
+ * Sets the bytes of this randomizer which are provided in the subsequent calls to generateRandomData().
  * @param {Array} array An array of random bytes
  */
 SecureRandom.setNextRandomBytes = function(bytes) {
-    SecureRandom._nextBytes = SecureRandom._nextBytes.concat(bytes);
-    this._nextBytes = this._nextBytes.concat(bytes);
+    SecureRandom._nextBytes = bytes;
 };
