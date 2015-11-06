@@ -24,6 +24,11 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
                 emlArray.push(tutao.tutanota.util.Exporter._formatRecipient("BCC: ", mail.getBccRecipients()));
             }
             var subject = (mail.getSubject().trim() == "") ? "" : "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(mail.getSubject())) + "?=";
+            var body = tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(displayedMail.bodyText())).match(/.{1,78}/g)
+            if (!body) {
+                body = []
+            }
+            var bodyText = body.join("\r\n")
             emlArray = emlArray.concat([
                     "Subject: " + subject,
                     "Date: " + tutao.tutanota.util.Formatter.formatSmtpDateTime(mail.getSentDate()),
@@ -36,7 +41,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
                 "Content-Type: text/html; charset=UTF-8",
                 "Content-transfer-encoding: base64",
                 "",
-                tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(displayedMail.bodyText())).match(/.{1,78}/g).join("\r\n"),
+                bodyText,
                 ""
             ]);
 
