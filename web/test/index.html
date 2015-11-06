@@ -13,6 +13,7 @@
     <script src="/lib/bCrypt.js"></script>
     <script src="/lib/bluebird-2.2.2.js"></script>
     <script src="/lib/dev/less-1.7.0.min.js"></script>
+    <script src="/lib/filesaver.js"></script>
     <script src="/lib/hammer-2.0.4.js"></script>
     <script src="/lib/html-css-sanitizer-r5333-fix1.min.js"></script>
     <script src="/lib/jquery-1.9.1.js"></script>
@@ -194,7 +195,6 @@
     <script src="/js/generated/entity/sys/BucketPermission.js"></script>
     <script src="/js/generated/entity/sys/ChangePasswordData.js"></script>
     <script src="/js/generated/entity/sys/Chat.js"></script>
-    <script src="/js/generated/entity/sys/ConfigDataReturn.js"></script>
     <script src="/js/generated/entity/sys/CreateGroupData.js"></script>
     <script src="/js/generated/entity/sys/CreateGroupListData.js"></script>
     <script src="/js/generated/entity/sys/CustomDomainData.js"></script>
@@ -205,6 +205,7 @@
     <script src="/js/generated/entity/sys/CustomerInfoEditable.js"></script>
     <script src="/js/generated/entity/sys/CustomerInfoReturn.js"></script>
     <script src="/js/generated/entity/sys/CustomerProperties.js"></script>
+    <script src="/js/generated/entity/sys/CustomerPropertiesEditable.js"></script>
     <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
     <script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
     <script src="/js/generated/entity/sys/DomainInfo.js"></script>
@@ -215,6 +216,8 @@
     <script src="/js/generated/entity/sys/Exception.js"></script>
     <script src="/js/generated/entity/sys/ExternalPropertiesReturn.js"></script>
     <script src="/js/generated/entity/sys/ExternalUserReference.js"></script>
+    <script src="/js/generated/entity/sys/File.js"></script>
+    <script src="/js/generated/entity/sys/FileEditable.js"></script>
     <script src="/js/generated/entity/sys/Group.js"></script>
     <script src="/js/generated/entity/sys/GroupInfo.js"></script>
     <script src="/js/generated/entity/sys/GroupMember.js"></script>
@@ -225,15 +228,8 @@
     <script src="/js/generated/entity/sys/InvoiceEditable.js"></script>
     <script src="/js/generated/entity/sys/InvoiceInfo.js"></script>
     <script src="/js/generated/entity/sys/InvoiceInfoEditable.js"></script>
-    <script src="/js/generated/entity/sys/InvoiceOverviewServiceData.js"></script>
-    <script src="/js/generated/entity/sys/InvoiceServiceData.js"></script>
-    <script src="/js/generated/entity/sys/InvoiceStatusIndex.js"></script>
-    <script src="/js/generated/entity/sys/InvoiceStatusIndexEntry.js"></script>
-    <script src="/js/generated/entity/sys/InvoiceStatusIndexFolder.js"></script>
     <script src="/js/generated/entity/sys/KeyPair.js"></script>
-    <script src="/js/generated/entity/sys/ListVersionInfo.js"></script>
     <script src="/js/generated/entity/sys/Login.js"></script>
-    <script src="/js/generated/entity/sys/LongConfigValue.js"></script>
     <script src="/js/generated/entity/sys/MailAddressAlias.js"></script>
     <script src="/js/generated/entity/sys/MailAddressAliasServiceData.js"></script>
     <script src="/js/generated/entity/sys/MailAddressAliasServiceDataDelete.js"></script>
@@ -242,9 +238,6 @@
     <script src="/js/generated/entity/sys/MailAddressAvailabilityReturn.js"></script>
     <script src="/js/generated/entity/sys/MembershipAddData.js"></script>
     <script src="/js/generated/entity/sys/MembershipRemoveData.js"></script>
-    <script src="/js/generated/entity/sys/MigrateToV5Data.js"></script>
-    <script src="/js/generated/entity/sys/MigrateToV6Data.js"></script>
-    <script src="/js/generated/entity/sys/MigrateToV9Data.js"></script>
     <script src="/js/generated/entity/sys/OutgoingShare.js"></script>
     <script src="/js/generated/entity/sys/PaymentDataServiceGetReturn.js"></script>
     <script src="/js/generated/entity/sys/PaymentDataServicePutData.js"></script>
@@ -268,7 +261,6 @@
     <script src="/js/generated/entity/sys/RegistrationCaptchaServiceData.js"></script>
     <script src="/js/generated/entity/sys/RegistrationCaptchaServiceReturn.js"></script>
     <script src="/js/generated/entity/sys/RegistrationConfigReturn.js"></script>
-    <script src="/js/generated/entity/sys/RegistrationData.js"></script>
     <script src="/js/generated/entity/sys/RegistrationReturn.js"></script>
     <script src="/js/generated/entity/sys/RegistrationServiceData.js"></script>
     <script src="/js/generated/entity/sys/RegistrationVerifyDomainDataPost.js"></script>
@@ -284,15 +276,9 @@
     <script src="/js/generated/entity/sys/SendRegistrationCodeReturn.js"></script>
     <script src="/js/generated/entity/sys/ShareData.js"></script>
     <script src="/js/generated/entity/sys/Shares.js"></script>
-    <script src="/js/generated/entity/sys/SmsMonitorReceiverData.js"></script>
-    <script src="/js/generated/entity/sys/SmsMonitorTriggerData.js"></script>
-    <script src="/js/generated/entity/sys/StringConfigValue.js"></script>
     <script src="/js/generated/entity/sys/StringWrapper.js"></script>
     <script src="/js/generated/entity/sys/SwitchAccountTypeData.js"></script>
-    <script src="/js/generated/entity/sys/System.js"></script>
     <script src="/js/generated/entity/sys/SystemKeysReturn.js"></script>
-    <script src="/js/generated/entity/sys/TimeRangeConfigValue.js"></script>
-    <script src="/js/generated/entity/sys/TimeRangeListConfigValue.js"></script>
     <script src="/js/generated/entity/sys/UpdatePermissionKeyData.js"></script>
     <script src="/js/generated/entity/sys/User.js"></script>
     <script src="/js/generated/entity/sys/UserData.js"></script>
@@ -331,6 +317,7 @@
     <script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
     <script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
     <script src="/js/generated/entity/tutanota/DeleteMailFolderData.js"></script>
+    <script src="/js/generated/entity/tutanota/EncryptTutanotaPropertiesData.js"></script>
     <script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
     <script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
     <script src="/js/generated/entity/tutanota/File.js"></script>
@@ -349,9 +336,6 @@
     <script src="/js/generated/entity/tutanota/MailBox.js"></script>
     <script src="/js/generated/entity/tutanota/MailFolder.js"></script>
     <script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
-    <script src="/js/generated/entity/tutanota/MigrateToV2Data.js"></script>
-    <script src="/js/generated/entity/tutanota/MigrateToV5Data.js"></script>
-    <script src="/js/generated/entity/tutanota/MigrateToV7Data.js"></script>
     <script src="/js/generated/entity/tutanota/MoveMailData.js"></script>
     <script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
     <script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
@@ -501,7 +485,6 @@
     <script src="/test/js/rest/EntityRestTestFunctions.js"></script>
     <script src="/test/js/rest/EntityRestCacheTest.js"></script>
     <script src="/test/js/rest/EntityRestClientTest.js"></script>
-    <script src="/test/js/rest/EntityRestTestFunctions.js"></script>
     <script src="/test/js/rest/StaticEntityRestFunctionsTest.js"></script>
     <script src="/test/js/util/ArrayUtilsTest.js"></script>
     <script src="/test/js/util/BucketTestUtils.js"></script>
