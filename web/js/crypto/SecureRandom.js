@@ -31,5 +31,4 @@ SecureRandom.prototype.nextBytes = function(array) {
  */
 SecureRandom.setNextRandomBytes = function(bytes) {
     SecureRandom._nextBytes = SecureRandom._nextBytes.concat(bytes);
-    this._nextBytes = this._nextBytes.concat(bytes);
 };
