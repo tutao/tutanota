@@ -112,6 +112,9 @@ describe("RsaTest", function () {
             assert.isTrue(a[i] >= 0);
             assert.isTrue(a[i] <= 255);
         }
+        assert.throw(function() {
+            new SecureRandom().nextBytes([0]);
+        }, "SecureRandom does not have random numbers.")
     });
 
 
