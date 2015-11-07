@@ -311,9 +311,23 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText, senderMailAddress) {
 	var self = this;
 
-    return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
-        if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
-            return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+    var sendAllowed = null;
+    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+        sendAllowed = tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+            if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
+                return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg")).then(function () {
+                    return false;
+                });
+            } else {
+                return true;
+            }
+        });
+    } else {
+        sendAllowed = Promise.resolve(true);
+    }
+    return sendAllowed.then(function(allowed) {
+        if (!allowed) {
+            return false;
         } else {
             return self.tryCancelAllComposingMails(false).then(function(confirmed) {
                 if (confirmed) {
