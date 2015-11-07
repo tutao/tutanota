@@ -324,7 +324,12 @@ tutao.tutanota.util.Formatter.urlify = function(text) {
  * @returns The encoded string.
  */
 tutao.tutanota.util.Formatter.urlEncodeHtmlTags = function(text) {
-	return text.replace(/</g, "%3C").replace(/>/g, "%3E");
+	return text
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 };
 
 
