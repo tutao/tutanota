@@ -528,11 +528,11 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(confir
     var promise = null;
     if (confirm) {
         var message = null;
-        if (this.isTrashFolder()) {
+        if (this.isTrashFolder() || this.isSpamFolder()) {
             if (this.isCustomFolder()) {
-                message = "confirmDeleteTrashCustomFolder_msg";
+                message = "confirmDeleteFinallyCustomFolder_msg";
             } else {
-                message = "confirmDeleteTrashFolder_msg";
+                message = "confirmDeleteFinallySystemFolder_msg";
             }
         } else {
             if (this.isCustomFolder()) {
@@ -551,7 +551,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.deleteFolder = function(confir
         if (confirmed) {
             // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
             return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, self.getMailListId()).then(function(allMails) {
-                if (self.isTrashFolder()){
+                if (self.isTrashFolder() || self.isSpamFolder()) {
                     return self.finallyDeleteMails(allMails);
                 } else {
                     // move content to trash
@@ -582,6 +582,13 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.sortFolderNames = function() {
     this.subFolders.sort(tutao.tutanota.ctrl.MailFolderViewModel._compareFolders);
 };
 
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isSpamFolder = function(){
+    if ( this.parentFolder() ){
+        return this.parentFolder().isSpamFolder();
+    }else{
+        return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM;
+    }
+};
 
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.isTrashFolder = function(){
     if ( this.parentFolder() ){
