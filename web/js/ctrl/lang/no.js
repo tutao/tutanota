@@ -94,7 +94,7 @@ tutao.tutanota.ctrl.lang.no.keys = {
   "confidential_action": "Konfidensielt",
   "config_label": "konfig",
   "confirmCountry_msg": "For å kunne beregne merverdiavgift må du bekrefte ditt land: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Er du sikker på at du vil slette mappen '{1}' og alle e-poster den inkluderer?",
+  "confirmDeleteFinallyCustomFolder_msg": "Er du sikker på at du vil slette mappen '{1}' og alle e-poster den inkluderer?",
   "confirmDeleteTrashFolder_msg": "Er du sikker på at du vil slette all e-post og mapper fra papirkurven?",
   "confirmDeleteTrash_msg": "Ønsker du virkelig å slette all e-post fra denne mappen?",
   "contactImage_alt": "Bilde",

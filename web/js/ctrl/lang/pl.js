@@ -93,7 +93,7 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "confidential_action": "Poufna",
   "config_label": "Konfiguracja",
   "confirmCountry_msg": "Żeby obliczyć kwotę podatku potrzebujemy potwierdzić Twój kraj: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Usunąć trwale folder '{1}' wraz z jego zawartością?",
+  "confirmDeleteFinallyCustomFolder_msg": "Usunąć trwale folder '{1}' wraz z jego zawartością?",
   "confirmDeleteTrashFolder_msg": "Czy na pewno chcesz usunąć z kosza wszystkie wiadomości i foldery?",
   "confirmDeleteTrash_msg": "Czy chcesz nieodwracalnie usunąć całą zawartość Kosza?",
   "contactImage_alt": "Zdjęcie",

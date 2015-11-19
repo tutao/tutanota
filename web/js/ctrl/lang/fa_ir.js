@@ -75,7 +75,7 @@ tutao.tutanota.ctrl.lang.fa_ir.keys = {
   "confidential_action": "محرمانه",
   "config_label": "پیکربندی",
   "confirmCountry_msg": "به منظور محاسبه مالیات بر ارزش افزوده، نیاز است تا کشور شما تایید شود: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "آیا می خواهید واقعا به طور دائم پوشه '{1}' و همه ایمیلها را حذف  پاک کنید؟",
+  "confirmDeleteFinallyCustomFolder_msg": "آیا می خواهید واقعا به طور دائم پوشه '{1}' و همه ایمیلها را حذف  پاک کنید؟",
   "confirmDeleteTrashFolder_msg": "شما مطمئن هستید که میخواهید همه ایمیل ها و پوشه ها را در سطل بازیافت برای همیشه پاک کنید؟",
   "confirmDeleteTrash_msg": "ایا شما مطمئن هستید که میخواهید همه ایمیل های از این پوشه به طور دائم حذف کنید؟",
   "contactImage_alt": "عکس برای این مخاطب",

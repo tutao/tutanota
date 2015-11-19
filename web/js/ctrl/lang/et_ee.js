@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "confidentialStatus_msg": "See sõnum saadetakse lõpuni (end-to-end) krüpteerituna.",
   "confidential_action": "Konfidentsiaalne",
   "config_label": "seadistada",
-  "confirmDeleteTrashCustomFolder_msg": "Kas Te tõesti tahate lõplikult kustutada kausta ' {1} ' ja kõiki seal sisalduvaid e-kirju?",
+  "confirmDeleteFinallyCustomFolder_msg": "Kas Te tõesti tahate lõplikult kustutada kausta ' {1} ' ja kõiki seal sisalduvaid e-kirju?",
   "confirmDeleteTrashFolder_msg": "Kas te tõesti tahate kustutada lõplikult kõik e-kirjad ja kaustad prügikastist?",
   "confirmDeleteTrash_msg": "Kas tõesti tahate lõplikult kustutada kõik e-kirjad antud kaustast?",
   "contactImage_alt": "Pilt",

@@ -61,7 +61,7 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "confidentialStatus_msg": "Ši žinutė nuo jūsų kompiuterio iki pat gavėjo yra išsiųsta šifruotai.",
   "confidential_action": "Konfidencialu",
   "config_label": "konfigūracija",
-  "confirmDeleteTrashCustomFolder_msg": "Ar jūs tikrai norite pašalinti visą {1} aplanką ir jame esančius laiškus?",
+  "confirmDeleteFinallyCustomFolder_msg": "Ar jūs tikrai norite pašalinti visą {1} aplanką ir jame esančius laiškus?",
   "confirmDeleteTrashFolder_msg": "Ar tikrai norite ištrinti visus laiškus ir aplankus iš šiukšlinės?",
   "confirmDeleteTrash_msg": "Ar tikrai norite ištrinti visus laiškus iš šio aplanko?",
   "contactImage_alt": "Paveikslėlis",

@@ -82,7 +82,7 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "confidential_action": "Fortrolig",
   "config_label": "Konfigurer",
   "confirmCountry_msg": "For at kunne udregne prisen plus moms, skal du bekræfte dit valg af land: {1} ",
-  "confirmDeleteTrashCustomFolder_msg": "Vil du slette mappen '{1}' og alle dens emails?",
+  "confirmDeleteFinallyCustomFolder_msg": "Vil du slette mappen '{1}' og alle dens emails?",
   "confirmDeleteTrashFolder_msg": "Vil du slette alle emails fra papirkurven?",
   "confirmDeleteTrash_msg": "Vil du slette alle emails fra denne mappe?",
   "contactImage_alt": "Billede",

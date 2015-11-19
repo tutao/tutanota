@@ -91,7 +91,7 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "confidential_action": "Dôverný",
   "config_label": "konfiguruj",
   "confirmCountry_msg": "Pre výpočet dane z pridanej hodnoty musíte potvrdiť svoju krajinu: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Skutočne chceš zmazať zložku '{1}' aj so všetkými emailami?",
+  "confirmDeleteFinallyCustomFolder_msg": "Skutočne chceš zmazať zložku '{1}' aj so všetkými emailami?",
   "confirmDeleteTrashFolder_msg": "Skutočne chceš vymazať všetky emaily a zložky z koša?",
   "confirmDeleteTrash_msg": "Skutočne chceš zmazať všetky emaily z tejto záložky?",
   "contactImage_alt": "Obrázok",

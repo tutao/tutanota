@@ -94,7 +94,7 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "confidential_action": "Konfidentiellt",
   "config_label": "konfigurera",
   "confirmCountry_msg": "För att beräkna den mervärdesskatt behöver vi dig att bekräfta ditt land: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Vill du verkligen ta bort mappen '{1}' och alla dess meddelanden? ",
+  "confirmDeleteFinallyCustomFolder_msg": "Vill du verkligen ta bort mappen '{1}' och alla dess meddelanden? ",
   "confirmDeleteTrashFolder_msg": "Vill du verkligen ta bort alla meddelanden och mappar från papperskorgen?",
   "confirmDeleteTrash_msg": "Vill du verkligen att ta bort alla meddelanden från den här mappen?",
   "contactImage_alt": "Bild",

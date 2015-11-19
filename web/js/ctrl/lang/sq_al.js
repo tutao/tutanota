@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "confidentialStatus_msg": "Ky mesazh do dërgohet fundekrye i enkriptuar.",
   "confidential_action": "Nbesë",
   "config_label": "ujdisja",
-  "confirmDeleteTrashCustomFolder_msg": "A don përnjëmend me e fshi përfundimisht dosjen \"{1}\" dhe të gjitha mesazhet që ndodhen në të?",
+  "confirmDeleteFinallyCustomFolder_msg": "A don përnjëmend me e fshi përfundimisht dosjen \"{1}\" dhe të gjitha mesazhet që ndodhen në të?",
   "confirmDeleteTrashFolder_msg": "A don përnjëmend me i fshi përfundimisht të gjitha mesazhet dhe dosjet prej bërllogut?",
   "confirmDeleteTrash_msg": "A don përnjëmend me i fshi të gjitha mesazhet nga kjo dosje?",
   "contactImage_alt": "Foto",

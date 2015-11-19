@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.mk.keys = {
   "confidentialStatus_msg": "Оваа порака е целосно енкриптирана .",
   "confidential_action": "Доверливо",
   "config_label": "конфигурација",
-  "confirmDeleteTrashCustomFolder_msg": "Дали Вие навистина сакате да го избриштете фолдерот '{1}' и сите негови е-маил пораки ? ",
+  "confirmDeleteFinallyCustomFolder_msg": "Дали Вие навистина сакате да го избриштете фолдерот '{1}' и сите негови е-маил пораки ? ",
   "confirmDeleteTrashFolder_msg": "Дали навистина сакате да ги избришете сите е-маил пораки и папки од ѓубрето ?",
   "confirmDeleteTrash_msg": "Дали Вие навистина сакате да ги избришете сите е-маил пораки од оваа папка ?",
   "contactImage_alt": "Слика",

@@ -71,7 +71,7 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "confidentialStatus_msg": "Questo messaggio verrà inviato in forma cifrata dalla sorgente al destinatario.",
   "confidential_action": "Riservato",
   "config_label": "configurazione",
-  "confirmDeleteTrashCustomFolder_msg": "Vuoi davvero cancellare la cartella '{1}' e tutte le email contenute?",
+  "confirmDeleteFinallyCustomFolder_msg": "Vuoi davvero cancellare la cartella '{1}' e tutte le email contenute?",
   "confirmDeleteTrashFolder_msg": "Vuoi veramente eliminare in modo permanente i messaggi e le cartelle che si trovano nel cestino?",
   "confirmDeleteTrash_msg": "Vuoi veramente eliminare in modo permanente tutte le email dal cestino?",
   "contactImage_alt": "Immagine",
