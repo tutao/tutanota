@@ -295,23 +295,42 @@ tutao.rest.EntityRestCache.prototype.getElementRange = function(type, path, list
             }
             return [];
 		});
-	} else if (this._isStartInRange(path, listId, start)){ // check if the requested start element is located in range
-       // count the numbers of elements that are already in allRange to determine the number of elements to read
+	} else if (!tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listData.upperRangeId) && !tutao.rest.EntityRestInterface.firstBiggerThanSecond(listData.lowerRangeId, start)) { // check if the requested start element is located in the range
+        // count the numbers of elements that are already in allRange to determine the number of elements to read
         var result = this._getNumberOfElementsToRead(path, listId, start, count, reverse);
-        if ( result.newCount > 0 ){
-            return self._target.getElementRange(type, path, listId, result.newStart, result.newCount, reverse, parameters, headers).then(function(elements) {
+        if (result.newCount > 0) {
+            return self._target.getElementRange(type, path, listId, result.newStart, result.newCount, reverse, parameters, headers).then(function (elements) {
                 return self._handleElementRangeResult(path, listId, start, count, reverse, elements, result.newCount);
             });
         } else {
             // all elements are located in cache.
             return Promise.resolve(self._provideFromCache(path, listId, start, count, reverse));
         }
+    } else if ((tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listData.upperRangeId) && !reverse) || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(listData.lowerRangeId, start) && reverse)) {
+        var loadStartId = null;
+        if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listData.upperRangeId) && !reverse) {
+            // start is higher than range. load from upper range id with same count. then, if all available elements have been loaded or the requested number is in cache, return from cache. otherwise load again the same way.
+            loadStartId = listData.upperRangeId;
+        } else {
+            // start is lower than range. load from lower range id with same count. then, if all available elements have been loaded or the requested number is in cache, return from cache. otherwise load again the same way.
+            loadStartId = listData.lowerRangeId;
+        }
+        return self._target.getElementRange(type, path, listId, loadStartId, count, reverse, parameters, headers).then(function (elements) {
+            // put the new elements into the cache
+            self._handleElementRangeResult(path, listId, loadStartId, count, reverse, elements, count);
+            var resultElements = self._provideFromCache(path, listId, start, count, reverse);
+            if (elements.length < count || resultElements == count) {
+                // either all available elements have been loaded from target or the requested number of elements could be provided from cache
+                return resultElements;
+            } else {
+                // try again with the new elements in the cache
+                return self.getElementRange(type, path, listId, start, count, reverse, parameters, headers);
+            }
+        });
     } else {
-        var lower = tutao.locator.entityRestClient._db[path][listId].lowerRangeId;
-        var upper = tutao.locator.entityRestClient._db[path][listId].upperRangeId;
-        var msg = "invalid range request. Path: " + path + " list: " + listId + " start: " + start + " count: " + count + " reverse: " + reverse + " lower: " + lower + " upper: " + upper;
+        var msg = "invalid range request. Path: " + path + " list: " + listId + " start: " + start + " count: " + count + " reverse: " + reverse + " lower: " + listData.lowerRangeId + " upper: " + listData.upperRangeId;
         return Promise.reject(new tutao.InvalidDataError(msg));
-	}
+    }
 };
 
 
@@ -354,29 +373,6 @@ tutao.rest.EntityRestCache.prototype._handleElementRangeResult = function( path,
     }
 	return this._provideFromCache(path, listId, start, count, reverse);
 };
-
-
-
-
-tutao.rest.EntityRestCache.prototype._isStartInRange = function(path, listId, start) {
-    var listCache = tutao.locator.entityRestClient._db[path][listId];
-    var allRangeList = listCache['allRange'];
-
-    var indexOfStart = allRangeList.indexOf(start);
-    if ( allRangeList.length == 0){ // Element range is empty read all elements
-        return true;
-    } else if ( indexOfStart != -1 ) { // Start element is located in allRange read only elements that are not in allRange.
-        return true;
-    } else if (listCache["lowerRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, listCache["lowerRangeId"]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(allRangeList[0], start)))) {
-        return true;
-    } else if (listCache["upperRangeId"] == start || (tutao.rest.EntityRestInterface.firstBiggerThanSecond(start, allRangeList[allRangeList.length - 1]) && (tutao.rest.EntityRestInterface.firstBiggerThanSecond(listCache["upperRangeId"], start)))) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
-
 
 /**
  * Calculates the new start value for the getElementRange request and the number of elements to read in
