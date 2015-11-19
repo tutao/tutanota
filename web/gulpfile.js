@@ -307,7 +307,12 @@ gulp.task('copyMochaStylesheet', function () {
         .pipe(gulp.dest('./build/test/'));
 });
 
-gulp.task('copy', ['copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics', 'copyMochaStylesheet'], function () {
+gulp.task('copyFirefoxManifest', function () {
+    return gulp.src('manifest.webapp')
+        .pipe(gulp.dest('./build/'));
+});
+
+gulp.task('copy', ['copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics', 'copyMochaStylesheet', 'copyFirefoxManifest'], function () {
 });
 
 gulp.task('manifest', function () {
