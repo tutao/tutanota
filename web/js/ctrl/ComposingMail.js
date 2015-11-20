@@ -17,7 +17,7 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
     if (!sender) {
         sender = tutao.locator.userController.getUserGroupInfo().getMailAddress();
     }
-    this.availableSenders = tutao.locator.userController.getMailAddresses();
+    this.availableSenders = tutao.locator.userController.getEnabledMailAddresses();
     this.sender = ko.observable(sender);
 	this.composerSubject = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);

@@ -244,12 +244,12 @@ tutao.tutanota.ctrl.MailViewModel.prototype.forwardMail = function(displayedMail
 };
 
 /**
- * Provides the first mail address of the users mail addresses found in the given mail. Starts checking the sender, then the recipients.
+ * Provides the first mail address of the users enabled mail addresses found in the given mail. Starts checking the sender, then the recipients.
  * @param mail The mail to check.
  * @return {?string} One of the users mail addresses or null if it is not available.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype._findOwnMailAddressInMail = function(mail) {
-    var myMailAddresses = tutao.locator.userController.getMailAddresses();
+    var myMailAddresses = tutao.locator.userController.getEnabledMailAddresses();
     if (tutao.util.ArrayUtils.contains(myMailAddresses, mail.getSender().getAddress())) {
         return mail.getSender().getAddress();
     }

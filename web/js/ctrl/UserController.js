@@ -114,6 +114,22 @@ tutao.ctrl.UserController.prototype.getMailAddresses = function() {
 };
 
 /**
+ * Provides all mail addresses of the logged in user including enabled aliases.
+ * @return {Array.<string>} The email addresses of the logged in user.
+ */
+tutao.ctrl.UserController.prototype.getEnabledMailAddresses = function() {
+    var a = [];
+    a.push(this._userGroupInfo().getMailAddress());
+    var aliases = this._userGroupInfo().getMailAddressAliases();
+    for (var i=0; i<aliases.length; i++) {
+        if (aliases[i].getEnabled()) {
+            a.push(aliases[i].getMailAddress());
+        }
+    }
+    return a;
+};
+
+/**
  * Provides the client key of the logged in internal user.
  * @return {Object} The user's client key.
  */
