@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.bg_bg.keys = {
   "confidentialStatus_msg": "Това съобщение е изпрате8но изцяло кодирано.",
   "confidential_action": "Поверително",
   "config_label": "конфигурация",
-  "confirmDeleteTrashCustomFolder_msg": "Наистина ли искате да изтриете окончателно папката '{1}' и всичките съобщения в нея?",
+  "confirmDeleteFinallyCustomFolder_msg": "Наистина ли искате да изтриете окончателно папката '{1}' и всичките съобщения в нея?",
   "confirmDeleteTrashFolder_msg": "Наистина ли искате да изтриете всички електронни съобщения и папки от кошчето за боклук?",
   "confirmDeleteTrash_msg": "Наистина ли искате да изтриете всички съобщения от тази папка?",
   "contactImage_alt": "Снимка",

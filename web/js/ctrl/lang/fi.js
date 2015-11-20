@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "confidentialStatus_msg": "Tämä viesti lähetetään päästä päähän salattuna.",
   "confidential_action": "Luottamuksellinen",
   "config_label": "asetukset",
-  "confirmDeleteTrashCustomFolder_msg": "Tahdotko varmasti poistaa kansion '{1}' ja kaikki sen sisältämät viestit?",
+  "confirmDeleteFinallyCustomFolder_msg": "Tahdotko varmasti poistaa kansion '{1}' ja kaikki sen sisältämät viestit?",
   "confirmDeleteTrashFolder_msg": "Haluatko todella poistaa kaikki kansiot ja viestit roskakorista pysyvästi?",
   "confirmDeleteTrash_msg": "Haluatko poistaa kaikki viestit tästä kansiosta lopullisesti?",
   "contactImage_alt": "Kuva",

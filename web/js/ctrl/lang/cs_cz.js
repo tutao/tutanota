@@ -66,7 +66,7 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "confidential_action": "Důvěrné",
   "config_label": "konfigurace",
   "confirmCountry_msg": "Pro vypočítání daně z přidané hodnoty musíte potvrdit svou zemi: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Opravdu si přejete odstranit složku '{1}' a všechny v ní obsažené zprávy?",
+  "confirmDeleteFinallyCustomFolder_msg": "Opravdu si přejete odstranit složku '{1}' a všechny v ní obsažené zprávy?",
   "confirmDeleteTrashFolder_msg": "Opravdu si přejete kompletně odstranit všechny zprávy a složky z koše?",
   "confirmDeleteTrash_msg": "Opravdu chcete neodvolatelně odstranit všechny zprávy z této složky?",
   "contactImage_alt": "Obrázek",

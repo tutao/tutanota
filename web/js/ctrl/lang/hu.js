@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "confidentialStatus_msg": "Az üzenet feladótól címzettig titkosított formájú.",
   "confidential_action": "Bizalmas",
   "config_label": "konfig",
-  "confirmDeleteTrashCustomFolder_msg": "Valóban törölni szeretnéd {1} mappát és a benne lévő összes levelet?",
+  "confirmDeleteFinallyCustomFolder_msg": "Valóban törölni szeretnéd {1} mappát és a benne lévő összes levelet?",
   "confirmDeleteTrashFolder_msg": "Egészen biztos, hogy minden fájlt és mappát kiürítesz a szemetesből?",
   "confirmDeleteTrash_msg": "Biztos, hogy véglegesen törlöd a mappában található üzeneteket?",
   "contactImage_alt": "Kép",

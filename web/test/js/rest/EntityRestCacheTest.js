@@ -41,7 +41,7 @@ describe.skip("EntityRestCacheTest", function () {
      * @param {string} start The id from where to start to get elements.
      * @param {number} count The maximum number of elements to load.
      * @param {boolean} reverse If true, the elements are loaded from the start backwards in the list, forwards otherwise.
-     * @param {Promise.<Array.<Object>>} Resolves to the loaded elements.
+     * @return {Promise.<Array.<Object>>} Resolves to the loaded elements.
      */
     var getElementRange = function (listId, start, count, reverse) {
         return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, listId, start, count, reverse, {}, tutao.entity.EntityHelper.createAuthHeaders());
@@ -463,16 +463,31 @@ describe.skip("EntityRestCacheTest", function () {
             localListId = testSetup.mailListId;
             localMailElements = testSetup.mailList;
             var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[2]);
-            return getElementRange(localListId, startElementId, 5, false).then(function (loadedElements) {
-                assert.equal(5, loadedElements.length);
-                verifyGetElementRange(JsMockito.Verifiers.once(), localListId, startElementId, 5, false);
+            return getElementRange(localListId, startElementId, 4, false).then(function (loadedElements) {
+                assert.equal(4, loadedElements.length);
+                verifyGetElementRange(JsMockito.Verifiers.once(), localListId, startElementId, 4, false);
             });
         }).then(function () {
-            // Step 2: load range from outer range element - not allowed
-            var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[8]);
+            // Step 2: load range from outer range element towards range - not allowed
+            var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[7]);
             return getElementRange(localListId, startElementId, 5, true).caught(function (e) {
                 assert.isDefined(e);
                 JsMockito.verifyNoMoreInteractions(entityRestSpy);// No calls to target expected
+            });
+        }).then(function () {
+            // Step 3: load range from outer range element straight away from range - allowed
+            var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[7]);
+            return getElementRange(localListId, startElementId, 2, false).then(function (loadedElements) {
+                assert.equal(2, loadedElements.length);
+                verifyGetElementRange(JsMockito.Verifiers.once(), localListId, tutao.rest.EntityRestInterface.getElementId(localMailElements[6]), 2, false);
+                verifyGetElementRange(JsMockito.Verifiers.once(), localListId, tutao.rest.EntityRestInterface.getElementId(localMailElements[8]), 1, false); // now start is in range and only one element is loaded
+            });
+        }).then(function () {
+            // Step 4: load range from outer range element reverse away from range - allowed
+            var startElementId = tutao.rest.EntityRestInterface.getElementId(localMailElements[1]);
+            return getElementRange(localListId, startElementId, 5, true).then(function (loadedElements) {
+                assert.equal(1, loadedElements.length);
+                verifyGetElementRange(JsMockito.Verifiers.once(), localListId, tutao.rest.EntityRestInterface.getElementId(localMailElements[2]), 5, true);
             });
         });
 
@@ -624,11 +639,22 @@ describe.skip("EntityRestCacheTest", function () {
                 return middleCachedElementId;
             });
         }).then(function (nonExistingElementId) {
-            // Step 3: load range reverse from non existing element
+            // Step 3: load range from non existing element
             return getElementRange(localListId, nonExistingElementId, 2, false).then(function (loadedElements) {
-                assert.fail();
-            }).caught(function(e) {
-                assert.equal(tutao.InvalidDataError, e.constructor);
+                assert.equal(2, loadedElements.length);
+                assert.equal(getElementId(localMailElements[6]), getElementId(loadedElements[0]));
+                assert.equal(getElementId(localMailElements[7]), getElementId(loadedElements[1]));
+                return nonExistingElementId;
+            });
+        }).then(function (nonExistingElementId) {
+            // Step 3: load range reverse from non existing element
+            return getElementRange(localListId, nonExistingElementId, 10, true).then(function (loadedElements) {
+                assert.equal(5, loadedElements.length);
+                assert.equal(getElementId(localMailElements[4]), getElementId(loadedElements[0]));
+                assert.equal(getElementId(localMailElements[3]), getElementId(loadedElements[1]));
+                assert.equal(getElementId(localMailElements[2]), getElementId(loadedElements[2]));
+                assert.equal(getElementId(localMailElements[1]), getElementId(loadedElements[3]));
+                assert.equal(getElementId(localMailElements[0]), getElementId(loadedElements[4]));
             });
         });
     });

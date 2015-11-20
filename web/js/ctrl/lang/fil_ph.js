@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "confidentialStatus_msg": "Etong mensahe na ito ay naipadala ng encrypted end-to-end",
   "confidential_action": "Kompidensyal",
   "config_label": "config",
-  "confirmDeleteTrashCustomFolder_msg": "Gusto mo ba talagang burahin na ang folder '{1}' at lahat ng mga email nito?",
+  "confirmDeleteFinallyCustomFolder_msg": "Gusto mo ba talagang burahin na ang folder '{1}' at lahat ng mga email nito?",
   "confirmDeleteTrashFolder_msg": "Gusto mo ba talagang burahin na lahat ng email at mga folder mula sa basurahan?",
   "confirmDeleteTrash_msg": "Gusto mo ba talagang burahin na lahat ng email sa folder na ito?",
   "contactImage_alt": "Larawan",

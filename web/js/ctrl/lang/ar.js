@@ -94,7 +94,7 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "confidential_action": "سري",
   "config_label": "التكوين",
   "confirmCountry_msg": "لحساب الضريبة القيمة المضافة علينا بالتأكد من بلدك: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "هل فعلا تريد حذف المجلد '{1}' وجميع رسائل البريد الإلكتروني فيه نهائيا؟",
+  "confirmDeleteFinallyCustomFolder_msg": "هل فعلا تريد حذف المجلد '{1}' وجميع رسائل البريد الإلكتروني فيه نهائيا؟",
   "confirmDeleteTrashFolder_msg": "هل تريد فعلا حذف جميع رسائل البريد الإلكتروني والمجلدات من سلة المهملات نهائيا؟",
   "confirmDeleteTrash_msg": "هل فعلا تريد حذف جميع رسائل البريد الإلكتروني نهائيا من هذا المجلد؟",
   "contactImage_alt": "صورة",

@@ -94,7 +94,7 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "confidential_action": "Poverljiv",
   "config_label": "konfiguracija",
   "confirmCountry_msg": "Za izračunavanje poreza na dodatu vrednost potvrdite nam svoju državu: {1}.",
-  "confirmDeleteTrashCustomFolder_msg": "Da li stvarno želite konačno obrisati folder \"{1}\" i sve e-mailove koji su u njemu?",
+  "confirmDeleteFinallyCustomFolder_msg": "Da li stvarno želite konačno obrisati folder \"{1}\" i sve e-mailove koji su u njemu?",
   "confirmDeleteTrashFolder_msg": "Da li stvarno želite izbrisati sve poruke e-pošte i foldere iz smeća?",
   "confirmDeleteTrash_msg": "Da li stvarno želite izbrisati sve poruke e-pošte iz ovog foldera?",
   "contactImage_alt": "Slika",

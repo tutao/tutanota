@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.pt_br.keys = {
   "confidentialStatus_msg": "Esta mensagem é enviada criptografada fim-a-fim.",
   "confidential_action": "Confidencial",
   "config_label": "configurar",
-  "confirmDeleteTrashCustomFolder_msg": "Você quer mesmo eliminar a pasta '{1}' e todos os seus e-mails?",
+  "confirmDeleteFinallyCustomFolder_msg": "Você quer mesmo eliminar a pasta '{1}' e todos os seus e-mails?",
   "confirmDeleteTrashFolder_msg": "Você quer mesmo eliminar todos os e-mails e pastas da lixeira?",
   "confirmDeleteTrash_msg": "Deseja mesmo eliminar todos os e-mails desta pasta?",
   "contactImage_alt": "Imagem",

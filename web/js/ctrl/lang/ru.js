@@ -74,7 +74,7 @@ tutao.tutanota.ctrl.lang.ru.keys = {
   "confidentialStatus_msg": "Это сообщение отправляется из конца в конец в зашифрованном виде.",
   "confidential_action": "Конфиденциально",
   "config_label": "config",
-  "confirmDeleteTrashCustomFolder_msg": "Вы действительно хотите безвозвратно удалить папку '{1}' и все письма в ней?",
+  "confirmDeleteFinallyCustomFolder_msg": "Вы действительно хотите безвозвратно удалить папку '{1}' и все письма в ней?",
   "confirmDeleteTrashFolder_msg": "Вы действительно хотите безвозвратно удалить все письма и папки из корзины?",
   "confirmDeleteTrash_msg": "Вы действительно хотите удалить все письма из корзины?",
   "contactImage_alt": "Изображение",

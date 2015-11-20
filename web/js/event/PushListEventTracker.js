@@ -64,7 +64,9 @@ tutao.event.PushListEventTracker.prototype._handleEventBusNotification = functio
 		return tutao.locator.entityRestClient.getElement(self._listType, self._path, update.getInstanceId(), self._listId, { "v": self._version }, tutao.entity.EntityHelper.createAuthHeaders()).then(function(instance) {
             return instance._entityHelper.loadSessionKey().then(function(instance) {
                 self.notifyObservers([instance]);
-                self._highestElementId = instance.getId()[1];
+                if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(instance.getId()[1], self._highestElementId)) {
+                    self._highestElementId = instance.getId()[1];
+                }
             });
 		}).caught(function(exception) {
             console.log(exception);

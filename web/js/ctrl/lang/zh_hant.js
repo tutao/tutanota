@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "confidentialStatus_msg": "這封訊息經由點對點加密送出",
   "confidential_action": "加密",
   "config_label": "設定",
-  "confirmDeleteTrashCustomFolder_msg": "確定要永久刪除收件匣 '{1}' 及收件匣中的全部郵件？",
+  "confirmDeleteFinallyCustomFolder_msg": "確定要永久刪除收件匣 '{1}' 及收件匣中的全部郵件？",
   "confirmDeleteTrashFolder_msg": "您真的確定要從垃圾桶永久刪除所有郵件以及資料夾？",
   "confirmDeleteTrash_msg": "您確定要刪除本資料夾中全部的電子郵件？",
   "contactImage_alt": "圖片",

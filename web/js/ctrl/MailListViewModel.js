@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     this.buttons = [
-        new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteTrash, this.isDeleteTrashButtonVisible, false, "deleteTrashAction", "trash"),
+        new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
             return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "newMailAction", "mail-new")
@@ -101,8 +101,8 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
 	return label;
 };
 
-tutao.tutanota.ctrl.MailListViewModel.prototype.isDeleteTrashButtonVisible = function() {
-    return tutao.locator.mailFolderListViewModel.selectedFolder().isTrashFolder() && this.getMails().length > 0;
+tutao.tutanota.ctrl.MailListViewModel.prototype._isDeleteAllButtonVisible = function() {
+    return (tutao.locator.mailFolderListViewModel.selectedFolder().isTrashFolder() || tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder()) && this.getMails().length > 0;
 };
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.getMails = function() {
@@ -184,10 +184,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectNextMail = function() {
 /**
  * Executes the delete trash functionality.
  */
-tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
-    var trashFolder = tutao.locator.mailFolderListViewModel.selectedFolder();
+tutao.tutanota.ctrl.MailListViewModel.prototype._deleteFinally = function() {
+    var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
 
-    if (trashFolder.loading() || !trashFolder.isTrashFolder()) {
+    if (folder.loading() || (!folder.isTrashFolder() && !folder.isSpamFolder())) {
         return Promise.resolve();
     }
     var self = this;
@@ -195,8 +195,8 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteTrash = function() {
         if (ok) {
             self.deleting(true);
             // we want to delete all mails in the trash, not only the visible ones, so load them now. load reverse to avoid caching errors
-            return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, trashFolder.getMailListId()).then(function(allMails) {
-                return trashFolder.finallyDeleteMails(allMails);
+            return tutao.rest.EntityRestInterface.loadAllReverse(tutao.entity.tutanota.Mail, folder.getMailListId()).then(function(allMails) {
+                return folder.finallyDeleteMails(allMails);
             }).lastly(function() {
                 self.deleting(false);
             });

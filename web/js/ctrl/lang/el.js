@@ -55,7 +55,7 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "confidentialStatus_msg": "Το μήνυμα απεστάλη κρυπτογραφημένο.",
   "confidential_action": "Εμπιστευτικό",
   "config_label": "Διαμόρφωση",
-  "confirmDeleteTrashCustomFolder_msg": "Πραγματικά επιβεβαιώνετε τη διαγραφή του φακέλου \"{1}\" και όλων των μηνυμάτων του;",
+  "confirmDeleteFinallyCustomFolder_msg": "Πραγματικά επιβεβαιώνετε τη διαγραφή του φακέλου \"{1}\" και όλων των μηνυμάτων του;",
   "confirmDeleteTrashFolder_msg": "Επιβεβαιώνετε την οριστική διαγραφή όλων των φακέλων και μηνυμάτων από τα απορρίματα;",
   "confirmDeleteTrash_msg": "Επιβεβαιώνετε τη διαγραφή όλων των μηνυμάτων από αυτό το φάκελο;",
   "contactImage_alt": "Εικόνα",

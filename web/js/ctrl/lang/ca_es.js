@@ -66,7 +66,7 @@ tutao.tutanota.ctrl.lang.ca_es.keys = {
   "confidential_action": "Confidencial",
   "config_label": "config",
   "confirmCountry_msg": "Per tal de calcular la quota d'IVA necessitem que confirmeu el vostre país: {1}",
-  "confirmDeleteTrashCustomFolder_msg": "Realment voleu esborrar definitivament la carpeta {1} i tots els seus correus?",
+  "confirmDeleteFinallyCustomFolder_msg": "Realment voleu esborrar definitivament la carpeta {1} i tots els seus correus?",
   "confirmDeleteTrashFolder_msg": "Esteu segur de voler eliminar definitivament tots els correus i carpetes de la paperera?",
   "confirmDeleteTrash_msg": "Realment voleu esborrar tots els missatges d'aquesta carpeta?",
   "contactImage_alt": "Imatge",
