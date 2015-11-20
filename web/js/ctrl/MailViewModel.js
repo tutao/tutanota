@@ -473,12 +473,16 @@ tutao.tutanota.ctrl.MailViewModel.prototype.isConversationEmpty = function() {
  * @returns {string} The label for this MailAddress
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.getLabel = function(mailAddress, meId) {
+    var name = mailAddress.getName();
     if (tutao.util.ArrayUtils.contains(tutao.locator.userController.getMailAddresses(), mailAddress.getAddress())) {
-        return tutao.locator.languageViewModel.get(meId);
-    } else if (mailAddress.getName() == "") {
+        name = tutao.locator.languageViewModel.get(meId);
+    }
+    if (name == "") {
         return mailAddress.getAddress();
+    } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+        return name;
     } else {
-        return mailAddress.getName();
+        return name + " <" + mailAddress.getAddress() + ">";
     }
 };
 

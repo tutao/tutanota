@@ -61,7 +61,13 @@ tutao.tutanota.ctrl.RecipientInfo.prototype.setDeleted = function() {
  * @return {string} The text.
  */
 tutao.tutanota.ctrl.RecipientInfo.prototype.getDisplayText = function() {
-	return (this._name == "") ? this._mailAddress : this._name;
+	if (this._name == "") {
+        return this._mailAddress;
+    } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+        return this._name;
+    } else {
+        return this._name + " <" + this._mailAddress + ">";
+    }
 };
 
 /**
