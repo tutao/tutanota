@@ -329,3 +329,7 @@ tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT = "0";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM = "1";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_NONE = "2";
 
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_NONE = "0";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_WHITELIST = "1";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_BLACKLIST = "2";
+tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_DISCARD = "3";

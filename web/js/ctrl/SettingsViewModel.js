@@ -34,6 +34,7 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_MAIL_SETTINGS = 6;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING = 7;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO = 8;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT = 9;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_SPAM = 10;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 
 /**
@@ -69,6 +70,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
             }
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
+        settings.push(s.DISPLAY_ADMIN_SPAM);
         if (!tutao.locator.viewManager.isFreeAccount() || this.bookingAvailable()) {
             settings.push(s.DISPLAY_ADMIN_INVOICING);
         }
@@ -86,9 +88,9 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
     if (tutao.locator.viewManager.isFreeAccount()) {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action", "adminSpam_action"][settings];
     } else {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action", "adminSpam_action"][settings];
     }
 };
 

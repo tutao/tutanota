@@ -533,19 +533,6 @@ button{
     min-width: 80px;
   }
 
-  &.disabled {
-    opacity: 0.2;
-
-    &:active {
-      // disabled buttons shall not be visible as active
-      background-color: transparent;
-    }
-
-    &:focus, &.focus {
-      // disabled buttons shall not be visible as in focus
-    }
-  }
-
   &:focus, &.focus {
 
   }
@@ -554,6 +541,20 @@ button{
     width: 100%;
   }
 }
+
+&.disabled {
+  opacity: 0.2;
+
+  &:active {
+    // disabled buttons shall not be visible as active
+    background-color: transparent;
+  }
+
+  &:focus, &.focus {
+    // disabled buttons shall not be visible as in focus
+  }
+}
+
 
 button#measureButton {
   position: absolute;
@@ -894,23 +895,7 @@ form.recordContainer, div.recordContainer {
       }
 
 
-      label.recordStatus {
-        display: block;
-        margin-top: 3px;
-        font-size: @info-text-font-size;
-        color: @dark-grey;
 
-        &.neutral {
-        }
-
-        &.valid {
-          color: @positive;
-        }
-
-        &.invalid {
-          color: @negative;
-        }
-      }
 
       > .recordInfo {
         display: block;
@@ -945,6 +930,26 @@ form.recordContainer, div.recordContainer {
 
   }
 }
+
+
+label.recordStatus {
+  display: block;
+  margin-top: 3px;
+  font-size: @info-text-font-size;
+  color: @dark-grey;
+
+  &.neutral {
+  }
+
+  &.valid {
+    color: @positive;
+  }
+
+  &.invalid {
+    color: @negative;
+  }
+}
+
 
 .infoMessage {
 

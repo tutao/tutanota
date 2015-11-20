@@ -300,44 +300,7 @@ body {
 							margin-bottom: 0px;
 						}
 						
-						div.contactData {
-							width: 100%;
-							.clearfix;
-							
-							> div {
-								padding-top: @padding;
-								padding-bottom: @padding;
-							}
-						
-							> div.contactDataType {
-								.light;
-								height: 100%;
-								width: 100px;
-								float: left;
-								.fadeTextOut;
-							}
-							
-							> div.contactDataText {
-								height: 35px;
-								.fadeTextOut;
-							}
-							
-							> div.contactDataButton, a > div.contactDataButton {
-								position: relative;
-								height: 25px;
-								width: 25px;
-                                line-height:44px;
-                                float: right;
-								cursor: pointer;
-                                padding-top: 0px; // must be overwritten from outer div
-                                padding-bottom: 0px; // must be overwritten from outer div
-							}
-							
-							> div.contactDataAreaText {
-								height: 100%;
-								overflow: hidden;
-							}
-						}
+
 						
 						// edit mode
 						
@@ -403,13 +366,55 @@ body {
 			}
 		}
 	}
-	
-	// used in PasswordChannelViewColumn and ContactColumn
+
+  	// used in AdminSpamViewModel
+	div.contactData {
+	  width: 100%;
+	  .clearfix;
+
+	  > div {
+		padding-top: @padding;
+		padding-bottom: @padding;
+	  }
+
+	  > div.contactDataType {
+		.light;
+		height: 100%;
+		width: 130px;
+		float: left;
+		.fadeTextOut;
+	  }
+
+	  > div.contactDataText {
+		height: 35px;
+		.fadeTextOut;
+	  }
+
+	  > div.contactDataButton, a > div.contactDataButton {
+		position: relative;
+		height: 25px;
+		width: 25px;
+		line-height:44px;
+		float: right;
+		cursor: pointer;
+		padding-top: 0px; // must be overwritten from outer div
+		padding-bottom: 0px; // must be overwritten from outer div
+		text-align:right;
+	  }
+
+	  > div.contactDataAreaText {
+		height: 100%;
+		overflow: hidden;
+	  }
+	}
+
+
+	// used in PasswordChannelViewColumn, AdminSpamViewModel and ContactColumn
 	div.editContactData {
 		width: 100%;
 		margin-top: 10px;
 		display: table;
-		
+
 		> div {
 			display: table-cell;
 			vertical-align: middle;
@@ -418,7 +423,7 @@ body {
 		> div.editContactDataType {
 			width: 130px;
 			padding-right: @padding;
-			
+
 			> input {
 				height: 30px;
 				width: 100%;
@@ -443,6 +448,8 @@ body {
 		}
 		
 		div.recordAction {
+		  	float:right;
+		  	cursor: pointer;
 			> div.fontImage {
 				width: 20px;
 			}

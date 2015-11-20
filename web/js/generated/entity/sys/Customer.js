@@ -22,6 +22,7 @@ tutao.entity.sys.Customer = function(data) {
     this._customerGroups = null;
     this._customerInfo = null;
     this._properties = null;
+    this._serverProperties = null;
     this._teamGroups = null;
     this._userGroups = null;
   }
@@ -46,6 +47,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
   this._customerGroups = data.customerGroups;
   this._customerInfo = data.customerInfo;
   this._properties = data.properties;
+  this._serverProperties = data.serverProperties;
   this._teamGroups = data.teamGroups;
   this._userGroups = data.userGroups;
 };
@@ -54,7 +56,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Customer.MODEL_VERSION = '12';
+tutao.entity.sys.Customer.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -98,6 +100,7 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     customerGroups: this._customerGroups, 
     customerInfo: this._customerInfo, 
     properties: this._properties, 
+    serverProperties: this._serverProperties, 
     teamGroups: this._teamGroups, 
     userGroups: this._userGroups
   };
@@ -152,6 +155,11 @@ tutao.entity.sys.Customer.prototype.CUSTOMERINFO_ATTRIBUTE_ID = 160;
  * The id of the properties attribute.
  */
 tutao.entity.sys.Customer.prototype.PROPERTIES_ATTRIBUTE_ID = 662;
+
+/**
+ * The id of the serverProperties attribute.
+ */
+tutao.entity.sys.Customer.prototype.SERVERPROPERTIES_ATTRIBUTE_ID = 960;
 
 /**
  * The id of the teamGroups attribute.
@@ -391,6 +399,31 @@ tutao.entity.sys.Customer.prototype.loadProperties = function() {
 };
 
 /**
+ * Sets the serverProperties of this Customer.
+ * @param {string} serverProperties The serverProperties of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setServerProperties = function(serverProperties) {
+  this._serverProperties = serverProperties;
+  return this;
+};
+
+/**
+ * Provides the serverProperties of this Customer.
+ * @return {string} The serverProperties of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getServerProperties = function() {
+  return this._serverProperties;
+};
+
+/**
+ * Loads the serverProperties of this Customer.
+ * @return {Promise.<tutao.entity.sys.CustomerServerProperties>} Resolves to the loaded serverProperties of this Customer or an exception if the loading failed.
+ */
+tutao.entity.sys.Customer.prototype.loadServerProperties = function() {
+  return tutao.entity.sys.CustomerServerProperties.load(this._serverProperties);
+};
+
+/**
  * Sets the teamGroups of this Customer.
  * @param {string} teamGroups The teamGroups of this Customer.
  */
@@ -430,7 +463,7 @@ tutao.entity.sys.Customer.prototype.getUserGroups = function() {
  * @return {Promise.<tutao.entity.sys.Customer>} Resolves to the Customer or an exception if the loading failed.
  */
 tutao.entity.sys.Customer.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : 13}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -441,7 +474,7 @@ tutao.entity.sys.Customer.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Customer>>} Resolves to an array of Customer or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Customer.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": 13}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -452,7 +485,7 @@ tutao.entity.sys.Customer.loadMultiple = function(ids) {
  */
 tutao.entity.sys.Customer.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": 13}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
