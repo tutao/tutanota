@@ -30,7 +30,7 @@ tutao.entity.sys.PaymentDataServiceGetReturn.prototype.updateData = function(dat
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PaymentDataServiceGetReturn.MODEL_VERSION = '12';
+tutao.entity.sys.PaymentDataServiceGetReturn.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -109,7 +109,7 @@ tutao.entity.sys.PaymentDataServiceGetReturn.load = function(parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = 13;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.PaymentDataServiceGetReturn, tutao.entity.sys.PaymentDataServiceGetReturn.PATH, null, null, parameters, headers);
 };
 /**

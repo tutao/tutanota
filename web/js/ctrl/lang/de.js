@@ -618,5 +618,15 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+
+  "adminSpam_action" : "Spam-Regeln",
+
+  "emailSender_label" : "E-Mail-Absender",
+  "emailSenderRule_label" : "Regel",
+  "emailSenderWhitelist_action" : "Kein Spam",
+  "emailSenderBlacklist_action" : "Immer Spam",
+  "emailSenderDiscardlist_action" : "Verwerfen",
+  "emailSenderPlaceholder_label" : "E-Mail-Adresse oder Domain",
+  "emailSenderInvalidRule_msg" : "Die Regel für diesen E-Mail-Absender ist nicht erlaubt.",
 };
