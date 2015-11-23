@@ -26,6 +26,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "adminMaxNbrOfAliasesReached_msg": "The maximum number of aliases has been reached.",
   "adminPayment_action": "Payment data",
   "adminPremiumFeatures_action": "Extensions",
+  "adminSpamRuleInfo_msg": "Details for configuring spam rules: ",
+  "adminSpam_action": "Spam rules",
   "adminUserAdd_action": "Add user",
   "adminUserList_action": "User management",
   "adminUserRemove_action": "Remove user",
@@ -183,6 +185,13 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "editUser_label": "Edit user",
   "edit_action": "Edit",
   "emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
+  "emailSenderBlacklist_action": "Always spam",
+  "emailSenderDiscardlist_action": "Discard",
+  "emailSenderInvalidRule_msg": "The rule for this email sender is not allowed.",
+  "emailSenderPlaceholder_label": "Email address or domain name",
+  "emailSenderRule_label": "Rule",
+  "emailSenderWhitelist_action": "No spam",
+  "emailSender_label": "Email sender",
   "emailSignatureTypeCustom_msg": "Custom",
   "emailSignatureTypeDefault_msg": "Default",
   "emailSignatureTypeNone_msg": "None",
@@ -618,16 +627,5 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday",
-
-  "adminSpam_action" : "Spam rules",
-  "emailSender_label" : "Email sender",
-  "emailSenderRule_label" : "Rule",
-  "emailSenderWhitelist_action" : "No spam",
-  "emailSenderBlacklist_action" : "Always spam",
-  "emailSenderDiscardlist_action" : "Discard",
-  "emailSenderPlaceholder_label" : "Email address or domain name",
-  "emailSenderInvalidRule_msg" : "The rule for this email sender is not allowed.",
-  "adminSpamRuleInfo_msg" : "Details for configuring spam rules: "
-
+  "yesterday_label": "yesterday"
 };

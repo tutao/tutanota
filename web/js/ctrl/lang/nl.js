@@ -97,6 +97,7 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "confirmCountry_msg": "Om de BTW te berekenen graag uw land bevestigen: {1}",
   "confirmDeleteCustomFolder_msg": "Wilt u echt de map {1} verwijderen inclusief alle e-mails?",
   "confirmDeleteFinallyCustomFolder_msg": "Weet u zeker dat u map '{1}' met alle e-mails definitief wilt verwijderen?",
+  "confirmDeleteFinallySystemFolder_msg": "Wilt u echt definitief alle mappen en e-mails wissen van de systeemmap '{1}'?",
   "confirmDeleteSystemFolder_msg": "Wilt u echt alle mappen en e-mails van de systeemmap {1} wissen?",
   "confirmDeleteTrashFolder_msg": "Weet u zeker dat u alle e-mails en mappen definitief uit de prullenmand wilt verwijderen?",
   "confirmDeleteTrash_msg": "Weet u zeker dat u alle e-mails uit deze map wilt verwijderen?",

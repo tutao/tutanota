@@ -97,6 +97,7 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "confirmCountry_msg": "Para calcular o IVA precisamos de confirmar o seu país: {1}",
   "confirmDeleteCustomFolder_msg": "Quer mesmo apagar a pasta '{1}' e todos os seus emails?",
   "confirmDeleteFinallyCustomFolder_msg": "Quer mesmo apagar a pasta '{1}' e todos os seus emails?",
+  "confirmDeleteFinallySystemFolder_msg": "Quer mesmo apagar definitivamente todas as pastas e emails da pasta de sistema '{1}'?",
   "confirmDeleteSystemFolder_msg": "Quer mesmo apagar todas as pastas e emails da pasta de sistema  '{1}'?",
   "confirmDeleteTrashFolder_msg": "Deseja mesmo eliminar definitivamente todos os emails e pastas do lixo?",
   "confirmDeleteTrash_msg": "Deseja mesmo apagar todos os emails desta pasta?",
