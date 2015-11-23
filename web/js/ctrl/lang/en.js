@@ -628,5 +628,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "emailSenderDiscardlist_action" : "Discard",
   "emailSenderPlaceholder_label" : "Email address or domain name",
   "emailSenderInvalidRule_msg" : "The rule for this email sender is not allowed.",
+  "adminSpamRuleInfo_msg" : "Details for configuring spam rules: "
 
 };

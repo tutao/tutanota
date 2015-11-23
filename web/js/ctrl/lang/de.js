@@ -629,4 +629,5 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "emailSenderDiscardlist_action" : "Verwerfen",
   "emailSenderPlaceholder_label" : "E-Mail-Adresse oder Domain",
   "emailSenderInvalidRule_msg" : "Die Regel für diesen E-Mail-Absender ist nicht erlaubt.",
+  "adminSpamRuleInfo_msg" : "Erläuterung zu den Spam-Regeln: "
 };

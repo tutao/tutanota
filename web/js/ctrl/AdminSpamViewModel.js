@@ -135,6 +135,10 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype.getTextForType = function(email
     return "";
 };
 
-
-
-
+tutao.tutanota.ctrl.AdminSpamViewModel.prototype.getSpamRuleSetupLink = function() {
+    var setupLink = "https://tutanota.uservoice.com/knowledgebase/articles/780147";
+    if ( tutao.locator.languageViewModel.getCurrentLanguage() == "de" ){
+        setupLink = "http://tutanota.uservoice.com/knowledgebase/articles/780153";
+    }
+    return setupLink;
+};
