@@ -72,7 +72,8 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.updateOnNewMails = function(ma
                 break;
             }
         }
-        if (!found) {
+        // only add the email to the end of the list if there are no others available which would otherwise not be loadable any more
+        if (!found && !this.moreAvailable()) {
             this._loadedMails.push(mails[i]);
         }
         if (mails[i].getUnread()) {
