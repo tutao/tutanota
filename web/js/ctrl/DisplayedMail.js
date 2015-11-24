@@ -31,13 +31,13 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     var showReplyAll = function () {
         return tutao.locator.userController.isInternalUserLoggedIn() && self.mail.getToRecipients().length + self.mail.getCcRecipients().length + self.mail.getBccRecipients().length > 1;
     };
-    var trashed = function () {
-        return self.mail.getTrashed();
+    var allowFinalDelete = function () {
+        return self.mail.getTrashed() || tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder();
     };
-    var untrashed = function () {
+    var allowMoveToTrash = function () {
         return !self.mail.getTrashed();
     };
-    var trashText = self.mail.getTrashed() ? "undelete_action" : "delete_action";
+
     // special
     this.buttons = [];
     this.buttons.push(new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, tutao.locator.mailListViewModel.selectPreviousMail, tutao.tutanota.util.ClientDetector.isMobileDevice, false, "selectPreviousMailAction", "upIndicator", null, null, tutao.locator.mailListViewModel.isFirstMailSelected));
@@ -86,11 +86,11 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
         tutao.locator.mailViewModel.deleteMail(self);
-    }, untrashed, false, "deleteMailAction", "trash"));
+    }, allowMoveToTrash, false, "deleteMailAction", "trash"));
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
         tutao.locator.mailViewModel.finallyDeleteMail(self);
-    }, trashed, false, "finalDeleteMailAction", "trash"));
+    }, allowFinalDelete, false, "finalDeleteMailAction", "trash"));
 
     // internal
     this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));

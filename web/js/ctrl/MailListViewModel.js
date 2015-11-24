@@ -215,7 +215,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.handleSwipeOnElement = function(
     var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
     var mails = [mail];
     if (swipeLeft) {
-        if (folder.isTrashFolder()) {
+        if (folder.isTrashFolder() || folder.isSpamFolder()) {
             return folder.finallyDeleteMails(mails);
         } else {
             // move content to trash
@@ -237,7 +237,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeRightLabel = function() 
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.getSwipeLeftLabel = function() {
     var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
-    if (folder.isTrashFolder()) {
+    if (folder.isTrashFolder() || folder.isSpamFolder()) {
         return { iconId: "trash", textId: "finalDelete_action" };
     } else {
         return { iconId: "trash", textId: "trash_action" };
