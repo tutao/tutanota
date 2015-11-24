@@ -74,6 +74,10 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype._getInputInvalidMessage = funct
     if (this._isInvalidRule() ) {
         return "emailSenderInvalidRule_msg";
     }
+    if (this._isExistingRule() ) {
+        return "emailSenderExistingRule_msg";
+    }
+
     return null;
 };
 
@@ -92,9 +96,19 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isInvalidRule = function() {
     return false;
 };
 
+tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isExistingRule = function() {
+    var currentDomainOrMailAddress = this.domainOrMailAddress().trim();
+    var emailSenderList = this.customerServerProperties().emailSenderList();
+    for(var i=0; i < emailSenderList.length; i++){
+        if (currentDomainOrMailAddress == emailSenderList[i].value()) {
+            return true;
+        }
+    }
+    return false;
+};
 
 tutao.tutanota.ctrl.AdminSpamViewModel.prototype.addEmailSenderListEntry = function() {
-
+    var self = this;
     if (!this.state.submitEnabled()) {
         return;
     }
@@ -104,7 +118,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype.addEmailSenderListEntry = funct
     newListEntry.setHashedValue(tutao.locator.shaCrypter.hashHex(tutao.util.EncodingConverter.utf8ToHex(currentValue)));
     newListEntry.setType(this.selectedListType().value);
     this.customerServerProperties().emailSenderList.push(new tutao.entity.sys.EmailSenderListElementEditable(newListEntry));
-    this._updateServerProperties();
+    this._updateServerProperties().then(function(){self.domainOrMailAddress("")});
 };
 
 tutao.tutanota.ctrl.AdminSpamViewModel.prototype.removeEmailSenderListEntry = function(emailSenderListEntryIndex) {
@@ -117,7 +131,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype._updateServerProperties = funct
     var self = this;
     this.customerServerProperties().update();
     self.state.submitting(true);
-    this.customerServerProperties().getCustomerServerProperties().update().lastly(function(){
+    return this.customerServerProperties().getCustomerServerProperties().update().lastly(function(){
         self.state.entering(true)
     });
 };

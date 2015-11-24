@@ -1868,7 +1868,7 @@
 								<hr />
 								<!-- ko foreach: getEmailSenderListEntries() -->
 								<div class="contactData">
-									<div class="contactDataButton fontImage cancel" data-bind="fastClick: function(){$parent.removeEmailSenderListEntry($index);}, attr: {title: tutao.lang('delete_action')}"></div>
+									<div class="contactDataButton fontImage cancel" data-bind="fastClick: function(){$parent.removeEmailSenderListEntry($index());}, attr: {title: tutao.lang('delete_action')}"></div>
 									<div class="contactDataType" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
 									<div class="contactDataText" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
 								</div>
@@ -1878,7 +1878,7 @@
 										<select data-bind="enable: state.entering(), options: availableListTypes, value: selectedListType, optionsText: 'text', attr: {title: selectedListType().text}"></select>
 									</div>
 									<div class="editContactDataText" >
-										<input type="text" data-bind="enable: state.entering(), value: domainOrMailAddress, valueUpdate: 'input', attr:{placeholder: tutao.lang('emailSenderPlaceholder_label')}"/>
+										<input type="text" data-bind="enable: state.entering(), value: domainOrMailAddress, valueUpdate: 'input', attr: {placeholder: tutao.lang('emailSenderPlaceholder_label')}"/>
 									</div>
 									<div class="recordAction">
 										<div class="fontImage confirm" data-bind="fastClick: addEmailSenderListEntry, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
@@ -1886,7 +1886,7 @@
 								</div>
 								<label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
 								<label class="recordInfo" data-bind="lang: 'adminSpamRuleInfo_msg'"></label>
-								<a class="recordInfo" href="https://tutanota.uservoice.com/knowledgebase/articles/780147" data-bind="attr:{href: getSpamRuleSetupLink() }, text: getSpamRuleSetupLink()"></a>
+								<a class="recordInfo" href="https://tutanota.uservoice.com/knowledgebase/articles/780147" data-bind="attr: {href: getSpamRuleSetupLink()}, text: getSpamRuleSetupLink()"></a>
 							</div>
 							<!-- /ko -->
 						</div>
