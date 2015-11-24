@@ -65,39 +65,40 @@ tutao.tutanota.ctrl.AdminSpamViewModel = function() {
 
 
 tutao.tutanota.ctrl.AdminSpamViewModel.prototype._getInputInvalidMessage = function() {
-    if (this.domainOrMailAddress().trim() == "" ) {
+    var currentValue = this.domainOrMailAddress().toLowerCase().trim();
+
+    if (currentValue == "" ) {
         return "emptyString_msg";
     }
-    if (!tutao.tutanota.util.Formatter.isDomainName(this.domainOrMailAddress()) && !tutao.tutanota.util.Formatter.isMailAddress(this.domainOrMailAddress())){
+    if (!tutao.tutanota.util.Formatter.isDomainName(currentValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentValue)){
         return "invalidInputFormat_msg";
     }
-    if (this._isInvalidRule() ) {
+    if (this._isInvalidRule(currentValue) ) {
         return "emailSenderInvalidRule_msg";
     }
-    if (this._isExistingRule() ) {
+    if (this._isExistingRule(currentValue) ) {
         return "emailSenderExistingRule_msg";
     }
 
     return null;
 };
 
-tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isInvalidRule = function() {
+tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isInvalidRule = function(currentDomainOrMailAddress) {
     if ( this.selectedListType().value != tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_WHITELIST) {
-        if (tutao.tutanota.util.Formatter.isDomainName(this.domainOrMailAddress())) {
-            return this.domainOrMailAddress() == "tutao.de"
-                || tutao.util.ArrayUtils.contains(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, this.domainOrMailAddress())
-                || tutao.util.ArrayUtils.contains(this._customDomains, this.domainOrMailAddress());
+        if (tutao.tutanota.util.Formatter.isDomainName(currentDomainOrMailAddress)) {
+            return currentDomainOrMailAddress == "tutao.de"
+                || tutao.util.ArrayUtils.contains(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, currentDomainOrMailAddress)
+                || tutao.util.ArrayUtils.contains(this._customDomains, currentDomainOrMailAddress);
         }
-        if (tutao.tutanota.util.Formatter.isMailAddress(this.domainOrMailAddress())) {
-            var domain = this.domainOrMailAddress().split("@")[1];
+        if (tutao.tutanota.util.Formatter.isMailAddress(currentDomainOrMailAddress)) {
+            var domain = currentDomainOrMailAddress.split("@")[1];
             return domain == "tutao.de"|| tutao.util.ArrayUtils.contains(this._customDomains, domain);
         }
     }
     return false;
 };
 
-tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isExistingRule = function() {
-    var currentDomainOrMailAddress = this.domainOrMailAddress().trim();
+tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isExistingRule = function(currentDomainOrMailAddress) {
     var emailSenderList = this.customerServerProperties().emailSenderList();
     for(var i=0; i < emailSenderList.length; i++){
         if (currentDomainOrMailAddress == emailSenderList[i].value()) {
@@ -112,7 +113,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype.addEmailSenderListEntry = funct
     if (!this.state.submitEnabled()) {
         return;
     }
-    var currentValue = this.domainOrMailAddress().trim();
+    var currentValue = this.domainOrMailAddress().toLowerCase().trim();
     var newListEntry = new tutao.entity.sys.EmailSenderListElement(this.customerServerProperties().getCustomerServerProperties());
     newListEntry.setValue(currentValue);
     newListEntry.setHashedValue(tutao.locator.shaCrypter.hashHex(tutao.util.EncodingConverter.utf8ToHex(currentValue)));
