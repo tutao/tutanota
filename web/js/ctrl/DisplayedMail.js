@@ -35,7 +35,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
         return self.mail.getTrashed() || tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder();
     };
     var allowMoveToTrash = function () {
-        return !self.mail.getTrashed();
+        return !self.mail.getTrashed() && !tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder();
     };
 
     // special
