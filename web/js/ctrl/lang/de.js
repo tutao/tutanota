@@ -187,6 +187,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
   "emailSenderBlacklist_action": "Immer Spam",
   "emailSenderDiscardlist_action": "Verwerfen",
+  "emailSenderExistingRule_msg": "Es existiert bereits eine Regel für diesen E-Mail-Absender.",
   "emailSenderInvalidRule_msg": "Die Regel für diesen E-Mail-Absender ist nicht erlaubt.",
   "emailSenderPlaceholder_label": "E-Mail-Adresse oder Domain",
   "emailSenderRule_label": "Regel",
