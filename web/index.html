@@ -2281,11 +2281,13 @@
     <div id="modalMoreMenu"  data-bind="with: tutao.locator.viewManager.buttonWithSubButtons">
         <div class="modalDialog" data-bind="fastClick: hideSubButtons, visible: subButtonsVisible()">
             <menu id="menu_more" data-bind="centerVisible: buttonDomElement">
-                <div class="menuList">
-                    <!-- ko foreach: subButtons -->
-                        <div class="menuItem fontImage" tabIndex="0" data-bind="lang: getLabelTextId(), css: imageClass + ((isSelected()) ? ' selected' : ''), attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
-                    <!-- /ko -->
-                </div>
+				<div class="inner_menu_more scrollable">
+					<div class="menuList">
+						<!-- ko foreach: subButtons -->
+						<div class="menuItem fontImage" tabIndex="0" data-bind="lang: getLabelTextId(), css: imageClass + ((isSelected()) ? ' selected' : ''), attr: {id: id, title: tutao.lang(getImageAltTextId())}, fastClick: click"></div>
+						<!-- /ko -->
+					</div>
+				</div>
             </menu>
             <div id="triangle" data-bind="centerVisible: buttonDomElement"></div>
         </div>

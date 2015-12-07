@@ -488,13 +488,17 @@ tutao.tutanota.gui.initKnockout = function() {
                     subButtons.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + subButtons.outerWidth() / 2)) });
                 }
 
+				var maxMoreMenuHeight = 0;
                 var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
                 if (parentButtonVerticalCenter < ($(window).width() / 2)) {
                     subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight()), bottom: 'initial' });
+					maxMoreMenuHeight = $(window).height() - parentButton.offset().top - parentButton.height();
                 } else {
                     subButtons.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top });
+					maxMoreMenuHeight = parentButton.offset().top ;
                 }
                 subButtons.show();
+				$("#menu_more").css( {"height" : (maxMoreMenuHeight+"px")});
             }, 0);
 
         },

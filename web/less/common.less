@@ -664,15 +664,20 @@ div#modalMoreMenu {
       z-index: 4;
       min-width: 150px;
       max-width: 250px;
+      background-color: @background-dark;
+      border-radius: 5px;
+      padding-bottom: 5px;
+      padding-top: 5px;
 
-      > div.menuList {
+      > div.inner_menu_more { // otherwise scrolling more menu on mobile devices not working.
+        height:100%;
+      }
+
+      div.menuList {
         position: relative;
         width: 100%;
         right: 0;
-        border-radius: 5px;
-        background-color: @background-dark;
         overflow: hidden; // otherwise button corners would be visible when selected
-
         > div.menuItem {
           border-bottom: 1px solid @border-dark;
         }
