@@ -666,7 +666,7 @@ div#modalMoreMenu {
       max-width: 250px;
       background-color: @background-dark;
       border-radius: 5px;
-      padding-bottom: 5px;
+      padding-bottom: 5px; // padding top and bottom to show the 5px radius even when the scrollbar is visible.
       padding-top: 5px;
 
       > div.inner_menu_more { // otherwise scrolling more menu on mobile devices not working.
@@ -682,8 +682,27 @@ div#modalMoreMenu {
           border-bottom: 1px solid @border-dark;
         }
 
+        > div:first-child {
+          // memu_more contains 5px padding-top - reduce height of the button
+          height: @menu_height - 5px;
+          line-height: @menu_height - 10px;
+          padding-bottom: 5px;
+        }
         > div:last-child {
           border-bottom: none;
+          // memu_more contains 5px padding-bottom - reduce height of the button
+          height: @menu_height - 5px;
+          line-height: @menu_height - 10px;
+          padding-top: 5px;
+          &:before {
+            padding-top: 5px;
+          }
+        }
+        > div:nth-child(1):nth-last-child(1) { // "only one element" selector
+          height: @menu_height - 10px;
+          line-height: @menu_height - 10px;
+          padding-top: 0px;
+          padding-bottom: 0px;
         }
       }
     }

@@ -481,13 +481,16 @@ tutao.tutanota.gui.initKnockout = function() {
             var subButtons = $(element);
             subButtons.hide(); // the sub-buttons width is not available yet, so calculate in the setTimeout function and hide the menu to avoid flickering
             setTimeout(function() {
+
+				var menuItemHeight = 42; // keep in sync with @menu_height
+
                 var parentButtonHorizontalCenter = (parentButton.offset().left + parentButton.outerWidth() / 2);
                 if (parentButtonHorizontalCenter < ($(window).width() / 2)) {
                     subButtons.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - subButtons.outerWidth() / 2), right: 'initial' });
                 } else {
                     subButtons.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + subButtons.outerWidth() / 2)) });
                 }
-
+				var subButtonsHeight = viewModel.subButtons().length * menuItemHeight;
 				var maxMoreMenuHeight = 0;
                 var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
                 if (parentButtonVerticalCenter < ($(window).width() / 2)) {
@@ -497,8 +500,10 @@ tutao.tutanota.gui.initKnockout = function() {
                     subButtons.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top });
 					maxMoreMenuHeight = parentButton.offset().top ;
                 }
+				maxMoreMenuHeight = maxMoreMenuHeight - menuItemHeight; // reduce the maximum size by one button height to keep space between the border of the screen and the more menu.
+				var moreMenuHeight = Math.min(subButtonsHeight, maxMoreMenuHeight);
+				$("#menu_more").css( {"height" : (moreMenuHeight + "px")});
                 subButtons.show();
-				$("#menu_more").css( {"height" : (maxMoreMenuHeight+"px")});
             }, 0);
 
         },
