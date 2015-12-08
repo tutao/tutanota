@@ -664,13 +664,12 @@ div#modalMoreMenu {
       z-index: 4;
       min-width: 150px;
       max-width: 250px;
-      background-color: @background-dark;
-      border-radius: 5px;
-      padding-bottom: 5px; // padding top and bottom to show the 5px radius even when the scrollbar is visible.
-      padding-top: 5px;
 
-      > div.inner_menu_more { // otherwise scrolling more menu on mobile devices not working.
+      div.inner_menu_more { // otherwise scrolling more menu on mobile devices not working.
         height:100%;
+        border-radius: 5px;
+        border-top: 5px solid @background-dark; // add border to inner_menu_more to show border-radius even when the scrollbar is visible.
+        border-bottom: 5px solid @background-dark;
       }
 
       div.menuList {
@@ -683,14 +682,14 @@ div#modalMoreMenu {
         }
 
         > div:first-child {
-          // memu_more contains 5px padding-top - reduce height of the button
+          // inner_menu_more contains 5px border - reduce height of the button
           height: @menu_height - 5px;
           line-height: @menu_height - 10px;
           padding-bottom: 5px;
         }
         > div:last-child {
           border-bottom: none;
-          // memu_more contains 5px padding-bottom - reduce height of the button
+          // inner_menu_more contains 5px border - reduce height of the button
           height: @menu_height - 5px;
           line-height: @menu_height - 10px;
           padding-top: 5px;

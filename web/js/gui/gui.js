@@ -479,36 +479,47 @@ tutao.tutanota.gui.initKnockout = function() {
             var MIN_MARGIN = 8;
             var parentButton = $(ko.utils.unwrapObservable(valueAccessor()));
             var subButtons = $(element);
+			var triangle = $("#triangle");
+
             subButtons.hide(); // the sub-buttons width is not available yet, so calculate in the setTimeout function and hide the menu to avoid flickering
             setTimeout(function() {
-
-				var menuItemHeight = 42; // keep in sync with @menu_height
-
                 var parentButtonHorizontalCenter = (parentButton.offset().left + parentButton.outerWidth() / 2);
                 if (parentButtonHorizontalCenter < ($(window).width() / 2)) {
                     subButtons.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - subButtons.outerWidth() / 2), right: 'initial' });
+					triangle.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - triangle.outerWidth() / 2), right: 'initial' });
                 } else {
                     subButtons.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + subButtons.outerWidth() / 2)) });
+					triangle.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + triangle.outerWidth() / 2)) });
                 }
-				var subButtonsHeight = viewModel.subButtons().length * menuItemHeight;
-				var maxMoreMenuHeight = 0;
-                var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
-                if (parentButtonVerticalCenter < ($(window).width() / 2)) {
-                    subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight()), bottom: 'initial' });
-					maxMoreMenuHeight = $(window).height() - parentButton.offset().top - parentButton.height();
-                } else {
-                    subButtons.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top });
-					maxMoreMenuHeight = parentButton.offset().top ;
-                }
-				maxMoreMenuHeight = maxMoreMenuHeight - menuItemHeight; // reduce the maximum size by one button height to keep space between the border of the screen and the more menu.
-				var moreMenuHeight = Math.min(subButtonsHeight, maxMoreMenuHeight);
-				$("#menu_more").css( {"height" : (moreMenuHeight + "px")});
-                subButtons.show();
-            }, 0);
+				var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
+				var isTopMoreMenu = parentButtonVerticalCenter < ($(window).width() / 2);
+				if (isTopMoreMenu) {
+					subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight()), bottom: '20px' });
+					triangle.css({ top: (parentButton.offset().top + parentButton.outerHeight()), bottom: 'initial' });
+				} else {
+					subButtons.css({ top: '20px', bottom: $(window).height() - parentButton.offset().top });
+					triangle.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top });
+				}
 
+				var menuList = subButtons.find(".menuList");
+				var innerMenuMore = subButtons.find(".inner_menu_more");
+                subButtons.show({ // height of element are not available in setTimeout function.
+					duration: 0,
+					start : function(animation) {
+						var isSrcollbarVisible = innerMenuMore.height() < menuList.height();
+						if ( !isSrcollbarVisible) { // avoid that the inner more menu is higher than necessary.
+							innerMenuMore.height(menuList.height());
+							if(isTopMoreMenu) { // do not expand menu_more box to the bottom when not scrolling. If it is visible clicking on it does not close more menu.
+								subButtons.css({ bottom: 'initial' });
+							} else {
+								subButtons.css({ top: 'initial'});
+							}
+						}
+					}
+				});
+            }, 0);
         },
         update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-            // nothing to do
         }
     };
 
