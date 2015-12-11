@@ -87,6 +87,7 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.confirm = function() {
             if (self.customDomains.indexOf(service.getDomain()) < 0) {
                 self.customDomains.push(service.getDomain());
             }
+            self.customDomain("");
         }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_DNS_LOOKUP_FAILED){
             self.customDomainSubmitStatus({ type: "invalid", text: tutao.lang("customDomainErrorDnsLookupFailure_msg") });
         }else if ( status.getStatusCode() == tutao.entity.tutanota.TutanotaConstants.CUSTOM_DOMAIN_STATUS_INVALID_DNS_RECORD){
