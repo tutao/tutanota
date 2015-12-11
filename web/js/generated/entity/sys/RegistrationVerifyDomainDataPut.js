@@ -30,7 +30,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.updateData = function
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationVerifyDomainDataPut.MODEL_VERSION = '13';
+tutao.entity.sys.RegistrationVerifyDomainDataPut.MODEL_VERSION = '14';
 
 /**
  * The url path to the resource.
@@ -109,7 +109,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.update = function(par
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 13;
+  parameters["v"] = 14;
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.RegistrationVerifyDomainDataPut.PATH, this, parameters, headers, null);
 };
 /**

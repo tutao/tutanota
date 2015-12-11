@@ -1571,29 +1571,31 @@
                                 </form>
                             </div>
 							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
-								<form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-									<div class="record">
-										<label class="recordName" data-bind="lang: 'adminCustomDomain_label'"></label>
-										<div class="recordData">
-											<div class="recordValue">
-												<input class="inputField wide" id="customDomainInput" type="text" data-bind="enable: !busy(), css: customDomainStatus().type, value: customDomain, valueUpdate: 'input' " />
-											</div>
-											<label for="customDomainInput" class="recordStatus" data-bind="css: customDomainStatus().type, lang: customDomainStatus().text"></label>
-											<label for="customDomainInput" class="recordInfo" data-bind="lang: 'adminCustomDomainInfo_msg'"></label>
-											<a class="recordInfo" href="https://tutanota.uservoice.com/knowledgebase/articles/666088" data-bind="attr:{href: getCustomDomainSetupLink() }, text: getCustomDomainSetupLink()"></a>
-										</div>
+								<div class="editContactData">
+									<div class="editContactDataText" data-bind="lang: 'adminCustomDomain_label'"></div>
+								</div>
+								<hr />
+								<!-- ko foreach: customDomains -->
+								<div class="contactData">
+									<div class="contactDataButton fontImage cancel" data-bind="fastClick: function(){$parent.deleteCustomDomain($data);}, attr: {title: tutao.lang('delete_action')}"></div>
+									<div class="contactDataText" data-bind="text: $data, attr: {title: $data}"></div>
+								</div>
+								<!-- /ko -->
+								<div class="editContactData">
+									<div class="editContactDataText" >
+										<input type="text" data-bind="enable: !busy(), value: customDomain, valueUpdate: 'input', attr: {placeholder: tutao.lang('customDomainNeutral_msg')}"/>
 									</div>
-									<div class="record">
-										<div class="recordName"></div>
-										<div class="formAction">
-											<button id="submitCustomDomain" class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-											<label  class="recordStatus" data-bind="css: customDomainSubmitStatus().type, lang: customDomainSubmitStatus().text"></label>
-											<div  data-bind="foreach: invalidDnsRecords" >
-												<label class="recordStatus" data-bind="css: $parent.customDomainSubmitStatus().type, text: getValue()"></label>
-											</div>
-										</div>
+									<div class="recordAction">
+										<div class="fontImage confirm" data-bind="fastClick: confirm, attr: {title: tutao.lang('add_action')}, css: { disabled: !confirmPossible() }"></div>
 									</div>
-								</form>
+								</div>
+								<label class="recordStatus" data-bind="css: customDomainStatus().type, text: customDomainStatus().text"></label>
+								<label class="recordInfo" data-bind="lang: 'adminCustomDomainInfo_msg'"></label>
+								<a class="recordInfo" href="https://tutanota.uservoice.com/knowledgebase/articles/666088" data-bind="attr:{href: getCustomDomainSetupLink() }, text: getCustomDomainSetupLink()"></a>
+								<label  class="recordStatus" data-bind="css: customDomainSubmitStatus().type, text: customDomainSubmitStatus().text"></label>
+								<div  data-bind="foreach: invalidDnsRecords" >
+									<label class="recordStatus" data-bind="css: $parent.customDomainSubmitStatus().type, text: getValue()"></label>
+								</div>
 							</div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING -->

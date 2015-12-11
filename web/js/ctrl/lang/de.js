@@ -134,6 +134,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "creditCardNumber_label": "Nummer",
   "currentlyBooked_label": "Aktuell gebucht",
   "currentMailAddressAdmin_label": "E-Mail-Adresse des Administrators",
+  "customDomainDeletePreconditionFailed_msg": "Bitte deaktiviere zunächst alle Benutzer und alle E-Mail-Aliase mit der Domain: {domainName}.",
+  "customDomainDomainAssigned_msg": "Diese Domain wurde bereits hinzugefügt.",
   "customDomainErrorDnsLookupFailure_msg": "Fehler beim Abfragen der DNS-Informationen.",
   "customDomainErrorDomainNotAvailable_msg": "Diese Domain ist nicht verfügbar.",
   "customDomainErrorInvalidDnsRecord_msg": "Der DNS-Eintrag für diese Domain enthält ungültige Werte.",

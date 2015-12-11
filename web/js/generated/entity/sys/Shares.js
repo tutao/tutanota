@@ -36,7 +36,7 @@ tutao.entity.sys.Shares.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Shares.MODEL_VERSION = '13';
+tutao.entity.sys.Shares.MODEL_VERSION = '14';
 
 /**
  * The url path to the resource.
@@ -173,7 +173,7 @@ tutao.entity.sys.Shares.prototype.getOutgoing = function() {
  * @return {Promise.<tutao.entity.sys.Shares>} Resolves to the Shares or an exception if the loading failed.
  */
 tutao.entity.sys.Shares.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : 13}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -184,7 +184,7 @@ tutao.entity.sys.Shares.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Shares>>} Resolves to an array of Shares or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Shares.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": 13}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };

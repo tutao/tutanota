@@ -32,7 +32,7 @@ tutao.entity.sys.RegistrationCaptchaServiceReturn.prototype.updateData = functio
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationCaptchaServiceReturn.MODEL_VERSION = '13';
+tutao.entity.sys.RegistrationCaptchaServiceReturn.MODEL_VERSION = '14';
 
 /**
  * The url path to the resource.
@@ -134,7 +134,7 @@ tutao.entity.sys.RegistrationCaptchaServiceReturn.load = function(parameters, he
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 13;
+  parameters["v"] = 14;
   return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RegistrationCaptchaServiceReturn, tutao.entity.sys.RegistrationCaptchaServiceReturn.PATH, null, null, parameters, headers);
 };
 /**
