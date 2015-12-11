@@ -397,13 +397,25 @@ gulp.task('default', ['clean', 'distCordovaLocal'], function () {
 
 gulp.task('translation', function (cb) {    
 	// get all languages from phraseapp
-    request('https://phraseapp.com/api/v1/locales?auth_token=64b1dce0ec448d21ec25816186cded22', function (error, response, body) {	
+    request({
+        url: 'https://api.phraseapp.com/v2/projects/a2c77a2fc05d8803eb1e83f51b396d6d/locales/',
+        headers: {
+            'User-Agent': 'tutanota (hello@tutao.de)',
+            'Authorization': 'token 83c96102984021e90af37983e5212eb79eb8bebbd4744ad341bf367963a032fb'
+        }
+    }, function (error, response, body) {
         if (!error && response.statusCode == 200) {
 			var languages = JSON.parse(body); 
 			// download each language
 			return async.eachSeries(languages, function(lang, callback) {				
 				// lang is an object eg. {"id": 122, "name": "german",  "code": "de-DE",  "country_code": "de",  "writing_direction": "ltr"}
-				request('https://phraseapp.com/api/v1/translations/download?auth_token=64b1dce0ec448d21ec25816186cded22&locale='+ lang.name +'&format=simple_json', function(error, response, body) {
+                request({
+                    url: 'https://api.phraseapp.com/v2/projects/a2c77a2fc05d8803eb1e83f51b396d6d/locales/' + lang.name + '/download?file_format=simple_json',
+                    headers: {
+                        'User-Agent': 'tutanota (hello@tutao.de)',
+                        'Authorization': 'token 83c96102984021e90af37983e5212eb79eb8bebbd4744ad341bf367963a032fb'
+                    }
+                }, function(error, response, body) {
 					if (!error && response.statusCode == 200) {
 						var code = lang.code.replace("-","_").toLowerCase();						
 					    var translation = "tutao.provide('tutao.tutanota.ctrl.lang." + code + "');\n";
