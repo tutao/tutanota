@@ -187,6 +187,7 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "emailAddressInUse_msg": "Šis pašto adresas vis dar naudojamas kito vartotojo. Prašome pirmiausia jį deaktyvuoti.",
   "emailSenderBlacklist_action": "Visados - į šlamštą",
   "emailSenderDiscardlist_action": "Atmesti",
+  "emailSenderExistingRule_msg": "Šiam elektroninio pašto siuntėjui taisyklė jau sukurta.",
   "emailSenderInvalidRule_msg": "Ši elektroninio pašto siuntėjo taisyklė - neleidžiama.",
   "emailSenderPlaceholder_label": "Pašto adresas arba domeno vardas",
   "emailSenderRule_label": "Taisyklė",
