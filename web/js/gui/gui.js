@@ -510,9 +510,9 @@ tutao.tutanota.gui.initKnockout = function() {
 						if ( !isSrcollbarVisible) { // avoid that the inner more menu is higher than necessary.
 							innerMenuMore.height(menuList.height());
 							if(isTopMoreMenu) { // do not expand menu_more box to the bottom when not scrolling. If it is visible clicking on it does not close more menu.
-								subButtons.css({ bottom: 'initial' });
+								subButtons.css({ bottom: 'auto' }); // use 'auto' instead of 'initial' works better in IE
 							} else {
-								subButtons.css({ top: 'initial'});
+								subButtons.css({ top: 'auto'});
 							}
 						}
 					}

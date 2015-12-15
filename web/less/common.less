@@ -670,6 +670,7 @@ div#modalMoreMenu {
         border-radius: 5px;
         border-top: 5px solid @background-dark; // add border to inner_menu_more to show border-radius even when the scrollbar is visible.
         border-bottom: 5px solid @background-dark;
+        background-color:@background-dark; // for scrolling in iOS
       }
 
       div.menuList {
@@ -702,6 +703,9 @@ div#modalMoreMenu {
           line-height: @menu_height - 10px;
           padding-top: 0px;
           padding-bottom: 0px;
+          &:before { // to center font images in buttons
+            padding-top: 0px;
+          }
         }
       }
     }
