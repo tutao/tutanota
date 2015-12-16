@@ -430,7 +430,7 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "welcomeMailBody3_msg": "Tudasd a világgal, hogy az adatvédelem fontos számodra:",
   "welcomeMailBody4_msg": "A Tutanota csapat",
   "welcomeMailBody5_msg": "P.S.: a Tutanota nyílt forráskódú fejlesztés, bátran tekints bele a forráskódba:",
-  "welcomeMailBodyTweetText_msg": "Egyszerűen készítsd csak el a @tutanota_de fiókodat. Elrejt a kíváncsi szemek elől! Bárki csatlakozhat: ",
+  "welcomeMailBodyTweetText_msg": "Egyszerűen készítsd csak el a Tutanota fiókodat. Elrejt a kíváncsi szemek elől! Bárki csatlakozhat: ",
   "welcomeMailSubject_msg": "Érezd magad otthon a Tutanotán: az adataid biztonságban maradnak.",
   "work_label": "Munka",
   "xing_label": "XING [hamburgi közösségi hálózat cég]",

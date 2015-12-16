@@ -622,7 +622,7 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "welcomeMailBody4_msg": "Tim Tutanota",
   "welcomeMailBody5_msg": "NB: Tutanota bersumber terbuka, jadi jangan ragu untuk memeriksa dan meninjau kode sumbernya:",
   "welcomeMailBody6_msg": "NB: Mohon untuk tidak mengirim permintaan fitur melalui surel karena kami ingin fokus sesuai dengan jadwal pengembangan. Jika Anda merasa ada fitur penting yang hilang, Anda bisa memberi pilihan Anda di sini:",
-  "welcomeMailBodyTweetText_msg": "Baru saja membuat akun @tutanota_de. Sekarang surel saya terlindungi dari para mata-mata! Anda juga dapat bergabung:",
+  "welcomeMailBodyTweetText_msg": "Baru saja membuat akun Tutanota. Sekarang surel saya terlindungi dari para mata-mata! Anda juga dapat bergabung:",
   "welcomeMailSubject_msg": "Terasa seperti di rumah. Data Anda akan selalu privat.",
   "work_label": "Kerja",
   "xing_label": "XING",

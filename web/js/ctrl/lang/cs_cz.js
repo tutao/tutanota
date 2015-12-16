@@ -447,7 +447,7 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "welcomeMailBody3_msg": "Ukažte světu, že si chráníte své soukromí:",
   "welcomeMailBody4_msg": "Váš Tutanota tým",
   "welcomeMailBody5_msg": "PS: Tutanota používá otevřený kód, můžete jej tedy volně zkoumat a recenzovat:",
-  "welcomeMailBodyTweetText_msg": "Vytvořit  vlastní účet @tutanota_de. Nyní své zprávy chráním před slídivými zraky! Můžete se také přidat: ",
+  "welcomeMailBodyTweetText_msg": "Vytvořit  vlastní účet Tutanota. Nyní své zprávy chráním před slídivými zraky! Můžete se také přidat: ",
   "welcomeMailSubject_msg": "Můžete se cítit jako doma: Vaše data zůstanou v soukromí.",
   "work_label": "Práce",
   "xing_label": "XING",

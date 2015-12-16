@@ -430,7 +430,7 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "welcomeMailBody3_msg": "Ipakita sa mundo an pinoprotektahan mo ang iyong pagkapribado.",
   "welcomeMailBody4_msg": "Ang iyong koponan Tutanota",
   "welcomeMailBody5_msg": "PS: Ang Tutanota ay open source, kaya huwag magatubiling siyasatin at suriin ang source code:",
-  "welcomeMailBodyTweetText_msg": "Kakaayos ko pa lang ng aking @tutanota_de account. Ngayon protektado na ang aking mga email mula mga sa mga matang maninilip! Ikaw rin, maaaring sumali:",
+  "welcomeMailBodyTweetText_msg": "Kakaayos ko pa lang ng aking Tutanota account. Ngayon protektado na ang aking mga email mula mga sa mga matang maninilip! Ikaw rin, maaaring sumali:",
   "welcomeMailSubject_msg": "Makaramdam ng parang nasa bahay: Ang data mo ay palaging pribado.",
   "work_label": "Trabaho",
   "xing_label": "XING",

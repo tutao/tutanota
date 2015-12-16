@@ -426,7 +426,7 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "welcomeMailBody3_msg": "Näytä maailmalle, että välität yksityisyytesi suojaamisesta:",
   "welcomeMailBody4_msg": "Tutonota-tiimisi",
   "welcomeMailBody5_msg": "Ps. Tutanotan lähdekoodi on avoin, voit tarkastella koodia täällä:",
-  "welcomeMailBodyTweetText_msg": "Otin juuri käyttöön @tutanota_de sähköpostini. Nyt suojaan sähköpostini kyyläilyltä! Voit liittyä,",
+  "welcomeMailBodyTweetText_msg": "Otin juuri käyttöön Tutanota sähköpostini. Nyt suojaan sähköpostini kyyläilyltä! Voit liittyä,",
   "welcomeMailSubject_msg": "Ole kuin kotonasi: tietosi pysyvät yksityisinä.",
   "work_label": "Työ",
   "xing_label": "XING",

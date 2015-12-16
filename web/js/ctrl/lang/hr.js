@@ -602,7 +602,7 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "welcomeMailBody4_msg": "Vaš Tutanota tim",
   "welcomeMailBody5_msg": "P.S. Tutanota je aplikacija otvorenog kôda (Open Source), slobodno pregledajte izvorni kôd:",
   "welcomeMailBody6_msg": "P.P.S. Molimo ne šaljite zahtjeve za dodatne opcije preko e-maila, jer se želimo fokusirati na razvoj. Ako uvidite da nedostaje važna opcija, možete glasati ovdje: https://tutanota.uservoice.com",
-  "welcomeMailBodyTweetText_msg": "Upravo sam postavio svoj @tutanota_de račun. Sada štitim svoje e-mailove od onih koji vole zabadati noseve u tuđe stvari! I ti se možeš pridružiti, ",
+  "welcomeMailBodyTweetText_msg": "Upravo sam postavio svoj Tutanota račun. Sada štitim svoje e-mailove od onih koji vole zabadati noseve u tuđe stvari! I ti se možeš pridružiti, ",
   "welcomeMailSubject_msg": "Osjećajte se kao kod kuće: Vaši podaci ostaju privatni.",
   "work_label": "Posao",
   "xing_label": "XING",

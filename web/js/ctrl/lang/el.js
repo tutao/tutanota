@@ -377,7 +377,7 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "welcomeMailBody3_msg": "Δείξτε στους άλλους ότι προστατεύετε την ιδιωτικότητά σας:",
   "welcomeMailBody4_msg": "Η ομάδα Tutanota",
   "welcomeMailBody5_msg": "ΥΓ Το Tutanota είναι λογισμικό ανοικτού κώδικα! Είναι διαθέσιμο εδώ:",
-  "welcomeMailBodyTweetText_msg": "Μόλις τώρα έφτιαξα λογαριασμό στο @tutanota_de και κανένας περίεργος δεν βλέπει το email μου! Κι εσύ μπορείς,",
+  "welcomeMailBodyTweetText_msg": "Μόλις τώρα έφτιαξα λογαριασμό στο Tutanota και κανένας περίεργος δεν βλέπει το email μου! Κι εσύ μπορείς,",
   "welcomeMailSubject_msg": "Μείνετε ήσυχοι: Τα δεδομένα σας είναι ασφαλή.",
   "work_label": "Εργασία",
   "xing_label": "XING",

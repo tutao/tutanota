@@ -625,7 +625,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "welcomeMailBody4_msg": "Dein Tutanota-Team",
   "welcomeMailBody5_msg": "PS: Tutanota ist Open Source, du darfst dir gerne den Quelltext ansehen und ihn prüfen:",
   "welcomeMailBody6_msg": "PPS: Wir bitten dich nicht per E-Mail nach neuen Funktionen zu fragen, da wir unsere Zeit voll und ganz für die Entwicklung nutzen möchten. Wenn dir wichtige Funktionen fehlen, kannst du hier dafür stimmen:",
-  "welcomeMailBodyTweetText_msg": "Habe mir gerade einen @tutanota_de-Account angelegt. So können meine Mails nicht mitgelesen werden. Mach mit: ",
+  "welcomeMailBodyTweetText_msg": "Habe mir gerade eine Tutanota-Mailbox angelegt. So können meine Mails nicht mitgelesen werden. Mach mit: ",
   "welcomeMailSubject_msg": "Fühl dich wie zuhause: Hier bleiben deine Daten privat.",
   "work_label": "Arbeit",
   "xing_label": "XING",

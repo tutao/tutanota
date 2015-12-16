@@ -529,7 +529,7 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "welcomeMailBody3_msg": "Vis verden at du beskytter dit privatliv:",
   "welcomeMailBody4_msg": "Dit Tutanota team",
   "welcomeMailBody5_msg": "PS: Tutanota er open source, so føl dig velkommen til at inspicere og gennemgå kildekoden:",
-  "welcomeMailBodyTweetText_msg": "Har lige oprettet min @tutanota_de konto. Mine mails er nu beskyttet fra overvågning! Du kan også oprette dig:",
+  "welcomeMailBodyTweetText_msg": "Har lige oprettet min Tutanota konto. Mine mails er nu beskyttet fra overvågning! Du kan også oprette dig:",
   "welcomeMailSubject_msg": "Du kan føle dig helt sikker. Dine data forbliver private.",
   "work_label": "Arbejde",
   "xing_label": "XING",

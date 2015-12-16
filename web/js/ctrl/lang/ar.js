@@ -583,7 +583,7 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "welcomeMailBody3_msg": "أظهر للعالم أنك تحمي خصوصيتك:",
   "welcomeMailBody4_msg": "فريقك من Tutanota",
   "welcomeMailBody5_msg": "تنبيه: Tutanota مصدره البرمجي مفتوح، لذلك لا تتردد في فحص ومراجعة المصدر:",
-  "welcomeMailBodyTweetText_msg": "للتو فتحت حسابي على @tutanota_de. الآن أن أحمي رسائل البريد الإلكترني الخاصة بي من أعين المتطفلين! يمكنك الانضمام أيضا:",
+  "welcomeMailBodyTweetText_msg": "للتو فتحت حسابي على Tutanota. الآن أن أحمي رسائل البريد الإلكترني الخاصة بي من أعين المتطفلين! يمكنك الانضمام أيضا:",
   "welcomeMailSubject_msg": "اشعر وكأنك في بيتك: تبقى بياناتك دائما في مأمن. ",
   "work_label": "العمل",
   "xing_label": "شينغ",

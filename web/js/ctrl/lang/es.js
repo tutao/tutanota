@@ -599,7 +599,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "welcomeMailBody3_msg": "Muestra al mundo que estás protegiendo tu privacidad:",
   "welcomeMailBody4_msg": "Tu equipo de Tutanota",
   "welcomeMailBody5_msg": "PD: Tutanota es software libre, por eso eres libre para revisar el código",
-  "welcomeMailBodyTweetText_msg": "Acabo de crear mi cuenta en @tutanota_de. Ahora protejo mis datos de la vista de curiosos. Tu también puedes unirte:",
+  "welcomeMailBodyTweetText_msg": "Acabo de crear mi cuenta en Tutanota. Ahora protejo mis datos de la vista de curiosos. Tu también puedes unirte:",
   "welcomeMailSubject_msg": "Ponte cómodo: Tus datos permanecen privados.",
   "work_label": "Trabajo",
   "xing_label": "XING",

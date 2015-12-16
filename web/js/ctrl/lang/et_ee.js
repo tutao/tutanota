@@ -430,7 +430,7 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "welcomeMailBody3_msg": "Näita maailmale, et kaitsed oma privaatsust:",
   "welcomeMailBody4_msg": "Teie Tutanota meeskond",
   "welcomeMailBody5_msg": "PS: Totanota on avatud lähtekoodiga, nii et võite vabalt kontrollida ja vaadata lähtekoodi:",
-  "welcomeMailBodyTweetText_msg": "Just lõin oma @tutanota_de konto. Nüüd kaitsen ma oma e-kirju uudishimulike eest! Võid samuti liituda:",
+  "welcomeMailBodyTweetText_msg": "Just lõin oma Tutanota konto. Nüüd kaitsen ma oma e-kirju uudishimulike eest! Võid samuti liituda:",
   "welcomeMailSubject_msg": "Tunne end kui kodus: Teie andmed püsivad privaatsed.",
   "work_label": "Töö",
   "xing_label": "XING",
