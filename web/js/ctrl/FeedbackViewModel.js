@@ -33,15 +33,6 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.close = function() {
 tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
     var self = this;
     var attachments = [];
-    var facade;
-    var previousMessageId;
-    if (tutao.locator.userController.isExternalUserLoggedIn()) {
-        facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
-        previousMessageId = ""; // dummy value for feedback mail
-    } else {
-        facade = tutao.tutanota.ctrl.SendMailFacade;
-        previousMessageId = null;
-    }
     var message = this.message();
 
     message += "\n\n Client: " + (tutao.env.mode == tutao.Mode.App ? cordova.platformId + " app": "Browser");
@@ -56,8 +47,12 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
     message = message.split("\n").join("<br>");
     var recipient = new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "");
     recipient.resolveType().then(function() {
-        return facade.sendMail("Feedback", message, tutao.locator.userController.getUserGroupInfo().getMailAddress(), "", [recipient], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, previousMessageId, attachments, "de");
-    }).then(function() {
+        return tutao.tutanota.ctrl.DraftFacade.createDraft("Feedback", message, tutao.locator.userController.getUserGroupInfo().getMailAddress(), "", [recipient], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, null, attachments, true).then(function(draft) {
+            return tutao.tutanota.ctrl.DraftFacade.sendDraft(draft, [recipient], "de");
+        });
+    }).catch(function(e) {
+        console.log("could not send feedback", e);
+    }).finally(function() {
         self.close();
     });
 };

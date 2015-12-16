@@ -159,6 +159,7 @@
 <script src="/js/ctrl/ContactViewModel.js"></script>
 <script src="/js/ctrl/DeveloperViewModel.js"></script>
 <script src="/js/ctrl/DisplayedMail.js"></script>
+<script src="/js/ctrl/DraftFacade.js"></script>
 <script src="/js/ctrl/DropDownViewModel.js"></script>
 <script src="/js/ctrl/ExternalLoginViewModel.js"></script>
 <script src="/js/ctrl/FeedbackViewModel.js"></script>
@@ -382,6 +383,7 @@
 <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
 <script src="/js/generated/entity/tutanota/Attachment.js"></script>
 <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+<script src="/js/generated/entity/tutanota/AttachmentKeyData.js"></script>
 <script src="/js/generated/entity/tutanota/Contact.js"></script>
 <script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
 <script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
@@ -405,6 +407,12 @@
 <script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteMailFolderData.js"></script>
+<script src="/js/generated/entity/tutanota/DraftAttachment.js"></script>
+<script src="/js/generated/entity/tutanota/DraftCreateData.js"></script>
+<script src="/js/generated/entity/tutanota/DraftCreateReturn.js"></script>
+<script src="/js/generated/entity/tutanota/DraftData.js"></script>
+<script src="/js/generated/entity/tutanota/DraftRecipient.js"></script>
+<script src="/js/generated/entity/tutanota/DraftUpdateData.js"></script>
 <script src="/js/generated/entity/tutanota/EncryptTutanotaPropertiesData.js"></script>
 <script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
 <script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
@@ -418,6 +426,7 @@
 <script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
 <script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
 <script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/InternalRecipientKeyData.js"></script>
 <script src="/js/generated/entity/tutanota/Mail.js"></script>
 <script src="/js/generated/entity/tutanota/MailAddress.js"></script>
 <script src="/js/generated/entity/tutanota/MailBody.js"></script>
@@ -425,6 +434,7 @@
 <script src="/js/generated/entity/tutanota/MailFolder.js"></script>
 <script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
 <script src="/js/generated/entity/tutanota/MoveMailData.js"></script>
+<script src="/js/generated/entity/tutanota/NewDraftAttachment.js"></script>
 <script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
 <script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
 <script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
@@ -434,6 +444,9 @@
 <script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
 <script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
 <script src="/js/generated/entity/tutanota/Recipient.js"></script>
+<script src="/js/generated/entity/tutanota/SecureExternalRecipientKeyData.js"></script>
+<script src="/js/generated/entity/tutanota/SendDraftData.js"></script>
+<script src="/js/generated/entity/tutanota/SendDraftReturn.js"></script>
 <script src="/js/generated/entity/tutanota/SendMailData.js"></script>
 <script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
 <script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
@@ -544,6 +557,7 @@
 									<div class="listElementButton fontImage buttonLeft" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId" ></div>
 									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 										<div class="icons">
+                                            <div class="mailHeaderImage fontImage mail-new-small" data-bind="visible: getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT, attr: {title: tutao.lang('draft_alt'), alt: tutao.lang('draft_alt')}"></div>
                                             <div class="mailHeaderImage fontImage reply-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY, attr: {title: tutao.lang('mailReplyTypeReply_alt'), alt: tutao.lang('mailReplyTypeReply_alt')}"></div>
                                             <div class="mailHeaderImage fontImage forward-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_FORWARD, attr: {title: tutao.lang('mailReplyTypeForward_alt'), alt: tutao.lang('mailReplyTypeForward_alt')}"></div>
                                             <div class="mailHeaderImage fontImage reply-forward-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY_FORWARD, attr: {title: tutao.lang('mailReplyTypeReplyForward_alt'), alt: tutao.lang('mailReplyTypeReplyForward_alt')}"></div>

@@ -42,7 +42,7 @@ tutao.entity.sys.UserData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.UserData.MODEL_VERSION = '14';
+tutao.entity.sys.UserData.MODEL_VERSION = '15';
 
 /**
  * The url path to the resource.
@@ -269,7 +269,7 @@ tutao.entity.sys.UserData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 14;
+  parameters["v"] = 15;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.UserData.PATH, this, parameters, headers, tutao.entity.sys.UserReturn);
 };

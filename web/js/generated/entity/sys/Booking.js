@@ -51,7 +51,7 @@ tutao.entity.sys.Booking.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Booking.MODEL_VERSION = '14';
+tutao.entity.sys.Booking.MODEL_VERSION = '15';
 
 /**
  * The url path to the resource.
@@ -330,7 +330,7 @@ tutao.entity.sys.Booking.prototype.getItems = function() {
  * @return {Promise.<tutao.entity.sys.Booking>} Resolves to the Booking or an exception if the loading failed.
  */
 tutao.entity.sys.Booking.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, id[1], id[0], {"v" : 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, id[1], id[0], {"v" : 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -341,7 +341,7 @@ tutao.entity.sys.Booking.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Booking>>} Resolves to an array of Booking or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Booking.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, ids, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, ids, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -354,7 +354,7 @@ tutao.entity.sys.Booking.loadMultiple = function(ids) {
 tutao.entity.sys.Booking.prototype.setup = function(listId) {
   var self = this;
   self._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.Booking.PATH, self, listId, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.Booking.PATH, self, listId, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
       self.__id = [listId, entity.getGeneratedId()];
       self.setPermissions(entity.getPermissionListId());
   });
@@ -367,7 +367,7 @@ tutao.entity.sys.Booking.prototype.setup = function(listId) {
 tutao.entity.sys.Booking.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 14;
+  params["v"] = 15;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -377,7 +377,7 @@ tutao.entity.sys.Booking.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.Booking.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -388,7 +388,7 @@ tutao.entity.sys.Booking.prototype.update = function() {
  */
 tutao.entity.sys.Booking.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.Booking.PATH, this.__id[1], this.__id[0], {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.Booking.PATH, this.__id[1], this.__id[0], {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
@@ -400,7 +400,7 @@ tutao.entity.sys.Booking.prototype.erase = function() {
  */
 tutao.entity.sys.Booking.createList = function(bucketData) {
   var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, false);
-  params["v"] = 14;
+  params["v"] = 15;
   return tutao.locator.entityRestClient.postList(tutao.entity.sys.Booking.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
     return returnEntity.getGeneratedId();
   });
@@ -415,7 +415,7 @@ tutao.entity.sys.Booking.createList = function(bucketData) {
  * @return {Promise.<Array.<tutao.entity.sys.Booking>>} Resolves to an array of Booking or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Booking.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, listId, start, count, reverse, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, listId, start, count, reverse, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

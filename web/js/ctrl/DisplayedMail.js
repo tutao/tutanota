@@ -62,11 +62,16 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
             tutao.locator.mailViewModel.forwardMail(self);
         }, isInternalUserLoggedIn, false, "forwardAction", "forward")
     ];
-    if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
-        this.buttons.push(new tutao.tutanota.ctrl.Button("reply_action", 10, function () {}, isInternalUserLoggedIn, false, "replyAction", "reply", null, null, null, function() { return replyButtons; }));
-    } else {
-        for (var i=0; i<replyButtons.length; i++) {
-            this.buttons.push(replyButtons[i]);
+    if (mail.getState() != tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT) {
+        if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+            this.buttons.push(new tutao.tutanota.ctrl.Button("reply_action", 10, function () {
+            }, isInternalUserLoggedIn, false, "replyAction", "reply", null, null, null, function () {
+                return replyButtons;
+            }));
+        } else {
+            for (var i = 0; i < replyButtons.length; i++) {
+                this.buttons.push(replyButtons[i]);
+            }
         }
     }
 
@@ -85,7 +90,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     }));
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
-        tutao.locator.mailViewModel.deleteMail(self);
+        tutao.locator.mailViewModel.deleteMail(self.mail);
     }, allowMoveToTrash, false, "deleteMailAction", "trash"));
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
@@ -93,7 +98,13 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     }, allowFinalDelete, false, "finalDeleteMailAction", "trash"));
 
     // internal
-    this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));
+    if (mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT) {
+        this.buttons.push(new tutao.tutanota.ctrl.Button("edit_action", 11, function () {
+            tutao.locator.mailViewModel.editDraft(self);
+        }, null, false, "newMailAction", "mail-new"));
+    } else {
+        this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));
+    }
 
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
     tutao.locator.mailViewModel.notificationBarViewModel.hideNotification();

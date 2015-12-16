@@ -25,7 +25,8 @@ tutao.rest.EntityRestClient.prototype.getElement = function(type, path, id, list
  */
 tutao.rest.EntityRestClient.prototype.getService = function(type, path, data, parameters, headers) {
 	var url = tutao.rest.EntityRestClient.createUrl(path, null, null, parameters);
-	return tutao.locator.restClient.getElement(url, headers, JSON.stringify(data.toJsonData())).then(function(returnData) {
+    var stringData = (data) ? JSON.stringify(data.toJsonData()) : null;
+	return tutao.locator.restClient.getElement(url, headers, stringData).then(function(returnData) {
         return new type(returnData);
     });
 };

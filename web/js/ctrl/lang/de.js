@@ -630,5 +630,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+    "draft_alt": "E-Mail ist ein Entwurf",
+    "saveOrDeleteDraft_msg": "Möchtest du den Entwurf speichern oder löschen?"
 };

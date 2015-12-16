@@ -44,7 +44,7 @@ tutao.entity.sys.Permission.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Permission.MODEL_VERSION = '14';
+tutao.entity.sys.Permission.MODEL_VERSION = '15';
 
 /**
  * The url path to the resource.
@@ -281,7 +281,7 @@ tutao.entity.sys.Permission.prototype.loadGroup = function() {
  * @return {Promise.<tutao.entity.sys.Permission>} Resolves to the Permission or an exception if the loading failed.
  */
 tutao.entity.sys.Permission.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, id[1], id[0], {"v" : 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, id[1], id[0], {"v" : 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -292,7 +292,7 @@ tutao.entity.sys.Permission.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Permission>>} Resolves to an array of Permission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Permission.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, ids, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, ids, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -304,7 +304,7 @@ tutao.entity.sys.Permission.loadMultiple = function(ids) {
 tutao.entity.sys.Permission.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 14;
+  params["v"] = 15;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Permission.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -317,7 +317,7 @@ tutao.entity.sys.Permission.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Permission>>} Resolves to an array of Permission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Permission.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, listId, start, count, reverse, {"v": 14}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, listId, start, count, reverse, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

@@ -35,7 +35,7 @@ tutao.entity.sys.CustomDomainReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomDomainReturn.MODEL_VERSION = '14';
+tutao.entity.sys.CustomDomainReturn.MODEL_VERSION = '15';
 
 /**
  * The encrypted flag.

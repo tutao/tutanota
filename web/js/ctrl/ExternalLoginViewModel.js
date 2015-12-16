@@ -309,6 +309,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                             .setSmallLogo(data.getSmallLogo())
                             .setBigLogo(data.getBigLogo());
                         tutao.locator.viewManager.updateLogos(properties);
+                        tutao.locator.eventBus.connect(false);
                         tutao.locator.mailListViewModel.loadInitial();
                         tutao.locator.navigator.mail();
                     });

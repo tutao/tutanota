@@ -47,6 +47,11 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
  * @returns {tutao.event.EventBusClient} The event bus client object.
  */
 tutao.event.EventBusClient.prototype.connect = function(reconnect) {
+    if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
+        console.log("Android browser does not support web sockets. reconnect=", reconnect);
+        return this;
+    }
+
     console.log("ws connect reconnect=", reconnect);
     var self = this;
 	var url = tutao.env.getWebsocketOrigin() + "/event/";
@@ -60,7 +65,8 @@ tutao.event.EventBusClient.prototype.connect = function(reconnect) {
 			.setClientVersion(tutao.entity.sys.WebsocketWrapper.MODEL_VERSION + "." + tutao.entity.tutanota.Mail.MODEL_VERSION);
         var authentication = new tutao.entity.sys.Authentication(wrapper)
             .setUserId(tutao.locator.userController.getUserId())
-            .setAuthVerifier(tutao.locator.userController.getAuthVerifier());
+            .setAuthVerifier(tutao.locator.userController.getAuthVerifier())
+            .setExternalAuthToken(tutao.locator.userController.getAuthToken());
         wrapper.setAuthentication(authentication);
 	    self._socket.send(JSON.stringify(wrapper.toJsonData()));
         if (reconnect) {
@@ -107,7 +113,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
 		// two events are executed is not defined so we need the tryReconnect in both situations.
 		this.tryReconnect();
 	}
-    if (!this.terminated && tutao.locator.userController.isInternalUserLoggedIn()) {
+    if (!this.terminated && tutao.locator.viewManager.isUserLoggedIn()) {
         setTimeout(this.tryReconnect, 1000 * this._randomIntFromInterval(30, 100));
     }
 };
@@ -117,7 +123,7 @@ tutao.event.EventBusClient.prototype._close = function(event) {
  */
 tutao.event.EventBusClient.prototype.tryReconnect = function() {
 	console.log("ws tryReconnect socket state (CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3): " + ((this._socket) ? this._socket.readyState: "null"));
-    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated && tutao.locator.userController.isInternalUserLoggedIn()) {
+    if ((this._socket == null || this._socket.readyState == WebSocket.CLOSED) && !this.terminated && tutao.locator.viewManager.isUserLoggedIn()) {
         this.connect(true);
     }
 };

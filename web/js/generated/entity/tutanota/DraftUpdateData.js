@@ -1,0 +1,170 @@
+"use strict";
+
+tutao.provide('tutao.entity.tutanota.DraftUpdateData');
+
+/**
+ * @constructor
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.DraftUpdateData = function(data) {
+  if (data) {
+    this.updateData(data);
+  } else {
+    this.__format = "0";
+    this._draft = null;
+    this._draftData = null;
+    this._removedAttachments = [];
+  }
+  this._entityHelper = new tutao.entity.EntityHelper(this);
+  this.prototype = tutao.entity.tutanota.DraftUpdateData.prototype;
+};
+
+/**
+ * Updates the data of this entity.
+ * @param {Object=} data The json data to store in this entity.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.updateData = function(data) {
+  this.__format = data._format;
+  this._draft = data.draft;
+  this._draftData = (data.draftData) ? new tutao.entity.tutanota.DraftData(this, data.draftData) : null;
+  this._removedAttachments = data.removedAttachments;
+};
+
+/**
+ * The version of the model this type belongs to.
+ * @const
+ */
+tutao.entity.tutanota.DraftUpdateData.MODEL_VERSION = '11';
+
+/**
+ * The url path to the resource.
+ * @const
+ */
+tutao.entity.tutanota.DraftUpdateData.PATH = '/rest/tutanota/draftservice';
+
+/**
+ * The encrypted flag.
+ * @const
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.ENCRYPTED = true;
+
+/**
+ * Provides the data of this instances as an object that can be converted to json.
+ * @return {Object} The json object.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.toJsonData = function() {
+  return {
+    _format: this.__format, 
+    draft: this._draft, 
+    draftData: tutao.entity.EntityHelper.aggregatesToJsonData(this._draftData), 
+    removedAttachments: this._removedAttachments
+  };
+};
+
+/**
+ * The id of the DraftUpdateData type.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.TYPE_ID = 518;
+
+/**
+ * The id of the draft attribute.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.DRAFT_ATTRIBUTE_ID = 522;
+
+/**
+ * The id of the draftData attribute.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.DRAFTDATA_ATTRIBUTE_ID = 520;
+
+/**
+ * The id of the removedAttachments attribute.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.REMOVEDATTACHMENTS_ATTRIBUTE_ID = 521;
+
+/**
+ * Sets the format of this DraftUpdateData.
+ * @param {string} format The format of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.setFormat = function(format) {
+  this.__format = format;
+  return this;
+};
+
+/**
+ * Provides the format of this DraftUpdateData.
+ * @return {string} The format of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.getFormat = function() {
+  return this.__format;
+};
+
+/**
+ * Sets the draft of this DraftUpdateData.
+ * @param {Array.<string>} draft The draft of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.setDraft = function(draft) {
+  this._draft = draft;
+  return this;
+};
+
+/**
+ * Provides the draft of this DraftUpdateData.
+ * @return {Array.<string>} The draft of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.getDraft = function() {
+  return this._draft;
+};
+
+/**
+ * Loads the draft of this DraftUpdateData.
+ * @return {Promise.<tutao.entity.tutanota.Mail>} Resolves to the loaded draft of this DraftUpdateData or an exception if the loading failed.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.loadDraft = function() {
+  return tutao.entity.tutanota.Mail.load(this._draft);
+};
+
+/**
+ * Sets the draftData of this DraftUpdateData.
+ * @param {tutao.entity.tutanota.DraftData} draftData The draftData of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.setDraftData = function(draftData) {
+  this._draftData = draftData;
+  return this;
+};
+
+/**
+ * Provides the draftData of this DraftUpdateData.
+ * @return {tutao.entity.tutanota.DraftData} The draftData of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.getDraftData = function() {
+  return this._draftData;
+};
+
+/**
+ * Provides the removedAttachments of this DraftUpdateData.
+ * @return {Array.<Array.<string>>} The removedAttachments of this DraftUpdateData.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.getRemovedAttachments = function() {
+  return this._removedAttachments;
+};
+
+/**
+ * Updates this service.
+ * @param {Object.<string, string>} parameters The parameters to send to the service.
+ * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
+ * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.update = function(parameters, headers) {
+  if (!headers) {
+    headers = tutao.entity.EntityHelper.createAuthHeaders();
+  }
+  parameters["v"] = 11;
+  return tutao.locator.entityRestClient.putService(tutao.entity.tutanota.DraftUpdateData.PATH, this, parameters, headers, null);
+};
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
+tutao.entity.tutanota.DraftUpdateData.prototype.getEntityHelper = function() {
+  return this._entityHelper;
+};
