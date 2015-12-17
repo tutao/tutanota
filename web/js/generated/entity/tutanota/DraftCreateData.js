@@ -73,37 +73,37 @@ tutao.entity.tutanota.DraftCreateData.prototype.toJsonData = function() {
 /**
  * The id of the DraftCreateData type.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.TYPE_ID = 507;
+tutao.entity.tutanota.DraftCreateData.prototype.TYPE_ID = 508;
 
 /**
  * The id of the conversationType attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.CONVERSATIONTYPE_ATTRIBUTE_ID = 510;
+tutao.entity.tutanota.DraftCreateData.prototype.CONVERSATIONTYPE_ATTRIBUTE_ID = 511;
 
 /**
  * The id of the listEncSessionKey attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 511;
+tutao.entity.tutanota.DraftCreateData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 512;
 
 /**
  * The id of the previousMessageId attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 509;
+tutao.entity.tutanota.DraftCreateData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 510;
 
 /**
  * The id of the sharableEncSessionKey attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.SHARABLEENCSESSIONKEY_ATTRIBUTE_ID = 513;
+tutao.entity.tutanota.DraftCreateData.prototype.SHARABLEENCSESSIONKEY_ATTRIBUTE_ID = 514;
 
 /**
  * The id of the symEncSessionKey attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.SYMENCSESSIONKEY_ATTRIBUTE_ID = 512;
+tutao.entity.tutanota.DraftCreateData.prototype.SYMENCSESSIONKEY_ATTRIBUTE_ID = 513;
 
 /**
  * The id of the draftData attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.DRAFTDATA_ATTRIBUTE_ID = 514;
+tutao.entity.tutanota.DraftCreateData.prototype.DRAFTDATA_ATTRIBUTE_ID = 515;
 
 /**
  * Sets the format of this DraftCreateData.

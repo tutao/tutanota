@@ -66,7 +66,7 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
 };
 
 /**
- * Updates a draft mail.
+ * Updates a draft mail. This function does not make sure the given draft is updated from the server (by web sockets), but it makes sure that the list of attachments in the given draft is updated.
  * @param {string} subject The subject of the mail.
  * @param {string} bodyText The bodyText of the mail.
  * @param {string} senderMailAddress The senders mail address.
@@ -106,7 +106,7 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
                 }
             }
             if (!existing) {
-                service.getRemovedAttachments().push(fileId);
+                service.getDraftData().getRemovedAttachments().push(fileId);
             }
         }).then(function () {
             // add new attachments
@@ -137,14 +137,9 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
         tutao.tutanota.ctrl.DraftFacade._addRecipients(service, ccRecipients, service.getDraftData().getCcRecipients());
         tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
 
-        // return when the draft was updated via websockets
-        return new Promise(function(resolve, reject) {
-            var draftUpdatedFunction = function() {
-                draft.unregisterObserver(draftUpdatedFunction);
-                resolve();
-            };
-            draft.registerObserver(draftUpdatedFunction);
-            service.update({}, tutao.entity.EntityHelper.createAuthHeaders());
+        return service.update({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(draftUpdateReturn) {
+            // replace the existing attachments with the new ones manually, because we do not want to rely on the web socket update
+            Array.prototype.splice.apply(draft.getAttachments(), [0, draft.getAttachments().length].concat(draftUpdateReturn.getAttachments()));
         });
     });
 };

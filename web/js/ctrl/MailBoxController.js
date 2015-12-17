@@ -58,6 +58,15 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
                     systemFolder.loadSubFolders();
                     return systemFolder;
                 }).then(function(createdSystemFolders) {
+                    createdSystemFolders.sort(function(folder1, folder2) {
+                        // insert the draft folder after inbox
+                        if (folder1.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
+                            return 1.5 - Number(folder2.getFolderType());
+                        } else  if (folder2.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
+                            return Number(folder1.getFolderType()) - 1.5;
+                        }
+                        return Number(folder1.getFolderType()) - Number(folder2.getFolderType());
+                    });
                     tutao.locator.mailFolderListViewModel.setMailFolders(createdSystemFolders);
                 });
             });

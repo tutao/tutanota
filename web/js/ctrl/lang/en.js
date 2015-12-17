@@ -633,5 +633,4 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "yesterday_label": "yesterday",
     "draft_alt": "Email is a draft",
     "close_action": "Close",
-    "saveOrDeleteDraft_msg": "Would you like to save or delete the draft?"
 };

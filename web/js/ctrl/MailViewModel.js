@@ -501,7 +501,11 @@ tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = functio
 	if (!this.mail) {
 		return Promise.resolve(true);
 	} else if (this.isComposingState()) {
-		return (this.getComposingMail().cancelMail(restorePreviousMail, false));
+        var self = this;
+		return this.getComposingMail().saveDraft(false).then(function() {
+            self.getComposingMail().closeDraft(restorePreviousMail);
+            return true;
+        });
 	} else {
         return Promise.resolve(true);
 	}

@@ -632,5 +632,4 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "yearly_label": "Jährlich",
   "yesterday_label": "gestern",
     "draft_alt": "E-Mail ist ein Entwurf",
-    "saveOrDeleteDraft_msg": "Möchtest du den Entwurf speichern oder löschen?"
 };

@@ -52,12 +52,12 @@ tutao.entity.tutanota.DraftCreateReturn.prototype.toJsonData = function() {
 /**
  * The id of the DraftCreateReturn type.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.TYPE_ID = 515;
+tutao.entity.tutanota.DraftCreateReturn.prototype.TYPE_ID = 516;
 
 /**
  * The id of the mail attribute.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.MAIL_ATTRIBUTE_ID = 517;
+tutao.entity.tutanota.DraftCreateReturn.prototype.MAIL_ATTRIBUTE_ID = 518;
 
 /**
  * Sets the format of this DraftCreateReturn.

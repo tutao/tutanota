@@ -54,26 +54,13 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     var notBusy = function() {
         return !self.busy();
     };
-    var closeButtons = [
-        new tutao.tutanota.ctrl.Button("save_action", 12, function() {
-            self.busy(true);
-            self.saveDraft(true, true).finally(function() {
-                self.busy(false);
-            });
-        }, notBusy, true, "composer_save", "moveToFolder"),
-        new tutao.tutanota.ctrl.Button("delete_action", 11, function () {
-            if (self._draft) {
-                self._folderOfDraft.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), [self._draft]);
-            } else {
-                self.cancelMail(true, true);
-            }
-        }, notBusy, false, "composer_delete", "trash")
-    ];
 	this.buttons = [
-        new tutao.tutanota.ctrl.Button("close_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
-        }, notBusy, false, "composer_close", "cancel", null, null, null, function () {
-            return closeButtons;
-        }),
+        new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self.closeDraft(true);
+        }, notBusy, false, "composer_cancel", "cancel"),
+        new tutao.tutanota.ctrl.Button("save_action", 8, function() {
+            self.saveDraft(true);
+        }, notBusy, true, "composer_save", "moveToFolder"),
         new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
         new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
     ];
@@ -88,31 +75,16 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     this._folderOfDraft = (draft) ? tutao.locator.mailFolderListViewModel.selectedFolder() : tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT);
 
     this._lastBodyText = "";
-    this._runPeriodicAutoSave();
+
+    $(window).on('beforeunload ',function() {
+        self.saveDraft(false);
+    });
 };
 
 /**
  * The maximum attachments size for unsecure external recipients.
  */
 tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE = 26214400;
-
-tutao.tutanota.ctrl.ComposingMail.prototype._runPeriodicAutoSave = function() {
-    var self = this;
-    setTimeout(function() {
-        // stop autosave if this composing mail is not used any more
-        if (tutao.locator.mailViewModel.mail() == self) {
-            if (!self.busy()) {
-                if (self._hasMailChanged(false)) {
-                    //console.log(true);
-                    self.saveDraft(false, false);
-                } else {
-                    //console.log(false);
-                }
-            }
-            self._runPeriodicAutoSave();
-        }
-    }, 10000);
-};
 
 /**
  * Checks if this composing mail was changed since the last save, resp. is not empty in case of a new mail.
@@ -225,10 +197,9 @@ tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = fun
 /**
  * Saves the draft.
  * @param saveAttachments True if also the attachments shall be saved, false otherwise.
- * @param closeDraft True if this composing mail shall be closed after saving, false otherwise.
  * @returns {Promise} When finished.
  */
-tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments, closeDraft) {
+tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments) {
     var self = this;
     var attachments = null;
     if (saveAttachments) {
@@ -241,31 +212,31 @@ tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments
     }
     var body = tutao.locator.mailView.getComposingBody();
     this._lastBodyText = body;
+    self.busy(true);
     if (self._draft) {
         return tutao.tutanota.ctrl.DraftFacade.updateDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
             attachments, self.confidentialButtonSecure(), self._draft).then(function() {
-                tutao.locator.mailListViewModel.updateMailEntry(self._draft);
-                if (closeDraft) {
-                    self._freeBubbles();
-                    self._restoreViewState();
-                }
-            });
+            tutao.locator.mailListViewModel.updateMailEntry(self._draft);
+            if (saveAttachments) {
+                // we have to update the attachments with the new File instances
+                self._updateAttachments();
+            }
+            self.busy(false);
+        });
     } else {
         return tutao.tutanota.ctrl.DraftFacade.createDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
             self.conversationType, self.previousMessageId, attachments, self.confidentialButtonSecure()).then(function (draft) {
             self._draft = draft;
-            if (closeDraft) {
-                self._freeBubbles();
-                self._restoreViewState();
-            }
+            self.busy(false);
         });
     }
 };
 
 tutao.tutanota.ctrl.ComposingMail.prototype._updateAttachments = function() {
     var self = this;
+    this._attachments([]);
     Promise.each(this._draft.getAttachments(), function(fileId) {
         tutao.entity.tutanota.File.load(fileId).then(function (file) {
             self._attachments.push(file);
@@ -340,9 +311,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 
                 return promise.then(function (ok) {
                     if (ok) {
-                        return self.saveDraft(true, false).then(function() {
+                        return self.saveDraft(true).then(function() {
                             return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
-                                self._freeBubbles();
 
                                 // the mail is sent in the background
                                 self.directSwitchActive = false;
@@ -362,8 +332,8 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                     tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.bccRecipientsViewModel));
                                     return tutao.tutanota.ctrl.DraftFacade.sendDraft(self._draft, allRecipients, tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailId, exception) {
                                         return self._updatePreviousMail().lastly(function () {
-                                            self._restoreViewState();
                                             self._folderOfDraft.removeMails([self._draft]);
+                                            self.closeDraft(true);
                                         });
                                     });
                                 }).caught(tutao.RecipientsNotFoundError, function (exception) {
@@ -415,48 +385,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
     }
 };
 
-/**
- * Try to cancel creating this new mail. The user is asked if an existing draft or a new email with changes shall be saved or deleted.
- * @param {boolean} restorePreviousMail True if previously visible mail shall be shown, otherwise no mail is shown.
- * @param {boolean} disableConfirm Disables confirm dialog when cancel mail.
- * @return {Promise.<boolean>} True if the mail was cancelled, false otherwise.
- */
-tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(restorePreviousMail, disableConfirm) {
-    var self = this;
-    // if the email is currently sent, do not cancel the email.
-    if (this.busy()) {
-        return Promise.resolve(false);
-    }
-
-    var cancel = function() {
-        self._freeBubbles();
-        if (restorePreviousMail) {
-            self._restoreViewState();
-        }
-    };
-
-	if (disableConfirm || (!this._draft && !this._hasMailChanged(true))) {
-        cancel();
-        return Promise.resolve(true);
-    } else {
-        return tutao.locator.modalDialogViewModel.showDialog(tutao.lang("saveOrDeleteDraft_msg"), ["delete_action", "save_action", "cancel_action"]).then(function (buttonIndex) {
-            if (buttonIndex == 1) {
-                return self.saveDraft(true, true).then(function() {
-                    return true;
-                });
-            } else if (buttonIndex == 0) {
-                if (self._draft) {
-                    return self._folderOfDraft.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), [self._draft]).then(function() {
-                        return true;
-                    });
-                } else {
-                    cancel();
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        });
+tutao.tutanota.ctrl.ComposingMail.prototype.closeDraft = function(restorePreviousMail) {
+    $(window).off('beforeunload');
+    this._freeBubbles();
+    if (restorePreviousMail) {
+        this._restoreViewState();
     }
 };
 

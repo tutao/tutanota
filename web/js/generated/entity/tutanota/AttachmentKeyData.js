@@ -48,22 +48,22 @@ tutao.entity.tutanota.AttachmentKeyData.prototype.toJsonData = function() {
 /**
  * The id of the AttachmentKeyData type.
  */
-tutao.entity.tutanota.AttachmentKeyData.prototype.TYPE_ID = 539;
+tutao.entity.tutanota.AttachmentKeyData.prototype.TYPE_ID = 542;
 
 /**
  * The id of the bucketEncFileSessionKey attribute.
  */
-tutao.entity.tutanota.AttachmentKeyData.prototype.BUCKETENCFILESESSIONKEY_ATTRIBUTE_ID = 541;
+tutao.entity.tutanota.AttachmentKeyData.prototype.BUCKETENCFILESESSIONKEY_ATTRIBUTE_ID = 544;
 
 /**
  * The id of the fileSessionKey attribute.
  */
-tutao.entity.tutanota.AttachmentKeyData.prototype.FILESESSIONKEY_ATTRIBUTE_ID = 542;
+tutao.entity.tutanota.AttachmentKeyData.prototype.FILESESSIONKEY_ATTRIBUTE_ID = 545;
 
 /**
  * The id of the file attribute.
  */
-tutao.entity.tutanota.AttachmentKeyData.prototype.FILE_ATTRIBUTE_ID = 543;
+tutao.entity.tutanota.AttachmentKeyData.prototype.FILE_ATTRIBUTE_ID = 546;
 
 /**
  * Sets the id of this AttachmentKeyData.

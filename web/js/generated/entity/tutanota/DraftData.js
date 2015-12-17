@@ -20,6 +20,7 @@ tutao.entity.tutanota.DraftData = function(parent, data) {
     this._addedAttachments = [];
     this._bccRecipients = [];
     this._ccRecipients = [];
+    this._removedAttachments = [];
     this._toRecipients = [];
   }
   this._parent = parent;
@@ -50,6 +51,7 @@ tutao.entity.tutanota.DraftData.prototype.updateData = function(parent, data) {
   for (var i=0; i < data.ccRecipients.length; i++) {
     this._ccRecipients.push(new tutao.entity.tutanota.DraftRecipient(parent, data.ccRecipients[i]));
   }
+  this._removedAttachments = data.removedAttachments;
   this._toRecipients = [];
   for (var i=0; i < data.toRecipients.length; i++) {
     this._toRecipients.push(new tutao.entity.tutanota.DraftRecipient(parent, data.toRecipients[i]));
@@ -71,6 +73,7 @@ tutao.entity.tutanota.DraftData.prototype.toJsonData = function() {
     addedAttachments: tutao.entity.EntityHelper.aggregatesToJsonData(this._addedAttachments), 
     bccRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._bccRecipients), 
     ccRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._ccRecipients), 
+    removedAttachments: this._removedAttachments, 
     toRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._toRecipients)
   };
 };
@@ -119,6 +122,11 @@ tutao.entity.tutanota.DraftData.prototype.BCCRECIPIENTS_ATTRIBUTE_ID = 505;
  * The id of the ccRecipients attribute.
  */
 tutao.entity.tutanota.DraftData.prototype.CCRECIPIENTS_ATTRIBUTE_ID = 504;
+
+/**
+ * The id of the removedAttachments attribute.
+ */
+tutao.entity.tutanota.DraftData.prototype.REMOVEDATTACHMENTS_ATTRIBUTE_ID = 507;
 
 /**
  * The id of the toRecipients attribute.
@@ -305,6 +313,14 @@ tutao.entity.tutanota.DraftData.prototype.getBccRecipients = function() {
  */
 tutao.entity.tutanota.DraftData.prototype.getCcRecipients = function() {
   return this._ccRecipients;
+};
+
+/**
+ * Provides the removedAttachments of this DraftData.
+ * @return {Array.<Array.<string>>} The removedAttachments of this DraftData.
+ */
+tutao.entity.tutanota.DraftData.prototype.getRemovedAttachments = function() {
+  return this._removedAttachments;
 };
 
 /**

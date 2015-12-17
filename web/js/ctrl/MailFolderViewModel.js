@@ -402,7 +402,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM) {
         return  "spam";
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
-        return  "draft";
+        return  "mail-new";
     } else {
         return "folder";
     }

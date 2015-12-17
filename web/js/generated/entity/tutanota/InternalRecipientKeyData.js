@@ -48,22 +48,22 @@ tutao.entity.tutanota.InternalRecipientKeyData.prototype.toJsonData = function()
 /**
  * The id of the InternalRecipientKeyData type.
  */
-tutao.entity.tutanota.InternalRecipientKeyData.prototype.TYPE_ID = 524;
+tutao.entity.tutanota.InternalRecipientKeyData.prototype.TYPE_ID = 527;
 
 /**
  * The id of the mailAddress attribute.
  */
-tutao.entity.tutanota.InternalRecipientKeyData.prototype.MAILADDRESS_ATTRIBUTE_ID = 526;
+tutao.entity.tutanota.InternalRecipientKeyData.prototype.MAILADDRESS_ATTRIBUTE_ID = 529;
 
 /**
  * The id of the pubEncBucketKey attribute.
  */
-tutao.entity.tutanota.InternalRecipientKeyData.prototype.PUBENCBUCKETKEY_ATTRIBUTE_ID = 527;
+tutao.entity.tutanota.InternalRecipientKeyData.prototype.PUBENCBUCKETKEY_ATTRIBUTE_ID = 530;
 
 /**
  * The id of the pubKeyVersion attribute.
  */
-tutao.entity.tutanota.InternalRecipientKeyData.prototype.PUBKEYVERSION_ATTRIBUTE_ID = 528;
+tutao.entity.tutanota.InternalRecipientKeyData.prototype.PUBKEYVERSION_ATTRIBUTE_ID = 531;
 
 /**
  * Sets the id of this InternalRecipientKeyData.
