@@ -596,6 +596,8 @@ tutao.tutanota.gui.initEvents = function() {
     // not used currently because in the most important case (history sliding on iOS 7) it is not working
     // window.onbeforeunload = tutao.tutanota.gui._confirmExit;
 
+    window.onbeforeunload = tutao.tutanota.gui._saveDraft;
+
     // workaround for firefox bug
     tutao.tutanota.gui.addWindowResizeListener(function() {
         tutao.tutanota.gui.adjustPanelHeight();
@@ -609,6 +611,12 @@ tutao.tutanota.gui.initEvents = function() {
         return null;
     }
 };*/
+
+tutao.tutanota.gui._saveDraft = function() {
+    if (tutao.locator.viewManager.isUserLoggedIn() && tutao.locator.mailViewModel.isComposingState()) {
+        tutao.locator.mailViewModel.getComposingMail().saveDraft(false);
+    }
+ };
 
 tutao.tutanota.gui._fixWindowHeight = function() {
     if (window.innerHeight != document.body.style.height) {

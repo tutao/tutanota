@@ -75,10 +75,6 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     this._folderOfDraft = (draft) ? tutao.locator.mailFolderListViewModel.selectedFolder() : tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT);
 
     this._lastBodyText = "";
-
-    $(window).on('beforeunload ',function() {
-        self.saveDraft(false);
-    });
 };
 
 /**
@@ -386,7 +382,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
 };
 
 tutao.tutanota.ctrl.ComposingMail.prototype.closeDraft = function(restorePreviousMail) {
-    $(window).off('beforeunload');
     this._freeBubbles();
     if (restorePreviousMail) {
         this._restoreViewState();
