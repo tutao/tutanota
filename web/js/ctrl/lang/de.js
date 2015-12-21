@@ -185,7 +185,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "draft_action": "Entwürfe",
   "editFolder_action": "Bearbeiten",
   "editUser_label": "Benutzer bearbeiten",
-  "edit_action": "Ändern",
+  "edit_action": "Bearbeiten",
   "emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
   "emailSenderBlacklist_action": "Immer Spam",
   "emailSenderDiscardlist_action": "Verwerfen",

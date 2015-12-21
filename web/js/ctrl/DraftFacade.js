@@ -241,7 +241,6 @@ tutao.tutanota.ctrl.DraftFacade.sendDraft = function(draft, recipientInfos, lang
             });
         } else {
             service.setMailSessionKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.aesCrypter.keyToHex(mailSessionKey)));
-            service.setSenderNameUnencrypted(draft.getSender().getName());
         }
     }).then(function() {
         return service.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(sendDraftReturn) {
