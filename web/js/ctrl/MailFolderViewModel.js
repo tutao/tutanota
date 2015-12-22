@@ -47,7 +47,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
     }).lastly(function() {
         self.loading(false);
 
-        if (!self._eventTracker && tutao.locator.userController.isInternalUserLoggedIn()) {
+        if (!self._eventTracker) {
             self._eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, self._mailFolder.getMails(), "Mail");
             self._eventTracker.addObserver(self.updateOnNewMails);
             var highestMailId = (self._loadedMails().length > 0) ? self._loadedMails()[0].getId()[1] : tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
@@ -292,6 +292,8 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) 
     }
     if (selectedMailIndex != -1) {
         this.selectMail(this._loadedMails()[selectedMailIndex]);
+    } else {
+        tutao.locator.mailViewModel.hideMail();
     }
 };
 
@@ -400,7 +402,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getIconId = function() {
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SPAM) {
         return  "spam";
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
-        return  "draft";
+        return  "mail-new";
     } else {
         return "folder";
     }

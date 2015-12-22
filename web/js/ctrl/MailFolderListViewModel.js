@@ -35,7 +35,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.init = function() {
         new tutao.tutanota.ctrl.Button("delete_action", 3, this._deleteSelectedFolder, null, false, "deleteFolderAction", "removeFolder")
     ];
     this.buttons = [];
-    this.buttons.push(new tutao.tutanota.ctrl.Button("editFolder_action", 10, function(){}, function(){return self.selectedFolder() != null;}, false, "editFolderAction", "folder", null, null, null, function() {
+    this.buttons.push(new tutao.tutanota.ctrl.Button("edit_action", 10, function(){}, function(){return self.selectedFolder() != null;}, false, "editFolderAction", "folder", null, null, null, function() {
         return self._subButtons;
     }));
 

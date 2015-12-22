@@ -98,8 +98,11 @@ tutao.rest.EntityRestCache.prototype._getElementFromTarget = function(type, path
         if (!versionRequest) {
             self._addToCache(path, element);
             self._tryAddToRange(path, element);
+            // do not return element directly because there might already have been an instance in the cache which was updated
+            return self._getElementFromCache(path, id, listId);
+        } else {
+            return element;
         }
-        return element;
     });
 };
 
@@ -148,7 +151,7 @@ tutao.rest.EntityRestCache.prototype.getElements = function(type, path, ids, par
 				self._addToCache(path, serverElements[i]);
                 self._tryAddToRange(path, serverElements[i]);
 				// merge with cached elements
-				elements.push(serverElements[i]);
+				elements.push(self._getElementFromCache(path, tutao.rest.EntityRestInterface.getElementId(serverElements[i]), cacheListId));
 			}			
 			return elements;
 		});

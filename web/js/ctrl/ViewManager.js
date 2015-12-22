@@ -137,12 +137,16 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
             tutao.locator.progressDialogModel.open("loggingOut_msg");
             tutao.locator.progressDialogModel.updateProgress(33);
-            tutao.locator.loginViewModel.storeEntropy().caught(function(e) {
-                console.log("error while storing entropy", e);
-            }).finally(function() {
-                tutao.locator.progressDialogModel.updateProgress(100);
-                tutao.locator.navigator.logout();
-                tutao.locator.progressDialogModel.close();
+            tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
+                if (confirmed) {
+                    tutao.locator.loginViewModel.storeEntropy().caught(function (e) {
+                        console.log("error while storing entropy", e);
+                    }).finally(function () {
+                        tutao.locator.progressDialogModel.updateProgress(100);
+                        tutao.locator.navigator.logout();
+                        tutao.locator.progressDialogModel.close();
+                    });
+                }
             });
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt')
 

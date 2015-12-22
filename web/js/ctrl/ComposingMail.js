@@ -4,18 +4,24 @@ tutao.provide('tutao.tutanota.ctrl.ComposingMail');
 
 /**
  * This class represents a mail that is currently written. It contains mail, body and other editing fields.
+ * @param {tutao.entity.tutanota.Mail?} draft The draft that shall be edited.
  * @param {string} conversationType The conversationType.
- * @param {string?} previousMessageId The message id of the mail that the new mail is a reply to or that is forwarded. Null if this is a new mail.
+ * @param {string?} previousMessageId The message id of the mail that the new mail is a reply to or that is forwarded. Null if this is a new mail or an edited draft.
  * @param {tutao.entity.tutanota.Mail?} previousMail The email that this is a reply to or that is forwarded. Null if this is a new mail.
  * @constructor
  * @implements {tutao.tutanota.ctrl.bubbleinput.BubbleHandler}
  */
-tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId, previousMail) {
+tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMessageId, previousMail) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-    var sender = tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
-    if (!sender) {
-        sender = tutao.locator.userController.getUserGroupInfo().getMailAddress();
+    var sender = null;
+    if (draft) {
+        sender = draft.getSender().getAddress();
+    } else {
+        tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
+        if (!sender) {
+            sender = tutao.locator.userController.getUserGroupInfo().getMailAddress();
+        }
     }
     this.availableSenders = tutao.locator.userController.getEnabledMailAddresses();
     this.sender = ko.observable(sender);
@@ -44,19 +50,20 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 
 	this.directSwitchActive = true;
 
-	this.mailBodyLoaded = ko.observable(true);
-
     var self = this;
     var notBusy = function() {
         return !self.busy();
     };
 	this.buttons = [
-                    new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
-                        self.cancelMail(true, true);
-                    }, notBusy, false, "composer_cancel", "cancel"),
-			        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
-			        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
-			        ];
+        new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self.closeDraft(true);
+        }, notBusy, false, "composer_cancel", "cancel"),
+        new tutao.tutanota.ctrl.Button("save_action", 8, function() {
+            self.saveDraft(true);
+        }, notBusy, true, "composer_save", "moveToFolder"),
+        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
+        new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
+    ];
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
 
     tutao.locator.passwordChannelViewModel.init();
@@ -64,6 +71,10 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
     this.showBccCc = ko.observable(false);
     tutao.locator.mailViewModel.notificationBarViewModel.hideNotification();
 
+    this._draft = draft;
+    this._folderOfDraft = (draft) ? tutao.locator.mailFolderListViewModel.selectedFolder() : tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT);
+
+    this._lastBodyText = "";
 };
 
 /**
@@ -72,10 +83,70 @@ tutao.tutanota.ctrl.ComposingMail = function(conversationType, previousMessageId
 tutao.tutanota.ctrl.ComposingMail.MAX_EXTERNAL_ATTACHMENTS_SIZE = 26214400;
 
 /**
+ * Checks if this composing mail was changed since the last save, resp. is not empty in case of a new mail.
+ * @param {bool} includeAttachments True if also the attachments shall be checked, false otherwise.
+ * @returns {bool} True if the mail was changed, false otherwise.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype._hasMailChanged = function(includeAttachments) {
+    if (this._draft) {
+        var senderName = "";
+        if (tutao.locator.userController.isInternalUserLoggedIn()) {
+            // external users do not have access to the user group info
+            senderName = tutao.locator.userController.getUserGroupInfo().getName();
+        }
+        return (this._draft.getSubject() != this.composerSubject()) ||
+            (this._lastBodyText != tutao.locator.mailView.getComposingBody()) ||
+            (this._draft.getSender().getAddress() != this.sender()) ||
+            (this._draft.getSender().getName() != senderName) ||
+            (this._draft.getConfidential() != this.confidentialButtonSecure()) ||
+            (this._hasRecipientsChanged(this.getComposerRecipients(this.toRecipientsViewModel), this._draft.getToRecipients())) ||
+            (this._hasRecipientsChanged(this.getComposerRecipients(this.ccRecipientsViewModel), this._draft.getCcRecipients())) ||
+            (this._hasRecipientsChanged(this.getComposerRecipients(this.bccRecipientsViewModel), this._draft.getBccRecipients())) ||
+            (includeAttachments && this._hasAttachmentsChanged());
+    } else {
+        var body = tutao.locator.mailView.getComposingBody();
+        return (this.composerSubject() !== "" ||
+        (body !== "" && body !== "<br>" && body != this._lastBodyText) ||
+        this.toRecipientsViewModel.bubbles().length != 0 ||
+        this.ccRecipientsViewModel.bubbles().length != 0 ||
+        this.bccRecipientsViewModel.bubbles().length != 0 ||
+        (includeAttachments && this._attachments.length > 0));
+    }
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._hasRecipientsChanged = function(recipientInfos, draftRecipients) {
+    if (recipientInfos.length != draftRecipients.length) {
+        return true;
+    }
+    for (var i=0; i<recipientInfos.length; i++) {
+        if ((recipientInfos[i].getMailAddress() != draftRecipients[i].getAddress()) ||
+            (recipientInfos[i].getName() != draftRecipients[i].getName())) {
+            return true;
+        }
+    }
+    return false;
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._hasAttachmentsChanged = function() {
+    if (this._attachments().length != this._draft.getAttachments().length) {
+        return true;
+    }
+    for (var i=0; i<this._attachments().length; i++) {
+        if (!(this._attachments()[i] instanceof tutao.entity.tutanota.File) ||
+            (this._attachments()[i].getId()[0] != this._draft.getAttachments()[i].getId()[0]) ||
+            (this._attachments()[i].getId()[1] != this._draft.getAttachments()[i].getId()[1])) {
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
  * @param {string} bodyText The unsanitized body text. May be an empty string.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.setBody = function(bodyText) {
     tutao.locator.mailView.setComposingBody(bodyText);
+    this._lastBodyText = tutao.locator.mailView.getComposingBody();
 };
 
 /**
@@ -117,6 +188,59 @@ tutao.tutanota.ctrl.ComposingMail.prototype.showPasswordChannelColumn = function
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = function() {
     return tutao.locator.mailView.isPasswordChannelColumnVisible();
+};
+
+/**
+ * Saves the draft.
+ * @param saveAttachments True if also the attachments shall be saved, false otherwise.
+ * @returns {Promise} When finished.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments) {
+    var self = this;
+    var attachments = null;
+    if (saveAttachments) {
+        attachments = self._attachments();
+    }
+    var senderName = "";
+    if (tutao.locator.userController.isInternalUserLoggedIn()) {
+        // external users do not have access to the user group info
+        senderName = tutao.locator.userController.getUserGroupInfo().getName();
+    }
+    var body = tutao.locator.mailView.getComposingBody();
+    this._lastBodyText = body;
+    self.busy(true);
+    if (self._draft) {
+        return tutao.tutanota.ctrl.DraftFacade.updateDraft(self.composerSubject(), body, self.sender(), senderName,
+            self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+            attachments, self.confidentialButtonSecure(), self._draft).then(function() {
+            tutao.locator.mailListViewModel.updateMailEntry(self._draft);
+            if (saveAttachments) {
+                // we have to update the attachments with the new File instances
+                self._updateAttachments();
+            }
+            self.busy(false);
+        });
+    } else {
+        return tutao.tutanota.ctrl.DraftFacade.createDraft(self.composerSubject(), body, self.sender(), senderName,
+            self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
+            self.conversationType, self.previousMessageId, attachments, self.confidentialButtonSecure()).then(function (draft) {
+            self._draft = draft;
+            self.busy(false);
+        });
+    }
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._updateAttachments = function() {
+    var self = this;
+    this._attachments([]);
+    Promise.each(this._draft.getAttachments(), function(fileId) {
+        tutao.entity.tutanota.File.load(fileId).then(function (file) {
+            self._attachments.push(file);
+            if (!file.getEntityHelper().getSessionKey()) {
+                tutao.locator.mailViewModel.notificationBarViewModel.showNotification("corrupted_msg");
+            }
+        });
+    });
 };
 
 /**
@@ -183,61 +307,44 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 
                 return promise.then(function (ok) {
                     if (ok) {
-                        return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
-                            self._freeBubbles();
+                        return self.saveDraft(true).then(function() {
+                            return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
 
-                            var senderName = "";
-                            if (tutao.locator.userController.isInternalUserLoggedIn()) {
-                                senderName = tutao.locator.userController.getUserGroupInfo().getName();
-                            }
+                                // the mail is sent in the background
+                                self.directSwitchActive = false;
 
-                            var facade = null;
-                            if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                                facade = tutao.tutanota.ctrl.SendMailFromExternalFacade;
-                            } else if (!self.confidentialButtonSecure() && self.containsExternalRecipients()) {
-                                facade = tutao.tutanota.ctrl.SendUnsecureMailFacade;
-                            } else {
-                                facade = tutao.tutanota.ctrl.SendMailFacade;
-                            }
+                                var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
+                                var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
+                                var promise = Promise.resolve();
+                                if (selectedLanguage != propertyLanguage) {
+                                    tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
+                                    promise = tutao.locator.mailBoxController.getUserProperties().update();
+                                }
 
-                            // the mail is sent in the background
-                            self.directSwitchActive = false;
-
-                            var propertyLanguage = tutao.locator.mailBoxController.getUserProperties().getNotificationMailLanguage();
-                            var selectedLanguage = tutao.locator.passwordChannelViewModel.getNotificationMailLanguage();
-                            var promise = Promise.resolve();
-                            if (selectedLanguage != propertyLanguage) {
-                                tutao.locator.mailBoxController.getUserProperties().setNotificationMailLanguage(selectedLanguage);
-                                promise = tutao.locator.mailBoxController.getUserProperties().update();
-                            }
-
-                            return promise.then(function () {
-                                return facade.sendMail(self.composerSubject(), tutao.locator.mailView.getComposingBody(), self.sender(), senderName, self.getComposerRecipients(self.toRecipientsViewModel),
-                                    self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-                                    self.conversationType, self.previousMessageId, self._attachments(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailElementId, exception) {
+                                return promise.then(function () {
+                                    var allRecipients = [];
+                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.toRecipientsViewModel));
+                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.ccRecipientsViewModel));
+                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.bccRecipientsViewModel));
+                                    return tutao.tutanota.ctrl.DraftFacade.sendDraft(self._draft, allRecipients, tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailId, exception) {
                                         return self._updatePreviousMail().lastly(function () {
-                                            self._restoreViewState();
-                                            if (tutao.locator.userController.isExternalUserLoggedIn()) {
-                                                // external users do not download mails automatically, so download the sent email now
-                                                var externalSentFolder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT);
-                                                tutao.entity.tutanota.Mail.load([externalSentFolder.getMailListId(), senderMailElementId]).then(function (mail, exception) {
-                                                    externalSentFolder.updateOnNewMails([mail]);
-                                                });
-                                            }
+                                            self._folderOfDraft.removeMails([self._draft]);
+                                            self.closeDraft(true);
                                         });
                                     });
-                            }).caught(tutao.RecipientsNotFoundError, function (exception) {
-                                var notFoundRecipients = exception.getRecipients();
-                                var recipientList = "";
-                                for (var i = 0; i < notFoundRecipients.length; i++) {
-                                    recipientList += notFoundRecipients[i] + "\n";
-                                }
-                                console.log("recipients not found", exception);
-                                return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
-                            }).caught(tutao.TooManyRequestsError, function (exception) {
-                                return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
-                            }).caught(tutao.AccessBlockedError, function (exception) {
-                                return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+                                }).caught(tutao.RecipientsNotFoundError, function (exception) {
+                                    var notFoundRecipients = exception.getRecipients();
+                                    var recipientList = "";
+                                    for (var i = 0; i < notFoundRecipients.length; i++) {
+                                        recipientList += notFoundRecipients[i] + "\n";
+                                    }
+                                    console.log("recipients not found", exception);
+                                    return tutao.tutanota.gui.alert(tutao.lang("invalidRecipients_msg") + "\n" + recipientList);
+                                }).caught(tutao.TooManyRequestsError, function (exception) {
+                                    return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
+                                }).caught(tutao.AccessBlockedError, function (exception) {
+                                    return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+                                });
                             });
                         });
                     } else {
@@ -274,47 +381,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
     }
 };
 
-/**
- * Try to cancel creating this new mail. The user is asked if it shall be cancelled if he has already entered text.
- * @param {boolean} restorePreviousMail True if previously visible mail shall be shown, otherwise no mail is shown.
- * @param {boolean} disableConfirm Disables confirm dialog when cancel mail.
- * @return {Promise.<boolean>} True if the mail was cancelled, false otherwise.
- */
-tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail = function(restorePreviousMail, disableConfirm) {
-    var self = this;
-    // if the email is currently, sent, do not cancel the email.
-    if (this.busy()) {
-        return Promise.resolve(false);
-    }
-	var body = tutao.locator.mailView.getComposingBody();
-	var confirm = (this.composerSubject() !== "" ||
-            (body !== "" && body !== "<br>") ||
-			this.toRecipientsViewModel.inputValue() !== "" ||
-			this.toRecipientsViewModel.bubbles().length != 0 ||
-			this.ccRecipientsViewModel.inputValue() !== "" ||
-			this.ccRecipientsViewModel.bubbles().length != 0 ||
-			this.bccRecipientsViewModel.inputValue() !== "" ||
-			this.bccRecipientsViewModel.bubbles().length != 0);
-
-    var cancel = function() {
-        self._freeBubbles();
-        if (restorePreviousMail) {
-            self._restoreViewState();
-        }
-    };
-
-	if (!confirm || disableConfirm) {
-        cancel();
-        return Promise.resolve(true);
-    } else {
-        return tutao.tutanota.gui.confirm(tutao.lang("deleteMail_msg")).then(function (ok) {
-            if (ok) {
-                cancel();
-                return true;
-            } else {
-                return false;
-            }
-        });
+tutao.tutanota.ctrl.ComposingMail.prototype.closeDraft = function(restorePreviousMail) {
+    this._freeBubbles();
+    if (restorePreviousMail) {
+        this._restoreViewState();
     }
 };
 
@@ -382,6 +452,14 @@ tutao.tutanota.ctrl.ComposingMail.prototype.addToRecipient = function(recipientI
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.addCcRecipient = function(recipientInfo) {
 	this.ccRecipientsViewModel.addBubble(this._createBubbleFromRecipientInfo(recipientInfo));
+};
+
+/**
+ * Add a recipient to the "bcc" recipients.
+ * @param {tutao.tutanota.ctrl.RecipientInfo} recipientInfo The recipient info.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype.addBccRecipient = function(recipientInfo) {
+    this.bccRecipientsViewModel.addBubble(this._createBubbleFromRecipientInfo(recipientInfo));
 };
 
 /**
