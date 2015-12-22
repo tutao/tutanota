@@ -11,7 +11,7 @@ tutao.entity.tutanota.DraftCreateReturn = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._mail = null;
+    this._draft = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.DraftCreateReturn.prototype;
@@ -23,7 +23,7 @@ tutao.entity.tutanota.DraftCreateReturn = function(data) {
  */
 tutao.entity.tutanota.DraftCreateReturn.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._mail = data.mail;
+  this._draft = data.draft;
 };
 
 /**
@@ -45,7 +45,7 @@ tutao.entity.tutanota.DraftCreateReturn.prototype.ENCRYPTED = false;
 tutao.entity.tutanota.DraftCreateReturn.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    mail: this._mail
+    draft: this._draft
   };
 };
 
@@ -55,9 +55,9 @@ tutao.entity.tutanota.DraftCreateReturn.prototype.toJsonData = function() {
 tutao.entity.tutanota.DraftCreateReturn.prototype.TYPE_ID = 516;
 
 /**
- * The id of the mail attribute.
+ * The id of the draft attribute.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.MAIL_ATTRIBUTE_ID = 518;
+tutao.entity.tutanota.DraftCreateReturn.prototype.DRAFT_ATTRIBUTE_ID = 518;
 
 /**
  * Sets the format of this DraftCreateReturn.
@@ -77,28 +77,28 @@ tutao.entity.tutanota.DraftCreateReturn.prototype.getFormat = function() {
 };
 
 /**
- * Sets the mail of this DraftCreateReturn.
- * @param {Array.<string>} mail The mail of this DraftCreateReturn.
+ * Sets the draft of this DraftCreateReturn.
+ * @param {Array.<string>} draft The draft of this DraftCreateReturn.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.setMail = function(mail) {
-  this._mail = mail;
+tutao.entity.tutanota.DraftCreateReturn.prototype.setDraft = function(draft) {
+  this._draft = draft;
   return this;
 };
 
 /**
- * Provides the mail of this DraftCreateReturn.
- * @return {Array.<string>} The mail of this DraftCreateReturn.
+ * Provides the draft of this DraftCreateReturn.
+ * @return {Array.<string>} The draft of this DraftCreateReturn.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.getMail = function() {
-  return this._mail;
+tutao.entity.tutanota.DraftCreateReturn.prototype.getDraft = function() {
+  return this._draft;
 };
 
 /**
- * Loads the mail of this DraftCreateReturn.
- * @return {Promise.<tutao.entity.tutanota.Mail>} Resolves to the loaded mail of this DraftCreateReturn or an exception if the loading failed.
+ * Loads the draft of this DraftCreateReturn.
+ * @return {Promise.<tutao.entity.tutanota.Mail>} Resolves to the loaded draft of this DraftCreateReturn or an exception if the loading failed.
  */
-tutao.entity.tutanota.DraftCreateReturn.prototype.loadMail = function() {
-  return tutao.entity.tutanota.Mail.load(this._mail);
+tutao.entity.tutanota.DraftCreateReturn.prototype.loadDraft = function() {
+  return tutao.entity.tutanota.Mail.load(this._draft);
 };
 /**
  * Provides the entity helper of this entity.

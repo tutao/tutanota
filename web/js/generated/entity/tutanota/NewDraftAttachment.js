@@ -12,8 +12,8 @@ tutao.entity.tutanota.NewDraftAttachment = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
-    this._fileName = null;
-    this._mimeType = null;
+    this._encFileName = null;
+    this._encMimeType = null;
     this._fileData = null;
   }
   this._parent = parent;
@@ -27,8 +27,8 @@ tutao.entity.tutanota.NewDraftAttachment = function(parent, data) {
  */
 tutao.entity.tutanota.NewDraftAttachment.prototype.updateData = function(parent, data) {
   this.__id = data._id;
-  this._fileName = data.fileName;
-  this._mimeType = data.mimeType;
+  this._encFileName = data.encFileName;
+  this._encMimeType = data.encMimeType;
   this._fileData = data.fileData;
 };
 
@@ -39,8 +39,8 @@ tutao.entity.tutanota.NewDraftAttachment.prototype.updateData = function(parent,
 tutao.entity.tutanota.NewDraftAttachment.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
-    fileName: this._fileName, 
-    mimeType: this._mimeType, 
+    encFileName: this._encFileName, 
+    encMimeType: this._encMimeType, 
     fileData: this._fileData
   };
 };
@@ -51,14 +51,14 @@ tutao.entity.tutanota.NewDraftAttachment.prototype.toJsonData = function() {
 tutao.entity.tutanota.NewDraftAttachment.prototype.TYPE_ID = 486;
 
 /**
- * The id of the fileName attribute.
+ * The id of the encFileName attribute.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.FILENAME_ATTRIBUTE_ID = 488;
+tutao.entity.tutanota.NewDraftAttachment.prototype.ENCFILENAME_ATTRIBUTE_ID = 488;
 
 /**
- * The id of the mimeType attribute.
+ * The id of the encMimeType attribute.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.MIMETYPE_ATTRIBUTE_ID = 489;
+tutao.entity.tutanota.NewDraftAttachment.prototype.ENCMIMETYPE_ATTRIBUTE_ID = 489;
 
 /**
  * The id of the fileData attribute.
@@ -83,37 +83,37 @@ tutao.entity.tutanota.NewDraftAttachment.prototype.getId = function() {
 };
 
 /**
- * Sets the fileName of this NewDraftAttachment.
- * @param {string} fileName The fileName of this NewDraftAttachment.
+ * Sets the encFileName of this NewDraftAttachment.
+ * @param {string} encFileName The encFileName of this NewDraftAttachment.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.setFileName = function(fileName) {
-  this._fileName = fileName;
+tutao.entity.tutanota.NewDraftAttachment.prototype.setEncFileName = function(encFileName) {
+  this._encFileName = encFileName;
   return this;
 };
 
 /**
- * Provides the fileName of this NewDraftAttachment.
- * @return {string} The fileName of this NewDraftAttachment.
+ * Provides the encFileName of this NewDraftAttachment.
+ * @return {string} The encFileName of this NewDraftAttachment.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.getFileName = function() {
-  return this._fileName;
+tutao.entity.tutanota.NewDraftAttachment.prototype.getEncFileName = function() {
+  return this._encFileName;
 };
 
 /**
- * Sets the mimeType of this NewDraftAttachment.
- * @param {string} mimeType The mimeType of this NewDraftAttachment.
+ * Sets the encMimeType of this NewDraftAttachment.
+ * @param {string} encMimeType The encMimeType of this NewDraftAttachment.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.setMimeType = function(mimeType) {
-  this._mimeType = mimeType;
+tutao.entity.tutanota.NewDraftAttachment.prototype.setEncMimeType = function(encMimeType) {
+  this._encMimeType = encMimeType;
   return this;
 };
 
 /**
- * Provides the mimeType of this NewDraftAttachment.
- * @return {string} The mimeType of this NewDraftAttachment.
+ * Provides the encMimeType of this NewDraftAttachment.
+ * @return {string} The encMimeType of this NewDraftAttachment.
  */
-tutao.entity.tutanota.NewDraftAttachment.prototype.getMimeType = function() {
-  return this._mimeType;
+tutao.entity.tutanota.NewDraftAttachment.prototype.getEncMimeType = function() {
+  return this._encMimeType;
 };
 
 /**

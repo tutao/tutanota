@@ -60,7 +60,7 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
         tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
 
         return service.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(createDraftReturn) {
-            return tutao.entity.tutanota.Mail.load(createDraftReturn.getMail());
+            return tutao.entity.tutanota.Mail.load(createDraftReturn.getDraft());
         });
     });
 };
@@ -162,8 +162,8 @@ tutao.tutanota.ctrl.DraftFacade._createAttachment = function(attachment, dataFil
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
         return tutao.locator.fileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {
             var newAttachmentData = new tutao.entity.tutanota.NewDraftAttachment(attachment._parent);
-            newAttachmentData.setFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
-                .setMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
+            newAttachmentData.setEncFileName(aes.encryptUtf8(fileSessionKey, dataFile.getName()))
+                .setEncMimeType(aes.encryptUtf8(fileSessionKey, dataFile.getMimeType()))
                 .setFileData(fileDataId);
             attachment.setNewFile(newAttachmentData);
             return fileSessionKey;
