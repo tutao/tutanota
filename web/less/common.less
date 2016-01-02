@@ -303,22 +303,23 @@ hr {
 //** Tooltip max width
 @tooltip-max-width: 240px;
 //** Tooltip text color
-@tooltip-color: #fff;
+@tooltip-color: black;
 //** Tooltip background color
-@tooltip-bg: #000;
-@tooltip-opacity: .9;
+@tooltip-bg: @light-blue;
+@tooltip-button-bg: white;
+@tooltip-border-color: black;
+@tooltip-opacity: 1;
 
 //** Tooltip arrow width
 @tooltip-arrow-width: 5px;
 //** Tooltip arrow color
-@tooltip-arrow-color: @tooltip-bg;
+@tooltip-arrow-color: @tooltip-border-color;
 
 .tooltip {
   position: absolute;
   z-index: 5000;
-  display: block;
   visibility: visible;
-  line-height: 1.4;
+  line-height: 1.2;
   opacity: 0;
   display: none;
 
@@ -346,12 +347,25 @@ hr {
 // Wrapper for the tooltip content
 .tooltip-inner {
   max-width: @tooltip-max-width;
+  border-radius: 5px 5px;
+  border: 1px solid @tooltip-border-color;
+  cursor: default;
+  overflow: hidden; // avoids covered corners
+
+  > button {
+    width: 100%;
+    border-radius: 0 !important;
+    border-width: 1px 0 0 0 !important;
+    background-color: @tooltip-button-bg;
+  }
+}
+
+.tooltip-text {
   padding: 3px 8px;
   color: @tooltip-color;
+  background-color: @tooltip-bg;
   text-align: center;
   text-decoration: none;
-  background-color: @tooltip-bg;
-  border-radius: 5px;
   word-wrap: break-word; // needed for long email addresses
 }
 

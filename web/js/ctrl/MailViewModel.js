@@ -113,21 +113,6 @@ tutao.tutanota.ctrl.MailViewModel.prototype.removeFirstMailFromConversation = fu
 };
 
 /**
- * Provides a ContactWrapper for the given mail address or null if none was found.
- * @param {string} mailAddress The mail address.
- * @return {tutao.entity.tutanota.ContactWrapper} The contact wrapper.
- */
-tutao.tutanota.ctrl.MailViewModel.prototype._findContactByMailAddress = function(mailAddress) {
-	var contactWrappers = tutao.tutanota.ctrl.ComposingMail._getContacts();
-	for (var i = 0; i < contactWrappers.length; i++) {
-		if (contactWrappers[i].hasMailAddress(mailAddress)) {
-			return contactWrappers[i];
-		}
-	}
-	return null;
-};
-
-/**
  * @param {tutao.tutanota.ctrl.RecipientInfo=} recipientInfo Optional recipient info as recipient.
  * @return {Promise.<boolean>} True if the new mail was opened, false otherwise.
  */
@@ -171,14 +156,14 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyMail = function(displayedMail) 
             var recipients = null;
             if (tutao.locator.userController.isExternalUserLoggedIn()) {
                 // TODO (story: delete user) check that the recipient is actually internal (i.e. not unregistered)
-                recipients = [new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), self._findContactByMailAddress(displayedMail.mail.getSender().getAddress()), false)];
+                recipients = [new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getSender().getAddress()), false)];
             } else if (displayedMail.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED) {
-                recipients = [new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), self._findContactByMailAddress(displayedMail.mail.getSender().getAddress()))];
+                recipients = [new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getSender().getAddress()))];
             } else {
                 // this is a sent email, so use the to recipients as new recipients
                 recipients = [];
                 for (var i = 0; i < displayedMail.mail.getToRecipients().length; i++) {
-                    recipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getToRecipients()[i].getAddress(), displayedMail.mail.getToRecipients()[i].getName(), self._findContactByMailAddress(displayedMail.mail.getToRecipients()[i].getAddress())));
+                    recipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getToRecipients()[i].getAddress(), displayedMail.mail.getToRecipients()[i].getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getToRecipients()[i].getAddress())));
                 }
             }
             Promise.each(recipients, function (/*tutao.tutanota.ctrl.RecipientInfo*/recipient) {
@@ -205,19 +190,19 @@ tutao.tutanota.ctrl.MailViewModel.prototype.replyAllMail = function(displayedMai
             var toRecipients = [];
             var ccRecipients = [];
             if (displayedMail.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED) {
-                toRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), self._findContactByMailAddress(displayedMail.mail.getSender().getAddress())));
+                toRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getSender().getAddress(), displayedMail.mail.getSender().getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getSender().getAddress())));
                 var oldRecipients = displayedMail.mail.getToRecipients().concat(displayedMail.mail.getCcRecipients());
                 for (var i = 0; i < oldRecipients.length; i++) {
                     if (!tutao.util.ArrayUtils.contains(tutao.locator.userController.getMailAddresses(), oldRecipients[i].getAddress())) {
-                        ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(oldRecipients[i].getAddress(), oldRecipients[i].getName(), self._findContactByMailAddress(oldRecipients[i].getAddress())));
+                        ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(oldRecipients[i].getAddress(), oldRecipients[i].getName(), tutao.locator.contactListViewModel.findContactByMailAddress(oldRecipients[i].getAddress())));
                     }
                 }
             } else { // this is a sent email
                 for (var i = 0; i < displayedMail.mail.getToRecipients().length; i++) {
-                    toRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getToRecipients()[i].getAddress(), displayedMail.mail.getToRecipients()[i].getName(), self._findContactByMailAddress(displayedMail.mail.getToRecipients()[i].getAddress())));
+                    toRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getToRecipients()[i].getAddress(), displayedMail.mail.getToRecipients()[i].getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getToRecipients()[i].getAddress())));
                 }
                 for (var i = 0; i < displayedMail.mail.getCcRecipients().length; i++) {
-                    ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getCcRecipients()[i].getAddress(), displayedMail.mail.getCcRecipients()[i].getName(), self._findContactByMailAddress(displayedMail.mail.getCcRecipients()[i].getAddress())));
+                    ccRecipients.push(new tutao.tutanota.ctrl.RecipientInfo(displayedMail.mail.getCcRecipients()[i].getAddress(), displayedMail.mail.getCcRecipients()[i].getName(), tutao.locator.contactListViewModel.findContactByMailAddress(displayedMail.mail.getCcRecipients()[i].getAddress())));
                 }
             }
             var allRecipients = toRecipients.concat(ccRecipients);
@@ -598,4 +583,28 @@ tutao.tutanota.ctrl.MailViewModel.prototype.hideNotification = function(){
     this.notificationBarVisible(false);
 };
 
-
+/**
+ * Provides the buttons to be shown in the tooltip for the given mail address.
+ * @param {string} mailAddress The mail address.
+ * * @param {string} name The name of the recipient.
+ * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
+ */
+tutao.tutanota.ctrl.MailViewModel.prototype.getTooltipButtons = function (mailAddress, name) {
+    return [
+        new tutao.tutanota.ctrl.Button("showContact_action", 10, function () {
+            var contact = tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress);
+            tutao.locator.contactListViewModel.showContact(contact).then(function(cancelled) {
+                if (!cancelled) {
+                    tutao.locator.navigator.contact();
+                }
+            });
+        }, function() {
+            return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) != null);
+        }, false, "showContactAction", ""),
+        new tutao.tutanota.ctrl.Button("createContact_action", 10, function () {
+            tutao.locator.navigator.newContact(mailAddress, name);
+        }, function() {
+            return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) == null);
+        }, false, "createContactAction", "")
+    ];
+};

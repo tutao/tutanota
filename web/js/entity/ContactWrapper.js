@@ -44,28 +44,15 @@ tutao.entity.tutanota.ContactWrapper.createContactWrapper = function(mailAddress
 
 		// prepare some contact information. it is only saved if the mail is sent securely
 		// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
-		var nameData = [];
-        var addr = mailAddress.substring(0, mailAddress.indexOf("@"));
+        var firstAndLastName = null;
         if (name != "") {
-            nameData = name.split(" ");
-        } else if (addr.indexOf(".") != -1) {
-            nameData = addr.split(".");
-        } else if (addr.indexOf("_") != -1) {
-            nameData = addr.split("_");
-        } else if (addr.indexOf("-") != -1) {
-            nameData = addr.split("-");
+            firstAndLastName = tutao.tutanota.util.Formatter.fullNameToFirstAndLastName(name);
         } else {
-            nameData = [addr];
-        }
-        // first character upper case
-        for (var i = 0; i < nameData.length; i++) {
-            if (nameData[i].length > 0) {
-                nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1);
-            }
+            firstAndLastName = tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName(mailAddress);
         }
 
-        contactWrapper.getContact().setFirstName(nameData[0]);
-        contactWrapper.getContact().setLastName(nameData.slice(1).join(" ")); // all parts of the name except the first part are regarded as lastname
+        contactWrapper.getContact().setFirstName(firstAndLastName.firstName);
+        contactWrapper.getContact().setLastName(firstAndLastName.lastName);
 
         var newma = new tutao.entity.tutanota.ContactMailAddress(contactWrapper.getContact());
         newma.setAddress(mailAddress);

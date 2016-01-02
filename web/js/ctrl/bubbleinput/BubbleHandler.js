@@ -49,3 +49,9 @@ tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.buttonClick = function()
  * @return {string} the path to the button that should be displayed.
  */
 tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.buttonCss = function() {};
+
+/**
+ * Is invoked in order to get the buttons that shall be shown in the tooltip of the given bubble.
+ * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
+ */
+tutao.tutanota.ctrl.bubbleinput.BubbleHandler.prototype.getTooltipButtons = function(bubble) {};

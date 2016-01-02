@@ -221,4 +221,20 @@ describe("FormatterTest", function () {
         assert.equal("&lt;div&gt;ab &amp;&quot;cd&#039;&lt;/div&gt;",  tutao.tutanota.util.Formatter.urlEncodeHtmlTags("<div>ab &\"cd'</div>"));
     });
 
+    it(" fullNameToNameAndMailAddress", function() {
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.fullNameToFirstAndLastName("Peter Pan"));
+        assert.deepEqual({ firstName: "peter", lastName: "pan" }, tutao.tutanota.util.Formatter.fullNameToFirstAndLastName("peter pan"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pater Pan" }, tutao.tutanota.util.Formatter.fullNameToFirstAndLastName("Peter Pater Pan"));
+        assert.deepEqual({ firstName: "Peter", lastName: "" }, tutao.tutanota.util.Formatter.fullNameToFirstAndLastName(" Peter "));
+    });
+
+    it(" mailAddressToFirstAndLastName", function() {
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("Peter.Pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter.pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter_pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter-pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter_pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "Pater Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter.pater.pan@x.de"));
+        assert.deepEqual({ firstName: "Peter", lastName: "" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter@x.de"));
+    });
 });

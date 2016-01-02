@@ -807,6 +807,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.buttonCss = function() {
 	return null;
 };
 
+/** @inheritDoc */
+tutao.tutanota.ctrl.ComposingMail.prototype.getTooltipButtons = function(bubble) {
+    return tutao.locator.mailViewModel.getTooltipButtons(bubble.entity.getMailAddress(), bubble.entity.getName());
+};
+
 
 /**
  * Updates the contact informations of all recipients if they have been modified.
@@ -826,7 +831,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (recip
             }
         } else {
             // external users have no contact list.
-            if (tutao.locator.mailBoxController.getUserContactList() != null) {
+            if (tutao.locator.mailBoxController.getUserContactList() != null && !tutao.locator.contactListViewModel.findContactByMailAddress(currentRecipient.getMailAddress())) {
                 return currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
             }
         }

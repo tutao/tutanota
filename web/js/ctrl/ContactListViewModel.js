@@ -11,15 +11,9 @@ tutao.provide('tutao.tutanota.ctrl.ContactListViewModel');
 tutao.tutanota.ctrl.ContactListViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	/* the currently selected dom elements for contacts */
-	this._selectedDomElements = [];
-	/* the contacts corresponding to the currently selected dom elements */
-	this._selectedContacts = [];
+	this._selectedContacts = ko.observableArray();
 
 	this._multiSelect = false;
-
-	// the list of contact ids as result of the currently active search query.
-	this.currentSearchResult = [];
 
 	// the current search string
 	this.searchString = ko.observable("");
@@ -47,7 +41,7 @@ tutao.tutanota.ctrl.ContactListViewModel = function() {
 	this.buttons = ko.observableArray();
 
     // @type {?Array.<tutao.entity.tutanota.ContactWrapper>}
-    this._rawContacts = [];
+    this._rawContacts = ko.observableArray();
 
 };
 
@@ -78,7 +72,7 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.init = function() {
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.getRawContacts = function() {
-  return this._rawContacts;
+  return this._rawContacts();
 };
 
 /**
@@ -88,7 +82,6 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.getRawContacts = function() {
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.updateOnNewContacts = function(contacts) {
 	for (var i = 0; i < contacts.length; i++) {
-		this.currentSearchResult.push(contacts[i].getId()[1]);
         this._rawContacts.push(new tutao.entity.tutanota.ContactWrapper(contacts[i]));
     }
 	return this._updateContactList();
@@ -102,31 +95,22 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._updateContactList = function
 	var self = this;
 	self.unselectAll();
 
-	var currentResult = tutao.util.ArrayUtils.getUniqueAndArray([this.currentSearchResult]);
-	// sort the array by contact id descending
-	currentResult.sort(function(a, b) {
-		return (tutao.rest.EntityRestInterface.firstBiggerThanSecond(a, b)) ? -1 : 1;
-	});
-	var loadedContacts = [];
-	return self._loadContacts(currentResult, loadedContacts, 0).then(function() {
-        // sort contacts by name
-        loadedContacts.sort(function(a, b) {
-            return a.getSortName().localeCompare(b.getSortName());
-        });
+    this._rawContacts.sort(function(a, b) {
+        return a.getSortName().localeCompare(b.getSortName());
+    });
 
-		// unregister the listeners
-		for (var i = 0; i < self.contacts().length; i++) {
-			self.contacts()[i]().getContact().unregisterObserver(self._contactChanged);
-		}
-		var observables = [];
-		// register the listeners
-		for (var i = 0; i < loadedContacts.length; i++) {
-			var obs = ko.observable(loadedContacts[i]);
-			loadedContacts[i].getContact().registerObserver(self._contactChanged, obs);
-			observables.push(obs);
-		}
-		self.contacts(observables);
-	});
+    // unregister the listeners
+    for (var i = 0; i < self.contacts().length; i++) {
+        self.contacts()[i]().getContact().unregisterObserver(self._contactChanged);
+    }
+    var observables = [];
+    // register the listeners
+    for (var i = 0; i < this._rawContacts().length; i++) {
+        var obs = ko.observable(this._rawContacts()[i]);
+        this._rawContacts()[i].getContact().registerObserver(self._contactChanged, obs);
+        observables.push(obs);
+    }
+    self.contacts(observables);
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(deleted, contact, id) {
@@ -140,81 +124,54 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype._contactChanged = function(de
 
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.removeFromList = function(contact) {
-	//remove the contact id from the result list
-	for (var i=0; i<this.currentSearchResult.length; i++) {
-		if (this.currentSearchResult[i] == contact.getId()[1]) {
-			this.currentSearchResult.splice(i, 1);
-			break;
-		}
-	}
 	// we can not directly call remove(id) because that removes all observables (due to knockout equality check implementation)
 	this.contacts.remove(function(item) {
 		return (item().getContact() == contact);
 	});
-};
-
-
-
-/**
- * Loads the contacts with the given ids in the given order. Uses recursion to load all contacts.
- * @param {Array.<Array.<String>>} contactIds The ids of the contacts to load.
- * @param {Array.<tutao.entity.tutanota.ContactWrapper>} loadedContacts An array that contains all contacts that are loaded up to now.
- * @param {number} nextContact The index of the contact id in contactIds that shall be loaded next.
- * @return {Promise.<>} Resolved when finished, rejected if the rest call failed.
- */
-tutao.tutanota.ctrl.ContactListViewModel.prototype._loadContacts = function(contactIds, loadedContacts, nextContact) {
-    if (contactIds.length == 0) {
-        return Promise.resolve();
-    }
-    var self = this;
-	return tutao.entity.tutanota.Contact.load([tutao.locator.mailBoxController.getUserContactList().getContacts(), contactIds[nextContact]]).then(function(contact) {
-        loadedContacts.push(new tutao.entity.tutanota.ContactWrapper(contact));
-    }).caught(tutao.NotFoundError, function(e) {
-        // avoid exception for missing sync
-    }).lastly(function() {
-        if (nextContact == contactIds.length - 1) {
-            return Promise.resolve();
-        } else {
-            return self._loadContacts(contactIds, loadedContacts, nextContact + 1);
-        }
+    this._rawContacts.remove(function(item) {
+        return (item.getContact() == contact);
     });
 };
 
 /**
  * Shows the given contact in the contact view.
- * @param {tutao.entity.tutanota.Contact} contact The contact to show.
- * @param {Object} event The event that triggered this call.
+ * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact to show.
+  @return {Promise.<bool>} True if showing the contact was cancelled.
  */
-tutao.tutanota.ctrl.ContactListViewModel.prototype.showContact = function(contact, event) {
-	this._selectContact(contact, event.currentTarget);
-	tutao.locator.contactViewModel.showContact(contact);
-};
-
-/**
- * Highlights the give contact.
- * @param {tutao.entity.tutanota.Contact} contact Contact to select.
- * @param {Object} domElement dom element of the contact.
- */
-tutao.tutanota.ctrl.ContactListViewModel.prototype._selectContact = function(contact, domElement) {
-	if (this._multiSelect) {
-		// implement multi selection
-	} else {
-		tutao.tutanota.gui.unselect(this._selectedDomElements);
-		this._selectedDomElements = [domElement];
-		this._selectedContacts = [contact];
-		tutao.tutanota.gui.select(this._selectedDomElements);
-	}
+tutao.tutanota.ctrl.ContactListViewModel.prototype.showContact = function(contactWrapper) {
+    var self = this;
+	return tutao.locator.contactViewModel.showContact(contactWrapper).then(function(cancelled) {
+        if (!cancelled) {
+            self._selectedContacts([contactWrapper]);
+        }
+    });
 };
 
 /**
  * Deselects all contacts.
  */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.unselectAll = function() {
-	tutao.tutanota.gui.unselect(this._selectedDomElements);
-	this._selectedDomElements = [];
-	this._selectedContacts = [];
+    this._selectedContacts([]);
 	// do not remove the contact to avoid that new elements are removed
 	// tutao.locator.contactViewModel.removeContact();
+};
+
+/**
+ * Provides a ContactWrapper for the given mail address or null if none was found.
+ * @param {string} mailAddress The mail address.
+ * @return {tutao.entity.tutanota.ContactWrapper} The contact wrapper.
+ */
+tutao.tutanota.ctrl.ContactListViewModel.prototype.findContactByMailAddress = function(mailAddress) {
+    var contacts = this.getRawContacts();
+    for (var i = 0; i < contacts.length; i++) {
+        if (contacts[i].hasMailAddress(mailAddress)) {
+            return contacts[i];
+        }
+    }
+    return null;
+};
+tutao.tutanota.ctrl.ContactListViewModel.prototype.isSelectedContact = function(contactWrapper) {
+    return this._selectedContacts.indexOf(contactWrapper) >= 0;
 };
 
 tutao.tutanota.ctrl.ContactListViewModel.prototype.importThunderbirdContactsAsCsv = function() {
@@ -303,4 +260,9 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonClick = function() {
 /** @inheritDoc */
 tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonCss = function() {
     return null;
+};
+
+/** @inheritDoc */
+tutao.tutanota.ctrl.ContactListViewModel.prototype.getTooltipButtons = function(bubble) {
+    return [];
 };

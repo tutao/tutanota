@@ -250,6 +250,50 @@ tutao.tutanota.util.Formatter.stringToNameAndMailAddress = function(string) {
 };
 
 /**
+ * Parses the given string for a fist name and a last name separated by whitespace. If there is only one part it is regarded as first name. If there are more than two parts, only the first one is regarded as first name.
+ * @param {string} fullName The full name to check.
+ * @return {Object.<string,string>=} Returns an object with the attributes "firstName" and "lastName".
+ */
+tutao.tutanota.util.Formatter.fullNameToFirstAndLastName = function(fullName) {
+    fullName = fullName.trim();
+    if (fullName == "") {
+        return { firstName: "", lastName: "" };
+    }
+    var separator = fullName.indexOf(" ");
+    if (separator != -1) {
+        return { firstName: fullName.substring(0, separator), lastName: fullName.substring(separator + 1) };
+    } else {
+        return { firstName: fullName, lastName: "" };
+    }
+};
+
+/**
+ * Parses the given email address for a fist name and a last name separated by whitespace.
+ * @param {string} mailAddress The email address to check.
+ * @return {Object.<string,string>=} Returns an object with the attributes "firstName" and "lastName".
+ */
+tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName = function(mailAddress) {
+    var addr = mailAddress.substring(0, mailAddress.indexOf("@"));
+    var nameData = [];
+    if (addr.indexOf(".") != -1) {
+        nameData = addr.split(".");
+    } else if (addr.indexOf("_") != -1) {
+        nameData = addr.split("_");
+    } else if (addr.indexOf("-") != -1) {
+        nameData = addr.split("-");
+    } else {
+        nameData = [addr];
+    }
+    // first character upper case
+    for (var i = 0; i < nameData.length; i++) {
+        if (nameData[i].length > 0) {
+            nameData[i] = nameData[i].substring(0, 1).toUpperCase() + nameData[i].substring(1);
+        }
+    }
+    return { firstName: nameData[0], lastName: nameData.slice(1).join(" ") };
+};
+
+/**
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.
  * @param {number} size The size in bytes.
  */

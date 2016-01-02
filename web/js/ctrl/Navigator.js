@@ -86,9 +86,19 @@ tutao.tutanota.ctrl.Navigator.prototype.contact = function() {
 	this.updateHash("#contact");
 };
 
-tutao.tutanota.ctrl.Navigator.prototype.newContact = function() {
-	tutao.locator.contactViewModel.newContact();
-	this.contact();
+/**
+* @param {string=} mailAddress The mail address of the contact.
+* @param {string=} name The name of the contact.
+* @return {Promise.<bool>} True if creating a new contact was cancelled.
+*/
+tutao.tutanota.ctrl.Navigator.prototype.newContact = function(mailAddress, name) {
+    var self = this;
+	return tutao.locator.contactViewModel.newContact(mailAddress, name).then(function(cancelled) {
+        if (!cancelled) {
+            self.contact();
+        }
+        return cancelled;
+    });
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.settings = function() {

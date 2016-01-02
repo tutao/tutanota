@@ -632,5 +632,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "yearly_label": "Yearly",
   "yesterday_label": "yesterday",
     "draft_alt": "Email is a draft",
-    "close_action": "Close",
+    "showContact_action": "Show contact",
+    "createContact_action": "Create contact"
 };

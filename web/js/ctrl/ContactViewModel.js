@@ -71,7 +71,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.initButtonBar = function() {
 
 /**
  * Asks the user to cancel the current editing mode.
- * @return {Promise.<bool>} True if the user does not want to cancel the current conact, false otherwise.
+ * @return {Promise.<bool>} True if the user does not want to cancel the current contact, false otherwise.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function () {
     var self = this;
@@ -100,13 +100,15 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._keepNewOrEditMode = function () 
 /**
  * Set the contact that shall be shown. Asks the user to cancel any editing contact.
  * @param {tutao.entity.tutanota.ContactWrapper} contactWrapper The contact.
+ * @return {Promise.<bool>} True if showing the contact was cancelled.
  */
 tutao.tutanota.ctrl.ContactViewModel.prototype.showContact = function (contactWrapper) {
     var self = this;
-    this._keepNewOrEditMode().then(function(keep) {
+    return this._keepNewOrEditMode().then(function(keep) {
         if (!keep) {
             self._showContact(contactWrapper);
         }
+        return keep;
     });
 };
 
@@ -124,12 +126,18 @@ tutao.tutanota.ctrl.ContactViewModel.prototype._showContact = function (contactW
 
 /**
  * Create a new contact.
+ * @param {string=} mailAddress The mail address of the contact.
+ * @param {string=} name The name of the contact. Must be non-null if mailAddress is also non-null.
  */
-tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function () {
+tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function (mailAddress, name) {
     var self = this;
-    this._keepNewOrEditMode().then(function(keep) {
+    return this._keepNewOrEditMode().then(function(keep) {
         if (!keep){
-            self.contactWrapper(tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper());
+            if (mailAddress) {
+                self.contactWrapper(tutao.entity.tutanota.ContactWrapper.createContactWrapper(mailAddress, name));
+            } else {
+                self.contactWrapper(tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper());
+            }
             self.editableContact = self.contactWrapper().startEditingContact(self);
             if (self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW || self.mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT) {
                 // switch to MODE_NONE to make knockout recognize the new fields
@@ -138,6 +146,7 @@ tutao.tutanota.ctrl.ContactViewModel.prototype.newContact = function () {
             self.mode(tutao.tutanota.ctrl.ContactViewModel.MODE_NEW);
             tutao.locator.contactView.showContactColumn();
         }
+        return keep;
     });
 };
 
