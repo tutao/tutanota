@@ -32,6 +32,9 @@ tutao.tutanota.ctrl.MailSettingsViewModel = function() {
     }, this);
 
     this.selectedEmailSignatureType(this.emailSignatureTypes[this._currentEmailSignatureType]);
+
+    this._currentAutomaticContacts = !tutao.locator.mailBoxController.getUserProperties().getNoAutomaticContacts();
+    this.automaticContacts = ko.observable(this._currentAutomaticContacts);
 };
 
 tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getEmailSignatureText = function(type) {
@@ -73,7 +76,9 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype.confirmPossible = function()
     var confidentialChanged = (this._currentConfidential != this.defaultConfidential());
     var signatureTypeChanged = (this.emailSignatureTypes[this._currentEmailSignatureType] != this.selectedEmailSignatureType());
     var userEmailSignatureChanged = (this._currentCustomEmailSignature != this._getCustomEmailSignature());
-    return this.inputEnabled() && (senderChanged || confidentialChanged || userEmailSignatureChanged || signatureTypeChanged);
+    var automaticContactsChanged = (this._currentAutomaticContacts != this.automaticContacts());
+
+    return this.inputEnabled() && (senderChanged || confidentialChanged || userEmailSignatureChanged || signatureTypeChanged || automaticContactsChanged);
 };
 
 tutao.tutanota.ctrl.MailSettingsViewModel.prototype._getCustomEmailSignature = function() {
@@ -100,12 +105,14 @@ tutao.tutanota.ctrl.MailSettingsViewModel.prototype.confirm = function() {
     props.setDefaultUnconfidential(!this.defaultConfidential());
     props.setEmailSignatureType(this.selectedEmailSignatureType().value);
     props.setCustomEmailSignature(this._getCustomEmailSignature());
+    props.setNoAutomaticContacts(!this.automaticContacts());
     props.update().then(function() {
         self.mailSettingsStatus({ type: "valid", text: "finished_msg" });
         self._currentSenderMailAddress = self.defaultSenderMailAddress();
         self._currentConfidential = self.defaultConfidential();
         self._currentEmailSignatureType = self.selectedEmailSignatureType().value;
         self._currentCustomEmailSignature = self._getCustomEmailSignature();
+        self._currentAutomaticContacts = self.automaticContacts();
     }).finally( function(){
         self.inputEnabled(true);
     });

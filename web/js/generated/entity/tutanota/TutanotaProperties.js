@@ -18,6 +18,7 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this._defaultUnconfidential = null;
     this._emailSignatureType = null;
     this._groupEncEntropy = null;
+    this._noAutomaticContacts = null;
     this._notificationMailLanguage = null;
     this._imapSyncConfig = [];
     this._lastPushedMail = null;
@@ -39,6 +40,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this._defaultUnconfidential = data.defaultUnconfidential;
   this._emailSignatureType = data.emailSignatureType;
   this._groupEncEntropy = data.groupEncEntropy;
+  this._noAutomaticContacts = data.noAutomaticContacts;
   this._notificationMailLanguage = data.notificationMailLanguage;
   this._imapSyncConfig = [];
   for (var i=0; i < data.imapSyncConfig.length; i++) {
@@ -91,6 +93,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
     defaultUnconfidential: this._defaultUnconfidential, 
     emailSignatureType: this._emailSignatureType, 
     groupEncEntropy: this._groupEncEntropy, 
+    noAutomaticContacts: this._noAutomaticContacts, 
     notificationMailLanguage: this._notificationMailLanguage, 
     imapSyncConfig: tutao.entity.EntityHelper.aggregatesToJsonData(this._imapSyncConfig), 
     lastPushedMail: this._lastPushedMail
@@ -126,6 +129,11 @@ tutao.entity.tutanota.TutanotaProperties.prototype.EMAILSIGNATURETYPE_ATTRIBUTE_
  * The id of the groupEncEntropy attribute.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.GROUPENCENTROPY_ATTRIBUTE_ID = 410;
+
+/**
+ * The id of the noAutomaticContacts attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.NOAUTOMATICCONTACTS_ATTRIBUTE_ID = 568;
 
 /**
  * The id of the notificationMailLanguage attribute.
@@ -281,6 +289,37 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setGroupEncEntropy = function
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getGroupEncEntropy = function() {
   return this._groupEncEntropy;
+};
+
+/**
+ * Sets the noAutomaticContacts of this TutanotaProperties.
+ * @param {boolean} noAutomaticContacts The noAutomaticContacts of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setNoAutomaticContacts = function(noAutomaticContacts) {
+  var dataToEncrypt = (noAutomaticContacts) ? '1' : '0';
+  this._noAutomaticContacts = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  return this;
+};
+
+/**
+ * Provides the noAutomaticContacts of this TutanotaProperties.
+ * @return {boolean} The noAutomaticContacts of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getNoAutomaticContacts = function() {
+  if (this._noAutomaticContacts == "" || !this._entityHelper.getSessionKey()) {
+    return false;
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._noAutomaticContacts);
+    return value != '0';
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**

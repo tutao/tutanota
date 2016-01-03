@@ -826,13 +826,15 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updateContactInfo = function (recip
         currentRecipient.getEditableContact().update();
         if (currentRecipient.isExistingContact()) {
             //only update if phone numbers or passwords have changed
-            if ( contactDataChanged ){
+            if (contactDataChanged) {
                 return currentRecipient.getEditableContact().getContact().update();
             }
         } else {
             // external users have no contact list.
             if (tutao.locator.mailBoxController.getUserContactList() != null && !tutao.locator.contactListViewModel.findContactByMailAddress(currentRecipient.getMailAddress())) {
-                return currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
+                if (!tutao.locator.mailBoxController.getUserProperties().getNoAutomaticContacts() || contactDataChanged) {
+                    return currentRecipient.getEditableContact().getContact().setup(tutao.locator.mailBoxController.getUserContactList().getContacts());
+                }
             }
         }
     })

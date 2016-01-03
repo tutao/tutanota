@@ -633,5 +633,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "yesterday_label": "yesterday",
     "draft_alt": "Email is a draft",
     "showContact_action": "Show contact",
-    "createContact_action": "Create contact"
+    "createContact_action": "Create contact",
+    "createContacts_label": "Create contacts",
+    "createContactsForRecipients_action": "Create contacts for all recipients when sending email"
 };
