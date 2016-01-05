@@ -268,7 +268,7 @@ tutao.tutanota.util.Formatter.fullNameToFirstAndLastName = function(fullName) {
 };
 
 /**
- * Parses the given email address for a fist name and a last name separated by whitespace.
+ * Parses the given email address for a fist name and a last name separated by whitespace, comma, dot or underscore.
  * @param {string} mailAddress The email address to check.
  * @return {Object.<string,string>=} Returns an object with the attributes "firstName" and "lastName".
  */

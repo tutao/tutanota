@@ -55,10 +55,12 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
         attachmentPromise = Promise.resolve();
     }
     return attachmentPromise.then(function() {
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, toRecipients, service.getDraftData().getToRecipients());
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, ccRecipients, service.getDraftData().getCcRecipients());
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
-
+        return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, toRecipients, service.getDraftData().getToRecipients()).then(function() {
+            return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, ccRecipients, service.getDraftData().getCcRecipients()).then(function() {
+                return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
+            });
+        });
+    }).then(function() {
         return service.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(createDraftReturn) {
             return tutao.entity.tutanota.Mail.load(createDraftReturn.getDraft());
         });
@@ -101,8 +103,9 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
         attachmentPromise = Promise.each(draft.getAttachments(), function (fileId) {
             var existing = false;
             for (var i = 0; i < attachments.length; i++) {
-                if ((attachments[i] instanceof tutao.entity.tutanota.File) && attachments[i].getId()[0] == fileId[0] && attachments[i].getId()[1] == fileId[1]) {
+                if ((attachments[i] instanceof tutao.entity.tutanota.File) && tutao.rest.EntityRestInterface.sameListElementIds(attachments[i].getId(), fileId)) {
                     existing = true;
+                    break;
                 }
             }
             if (!existing) {
@@ -113,14 +116,7 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
             return Promise.each(attachments, function (dataFile) {
                 // check if this is a new attachment or an existing one
                 var existing = false;
-                if (dataFile instanceof tutao.entity.tutanota.File) {
-                    for (var i = 0; i < draft.getAttachments().length; i++) {
-                        if (draft.getAttachments()[i][0] == dataFile.getId()[0] && draft.getAttachments()[i][1] == dataFile.getId()[1]) {
-                            existing = true;
-                        }
-                    }
-                }
-                if (!existing) {
+                if (!(dataFile instanceof tutao.entity.tutanota.File) || !tutao.rest.EntityRestInterface.containsId(draft.getAttachments(), dataFile.getId())) {
                     var attachment = new tutao.entity.tutanota.DraftAttachment(service);
                     return tutao.tutanota.ctrl.DraftFacade._createAttachment(attachment, dataFile).then(function (fileSessionKey) {
                         attachment.setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
@@ -133,13 +129,16 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
         attachmentPromise = Promise.resolve();
     }
     return attachmentPromise.then(function () {
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, toRecipients, service.getDraftData().getToRecipients());
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, ccRecipients, service.getDraftData().getCcRecipients());
-        tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
-
+        return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, toRecipients, service.getDraftData().getToRecipients()).then(function() {
+            return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, ccRecipients, service.getDraftData().getCcRecipients()).then(function() {
+                return tutao.tutanota.ctrl.DraftFacade._addRecipients(service, bccRecipients, service.getDraftData().getBccRecipients());
+            });
+        });
+    }).then(function() {
         return service.update({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(draftUpdateReturn) {
             // replace the existing attachments with the new ones manually, because we do not want to rely on the web socket update
-            Array.prototype.splice.apply(draft.getAttachments(), [0, draft.getAttachments().length].concat(draftUpdateReturn.getAttachments()));
+            draft.getAttachments().length = 0;
+            Array.prototype.push.apply(draft.getAttachments(), draftUpdateReturn.getAttachments());
         });
     });
 };
@@ -205,9 +204,7 @@ tutao.tutanota.ctrl.DraftFacade._addRecipients = function(service, recipientInfo
  */
 tutao.tutanota.ctrl.DraftFacade.sendDraft = function(draft, recipientInfos, language) {
     var aes = tutao.locator.aesCrypter;
-    var groupKey = tutao.locator.userController.getUserGroupKey();
     var bucketKey = aes.generateRandomKey();
-    var mailBoxKey = tutao.locator.mailBoxController.getUserMailBox().getEntityHelper().getSessionKey();
 
     var secure = draft.getConfidential();
 
