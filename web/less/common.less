@@ -697,7 +697,7 @@ div#modalMoreMenu {
         overflow: hidden; // otherwise button corners would be visible when selected
 
         .menuText {
-          padding: 3px 8px;
+          padding: 0px 8px 3px 8px;
           color: @tooltip-color;
           background-color: @more-menu-background;
           text-align: center;
@@ -711,11 +711,14 @@ div#modalMoreMenu {
         }
 
         > div:first-child {
-          // inner_menu_more contains 5px border - reduce height of the button
-          height: @menu_height - 5px;
-          line-height: @menu_height - 10px;
-          padding-bottom: 5px;
+          &.menuItem {
+            // inner_menu_more contains 5px border - reduce height of the button
+            height: @menu_height - 5px;
+            line-height: @menu_height - 10px;
+            padding-bottom: 5px;
+          }
         }
+
         > div:last-child {
           border-bottom: none;
           // inner_menu_more contains 5px border - reduce height of the button
@@ -761,6 +764,13 @@ div#modalMoreMenu {
         border-top: @triangleRadius solid @more-menu-background;
       }
     }
+
+
+    > div#clickedElement {
+      position:absolute;
+      border: 1px solid #ffff00;
+    }
+
   }
 }
 

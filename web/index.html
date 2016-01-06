@@ -540,7 +540,7 @@
     <button id="measureButton" class="fontImage confirm" data-bind="css: { iconOnly: tutao.tutanota.util.ClientDetector.isMobileDevice() }"></button>
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
-	<div id="viewContainer">
+	<div id="viewContainer" data-bind="css: { blur: tutao.locator.viewManager.isModalDialogVisible() }">
 		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
 			<div id="mailFolderColumn" class="viewColumn" data-bind="with: tutao.locator.mailFolderListViewModel">
                 <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
@@ -2275,7 +2275,7 @@
         </a>
     </div>
 -->
-	<header id="main" class="loggedIn" data-bind="with: tutao.locator.viewManager">
+	<header id="main" class="loggedIn" data-bind="with: tutao.locator.viewManager, css: { blur: tutao.locator.viewManager.isModalDialogVisible() }">
         <div id="welcomeMessage">
             <div class="outerWelcomeMessage">
                 <div class="innerWelcomeMessage" data-bind="text: welcomeMessage"></div>
@@ -2319,6 +2319,7 @@
 				</div>
             </menu>
             <div id="triangle"></div>
+			<div id="clickedElement"></div>
         </div>
     </div>
 

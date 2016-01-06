@@ -26,12 +26,7 @@ tutao.tutanota.ctrl.bubbleinput.Bubble = function(entity, text, tooltip, state, 
 	this.subButtons = ko.observableArray();
 	// receives the dom element via the domInit binding. this allows the position of the sub-buttons menu to be adjusted below the clicked bubble.
 	this.buttonDomElement = ko.observable(null);
-	this.buttonDomElement.subscribe(function(value) {
-		console.log(value);
-	});
 	this.subButtonsText = ko.observable(this.tooltip());
-
-
 };
 
 /**

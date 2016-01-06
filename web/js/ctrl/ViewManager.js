@@ -289,7 +289,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentT
 };
 
 
-tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisiible = function() {
+tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisible = function() {
     return tutao.locator.buyDialogViewModel.visible()
         || tutao.locator.folderNameDialogViewModel.visible()
         || tutao.locator.modalDialogViewModel.visible()
