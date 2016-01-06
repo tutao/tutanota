@@ -299,139 +299,6 @@ hr {
   user-select: none;
 }
 
-// from Bootstrap
-//** Tooltip max width
-@tooltip-max-width: 240px;
-//** Tooltip text color
-@tooltip-color: black;
-//** Tooltip background color
-@tooltip-bg: @light-blue;
-@tooltip-button-bg: white;
-@tooltip-border-color: black;
-@tooltip-opacity: 1;
-
-//** Tooltip arrow width
-@tooltip-arrow-width: 5px;
-//** Tooltip arrow color
-@tooltip-arrow-color: @tooltip-border-color;
-
-.tooltip {
-  position: absolute;
-  z-index: 5000;
-  visibility: visible;
-  line-height: 1.2;
-  opacity: 0;
-  display: none;
-
-  &.in {
-    opacity: @tooltip-opacity;
-  }
-  &.top {
-    margin-top: -3px;
-    padding: @tooltip-arrow-width 0;
-  }
-  &.right {
-    margin-left: 3px;
-    padding: 0 @tooltip-arrow-width;
-  }
-  &.bottom {
-    margin-top: 3px;
-    padding: @tooltip-arrow-width 0;
-  }
-  &.left {
-    margin-left: -3px;
-    padding: 0 @tooltip-arrow-width;
-  }
-}
-
-// Wrapper for the tooltip content
-.tooltip-inner {
-  max-width: @tooltip-max-width;
-  border-radius: 5px 5px;
-  border: 1px solid @tooltip-border-color;
-  cursor: default;
-  overflow: hidden; // avoids covered corners
-
-  > button {
-    width: 100%;
-    border-radius: 0 !important;
-    border-width: 1px 0 0 0 !important;
-    background-color: @tooltip-button-bg;
-  }
-}
-
-.tooltip-text {
-  padding: 3px 8px;
-  color: @tooltip-color;
-  background-color: @tooltip-bg;
-  text-align: center;
-  text-decoration: none;
-  word-wrap: break-word; // needed for long email addresses
-}
-
-.tooltip-arrow {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-color: transparent;
-  border-style: solid;
-}
-
-.tooltip {
-  &.top .tooltip-arrow {
-    bottom: 0;
-    left: 50%;
-    margin-left: -@tooltip-arrow-width;
-    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
-    border-top-color: @tooltip-arrow-color;
-  }
-  &.top-left .tooltip-arrow {
-    bottom: 0;
-    left: @tooltip-arrow-width;
-    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
-    border-top-color: @tooltip-arrow-color;
-  }
-  &.top-right .tooltip-arrow {
-    bottom: 0;
-    right: @tooltip-arrow-width;
-    border-width: @tooltip-arrow-width @tooltip-arrow-width 0;
-    border-top-color: @tooltip-arrow-color;
-  }
-  &.right .tooltip-arrow {
-    top: 50%;
-    left: 0;
-    margin-top: -@tooltip-arrow-width;
-    border-width: @tooltip-arrow-width @tooltip-arrow-width @tooltip-arrow-width 0;
-    border-right-color: @tooltip-arrow-color;
-  }
-  &.left .tooltip-arrow {
-    top: 50%;
-    right: 0;
-    margin-top: -@tooltip-arrow-width;
-    border-width: @tooltip-arrow-width 0 @tooltip-arrow-width @tooltip-arrow-width;
-    border-left-color: @tooltip-arrow-color;
-  }
-  &.bottom .tooltip-arrow {
-    top: 0;
-    left: 20px;
-    margin-left: -@tooltip-arrow-width;
-    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
-    border-bottom-color: @tooltip-arrow-color;
-  }
-  &.bottom-left .tooltip-arrow {
-    top: 0;
-    left: @tooltip-arrow-width;
-    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
-    border-bottom-color: @tooltip-arrow-color;
-  }
-  &.bottom-right .tooltip-arrow {
-    top: 0;
-    right: @tooltip-arrow-width;
-    border-width: 0 @tooltip-arrow-width @tooltip-arrow-width;
-    border-bottom-color: @tooltip-arrow-color;
-  }
-}
-
 /***************************************
   * View
   **************************************/
@@ -698,7 +565,7 @@ div#modalMoreMenu {
 
         .menuText {
           padding: 0px 8px 3px 8px;
-          color: @tooltip-color;
+          color: @black;
           background-color: @more-menu-background;
           text-align: center;
           text-decoration: none;
@@ -764,13 +631,6 @@ div#modalMoreMenu {
         border-top: @triangleRadius solid @more-menu-background;
       }
     }
-
-
-    > div#clickedElement {
-      position:absolute;
-      border: 1px solid #ffff00;
-    }
-
   }
 }
 

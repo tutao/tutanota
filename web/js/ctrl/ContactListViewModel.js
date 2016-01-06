@@ -261,8 +261,3 @@ tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonClick = function() {
 tutao.tutanota.ctrl.ContactListViewModel.prototype.buttonCss = function() {
     return null;
 };
-
-/** @inheritDoc */
-tutao.tutanota.ctrl.ContactListViewModel.prototype.getTooltipButtons = function(bubble) {
-    return [];
-};

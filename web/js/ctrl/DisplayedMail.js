@@ -258,12 +258,12 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.getAttachmentImage = function (file)
 tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = function(mailAddress, meId) {
     var state =  "displayRecipient";
     var label = tutao.locator.mailViewModel.getLabel(mailAddress, meId);
-    return new tutao.tutanota.ctrl.bubbleinput.Bubble(mailAddress, ko.observable(label), ko.observable(mailAddress.getAddress()), ko.observable(state), true, this.getTooltipButtons);
+    return new tutao.tutanota.ctrl.bubbleinput.Bubble(mailAddress, ko.observable(label), ko.observable(mailAddress.getAddress()), ko.observable(state), true, this.getSubButtons);
 };
 
 
-tutao.tutanota.ctrl.DisplayedMail.prototype.getTooltipButtons = function(bubble) {
+tutao.tutanota.ctrl.DisplayedMail.prototype.getSubButtons = function(bubble) {
     // entity is of type tutao.entity.tutanota.MailAddress see createBubbleFromMailAddress
-    return tutao.locator.mailViewModel.getTooltipButtons(bubble.entity.getAddress(), bubble.entity.getName());
+    return tutao.locator.mailViewModel.getSubButtons(bubble.entity.getAddress(), bubble.entity.getName());
 };
 

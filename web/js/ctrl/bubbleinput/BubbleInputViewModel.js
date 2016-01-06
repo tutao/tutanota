@@ -410,10 +410,3 @@ tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.removeBubble = fu
     this.bubbleHandler.bubbleDeleted(deletedBubble);
     tutao.tutanota.gui.BubbleInputGui.resizeInputField(this.inputDomField, this.inputValue());
 };
-
-tutao.tutanota.ctrl.bubbleinput.BubbleInputViewModel.prototype.getTooltipButtons = function(bubble) {
-    if (!this.enabled) {
-        return [];
-    }
-    return this.bubbleHandler.getTooltipButtons(bubble);
-};

@@ -480,10 +480,7 @@ tutao.tutanota.gui.initKnockout = function() {
             var parentButton = $(ko.utils.unwrapObservable(valueAccessor()));
             var subButtons = $(element);
 			var triangle = $("#triangle");
-			//var clickedElement = $("#clickedElement");
 
-			//var clone = parentButton.clone(true);
-			//$(clone).css($(parentButton).css());
             subButtons.hide(); // the sub-buttons width is not available yet, so calculate in the setTimeout function and hide the menu to avoid flickering
             setTimeout(function() {
                 var parentButtonHorizontalCenter = (parentButton.offset().left + parentButton.outerWidth() / 2);
@@ -498,10 +495,6 @@ tutao.tutanota.gui.initKnockout = function() {
 				var isTopMoreMenu = parentButtonVerticalCenter < ($(window).height() / 2);
 
 				var verticalOffset = triangle.outerHeight();
-			//	clickedElement.css({ top: parentButton.offset().top, left: parentButton.offset().left});
-			//	clickedElement.height(parentButton.outerHeight());
-			//	clickedElement.width(parentButton.outerWidth());
-			//	clickedElement.append(clone);
 				if (isTopMoreMenu) {
 					subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight() + verticalOffset), bottom: '20px' });
 					triangle.css({ top: (parentButton.offset().top + parentButton.outerHeight() + verticalOffset), bottom: 'initial' });
@@ -903,29 +896,6 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
     }
 };
 
-/**
- * Shows the tooltip on mobile devices
- * @param {DOMElement} element
- */
-tutao.tutanota.gui.showTooltip = function(item, event) {
-    var element = event.target.parentElement; // the bubble
-
-   var tooltipNotVisible = $(element).children(".tooltip").css('display') === 'none';
-
-    $(document).trigger("click.tooltip"); // hide other tooltips
-    if (tooltipNotVisible ){
-        $(element).children(".tooltip").show().transition({ opacity: 1 });
-    }
-    $(document).on("click.tooltip", function (e) {
-        // it takes a bit till the original click event bubbles and we do not want to catch this one and hide the tooltip immediately, therefore check the timestamp
-        // do not close the tooltip if the user clicks on it to allow selecting the tooltip text
-        if (e.timeStamp !== event.timeStamp && !$(".tooltip").is($(e.target.parentElement))) {
-            $(document).off("click.tooltip");
-            $(element).children(".tooltip").transition({ opacity: 0 }).hide();
-        }
-    });
-    return false;
-};
 
 /**
  * Opens a link in a new browser window

@@ -26,7 +26,7 @@ tutao.tutanota.ctrl.ViewManager = function() {
     this.previousColumnTitle = ko.observable("");
     this.welcomeMessage = ko.observable("");
 
-    this.buttonWithSubButtons = ko.observable(); // is set by the button whose sub-buttons shall be shown
+    this.elementWithSubButtons = ko.observable(); // is set by the element whose sub-buttons shall be shown
 };
 
 tutao.tutanota.ctrl.ViewManager.prototype.loadCustomLogos = function() {
@@ -294,5 +294,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisible = function() {
         || tutao.locator.folderNameDialogViewModel.visible()
         || tutao.locator.modalDialogViewModel.visible()
         || tutao.locator.feedbackViewModel.showDialog()
-        || (tutao.locator.viewManager.buttonWithSubButtons() != null && tutao.locator.viewManager.buttonWithSubButtons().subButtonsVisible());
+        || tutao.locator.legacyDownloadViewModel.dialogVisible()
+        || tutao.locator.progressDialogModel.showDialog()
+        || (tutao.locator.viewManager.elementWithSubButtons() != null && tutao.locator.viewManager.elementWithSubButtons().subButtonsVisible());
 };

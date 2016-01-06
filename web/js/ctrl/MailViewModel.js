@@ -574,22 +574,13 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getColumnTitleText = function(){
     return text;
 };
 
-tutao.tutanota.ctrl.MailViewModel.prototype.showNotification = function(descriptionTextid, actionButton){
-    this.notificationBarVisible(true);
-
-};
-
-tutao.tutanota.ctrl.MailViewModel.prototype.hideNotification = function(){
-    this.notificationBarVisible(false);
-};
-
 /**
  * Provides the buttons to be shown in the tooltip for the given mail address.
  * @param {string} mailAddress The mail address.
  * @param {string} name The name of the recipient.
  * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.getTooltipButtons = function (mailAddress, name) {
+tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddress, name) {
     return [
         new tutao.tutanota.ctrl.Button("showContact_action", 10, function () {
             var contact = tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress);
