@@ -197,6 +197,37 @@ tutao.rest.EntityRestInterface.getElementId = function(element) {
 };
 
 /**
+ * Checks if the given list element ids are equal.
+ * @param {Array<string>} id1 An id.
+ * @param {Array<string>} id2 Another id.
+ * @return {boolean} True if the ids are the same.
+ */
+tutao.rest.EntityRestInterface.sameListElementIds = function(id1, id2) {
+    return (id1[0] == id2[0] && id1[1] == id2[1]);
+};
+
+/**
+ * Checks if one of the given elements has the given id.
+ * @param {Array<string|Array<string>>} ids An array of ids (element type or list element type).
+ * @param {string|Array<string>} id The id to look for.
+ * @return {boolean} True if the id is contained, false otherwise.
+ */
+tutao.rest.EntityRestInterface.containsId = function(ids, id) {
+    for (var i=0; i<ids.length; i++) {
+        if (ids[i] instanceof Array && id instanceof Array) {
+            if (tutao.rest.EntityRestInterface.sameListElementIds(ids[i], id)) {
+                return true;
+            }
+        } else {
+            if (ids[i] == id) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/**
  * Loads all elements of the given list.
  * @param {Object} type The constructor of the type to load.
  * @param listId The list id.

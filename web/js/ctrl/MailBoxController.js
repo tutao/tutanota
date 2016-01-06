@@ -59,7 +59,7 @@ tutao.tutanota.ctrl.MailBoxController.prototype._loadMailBox = function() {
                     return systemFolder;
                 }).then(function(createdSystemFolders) {
                     createdSystemFolders.sort(function(folder1, folder2) {
-                        // insert the draft folder after inbox
+                        // insert the draft folder after inbox (use type number 1.5 which is after inbox)
                         if (folder1.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
                             return 1.5 - Number(folder2.getFolderType());
                         } else  if (folder2.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {

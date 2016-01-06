@@ -586,7 +586,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.hideNotification = function(){
 /**
  * Provides the buttons to be shown in the tooltip for the given mail address.
  * @param {string} mailAddress The mail address.
- * * @param {string} name The name of the recipient.
+ * @param {string} name The name of the recipient.
  * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.getTooltipButtons = function (mailAddress, name) {
