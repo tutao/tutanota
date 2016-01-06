@@ -44,6 +44,7 @@ tutao.tutanota.ctrl.Button = function (labelTextId, priority, clickListener, isV
 
     // receives the dom element via the domInit binding. this allows the position of the sub-buttons menu to be adjusted below the clicked parent button.
     this.buttonDomElement = ko.observable(null);
+    this.subButtonsText = ko.observable(null);
 };
 
 tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO = 100;

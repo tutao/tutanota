@@ -600,11 +600,11 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getTooltipButtons = function (mailAd
             });
         }, function() {
             return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) != null);
-        }, false, "showContactAction", ""),
+        }, false, "showContactAction", "contact"),
         new tutao.tutanota.ctrl.Button("createContact_action", 10, function () {
             tutao.locator.navigator.newContact(mailAddress, name);
         }, function() {
             return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) == null);
-        }, false, "createContactAction", "")
+        }, false, "createContactAction", "addContact")
     ];
 };

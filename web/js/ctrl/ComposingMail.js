@@ -747,7 +747,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._createBubbleFromRecipientInfo = fun
             return "displayRecipient";
         }
     }, this);
-	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state, true);
+	return new tutao.tutanota.ctrl.bubbleinput.Bubble(recipientInfo, ko.observable(recipientInfo.getDisplayText()), ko.observable(recipientInfo.getMailAddress()), state, true, this.getTooltipButtons);
 };
 
 /**
@@ -809,6 +809,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.buttonCss = function() {
 
 /** @inheritDoc */
 tutao.tutanota.ctrl.ComposingMail.prototype.getTooltipButtons = function(bubble) {
+    // entity is of type tutao.tutanota.ctrl.RecipientInfo see _createBubbleFromRecipientInfo
     return tutao.locator.mailViewModel.getTooltipButtons(bubble.entity.getMailAddress(), bubble.entity.getName());
 };
 

@@ -668,6 +668,9 @@ div.notificationBar {
 
 
 div#modalMoreMenu {
+
+  @more-menu-background: @background-dark;
+
   > div {
     display:block;
     font-size: @more-menu-font-size;
@@ -682,9 +685,9 @@ div#modalMoreMenu {
       div.inner_menu_more { // otherwise scrolling more menu on mobile devices not working.
         height:100%;
         border-radius: 5px;
-        border-top: 5px solid @background-dark; // add border to inner_menu_more to show border-radius even when the scrollbar is visible.
-        border-bottom: 5px solid @background-dark;
-        background-color:@background-dark; // for scrolling in iOS
+        border-top: 5px solid @more-menu-background; // add border to inner_menu_more to show border-radius even when the scrollbar is visible.
+        border-bottom: 5px solid @more-menu-background;
+        background-color:@more-menu-background; // for scrolling in iOS
       }
 
       div.menuList {
@@ -692,6 +695,17 @@ div#modalMoreMenu {
         width: 100%;
         right: 0;
         overflow: hidden; // otherwise button corners would be visible when selected
+
+        .menuText {
+          padding: 3px 8px;
+          color: @tooltip-color;
+          background-color: @more-menu-background;
+          text-align: center;
+          text-decoration: none;
+          word-wrap: break-word; // needed for long email addresses
+          border-bottom: 1px solid @border-dark;
+        }
+
         > div.menuItem {
           border-bottom: 1px solid @border-dark;
         }
@@ -732,7 +746,7 @@ div#modalMoreMenu {
       height: 0;
       border-left: @triangleRadius solid transparent;
       border-right: @triangleRadius solid transparent;
-      border-bottom: @triangleRadius solid @background-dark;
+      border-bottom: @triangleRadius solid @more-menu-background;
       margin-top: -@triangleRadius;
 
       &:after {
@@ -744,7 +758,7 @@ div#modalMoreMenu {
         height: 0;
         border-left: @triangleRadius solid transparent;
         border-right: @triangleRadius solid transparent;
-        border-top: @triangleRadius solid @background-dark;
+        border-top: @triangleRadius solid @more-menu-background;
       }
     }
   }

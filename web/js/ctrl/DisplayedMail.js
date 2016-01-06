@@ -246,3 +246,24 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.getAttachmentImage = function (file)
     var busy = (file == this.currentlyDownloadingAttachment());
     return tutao.tutanota.util.FileUtils.getFileTypeImage(file.getName(), busy);
 };
+
+
+
+/**
+ * Creates a bubble from a mail address.
+ * @param {tutao.entity.tutanota.MailAddress} mailAddress The mail address.
+ * @param {string} meId The id of the text that should be used if the mailAddress is the current user
+ * @return {tutao.tutanota.ctrl.bubbleinput.Bubble} The bubble.
+ */
+tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = function(mailAddress, meId) {
+    var state =  "displayRecipient";
+    var label = tutao.locator.mailViewModel.getLabel(mailAddress, meId);
+    return new tutao.tutanota.ctrl.bubbleinput.Bubble(mailAddress, ko.observable(label), ko.observable(mailAddress.getAddress()), ko.observable(state), true, this.getTooltipButtons);
+};
+
+
+tutao.tutanota.ctrl.DisplayedMail.prototype.getTooltipButtons = function(bubble) {
+    // entity is of type tutao.entity.tutanota.MailAddress see createBubbleFromMailAddress
+    return tutao.locator.mailViewModel.getTooltipButtons(bubble.entity.getAddress(), bubble.entity.getName());
+};
+

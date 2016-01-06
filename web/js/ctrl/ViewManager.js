@@ -287,3 +287,12 @@ tutao.tutanota.ctrl.ViewManager.prototype._updateColumnTitle = function(currentT
     this.currentColumnTitle(currentTitle);
     this.previousColumnTitle(previousTitle);
 };
+
+
+tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisiible = function() {
+    return tutao.locator.buyDialogViewModel.visible()
+        || tutao.locator.folderNameDialogViewModel.visible()
+        || tutao.locator.modalDialogViewModel.visible()
+        || tutao.locator.feedbackViewModel.showDialog()
+        || (tutao.locator.viewManager.buttonWithSubButtons() != null && tutao.locator.viewManager.buttonWithSubButtons().subButtonsVisible());
+};
