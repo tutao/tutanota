@@ -14,6 +14,7 @@ tutao.entity.sys.CustomerProperties = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._externalUserWelcomeMessage = null;
+    this._lastUpgradeReminder = null;
     this._bigLogo = null;
     this._smallLogo = null;
   }
@@ -30,6 +31,7 @@ tutao.entity.sys.CustomerProperties.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__permissions = data._permissions;
   this._externalUserWelcomeMessage = data.externalUserWelcomeMessage;
+  this._lastUpgradeReminder = data.lastUpgradeReminder;
   this._bigLogo = (data.bigLogo) ? new tutao.entity.sys.File(this, data.bigLogo) : null;
   this._smallLogo = (data.smallLogo) ? new tutao.entity.sys.File(this, data.smallLogo) : null;
 };
@@ -74,6 +76,7 @@ tutao.entity.sys.CustomerProperties.prototype.toJsonData = function() {
     _id: this.__id, 
     _permissions: this.__permissions, 
     externalUserWelcomeMessage: this._externalUserWelcomeMessage, 
+    lastUpgradeReminder: this._lastUpgradeReminder, 
     bigLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._bigLogo), 
     smallLogo: tutao.entity.EntityHelper.aggregatesToJsonData(this._smallLogo)
   };
@@ -88,6 +91,11 @@ tutao.entity.sys.CustomerProperties.prototype.TYPE_ID = 656;
  * The id of the externalUserWelcomeMessage attribute.
  */
 tutao.entity.sys.CustomerProperties.prototype.EXTERNALUSERWELCOMEMESSAGE_ATTRIBUTE_ID = 661;
+
+/**
+ * The id of the lastUpgradeReminder attribute.
+ */
+tutao.entity.sys.CustomerProperties.prototype.LASTUPGRADEREMINDER_ATTRIBUTE_ID = 975;
 
 /**
  * The id of the bigLogo attribute.
@@ -156,6 +164,33 @@ tutao.entity.sys.CustomerProperties.prototype.setExternalUserWelcomeMessage = fu
  */
 tutao.entity.sys.CustomerProperties.prototype.getExternalUserWelcomeMessage = function() {
   return this._externalUserWelcomeMessage;
+};
+
+/**
+ * Sets the lastUpgradeReminder of this CustomerProperties.
+ * @param {Date} lastUpgradeReminder The lastUpgradeReminder of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.setLastUpgradeReminder = function(lastUpgradeReminder) {
+  if (lastUpgradeReminder == null) {
+    this._lastUpgradeReminder = null;
+  } else {
+    this._lastUpgradeReminder = String(lastUpgradeReminder.getTime());
+  }
+  return this;
+};
+
+/**
+ * Provides the lastUpgradeReminder of this CustomerProperties.
+ * @return {Date} The lastUpgradeReminder of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.getLastUpgradeReminder = function() {
+  if (this._lastUpgradeReminder == null) {
+    return null;
+  }
+  if (isNaN(this._lastUpgradeReminder)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._lastUpgradeReminder);
+  }
+  return new Date(Number(this._lastUpgradeReminder));
 };
 
 /**

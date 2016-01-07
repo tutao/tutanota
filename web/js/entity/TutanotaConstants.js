@@ -333,3 +333,5 @@ tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_NONE = "0";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_WHITELIST = "1";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_BLACKLIST = "2";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_DISCARD = "3";
+
+tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL = 14 * 24 * 60 * 60 * 1000;

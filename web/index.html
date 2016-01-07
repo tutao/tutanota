@@ -2209,18 +2209,24 @@
         </div>
     </div>
 
-    <div id="modalAlertConfirmDialog" class="modalDialog" data-bind="with: tutao.locator.modalDialogViewModel, fadeInVisible: tutao.locator.modalDialogViewModel.visible">
+    <div id="modalAlertConfirmDialog" class="modalDialog scrollable" data-bind="with: tutao.locator.modalDialogViewModel, fadeInVisible: tutao.locator.modalDialogViewModel.visible">
         <div class="dialogWindow">
             <span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
-            <h2>Tutanota</h2>
+            <h2 data-bind="text: titleText"></h2>
+			<!-- ko if: image() != null -->
+			<img data-bind="attr:{src: image()}"></img>
+			<!-- /ko -->
             <div class="modalDialogMessage" data-bind="text: message"></div>
+			<!-- ko if: externalLink() != null -->
+			<div class="modalDialogMessage"><a class="modalDialogMessage" data-bind="text: externalLink(), attr:{href: externalLink()}"></a></div>
+			<!-- /ko -->
             <!-- ko foreach: buttons -->
             <button class="single dialogButton" data-bind="lang: text, fastClick: click"></button>
             <!-- /ko -->
         </div>
     </div>
 
-	<div id="feedback" class="modalDialog" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
+	<div id="feedback" class="modalDialog scrollable" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div class="dialogWindow">
 			<span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: 'errorReport_label'"></h2>

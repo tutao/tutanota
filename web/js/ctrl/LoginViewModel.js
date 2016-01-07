@@ -162,8 +162,35 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         tutao.locator.navigator.mail();
         self.loginFinished(true);
         tutao.locator.pushService.register();
+        self.showUpgradeReminder();
     });
 };
+
+tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
+    var self = this;
+    if (tutao.locator.userController.isLoggedInUserFreeAccount() && tutao.env.mode != tutao.Mode.App) {
+        return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+            return customer.loadProperties().then(function(properties) {
+                return customer.loadCustomerInfo().then(function(customerInfo) {
+                    if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime() + tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime() ) {
+                        var message = tutao.lang("upgradeReminder_msg");
+                        var title = tutao.lang( "upgradeReminderTitle_msg");
+                        tutao.locator.modalDialogViewModel.showDialog (message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
+                            if ( selection == 0) {
+                                tutao.locator.navigator.settings();
+                                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                            }
+                        }).then(function() {
+                            properties.setLastUpgradeReminder(new Date());
+                            properties.update();
+                        });
+                    }
+                });
+            });
+        });
+    }
+};
+
 
 /**
  * Loads entropy from the last logout. Fetches missing entropy if none was stored yet and stores it.

@@ -11,6 +11,7 @@ tutao.entity.sys.CustomerPropertiesEditable = function(customerproperties) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerproperties;
 	this.externalUserWelcomeMessage = ko.observable(customerproperties.getExternalUserWelcomeMessage());
+	this.lastUpgradeReminder = ko.observable(customerproperties.getLastUpgradeReminder());
 	if (customerproperties.getBigLogo()) {
 		this.bigLogo = ko.observable(new tutao.entity.sys.FileEditable(customerproperties.getBigLogo()));
 	} else {
@@ -42,6 +43,7 @@ tutao.entity.sys.CustomerPropertiesEditable.prototype.getCustomerProperties = fu
  */
 tutao.entity.sys.CustomerPropertiesEditable.prototype.update = function() {
 	this._entity.setExternalUserWelcomeMessage(this.externalUserWelcomeMessage());
+	this._entity.setLastUpgradeReminder(this.lastUpgradeReminder());
 		if (this.bigLogo()) {
 			this.bigLogo().update();
 			this._entity.setBigLogo(this.bigLogo().getFile());
