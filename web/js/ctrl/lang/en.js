@@ -119,6 +119,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "createActionFailed_msg": "Failed to create an account. Please try again later.",
   "createActionStatus_msg": "Creating users... Finished {index} of {count} accounts.",
   "createActionSuccess_msg": "All accounts have been created successfully.",
+  "createContactsForRecipients_action": "Create contacts for all recipients when sending email",
+  "createContacts_label": "Create contacts",
+  "createContact_action": "Create contact",
   "created_label": "Created",
   "createUsers_label": "Create users",
   "creditCardCVVFormatDetails_label": "Please enter the {1} digit {2} code of your {3} card.",
@@ -183,6 +186,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "download_label": "Download",
   "draftMails_alt": "Emails stored as draft.",
   "draft_action": "Drafts",
+  "draft_alt": "Email is a draft",
   "editFolder_action": "Edit",
   "editUser_label": "Edit user",
   "edit_action": "Edit",
@@ -548,6 +552,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "showAddress_alt": "Show this address in google maps",
   "showAttachment_label": "Display attachment",
   "showBlockedContent_action": "Show",
+  "showContact_action": "Show contact",
   "showInAddressBook_alt": "Edit contact",
   "showMail_action": "Show encrypted mailbox",
   "showPasswordChannelColumn_title": "Enter passwords for external recipients.",
@@ -630,10 +635,5 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday",
-    "draft_alt": "Email is a draft",
-    "showContact_action": "Show contact",
-    "createContact_action": "Create contact",
-    "createContacts_label": "Create contacts",
-    "createContactsForRecipients_action": "Create contacts for all recipients when sending email"
+  "yesterday_label": "yesterday"
 };

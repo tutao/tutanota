@@ -119,6 +119,9 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "createActionFailed_msg": "Ein Account konnte nicht angelegt werden. Bitte versuch es später erneut.",
   "createActionStatus_msg": "Accounts werden angelegt... Es sind {index} von {count} erstellt.",
   "createActionSuccess_msg": "Alle Accounts wurden erfolgreich angelegt.",
+  "createContactsForRecipients_action": "Kontakte für alle Empfänger beim Senden erstellen",
+  "createContacts_label": "Kontakte erstellen",
+  "createContact_action": "Kontakt erstellen",
   "created_label": "Erstellt",
   "createUsers_label": "Benutzer anlegen",
   "creditCardCVVFormatDetails_label": "Bitte gib hier den {1}-stelligen {2}-Code deiner {3}-Karte ein.",
@@ -183,6 +186,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "download_label": "Download",
   "draftMails_alt": "Als Entwurf gespeicherte E-Mails.",
   "draft_action": "Entwürfe",
+  "draft_alt": "E-Mail ist ein Entwurf",
   "editFolder_action": "Bearbeiten",
   "editUser_label": "Benutzer bearbeiten",
   "edit_action": "Bearbeiten",
@@ -548,6 +552,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "showAddress_alt": "Diese Adresse in Google Maps anzeigen",
   "showAttachment_label": "Anhang anzeigen",
   "showBlockedContent_action": "Anzeigen",
+  "showContact_action": "Kontakt anzeigen",
   "showInAddressBook_alt": "Kontakt bearbeiten",
   "showMail_action": "Mailbox entschlüsseln",
   "showPasswordChannelColumn_title": "Passwörter für externe Empfänger eingeben.",
@@ -630,10 +635,5 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern",
-    "draft_alt": "E-Mail ist ein Entwurf",
-    "showContact_action": "Kontakt anzeigen",
-    "createContact_action": "Kontakt erstellen",
-    "createContacts_label": "Kontakte erstellen",
-    "createContactsForRecipients_action": "Kontakte für alle Empfänger beim Senden erstellen"
+  "yesterday_label": "gestern"
 };

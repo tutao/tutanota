@@ -253,7 +253,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "invoiceCountryInfoConsumer_msg": "Esto es necesario para decidir si el impuesto al valor agregado se debe declarar en sus facturas.",
   "invoiceCountry_label": "País",
   "invoiceMailBodyAutomatic_msg": "<p>¡Hola!,</p><p> hay una nueva factura con el número {1} disponible para usted  en 'Configuración' -> 'Facturación'. Automáticamente se cargará el total general. </p><p>Muchas gracias,</p><p> su Equipo Tutanota </​​p>\n<Nueva línea>",
-  "invoiceMailBodyOnAccount_msg": "<p>¡Hola! </p> <p> hay una nueva factura con el número {1} disponible para usted  en 'Configuración' -> 'Facturación'. El pago se debe realizar en un plazo de 7 días después de la fecha de facturación. </p> <p> Muchas gracias, </p> <p> su Equipo Tutanota </p>",
+  "invoiceMailBodyOnAccount_msg": "<p> ¡Hola! </p> <p> hay una nueva factura con el número {1} disponible para usted  en 'Configuración' -> 'Facturación'. El pago se debe realizar en un plazo de 7 días después de la fecha de facturación. </p> <p> Muchas gracias, </p> <p> su Equipo Tutanota </p>",
   "invoiceMailSubject_msg": "Nueva factura para Tutanota",
   "invoicePaymentMethodInfo_msg": "Por favor, elija un método de pago. Se añadirán más opciones en el futuro.",
   "invoiceRecipientInfoBusiness_msg": "Por favor, introduzca el destinatario que se muestra en sus facturas, por ejemplo, el nombre de tu compañía.",
