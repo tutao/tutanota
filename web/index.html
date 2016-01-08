@@ -1624,43 +1624,45 @@
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING -->
                             <div data-bind="with: new tutao.tutanota.ctrl.AdminInvoicingViewModel()" >
-                                <h2 data-bind="lang: 'currentlyBooked_label'"></h2>
-                                <div class="recordContainer wide" data-bind="form: true">
-                                    <div class="record">
-                                        <label class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue" data-bind="lang: getUsageTextId()"></div>
-                                            <div class="recordInfo" data-bind="lang: getNetGrossInfoTextId()"></div>
+                                <div data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
+                                    <h2 data-bind="lang: 'currentlyBooked_label'"></h2>
+                                    <div class="recordContainer wide" data-bind="form: true">
+                                        <div class="record">
+                                            <label class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
+                                            <div class="recordData">
+                                                <div class="recordValue" data-bind="lang: getUsageTextId()"></div>
+                                                <div class="recordInfo" data-bind="lang: getNetGrossInfoTextId()"></div>
+                                            </div>
+                                        </div>
+                                        <div class="record">
+                                            <label class="recordName" data-bind="lang: 'subscription_label'"></label>
+                                            <div class="recordData">
+                                                <div class="recordValue" data-bind="lang: getSubscriptionTextId()"></div>
+                                                <div class="recordInfo" data-bind="text: getEndOfSubscriptionText()"></div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="record">
-                                        <label class="recordName" data-bind="lang: 'subscription_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue" data-bind="lang: getSubscriptionTextId()"></div>
-                                            <div class="recordInfo" data-bind="text: getEndOfSubscriptionText()"></div>
+                                    <div class="bookingTable">
+                                        <div class="bookingTableHeader">
+                                            <div class="bookingCell" data-bind="lang: 'bookingItem_label'"></div>
+                                            <div class="bookingCell" data-bind="lang: 'bookingAmount_label'"></div>
+                                            <div class="bookingCell" data-bind="lang: 'bookingPrice_label'"></div>
+                                        </div>
+                                        <!-- ko foreach: items -->
+                                            <div class="bookingItem">
+                                                <div class="bookingCell" data-bind="lang: name"></div>
+                                                <div class="bookingCell" data-bind="text: $parent.getAmountText($data)"></div>
+                                                <div class="bookingCell" data-bind="text: $parent.getPriceText($data)"></div>
+                                            </div>
+                                        <!-- /ko -->
+                                        <div class="bookingTableFooter" data-bind="">
+                                            <div class="bookingCell"></div>
+                                            <div class="bookingCell" data-bind="lang: 'bookingTotalPrice_label'"></div>
+                                            <div class="bookingCell" data-bind="text: getTotalPriceText()"></div>
                                         </div>
                                     </div>
+                                    <div class="light defaultMargin" data-bind="visible: showNextPeriodInfo(), text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
                                 </div>
-                                <div class="bookingTable">
-                                    <div class="bookingTableHeader">
-                                        <div class="bookingCell" data-bind="lang: 'bookingItem_label'"></div>
-                                        <div class="bookingCell" data-bind="lang: 'bookingAmount_label'"></div>
-                                        <div class="bookingCell" data-bind="lang: 'bookingPrice_label'"></div>
-                                    </div>
-                                    <!-- ko foreach: items -->
-                                        <div class="bookingItem">
-                                            <div class="bookingCell" data-bind="lang: name"></div>
-                                            <div class="bookingCell" data-bind="text: $parent.getAmountText($data)"></div>
-                                            <div class="bookingCell" data-bind="text: $parent.getPriceText($data)"></div>
-                                        </div>
-                                    <!-- /ko -->
-                                    <div class="bookingTableFooter" data-bind="">
-                                        <div class="bookingCell"></div>
-                                        <div class="bookingCell" data-bind="lang: 'bookingTotalPrice_label'"></div>
-                                        <div class="bookingCell" data-bind="text: getTotalPriceText()"></div>
-                                    </div>
-                                </div>
-                                <div class="light defaultMargin" data-bind="visible: showNextPeriodInfo(), text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
                                 <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
                                 <div class="bookingTable">
                                     <div class="bookingTableHeader">

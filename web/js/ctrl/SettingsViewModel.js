@@ -64,13 +64,13 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         if (!tutao.locator.viewManager.isFreeAccount()) {
             settings.push(s.DISPLAY_ADMIN_MESSAGES);
         }
+        settings.push(s.DISPLAY_ADMIN_SPAM);
         if (this.isActivateExtensionEnabled()) {
             if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
                 settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
             }
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
-        settings.push(s.DISPLAY_ADMIN_SPAM);
         if (!tutao.locator.viewManager.isFreeAccount() || this.bookingAvailable()) {
             settings.push(s.DISPLAY_ADMIN_INVOICING);
         }
