@@ -581,21 +581,25 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getColumnTitleText = function(){
  * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddress, name) {
-    return [
-        new tutao.tutanota.ctrl.Button("showContact_action", 10, function () {
-            var contact = tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress);
-            tutao.locator.contactListViewModel.showContact(contact).then(function(cancelled) {
-                if (!cancelled) {
-                    tutao.locator.navigator.contact();
-                }
-            });
-        }, function() {
-            return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) != null);
-        }, false, "showContactAction", "contact"),
-        new tutao.tutanota.ctrl.Button("createContact_action", 10, function () {
-            tutao.locator.navigator.newContact(mailAddress, name);
-        }, function() {
-            return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) == null);
-        }, false, "createContactAction", "addContact")
-    ];
+    if (tutao.locator.userController.isExternalUserLoggedIn()) {
+        return [];
+    } else {
+        return [
+            new tutao.tutanota.ctrl.Button("showContact_action", 10, function () {
+                var contact = tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress);
+                tutao.locator.contactListViewModel.showContact(contact).then(function (cancelled) {
+                    if (!cancelled) {
+                        tutao.locator.navigator.contact();
+                    }
+                });
+            }, function () {
+                return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) != null);
+            }, false, "showContactAction", "contact"),
+            new tutao.tutanota.ctrl.Button("createContact_action", 10, function () {
+                tutao.locator.navigator.newContact(mailAddress, name);
+            }, function () {
+                return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) == null);
+            }, false, "createContactAction", "addContact")
+        ];
+    }
 };
