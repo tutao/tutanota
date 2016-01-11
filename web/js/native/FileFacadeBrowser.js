@@ -205,7 +205,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
         } else {
             var url;
             // android browser and safari mobile < v7 can not open blob urls. unfortunately we can not generally check if this is supported, so we need to check the browser type
-            if ((tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7) || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
+            if ((tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI && tutao.tutanota.util.ClientDetector.isMobileDevice() && tutao.tutanota.util.ClientDetector.getBrowserVersion() < 7)) {
                 var base64 = tutao.util.EncodingConverter.bytesToBase64(new Uint8Array(dataFile.getData()));
                 url = "data:" + mimeType + ";base64," + base64;
             } else {
@@ -213,11 +213,9 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                 url = URL.createObjectURL(blob);
             }
             // firefox on android, safari on OS X and >= v7 on iOS do not support opening links with simulated clicks, so show a download dialog. Safari < v7 and Android browser may only open some file types in the browser, so we show the dialog to display the info text
-            if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI || tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID ) {
+            if (tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_SAFARI) {
                 var textId = 'saveDownloadNotPossibleSafariDesktop_msg';
-                if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
-                    textId = 'saveDownloadNotPossibleAndroid_msg';
-                } else if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
+                if (tutao.tutanota.util.ClientDetector.isMobileDevice()) {
                     textId = 'saveDownloadNotPossibleSafariMobile_msg';
                 }
                 return tutao.locator.legacyDownloadViewModel.showDialog(dataFile.getName(), url, textId).then(function() {

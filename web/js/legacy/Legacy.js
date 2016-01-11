@@ -9,8 +9,7 @@ tutao.provide('tutao.tutanota.legacy.Legacy');
 tutao.tutanota.legacy.Legacy.setup = function(singletons) {
 
 	if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED ||
-        tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED ||
-        tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
+        tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_UPDATE_NEEDED) {
 
 		// attention: keep in sync with CryptoBrowser implementation
         var workerFunctions = tutao.native.CryptoBrowser._workerFunctions;

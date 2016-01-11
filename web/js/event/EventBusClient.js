@@ -47,11 +47,6 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
  * @returns {tutao.event.EventBusClient} The event bus client object.
  */
 tutao.event.EventBusClient.prototype.connect = function(reconnect) {
-    if (tutao.tutanota.util.ClientDetector.getSupportedType() == tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID) {
-        console.log("Android browser does not support web sockets. reconnect=", reconnect);
-        return this;
-    }
-
     console.log("ws connect reconnect=", reconnect);
     var self = this;
 	var url = tutao.env.getWebsocketOrigin() + "/event/";

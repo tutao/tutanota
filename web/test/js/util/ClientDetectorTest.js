@@ -285,7 +285,7 @@ describe("ClientDetectorTest", function () {
         assert.equal(4.1, info.getBrowserVersion());
         assert.equal(tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID, info.getDeviceType());
         assert.equal(true, info.isMobileDevice());
-        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID, info.getSupportedType());
+        assert.equal(tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED, info.getSupportedType());
     });
 
     it(" detect opera 19 on Android", function () {

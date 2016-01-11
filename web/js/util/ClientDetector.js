@@ -42,8 +42,6 @@ tutao.tutanota.util.ClientDetector.DEVICE_TYPE_OTHER_MOBILE = "Other mobile";
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_SUPPORTED = "supported";
 /** browser is supported in legacy mode for Safari (view mails es external recipient). Downloading attachments is not fully supported. */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_SAFARI = "legacy safari";
-/** browser is supported in legacy mode for Android 4.0 - 4.3. Replying to emails is not supported. */
-tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID = "legacy android";
 /** browser is not supported */
 tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_NOT_SUPPORTED = "not supported";
 /** browser is generally supported, but must be updated to fit supported version */
@@ -182,7 +180,7 @@ tutao.tutanota.util.ClientDetector._setSupportInfo = function(userAgent) {
         if (tutao.env.mode == tutao.Mode.App) {
             info._supported = info.SUPPORTED_TYPE_SUPPORTED;
         } else {
-            info._supported = info.SUPPORTED_TYPE_LEGACY_ANDROID;
+            info._supported = info.SUPPORTED_TYPE_NOT_SUPPORTED;
         }
     } else if (info._device == info.DEVICE_TYPE_BB) {
         info._supported = info.SUPPORTED_TYPE_SUPPORTED;

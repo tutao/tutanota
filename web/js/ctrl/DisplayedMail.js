@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
     var self = this;
     var isExternalAnswerPossible = function () {
-        return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && tutao.tutanota.util.ClientDetector.getSupportedType() != tutao.tutanota.util.ClientDetector.SUPPORTED_TYPE_LEGACY_ANDROID;
+        return tutao.locator.userController.isExternalUserLoggedIn() && self.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED;
     };
     var isInternalUserLoggedIn = function() {
         return tutao.locator.userController.isInternalUserLoggedIn();
