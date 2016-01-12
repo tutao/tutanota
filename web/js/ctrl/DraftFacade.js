@@ -68,7 +68,7 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
 };
 
 /**
- * Updates a draft mail. This function does not make sure the given draft is updated from the server (by web sockets), but it makes sure that the list of attachments in the given draft is updated.
+ * Updates a draft mail. Does not make sure that the body is updated on client side. this has to be done by the web socket connection.
  * @param {string} subject The subject of the mail.
  * @param {string} bodyText The bodyText of the mail.
  * @param {string} senderMailAddress The senders mail address.
@@ -77,7 +77,7 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
  * @param {?Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>} attachments The files that shall be attached to this mail or null if the current attachments shall not be changed.
- * @param {string} confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
+ * @param {bool} confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
  * @param {tutao.entity.tutanota.Mail} draft The draft to update.
  * @return {Promise.<tutao.TooManyRequestsError|tutao.AccessBlockedError>} Resolved finished. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
  */
@@ -136,7 +136,15 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
         });
     }).then(function() {
         return service.update({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(draftUpdateReturn) {
-            // replace the existing attachments with the new ones manually, because we do not want to rely on the web socket update
+            // replace the data on the draft, because we can not rely on the web socket update, especially when sending directly after updating
+            draft.setSubject(subject);
+            draft.getSender().setAddress(senderMailAddress);
+            draft.getSender().setName(senderName);
+            draft.setConfidential(confidential);
+            tutao.tutanota.ctrl.DraftFacade._updateRecipientsOnDraft(draft, toRecipients, draft.getToRecipients());
+            tutao.tutanota.ctrl.DraftFacade._updateRecipientsOnDraft(draft, ccRecipients, draft.getCcRecipients());
+            tutao.tutanota.ctrl.DraftFacade._updateRecipientsOnDraft(draft, bccRecipients, draft.getBccRecipients());
+            // use the attachments returned from the service because these are the new file ids
             draft.getAttachments().length = 0;
             Array.prototype.push.apply(draft.getAttachments(), draftUpdateReturn.getAttachments());
         });
@@ -179,9 +187,9 @@ tutao.tutanota.ctrl.DraftFacade._uploadAttachmentData = function(dataFile, sessi
 };
 
 /**
- * Handles all recipients.
+ * Adds the given recipient to the given recipient list.
  * @param {tutao.entity.tutanota.DraftCreateData|tutao.entity.tutanota.DraftUpdateData} service The service data.
- * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} recipientInfos The recipients the mail shall be sent to in bcc.
+ * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} recipientInfos The recipients that shall be added.
  * @param {Array.<tutao.entity.tutanota.DraftRecipient>} targetRecipientList The list to add the recipient to..
  * @return {Promise.<Array<string>, tutao.RecipientsNotFoundError>} Resolved when finished with the id of
  * the senders mail (only element id, no list id). Rejects with an RecipientsNotFoundError if some of the recipients could not be found.
@@ -192,6 +200,22 @@ tutao.tutanota.ctrl.DraftFacade._addRecipients = function(service, recipientInfo
             .setMailAddress(recipientInfo.getMailAddress())
             .setName(recipientInfo.getName()));
     });
+};
+
+/**
+ * Sets the given recipient to the given list of recipients of the draft.
+ * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} recipientInfos The recipients that shall be set.
+ * @param {Array.<tutao.entity.tutanota.MailAddress>} draftRecipients The list to set the recipient in.
+ * @param {tutao.entity.tutanota.Mail} draft The draft.
+ */
+tutao.tutanota.ctrl.DraftFacade._updateRecipientsOnDraft = function(draft, recipientInfos, draftRecipients) {
+    draftRecipients.length = 0;
+    for (var i=0; i<recipientInfos.length; i++) {
+        var mailAddress = new tutao.entity.tutanota.MailAddress(draft);
+        mailAddress.setAddress(recipientInfos[i].getMailAddress());
+        mailAddress.setName(recipientInfos[i].getName());
+        draftRecipients.push(mailAddress);
+    }
 };
 
 /**
