@@ -197,6 +197,25 @@ tutao.tutanota.ctrl.ComposingMail.prototype.isPasswordChannelColumnVisible = fun
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments) {
     var self = this;
+
+    if (self.busy()) {
+        return Promise.resolve();
+    }
+
+    self.busy(true);
+    return this._saveDraftNotBusy(saveAttachments).lastly(function() {
+        self.busy(false);
+    });
+};
+
+
+/**
+ * Saves the draft without setting the busy flag.
+ * @param saveAttachments True if also the attachments shall be saved, false otherwise.
+ * @returns {Promise} When finished.
+ */
+tutao.tutanota.ctrl.ComposingMail.prototype._saveDraftNotBusy = function(saveAttachments) {
+    var self = this;
     var attachments = null;
     if (saveAttachments) {
         attachments = self._attachments();
@@ -208,7 +227,6 @@ tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments
     }
     var body = tutao.locator.mailView.getComposingBody();
     this._lastBodyText = body;
-    self.busy(true);
     if (self._draft) {
         return tutao.tutanota.ctrl.DraftFacade.updateDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
@@ -218,14 +236,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype.saveDraft = function(saveAttachments
                 // we have to update the attachments with the new File instances
                 self._updateAttachments();
             }
-            self.busy(false);
         });
     } else {
         return tutao.tutanota.ctrl.DraftFacade.createDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
             self.conversationType, self.previousMessageId, attachments, self.confidentialButtonSecure()).then(function (draft) {
             self._draft = draft;
-            self.busy(false);
         });
     }
 };
@@ -248,8 +264,12 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updateAttachments = function() {
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 	var self = this;
-    // validate recipients here because fastclick on the send button does not trigger validation
 
+    if (self.busy()) {
+        return;
+    }
+
+    // validate recipients here because fastclick on the send button does not trigger validation
 	var invalidRecipients = (this.toRecipientsViewModel.inputValue() !== "") || (this.ccRecipientsViewModel.inputValue() !== "") || (this.bccRecipientsViewModel.inputValue() !== "");
 	if (!invalidRecipients && this.toRecipientsViewModel.bubbles().length === 0 && this.ccRecipientsViewModel.bubbles().length === 0 && this.bccRecipientsViewModel.bubbles().length === 0) {
 		// setTimeout is needed because fastClick would call the event twice otherwise
@@ -307,7 +327,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
 
                 return promise.then(function (ok) {
                     if (ok) {
-                        return self.saveDraft(true).then(function() {
+                        return self._saveDraftNotBusy(true).then(function() {
                             return self._updateContactInfo(self.getAllComposerRecipients()).then(function () {
 
                                 // the mail is sent in the background
