@@ -230,7 +230,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._saveDraftNotBusy = function(saveAtt
     if (self._draft) {
         return tutao.tutanota.ctrl.DraftFacade.updateDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-            attachments, self.confidentialButtonSecure(), self._draft).then(function() {
+            attachments, self._getDraftConfidentialState(), self._draft).then(function() {
             tutao.locator.mailListViewModel.updateMailEntry(self._draft);
             if (saveAttachments) {
                 // we have to update the attachments with the new File instances
@@ -240,10 +240,14 @@ tutao.tutanota.ctrl.ComposingMail.prototype._saveDraftNotBusy = function(saveAtt
     } else {
         return tutao.tutanota.ctrl.DraftFacade.createDraft(self.composerSubject(), body, self.sender(), senderName,
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
-            self.conversationType, self.previousMessageId, attachments, self.confidentialButtonSecure()).then(function (draft) {
+            self.conversationType, self.previousMessageId, attachments, self._getDraftConfidentialState()).then(function (draft) {
             self._draft = draft;
         });
     }
+};
+
+tutao.tutanota.ctrl.ComposingMail.prototype._getDraftConfidentialState = function() {
+    return this.confidentialButtonSecure() || (!this.containsExternalRecipients() && this.getAllComposerRecipients().length > 0);
 };
 
 tutao.tutanota.ctrl.ComposingMail.prototype._updateAttachments = function() {
@@ -342,11 +346,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 }
 
                                 return promise.then(function () {
-                                    var allRecipients = [];
-                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.toRecipientsViewModel));
-                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.ccRecipientsViewModel));
-                                    tutao.util.ArrayUtils.addAll(allRecipients, self.getComposerRecipients(self.bccRecipientsViewModel));
-                                    return tutao.tutanota.ctrl.DraftFacade.sendDraft(self._draft, allRecipients, tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailId, exception) {
+                                    return tutao.tutanota.ctrl.DraftFacade.sendDraft(self._draft, self.getAllComposerRecipients(), tutao.locator.passwordChannelViewModel.getNotificationMailLanguage()).then(function (senderMailId, exception) {
                                         return self._updatePreviousMail().lastly(function () {
                                             self._folderOfDraft.removeMails([self._draft]);
                                             self.closeDraft(true);
