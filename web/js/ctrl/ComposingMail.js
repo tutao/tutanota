@@ -18,7 +18,7 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     if (draft) {
         sender = draft.getSender().getAddress();
     } else {
-        tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
+        sender = tutao.locator.mailBoxController.getUserProperties().getDefaultSender();
         if (!sender) {
             sender = tutao.locator.userController.getUserGroupInfo().getMailAddress();
         }
