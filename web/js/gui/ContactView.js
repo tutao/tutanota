@@ -79,6 +79,8 @@ tutao.tutanota.gui.ContactView.prototype.showContactListColumn = function() {
  * Makes sure that the contact column is visible.
  */
 tutao.tutanota.gui.ContactView.prototype.showContactColumn = function() {
+    // set _firstActivation to false to make sure that the swipe slide does not switch to the default columns when selecting the contact view the first time
+    this._swipeSlider._firstActivation = false;
     this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.ContactView.COLUMN_CONTACT);
 };
 

@@ -481,9 +481,13 @@ tutao.tutanota.gui.initKnockout = function() {
             var subButtons = $(element);
 			var triangle = $("#triangle");
 
+			var parentButtonOuterWidth = parentButton.outerWidth();
+			var parentButtonOuterHeight = parentButton.outerHeight();
+			var parentButtonOffset = parentButton.offset();
+
             subButtons.hide(); // the sub-buttons width is not available yet, so calculate in the setTimeout function and hide the menu to avoid flickering
             setTimeout(function() {
-                var parentButtonHorizontalCenter = (parentButton.offset().left + parentButton.outerWidth() / 2);
+                var parentButtonHorizontalCenter = (parentButtonOffset.left + parentButtonOuterWidth / 2);
                 if (parentButtonHorizontalCenter < ($(window).width() / 2)) {
                     subButtons.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - subButtons.outerWidth() / 2), right: 'initial' });
 					triangle.css({ left: Math.max(MIN_MARGIN, parentButtonHorizontalCenter - triangle.outerWidth() / 2), right: 'initial' });
@@ -491,16 +495,16 @@ tutao.tutanota.gui.initKnockout = function() {
                     subButtons.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + subButtons.outerWidth() / 2)) });
 					triangle.css({ left: 'initial', right: Math.max(MIN_MARGIN, $(window).width() - (parentButtonHorizontalCenter + triangle.outerWidth() / 2)) });
                 }
-				var parentButtonVerticalCenter = (parentButton.offset().top + parentButton.outerHeight() / 2);
+				var parentButtonVerticalCenter = (parentButtonOffset.top + parentButtonOuterHeight / 2);
 				var isTopMoreMenu = parentButtonVerticalCenter < ($(window).height() / 2);
 
 				var verticalOffset = triangle.outerHeight();
 				if (isTopMoreMenu) {
-					subButtons.css({ top: (parentButton.offset().top + parentButton.outerHeight() + verticalOffset), bottom: '20px' });
-					triangle.css({ top: (parentButton.offset().top + parentButton.outerHeight() + verticalOffset), bottom: 'initial' });
+					subButtons.css({ top: (parentButtonOffset.top + parentButtonOuterHeight + verticalOffset), bottom: '20px' });
+					triangle.css({ top: (parentButtonOffset.top + parentButtonOuterHeight + verticalOffset), bottom: 'initial' });
 				} else {
-					subButtons.css({ top: '20px', bottom: $(window).height() - parentButton.offset().top + verticalOffset });
-					triangle.css({ top: 'initial', bottom: $(window).height() - parentButton.offset().top + verticalOffset});
+					subButtons.css({ top: '20px', bottom: $(window).height() - parentButtonOffset.top + verticalOffset });
+					triangle.css({ top: 'initial', bottom: $(window).height() - parentButtonOffset.top + verticalOffset});
 				}
 
 				var menuList = subButtons.find(".menuList");
