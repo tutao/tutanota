@@ -35,8 +35,7 @@ tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel.prototype.showPrivacy = fu
 };
 
 tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel.prototype._updateText = function() {
-    //this.visible(true);
-    var link = "terms.html" + " #" + this._type + "-" + this.currentLang();
+    var link =  tutao.env.getHttpOrigin()  + "/terms.html" + " #" + this._type + "-" + this.currentLang();
     var element = $("<div>");
     var self = this;
     element.load(link, null, function() {
