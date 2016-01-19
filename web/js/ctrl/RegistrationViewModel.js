@@ -472,14 +472,3 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.isCaptchaEditable = function
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.login = function() {
     tutao.locator.navigator.logout();
 };
-
-
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.getTermsLink = function() {
-    var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
-    return 'https://tutanota.com/'+ langIdentifier + 'terms';
-};
-
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.getPrivacyLink = function() {
-    var langIdentifier = tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de/" : "";
-    return 'https://tutanota.com/' +langIdentifier + 'terms#privacy';
-};

@@ -189,6 +189,7 @@
 <script src="/js/ctrl/SendUnsecureMailFacade.js"></script>
 <script src="/js/ctrl/SettingsViewModel.js"></script>
 <script src="/js/ctrl/ShareFacade.js"></script>
+<script src="/js/ctrl/TermsAndConditionsDialogViewModel.js"></script>
 <script src="/js/ctrl/ThemeViewModel.js"></script>
 <script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
 <script src="/js/ctrl/UserController.js"></script>
@@ -1139,13 +1140,6 @@
                             </div>
                         </div>
                         <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
-                        <div data-bind="visible: !tutao.tutanota.ctrl.LoginViewModel.showAppInfo()">
-                            <div class="centered">
-                                <a href="https://www.facebook.com/tutanota" class="socialMediaLinkImage social-facebook" target="_blank"></a>
-                                <a href="https://twitter.com/TutanotaTeam" class="socialMediaLinkImage social-twitter" target="_blank"></a>
-                                <a href="https://plus.google.com/+Tutanota" class="socialMediaLinkImage social-googleplus" target="_blank"></a>
-                            </div>
-                        </div>
                     </form>
                 </div>
             </div>
@@ -1270,7 +1264,9 @@
 									<div class="passwordStatus" data-bind="lang: getPassword1Status().text"></div>
 								</label>
 								<label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
+								<!-- ko if not: tutao.env.isIOSApp() -->
 								<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
+								<!-- /ko -->
 							</div>
 						</div>
 						<div class="record">
@@ -1288,8 +1284,8 @@
 								<div class="recordValue">
 									<input id="termsInput" type="checkbox" data-bind="enable: isFormEditable(), checked: termsAccepted"/>
 									<label for="termsInput" data-bind="lang: 'termsAndConditions_label'"></label>
-									<a class="singleLineLink" href="" data-bind="attr:{ href: getTermsLink() }, lang: 'termsAndConditionsLink_label'"></a>
-									<a class="singleLineLink" href="" data-bind="attr: { href: getPrivacyLink() }, lang: 'privacyLink_label'"></a>
+									<div class="singleLineLink"  data-bind="lang: 'termsAndConditionsLink_label', fastClick:  tutao.locator.termsAndConditionsDialogViewModel.showTerms"></div>
+									<div class="singleLineLink"  data-bind="lang: 'privacyLink_label', fastClick:  tutao.locator.termsAndConditionsDialogViewModel.showPrivacy"></div>
 								</div>
 								<label for="termsInput" class="recordStatus" data-bind="css: getTermsStatus().type, lang: getTermsStatus().text"></label>
 							</div>
@@ -2227,6 +2223,17 @@
             <!-- /ko -->
         </div>
     </div>
+
+
+	<div id="modalTermsAndConditionConfirmDialog" class="modalDialog scrollable" data-bind="with: tutao.locator.termsAndConditionsDialogViewModel, fadeInVisible: tutao.locator.termsAndConditionsDialogViewModel.visible">
+		<div class="dialogWindow">
+			<span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
+			<div class="modalDialogMessage" data-bind=" editableText: content" contenteditable="false"></div>
+			<button class="single dialogButton" data-bind="lang: 'close_alt', fastClick: close"></button>
+			<button class="single dialogButton" data-bind="lang: 'languageGerman_label', fastClick: showGermanVersion, visible : currentLang()=='en'"></button>
+		</div>
+	</div>
+
 
 	<div id="feedback" class="modalDialog scrollable" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div class="dialogWindow">

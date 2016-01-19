@@ -53,3 +53,12 @@ tutao.Environment.prototype.getWebsocketOrigin = function () {
 tutao.Environment.prototype.getHttpOrigin = function () {
     return (this.ssl ? 'https' : 'http') + "://" + this.server + (this.port ? ":" + this.port : "");
 };
+
+
+tutao.Environment.prototype.isIOSApp = function () {
+    return this.mode == tutao.Mode.App && cordova.platformId == "ios";
+};
+
+
+
+

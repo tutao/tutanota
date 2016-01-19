@@ -101,7 +101,7 @@ tutao.event.EventBusClient.prototype._message = function(message) {
 
 tutao.event.EventBusClient.prototype._close = function(event) {
 	console.log("ws _close: ", event, new Date());
-	if ( tutao.env.mode == tutao.Mode.App && cordova.platformId == "ios" ) {
+	if ( tutao.env.isIOSApp()) {
 		// on ios devices the close event fires when the app comes back to foreground
 		// so try a reconnect immediately. The tryReconnect method is also triggered when
 		// the app  comes to foreground by the "resume" event, but the order in which these

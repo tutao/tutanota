@@ -219,6 +219,12 @@ gulp.task('copyPayment', function () {
 });
 
 
+gulp.task('copyTerms', function () {
+    return gulp.src('terms.html')
+        .pipe(gulp.dest('build/'));
+});
+
+
 gulp.task('minifyPayment', function () {
     return streamqueue({objectMode: true},
         gulp.src(["lib/jquery-1.9.1.js", "lib/worker/base.js", "lib/knockout-2.2.1.js", "js/ctrl/LanguageViewModel.js","js/ctrl/lang/**/*.js", "js/util/StringUtils.js" ,"js/util/FunctionUtils.js","js/util/ClientDetector.js" , "js/gui/gui.js", "js/entity/TutanotaConstants.js", "pay/**/*.js", "!pay/init.js"])
@@ -316,7 +322,7 @@ gulp.task('copy', ['copyMessages', 'copyOperative', 'copyFonts', 'copyGraphics',
 });
 
 gulp.task('manifest', function () {
-    return gulp.src(['./build/**/*', '!build/fonts/ionicons/ionicons.+(eot|svg|ttf)', '!build/*.map', "!build/test/**", "!build/pay/**", "!build/payment.html"])
+    return gulp.src(['./build/**/*', '!build/fonts/ionicons/ionicons.+(eot|svg|ttf)', '!build/*.map', "!build/test/**", "!build/pay/**", "!build/payment.html", "!build/terms.html"])
         .pipe(manifest({
             timestamp: true,
             network: ['*'],
@@ -362,13 +368,13 @@ gulp.task('distCordovaLocal', ['clean'], function (cb) {
 gulp.task('distLocal', ['clean'], function (cb) {
     env = local_compiled;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'copyTerms', 'manifest', 'gzip', cb);
 });
 
 gulp.task('dist', ['clean'], function (cb) {
     env = prod;
     fs.writeFileSync("build/init.js", env);
-    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'manifest', 'gzip', cb);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'copyTerms', 'manifest', 'gzip', cb);
 });
 
 gulp.task('copyRelease', function() {

@@ -131,7 +131,9 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
         // all supported
         new tutao.tutanota.ctrl.Button('community_label', 26, function () {
             tutao.tutanota.gui.openLink("https://tutanota.com/community");
-        }, self.isFreeAccount, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
+        }, function() {
+            return self.isFreeAccount() && !tutao.env.isIOSApp();
+        }, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
@@ -296,5 +298,6 @@ tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisible = function() {
         || tutao.locator.feedbackViewModel.showDialog()
         || tutao.locator.legacyDownloadViewModel.dialogVisible()
         || tutao.locator.progressDialogModel.showDialog()
+        || tutao.locator.termsAndConditionsDialogViewModel.visible()
         || (tutao.locator.viewManager.elementWithSubButtons() != null && tutao.locator.viewManager.elementWithSubButtons().subButtonsVisible());
 };
