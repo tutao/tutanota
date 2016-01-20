@@ -487,10 +487,16 @@ tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = functio
 		return Promise.resolve(true);
 	} else if (this.isComposingState()) {
         var self = this;
-		return this.getComposingMail().saveDraft(false).then(function() {
-            self.getComposingMail().closeDraft(restorePreviousMail);
-            return true;
-        });
+        var composingMail = this.getComposingMail();
+        // do not switch to another folder if the composing mail is busy.
+        if (composingMail.busy()) {
+            Promise.resolve(false)
+        }else{
+            return composingMail.saveDraft(false).then(function() {
+                composingMail.closeDraft(restorePreviousMail);
+                return true;
+            });
+        }
 	} else {
         return Promise.resolve(true);
 	}
