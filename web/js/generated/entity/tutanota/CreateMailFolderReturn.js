@@ -30,7 +30,7 @@ tutao.entity.tutanota.CreateMailFolderReturn.prototype.updateData = function(dat
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CreateMailFolderReturn.MODEL_VERSION = '11';
+tutao.entity.tutanota.CreateMailFolderReturn.MODEL_VERSION = '12';
 
 /**
  * The encrypted flag.

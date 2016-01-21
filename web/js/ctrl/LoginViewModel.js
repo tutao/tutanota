@@ -163,7 +163,13 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         self.loginFinished(true);
         tutao.locator.pushService.register();
         self.showUpgradeReminder();
+        self._getInfoMails();
     });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._getInfoMails = function () {
+    var receiveService = new tutao.entity.tutanota.ReceiveInfoServiceData();
+    return receiveService.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
