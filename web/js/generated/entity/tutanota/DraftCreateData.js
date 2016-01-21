@@ -40,7 +40,7 @@ tutao.entity.tutanota.DraftCreateData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.DraftCreateData.MODEL_VERSION = '11';
+tutao.entity.tutanota.DraftCreateData.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -234,7 +234,7 @@ tutao.entity.tutanota.DraftCreateData.prototype.setup = function(parameters, hea
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 11;
+  parameters["v"] = 12;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.DraftCreateData.PATH, this, parameters, headers, tutao.entity.tutanota.DraftCreateReturn);
 };

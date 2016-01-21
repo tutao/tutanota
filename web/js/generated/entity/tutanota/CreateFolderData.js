@@ -38,7 +38,7 @@ tutao.entity.tutanota.CreateFolderData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CreateFolderData.MODEL_VERSION = '11';
+tutao.entity.tutanota.CreateFolderData.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -231,7 +231,7 @@ tutao.entity.tutanota.CreateFolderData.prototype.setup = function(parameters, he
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 11;
+  parameters["v"] = 12;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.CreateFolderData.PATH, this, parameters, headers, tutao.entity.tutanota.CreateFolderReturn);
 };

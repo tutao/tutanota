@@ -13,6 +13,7 @@ tutao.entity.tutanota.MailBox = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__permissions = null;
+    this._lastInfoDate = null;
     this._shareBucketId = null;
     this._symEncShareBucketKey = null;
     this._mails = null;
@@ -32,6 +33,7 @@ tutao.entity.tutanota.MailBox.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__permissions = data._permissions;
+  this._lastInfoDate = data.lastInfoDate;
   this._shareBucketId = data.shareBucketId;
   this._symEncShareBucketKey = data.symEncShareBucketKey;
   this._mails = data.mails;
@@ -44,7 +46,7 @@ tutao.entity.tutanota.MailBox.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailBox.MODEL_VERSION = '11';
+tutao.entity.tutanota.MailBox.MODEL_VERSION = '12';
 
 /**
  * The url path to the resource.
@@ -79,6 +81,7 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _permissions: this.__permissions, 
+    lastInfoDate: this._lastInfoDate, 
     shareBucketId: this._shareBucketId, 
     symEncShareBucketKey: this._symEncShareBucketKey, 
     mails: this._mails, 
@@ -92,6 +95,11 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
  * The id of the MailBox type.
  */
 tutao.entity.tutanota.MailBox.prototype.TYPE_ID = 125;
+
+/**
+ * The id of the lastInfoDate attribute.
+ */
+tutao.entity.tutanota.MailBox.prototype.LASTINFODATE_ATTRIBUTE_ID = 569;
 
 /**
  * The id of the shareBucketId attribute.
@@ -163,6 +171,26 @@ tutao.entity.tutanota.MailBox.prototype.setPermissions = function(permissions) {
  */
 tutao.entity.tutanota.MailBox.prototype.getPermissions = function() {
   return this.__permissions;
+};
+
+/**
+ * Sets the lastInfoDate of this MailBox.
+ * @param {Date} lastInfoDate The lastInfoDate of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.setLastInfoDate = function(lastInfoDate) {
+  this._lastInfoDate = String(lastInfoDate.getTime());
+  return this;
+};
+
+/**
+ * Provides the lastInfoDate of this MailBox.
+ * @return {Date} The lastInfoDate of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.getLastInfoDate = function() {
+  if (isNaN(this._lastInfoDate)) {
+    throw new tutao.InvalidDataError('invalid time data: ' + this._lastInfoDate);
+  }
+  return new Date(Number(this._lastInfoDate));
 };
 
 /**
@@ -273,7 +301,7 @@ tutao.entity.tutanota.MailBox.prototype.getSystemFolders = function() {
  * @return {Promise.<tutao.entity.tutanota.MailBox>} Resolves to the MailBox or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -284,7 +312,7 @@ tutao.entity.tutanota.MailBox.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": 11}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
