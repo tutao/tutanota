@@ -92,9 +92,14 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(fo
     } else {
         return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
             if (confirmed) {
+                var oldFolder = self.selectedFolder();
                 self.selectedFolder(folder);
                 return folder.selected().then(function () {
                     tutao.locator.mailView.showDefaultColumns();
+                }).caught(tutao.NotAuthorizedError, function() {
+                    // the folder has been deleted - should not occur if full sync is available.
+                    folder.updateOnRemovedFolder();
+                    self.selectedFolder(oldFolder);
                 });
             }
         });

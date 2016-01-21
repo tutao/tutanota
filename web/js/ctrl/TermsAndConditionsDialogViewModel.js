@@ -21,7 +21,6 @@ tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel.prototype.showTerms = func
     this._type = "terms";
     this.currentLang(tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de" : "en");
     this._updateText();
-    this.visible(true);
 };
 
 /**
@@ -31,7 +30,6 @@ tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel.prototype.showPrivacy = fu
     this._type = "privacy";
     this.currentLang(tutao.locator.languageViewModel.getCurrentLanguage() == "de" ? "de" : "en");
     this._updateText();
-
 };
 
 tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel.prototype._updateText = function() {

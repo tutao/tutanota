@@ -474,8 +474,24 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype._removeSubFolder = function(su
     var deleteService = new tutao.entity.tutanota.DeleteMailFolderData;
     deleteService.getFolders().push(subFolder._getMailFolderId());
     return deleteService.erase({}, null).then(function(){
-        self.subFolders.remove(subFolder);
+        subFolder.updateOnRemovedFolder();
     });
+};
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.updateOnRemovedFolder = function() {
+    this._removeListeners();
+    if (this.parentFolder()){
+        this.parentFolder().subFolders.remove(this);
+    }
+};
+
+
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype._removeListeners = function() {
+    if (this._eventTracker) {
+        this._eventTracker.removeObserver(this.updateOnNewMails);
+        this._eventTracker.stopObservingList();
+    }
 };
 
 

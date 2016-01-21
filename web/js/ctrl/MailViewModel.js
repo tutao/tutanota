@@ -490,7 +490,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.tryCancelAllComposingMails = functio
         var composingMail = this.getComposingMail();
         // do not switch to another folder if the composing mail is busy.
         if (composingMail.busy()) {
-            Promise.resolve(false)
+            return Promise.resolve(false);
         }else{
             return composingMail.saveDraft(false).then(function() {
                 composingMail.closeDraft(restorePreviousMail);

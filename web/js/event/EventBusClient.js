@@ -42,6 +42,15 @@ tutao.event.EventBusClient.prototype.addListener = function(listener) {
 };
 
 /**
+ * Removes the listener from this event bus client.
+ * @param {tutao.event.EventBusListener} listener The listener to remove.
+ */
+tutao.event.EventBusClient.prototype.removeListener = function(listener) {
+	tutao.util.ArrayUtils.remove(this._listeners, listener);
+};
+
+
+/**
  * Opens a WebSocket connection to receive server events.
  * @param reconnect Set to true if the connection has been opened before.
  * @returns {tutao.event.EventBusClient} The event bus client object.

@@ -54,6 +54,11 @@ tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
     tutao.locator.eventBus.addListener(this);
 };
 
+tutao.event.PushListEventTracker.prototype.stopObservingList = function() {
+    this._highestElementId = tutao.rest.EntityRestInterface.GENERATED_MIN_ID;
+    tutao.locator.eventBus.removeListener(this);
+};
+
 
 /**
  * @param {tutao.entity.sys.EntityUpdate} update The update notification.
@@ -69,6 +74,7 @@ tutao.event.PushListEventTracker.prototype._handleEventBusNotification = functio
                 }
             });
 		}).caught(function(exception) {
+            // this error should not occur when full sync is available
             console.log(exception);
         });
 	} else {
@@ -89,6 +95,9 @@ tutao.event.PushListEventTracker.prototype._notifyAboutExistingElements = functi
         } else {
             return Promise.resolve();
         }
+    }).caught(function(exception) {
+        // this error should not occur when full sync is available
+        console.log(exception);
     });
 };
 
