@@ -21,6 +21,7 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this._noAutomaticContacts = null;
     this._notificationMailLanguage = null;
     this._imapSyncConfig = [];
+    this._inboxRules = [];
     this._lastPushedMail = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -45,6 +46,10 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this._imapSyncConfig = [];
   for (var i=0; i < data.imapSyncConfig.length; i++) {
     this._imapSyncConfig.push(new tutao.entity.tutanota.ImapSyncConfiguration(this, data.imapSyncConfig[i]));
+  }
+  this._inboxRules = [];
+  for (var i=0; i < data.inboxRules.length; i++) {
+    this._inboxRules.push(new tutao.entity.tutanota.InboxRule(this, data.inboxRules[i]));
   }
   this._lastPushedMail = data.lastPushedMail;
 };
@@ -96,6 +101,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
     noAutomaticContacts: this._noAutomaticContacts, 
     notificationMailLanguage: this._notificationMailLanguage, 
     imapSyncConfig: tutao.entity.EntityHelper.aggregatesToJsonData(this._imapSyncConfig), 
+    inboxRules: tutao.entity.EntityHelper.aggregatesToJsonData(this._inboxRules), 
     lastPushedMail: this._lastPushedMail
   };
 };
@@ -144,6 +150,11 @@ tutao.entity.tutanota.TutanotaProperties.prototype.NOTIFICATIONMAILLANGUAGE_ATTR
  * The id of the imapSyncConfig attribute.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.IMAPSYNCCONFIG_ATTRIBUTE_ID = 222;
+
+/**
+ * The id of the inboxRules attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.INBOXRULES_ATTRIBUTE_ID = 578;
 
 /**
  * The id of the lastPushedMail attribute.
@@ -345,6 +356,14 @@ tutao.entity.tutanota.TutanotaProperties.prototype.getNotificationMailLanguage =
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getImapSyncConfig = function() {
   return this._imapSyncConfig;
+};
+
+/**
+ * Provides the inboxRules of this TutanotaProperties.
+ * @return {Array.<tutao.entity.tutanota.InboxRule>} The inboxRules of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getInboxRules = function() {
+  return this._inboxRules;
 };
 
 /**

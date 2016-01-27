@@ -638,5 +638,24 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+
+  "inboxRuleSenderEquals_action" : "Sender",
+  "inboxRuleToRecipientEquals_action" : "To recipient",
+  "inboxRuleCCRecipientEquals_action" : "CC recipient",
+  "inboxRuleBCCRecipientEquals_action" : "BCC recipient",
+  "inboxRuleSubjectContains_action" : "Subject contains",
+  "inboxRuleAlreadyExists_msg" : "This rule already exists.",
+  "inboxRulesSettings_action" : "Inbox rules",
+
+  "inboxRuleField_label" : "Field",
+  "inboxRuleValue_label" : "Value",
+  "inboxRuleTargetFolder_label" : "Target folder",
+  "inboxRuleContainsPlaceholder_label" : "Enter containing text",
+  "inboxRuleInvalidTargetFolder_msg" : "Invalid target folder.",
+  "inboxRuleInvalidEmailAddress_msg" : "Email address or domain is not valid.",
+
+
+
+
 };

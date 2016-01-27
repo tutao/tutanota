@@ -320,7 +320,7 @@ body {
 								position: absolute;
 								left: 10px;
 								top: 10px;
-								right: 100px;
+								right: 41px;
 
 								> input#firstNameInput {
 									.contactInput;
@@ -367,93 +367,75 @@ body {
 		}
 	}
 
-  	// used in AdminSpamViewModel
-	div.contactData {
+
+
+
+	// used in contactColumn, inbox rules, spam rules, invoices overview and custom domain extension
+  	@mediumColumnWidth: 130px;
+  	@mediumColumnWidthMobile: 90px;
+	@buttonColumnWidth: 25px;
+	div.dataTable {
 	  width: 100%;
-	  .clearfix;
+	  margin-top: 10px;
+	  display:table;
 
 	  > div {
-		padding-top: @padding;
-		padding-bottom: @padding;
-	  }
-
-	  > div.contactDataType {
-		.light;
-		height: 100%;
-		width: 130px;
-		float: left;
-		.fadeTextOut;
-	  }
-
-	  > div.contactDataText {
+		display: table-cell;
+		//border: 1px solid grey;
 		height: 35px;
-		.fadeTextOut;
-	  }
-
-	  > div.contactDataButton, a > div.contactDataButton {
-		position: relative;
-		height: 25px;
-		width: 25px;
-		line-height:44px;
-		float: right;
-		cursor: pointer;
-		padding-top: 0px; // must be overwritten from outer div
-		padding-bottom: 0px; // must be overwritten from outer div
-		text-align:right;
-	  }
-
-	  > div.contactDataAreaText {
-		height: 100%;
+		max-width:0; // needed for text-overflow:ellipsis
+		text-overflow: ellipsis;
 		overflow: hidden;
+		white-space: nowrap;
+		vertical-align: middle;
+		padding-right: @padding;
+
+		&.price {
+		  text-align: right;
+		}
+
+		&.mediumSizeColumm {
+		  table-layout: fixed;
+		  width: @mediumColumnWidth;
+		  max-width:@mediumColumnWidth;
+		  @media @mobile {
+		  	width: @mediumColumnWidthMobile;
+			max-width:@mediumColumnWidthMobile;
+		  }
+		}
+
+		&.smallButtonColumn {
+		  table-layout: fixed;
+		  width: @buttonColumnWidth;
+		  max-width:@buttonColumnWidth;
+		  cursor: pointer;
+		  text-align:center;
+		  padding-right: 0;
+		  >.fontImage {
+			width: 20px;
+		  }
+		  > a {
+			text-decoration: none;
+		  }
+		}
+
+		> textArea {
+		  width:100%;
+		  overflow: hidden;
+		  .inputArea;
+		}
+
+		> input {
+		  width:100%;
+		  height: 30px;
+		  .inputField;
+		}
+
+		> select {
+		  width: 100%;
+		  height: 30px;
+		}
 	  }
-	}
-
-
-	// used in PasswordChannelViewColumn, AdminSpamViewModel and ContactColumn
-	div.editContactData {
-		width: 100%;
-		margin-top: 10px;
-		display: table;
-
-		> div {
-			display: table-cell;
-			vertical-align: middle;
-		}
-	
-		> div.editContactDataType {
-			width: 130px;
-			padding-right: @padding;
-
-			> input {
-				height: 30px;
-				width: 100%;
-				.inputField;
-			}
-		}
-		
-		> div.editContactDataText {
-			> input {
-				height: 30px;
-				width: 100%;
-				.inputField;
-			}
-		}
-		
-		> div.editContactDataArea {
-			> textarea {
-				width: 100%;
-				overflow: hidden; // avoids that a scrollbar is visible while resizing
-				.inputArea;
-			}
-		}
-		
-		div.recordAction {
-		  	float:right;
-		  	cursor: pointer;
-			> div.fontImage {
-				width: 20px;
-			}
-		}
 	}
 	
 	div#fileColumn {
@@ -1142,31 +1124,6 @@ body {
     width: 45% !important;
   }
 
-  .bookingTable {
-    display: table;
-    border-collapse: collapse;
-    width: 100%;
-
-    > .bookingItem {
-      display: table-row;
-      .light;
-    }
-
-    > .bookingTableHeader {
-      display: table-row;
-      border-bottom: 1px solid @border-dark;
-    }
-
-    > .bookingTableFooter {
-      display: table-row;
-      border-top: 1px solid @border-dark;
-    }
-
-    .bookingCell {
-      display: table-cell;
-      padding: 5px;
-    }
-  }
 
 
   .statusBox{

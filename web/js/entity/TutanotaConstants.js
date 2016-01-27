@@ -335,3 +335,9 @@ tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_BLACKLIST = "2";
 tutao.entity.tutanota.TutanotaConstants.EMAIL_SENDER_LIST_TYPE_DISCARD = "3";
 
 tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL = 14 * 24 * 60 * 60 * 1000;
+
+tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS = "0";
+tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS = "1";
+tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_CC_EQUALS = "2";
+tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_BCC_EQUALS = "3";
+tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS = "4";

@@ -170,6 +170,7 @@
 <script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
 <script src="/js/ctrl/FontViewModel.js"></script>
 <script src="/js/ctrl/GroupData.js"></script>
+<script src="/js/ctrl/InboxRulesSettingsViewModel.js"></script>
 <script src="/js/ctrl/LanguageViewModel.js"></script>
 <script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
 <script src="/js/ctrl/LoginViewModel.js"></script>
@@ -430,6 +431,8 @@
 <script src="/js/generated/entity/tutanota/FileSystem.js"></script>
 <script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
 <script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+<script src="/js/generated/entity/tutanota/InboxRule.js"></script>
+<script src="/js/generated/entity/tutanota/InboxRuleEditable.js"></script>
 <script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
 <script src="/js/generated/entity/tutanota/InternalRecipientKeyData.js"></script>
 <script src="/js/generated/entity/tutanota/Mail.js"></script>
@@ -461,6 +464,7 @@
 <script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
 <script src="/js/generated/entity/tutanota/Subfiles.js"></script>
 <script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+<script src="/js/generated/entity/tutanota/TutanotaPropertiesEditable.js"></script>
 <script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
 <script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
 <script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
@@ -865,7 +869,6 @@
 					<div id="contactWrapper">
 						<!-- ko if: mode() !== tutao.tutanota.ctrl.ContactViewModel.MODE_NONE -->
 							<section id="contact">
-
 								<div class="contactBody">
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_SHOW -->
 										<div id="contactNameTitleAndImage">
@@ -884,10 +887,10 @@
 											<h2 data-bind="lang: 'email_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getMailAddresses() -->
-												<div class="contactData">
-													<div class="contactDataButton fontImage mail-new" data-bind="fastClick: function() { $parent.sendMail($data) }, attr:{ title: tutao.lang('sendMail_alt') }"></div>
-													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getMailAddressTypeName($data)"></div>
-													<div class="contactDataText" data-bind="text: getAddress()"></div>
+												<div class="dataTable">
+													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getMailAddressTypeName($data)"></div>
+													<div class="" data-bind="text: getAddress()"></div>
+													<div class="smallButtonColumn fontImage mail-new" data-bind="fastClick: function() { $parent.sendMail($data) }, attr:{ title: tutao.lang('sendMail_alt') }"></div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
@@ -895,14 +898,16 @@
 											<h2 data-bind="lang: 'phone_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
-												<div class="contactData">
-													<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
+												<div class="dataTable">
+													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
+													<div class="" data-bind="text: getNumber()"></div>
+													<div class="smallButtonColumn">
+														<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
 														<a data-bind="attr: { href: 'tel:' + getNumber() }">
-															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
+																<div class="fontImage right" data-bind="attr: {title: tutao.lang('callNumber_alt')}"></div>
 														</a>
-													<!-- /ko -->
-													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
-													<div class="contactDataText" data-bind="text: getNumber()"></div>
+														<!-- /ko -->
+													</div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
@@ -910,12 +915,14 @@
 											<h2 data-bind="lang: 'address_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getAddresses() -->
-												<div class="contactData">
-													<a target="_blank" data-bind="attr: { href: $parent.getMapUrl($data) }">
-														<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showAddress_alt')}"></div>
-													</a>
-													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
-													<div class="contactDataAreaText" data-bind="text: getAddress()"></div>
+												<div class="dataTable">
+													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
+													<div class="" data-bind="text: getAddress()"></div>
+													<div class="smallButtonColumn">
+														<a target="_blank" data-bind="attr: { href: $parent.getMapUrl($data) }">
+															<div class="fontImage right" data-bind="attr: {title: tutao.lang('showAddress_alt')}"></div>
+														</a>
+													</div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
@@ -923,43 +930,45 @@
 											<h2 data-bind="lang: 'social_label'"></h2>
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getSocialIds() -->
-												<div class="contactData">
-													<!-- ko if: $parent.getSocialIdUrl($data) != null -->
+												<div class="dataTable">
+													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
+													<div class="" data-bind="text: getSocialId()"></div>
+													<div class="smallButtonColumn">
+														<!-- ko if: $parent.getSocialIdUrl($data) != null -->
 														<a target="_blank" data-bind="attr: { href: $parent.getSocialIdUrl($data) }">
-															<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
+															<div class="buttonElement fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
 														</a>
-													<!-- /ko -->
-													<div class="contactDataType" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
-													<div class="contactDataText" data-bind="text: getSocialId()"></div>
+														<!-- /ko -->
+													</div>
 												</div>
 											<!-- /ko -->
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getComment() != "" -->
 											<h2 data-bind="lang: 'comment_label'"></h2>
 											<hr />
-											<div class="contactData">
-												<div class="contactDataAreaText" data-bind="text: contactWrapper().getContact().getComment()"></div>
+											<div class="dataTable">
+												<div class="textArea" data-bind="text: contactWrapper().getContact().getComment()"></div>
 											</div>
 										<!-- /ko -->
 										<!-- ko if: contactWrapper().getContact().getPresharedPassword() != null || contactWrapper().getContact().getAutoTransmitPassword() != "" -->
 											<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 											<hr />
-											<div class="contactData" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
-												<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
-												<div class="contactDataType" data-bind="lang: 'presharedPasswordHeading_label'"></div>
-												<div class="contactDataText" data-bind="text: getPresharedPasswordText()"></div>
+											<div class="dataTable" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
+												<div class="mediumSizeColumm light" data-bind="lang: 'presharedPasswordHeading_label'"></div>
+												<div class="" data-bind="text: getPresharedPasswordText()"></div>
+												<div class="smallButtonColumn fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
 											</div>
-											<div class="contactData" data-bind="visible: contactWrapper().getContact().getAutoTransmitPassword() != ''">
-												<div class="contactDataButton fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
-												<div class="contactDataType" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
-												<div class="contactDataText" data-bind="text: getAutoTransmitPasswordText()"></div>
+											<div class="dataTable" data-bind="visible: contactWrapper().getContact().getAutoTransmitPassword() != ''">
+												<div class="mediumSizeColumm light" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
+												<div class="" data-bind="text: getAutoTransmitPasswordText()"></div>
+												<div class="smallButtonColumn fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
 											</div>
 										<!-- /ko -->
 									<!-- /ko -->
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT || mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW -->
 										<div id="editContactNameTitleAndImage">
 											<!-- <img id="editContactImage" data-bind="attr: { src: 'graphics/' + editableContact.firstName().toLowerCase() + '.jpg'}, attr: {alt: tutao.lang('contactImage_alt')}"/> -->
-											<div id="editContactNameAndTitle">
+											<div id="editContactNameAndTitle" class="wide">
 												<input id="firstNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.firstName, attr: {placeholder: tutao.lang('firstName_placeholder')}"/>
 												<input id="lastNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.lastName, attr: {placeholder: tutao.lang('lastName_placeholder')}"/>
 												<input id="birthdayInput" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.birthdayStringComputed, css: { invalid: editableContact.birthdayStringInvalid }, attr: {placeholder: tutao.lang('birthdayWithFormat_placeholder')}"/>
@@ -971,98 +980,95 @@
 										<h2 data-bind="lang: 'email_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.mailAddresses -->
-											<div class="editContactData">
-												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
-												<div class="editContactDataText">
-													<input class="editContactMailInput" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: address"/>
+											<div class="dataTable">
+												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="">
+													<input type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: address"/>
 												</div>
-												<div class="recordAction">
-													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.mailAddresses.remove($data) }, attr: {title: tutao.lang('removeMailAddress_alt')}"></div>
-												</div>
+												<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.mailAddresses.remove($data) }, attr: {title: tutao.lang('removeMailAddress_alt')}"></div>
 											</div>
 										<!-- /ko -->
-										<div class="editContactData">
-											<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, editableContact.newContactMailAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, editableContact.newContactMailAddress().customTypeName) }'></div>
-											<div class="editContactDataText" >
-												<input class="editContactMailInput" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactMailAddress().address, event: { blur: editableContact.newContactMailAddressUpdated }"/>
+										<div class="dataTable">
+											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, editableContact.newContactMailAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, editableContact.newContactMailAddress().customTypeName) }'></div>
+											<div class="" >
+												<input type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactMailAddress().address, event: { blur: editableContact.newContactMailAddressUpdated }"/>
 											</div>
-											<div class="recordAction"></div>
+											<div class="smallButtonColumn"></div>
 										</div>
 
 										<h2 data-bind="lang: 'phone_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.phoneNumbers -->
-											<div class="editContactData">
-												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, customTypeName) }'></div>
-												<div class="editContactDataText" >
+											<div class="dataTable">
+												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="" >
 													<input type="tel" data-bind="value: number"/>
 												</div>
-												<div class="recordAction">
-													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.phoneNumbers.remove($data) }, attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
-												</div>
+												<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.phoneNumbers.remove($data) }, attr: {title: tutao.lang('removePhoneNumber_alt') }"></div>
 											</div>
 										<!-- /ko -->
-										<div class="editContactData">
-											<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, editableContact.newContactPhoneNumber().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, editableContact.newContactPhoneNumber().customTypeName) }'></div>
-											<div class="editContactDataText" >
+										<div class="dataTable">
+											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, editableContact.newContactPhoneNumber().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, editableContact.newContactPhoneNumber().customTypeName) }'></div>
+											<div class="" >
 												<input type="tel" data-bind="value: editableContact.newContactPhoneNumber().number, event: { blur: editableContact.newContactPhoneNumberUpdated }"/>
 											</div>
-											<div class="recordAction"></div>
+											<div class="smallButtonColumn"></div>
 										</div>
 
 										<h2 data-bind="lang: 'address_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.addresses -->
-											<div class="editContactData">
-												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
-												<div class="editContactDataArea" >
+											<div class="dataTable">
+												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="" >
 													<textarea rows="2" data-bind="value: address" oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 												</div>
-												<div class="recordAction">
-													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.addresses.remove($data) }, attr: {title: tutao.lang('removeAddress_alt') }"></div>
-												</div>
+												<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.addresses.remove($data) }, attr: {title: tutao.lang('removeAddress_alt') }"></div>
 											</div>
 										<!-- /ko -->
-										<div class="editContactData">
-											<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, editableContact.newContactAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, editableContact.newContactAddress().customTypeName) }'></div>
-											<div class="editContactDataArea" >
+										<div class="dataTable">
+											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, editableContact.newContactAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, editableContact.newContactAddress().customTypeName) }'></div>
+											<div class="" >
 												<textarea rows="2" data-bind="value: editableContact.newContactAddress().address, event: { blur: editableContact.newContactAddressUpdated }"  oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 											</div>
-											<div class="recordAction"></div>
+											<div class="smallButtonColumn"></div>
 										</div>
 
 										<h2 data-bind="lang: 'social_label'"></h2>
 										<hr />
 										<!-- ko foreach: editableContact.socialIds -->
-											<div class="editContactData">
-												<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, customTypeName) }'></div>
-												<div class="editContactDataText" >
+											<div class="dataTable">
+												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="" >
 													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: socialId"/>
 												</div>
-												<div class="recordAction" >
-													<div class="fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
-												</div>
+												<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function() { $parent.editableContact.socialIds.remove($data) }, attr: {title: tutao.lang('removeSocial_alt') }"></div>
 											</div>
 										<!-- /ko -->
-										<div class="editContactData">
-											<div class="editContactDataType" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, editableContact.newContactSocialId().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, editableContact.newContactSocialId().customTypeName) }'></div>
-											<div class="editContactDataText">
+										<div class="dataTable">
+											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, editableContact.newContactSocialId().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, editableContact.newContactSocialId().customTypeName) }'></div>
+											<div class="">
 												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactSocialId().socialId, event: { blur: editableContact.newContactSocialIdUpdated }"/>
 											</div>
-											<div class="recordAction"></div>
+											<div class="smallButtonColumn"></div>
 										</div>
 
 										<h2 data-bind="lang: 'comment_label'"></h2>
 										<hr />
-										<textarea id="editContactComment" rows="3" data-bind="value: editableContact.comment" oninput='this.rows = Math.max(this.value.split("\n").length, 3);'></textarea>
-
+										<div class="dataTable">
+											<div class="">
+												<textarea rows="3" data-bind="value: editableContact.comment" oninput='this.rows = Math.max(this.value.split("\n").length, 3);'></textarea>
+											</div>
+											<div class="smallButtonColumn"></div>
+										</div>
 										<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 										<hr />
-										<div class="editContactData">
-											<div class="editContactDataType" data-bind='lang: "presharedPassword_label"'></div>
-											<div class="editContactDataText" >
+										<div class="dataTable">
+											<div class="mediumSizeColumm light" data-bind='lang: "presharedPasswordHeading_label"'></div>
+											<div class="" >
 												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.presharedPassword"/>
 											</div>
+											<div class="smallButtonColumn"></div>
 										</div>
 									<!-- /ko -->
 								</div>
@@ -1573,6 +1579,39 @@
                                 </form>
                             </div>
                             <!-- /ko -->
+							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS -->
+							<div id="inboxRulesSettings" data-bind="with: new tutao.tutanota.ctrl.InboxRulesSettingsViewModel()" >
+								<div class="dataTable">
+									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleField_label'"></div>
+									<div class="" data-bind="lang: 'inboxRuleValue_label'">></div>
+									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleTargetFolder_label'"></div>
+									<div class="smallButtonColumn"></div>
+								</div>
+								<hr />
+								<!-- ko foreach: userProperties.inboxRules() -->
+								<div class="dataTable">
+									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
+									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
+									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeInboxRule($index());}, attr: {title: tutao.lang('delete_action')}"></div>
+								</div>
+								<!-- /ko -->
+								<div class="dataTable">
+									<div class="mediumSizeColumm">
+										<select data-bind="enable: state.entering(), options: availableInboxRules, value: newRule().type, optionsText: getTextForType, attr: {title: getTextForType}"></select>
+									</div>
+									<div class="" >
+										<input type="text" data-bind="enable: state.entering(), value: newRule().value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
+									</div>
+									<div class="mediumSizeColumm">
+										<select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: function(item){ if(item) {return item.getName();}else { return 'select folder'}}"></select>
+									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addInboxRule, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
+								</div>
+								<label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
+							</div>
+							<!-- /ko -->
+
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES -->
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
                                 <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
@@ -1595,23 +1634,22 @@
                                 </form>
                             </div>
 							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
-								<div class="editContactData">
-									<div class="editContactDataText" data-bind="lang: 'adminCustomDomain_label'"></div>
+								<div class="dataTable">
+									<div class="" data-bind="lang: 'adminCustomDomain_label'"></div>
+									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: customDomains -->
-								<div class="contactData">
-									<div class="contactDataButton fontImage cancel" data-bind="fastClick: function(){$parent.deleteCustomDomain($data);}, attr: {title: tutao.lang('delete_action')}"></div>
-									<div class="contactDataText" data-bind="text: $data, attr: {title: $data}"></div>
+								<div class="dataTable">
+									<div class="" data-bind="text: $data, attr: {title: $data}"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.deleteCustomDomain($data);}, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
-								<div class="editContactData">
-									<div class="editContactDataText" >
+								<div class="dataTable">
+									<div class="" >
 										<input type="text" data-bind="enable: !busy(), value: customDomain, valueUpdate: 'input', attr: {placeholder: tutao.lang('customDomainNeutral_msg')}"/>
 									</div>
-									<div class="recordAction">
-										<div class="fontImage confirm" data-bind="fastClick: confirm, attr: {title: tutao.lang('add_action')}, css: { disabled: !confirmPossible() }"></div>
-									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: confirm, attr: {title: tutao.lang('add_action')}, css: { disabled: !confirmPossible() }"></div>
 								</div>
 								<label class="recordStatus" data-bind="css: customDomainStatus().type, text: customDomainStatus().text"></label>
 								<label class="recordInfo" data-bind="lang: 'adminCustomDomainInfo_msg'"></label>
@@ -1642,44 +1680,41 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="bookingTable">
-                                        <div class="bookingTableHeader">
-                                            <div class="bookingCell" data-bind="lang: 'bookingItem_label'"></div>
-                                            <div class="bookingCell" data-bind="lang: 'bookingAmount_label'"></div>
-                                            <div class="bookingCell" data-bind="lang: 'bookingPrice_label'"></div>
-                                        </div>
-                                        <!-- ko foreach: items -->
-                                            <div class="bookingItem">
-                                                <div class="bookingCell" data-bind="lang: name"></div>
-                                                <div class="bookingCell" data-bind="text: $parent.getAmountText($data)"></div>
-                                                <div class="bookingCell" data-bind="text: $parent.getPriceText($data)"></div>
-                                            </div>
-                                        <!-- /ko -->
-                                        <div class="bookingTableFooter" data-bind="">
-                                            <div class="bookingCell"></div>
-                                            <div class="bookingCell" data-bind="lang: 'bookingTotalPrice_label'"></div>
-                                            <div class="bookingCell" data-bind="text: getTotalPriceText()"></div>
-                                        </div>
-                                    </div>
+									<div class="dataTable">
+										<div class="" data-bind="lang: 'bookingItem_label'"></div>
+										<div class="mediumSizeColumm" data-bind="lang: 'bookingAmount_label'"></div>
+										<div class="mediumSizeColumm price" data-bind="lang: 'bookingPrice_label'"></div>
+									</div>
+									<hr/>
+									<!-- ko foreach: items -->
+									<div class="dataTable">
+										<div class="light" data-bind="lang: name"></div>
+										<div class="mediumSizeColumm light" data-bind="text: $parent.getAmountText($data)"></div>
+										<div class="mediumSizeColumm light price" data-bind="text: $parent.getPriceText($data)"></div>
+									</div>
+									<!-- /ko -->
+									<hr/>
+									<div class="dataTable" data-bind="">
+										<div class=""></div>
+										<div class="mediumSizeColumm" data-bind="lang: 'bookingTotalPrice_label'"></div>
+										<div class="mediumSizeColumm price" data-bind="text: getTotalPriceText()"></div>
+									</div>
                                     <div class="light defaultMargin" data-bind="visible: showNextPeriodInfo(), text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
                                 </div>
                                 <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
-                                <div class="bookingTable">
-                                    <div class="bookingTableHeader">
-                                        <div class="bookingCell" data-bind="lang: 'date_label'"></div>
-                                        <div class="bookingCell" data-bind="lang: 'invoiceTotal_label'"></div>
-                                        <div class="bookingCell" data-bind="text: 'PDF'"></div>
-                                    </div>
-                                    <!-- ko foreach: invoices -->
-                                    <div class="bookingItem">
-                                        <div class="bookingCell" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
-                                        <div class="bookingCell" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
-                                        <div class="bookingCell">
-                                            <button class="single" type="submit" data-bind="lang: 'download_label', fastClick: function() { $parent.downloadPdf($data); }"></button>
-                                        </div>
-                                    </div>
-                                    <!-- /ko -->
-                                </div>
+                                <div class="dataTable">
+									<div class="" data-bind="lang: 'date_label'"></div>
+									<div class="mediumSizeColumm price" data-bind="lang: 'invoiceTotal_label'"></div>
+									<div class="smallButtonColumn price"></div>
+								</div>
+								<hr/>
+								<!-- ko foreach: invoices -->
+								<div class="dataTable">
+									<div class="light" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
+									<div class="mediumSizeColumm light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
+									<div class="smallButtonColumn fontImage download" data-bind="fastClick: function() { $parent.downloadPdf($data); }"></div>
+								</div>
+								<!-- /ko -->
                             </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT -->
@@ -1889,28 +1924,27 @@
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_SPAM -->
 							<div id="adminSpam" data-bind="with: new tutao.tutanota.ctrl.AdminSpamViewModel()" >
-								<div class="editContactData">
-									<div class="editContactDataType" data-bind="lang: 'emailSenderRule_label'"></div>
-									<div class="editContactDataText" data-bind="lang: 'emailSender_label'"></div>
+								<div class="dataTable">
+									<div class="mediumSizeColumm" data-bind="lang: 'emailSenderRule_label'"></div>
+									<div class="" data-bind="lang: 'emailSender_label'"></div>
+									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: getEmailSenderListEntries() -->
-								<div class="contactData">
-									<div class="contactDataButton fontImage cancel" data-bind="fastClick: function(){$parent.removeEmailSenderListEntry($index());}, attr: {title: tutao.lang('delete_action')}"></div>
-									<div class="contactDataType" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
-									<div class="contactDataText" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
+								<div class="dataTable">
+									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
+									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeEmailSenderListEntry($index());}, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
-								<div class="editContactData">
-									<div class="editContactDataType">
+								<div class="dataTable">
+									<div class="mediumSizeColumm">
 										<select data-bind="enable: state.entering(), options: availableListTypes, value: selectedListType, optionsText: 'text', attr: {title: selectedListType().text}"></select>
 									</div>
-									<div class="editContactDataText" >
+									<div class="" >
 										<input type="text" data-bind="enable: state.entering(), value: domainOrMailAddress, valueUpdate: 'input', attr: {placeholder: tutao.lang('emailSenderPlaceholder_label')}"/>
 									</div>
-									<div class="recordAction">
-										<div class="fontImage confirm" data-bind="fastClick: addEmailSenderListEntry, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
-									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addEmailSenderListEntry, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
 								</div>
 								<label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
 								<!-- ko if: !tutao.env.isIOSApp() -->

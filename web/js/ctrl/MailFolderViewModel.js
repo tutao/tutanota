@@ -317,7 +317,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailListId = function() {
  * Provides the mail folder id.
  * @return {Array.<string, string>} The mail folder id.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype._getMailFolderId = function() {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getMailFolderId = function() {
     return this._mailFolder.getId();
 };
 
@@ -430,7 +430,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.createSubFolder = function() {
             tutao.entity.EntityHelper.getListKey(self._getSubFolderListId()).then(function(subFolderListKey) {
                 var createService = new tutao.entity.tutanota.CreateMailFolderData();
                 createService.setFolderName(folderName);
-                createService.setParentFolder(self._getMailFolderId());
+                createService.setParentFolder(self.getMailFolderId());
                 createService.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(subFolderListKey, createService.getEntityHelper().getSessionKey()));
                 createService.setup({}, null).then(function(newFolderReturn){
                     self._loadSubFolder(newFolderReturn.getNewFolder());
@@ -472,7 +472,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype._loadSubFolder = function(subF
 tutao.tutanota.ctrl.MailFolderViewModel.prototype._removeSubFolder = function(subFolder) {
     var self = this;
     var deleteService = new tutao.entity.tutanota.DeleteMailFolderData;
-    deleteService.getFolders().push(subFolder._getMailFolderId());
+    deleteService.getFolders().push(subFolder.getMailFolderId());
     return deleteService.erase({}, null).then(function(){
         subFolder.updateOnRemovedFolder();
     });
@@ -525,7 +525,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.move = function(targetMailFold
     }
 
     var data = new tutao.entity.tutanota.MoveMailData();
-    data.setTargetFolder(targetMailFolder._getMailFolderId());
+    data.setTargetFolder(targetMailFolder.getMailFolderId());
     for(var i=0; i<mails.length; i++){
         data.getMails().push(mails[i].getId());
     }
