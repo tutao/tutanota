@@ -343,7 +343,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "loadMore_action": "Weitere laden",
   "loggingOut_msg": "Du wirst abgemeldet...",
   "loginAction_msg": "Nach dem Login können sichere Nachrichten versendet und empfangen werden.",
-  "loginFailedOften_msg": "Es sind zu viele Login-Versuche fehlgeschlagen. Bitte versuch es später erneut.",
+  "loginFailedOften_msg": "Es sind zu viele Login-Versuche fehlgeschlagen. Du kannst dich spätestens nach einer Stunde wieder einloggen.",
   "loginFailed_msg": "Ungültige E-Mail-Adresse oder Passwort. Bitte versuch es erneut.",
   "loginNameInfoAdmin_msg": "Optional: Der Name des Benutzers.",
   "login_action": "Anmelden",
@@ -656,7 +656,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
 
   "inboxRuleInvalidTargetFolder_msg" : "Ungültiger Ziel-Ordner.",
   "inboxRuleInvalidEmailAddress_msg" : "Die E-Mail-Adresse oder die Domain ist nicht gültig.",
-
+    "addRule_action" : "Regel anlegen"
 
 
 };

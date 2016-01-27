@@ -633,7 +633,7 @@
 												<div class="name" data-bind="lang: 'from_label'"></div>
 												<div class="value">
                                                     <div class="ellipsisTable">
-                                                        <div class="bubble displayRecipient" data-bind="with: createBubbleFromMailAddress(mail.getSender(),'meDativ_label')"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div>
+                                                        <div class="bubble displayRecipient" data-bind="with: createBubbleFromMailAddress(mail.getSender(),'meDativ_label', tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS)"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div>
                                                     </div>
 												</div>
                                                 <div class="value dateValue" data-bind="text: tutao.tutanota.util.Formatter.formatDateTime(mail.getSentDate())"></div>
@@ -646,7 +646,7 @@
 													<div class="value">
                                                         <div class="ellipsisTable">
 														<!-- the next statement must be written in one line, otherwise there are whitespaces between the recipient names -->
-														<!-- ko foreach: mail.getToRecipients() --><!-- ko ifnot: $data == $parent.mail.getToRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meAccusative_label')"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getToRecipients() --><!-- ko ifnot: $data == $parent.mail.getToRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meAccusative_label', tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS)"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
                                                         </div>
 													</div>
 												</div>
@@ -656,7 +656,7 @@
 													<div class="name" data-bind="lang: 'cc_label'"></div>
 													<div class="value">
                                                         <div class="ellipsisTable">
-														<!-- ko foreach: mail.getCcRecipients() --><!-- ko ifnot: $data == $parent.mail.getCcRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meNominative_label')"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getCcRecipients() --><!-- ko ifnot: $data == $parent.mail.getCcRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meNominative_label', tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_CC_EQUALS)"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
                                                         </div>
 													</div>
 												</div>
@@ -666,7 +666,7 @@
 													<div class="name" data-bind="lang: 'bcc_label'"></div>
 													<div class="value">
                                                         <div class="ellipsisTable">
-														<!-- ko foreach: mail.getBccRecipients() --><!-- ko ifnot: $data == $parent.mail.getBccRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meNominative_label')"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
+														<!-- ko foreach: mail.getBccRecipients() --><!-- ko ifnot: $data == $parent.mail.getBccRecipients()[0] --><span>,&nbsp;</span><!-- /ko --><div class="bubble displayRecipient" data-bind="with: $parent.createBubbleFromMailAddress($data,'meNominative_label', tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_BCC_EQUALS)"><div class="bubbleText" data-bind="domInit: $data.domElement, text: text, attr: {title: tooltip}, click: $data.click"></div></div><!-- /ko -->
                                                         </div>
 													</div>
 												</div>
@@ -1580,7 +1580,7 @@
                             </div>
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS -->
-							<div id="inboxRulesSettings" data-bind="with: new tutao.tutanota.ctrl.InboxRulesSettingsViewModel()" >
+							<div id="inboxRulesSettings" data-bind="with: tutao.locator.inboxRulesViewModel" >
 								<div class="dataTable">
 									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleField_label'"></div>
 									<div class="" data-bind="lang: 'inboxRuleValue_label'">></div>

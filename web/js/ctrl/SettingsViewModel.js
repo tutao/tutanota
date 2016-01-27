@@ -13,13 +13,16 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO);
 	this.displayed.subscribe(function(displayed) {
         var self = this;
-            if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
-                self.adminUserListViewModel(new tutao.tutanota.ctrl.AdminUserListViewModel());
-            } else {
-                setTimeout(function() {
-                    self.adminUserListViewModel(null);
-                }, 0);
-            }
+        if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
+            self.adminUserListViewModel(new tutao.tutanota.ctrl.AdminUserListViewModel());
+        } else {
+            setTimeout(function() {
+                self.adminUserListViewModel(null);
+            }, 0);
+        }
+        if (displayed == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS) {
+            tutao.locator.inboxRulesViewModel.init();
+        }
 	}, this);
     this.bookingAvailable = ko.observable(false);
 };

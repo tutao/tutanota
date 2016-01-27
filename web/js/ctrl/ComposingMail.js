@@ -830,7 +830,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.buttonCss = function() {
 /** @inheritDoc */
 tutao.tutanota.ctrl.ComposingMail.prototype.getSubButtons = function(bubble) {
     // entity is of type tutao.tutanota.ctrl.RecipientInfo see _createBubbleFromRecipientInfo
-    return tutao.locator.mailViewModel.getSubButtons(bubble.entity.getMailAddress(), bubble.entity.getName());
+    return tutao.locator.mailViewModel.getSubButtons(bubble.entity.getMailAddress(), bubble.entity.getName(), null);
 };
 
 
