@@ -642,8 +642,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
 
   "inboxRuleSenderEquals_action" : "Absender",
   "inboxRuleToRecipientEquals_action" : "An-Empfänger",
-  "inboxRuleCCRecipientEquals_action" : "CC-Empfänger",
-  "inboxRuleBCCRecipientEquals_action" : "BCC-Empfänger",
+  "inboxRuleCCRecipientEquals_action" : "Cc-Empfänger",
+  "inboxRuleBCCRecipientEquals_action" : "Bcc-Empfänger",
   "inboxRuleSubjectContains_action" : "Betreff enthält",
   "inboxRuleAlreadyExists_msg" : "Diese Regel ist bereits vorhanden.",
   "inboxRuleValueMissing_msg" : "Bitte einen Wert für die Regel angeben.",
@@ -652,9 +652,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "inboxRuleField_label" : "Feld",
   "inboxRuleValue_label" : "Wert",
   "inboxRuleTargetFolder_label" : "Ziel-Ordner",
-  "inboxRuleContainsPlaceholder_label" : "Enthaltender Text",
-
-  "inboxRuleInvalidTargetFolder_msg" : "Ungültiger Ziel-Ordner.",
+  "inboxRuleContainsPlaceholder_label" : "Enthaltener Text",
   "inboxRuleInvalidEmailAddress_msg" : "Die E-Mail-Adresse oder die Domain ist nicht gültig.",
     "addRule_action" : "Regel anlegen"
 

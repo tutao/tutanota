@@ -642,8 +642,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
 
   "inboxRuleSenderEquals_action" : "Sender",
   "inboxRuleToRecipientEquals_action" : "To recipient",
-  "inboxRuleCCRecipientEquals_action" : "CC recipient",
-  "inboxRuleBCCRecipientEquals_action" : "BCC recipient",
+  "inboxRuleCCRecipientEquals_action" : "Cc recipient",
+  "inboxRuleBCCRecipientEquals_action" : "Bcc recipient",
   "inboxRuleSubjectContains_action" : "Subject contains",
   "inboxRuleAlreadyExists_msg" : "This rule already exists.",
   "inboxRulesSettings_action" : "Inbox rules",
@@ -652,7 +652,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "inboxRuleValue_label" : "Value",
   "inboxRuleTargetFolder_label" : "Target folder",
   "inboxRuleContainsPlaceholder_label" : "Enter containing text",
-  "inboxRuleInvalidTargetFolder_msg" : "Invalid target folder.",
   "inboxRuleInvalidEmailAddress_msg" : "Email address or domain is not valid.",
     "addRule_action" : "Add rule"
 

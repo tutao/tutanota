@@ -1604,7 +1604,7 @@
 										<input type="text" data-bind="enable: state.entering(), value: newRule().value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
 									</div>
 									<div class="mediumSizeColumm">
-										<select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: function(item){ if(item) {return item.getName();}else { return 'select folder'}}"></select>
+										<select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: getTargetName"></select>
 									</div>
 									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addInboxRule, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
 								</div>
