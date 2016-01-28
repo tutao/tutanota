@@ -41,7 +41,7 @@ tutao.tutanota.ctrl.EmailRuleChecker.prototype._findMatchingRule = function(mail
         var inboxRule = inboxRules[i];
         var ruleType = inboxRule.getType();
         if (ruleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS ) {
-            if (mail.getSender().getAddress().toLowerCase().trim() == inboxRule.getValue()){
+            if (this._checkEmailAddress( mail.getSender().getAddress(),inboxRule.getValue())){
                 return inboxRule;
             }
         } else if (ruleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS) {
@@ -68,12 +68,27 @@ tutao.tutanota.ctrl.EmailRuleChecker.prototype._findMatchingRule = function(mail
 
 /**
  * @param {Array.<tutao.entity.tutanota.MailAddress>} mailAddresses
- * @param {String} mailAddress
+ * @param {String} inboxRuleValue
  * @return {boolean}
  */
-tutao.tutanota.ctrl.EmailRuleChecker.prototype._containsEmailAddress = function(mailAddresses, mailAddress){
+tutao.tutanota.ctrl.EmailRuleChecker.prototype._containsEmailAddress = function(mailAddresses, inboxRuleValue){
     for( var i = 0; i<mailAddresses.length;i++){
-        if (mailAddresses[i].getAddress().toLowerCase().trim() == mailAddress) {
+        if (this._checkEmailAddress(mailAddresses[i].getAddress(), inboxRuleValue)){
+            return true;
+        }
+    }
+    return false;
+};
+
+tutao.tutanota.ctrl.EmailRuleChecker.prototype._checkEmailAddress = function(mailAddress, inboxRuleValue) {
+    var cleanMailAddress = mailAddress.toLowerCase().trim();
+    if (tutao.tutanota.util.Formatter.isDomainName(inboxRuleValue)) {
+        var domain = cleanMailAddress.split("@")[1];
+        if (domain == inboxRuleValue) {
+            return true;
+        }
+    } else {
+        if (cleanMailAddress == inboxRuleValue) {
             return true;
         }
     }
