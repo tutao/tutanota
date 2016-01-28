@@ -78,13 +78,16 @@
     <script src="/js/ctrl/ContactViewModel.js"></script>
     <script src="/js/ctrl/DeveloperViewModel.js"></script>
     <script src="/js/ctrl/DisplayedMail.js"></script>
+    <script src="/js/ctrl/DraftFacade.js"></script>
     <script src="/js/ctrl/DropDownViewModel.js"></script>
+    <script src="/js/ctrl/EmailRuleChecker.js"></script>
     <script src="/js/ctrl/ExternalLoginViewModel.js"></script>
     <script src="/js/ctrl/FeedbackViewModel.js"></script>
     <script src="/js/ctrl/FileViewModel.js"></script>
     <script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
     <script src="/js/ctrl/FontViewModel.js"></script>
     <script src="/js/ctrl/GroupData.js"></script>
+    <script src="/js/ctrl/InboxRulesSettingsViewModel.js"></script>
     <script src="/js/ctrl/LanguageViewModel.js"></script>
     <script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
     <script src="/js/ctrl/LoginViewModel.js"></script>
@@ -107,6 +110,7 @@
     <script src="/js/ctrl/SendUnsecureMailFacade.js"></script>
     <script src="/js/ctrl/SettingsViewModel.js"></script>
     <script src="/js/ctrl/ShareFacade.js"></script>
+    <script src="/js/ctrl/TermsAndConditionsDialogViewModel.js"></script>
     <script src="/js/ctrl/ThemeViewModel.js"></script>
     <script src="/js/ctrl/ThunderbirdContactCsvConverter.js"></script>
     <script src="/js/ctrl/UserController.js"></script>
@@ -301,6 +305,7 @@
     <script src="/js/generated/entity/sys/WebsocketWrapper.js"></script>
     <script src="/js/generated/entity/tutanota/Attachment.js"></script>
     <script src="/js/generated/entity/tutanota/AttachmentFromExternal.js"></script>
+    <script src="/js/generated/entity/tutanota/AttachmentKeyData.js"></script>
     <script src="/js/generated/entity/tutanota/Contact.js"></script>
     <script src="/js/generated/entity/tutanota/ContactAddress.js"></script>
     <script src="/js/generated/entity/tutanota/ContactAddressEditable.js"></script>
@@ -324,6 +329,13 @@
     <script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
     <script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
     <script src="/js/generated/entity/tutanota/DeleteMailFolderData.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftAttachment.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftCreateData.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftCreateReturn.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftData.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftRecipient.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftUpdateData.js"></script>
+    <script src="/js/generated/entity/tutanota/DraftUpdateReturn.js"></script>
     <script src="/js/generated/entity/tutanota/EncryptTutanotaPropertiesData.js"></script>
     <script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
     <script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
@@ -336,7 +348,10 @@
     <script src="/js/generated/entity/tutanota/FileSystem.js"></script>
     <script src="/js/generated/entity/tutanota/ImapFolder.js"></script>
     <script src="/js/generated/entity/tutanota/ImapSyncConfiguration.js"></script>
+    <script src="/js/generated/entity/tutanota/InboxRule.js"></script>
+    <script src="/js/generated/entity/tutanota/InboxRuleEditable.js"></script>
     <script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+    <script src="/js/generated/entity/tutanota/InternalRecipientKeyData.js"></script>
     <script src="/js/generated/entity/tutanota/Mail.js"></script>
     <script src="/js/generated/entity/tutanota/MailAddress.js"></script>
     <script src="/js/generated/entity/tutanota/MailBody.js"></script>
@@ -344,6 +359,7 @@
     <script src="/js/generated/entity/tutanota/MailFolder.js"></script>
     <script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
     <script src="/js/generated/entity/tutanota/MoveMailData.js"></script>
+    <script src="/js/generated/entity/tutanota/NewDraftAttachment.js"></script>
     <script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
     <script src="/js/generated/entity/tutanota/PasswordAutoAuthenticationReturn.js"></script>
     <script src="/js/generated/entity/tutanota/PasswordChannelPhoneNumber.js"></script>
@@ -352,7 +368,11 @@
     <script src="/js/generated/entity/tutanota/PasswordMessagingReturn.js"></script>
     <script src="/js/generated/entity/tutanota/PasswordRetrievalData.js"></script>
     <script src="/js/generated/entity/tutanota/PasswordRetrievalReturn.js"></script>
+    <script src="/js/generated/entity/tutanota/ReceiveInfoServiceData.js"></script>
     <script src="/js/generated/entity/tutanota/Recipient.js"></script>
+    <script src="/js/generated/entity/tutanota/SecureExternalRecipientKeyData.js"></script>
+    <script src="/js/generated/entity/tutanota/SendDraftData.js"></script>
+    <script src="/js/generated/entity/tutanota/SendDraftReturn.js"></script>
     <script src="/js/generated/entity/tutanota/SendMailData.js"></script>
     <script src="/js/generated/entity/tutanota/SendMailFromExternalData.js"></script>
     <script src="/js/generated/entity/tutanota/SendMailFromExternalReturn.js"></script>
@@ -361,6 +381,7 @@
     <script src="/js/generated/entity/tutanota/SendUnsecureMailReturn.js"></script>
     <script src="/js/generated/entity/tutanota/Subfiles.js"></script>
     <script src="/js/generated/entity/tutanota/TutanotaProperties.js"></script>
+    <script src="/js/generated/entity/tutanota/TutanotaPropertiesEditable.js"></script>
     <script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
     <script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
     <script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
