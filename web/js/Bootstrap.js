@@ -50,7 +50,7 @@ tutao.tutanota.Bootstrap.init = function () {
             } else {
                 if (tutao.locator.viewManager.feedbackSupported()) {
                     // only logged in users can report errors
-                    tutao.locator.feedbackViewModel.open(e.stack);
+                    tutao.locator.feedbackViewModel.open(e);
                 } else {
                     tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
                 }
@@ -244,7 +244,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         folderNameDialogViewModel: tutao.tutanota.ctrl.FolderNameDialogViewModel,
         eventListenerManager: tutao.util.EventListenerManager,
         buyDialogViewModel: tutao.tutanota.ctrl.BuyDialogViewModel,
-        termsAndConditionsDialogViewModel: tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel
+        termsAndConditionsDialogViewModel: tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel,
+        inboxRulesViewModel: tutao.tutanota.ctrl.InboxRulesSettingsViewModel
     };
 
     tutao.tutanota.legacy.Legacy.setup(singletons);

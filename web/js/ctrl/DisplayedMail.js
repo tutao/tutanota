@@ -253,17 +253,15 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.getAttachmentImage = function (file)
  * Creates a bubble from a mail address.
  * @param {tutao.entity.tutanota.MailAddress} mailAddress The mail address.
  * @param {string} meId The id of the text that should be used if the mailAddress is the current user
+ * @param {number} defaultInboxRuleField The inbox rule field that shall be shown when creating an inbox rule from this mail address. Must be one of tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_*.
  * @return {tutao.tutanota.ctrl.bubbleinput.Bubble} The bubble.
  */
-tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = function(mailAddress, meId) {
+tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = function(mailAddress, meId, defaultInboxRuleField) {
     var state =  "displayRecipient";
     var label = tutao.locator.mailViewModel.getLabel(mailAddress, meId);
-    return new tutao.tutanota.ctrl.bubbleinput.Bubble(mailAddress, ko.observable(label), ko.observable(mailAddress.getAddress()), ko.observable(state), true, this.getSubButtons);
-};
-
-
-tutao.tutanota.ctrl.DisplayedMail.prototype.getSubButtons = function(bubble) {
-    // entity is of type tutao.entity.tutanota.MailAddress see createBubbleFromMailAddress
-    return tutao.locator.mailViewModel.getSubButtons(bubble.entity.getAddress(), bubble.entity.getName());
+    return new tutao.tutanota.ctrl.bubbleinput.Bubble(mailAddress, ko.observable(label), ko.observable(mailAddress.getAddress()), ko.observable(state), true, function(bubble) {
+        // entity is of type tutao.entity.tutanota.MailAddress see createBubbleFromMailAddress
+        return tutao.locator.mailViewModel.getSubButtons(bubble.entity.getAddress(), bubble.entity.getName(), defaultInboxRuleField);
+    });
 };
 

@@ -87,7 +87,8 @@ tutao.entity.tutanota.InboxRule.prototype.getId = function() {
  * @param {string} type The type of this InboxRule.
  */
 tutao.entity.tutanota.InboxRule.prototype.setType = function(type) {
-  this._type = type;
+  var dataToEncrypt = type;
+  this._type = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
   return this;
 };
 
@@ -96,7 +97,20 @@ tutao.entity.tutanota.InboxRule.prototype.setType = function(type) {
  * @return {string} The type of this InboxRule.
  */
 tutao.entity.tutanota.InboxRule.prototype.getType = function() {
-  return this._type;
+  if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
+    return "";
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
+    return value;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return "";
+    } else {
+      throw e;
+    }
+  }
 };
 
 /**
