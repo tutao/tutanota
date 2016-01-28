@@ -270,7 +270,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "loadMoreMails_action": "Indlæs flere emails",
   "loadMore_action": "Indlæs mere",
   "loginAction_msg": "Du vil kun modtage sikre Tutanota emails efter du logger ind.",
-  "loginFailedOften_msg": "For mange fejlede log ind forsøg. Prøv venligst igen senere.",
   "loginFailed_msg": "Ugyldig log ind oplysninger. Prøv venligst igen.",
   "loginNameInfoAdmin_msg": "Valgfrit: brugerens navn.",
   "login_action": "Log ind",

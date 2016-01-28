@@ -309,7 +309,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "loadMoreMails_action": "تحميل المزيد من رسائل البريد الإلكتروني",
   "loadMore_action": "تحميل المزيد",
   "loginAction_msg": "سوف تتلقى رسائل البريد الإلكتروني Tutanota الآمنة فقط بعد تسجيل الدخول.",
-  "loginFailedOften_msg": "عدد كبير جدا من محاولات الدخول الفاشلة. يرجى المحاولة لاحقا.",
   "loginFailed_msg": "بينات تسجيل الدخول غير صالحة. يرجى المحاولة مرة أخرى.",
   "loginNameInfoAdmin_msg": "اختياري: اسم المستخدم.",
   "login_action": "تسجيل الدخول",

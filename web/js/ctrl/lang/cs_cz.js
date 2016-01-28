@@ -215,7 +215,6 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "loadMoreMails_action": "Načíst další zprávy",
   "loadMore_action": "Načíst více",
   "loginAction_msg": "Po přihlášení Vám budou chodit pouze bezpečné emaily Tutanota.",
-  "loginFailedOften_msg": "Příliš mnoho neúspěšných pokusů o přihlášení. Zkuste to prosím znovu později.",
   "loginFailed_msg": "Neplatné přihlašovací údaje. Zkuste to prosím znovu.",
   "loginNameInfoAdmin_msg": "Volitelné: jméno uživatele.",
   "login_action": "Přihlášení",

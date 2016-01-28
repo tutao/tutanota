@@ -162,7 +162,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "loadMoreMails_action": "Φόρτωση περισσότερων μηνυμάτων",
   "loadMore_action": "Φόρτωση υπολοίπου",
   "loginAction_msg": "Θα λάβετε ασφαλή μηνύματα μέσω του Tutanota μετά από επιτυχημένο login.",
-  "loginFailedOften_msg": "Υπερβολικά πολλές ανεπιτυχημένες προσπάθειες εισόδου! Παρακαλούμε προσπαθήστε ξανά αργότερα.",
   "loginFailed_msg": "Λάθος κωδικοί εισόδου. Παρακαλούμε προσπαθήστε ξανά.",
   "loginNameInfoAdmin_msg": "Προαιρετικό: Όνομα χρήστη",
   "login_action": "Log in",

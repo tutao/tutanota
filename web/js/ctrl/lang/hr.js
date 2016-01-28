@@ -320,7 +320,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "loadMoreMails_action": "Učitati još e-mailova",
   "loadMore_action": "Učitaj još",
   "loginAction_msg": "Nakon što se prijavite, primiti ćete samo sigurne Tutanota e-mailove.",
-  "loginFailedOften_msg": "Previše neuspjelih pokušaja prijave. Molimo pokušajte ponovno kasnije.",
   "loginFailed_msg": "Nevažeći podaci za prijavu. Molimo pokušajte ponovno.",
   "loginNameInfoAdmin_msg": "Neobavezno: korisnikovo ime.",
   "login_action": "Prijavi se",

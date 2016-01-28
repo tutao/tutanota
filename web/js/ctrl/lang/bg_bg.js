@@ -206,7 +206,6 @@ tutao.tutanota.ctrl.lang.bg_bg.keys = {
   "loadMoreMails_action": "Покажи още електронни съобщения",
   "loadMore_action": "Покажи повече",
   "loginAction_msg": "След вписването, Вие ще получавате само поверителни Тутанота съобщения.",
-  "loginFailedOften_msg": "Твърде много неуспешни опити за вписване. Моля, опитайте отново по-късно.",
   "loginFailed_msg": "Невалидни данни за вписване. Моля, опитайте отново",
   "loginNameInfoAdmin_msg": "По избор: потребителското име.",
   "login_action": "Вписване",

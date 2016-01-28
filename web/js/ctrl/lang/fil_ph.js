@@ -204,7 +204,6 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "loadMoreMails_action": "Mag-load pa ng mga email",
   "loadMore_action": "Mag-load ng masmarami",
   "loginAction_msg": "Makakatanggap ka lamang ng mga protektadong Tutanota email pagkatapos mag-login.",
-  "loginFailedOften_msg": "Masyadong maraming beses sumubok maglogin ngunit nabigo. Pakisubukan ulit mamaya.",
   "loginFailed_msg": "Maling login impormasyon. Pakisubukan ulit.",
   "loginNameInfoAdmin_msg": "Opysonal: Ang pangalan ng user.",
   "login_action": "Mag-log in",

@@ -204,7 +204,6 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "loadMoreMails_action": "További levelek betöltése",
   "loadMore_action": "További betöltések",
   "loginAction_msg": "Csak bejelentkezés után kapsz biztonságos Tutanota üzeneteket.",
-  "loginFailedOften_msg": "Túl sok belépési próbálkozás, kérlek próbálkozz később.",
   "loginFailed_msg": "Érvénytelen bejelentkezési adatok. Kérlek, fuss neki még egyszer.",
   "loginNameInfoAdmin_msg": "Választható: a felhasználó neve",
   "login_action": "Belépés",

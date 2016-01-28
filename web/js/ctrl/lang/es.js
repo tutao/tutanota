@@ -320,7 +320,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "loadMore_action": "Cargar más",
   "loggingOut_msg": "Cerrando Sesion...",
   "loginAction_msg": "Sólo recibirás correos seguros de Tutanota cuando entres.",
-  "loginFailedOften_msg": "Demasiados intentos incorrectos de acceso. Por favor inténtalo de nuevo más tarde.",
   "loginFailed_msg": "Credenciales de acceso inválidas. Por favor, inténtalo de nuevo.",
   "loginNameInfoAdmin_msg": "Opcional: el nombre del usuario.",
   "login_action": "Acceder",
