@@ -1599,7 +1599,7 @@
 								<!-- /ko -->
 								<div class="dataTable">
 									<div class="mediumSizeColumm">
-										<select data-bind="enable: state.entering(), options: availableInboxRules, value: type, optionsText: getTextForType, attr: {title: getTextForType}"></select>
+										<select data-bind="enable: state.entering(), options: availableInboxRules, value: type, optionsText: getTextForType, attr: {title: getTextForType(type())}"></select>
 									</div>
 									<div class="" >
 										<input type="text" data-bind="enable: state.entering(), value: value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
