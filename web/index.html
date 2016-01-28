@@ -1582,37 +1582,34 @@
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS -->
 							<div id="inboxRulesSettings" data-bind="with: tutao.locator.inboxRulesViewModel" >
-                                <div class="light" data-bind="lang: tutao.locator.viewManager.getOnlyAvailableForPremiumTextId(), visible: tutao.locator.viewManager.isFreeAccount()"></div>
-                                <div data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
-                                    <div class="dataTable">
-                                        <div class="mediumSizeColumm" data-bind="lang: 'inboxRuleField_label'"></div>
-                                        <div class="" data-bind="lang: 'inboxRuleValue_label'">></div>
-                                        <div class="mediumSizeColumm" data-bind="lang: 'inboxRuleTargetFolder_label'"></div>
-                                        <div class="smallButtonColumn"></div>
-                                    </div>
-                                    <hr />
-                                    <!-- ko foreach: userProperties.inboxRules() -->
-                                    <div class="dataTable">
-                                        <div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
-                                        <div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
-                                        <div class="mediumSizeColumm light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
-                                        <div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeInboxRule($index());}, attr: {title: tutao.lang('delete_action')}"></div>
-                                    </div>
-                                    <!-- /ko -->
-                                    <div class="dataTable">
-                                        <div class="mediumSizeColumm">
-                                            <select data-bind="enable: state.entering(), options: availableInboxRules, value: type, optionsText: getTextForType, attr: {title: getTextForType}"></select>
-                                        </div>
-                                        <div class="" >
-                                            <input type="text" data-bind="enable: state.entering(), value: value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
-                                        </div>
-                                        <div class="mediumSizeColumm">
-                                            <select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: getTargetName"></select>
-                                        </div>
-                                        <div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addInboxRule, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
-                                    </div>
-                                    <label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
-                                </div>
+								<div class="dataTable">
+									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleField_label'"></div>
+									<div class="" data-bind="lang: 'inboxRuleValue_label'">></div>
+									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleTargetFolder_label'"></div>
+									<div class="smallButtonColumn"></div>
+								</div>
+								<hr />
+								<!-- ko foreach: userProperties.inboxRules() -->
+								<div class="dataTable">
+									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
+									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
+									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeInboxRule($index());}, attr: {title: tutao.lang('delete_action')}"></div>
+								</div>
+								<!-- /ko -->
+								<div class="dataTable">
+									<div class="mediumSizeColumm">
+										<select data-bind="enable: state.entering(), options: availableInboxRules, value: type, optionsText: getTextForType, attr: {title: getTextForType}"></select>
+									</div>
+									<div class="" >
+										<input type="text" data-bind="enable: state.entering(), value: value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
+									</div>
+									<div class="mediumSizeColumm">
+										<select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: getTargetName"></select>
+									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addInboxRule, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
+								</div>
+								<label class="recordStatus" data-bind="lang: state.submitStatus().text, css: state.submitStatus().type"></label>
 							</div>
 							<!-- /ko -->
 

@@ -15,7 +15,7 @@ tutao.tutanota.ctrl.EmailRuleChecker = function(mailFolderViewModel) {
  */
 tutao.tutanota.ctrl.EmailRuleChecker.prototype.checkForInboxRule = function(mail){
     var self = this;
-    if (mail.getUnread()) {
+    if (mail.getUnread() && tutao.locator.viewManager.isPremiumAccount()) {
         var inboxRule = this._findMatchingRule(mail);
         if (inboxRule != null){
             var targetFolder = tutao.locator.mailFolderListViewModel.findFolder(inboxRule.getTargetFolder());

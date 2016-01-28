@@ -614,7 +614,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddres
                     tutao.locator.inboxRulesViewModel.type(defaultInboxRuleField);
                     tutao.locator.navigator.settings();
                 } else {
-                    tutao.tutanota.gui.alert(tutao.lang(tutao.locator.viewManager.getOnlyAvailableForPremiumTextId()));
+                    tutao.locator.viewManager.showNotAvailableForFreeDialog();
                 }
             }, function () {
                 return (defaultInboxRuleField != null) && !tutao.locator.viewManager.isOutlookAccount() && !tutao.locator.inboxRulesViewModel.isRuleExistingForType(mailAddress.trim().toLowerCase(), defaultInboxRuleField);

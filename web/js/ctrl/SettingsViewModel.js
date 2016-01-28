@@ -104,20 +104,23 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(set
  * @param {Number} settings One of tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_*.
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
-	this.displayed(settings);
-	tutao.locator.settingsView.showChangeSettingsColumn();
-
-    if (!this.bookingAvailable() && tutao.locator.viewManager.isFreeAccount()) {
-        // check if this was a premium user before and the payment data settings should be visible
-        var self = this;
-        var user = tutao.locator.userController.getLoggedInUser();
-        user.loadCustomer().then(function(customer) {
-            return customer.loadCustomerInfo().then(function(customerInfo) {
-                return tutao.entity.sys.Booking.loadRange(customerInfo.getBookings().getItems(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, 1, true).then(function(bookings) {
-                    self.bookingAvailable(bookings.length > 0);
+    if (settings == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS && tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+    } else {
+        this.displayed(settings);
+        tutao.locator.settingsView.showChangeSettingsColumn();
+        if (!this.bookingAvailable() && tutao.locator.viewManager.isFreeAccount()) {
+            // check if this was a premium user before and the payment data settings should be visible
+            var self = this;
+            var user = tutao.locator.userController.getLoggedInUser();
+            user.loadCustomer().then(function(customer) {
+                return customer.loadCustomerInfo().then(function(customerInfo) {
+                    return tutao.entity.sys.Booking.loadRange(customerInfo.getBookings().getItems(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, 1, true).then(function(bookings) {
+                        self.bookingAvailable(bookings.length > 0);
+                    });
                 });
             });
-        });
+        }
     }
 };
 

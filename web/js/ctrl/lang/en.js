@@ -654,7 +654,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "inboxRuleContainsPlaceholder_label" : "Enter containing text",
   "inboxRuleInvalidEmailAddress_msg" : "Email address or domain is not valid.",
     "addRule_action" : "Add rule",
-"onlyAvailableForPremium_msg": "This function is only available for Tutanota Premium. You can upgrade your account to Premium by selecting 'Premium' in the top menu.",
+"onlyAvailableForPremium_msg": "This function is only available for Tutanota Premium. You can upgrade your account to Premium now.",
     "notAvailableInApp_msg": "This function is not available in the mobile app."
 
 

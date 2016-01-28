@@ -306,10 +306,19 @@ tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisible = function() {
         || (tutao.locator.viewManager.elementWithSubButtons() != null && tutao.locator.viewManager.elementWithSubButtons().subButtonsVisible());
 };
 
-tutao.tutanota.ctrl.ViewManager.prototype.getOnlyAvailableForPremiumTextId = function() {
-    if (tutao.env.isIOSApp()) {
-        return "notAvailableInApp_msg";
+tutao.tutanota.ctrl.ViewManager.prototype.showNotAvailableForFreeDialog = function() {
+    if (tutao.env.mode == tutao.Mode.App) {
+        tutao.tutanota.gui.alert(tutao.lang("notAvailableInApp_msg"));
     } else {
-        return "onlyAvailableForPremium_msg";
+        var title = tutao.lang( "upgradeReminderTitle_msg");
+        tutao.locator.modalDialogViewModel.showDialog (tutao.lang("onlyAvailableForPremium_msg"), ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing").then(function(selection) {
+            if ( selection == 0) {
+                tutao.locator.navigator.settings();
+                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+            }
+        })
     }
 };
+
+
+
