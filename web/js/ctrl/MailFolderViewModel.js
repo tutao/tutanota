@@ -20,6 +20,11 @@ tutao.tutanota.ctrl.MailFolderViewModel = function(mailFolder, parentFolder) {
     this.moreAvailable = ko.observable(true);
     this.parentFolder = ko.observable(parentFolder);
     this.subFolders = ko.observableArray([]);
+    this._emailRuleChecker = null;
+
+    if (this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX ) {
+        this._emailRuleChecker = new tutao.tutanota.ctrl.EmailRuleChecker(this);
+    }
 
     this._loadedMails.subscribe(function(){
         this._updateNumberOfUnreadMails();
@@ -41,12 +46,22 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
         if (mails.length < stepRangeCount) {
             self.moreAvailable(false);
         }
-
-        self._loadedMails.splice.apply(self._loadedMails, [self._loadedMails().length, 0].concat(mails));
-
+        if (self._emailRuleChecker != null) {
+            var newEmails = [];
+            return Promise.each(mails, function(mail){
+                return self._emailRuleChecker.checkForInboxRule(mail).then(function(mailMoved){
+                    if(!mailMoved){
+                        newEmails.push(mail);
+                    }
+                });
+            }).then(function(){
+                self._loadedMails.splice.apply(self._loadedMails, [self._loadedMails().length, 0].concat(newEmails));
+            });
+        } else {
+            self._loadedMails.splice.apply(self._loadedMails, [self._loadedMails().length, 0].concat(mails));
+        }
     }).lastly(function() {
         self.loading(false);
-
         if (!self._eventTracker) {
             self._eventTracker = new tutao.event.PushListEventTracker(tutao.entity.tutanota.Mail, self._mailFolder.getMails(), "Mail");
             self._eventTracker.addObserver(self.updateOnNewMails);
@@ -62,27 +77,40 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.loadMoreMails = function() {
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.updateOnNewMails = function(mails) {
     var unread = false;
-    for (var i = 0; i < mails.length; i++) {
-        // find the correct position for the email in the list
-        var found = false;
-        for (var a=0; a<this._loadedMails().length; a++) {
-            if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(mails[i].getId()[1], this._loadedMails()[a].getId()[1])) {
-                this._loadedMails.splice(a, 0, mails[i]);
-                found = true;
-                break;
+    var self = this;
+    Promise.each(mails, function(mail) {
+
+        var inboxRuleCheck = null;
+        if (self._emailRuleChecker == null){
+            inboxRuleCheck = Promise.resolve(false);
+        } else {
+            inboxRuleCheck = self._emailRuleChecker.checkForInboxRule(mail);
+        }
+        return inboxRuleCheck.then(function(mailMoved){
+            if(!mailMoved){
+                // find the correct position for the email in the list
+                var found = false;
+                for (var a=0; a<self._loadedMails().length; a++) {
+                    if (tutao.rest.EntityRestInterface.firstBiggerThanSecond(mail.getId()[1], self._loadedMails()[a].getId()[1])) {
+                        self._loadedMails.splice(a, 0, mail);
+                        found = true;
+                        break;
+                    }
+                }
+                // only add the email to the end of the list if there are no others available which would otherwise not be loadable any more
+                if (!found && !self.moreAvailable()) {
+                   self._loadedMails.push(mail);
+                }
             }
+            if (mail.getUnread()) {
+                unread = true;
+            }
+        });
+    }).then(function() {
+        if (self._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX && unread) {
+            tutao.locator.notification.add(tutao.lang("newMails_msg"));
         }
-        // only add the email to the end of the list if there are no others available which would otherwise not be loadable any more
-        if (!found && !this.moreAvailable()) {
-            this._loadedMails.push(mails[i]);
-        }
-        if (mails[i].getUnread()) {
-            unread = true;
-        }
-    }
-    if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX && unread) {
-        tutao.locator.notification.add(tutao.lang("newMails_msg"));
-    }
+    });
 };
 
 /**

@@ -175,3 +175,27 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.updateNumberOfUnreadMails 
     tutao.locator.notification.updateBadge(unreadMails);
 };
 
+
+/**
+ * Finds the folder with the provided id in the mail folder list and all sub folders and returns it. Returns null if no such folder exists.
+ * @param {Array.<String>} mailFolderId of the mail folder.
+ */
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.findFolder = function(mailFolderId) {
+    var systemFolderList = this._folders();
+    for (var a=0; a<systemFolderList.length; a++) {
+        var systemFolder = systemFolderList[a];
+        if (tutao.rest.EntityRestInterface.sameListElementIds(mailFolderId, systemFolder.getMailFolderId()) ) {
+            return systemFolder;
+        } else {
+            var subFolderList = systemFolder.subFolders();
+            for (var b=0; b<subFolderList.length; b++) {
+                var subFolder = subFolderList[b];
+                if (tutao.rest.EntityRestInterface.sameListElementIds(mailFolderId, subFolder.getMailFolderId()) ) {
+                    return subFolder;
+                }
+            }
+        }
+    }
+    return null;
+};
+
