@@ -40,7 +40,7 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.init = function() {
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._resetNewRule = function() {
     this.type(tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS);
     this.value("");
-    this.selectedFolder(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH));
+    this.selectedFolder(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE));
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getCleanedValue = function() {
@@ -60,7 +60,7 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getInputInvalidMessag
     if (this._isEmailRuleSelected() && !tutao.tutanota.util.Formatter.isDomainName(currentCleanedValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentCleanedValue)){
         return "inboxRuleInvalidEmailAddress_msg";
     }
-    if (this._isNewRuleExisting() ) {
+    if (this.isRuleExistingForType(currentCleanedValue, this.type())){
         return "inboxRuleAlreadyExists_msg";
     }
 
@@ -71,10 +71,10 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._isEmailRuleSelected =
     return this.type() != tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS;
 };
 
-tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._isNewRuleExisting = function() {
-    var inboxRules = this.userProperties.inboxRules();
+tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.isRuleExistingForType = function(cleanValue, type) {
+    var inboxRules = tutao.locator.mailBoxController.getUserProperties().getInboxRules();
     for(var i=0; i < inboxRules.length; i++){
-        if (this.type() == inboxRules[i].type() && this._getCleanedValue() == inboxRules[i].value()) {
+        if (type == inboxRules[i].getType() && cleanValue == inboxRules[i].getValue()) {
             return true;
         }
     }
@@ -166,14 +166,4 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.getPlaceholder = funct
     } else {
         return tutao.lang('emailSenderPlaceholder_label');
     }
-};
-
-tutao.tutanota.ctrl.InboxRulesSettingsViewModel.isRuleExistingForMailAddress = function(mailAddress) {
-    var rules = tutao.locator.mailBoxController.getUserProperties().getInboxRules();
-    for (var i = 0; i < rules.length; i++) {
-        if (rules[i].getValue() == mailAddress.trim().toLowerCase()) {
-            return true;
-        }
-    }
-    return false;
 };

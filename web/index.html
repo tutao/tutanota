@@ -937,7 +937,7 @@
 													<div class="smallButtonColumn">
 														<!-- ko if: $parent.getSocialIdUrl($data) != null -->
 														<a target="_blank" data-bind="attr: { href: $parent.getSocialIdUrl($data) }">
-															<div class="buttonElement fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
+															<div class="fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
 														</a>
 														<!-- /ko -->
 													</div>
@@ -969,7 +969,7 @@
 									<!-- ko if: mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_EDIT || mode() == tutao.tutanota.ctrl.ContactViewModel.MODE_NEW -->
 										<div id="editContactNameTitleAndImage">
 											<!-- <img id="editContactImage" data-bind="attr: { src: 'graphics/' + editableContact.firstName().toLowerCase() + '.jpg'}, attr: {alt: tutao.lang('contactImage_alt')}"/> -->
-											<div id="editContactNameAndTitle" class="wide">
+											<div id="editContactNameAndTitle">
 												<input id="firstNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.firstName, attr: {placeholder: tutao.lang('firstName_placeholder')}"/>
 												<input id="lastNameInput" type="text" autocorrect="off" autocomplete="off" spellcheck="false" data-bind="value: editableContact.lastName, attr: {placeholder: tutao.lang('lastName_placeholder')}"/>
 												<input id="birthdayInput" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.birthdayStringComputed, css: { invalid: editableContact.birthdayStringInvalid }, attr: {placeholder: tutao.lang('birthdayWithFormat_placeholder')}"/>

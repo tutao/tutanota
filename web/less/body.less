@@ -378,10 +378,10 @@ body {
 	  width: 100%;
 	  margin-top: 10px;
 	  display:table;
+	  table-layout: fixed;
 
 	  > div {
 		display: table-cell;
-		//border: 1px solid grey;
 		height: 35px;
 		max-width:0; // needed for text-overflow:ellipsis
 		text-overflow: ellipsis;
@@ -395,7 +395,6 @@ body {
 		}
 
 		&.mediumSizeColumm {
-		  table-layout: fixed;
 		  width: @mediumColumnWidth;
 		  max-width:@mediumColumnWidth;
 		  @media @mobile {
@@ -405,7 +404,6 @@ body {
 		}
 
 		&.smallButtonColumn {
-		  table-layout: fixed;
 		  width: @buttonColumnWidth;
 		  max-width:@buttonColumnWidth;
 		  cursor: pointer;

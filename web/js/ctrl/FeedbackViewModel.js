@@ -10,6 +10,7 @@ tutao.tutanota.ctrl.FeedbackViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this.message = ko.observable("");
     this.error = null;
+	this._timestamp = null;
 	this.showDialog = ko.observable(false);
 };
 
@@ -19,6 +20,7 @@ tutao.tutanota.ctrl.FeedbackViewModel = function() {
 tutao.tutanota.ctrl.FeedbackViewModel.prototype.open = function(error) {
     this.error = error;
     this.message("");
+	this._timestamp = new Date().toUTCString();
     this.showDialog(true);
 };
 
@@ -33,11 +35,12 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
 
     message += "\n\n Client: " + (tutao.env.mode == tutao.Mode.App ? cordova.platformId + " app": "Browser");
 
-    message += "\n Type: " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.userController.getLoggedInUser().getAccountType())];
+	var type = tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.userController.getLoggedInUser().getAccountType())];
+    message += "\n Type: " + type;
 
     message += "\n Tutanota version: " + tutao.env.versionNumber;
 
-    message += "\n Timestamp (UTC): " +  new Date().toUTCString();
+    message += "\n Timestamp (UTC): " +  this._timestamp;
 
     message  += "\n User agent: \n" + navigator.userAgent;
 
@@ -46,7 +49,7 @@ tutao.tutanota.ctrl.FeedbackViewModel.prototype.sendFeedback = function() {
     }
 
     message = message.split("\n").join("<br>");
-    var subject = (this.error && this.error.name) ? "Feedback - " + this.error.name : "Feedback - ?";
+    var subject = ((this.error && this.error.name) ? "Feedback - " + this.error.name : "Feedback - ?") + " " + type;
     var recipient = new tutao.tutanota.ctrl.RecipientInfo("support@tutao.de", "");
     recipient.resolveType().then(function() {
         return tutao.tutanota.ctrl.DraftFacade.createDraft(subject, message, tutao.locator.userController.getUserGroupInfo().getMailAddress(), "", [recipient], [], [], tutao.entity.tutanota.TutanotaConstants.CONVERSATION_TYPE_NEW, null, attachments, true).then(function(draft) {

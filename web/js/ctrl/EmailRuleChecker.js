@@ -11,7 +11,7 @@ tutao.tutanota.ctrl.EmailRuleChecker = function(mailFolderViewModel) {
 /**
  * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
  * @param {tutao.entity.tutanota.Mail} mail The mail to check.
- * @returns {*}
+ * @returns {Promise.<bool>} Returns if the mail has been moved or not.
  */
 tutao.tutanota.ctrl.EmailRuleChecker.prototype.checkForInboxRule = function(mail){
     var self = this;
@@ -19,9 +19,11 @@ tutao.tutanota.ctrl.EmailRuleChecker.prototype.checkForInboxRule = function(mail
         var inboxRule = this._findMatchingRule(mail);
         if (inboxRule != null){
             var targetFolder = tutao.locator.mailFolderListViewModel.findFolder(inboxRule.getTargetFolder());
-            return self._mailFolderViewModel.move(targetFolder, [mail]).then(function(){
-                return true;
-            });
+            if (targetFolder != null) {
+                return self._mailFolderViewModel.move(targetFolder, [mail]).then(function () {
+                    return true;
+                });
+            }
         }
     }
     return Promise.resolve(false);
@@ -39,7 +41,7 @@ tutao.tutanota.ctrl.EmailRuleChecker.prototype._findMatchingRule = function(mail
         var inboxRule = inboxRules[i];
         var ruleType = inboxRule.getType();
         if (ruleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS ) {
-            if (mail.getSender().getAddress() == inboxRule.getValue()){
+            if (mail.getSender().getAddress().toLowerCase().trim() == inboxRule.getValue()){
                 return inboxRule;
             }
         } else if (ruleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS) {
@@ -71,7 +73,7 @@ tutao.tutanota.ctrl.EmailRuleChecker.prototype._findMatchingRule = function(mail
  */
 tutao.tutanota.ctrl.EmailRuleChecker.prototype._containsEmailAddress = function(mailAddresses, mailAddress){
     for( var i = 0; i<mailAddresses.length;i++){
-        if (mailAddresses[i].getAddress() == mailAddress) {
+        if (mailAddresses[i].getAddress().toLowerCase().trim() == mailAddress) {
             return true;
         }
     }

@@ -584,7 +584,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getColumnTitleText = function(){
  * Provides the buttons to be shown in the tooltip for the given mail address.
  * @param {string} mailAddress The mail address.
  * @param {string} name The name of the recipient.
- * @param {number} defaultInboxRuleField The inbox rule field that shall be shown when creating an inbox rule from this mail address. Must be one of tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_* or null if the inbox rule option shall not be shown.
+ * @param {string=} defaultInboxRuleField The inbox rule field that shall be shown when creating an inbox rule from this mail address. Must be one of tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_* or null if the inbox rule option shall not be shown.
  * @returns {Array<tutao.tutanota.ctrl.Button>} The buttons to show.
  */
 tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddress, name, defaultInboxRuleField) {
@@ -617,7 +617,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddres
                     tutao.tutanota.gui.alert(tutao.lang(tutao.locator.viewManager.getOnlyAvailableForPremiumTextId()));
                 }
             }, function () {
-                return (defaultInboxRuleField != null) && !tutao.locator.viewManager.isOutlookAccount() && !tutao.tutanota.ctrl.InboxRulesSettingsViewModel.isRuleExistingForMailAddress(mailAddress);
+                return (defaultInboxRuleField != null) && !tutao.locator.viewManager.isOutlookAccount() && !tutao.locator.inboxRulesViewModel.isRuleExistingForType(mailAddress.trim().toLowerCase(), defaultInboxRuleField);
             }, false, "addRuleAction", "inbox")
         ];
     }
