@@ -654,7 +654,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "inboxRuleTargetFolder_label" : "Ziel-Ordner",
   "inboxRuleContainsPlaceholder_label" : "Enthaltener Text",
   "inboxRuleInvalidEmailAddress_msg" : "Die E-Mail-Adresse oder die Domain ist nicht gültig.",
-    "addRule_action" : "Regel anlegen"
-
-
+    "addRule_action" : "Regel anlegen",
+    "onlyAvailableForPremium_msg": "Diese Funktion ist nur mit Tutanota Premium verfügbar. Du kannst deinen Account auf Premium erweitern, indem du auf 'Premium' im oberen Menü klickst.",
+    "notAvailableInApp_msg": "Diese Funktion ist in der mobilen App nicht verfügbar."
 };

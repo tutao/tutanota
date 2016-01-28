@@ -48,7 +48,7 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getUserSettings = function() {
 	var s = tutao.tutanota.ctrl.SettingsViewModel;
 	var settings = [s.DISPLAY_USER_INFO, s.DISPLAY_CHANGE_PASSWORD];
-    if (tutao.locator.viewManager.getLoggedInUserAccountType() != tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
+    if (!tutao.locator.viewManager.isOutlookAccount()) {
         settings.push(s.DISPLAY_MAIL_SETTINGS);
         settings.push(s.DISPLAY_INBOX_RULES_SETTINGS);
     }

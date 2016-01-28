@@ -64,6 +64,10 @@ tutao.tutanota.ctrl.ViewManager.prototype.isPremiumAccount = function() {
     return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM;
 };
 
+tutao.tutanota.ctrl.ViewManager.prototype.isOutlookAccount = function() {
+    return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
+};
+
 /**
  * @return {Array.<tutao.tutanota.ctrl.View>} views All the views of this ViewManager.
  */
@@ -300,4 +304,12 @@ tutao.tutanota.ctrl.ViewManager.prototype.isModalDialogVisible = function() {
         || tutao.locator.progressDialogModel.showDialog()
         || tutao.locator.termsAndConditionsDialogViewModel.visible()
         || (tutao.locator.viewManager.elementWithSubButtons() != null && tutao.locator.viewManager.elementWithSubButtons().subButtonsVisible());
+};
+
+tutao.tutanota.ctrl.ViewManager.prototype.getOnlyAvailableForPremiumTextId = function() {
+    if (tutao.env.isIOSApp()) {
+        return "notAvailableInApp_msg";
+    } else {
+        return "onlyAvailableForPremium_msg";
+    }
 };

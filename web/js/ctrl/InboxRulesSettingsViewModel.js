@@ -3,7 +3,7 @@
 tutao.provide('tutao.tutanota.ctrl.InboxRulesSettingsViewModel');
 
 /**
- * View model to configure inbox rules for incooming emails..
+ * View model to configure inbox rules for incoming emails..
  * @constructor
  */
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel = function() {
@@ -21,11 +21,12 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel = function() {
     this.availableInboxRules.push(tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS);
 
     this.availableTargetFolders = ko.observableArray();
+
     this.selectedFolder = ko.observable(null);
+    this.type = ko.observable(tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS);
+    this.value = ko.observable("");
 
     this.userProperties = null;
-
-    this.newRule = ko.observable();
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.init = function() {
@@ -37,18 +38,26 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.init = function() {
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._resetNewRule = function() {
-    var newInboxRule = new tutao.entity.tutanota.InboxRule(this.userProperties.getTutanotaProperties()).setValue("").setType(tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS).setTargetFolder(this.availableTargetFolders()[0].getMailFolderId());
-    this.newRule(new tutao.entity.tutanota.InboxRuleEditable(newInboxRule));
+    this.type(tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS);
+    this.value("");
     this.selectedFolder(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH));
 };
 
-tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getInputInvalidMessage = function() {
-    var currentValue = this.newRule().value().toLowerCase().trim();
+tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getCleanedValue = function() {
+    if (this.type() == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS) {
+        return this.value();
+    } else {
+        return this.value().trim().toLowerCase();
+    }
+};
 
-    if (currentValue == "" ) {
+tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getInputInvalidMessage = function() {
+    var currentCleanedValue = this._getCleanedValue();
+
+    if (currentCleanedValue == "" ) {
         return "emptyString_msg";
     }
-    if (this._isEmailRuleSelected() && !tutao.tutanota.util.Formatter.isDomainName(currentValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentValue)){
+    if (this._isEmailRuleSelected() && !tutao.tutanota.util.Formatter.isDomainName(currentCleanedValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentCleanedValue)){
         return "inboxRuleInvalidEmailAddress_msg";
     }
     if (this._isNewRuleExisting() ) {
@@ -59,13 +68,13 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getInputInvalidMessag
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._isEmailRuleSelected = function() {
-    return this.newRule().type() != tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS;
+    return this.type() != tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS;
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._isNewRuleExisting = function() {
     var inboxRules = this.userProperties.inboxRules();
     for(var i=0; i < inboxRules.length; i++){
-        if (this.newRule().type() == inboxRules[i].type() && this.newRule().value().trim().toLowerCase() == inboxRules[i].value()) {
+        if (this.type() == inboxRules[i].type() && this._getCleanedValue() == inboxRules[i].value()) {
             return true;
         }
     }
@@ -78,9 +87,11 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.addInboxRule = functio
         return;
     }
 
-    this.newRule().targetFolder(self.selectedFolder().getMailFolderId());
-    this.newRule().value(this.newRule().value().trim().toLowerCase());
-    this.userProperties.inboxRules.push(this.newRule());
+    var newInboxRule = new tutao.entity.tutanota.InboxRule(this.userProperties.getTutanotaProperties())
+        .setValue(this._getCleanedValue())
+        .setType(this.type())
+        .setTargetFolder(this.selectedFolder().getMailFolderId());
+    this.userProperties.inboxRules.push(new tutao.entity.tutanota.InboxRuleEditable(newInboxRule));
     this._updateTutanotaProperties().then(function(){
         self._resetNewRule();
     });
@@ -102,15 +113,15 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._updateTutanotaPropert
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.getTextForType = function(inboxRuleType) {
-    if ( inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS ){
+    if (inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SENDER_EQUALS ) {
         return tutao.lang("inboxRuleSenderEquals_action");
-    } else if ( inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS ){
+    } else if (inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS ) {
         return tutao.lang("inboxRuleToRecipientEquals_action")
-    } else if ( inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_CC_EQUALS ){
+    } else if (inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_CC_EQUALS ) {
         return tutao.lang("inboxRuleCCRecipientEquals_action")
-    } else if ( inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_BCC_EQUALS ){
+    } else if (inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_BCC_EQUALS ) {
         return tutao.lang("inboxRuleBCCRecipientEquals_action")
-    } else if ( inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS ){
+    } else if (inboxRuleType == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS ) {
         return tutao.lang("inboxRuleSubjectContains_action")
     } else {
         return "";
@@ -150,7 +161,7 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._createTargetFolders =
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.getPlaceholder = function() {
-    if (this.newRule().type() == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS) {
+    if (this.type() == tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS) {
         return tutao.lang('inboxRuleContainsPlaceholder_label');
     } else {
         return tutao.lang('emailSenderPlaceholder_label');
