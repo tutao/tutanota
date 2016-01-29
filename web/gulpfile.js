@@ -304,7 +304,7 @@ gulp.task('copyFonts', function () {
 });
 
 gulp.task('copyGraphics', function () {
-    return gulp.src('graphics/*')
+    return gulp.src('graphics/**')
         .pipe(gulp.dest('./build/graphics'));
 });
 
