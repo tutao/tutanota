@@ -69,6 +69,8 @@ tutao.tutanota.gui.SettingsView.prototype.isShowRightNeighbourColumnPossible = f
  * Makes sure that the change settings column is visible.
  */
 tutao.tutanota.gui.SettingsView.prototype.showChangeSettingsColumn = function() {
+    // set _firstActivation to false to make sure that the swipe slide does not switch to the default columns when selecting the settings view the first time
+    this._swipeSlider._firstActivation = false;
     this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.SettingsView.COLUMN_CHANGE_SETTINGS);
 };
 
