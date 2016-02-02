@@ -50,8 +50,10 @@ tutao.event.PushListEventTracker.prototype.notifyObservers = function(data) {
  */
 tutao.event.PushListEventTracker.prototype.observeList = function(highestId) {
     this._highestElementId = highestId;
-    this._notifyAboutExistingElements();
-    tutao.locator.eventBus.addListener(this);
+    var self = this;
+    this._notifyAboutExistingElements().then(function() { // avoid dublicate notifications
+        tutao.locator.eventBus.addListener(self);
+    });
 };
 
 tutao.event.PushListEventTracker.prototype.stopObservingList = function() {
