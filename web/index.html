@@ -1249,6 +1249,11 @@
 						</div>
 						<!-- /ko -->
 						<!-- ko if: getRegistrationType() == 'Free' -->
+
+						<!-- ko if: tutao.env.isIOSApp()-->
+						<h2 class="centered" data-bind="lang: 'createFreeAccount_label'"></h2>
+						<!-- /ko -->
+
 						<div class="record">
 							<label for="mailAddress" class="recordName" data-bind="lang: 'desiredAddress_label'"></label>
 							<div class="recordData">
