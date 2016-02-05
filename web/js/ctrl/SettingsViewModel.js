@@ -66,9 +66,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
     if (tutao.locator.userController.isLoggedInUserAdmin() ) {
         settings.push(s.DISPLAY_ADMIN_ACCOUNT_INFO);
         settings.push(s.DISPLAY_ADMIN_USER_LIST);
-        if (!tutao.locator.viewManager.isFreeAccount()) {
-            settings.push(s.DISPLAY_ADMIN_MESSAGES);
-        }
+        settings.push(s.DISPLAY_ADMIN_MESSAGES);
         settings.push(s.DISPLAY_ADMIN_SPAM);
         if (this.isActivateExtensionEnabled()) {
             if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {

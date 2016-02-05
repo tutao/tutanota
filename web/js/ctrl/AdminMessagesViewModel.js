@@ -19,6 +19,10 @@ tutao.tutanota.ctrl.AdminMessagesViewModel = function() {
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.confirm = function() {
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
     if (this.busy()) {
         return;
     }
@@ -42,6 +46,10 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._updateLogos = function() {
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectSmallLogo = function() {
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
     if (this.busy()) {
         return;
     }
@@ -49,6 +57,10 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectSmallLogo = function(
 };
 
 tutao.tutanota.ctrl.AdminMessagesViewModel.prototype.selectBigLogo = function() {
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
     if (this.busy()) {
         return;
     }

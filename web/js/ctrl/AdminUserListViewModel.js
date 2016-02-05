@@ -67,6 +67,12 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype.updateUserGroupInfo = funct
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccounts = function() {
+    var addUserAccountTypes = [tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM];
+    if (this._customer().getCanceledPremiumAccount() || !tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customer().getType())) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
+
 	this.editing(null);
 	this.newViewModel(new tutao.tutanota.ctrl.AdminUserAddViewModel(this));
     tutao.locator.settingsView.showChangeSettingsDetailsColumn();
@@ -96,8 +102,7 @@ tutao.tutanota.ctrl.AdminUserListViewModel.prototype._loadUserGroupEntries = fun
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.createAccountsPossible = function(){
-    var addUserAccountTypes = [tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM, tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM];
-    return this._customer() != null && this.customerInfo() != null && !this._customer().getCanceledPremiumAccount() && tutao.util.ArrayUtils.contains(addUserAccountTypes, this._customer().getType()) && (!this.newViewModel() || !tutao.locator.settingsView.isChangeSettingsDetailsColumnVisible());
+    return this._customer() != null && this.customerInfo() != null && (!this.newViewModel() || !tutao.locator.settingsView.isChangeSettingsDetailsColumnVisible());
 };
 
 tutao.tutanota.ctrl.AdminUserListViewModel.prototype.getAvailableDomains = function(){

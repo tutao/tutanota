@@ -152,7 +152,11 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
             tutao.locator.dao.init("Tutanota_" + self.mailAddress(), resolve);
         });
     }).then(function () {
-        return tutao.locator.viewManager.loadCustomLogos();
+        if (!tutao.locator.userController.isLoggedInUserFreeAccount()) {
+            return tutao.locator.viewManager.loadCustomLogos();
+        } else {
+            return Promise.resolve();
+        }
     }).then(function() {
         // load all contacts to have them available in cache, e.g. for RecipientInfos
         return tutao.locator.contactListViewModel.init();
