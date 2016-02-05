@@ -179,9 +179,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
             return customer.loadProperties().then(function(properties) {
                 return customer.loadCustomerInfo().then(function(customerInfo) {
                     if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime() + tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime() ) {
-                        var message = tutao.lang("upgradeReminder_msg");
+                        var message = tutao.lang("premiumOffer_msg") + " " + tutao.lang("moreInfo_msg");
                         var title = tutao.lang( "upgradeReminderTitle_msg");
-                        tutao.locator.modalDialogViewModel.showDialog (message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
+                        tutao.locator.modalDialogViewModel.showDialog(message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
                             if ( selection == 0) {
                                 tutao.locator.navigator.settings();
                                 tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
