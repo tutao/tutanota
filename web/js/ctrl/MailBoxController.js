@@ -8,6 +8,7 @@ tutao.provide('tutao.tutanota.ctrl.MailBoxController');
  * loaded again.
  *
  * @constructor
+ * @implements {tutao.event.EventBusListener}
  */
 tutao.tutanota.ctrl.MailBoxController = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
@@ -144,7 +145,23 @@ tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = functio
                 })
             });
         });
+    }).then(function() {
+        // we want to get notified about reconnects, so we update the TutanotaProperties to avoid overwriting
+        tutao.locator.eventBus.addListener(self);
     });
+};
+
+/**
+ * @inheritDoc
+ */
+tutao.tutanota.ctrl.MailBoxController.prototype.notifyNewDataReceived = function(data) {};
+
+/**
+ * @inheritDoc
+ */
+tutao.tutanota.ctrl.MailBoxController.prototype.notifyReconnected = function() {
+    // reload the cached instance as workaround until the full sync is available
+    return tutao.locator.entityRestClient._getElementFromTarget(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, this.getUserProperties().getId(), null, {"v" : tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION}, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
