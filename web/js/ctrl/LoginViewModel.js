@@ -166,8 +166,12 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         tutao.locator.navigator.mail();
         self.loginFinished(true);
         tutao.locator.pushService.register();
-        self.showUpgradeReminder();
-        self._getInfoMails();
+        // run the following commands in sequence to avoid parallel loading of the customer
+        self._showApprovalRequestInfo().then(function() {
+            return self._showUpgradeReminder();
+        }).then(function() {
+            self._getInfoMails();
+        });
     });
 };
 
@@ -176,7 +180,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._getInfoMails = function () {
     return receiveService.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
-tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
+tutao.tutanota.ctrl.LoginViewModel.prototype._showUpgradeReminder = function () {
     var self = this;
     if (tutao.locator.userController.isLoggedInUserFreeAccount() && tutao.env.mode != tutao.Mode.App) {
         return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
@@ -185,7 +189,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
                     if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime() + tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime() ) {
                         var message = tutao.lang("premiumOffer_msg") + " " + tutao.lang("moreInfo_msg");
                         var title = tutao.lang( "upgradeReminderTitle_msg");
-                        tutao.locator.modalDialogViewModel.showDialog(message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
+                        return tutao.locator.modalDialogViewModel.showDialog(message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
                             if ( selection == 0) {
                                 tutao.locator.navigator.settings();
                                 tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
@@ -198,7 +202,17 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.showUpgradeReminder = function () {
                 });
             });
         });
+    } else {
+        return Promise.resolve();
     }
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._showApprovalRequestInfo = function () {
+    return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
+            return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+        }
+    });
 };
 
 

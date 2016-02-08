@@ -633,7 +633,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "userSettings_label": "User",
   "validInputFormat_msg": "Format ok.",
   "version_label": "Version:",
-  "waitingForApproval_msg": "Sorry, you are currently not allowed to send emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 24 hours.",
+  "waitingForApproval_msg": "Sorry, you are currently not allowed to send or receive emails because your account was marked for approval to avoid abuse like spam emails. The Tutanota team will approve your account within 48 hours.",
   "weekDays_label": [
     "Su",
     "Mo",

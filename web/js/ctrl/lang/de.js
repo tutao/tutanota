@@ -633,7 +633,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "userSettings_label": "Benutzer",
   "validInputFormat_msg": "Format ok.",
   "version_label": "Version:",
-  "waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden, da dein Account erst freigegeben werden muss. Dies ist notwendig, um Missbrauch, wie Spam, zu verhindern. Das Tutanota-Team wird deinen Account innerhalb von 24 Stunden freigeben.",
+  "waitingForApproval_msg": "Du darfst leider noch keine E-Mails senden oder empfangen, da dein Account erst freigegeben werden muss. Dies ist notwendig, um Missbrauch, wie Spam, zu verhindern. Das Tutanota-Team wird deinen Account innerhalb von 48 Stunden freigeben.",
   "weekDays_label": [
     "So",
     "Mo",
