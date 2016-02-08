@@ -77,7 +77,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("move_action", 9, function () {}, null, false, "moveAction", "moveToFolder", null, null, null, function() {
         var buttons = [];
-        self._createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders());
+        tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), [self.mail]);
         var isExternalExportPossible = function () {
             // legacy_ie does not support internally used arraybuffers, legacy_safari does not support download, legacy_android does not support download.
             // we deactivate export for mobile browsers generally because it is useless
@@ -114,13 +114,22 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
  * Create buttons for moving a mail to the given folders, including subfolders. If moving an email to one of the folders does not make sense, no button is created for that folder.
  * @param {Array.<tutao.tutanota.ctrl.Button>} buttons The buttons are added to this list.
  * @param {Array.<tutao.tutanota.ctrl.MailFolderViewModel>} folders The folders to add.
+ * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails that shall be moved with the buttons. The array must not be empty.
  */
-tutao.tutanota.ctrl.DisplayedMail.prototype._createMoveTargetFolderButtons = function(buttons, folders) {
+tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(buttons, folders, mails) {
     var self = this;
     for (var i=0; i<folders.length; i++) {
         // do not allow moving sent mails to the inbox folder or received mails to the sent folder and their sub-folders
-        if ((this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && folders[i].getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX) ||
-            (this.mail.getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && folders[i].getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT)) {
+        var skipFolder = false;
+        for (var a=0; a<mails.length; a++) {
+            if ((mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && (folders[i].isInboxFolder() || folders[i].isSpamFolder() || folders[i].isDraftFolder())) ||
+                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && (folders[i].isSentFolder() || folders[i].isDraftFolder())) ||
+                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && !folders[i].isDraftFolder())) {
+                skipFolder = true;
+                break;
+            }
+        }
+        if (skipFolder) {
             continue;
         }
         // skip the current folder of the mail, but allow sub-folders
@@ -128,12 +137,12 @@ tutao.tutanota.ctrl.DisplayedMail.prototype._createMoveTargetFolderButtons = fun
             (function () { // closure to avoid access to mutable variable i
                 var folder = folders[i];
                 buttons.push(new tutao.tutanota.ctrl.Button("@" + folder.getName(), i, function () {
-                    tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, [self.mail]);
+                    tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, mails);
                 }, null, false, "moveAction" + folder.getName(), folder.getIconId()));
             })();
         }
         // add sub-folders
-        self._createMoveTargetFolderButtons(buttons, folders[i].subFolders());
+        tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, folders[i].subFolders(), mails);
     }
 };
 

@@ -245,7 +245,8 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         eventListenerManager: tutao.util.EventListenerManager,
         buyDialogViewModel: tutao.tutanota.ctrl.BuyDialogViewModel,
         termsAndConditionsDialogViewModel: tutao.tutanota.ctrl.TermsAndConditionsDialogViewModel,
-        inboxRulesViewModel: tutao.tutanota.ctrl.InboxRulesSettingsViewModel
+        inboxRulesViewModel: tutao.tutanota.ctrl.InboxRulesSettingsViewModel,
+        keyManager: tutao.tutanota.util.KeyManager
     };
 
     tutao.tutanota.legacy.Legacy.setup(singletons);
@@ -266,6 +267,7 @@ tutao.tutanota.Bootstrap.initLocator = function() {
     tutao.locator.mailViewModel.init();
     tutao.locator.contactListViewModel.initButtonBar();
     tutao.locator.contactViewModel.initButtonBar();
+    tutao.locator.keyManager.init();
 };
 
 tutao.tutanota.Bootstrap.initControllers = function () {

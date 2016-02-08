@@ -108,7 +108,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(fo
 
 
 /**
- * Moves the mail from the selected folder with the given element id to the given target folder. Called when using drag&drop.
+ * Moves the mail from the selected folder with the given element id to the given target folder. If the mail is among the selected, all selected are moved. Called when using drag&drop.
  * @param {tutao.tutanota.ctrl.MailFolderViewModel} targetMailFolder The target folder.
  * @param {tutao.entity.tutanota.Mail} mailElementId The element id of mail to move.
  */
@@ -121,9 +121,16 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.drop = function(targetMail
 
     // find the mail instance
     var allMails = sourceMailFolder.getLoadedMails();
+    var selectedMails = sourceMailFolder.getSelectedMails();
     for (var i=0; i<allMails.length; i++) {
         if (allMails[i].getId()[1] == mailElementId) {
-            sourceMailFolder.move(targetMailFolder, [allMails[i]]);
+            var droppedMail = allMails[i];
+            if (selectedMails.indexOf(droppedMail) != -1) {
+                // the dropped mail is among the selected mails, so move all selected mails
+                sourceMailFolder.move(targetMailFolder, selectedMails);
+            } else {
+                sourceMailFolder.move(targetMailFolder, [droppedMail]);
+            }
             break;
         }
     }

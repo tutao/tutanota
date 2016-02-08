@@ -140,10 +140,14 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getNumberOfUnreadMails = funct
     return unreadMails;
 };
 
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSelectedMails = function() {
+    // return a copy to avoid that the array is changed
+    return this._selectedMails().slice(0);
+};
 
 
 /**
- * Selects the given mails.
+ * Selects the given mail.
  * @return Promise
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
@@ -162,12 +166,33 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
 };
 
 /**
+ * Handles a click on the given mail. Shows the selected mail if only one is selected.
+ * @return Promise<bool> True if the mail was shown, but not visible before, false otherwise.
+ */
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail) {
+    var multiSelectOperation = tutao.util.ListSelectionUtils.itemClicked(this._loadedMails, this._selectedMails, mail);
+    if (this._selectedMails().length == 1) {
+        return this.selectMail(this._selectedMails()[0]).then(function() {
+            return !multiSelectOperation;
+        });
+    } else {
+        this._lastSelectedMails(this._selectedMails().slice(0));
+        tutao.locator.mailViewModel.hideMail();
+        return Promise.resolve(false);
+    }
+};
+
+/**
  * Selects the last selected mails if any. If there are no last selected mails, all mails are unselected.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviouslySelectedMails = function() {
     if (this._lastSelectedMails().length > 0) {
         this._selectedMails(this._lastSelectedMails());
-        tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
+        if (this._selectedMails().length == 1) {
+            tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
+        } else {
+            tutao.locator.mailViewModel.hideMail();
+        }
     } else {
         this.unselectAllMails();
     }
@@ -257,7 +282,11 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selected = function() {
         return this.loadMoreMails();
     } else {
         if (this._selectedMails().length > 0) {
-            tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
+            if (this._selectedMails().length == 1) {
+                tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
+            } else {
+                tutao.locator.mailViewModel.hideMail();
+            }
         } else {
             this.selectPreviouslySelectedMails();
         }
@@ -659,6 +688,22 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isArchiveFolder = function(){
         return this.parentFolder().isArchiveFolder();
     }else{
         return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE;
+    }
+};
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isDraftFolder = function(){
+    if ( this.parentFolder() ){
+        return this.parentFolder().isDraftFolder();
+    }else{
+        return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT;
+    }
+};
+
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.isSentFolder = function(){
+    if ( this.parentFolder() ){
+        return this.parentFolder().isSentFolder();
+    }else{
+        return this.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_SENT;
     }
 };
 

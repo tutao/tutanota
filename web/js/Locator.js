@@ -150,6 +150,8 @@ tutao.Locator = function(services, initializer) {
     this.buyDialogViewModel = null;
     //@type {tutao.tutanota.ctrl.InboxRulesSettingsViewModel}
     this.inboxRulesViewModel = null;
+    //@type {tutao.tutanota.util.KeyManager}
+    this.keyManager = null;
 
 	this.reset();
 };

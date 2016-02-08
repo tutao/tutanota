@@ -28,6 +28,16 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     this.buttons = [
+        new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        }, false, "moveAction", "moveToFolder", null, null, null, function() {
+            var buttons = [];
+            tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
+            return buttons;
+        }),
+        new tutao.tutanota.ctrl.Button("delete_action", 8, this._deleteSelectedMails, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
             return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
@@ -67,6 +77,27 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
                 }
             }
         }
+    });
+};
+
+tutao.tutanota.ctrl.MailListViewModel.prototype._deleteSelectedMails = function() {
+    var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
+
+    if (folder.loading()) {
+        return Promise.resolve();
+    }
+    var self = this;
+    self.deleting(true);
+    var promise = null;
+    var mailsToDelete = tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails();
+    if (folder.isTrashFolder() || folder.isSpamFolder()) {
+        promise = folder.finallyDeleteMails(mailsToDelete);
+    } else {
+        // move content to trash
+        promise = folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mailsToDelete);
+    }
+    return promise.lastly(function() {
+        self.deleting(false);
     });
 };
 
@@ -110,12 +141,21 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getMails = function() {
 };
 
 /**
- * Shows the given mail in the mail view but does not switch to the conversation column.
+ * Shows the given mail in the mail view and switches to the conversation column if the mail was shown.
  * @param mail The mail to show.
  * @return {Promise} When the mail is selected or selection was cancelled.
  */
-tutao.tutanota.ctrl.MailListViewModel.prototype.selectMail = function(mail) {
-	return this._selectMail(mail, true);
+tutao.tutanota.ctrl.MailListViewModel.prototype.mailClicked = function(mail) {
+    return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function(allCancelled) {
+        if (allCancelled) {
+            tutao.locator.mailFolderListViewModel.selectedFolder().mailClicked(mail).then(function(mailShown) {
+                if (mailShown) {
+                    tutao.locator.mailView.showConversationColumn();
+                }
+            });
+        }
+        return Promise.resolve();
+    });
 };
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.isSelectedMail = function(mail) {
@@ -124,30 +164,6 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isSelectedMail = function(mail) 
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.getSelectedMailIndex = function() {
     return tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMailIndex();
-};
-
-/**
- * Selects the given mail and shows it in the conversation column. Switches to the conversation column depending on the switchToConversationColumn param.
- * @param {tutao.entity.tutanota.Mail} mail Mail to select.
- * @param {boolean} tryCancelComposingMails True if all existing composing mails should be canceled
- * @return {Promise} When the mail is selected or selection was cancelled.
- */
-tutao.tutanota.ctrl.MailListViewModel.prototype._selectMail = function(mail, tryCancelComposingMails) {
-    var self = this;
-    var promise = null;
-    if (tryCancelComposingMails) {
-        promise = tutao.locator.mailViewModel.tryCancelAllComposingMails(false);
-    } else {
-        promise = Promise.resolve(true);
-    }
-    return promise.then(function(allCancelled) {
-        if (allCancelled) {
-            tutao.locator.mailFolderListViewModel.selectedFolder().selectMail(mail).then(function(){
-                tutao.locator.mailView.showConversationColumn();
-            });
-        }
-        return Promise.resolve();
-    });
 };
 
 /**

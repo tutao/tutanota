@@ -533,6 +533,8 @@
 <script src="/js/util/FileUtils.js"></script>
 <script src="/js/util/Formatter.js"></script>
 <script src="/js/util/FunctionUtils.js"></script>
+<script src="/js/util/KeyManager.js"></script>
+<script src="/js/util/ListSelectionUtils.js"></script>
 <script src="/js/util/LocalStore.js"></script>
 <script src="/js/util/PasswordUtils.js"></script>
 <script src="/js/util/StateMachine.js"></script>
@@ -566,7 +568,7 @@
 							<div class="listElement" >
 								<div class="listElementContent" data-bind="swipe: $parent.handleSwipeOnElement">
 									<div class="listElementButton fontImage buttonLeft" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId" ></div>
-									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.selectMail, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
+									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.mailClicked, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 										<div class="icons">
                                             <div class="mailHeaderImage fontImage mail-new-small" data-bind="visible: getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT, attr: {title: tutao.lang('draft_alt'), alt: tutao.lang('draft_alt')}"></div>
                                             <div class="mailHeaderImage fontImage reply-small" data-bind="visible: getReplyType() == tutao.entity.tutanota.TutanotaConstants.MAIL_REPLY_TYPE_REPLY, attr: {title: tutao.lang('mailReplyTypeReply_alt'), alt: tutao.lang('mailReplyTypeReply_alt')}"></div>
