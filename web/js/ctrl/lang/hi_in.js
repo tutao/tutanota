@@ -49,7 +49,6 @@ tutao.tutanota.ctrl.lang.hi_in.keys = {
   "presharedPasswordNotStrongEnough_msg": "दर्ज किये पासवर्ड में कम से कम एक पर्याप्त सुरक्षित नहीं है। फिर भी ईमेल भेजें?",
   "privacyLink_label": "गोपनीयता नीति",
   "private_label": "निजी",
-  "promotionCodeEnterNeutral_msg": "फाइल स्टोरेज बढ़ाने के लिए कृपया प्रोमो कोड इंटर करें।",
   "receivedMails_alt": "प्राप्त ई-मेल",
   "received_action": "इनबॉक्स",
   "removeMailAddress_alt": "इस ईमेल पते को डिलीट करें",

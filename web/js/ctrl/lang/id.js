@@ -488,7 +488,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "privacyLink_label": "Kebijakan privasi",
   "privateUse_label": "Privat",
   "private_label": "Privat",
-  "promotionCodeEnterNeutral_msg": "Mohon masukkan kode promosi Anda untuk mengaktifkan ekstensi penyimpanan.",
   "promotionCodeInvalid_msg": "Kode promosi tidak valid.",
   "promotionCodeSuccess_msg": "Ekstensi telah diaktifkan dengan sukses.",
   "pushNewMail_msg": "Surel baru diterima.",

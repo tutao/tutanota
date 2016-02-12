@@ -15,7 +15,8 @@ tutao.tutanota.ctrl.AdminAccountInfoViewModel = function() {
         return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
     }) });
     this.records.push({ nameTextId: "domains_label", infoTextId: "addDomainInfo_msg", valueObservable: ko.observable("") });
-    this.records.push({ nameTextId: "storageCapacity_label", infoTextId: null, valueObservable: ko.observable("") });
+    this.records.push({ nameTextId: "storageCapacity_label", infoTextId: "storageCapacityInfo_label", valueObservable: ko.observable("") });
+    this.records.push({ nameTextId: "mailAddressAliases_label", infoTextId: "emailAliasInfo_label", valueObservable: ko.observable("") });
 
     var user = tutao.locator.userController.getLoggedInUser();
 
@@ -34,10 +35,20 @@ tutao.tutanota.ctrl.AdminAccountInfoViewModel = function() {
             self.records[1].valueObservable(domainNames);
 
             var capacity = customerInfo.getStorageCapacity();
-            if (capacity > 0) {
+            if ( capacity == 1  ){
+                self.records[2].valueObservable("-");
+            }else if (capacity > 1) {
                 self.records[2].valueObservable(capacity + " GB");
             } else {
                 self.records[2].valueObservable(tutao.lang("storageCapacityNoLimit_label"));
+            }
+
+            var sharedEmailAliases = customerInfo.getSharedEmailAliases();
+            var usedSharedEmailAliases = customerInfo.getUsedSharedEmailAliases();
+            if (sharedEmailAliases > 0) {
+                self.records[3].valueObservable(sharedEmailAliases + " "+  tutao.lang('emailAliasesTotal_label') + " / " + usedSharedEmailAliases + " "+  tutao.lang('emailAliasesUsed_label'));
+            } else {
+                self.records[3].valueObservable("-");
             }
         });
     });

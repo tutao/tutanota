@@ -329,7 +329,6 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "presharedPassword_label": "Dohodnuté heslo",
   "privacyLink_label": "Ochrana osobních údajů",
   "private_label": "Soukromé",
-  "promotionCodeEnterNeutral_msg": "Zadejte prosím Váš slevový kód pro aktivaci navýšení úložné kapacity.",
   "promotionCodeInvalid_msg": "Slevový kód je neplatný.",
   "promotionCodeSuccess_msg": "Rozšíření bylo úspěšně aktivováno.",
   "pushNewMail_msg": "Obdrželi jste nový email.",

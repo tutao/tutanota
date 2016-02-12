@@ -463,7 +463,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "privacyLink_label": "Politika privatnosti",
   "privateUse_label": "Privatno",
   "private_label": "Privatno",
-  "promotionCodeEnterNeutral_msg": "Unesite svoj promocijski kôd za aktiviranje proširenja pohrane.",
   "promotionCodeInvalid_msg": "Promocijski kod je nevažeći.",
   "promotionCodeSuccess_msg": "Dodatak je uspješno aktiviran.",
   "pushNewMail_msg": "Nova e-pošta je primljena",

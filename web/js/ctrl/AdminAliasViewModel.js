@@ -18,21 +18,11 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function(adminEditUserViewModel) {
 
     this.mailAddress.subscribe(this._verifyMailAddressFree, this);
 
-    this.aliasSubmitStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
     this.inputEnabled = ko.observable(false);
 
     this.maxNbrOfAliases = ko.observable(null);
 
-
-    var self = this;
-    tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
-        self.maxNbrOfAliases(mailAddressAliasServiceReturn.getNbrOfFreeAliases());
-        if (self.maxNbrOfAliases() <= self._editUserViewModel.userGroupInfo.getMailAddressAliases().length) {
-            self.mailAddressStatus({ type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
-        } else if (adminEditUserViewModel.isActive()) {
-            self.inputEnabled(true);
-        }
-    });
+    this._updateNumberOfAvailableAliases();
 
     this.aliasList = ko.observableArray();
     for( var i=0; i<this._editUserViewModel.userGroupInfo.getMailAddressAliases().length; i++ ){
@@ -42,8 +32,34 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function(adminEditUserViewModel) {
 };
 
 
+tutao.tutanota.ctrl.AdminAliasViewModel.prototype._updateNumberOfAvailableAliases = function() {
+    var self = this;
+    return tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
+        var customerInfo = self._editUserViewModel.adminUserListViewModel.customerInfo();
+        var availableSharedAliases = customerInfo.getSharedEmailAliases() - customerInfo.getUsedSharedEmailAliases(); // calculate number of free shared aliases
+        var availableUserAliases = mailAddressAliasServiceReturn.getNbrOfFreeAliases() - self.aliasList().length; // calculate the number free user aliases
+        if (availableUserAliases < 0) {
+            availableUserAliases = 0;
+        }
+        self.maxNbrOfAliases(availableUserAliases + availableSharedAliases);
+        if (self.maxNbrOfAliases() == 0) {
+            self.mailAddressStatus({ type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
+            self.inputEnabled(false);
+        } else if (self._editUserViewModel.isActive()) {
+            self.inputEnabled(true);
+        }
+    });
+};
+
+
 tutao.tutanota.ctrl.AdminAliasViewModel.prototype._verifyMailAddressFree = function(cleanedValue) {
     var self = this;
+
+    if ( self.mailAddressPrefix().trim().length == 0) {
+        this.mailAddressStatus({ type: "neutral", text: "mailAddressNeutral_msg"});
+        return;
+    }
+
     if (!cleanedValue || self.mailAddressPrefix().trim().length < tutao.tutanota.ctrl.RegistrationViewModel.MINIMUM_MAIL_ADDRESS_PREFIX_LENGTH
         && tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS.indexOf(self.domain()) != -1) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
@@ -87,7 +103,7 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.confirm = function() {
     }
 
     this.inputEnabled(false);
-    this.aliasSubmitStatus({ type: "neutral", text: "pleaseWait_msg" });
+    this.mailAddressStatus({ type: "neutral", text: "pleaseWait_msg" });
 
     var self = this;
     var service = new tutao.entity.sys.MailAddressAliasServiceData();
@@ -96,11 +112,14 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.confirm = function() {
         .setMailAddress(this.mailAddress());
     service.setup({}, null).then(function() {
         self.aliasList.push( {emailAddress : self.mailAddress(), enabled: ko.observable(true) } );
-        self.aliasSubmitStatus({ type: "valid", text: "finished_msg" });
+        self.mailAddressStatus({ type: "valid", text: "finished_msg" });
+        self.mailAddressPrefix("");
     }).caught(tutao.InvalidDataError, function(error) {
-        self.aliasSubmitStatus({ type: "invalid", text: "mailAddressNA_msg" });
+        self.mailAddressStatus({ type: "invalid", text: "mailAddressNA_msg" });
     }).caught(tutao.LimitReachedError, function(error) {
-        self.aliasSubmitStatus({ type: "invalid", text: "adminMaxNbrOfAliasesReached_msg" });
+        self.mailAddressStatus({ type: "invalid", text: "adminMaxNbrOfAliasesReached_msg" });
+    }).lastly(function(){
+        self._updateNumberOfAvailableAliases();
     });
 };
 

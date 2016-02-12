@@ -461,7 +461,6 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "privacyLink_label": "Política de privacidad",
   "privateUse_label": "Privado",
   "private_label": "Privado",
-  "promotionCodeEnterNeutral_msg": "Por favor introduce el cógido promocional para activar la extensión de capacidad.",
   "promotionCodeInvalid_msg": "El código promocional es inválido.",
   "promotionCodeSuccess_msg": "La extensión ha sido correctamente activada.",
   "pushNewMail_msg": "Nuevo correo recibido.",

@@ -344,6 +344,7 @@
 <script src="/js/generated/entity/sys/PhoneNumberTypeData.js"></script>
 <script src="/js/generated/entity/sys/PhoneNumberTypeReturn.js"></script>
 <script src="/js/generated/entity/sys/PremiumFeatureData.js"></script>
+<script src="/js/generated/entity/sys/PremiumFeatureReturn.js"></script>
 <script src="/js/generated/entity/sys/PriceData.js"></script>
 <script src="/js/generated/entity/sys/PriceItemData.js"></script>
 <script src="/js/generated/entity/sys/PriceRequestData.js"></script>
@@ -1622,24 +1623,17 @@
 
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PREMIUM_FEATURES -->
                             <div id="adminPremiumFeatures" data-bind="with: new tutao.tutanota.ctrl.AdminPremiumFeatureViewModel()" >
-                                <form class="recordContainer wide" data-bind="submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-                                    <div class="record">
-                                        <label for="promotionCodeInput" class="recordName" data-bind="lang: 'storageCapacity5GB_label'"></label>
-                                        <div class="recordData">
-                                            <div class="recordValue">
-                                                <input id="promotionCodeInput" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: inputEnabled, value: promotionCode, valueUpdate: 'input', css: promotionCodeStatus().type"/>
-                                            </div>
-                                            <label for="promotionCodeInput" class="recordStatus" data-bind="css: promotionCodeStatus().type, lang: promotionCodeStatus().text"></label>
-                                        </div>
-                                    </div>
-                                    <div class="record">
-                                        <div class="recordName"></div>
-                                        <div class="formAction">
-                                            <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'activate_action'"></button>
-											<label class="recordStatus" data-bind="css: promotionCodeSubmitStatus().type, lang: promotionCodeSubmitStatus().text"></label>
-                                        </div>
-                                    </div>
-                                </form>
+								<div class="dataTable">
+									<div class="" data-bind="lang: 'promotionCode_label'"></div>
+								</div>
+								<hr />
+								<div class="dataTable">
+									<div class="" >
+										<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: state.entering(), value: promotionCode, valueUpdate: 'input', attr: {placeholder: tutao.lang('promotionCodeEnterNeutral_msg')}"/>
+									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: submitPromotionCode, attr: {title: tutao.lang('activate_action')}, css: { disabled: !state.submitEnabled() }"></div>
+								</div>
+								<label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
                             </div>
 							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
 								<div class="dataTable">
@@ -2042,45 +2036,32 @@
                                 </div>
                             </div>
                         </form>
-                        <hr>
 						<div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel($data)">
-							<form class="recordContainer wide" data-bind="if: tutao.locator.settingsViewModel.isActivateExtensionEnabled(), submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true ">
-								<div class="record">
-									<label for="mailAddress" class="recordName" data-bind="lang: 'mailAddressAliases_label'"></label>
-									<div class="recordData">
-										<div class="recordValue">
-											<input class="inputField wide mailAddressPrefixInput" id="aliasMailAddress" type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input' " />
-											<span>@</span>
-											<select data-bind="options: availableDomains, value: domain, enable: inputEnabled()"></select>
-										</div>
-										<label for="aliasMailAddress" class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
-										<label for="aliasMailAddress" class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
-									</div>
-								</div>
-								<div class="record">
-									<div class="recordName"></div>
-									<div class="formAction">
-										<button class="single" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: 'addMailAddressAlias_action'"></button>
-										<label class="recordStatus" data-bind="css: aliasSubmitStatus().type, lang: aliasSubmitStatus().text"></label>
-									</div>
-								</div>
-							</form>
-
-							<div class="recordContainer" data-bind="foreach: aliasList, form: true">
-								<div class="record">
-									<label class="recordName"></label>
-									<div class="recordData">
-										<div class="recordValue" data-bind="text: emailAddress"></div>
-										<label class="recordStatus" data-bind="css: $parent.getAliasStatusType($data), lang: $parent.getAliasStatusText($data)"></label>
-									</div>
-								</div>
-								<div class="record">
-									<div class="recordName"></div>
-									<div class="formAction">
-										<button class="single" data-bind="lang: $parent.getDeleteAliasTextId($data), fastClick: function() {$parent.deleteAlias($data);}"></button>
-									</div>
-								</div>
+							<div class="dataTable">
+								<div class="" data-bind="lang: 'mailAddressAliases_label'"></div>
+								<div class="mediumSizeColumm"></div>
+								<div class="smallButtonColumn" ></div>
 							</div>
+							<hr />
+							<!-- ko foreach: aliasList -->
+							<div class="dataTable">
+								<div class="" data-bind="text: emailAddress"></div>
+								<div class="mediumSizeColumm" data-bind="lang: $parent.getAliasStatusText($data)"></div>
+								<div class="smallButtonColumn fontImage" data-bind="fastClick: function(){ $parent.deleteAlias($data); }, css :{ confirm : !$data.enabled(), cancel : $data.enabled() }"></div>
+							</div>
+							<!--/ko -->
+							<div class="dataTable">
+								<div class="noPaddingRight">
+									<input type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr:{placeholder: tutao.lang()} " />
+								</div>
+								<div class="smallButtonColumn">@</div>
+								<div class="mediumSizeColumm">
+									<select data-bind="options: availableDomains, value: domain, enable: inputEnabled()"></select>
+								</div>
+								<div class="smallButtonColumn fontImage confirm" data-bind="css: { disabled: !confirmPossible() }, fastClick: confirm"></div>
+							</div>
+							<label class="recordStatus" data-bind="css: mailAddressStatus().type, lang: mailAddressStatus().text"></label>
+							<label class="recordInfo" data-bind="lang: (maxNbrOfAliases()) ? 'mailAddressAliasesMaxNbr_label' : 'emptyString_msg', params: {'{1}': maxNbrOfAliases()}"></label>
 						</div>
                     </div>
                 <!-- /ko -->

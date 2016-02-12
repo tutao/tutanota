@@ -315,7 +315,6 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "presharedPassword_label": "Nakapagkasunduang password",
   "privacyLink_label": "Patakaran sa pagkapribado",
   "private_label": "Pribado",
-  "promotionCodeEnterNeutral_msg": "Ipasok ang ang iyong kodigong pampromosyon upang maactivate ang karagdagang storage.",
   "promotionCodeInvalid_msg": "Ang kodigong pampromosyon ay wala nang bisa.",
   "promotionCodeSuccess_msg": "Ang karagdagan ay matagumpay na na-activate.",
   "pushNewMail_msg": "Nakatanggap na bagong email.",

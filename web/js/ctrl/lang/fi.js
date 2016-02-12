@@ -314,7 +314,6 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "presharedPassword_label": "Sovittu salasana",
   "privacyLink_label": "Yksityisyyskäytännöt",
   "private_label": "Yksityinen",
-  "promotionCodeEnterNeutral_msg": "Syötä promootiokoodi aktivoidaksesi tallennustilan laajennus.",
   "promotionCodeInvalid_msg": "Promootiokoodi ei ole kelvollinen.",
   "promotionCodeSuccess_msg": "Laajennus aktivoitu onnistuneesti.",
   "pushNewMail_msg": "Uusi sähköposti vastaanotettu.",

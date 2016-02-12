@@ -265,7 +265,6 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "presharedPasswordNotStrongEnough_msg": "Τουλάχιστον ένας από τους κωδικούς δεν είναι αρκετά ασφαλής. Να στείλω το μήνυμα;",
   "presharedPassword_label": "Προσυμφωνημένος κωδικός (password)",
   "private_label": "Προσωπικό",
-  "promotionCodeEnterNeutral_msg": "Παρακαλούμε γράψτε τον κωδικό προσφοράς για να ενεργοποιήσετε την επεκταση του αποθηκευτικού χώρου.",
   "promotionCodeInvalid_msg": "Ο κωδικός προσφοράς δεν είναι έγκυρος.",
   "promotionCodeSuccess_msg": "Η επέκταση ενεργοποιήθηκε με επιτυχία.",
   "pushNewMail_msg": "Έχετε νέο μήνυμα.",

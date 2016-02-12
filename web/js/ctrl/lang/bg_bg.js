@@ -318,7 +318,6 @@ tutao.tutanota.ctrl.lang.bg_bg.keys = {
   "presharedPassword_label": "Договорена парола",
   "privacyLink_label": "Декларация за поверителност",
   "private_label": "Лично",
-  "promotionCodeEnterNeutral_msg": "Моля, въведете Вашият код за да активирате допълнителната памет.",
   "promotionCodeInvalid_msg": "Кодът за промоцията е невалиден.",
   "promotionCodeSuccess_msg": "Разширението е успешно активирано.",
   "pushNewMail_msg": "Получено е ново електронно съобщение.",

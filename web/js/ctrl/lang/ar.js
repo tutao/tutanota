@@ -450,7 +450,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "privacyLink_label": "سياسة الخصوصية",
   "privateUse_label": "خاص",
   "private_label": " خاص",
-  "promotionCodeEnterNeutral_msg": "الرجاء إدخال الرمز الترويجي الخاص بك لتفعيل التخزين الإضافي.",
   "promotionCodeInvalid_msg": "الرمز الترويجي غير صالح.",
   "promotionCodeSuccess_msg": "لقد تم تنشيط الملحقات بنجاح.",
   "pushNewMail_msg": "تم تلقي بريد إلكتروني جديد.",

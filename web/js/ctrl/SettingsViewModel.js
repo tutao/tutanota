@@ -129,11 +129,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getActiveSettingText = function(
 
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsDetailsColumnText = function() {
     if (this.displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST) {
-        if (this.adminUserListViewModel().newViewModel()) {
-            return tutao.lang("addUsers_action");
-        } else {
-            return tutao.lang("editUser_label");
-        }
+        return tutao.lang("userColumn_label");
     } else {
         return "";
     }

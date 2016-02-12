@@ -316,7 +316,6 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "presharedPassword_label": "Kokkulepitud salasõna",
   "privacyLink_label": "Privaatsus",
   "private_label": "Privaat",
-  "promotionCodeEnterNeutral_msg": "Palun sisestage oma sooduskood lisamälu aktiveerimiseks.",
   "promotionCodeInvalid_msg": "Sooduskood ei ole kehtiv.",
   "promotionCodeSuccess_msg": "Laiendus on edukalt aktiveeritud.",
   "pushNewMail_msg": "Uus e-kiri saabunud.",

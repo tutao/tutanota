@@ -400,7 +400,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "privacyLink_label": "Privatlivs politik",
   "privateUse_label": "Privat",
   "private_label": "Privat",
-  "promotionCodeEnterNeutral_msg": "Indtast venligst din reklamekode for at aktivere lagerplads udvidelsen.",
   "promotionCodeInvalid_msg": "Reklamekoden er ugyldig.",
   "promotionCodeSuccess_msg": "Udvidelsen er nu aktiverét.",
   "pushNewMail_msg": "Ny e-mail modtaget.",
