@@ -30,7 +30,7 @@ tutao.entity.sys.MailAddressAliasServiceReturn.prototype.updateData = function(d
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAliasServiceReturn.MODEL_VERSION = '15';
+tutao.entity.sys.MailAddressAliasServiceReturn.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -109,7 +109,7 @@ tutao.entity.sys.MailAddressAliasServiceReturn.load = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 15;
+  parameters["v"] = 16;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.MailAddressAliasServiceReturn, tutao.entity.sys.MailAddressAliasServiceReturn.PATH, null, parameters, headers);
 };
 /**

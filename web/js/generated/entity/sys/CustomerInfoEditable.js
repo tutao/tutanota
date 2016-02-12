@@ -17,9 +17,11 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.deletionTime = ko.observable(customerinfo.getDeletionTime());
 	this.domain = ko.observable(customerinfo.getDomain());
 	this.registrationMailAddress = ko.observable(customerinfo.getRegistrationMailAddress());
+	this.sharedEmailAliases = ko.observable(customerinfo.getSharedEmailAliases());
 	this.source = ko.observable(customerinfo.getSource());
 	this.storageCapacity = ko.observable(customerinfo.getStorageCapacity());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
+	this.usedSharedEmailAliases = ko.observable(customerinfo.getUsedSharedEmailAliases());
 	if (customerinfo.getBookings()) {
 		this.bookings = ko.observable(new tutao.entity.sys.BookingsRefEditable(customerinfo.getBookings()));
 	} else {
@@ -56,9 +58,11 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setDeletionTime(this.deletionTime());
 	this._entity.setDomain(this.domain());
 	this._entity.setRegistrationMailAddress(this.registrationMailAddress());
+	this._entity.setSharedEmailAliases(this.sharedEmailAliases());
 	this._entity.setSource(this.source());
 	this._entity.setStorageCapacity(this.storageCapacity());
 	this._entity.setTestEndTime(this.testEndTime());
+	this._entity.setUsedSharedEmailAliases(this.usedSharedEmailAliases());
 		if (this.bookings()) {
 			this.bookings().update();
 			this._entity.setBookings(this.bookings().getBookingsRef());

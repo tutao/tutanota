@@ -36,7 +36,7 @@ tutao.entity.sys.SendRegistrationCodeData.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SendRegistrationCodeData.MODEL_VERSION = '15';
+tutao.entity.sys.SendRegistrationCodeData.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -184,7 +184,7 @@ tutao.entity.sys.SendRegistrationCodeData.prototype.setup = function(parameters,
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 15;
+  parameters["v"] = 16;
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.SendRegistrationCodeData.PATH, this, parameters, headers, tutao.entity.sys.SendRegistrationCodeReturn);
 };

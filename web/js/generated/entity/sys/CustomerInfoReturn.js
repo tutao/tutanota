@@ -30,7 +30,7 @@ tutao.entity.sys.CustomerInfoReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerInfoReturn.MODEL_VERSION = '15';
+tutao.entity.sys.CustomerInfoReturn.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -109,7 +109,7 @@ tutao.entity.sys.CustomerInfoReturn.load = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 15;
+  parameters["v"] = 16;
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.CustomerInfoReturn, tutao.entity.sys.CustomerInfoReturn.PATH, null, parameters, headers);
 };
 /**

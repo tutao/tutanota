@@ -20,9 +20,11 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._deletionTime = null;
     this._domain = null;
     this._registrationMailAddress = null;
+    this._sharedEmailAliases = null;
     this._source = null;
     this._storageCapacity = null;
     this._testEndTime = null;
+    this._usedSharedEmailAliases = null;
     this._accountingInfo = null;
     this._bookings = null;
     this._customer = null;
@@ -47,9 +49,11 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this._deletionTime = data.deletionTime;
   this._domain = data.domain;
   this._registrationMailAddress = data.registrationMailAddress;
+  this._sharedEmailAliases = data.sharedEmailAliases;
   this._source = data.source;
   this._storageCapacity = data.storageCapacity;
   this._testEndTime = data.testEndTime;
+  this._usedSharedEmailAliases = data.usedSharedEmailAliases;
   this._accountingInfo = data.accountingInfo;
   this._bookings = (data.bookings) ? new tutao.entity.sys.BookingsRef(this, data.bookings) : null;
   this._customer = data.customer;
@@ -63,7 +67,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerInfo.MODEL_VERSION = '15';
+tutao.entity.sys.CustomerInfo.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -105,9 +109,11 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     deletionTime: this._deletionTime, 
     domain: this._domain, 
     registrationMailAddress: this._registrationMailAddress, 
+    sharedEmailAliases: this._sharedEmailAliases, 
     source: this._source, 
     storageCapacity: this._storageCapacity, 
     testEndTime: this._testEndTime, 
+    usedSharedEmailAliases: this._usedSharedEmailAliases, 
     accountingInfo: this._accountingInfo, 
     bookings: tutao.entity.EntityHelper.aggregatesToJsonData(this._bookings), 
     customer: this._customer, 
@@ -156,6 +162,11 @@ tutao.entity.sys.CustomerInfo.prototype.DOMAIN_ATTRIBUTE_ID = 154;
 tutao.entity.sys.CustomerInfo.prototype.REGISTRATIONMAILADDRESS_ATTRIBUTE_ID = 597;
 
 /**
+ * The id of the sharedEmailAliases attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype.SHAREDEMAILALIASES_ATTRIBUTE_ID = 976;
+
+/**
  * The id of the source attribute.
  */
 tutao.entity.sys.CustomerInfo.prototype.SOURCE_ATTRIBUTE_ID = 725;
@@ -169,6 +180,11 @@ tutao.entity.sys.CustomerInfo.prototype.STORAGECAPACITY_ATTRIBUTE_ID = 650;
  * The id of the testEndTime attribute.
  */
 tutao.entity.sys.CustomerInfo.prototype.TESTENDTIME_ATTRIBUTE_ID = 156;
+
+/**
+ * The id of the usedSharedEmailAliases attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype.USEDSHAREDEMAILALIASES_ATTRIBUTE_ID = 977;
 
 /**
  * The id of the accountingInfo attribute.
@@ -375,6 +391,23 @@ tutao.entity.sys.CustomerInfo.prototype.getRegistrationMailAddress = function() 
 };
 
 /**
+ * Sets the sharedEmailAliases of this CustomerInfo.
+ * @param {string} sharedEmailAliases The sharedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setSharedEmailAliases = function(sharedEmailAliases) {
+  this._sharedEmailAliases = sharedEmailAliases;
+  return this;
+};
+
+/**
+ * Provides the sharedEmailAliases of this CustomerInfo.
+ * @return {string} The sharedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getSharedEmailAliases = function() {
+  return this._sharedEmailAliases;
+};
+
+/**
  * Sets the source of this CustomerInfo.
  * @param {string} source The source of this CustomerInfo.
  */
@@ -433,6 +466,23 @@ tutao.entity.sys.CustomerInfo.prototype.getTestEndTime = function() {
     throw new tutao.InvalidDataError('invalid time data: ' + this._testEndTime);
   }
   return new Date(Number(this._testEndTime));
+};
+
+/**
+ * Sets the usedSharedEmailAliases of this CustomerInfo.
+ * @param {string} usedSharedEmailAliases The usedSharedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setUsedSharedEmailAliases = function(usedSharedEmailAliases) {
+  this._usedSharedEmailAliases = usedSharedEmailAliases;
+  return this;
+};
+
+/**
+ * Provides the usedSharedEmailAliases of this CustomerInfo.
+ * @return {string} The usedSharedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getUsedSharedEmailAliases = function() {
+  return this._usedSharedEmailAliases;
 };
 
 /**
@@ -516,7 +566,7 @@ tutao.entity.sys.CustomerInfo.prototype.getDomainInfos = function() {
  * @return {Promise.<tutao.entity.sys.CustomerInfo>} Resolves to the CustomerInfo or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -527,7 +577,7 @@ tutao.entity.sys.CustomerInfo.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -539,7 +589,7 @@ tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
 tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 15;
+  params["v"] = 16;
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -549,7 +599,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.CustomerInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -563,7 +613,7 @@ tutao.entity.sys.CustomerInfo.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": 15}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

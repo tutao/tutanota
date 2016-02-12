@@ -32,7 +32,7 @@ tutao.entity.sys.PremiumFeatureData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PremiumFeatureData.MODEL_VERSION = '15';
+tutao.entity.sys.PremiumFeatureData.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -128,15 +128,15 @@ tutao.entity.sys.PremiumFeatureData.prototype.getFeatureName = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.PremiumFeatureReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.PremiumFeatureData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 15;
+  parameters["v"] = 16;
   this._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postService(tutao.entity.sys.PremiumFeatureData.PATH, this, parameters, headers, null);
+  return tutao.locator.entityRestClient.postService(tutao.entity.sys.PremiumFeatureData.PATH, this, parameters, headers, tutao.entity.sys.PremiumFeatureReturn);
 };
 /**
  * Provides the entity helper of this entity.
