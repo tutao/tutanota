@@ -1140,7 +1140,7 @@
                             <div class="recordName"></div>
                             <div class="recordData">
                                 <div class="recordValue">
-                                    <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
+                                    <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: !loginOngoing()" />
                                     <label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
                                 </div>
                                 <label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>

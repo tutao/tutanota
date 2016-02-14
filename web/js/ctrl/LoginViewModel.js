@@ -34,10 +34,6 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	this.passphrase.subscribe(function(newValue) {
 	    this.loginStatus({ type: "neutral", text: "emptyString_msg" });
 	}, this);
-	
-	this.loginPossible = ko.computed(function() {
-		return (!this.loginOngoing());
-	}, this);
 
     this.config = new tutao.native.DeviceConfig();
     this.autoLoginActive = false;
@@ -57,6 +53,10 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.activate = function() {
 			self.passphraseFieldFocused(true);
 		}
 	}, 0);
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype.loginPossible = function() {
+    return (this.mailAddress().trim() != "" && this.passphrase() != "" && !this.loginOngoing());
 };
 
 /**
@@ -109,12 +109,14 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 		return Promise.resolve();
 	}
 	this.loginOngoing(true);
+    this.loginStatus({ type: "neutral", text: "login_msg" });
 	// in private browsing mode in mobile safari local storage is not available and throws an exception
 	this.passphraseFieldFocused(false);
 	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
 	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function () {
         return self._storePassword().then(function () {
             self.passphrase("");
+            self.loginStatus({ type: "neutral", text: "login_msg" }); // set login message again because it was removed by clearing the password
         });
     }).then(function() {
         return self.postLoginActions();
@@ -331,6 +333,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
     if (this.config.deviceToken == null || this.config.encryptedPassword == null) {
         return Promise.reject(new Error("no device token or password available"));
     }
+    self.loginOngoing(true);
     return this._loadDeviceKey().then(function(deviceKey) {
         var password = null;
         try {
@@ -338,12 +341,14 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
         } catch (e) { //tutao.tutadb.crypto.CryptoException
             return Promise.reject(e);
         }
+        self.loginOngoing(false); // disable shortly to allow login to start
         self.passphrase(password);
         self.autoLoginActive = true;
         return self.login().then(function () {
             self.autoLoginActive = false;
         });
     }).caught(tutao.NotFoundError, function (e) {
+        self.loginOngoing(false);
         console.log("configured user does not exist: ", e);
         // suppress login error, if the user does not exist (should only occur during testing)
     });

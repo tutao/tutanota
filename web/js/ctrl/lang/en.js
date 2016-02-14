@@ -364,7 +364,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "loginFailed_msg": "Invalid login credentials. Please try again.",
   "loginNameInfoAdmin_msg": "Optional: the user's name.",
   "login_action": "Log in",
-  "login_msg": "Logging in.",
+  "login_msg": "Logging in...",
   "logout_alt": "Logout",
   "logout_label": "Logout",
   "logs_label": "logs",

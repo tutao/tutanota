@@ -364,7 +364,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "loginFailed_msg": "Ungültige E-Mail-Adresse oder Passwort. Bitte versuch es erneut.",
   "loginNameInfoAdmin_msg": "Optional: Der Name des Benutzers.",
   "login_action": "Anmelden",
-  "login_msg": "Du wirst eingeloggt.",
+  "login_msg": "Du wirst eingeloggt...",
   "logout_alt": "Abmelden",
   "logout_label": "Abmelden",
   "logs_label": "logs",
