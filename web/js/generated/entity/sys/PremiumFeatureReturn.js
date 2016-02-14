@@ -86,16 +86,16 @@ tutao.entity.sys.PremiumFeatureReturn.prototype.setActivatedFeature = function(a
 };
 
 /**
- * Provides the entity helper of this entity.
- * @return {tutao.entity.EntityHelper} The entity helper.
- */
-/**
  * Provides the activatedFeature of this PremiumFeatureReturn.
  * @return {string} The activatedFeature of this PremiumFeatureReturn.
  */
 tutao.entity.sys.PremiumFeatureReturn.prototype.getActivatedFeature = function() {
   return this._activatedFeature;
 };
+/**
+ * Provides the entity helper of this entity.
+ * @return {tutao.entity.EntityHelper} The entity helper.
+ */
 tutao.entity.sys.PremiumFeatureReturn.prototype.getEntityHelper = function() {
   return this._entityHelper;
 };

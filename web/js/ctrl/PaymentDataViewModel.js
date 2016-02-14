@@ -279,7 +279,11 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._paymentMessageHandler = func
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.enterAccountingInfo = function() {
-    this.step(1);
+    if (this._pricePerYear() == 0) {
+        this._switchToPremium();
+    } else {
+        this.step(1);
+    }
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.back = function() {
@@ -310,24 +314,29 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.buy = function() {
     var self = this;
     this.storeAccountingInfo().then(function() {
         if (self.state.success()) {
-            var service = new tutao.entity.sys.SwitchAccountTypeData();
-            service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM);
-            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
-
-            self.state.submitting(true);
-            self.customer.registerObserver(self._customerUpdated);
-            service.setup({}, null).then(function() {
-                self.state.success(true);
-                // we wait for _customerUpdated to switch to the account view
-                self._switchFreeToPremiumGroup();
-            }).caught(tutao.PreconditionFailedError, function (error) {
-                self.state.setFailureMessage("paymentProviderTransactionFailedError_msg");
-                self.state.failure(true);
-            }).caught(tutao.BadGatewayError, function (error) {
-                self.state.setFailureMessage("paymentProviderNotAvailableError_msg");
-                self.state.failure(true);
-            });
+            self._switchToPremium();
         }
+    });
+};
+
+tutao.tutanota.ctrl.PaymentDataViewModel.prototype._switchToPremium = function() {
+    var service = new tutao.entity.sys.SwitchAccountTypeData();
+    service.setAccountType(tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM);
+    service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
+
+    var self = this;
+    self.state.submitting(true);
+    self.customer.registerObserver(self._customerUpdated);
+    service.setup({}, null).then(function () {
+        self.state.success(true);
+        // we wait for _customerUpdated to switch to the account view
+        self._switchFreeToPremiumGroup();
+    }).caught(tutao.PreconditionFailedError, function (error) {
+        self.state.setFailureMessage("paymentProviderTransactionFailedError_msg");
+        self.state.failure(true);
+    }).caught(tutao.BadGatewayError, function (error) {
+        self.state.setFailureMessage("paymentProviderNotAvailableError_msg");
+        self.state.failure(true);
     });
 };
 
