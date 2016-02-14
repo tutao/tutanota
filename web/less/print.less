@@ -1,9 +1,9 @@
-div#logo,
-header#main, 
-div#tagListColumn, 
+header#main,
+div#mailFolderColumn,
 div#searchAndMailListColumn,
-div.buttonBar,
-img#mailImage,
+div#passwordChannelColumn,
+div.actions,
+div.notificationBar,
 button,
 input   {
 	display: none;
@@ -14,110 +14,179 @@ body {
 	margin: 0;
 	padding: 0;
 	font-size: 18px;
-	
+
 	div.content {
 		// For Firefox, all absolute width assignments in the dom-tree of the printed element must be removed.
 		// the page will be printed very small, otherwise (firefox tries to translate all absolute sizes to the printout)
 		width: 100% !important;
-		
+
 		> div#conversationColumn {
 			width: 100% !important;
-			
-			section.mail {
-				position: absolute;
-				padding: 5px;
-				width: 100% !important;
-				
-				> header {
-					width: 100%;
-					border: 1px solid @blue;
-					padding: 5px 10px 5px 10px;
-					
-					> div.headerTable {
-						display: table;
-						width: 100%;
-					
-						> div.headerLine {
-							display: table-row;
-							
-							> div.name {
-								display: table-cell;
-								vertical-align: middle;
-								width: 35px;
-							}
-							
-							> div.value.edit, div.name.edit {
-								padding-top: 5px;
-								padding-bottom: 5px;
-							}
-				
-							> .value {
-								display: table-cell;
-								vertical-align: middle;
-								padding-left: 5px;
-			
-								> .rightAligned {
-									float: right;
-								}
-							}
-						}
-					}
-					
-					> div.attachments {
-						> div.download {			
-							display: inline-block;
-							position: relative; // this child 'object' (flash) must be positioned absolute
-							height: 28px;
-						    border-radius: 5px;
-							-moz-border-radius: 5px;
-							-webkit-border-radius: 5px;
-							line-height: 28px;
-							text-decoration: none;
-							cursor: pointer;
-							background-color: @button-background;
-						
-							margin-top: 5px;
-							margin-bottom: 5px;
-						
-							> div.mimeImage {
-								display: inline-block;
-								margin-left: 10px;
-								
-								> img {
-									width: 16px;
-									height: 16px;
-									margin-right: 2px;
-								}
-							}
-							> div.fileName {
-								max-width: 150px;
-								display: inline-block;
-								padding-right: 5px;
-								.fadeTextOut;
-							}
-							
-							> div.fileSize {
-								display: inline-block;
-								vertical-align: top;
-								padding-right: 5px;
-							}
-							> div.removeAttachment {
-								display: none;
-							}
-						}
-					}
-				}
-				
-				> div.mailBody, div.mailBodyQuotation {
-					margin: 5px;
-					line-height: 1.5;
-					word-wrap: break-word;	
-				}
-			}
+
+          // This is a copy from body.less without the composing part. Keep in sync!
+          section.mail {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: @padding;
+            padding-top: 0px;
+
+            background-clip: padding-box;
+
+            > header {
+              width: 100%;
+              border-bottom: 1px solid @border;
+              padding-bottom: 5px;
+
+              > div.headerTable {
+                display: table;
+                width: 100%;
+
+                > div.headerLine {
+                  display: table-row;
+
+                  > div.name {
+                    .light;
+                    display: table-cell;
+                    vertical-align: top;
+                    width: 35px;
+                    white-space: nowrap;
+                  }
+
+                  > div.value.edit, div.name.edit {
+                    padding-top: 5px;
+                    padding-bottom: 5px;
+                  }
+
+                  > .value {
+                    display: table-cell;
+                    vertical-align: top;
+                    padding-left: 5px;
+
+                    > .rightAligned {
+                      float: right;
+                    }
+
+                    &.dateValue{
+                      width:175px;
+                      text-align:right;
+                    }
+
+                  }
+                }
+              }
+
+              > div.attachments {
+                padding-left:3px;
+                > div.download {
+                  display: inline-block;
+                  position: relative; // this child 'object' (flash) must be positioned absolute
+                  height: 24px;
+                  border-radius: 5px;
+                  -moz-border-radius: 5px;
+                  -webkit-border-radius: 5px;
+                  line-height: 24px;
+                  text-decoration: none;
+                  cursor: pointer;
+                  background-color: @button-background;
+
+                  margin-top: 5px;
+                  margin-bottom: 5px;
+
+                  > div.mimeImage {
+                    display: inline-block;
+                    margin-left: 7px;
+                    margin-right: 2px;
+                    > img {
+                      width: 16px;
+                      height: 16px;
+                      padding-top: 4px;
+                    }
+                  }
+                  > div.fileName {
+                    max-width: 150px;
+                    display: inline-block;
+                    padding-right: 5px;
+                    .fadeTextOut;
+                  }
+                  > div.fileSize {
+                    display: inline-block;
+                    vertical-align: top;
+                    padding-right: 5px;
+                  }
+                }
+              }
+
+              > div.mailSubject {
+                font-weight: bold;
+              }
+
+              div.bubble {
+
+                &.displayRecipient {
+                  background: @button-background;
+                  &.selected {
+                    background: darken(@button-background, 20%);
+                  }
+                }
+
+                &.secureRecipient {
+                  background: @bubble-background-green;
+                  .fontImage {
+                    color: @bubble-icon-green;
+                  }
+
+                  &.selected {
+                    background: darken(@bubble-background-green, 20%);
+                  }
+                }
+
+                &.unknownRecipient {
+                  background: @grey;
+                  &.selected {
+                    background: darken(@grey, 20%);
+                  }
+                }
+              }
+            }
+
+            > div.mailBody, div.mailBodyQuotation {
+              margin-top: 10px;
+              line-height: 1.3;
+              word-wrap: break-word;
+
+              &.mailBody {
+                padding-bottom: 0px;
+              }
+              &.mailBodyQuotation {
+                padding-top: 0px;
+              }
+            }
+
+            blockquote, ul, ol {
+              margin-left: 30px;
+            }
+
+            // for quoted email text, divs are mailBody and div of mail content or composeBody
+            blockquote.tutanota_quote {
+              border-left: 1px solid @blue;
+              padding-left: 10px;
+              margin-left: 5px;
+            }
+
+            > div {
+              .clearfix;
+
+              div.toggleQuotation {
+                float:right;
+                margin-top: 10px;
+              }
+            }
+          }
 		}
 	}
-	
-	
+
+
 	a:after {
   		content: " (" attr(href) ")";
 	}
