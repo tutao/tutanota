@@ -631,7 +631,6 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "userSettings_label": "Utilisateur",
   "validInputFormat_msg": "Format OK.",
   "version_label": "Version :",
-  "waitingForApproval_msg": "Désolé, vous ne pouvez pas envoyer de mails pour le moment car votre compte est soumis à une approbation pour éviter les abus comme les SPAM. L'équipe Tutanota approuvera votre compte sous 24h.",
   "weekDays_label": [
     "Dim",
     "Lun",

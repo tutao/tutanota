@@ -1635,7 +1635,7 @@
 								</div>
 								<label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
                             </div>
-							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
+							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: !tutao.locator.viewManager.isOutlookAccount()">
 								<div class="dataTable">
 									<div class="" data-bind="lang: 'adminCustomDomain_label'"></div>
 									<div class="smallButtonColumn"></div>

@@ -6,8 +6,15 @@ tutao.tutanota.ctrl.AdminPremiumFeatureViewModel = function() {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this.promotionCode = ko.observable("");
+
     this.state = new tutao.tutanota.util.SubmitStateMachine(true);
     this.state.setInputInvalidMessageListener(this._checkCode);
+
+    this.promotionCode.subscribe(function(newValue) {
+        if (this.state.failure()) {
+            this.state.entering(true);
+        }
+    }, this);
 
     var self=this;
     var user = tutao.locator.userController.getLoggedInUser();

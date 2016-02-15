@@ -71,6 +71,11 @@ tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.confirmPossible = funct
  * Called when the confirm button is clicked by the user.
  */
 tutao.tutanota.ctrl.AdminCustomDomainViewModel.prototype.confirm = function() {
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
+
     if (!this.confirmPossible()) {
         return;
     }

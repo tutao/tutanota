@@ -615,7 +615,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "userSettings_label": "Pengguna",
   "validInputFormat_msg": "Format ok.",
   "version_label": "Versi:",
-  "waitingForApproval_msg": "Maaf, Anda saat ini tidak diizinkan mengirimkan surel karena akun Anda ditandai untuk disetujui untuk menghindari penyalahgunaan seperti surel spam. Tim Tutanota akan menyetujui akun Anda dalam waktu 24 jam.",
   "weekDays_label": [
     "Mig",
     "Sen",

@@ -114,12 +114,11 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	this.passphraseFieldFocused(false);
 	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
 	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function () {
-        return self._storePassword().then(function () {
-            self.passphrase("");
-            self.loginStatus({ type: "neutral", text: "login_msg" }); // set login message again because it was removed by clearing the password
-        });
+        return self._storePassword();
     }).then(function() {
-        return self.postLoginActions();
+        return self.postLoginActions().then(function() {
+            self.passphrase("");
+        });
     }).caught(tutao.AccessBlockedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
     }).caught(tutao.NotAuthenticatedError, function(exception) {
