@@ -621,7 +621,6 @@ tutao.tutanota.ctrl.lang.fr.keys = {
   "unsupportedMailFeature_msg": "Vous avez sélectionné des options de vote ou un envoi différé. Malheureusement, ces fonctions ne sont pas encore prises en charge par Tutanota. Souhaitez-vous tout de même envoyer ce message ?",
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Plus tard",
-  "upgradeReminderTitle_msg": "Passer à Tutanota Premium maintenant et soutenez notre combat pour la vie privée !",
   "upgradeToPremiumHeading_label": "Surclasser vers Tutanota Premium",
   "upgradeToPremium_action": "Surclasser vers Premium",
   "userEmailSignature_label": "Signature d'email",

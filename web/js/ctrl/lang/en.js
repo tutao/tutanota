@@ -630,7 +630,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "unsupportedMailFeature_msg": "You have selected voting options or a deferred delivery time. Unfortunately these functions are not yet supported by Tutanota. Would you like to send the email anyway?",
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Later",
-  "upgradeReminderTitle_msg": "Upgrade now & support our fight for privacy!",
+  "upgradeReminderTitle_msg": "Upgrade to Premium!",
   "upgradeToPremiumHeading_label": "Upgrade to Tutanota Premium",
   "upgradeToPremium_action": "Upgrade to Premium",
   "userColumn_label": "User",

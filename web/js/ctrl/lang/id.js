@@ -605,7 +605,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "unsupportedMailFeature_msg": "Anda telah memilih opsi hak suara atau waktu pengiriman tertunda. Sayangnya fungsi ini belum didukung oleh Tutanota. Apakah Anda tetap ingin mengirim surel?",
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Nanti",
-  "upgradeReminderTitle_msg": "Apakah Anda siap untuk Tutanota Premium?",
   "upgradeToPremiumHeading_label": "Tingkatkan ke Tutanota Premium",
   "upgradeToPremium_action": "Tingkatkan ke Premium",
   "userEmailSignature_label": "Signature email",

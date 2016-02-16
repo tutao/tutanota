@@ -31,6 +31,12 @@ tutao.tutanota.util.KeyManager.prototype.init = function() {
             self._shiftDown = false;
         }
     }, false);
+
+    // reset the down key status if the focus is lost, e.g. click in address bar or tab change
+    window.addEventListener("blur", function() {
+        self._ctrlDown = false;
+        self._shiftDown = false;
+    }, false);
 };
 
 /**

@@ -608,7 +608,6 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "unsupportedMailFeature_msg": "A választható vagy a halasztott kézbesítési időt választotta. Sajnos ezek a funkciók még nem elérhetőek a Tutanotában. Mindenképpen elküldi a levelet?",
   "upgradePremium_label": "Prémium",
   "upgradeReminderCancel_action": "Később",
-  "upgradeReminderTitle_msg": "Frissítsen most és támogasson minket az adatvédelemért vívott harcban!",
   "upgradeToPremiumHeading_label": "Frissítés Tutanota Prémiumra",
   "upgradeToPremium_action": "Frissítés Prémiumra",
   "userColumn_label": "Felhasználó",

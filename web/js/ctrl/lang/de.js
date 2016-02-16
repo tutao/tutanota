@@ -630,7 +630,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "unsupportedMailFeature_msg": "Eine Abstimmungsschaltfläche oder eine verzögerte Übermittlung der E-Mail wurde ausgewählt. Diese Funktionen werden von Tutanota leider noch nicht unterstützt. Soll die E-Mail trotzdem gesendet werden?",
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Später",
-  "upgradeReminderTitle_msg": "Wechsel zu Premium & unterstütze unseren Kampf für Privatsphäre!",
+  "upgradeReminderTitle_msg": "Wechsel zu Premium!",
   "upgradeToPremiumHeading_label": "Auf Tutanota Premium erweitern",
   "upgradeToPremium_action": "Premium-Upgrade",
   "userColumn_label": "Benutzer",

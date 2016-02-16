@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(butto
         // do not allow moving sent mails to the inbox folder or received mails to the sent folder and their sub-folders
         var skipFolder = false;
         for (var a=0; a<mails.length; a++) {
-            if ((mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && (folders[i].isInboxFolder() || folders[i].isSpamFolder() || folders[i].isDraftFolder())) ||
+            if ((mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && (folders[i].isSpamFolder() || folders[i].isDraftFolder())) ||
                 (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && (folders[i].isSentFolder() || folders[i].isDraftFolder())) ||
                 (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && !folders[i].isDraftFolder())) {
                 skipFolder = true;

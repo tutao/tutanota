@@ -627,7 +627,6 @@ tutao.tutanota.ctrl.lang.ca_es.keys = {
   "unsupportedMailFeature_msg": "Has seleccionat les opcions de vot o una hora de lliurament diferida. Malauradament aquestes funcions encara no són compatibles amb Tutanota. T'agradaria enviar el correu electrònic de totes maneres?",
   "upgradePremium_label": "Prèmium",
   "upgradeReminderCancel_action": "Més tard",
-  "upgradeReminderTitle_msg": "Actualitzeu-vos ara i doneu suport a la nostra lluita per la privacitat!",
   "upgradeToPremiumHeading_label": "Millora a Tutanota Prèmium",
   "upgradeToPremium_action": "Millora a prèmium",
   "userColumn_label": "usuari",
