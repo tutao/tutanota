@@ -630,14 +630,15 @@ body {
 			}
 		}
 	}
-	
+
+    // Copy changes to printl.less!
 	section.mail {
 		position: relative;
 		width: 100%;
 		height: 100%;
 		padding: @padding;
         padding-top: 0px;
-	    
+
 		background-clip: padding-box;
 
 		> header {
@@ -659,21 +660,21 @@ body {
 						width: 35px;
 					  	white-space: nowrap;
 					}
-					
+
 					> div.value.edit, div.name.edit {
 						padding-top: 5px;
 						padding-bottom: 5px;
 					}
-		
+
 					> .value {
 						display: table-cell;
 						vertical-align: top;
 						padding-left: 5px;
-	
+
 						> .rightAligned {
 							float: right;
 						}
-						
+
 						> input.composeSubjectInput {
                             border:none;
 							width: 100%;
@@ -764,7 +765,7 @@ body {
 
 			> div.attachments {
               padding-left:3px;
-				> div.download {			
+				> div.download {
 					display: inline-block;
 					position: relative; // this child 'object' (flash) must be positioned absolute
 					height: 24px;
@@ -775,10 +776,10 @@ body {
 					text-decoration: none;
 					cursor: pointer;
 					background-color: @button-background;
-				
+
 					margin-top: 5px;
 					margin-bottom: 5px;
-				
+
 					> div.mimeImage {
 						display: inline-block;
 						margin-left: 7px;
@@ -815,7 +816,7 @@ body {
 					}
 				}
 			}
-	
+
 			> div.mailSubject {
 				font-weight: bold;
 			}
@@ -837,7 +838,7 @@ body {
                 .fadeTextOut; // ellipsis in select does not seem to work in IE and Chrome
               }
             }
-	
+
 			div.bubble {
 
                 &.displayRecipient {
@@ -871,7 +872,7 @@ body {
             margin-top: 10px;
 			line-height: 1.3;
 			word-wrap: break-word;
-			
+
 			&.mailBody {
 				padding-bottom: 0px;
 			}
@@ -879,34 +880,34 @@ body {
 				padding-top: 0px;
 			}
 		}
-		
+
 		blockquote, ul, ol {
 			margin-left: 30px;
 		}
-		
+
 		// for quoted email text, divs are mailBody and div of mail content or composeBody
 		blockquote.tutanota_quote {
 			border-left: 1px solid @blue;
 			padding-left: 10px;
 			margin-left: 5px;
 		}
-		
+
 		> div {
 			.clearfix;
-			
+
 			div.toggleQuotation {
 				float:right;
 				margin-top: 10px;
 			}
 		}
-		
+
 		// when editing, the compose body is shown like the mailContent, but with a minimal height
 		> div.composeBody {
 			position: static;
 			min-height: 200px;
 			margin: 10px;
 		}
-		
+
 		textarea#composeBodyTextArea {
 			width: 90%;
 			min-height: 200px;

@@ -1140,7 +1140,7 @@
                             <div class="recordName"></div>
                             <div class="recordData">
                                 <div class="recordValue">
-                                    <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: loginPossible()" />
+                                    <input id="storePasswordCheckbox" type="checkbox" data-bind="checked: storePassword, enable: !loginOngoing()" />
                                     <label for="storePasswordCheckbox" data-bind="lang: 'storePassword_action'"></label>
                                 </div>
                                 <label for="storePasswordCheckbox" class="recordInfo" data-bind="lang: 'onlyPrivateComputer_msg'"></label>
@@ -1635,7 +1635,7 @@
 								</div>
 								<label class="recordStatus" data-bind="css: state.submitStatus().type, lang: state.submitStatus().text"></label>
                             </div>
-							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: tutao.locator.viewManager.isPremiumAccount()">
+							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: !tutao.locator.viewManager.isOutlookAccount()">
 								<div class="dataTable">
 									<div class="" data-bind="lang: 'adminCustomDomain_label'"></div>
 									<div class="smallButtonColumn"></div>

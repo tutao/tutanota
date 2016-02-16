@@ -613,7 +613,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "userSettings_label": "Utente",
   "validInputFormat_msg": "Il formato è ok",
   "version_label": "Versione:",
-  "waitingForApproval_msg": "Spiacenti, ma il tuo account non può inviare attualmente nessuna email perchè è soggetto ad approvazione per evitare abusi come invio di spam. Il Team Tutanota approverà il tuo account entro 24 ore.",
   "weekDays_label": [
     "Do",
     "Lu",

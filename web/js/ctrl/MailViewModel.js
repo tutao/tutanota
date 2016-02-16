@@ -608,14 +608,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddres
                 return (tutao.locator.contactListViewModel.findContactByMailAddress(mailAddress) == null);
             }, false, "createContactAction", "addContact"),
             new tutao.tutanota.ctrl.Button("addRule_action", 11, function () {
-                if (tutao.locator.viewManager.isPremiumAccount()) {
-                    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS);
-                    tutao.locator.inboxRulesViewModel.value(mailAddress);
-                    tutao.locator.inboxRulesViewModel.type(defaultInboxRuleField);
-                    tutao.locator.navigator.settings();
-                } else {
-                    tutao.locator.viewManager.showNotAvailableForFreeDialog();
-                }
+                tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS);
+                tutao.locator.inboxRulesViewModel.value(mailAddress);
+                tutao.locator.inboxRulesViewModel.type(defaultInboxRuleField);
+                tutao.locator.navigator.settings();
             }, function () {
                 return (defaultInboxRuleField != null) && !tutao.locator.viewManager.isOutlookAccount() && !tutao.locator.inboxRulesViewModel.isRuleExistingForType(mailAddress.trim().toLowerCase(), defaultInboxRuleField);
             }, false, "addRuleAction", "inbox")

@@ -83,6 +83,12 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.isRuleExistingForType 
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.addInboxRule = function() {
     var self = this;
+
+    if (tutao.locator.viewManager.isFreeAccount()) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
+
     if (!this.state.submitEnabled()) {
         return;
     }
