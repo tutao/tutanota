@@ -439,7 +439,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getTooltipTextId = function() 
     } else if (this._mailFolder.getFolderType() == tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_DRAFT) {
         return  "draftMails_alt";
     } else {
-        return null;
+        return "@" + this.getName();
     }
 };
 
