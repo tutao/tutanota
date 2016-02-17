@@ -36,8 +36,8 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype._updateNumberOfAvailableAliase
     var self = this;
     return tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
         var customerInfo = self._editUserViewModel.adminUserListViewModel.customerInfo();
-        var availableSharedAliases = customerInfo.getSharedEmailAliases() - customerInfo.getUsedSharedEmailAliases(); // calculate number of free shared aliases
-        var availableUserAliases = mailAddressAliasServiceReturn.getNbrOfFreeAliases() - self.aliasList().length; // calculate the number free user aliases
+        var availableSharedAliases = Number(customerInfo.getSharedEmailAliases()) - Number(customerInfo.getUsedSharedEmailAliases()); // calculate number of free shared aliases
+        var availableUserAliases = Number(mailAddressAliasServiceReturn.getNbrOfFreeAliases()) - self.aliasList().length; // calculate the number free user aliases
         if (availableUserAliases < 0) {
             availableUserAliases = 0;
         }
