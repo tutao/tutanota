@@ -10,10 +10,11 @@ tutao.provide('tutao.util.ListSelectionUtils');
  * @param {function(<Object>)} allItems The observable array with the list of all visible items.
  * @param {function(<Object>)} selectedItems The observable array with all selected items, not sorted. All selected items must also be present in allItems.
  * @param {Object} clickedItem The item that was clicked by the user.
+ * @param {bool} mobileMultiSelectionActive True if multi selection on a mobile device is active. Toggles selection of the clicked mail.
  * @return {bool} True if the click was a multi-selection operation, i.e. ctrl or shift was pressed while clicking the item.
  */
-tutao.util.ListSelectionUtils.itemClicked = function(allItems, selectedItems, clickedItem) {
-    if (tutao.locator.keyManager.isCtrlPressed()) {
+tutao.util.ListSelectionUtils.itemClicked = function(allItems, selectedItems, clickedItem, mobileMultiSelectionActive) {
+    if (mobileMultiSelectionActive || tutao.locator.keyManager.isCtrlPressed()) {
         if (selectedItems().indexOf(clickedItem) != -1) {
             selectedItems.remove(clickedItem);
         } else {

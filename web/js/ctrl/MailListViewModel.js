@@ -20,6 +20,8 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.showSpinner = ko.computed(function () {
         return this.deleting();
     }, this);
+
+    this._mobileMultiSelectActive = ko.observable(false);
 };
 
 
@@ -27,16 +29,27 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  * Creates the buttons
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
+    var self = this;
     this.buttons = [
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self._mobileMultiSelectActive(false);
+        }, function() {
+            return self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
+        }, false, "stopMultiSelection", "cancel"),
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self._mobileMultiSelectActive(true);
+        }, function() {
+            return !self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
+        }, false, "startMultiSelection", "multiSelect"),
         new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) && !tutao.locator.mailView.isConversationColumnVisible();
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "moveAction", "moveToFolder", null, null, null, function() {
             var buttons = [];
             tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
             return buttons;
         }),
         new tutao.tutanota.ctrl.Button("delete_action", 8, this.deleteSelectedMails, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) && !tutao.locator.mailView.isConversationColumnVisible();
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !tutao.locator.mailView.isConversationColumnVisible() && !tutao.tutanota.util.ClientDetector.isMobileDevice();
         }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
@@ -146,9 +159,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getMails = function() {
  * @return {Promise} When the mail is selected or selection was cancelled.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.mailClicked = function(mail) {
+    var self = this;
     return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function(allCancelled) {
         if (allCancelled) {
-            tutao.locator.mailFolderListViewModel.selectedFolder().mailClicked(mail).then(function(mailShown) {
+            tutao.locator.mailFolderListViewModel.selectedFolder().mailClicked(mail, self._mobileMultiSelectActive()).then(function(mailShown) {
                 if (mailShown) {
                     tutao.locator.mailView.showConversationColumn();
                 }
