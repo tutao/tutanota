@@ -28,6 +28,16 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
     var self = this;
 
     this.buttons = [
+        new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        }, false, "moveAction", "moveToFolder", null, null, null, function() {
+            var buttons = [];
+            tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
+            return buttons;
+        }),
+        new tutao.tutanota.ctrl.Button("delete_action", 8, tutao.locator.mailListViewModel.deleteSelectedMails, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, function() {
             return tutao.locator.userController.isInternalUserLoggedIn();
         }, false, "newMailAction", "mail-new")
@@ -616,5 +626,14 @@ tutao.tutanota.ctrl.MailViewModel.prototype.getSubButtons = function (mailAddres
                 return (defaultInboxRuleField != null) && !tutao.locator.viewManager.isOutlookAccount() && !tutao.locator.inboxRulesViewModel.isRuleExistingForType(mailAddress.trim().toLowerCase(), defaultInboxRuleField);
             }, false, "addRuleAction", "inbox")
         ];
+    }
+};
+
+tutao.tutanota.ctrl.MailViewModel.prototype.getMailSelectionMessage = function () {
+    var nbrOfSelectedMails = tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length;
+    if (nbrOfSelectedMails == 0) {
+        return tutao.lang("noMail_msg");
+    } else {
+        return tutao.lang("nbrOfMailsSelected_msg", {"{1}": nbrOfSelectedMails});
     }
 };

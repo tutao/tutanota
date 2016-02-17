@@ -613,7 +613,7 @@
                 <!-- /ko -->
 				<div class="fontImage spinner spinnerActionBar" data-bind="visible: showSpinner"></div>
                 <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
-                    <div data-bind="lang: 'noMail_msg'"></div><br>
+                    <div data-bind="text: getMailSelectionMessage()"></div><br>
                 </div>
 				<div id="innerConversationColumn">
                     <!-- ko if: mail -->

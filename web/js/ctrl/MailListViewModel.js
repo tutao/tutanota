@@ -29,14 +29,14 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     this.buttons = [
         new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "moveAction", "moveToFolder", null, null, null, function() {
             var buttons = [];
             tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
             return buttons;
         }),
-        new tutao.tutanota.ctrl.Button("delete_action", 8, this._deleteSelectedMails, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        new tutao.tutanota.ctrl.Button("delete_action", 8, this.deleteSelectedMails, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
@@ -80,7 +80,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
     });
 };
 
-tutao.tutanota.ctrl.MailListViewModel.prototype._deleteSelectedMails = function() {
+tutao.tutanota.ctrl.MailListViewModel.prototype.deleteSelectedMails = function() {
     var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
 
     if (folder.loading()) {
