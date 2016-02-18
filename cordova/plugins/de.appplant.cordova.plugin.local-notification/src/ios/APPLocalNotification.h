@@ -1,22 +1,24 @@
 /*
- Copyright 2013-2014 appPlant UG
-
- Licensed to the Apache Software Foundation (ASF) under one
- or more contributor license agreements.  See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership.  The ASF licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License.  You may obtain a copy of the License at
-
- http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied.  See the License for the
- specific language governing permissions and limitations
- under the License.
+ * Copyright (c) 2013-2015 by appPlant UG. All rights reserved.
+ *
+ * @APPPLANT_LICENSE_HEADER_START@
+ *
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apache License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://opensource.org/licenses/Apache-2.0/ and read it before using this
+ * file.
+ *
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ *
+ * @APPPLANT_LICENSE_HEADER_END@
  */
 
 #import <Foundation/Foundation.h>
@@ -24,21 +26,53 @@
 
 @interface APPLocalNotification : CDVPlugin
 
-// Executes all queued events
+// Execute all queued events
 - (void) deviceready:(CDVInvokedUrlCommand*)command;
-// Schedules a new local notification
-- (void) add:(CDVInvokedUrlCommand*)command;
-// Cancels a given local notification
+
+// Inform if the app has the permission to show notifications
+- (void) hasPermission:(CDVInvokedUrlCommand*)command;
+// Register permission to show notifications
+- (void) registerPermission:(CDVInvokedUrlCommand*)command;
+
+// Schedule set of notifications
+- (void) schedule:(CDVInvokedUrlCommand*)command;
+// Update set of notifications
+- (void) update:(CDVInvokedUrlCommand*)command;
+// Cancel set of notifications
 - (void) cancel:(CDVInvokedUrlCommand*)command;
-// Cancels all currently scheduled notifications
+// Cancel all notifications
 - (void) cancelAll:(CDVInvokedUrlCommand*)command;
-// Checks wether a notification with an ID is scheduled
+// Clear set of notifications
+- (void) clear:(CDVInvokedUrlCommand*)command;
+// Clear all notifications
+- (void) clearAll:(CDVInvokedUrlCommand*)command;
+
+// If a notification with an ID is present
+- (void) isPresent:(CDVInvokedUrlCommand*)command;
+// If a notification with an ID is scheduled
 - (void) isScheduled:(CDVInvokedUrlCommand*)command;
-// Retrieves a list of ids from all currently pending notifications
+// If a notification with an ID is triggered
+- (void) isTriggered:(CDVInvokedUrlCommand*)command;
+
+// List all ids from all local notifications
+- (void) getAllIds:(CDVInvokedUrlCommand*)command;
+// List all ids from all pending notifications
 - (void) getScheduledIds:(CDVInvokedUrlCommand*)command;
-// Informs if the app has the permission to show notifications
-- (void) hasPermission:(CDVInvokedUrlCommand *)command;
-// Ask for permission to show notifications
-- (void) promptForPermission:(CDVInvokedUrlCommand *)command;
+// List all ids from all triggered notifications
+- (void) getTriggeredIds:(CDVInvokedUrlCommand*)command;
+
+// Propertys for given local notification
+- (void) getSingle:(CDVInvokedUrlCommand*)command;
+// Propertya for given scheduled notification
+- (void) getSingleScheduled:(CDVInvokedUrlCommand*)command;
+// Propertys for given triggered notification
+- (void) getSingleTriggered:(CDVInvokedUrlCommand*)command;
+
+// Property list for given local notifications
+- (void) getAll:(CDVInvokedUrlCommand*)command;
+// Property list for given scheduled notifications
+- (void) getScheduled:(CDVInvokedUrlCommand*)command;
+// Property list for given triggered notifications
+- (void) getTriggered:(CDVInvokedUrlCommand*)command;
 
 @end

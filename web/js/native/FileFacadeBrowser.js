@@ -162,7 +162,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                     // Create a FileWriter object for our FileEntry (log.txt).
                     fileEntry.createWriter(function(fileWriter) {
                         fileWriter.onwriteend = function(e) {
-							cordova.plugins.bridge.open(fileEntry.toURL(), resolve, reject);
+                            cordova.plugins.disusered.open(fileEntry.toURL(), resolve, reject);
                         };
 
                         fileWriter.onerror = function(e) {

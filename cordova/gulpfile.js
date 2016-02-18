@@ -26,14 +26,14 @@ gulp.task('createWebReleaseTest', shell.task([
 
 gulp.task('androidProdDistUnsigned', ['createWebRelease'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android@4.0.2',
+    'cordova platform add android@5.1.0',
     // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
     'platforms/android/cordova/build --release android'
 ]));
 
 gulp.task('androidProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android@4.0.2',
+    'cordova platform add android@5.1.0',
     // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
     // attention: do not use "cordova build" here because it does not respect the --buildConfig
     'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'
@@ -41,7 +41,7 @@ gulp.task('androidProdDist', ['createWebRelease'], shell.task([
 
 gulp.task('androidTestDist', ['createWebReleaseTest'], shell.task([
     'cordova platform remove android',
-    'cordova platform add android@4.0.2',
+    'cordova platform add android@5.1.0',
     // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
     // attention: do not use "cordova build" here because it does not respect the --buildConfig
     'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'

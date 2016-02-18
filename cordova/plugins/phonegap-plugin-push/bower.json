@@ -1,0 +1,26 @@
+{
+  "name": "phonegap-plugin-push",
+  "description": "bower package for server side javascript",
+  "main": "www/push.js",
+  "authors": [
+    "Adobe PhoneGap Team"
+  ],
+  "license": "APL",
+  "keywords": [
+    "ecosystem:cordova",
+    "ecosystem:phonegap",
+    "cordova-ios",
+    "cordova-android",
+    "cordova-windows",
+    "cordova-browser"
+  ],
+  "homepage": "https://github.com/phonegap/phonegap-plugin-push",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

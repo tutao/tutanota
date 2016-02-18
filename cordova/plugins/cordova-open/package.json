@@ -1,0 +1,45 @@
+{
+  "name": "cordova-open",
+  "version": "1.0.9",
+  "description": "Open audio, video, images and more with applications installed on the user's device",
+  "cordova": {
+    "id": "com.disusered.open",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "scripts": {
+    "lint": "gulp lint",
+    "watch": "gulp watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/disusered/cordova-open.git"
+  },
+  "keywords": [
+    "cordova",
+    "file",
+    "open",
+    "intent",
+    "video",
+    "audio",
+    "image",
+    "photo",
+    "pdf",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "author": "Carlos Antonio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/disusered/cordova-open/issues"
+  },
+  "homepage": "https://github.com/disusered/cordova-open",
+  "devDependencies": {
+    "eslint": "^0.24.1",
+    "gulp": "^3.9.0",
+    "gulp-eslint": "^0.15.0"
+  }
+}

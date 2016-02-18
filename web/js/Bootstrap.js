@@ -148,10 +148,6 @@ tutao.tutanota.Bootstrap.init = function () {
     if (tutao.env.mode == tutao.Mode.App) {
         document.addEventListener("deviceready", function () {
             launch();
-            // hide the splashscreen after a short delay, as slower android phones would show the loading screen otherwise
-            setTimeout(function () {
-                navigator.splashscreen.hide();
-            }, 200);
         }, false);
     } else {
         $(document).ready(launch);
