@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.ipaulpro.afilechooser.utils.FileUtils;
 
@@ -130,7 +131,7 @@ public class FileUtil extends CordovaPlugin {
 				path = FileProvider.getUriForFile(this.cordova.getActivity().getApplicationContext(), "de.tutao.fileprovider", file);
 			}
 			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setDataAndType(path, mimeType);
+			intent.setDataAndType(path, getCorrectedMimeType(fileName, mimeType));
 			intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			// @see http://stackoverflow.com/questions/14321376/open-an-activity-from-a-cordovaplugin
 			this.callbackContext = callbackContext;
@@ -138,6 +139,24 @@ public class FileUtil extends CordovaPlugin {
 		} else {
 			callbackContext.sendPluginResult(new PluginResult(
 					PluginResult.Status.ERROR, "file does not exist"));
+		}
+	}
+
+	private String getCorrectedMimeType(String fileName, String storedMimeType) {
+		if (storedMimeType == null || storedMimeType.isEmpty() || storedMimeType.equals("application/octet-stream")) {
+			String extension = FileUtils.getExtension(fileName);
+			if (extension.length() > 0) {
+				String newMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.substring(1));
+				if (newMimeType != null && !newMimeType.isEmpty()) {
+					return newMimeType;
+				} else {
+					return "application/octet-stream";
+				}
+			} else {
+				return "application/octet-stream";
+			}
+		} else {
+			return storedMimeType;
 		}
 	}
 
