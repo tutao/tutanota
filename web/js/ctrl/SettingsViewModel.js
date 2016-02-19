@@ -68,10 +68,10 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         settings.push(s.DISPLAY_ADMIN_USER_LIST);
         settings.push(s.DISPLAY_ADMIN_MESSAGES);
         settings.push(s.DISPLAY_ADMIN_SPAM);
+        if ((tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) && !tutao.env.isIOSApp()) {
+            settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
+        }
         if (this.isActivateExtensionEnabled()) {
-            if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
-                settings.push(s.DISPLAY_ADMIN_PREMIUM_FEATURES);
-            }
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
         if (!tutao.locator.viewManager.isFreeAccount() || this.bookingAvailable()) {
