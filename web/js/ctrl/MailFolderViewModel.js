@@ -195,7 +195,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviouslySelectedMails 
             tutao.locator.mailViewModel.hideMail();
         }
     } else {
-        this.unselectAllMails();
+        this.unselectAllMails(false);
     }
 };
 
@@ -306,11 +306,14 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isSelectedMail = function(mail
 
 /**
  * Unselects all mails.
+ * @param {bool} storeLastSelectedMails True if the last selected mails shall be stored, false otherwise.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function() {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function(storeLastSelectedMails) {
     tutao.locator.mailViewModel.hideMail();
     this._selectedMails([]);
-    // do not clear _lastSelectedMails here
+    if (!storeLastSelectedMails) {
+        this._lastSelectedMails([]);
+    }
 };
 
 /**

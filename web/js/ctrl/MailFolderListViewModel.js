@@ -85,6 +85,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSystemFolder = function
  * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(folder) {
+    tutao.locator.mailListViewModel.disableMobileMultiSelect();
     var self = this;
     if (this.selectedFolder() == folder) {
         tutao.locator.mailView.showDefaultColumns();

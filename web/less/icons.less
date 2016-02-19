@@ -435,6 +435,20 @@
     font-size: 120%;
   }
 
+  &.cancelMultiSelect {
+    &:before {
+      .icomoon;
+      content: "\ed2d";
+      font-size: 120%;
+    }
+    &:after {
+      .ion;
+      content: @ionicon-var-close;
+      margin-top: 2px;
+      margin-left: 1px;
+    }
+  }
+
   .new {
     &:after {
       position: absolute;

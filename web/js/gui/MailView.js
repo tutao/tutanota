@@ -8,8 +8,6 @@ tutao.provide('tutao.tutanota.gui.MailView');
  */
 tutao.tutanota.gui.MailView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	this._mailsHeight = 0;
-	this._passwordChannelsHeight = 0;
 	this._welcomeMessage = "";
 };
 
@@ -53,7 +51,7 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
  * @inherit
  */
 tutao.tutanota.gui.MailView.prototype.deactivate = function() {
-
+    tutao.locator.mailListViewModel.disableMobileMultiSelect();
 };
 
 /**

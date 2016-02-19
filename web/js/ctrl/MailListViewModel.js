@@ -32,14 +32,17 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     var self = this;
     this.buttons = [
         new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
-            self._mobileMultiSelectActive(false);
+            self.disableMobileMultiSelect();
         }, function() {
+            // run through the mails existing check in any case to update the knockout binding
+
             return self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
-        }, false, "stopMultiSelection", "cancel"),
+        }, false, "stopMultiSelection", "cancelMultiSelect"),
         new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
             self._mobileMultiSelectActive(true);
         }, function() {
-            return !self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
+            var mailsExisting = tutao.locator.mailFolderListViewModel.selectedFolder().getLoadedMails().length > 0;
+            return mailsExisting && !self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
         }, false, "startMultiSelection", "multiSelect"),
         new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
             return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !tutao.locator.mailView.isConversationColumnVisible();
@@ -64,6 +67,14 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     });
 };
 
+tutao.tutanota.ctrl.MailListViewModel.prototype.disableMobileMultiSelect = function() {
+    if (this._mobileMultiSelectActive()) {
+        this._mobileMultiSelectActive(false);
+        if (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) {
+            tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails(false);
+        }
+    }
+};
 
 /**
  * Initialize the MailListViewModel:
@@ -110,6 +121,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.deleteSelectedMails = function()
         promise = folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mailsToDelete);
     }
     return promise.lastly(function() {
+        self.disableMobileMultiSelect();
         self.deleting(false);
     });
 };
@@ -202,6 +214,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isFirstMailSelected = function()
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviousMail = function() {
     tutao.locator.mailFolderListViewModel.selectedFolder().selectPreviousMail();
+    this.disableMobileMultiSelect();
 };
 
 /**
@@ -209,6 +222,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviousMail = function() 
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectNextMail = function() {
     tutao.locator.mailFolderListViewModel.selectedFolder().selectNextMail();
+    this.disableMobileMultiSelect();
 };
 
 /**
@@ -229,6 +243,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteFinally = function() {
                 return folder.finallyDeleteMails(allMails);
             }).lastly(function() {
                 self.deleting(false);
+                tutao.locator.mailListViewModel.disableMobileMultiSelect();
             });
         }
     });

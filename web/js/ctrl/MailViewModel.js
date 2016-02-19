@@ -328,8 +328,10 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
 tutao.tutanota.ctrl.MailViewModel.prototype._createMail = function(conversationType, subject, toRecipients, ccRecipients, previousMail, bodyText, senderMailAddress) {
     var self = this;
 
+    tutao.locator.mailListViewModel.disableMobileMultiSelect();
+
     // any selected mails in the mail list shall be deselected
-    tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails();
+    tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails(true);
 
     var emailSignature = "";
     if (tutao.locator.userController.isInternalUserLoggedIn()) {
@@ -440,6 +442,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.editDraft = function(displayedMailDr
 
                         //	not needed currently as we scroll the complete window when editing a mail
                         tutao.locator.mailView.showConversationColumn();
+                        tutao.locator.mailListViewModel.disableMobileMultiSelect();
                     });
                 });
             });
