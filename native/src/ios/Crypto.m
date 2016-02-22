@@ -29,7 +29,7 @@
 		if ([command.arguments objectAtIndex:0] != [NSNull null]) {
 			// seeds the PRNG (pseudorandom number generator)
 			NSString * base64Seed = [command.arguments objectAtIndex:0];
-			NSData * seed = [NSData dataFromBase64String:base64Seed];
+			NSData * seed = [[NSData alloc] initWithBase64EncodedString:base64Seed options:0];
 			RAND_seed([seed bytes], [seed length]);
 
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -77,7 +77,7 @@
 	RSA* publicRsaKey = [Crypto createPublicRSAKey:jsPublicKey];
 	
 	// convert base64 data to bytes.
-	NSData *decodedData = [NSData dataFromBase64String:base64Data];
+	NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
 	
 	
 	[self.commandDelegate runInBackground:^{
@@ -121,7 +121,7 @@
 	}
 	
 	// convert encrypted base64 data to bytes.
-	NSData *decodedData = [NSData dataFromBase64String:base64Data];
+	NSData *decodedData =  [[NSData alloc] initWithBase64EncodedString:base64Data options: 0];
 	
 	int rsaSize = RSA_size(privateRsaKey); // should be 256 for a 2048 bit rsa key
 	NSMutableData *decryptedBuffer = [NSMutableData dataWithLength:rsaSize];
@@ -207,7 +207,7 @@
 
 
 + (BIGNUM *)toBIGNUM:(BIGNUM*)number fromB64:(NSString*)value{
-	NSData *valueData = [NSData dataFromBase64String:value];
+	NSData *valueData =  [[NSData alloc] initWithBase64EncodedString:value options: 0];
     return BN_bin2bn((unsigned char *) [valueData bytes], [valueData length], number);
 }
 
@@ -266,8 +266,8 @@
 		NSString* base64Salt = [command.arguments objectAtIndex:1];
 		NSNumber* rounds = [command.arguments objectAtIndex:2];
 	
-		NSData * saltData = [NSData dataFromBase64String:base64Salt];
-		NSData * passwordData = [NSData dataFromBase64String:base64Passphrase];
+		NSData * saltData =  [[NSData alloc] initWithBase64EncodedString:base64Salt options: 0];
+		NSData * passwordData = [[NSData alloc] initWithBase64EncodedString:base64Passphrase options: 0];
 		
 		JFBCrypt * bCrypt = [JFBCrypt new];
 		NSData* hashedData = [bCrypt hashPassword: passwordData withSalt: saltData rounds: [rounds intValue]];
