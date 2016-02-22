@@ -70,6 +70,8 @@
 	<!-- iPad (iOS 7,8) -->
 	<icon src="graphics/app/ios/icon-76.png" width="76" height="76" />
 	<icon src="graphics/app/ios/icon-76@2x.png" width="152" height="152" />
+	<!-- iPad Pro  -->
+	<icon src="graphics/app/ios/icon-83.5@2x.png" width="167" height="167" />
 	
 	<!-- images are determined by width and height. The following are supported	-->
 
@@ -83,6 +85,7 @@
     <splash src="graphics/app/ios/Default-667h.png" width="750" height="1334"/>
     <splash src="graphics/app/ios/Default-736h.png" width="1242" height="2208"/>
     <splash src="graphics/app/ios/Default-Landscape-736h.png" width="2208" height="1242"/>
+	
   </platform>
 
 
