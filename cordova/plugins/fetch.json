@@ -6,12 +6,6 @@
             "subdir": "."
         }
     },
-    "de.appplant.cordova.plugin.badge": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/de.appplant.cordova.plugin.badge/0.6.1/package"
-        }
-    },
     "org.apache.cordova.device": {
         "source": {
             "type": "local",
@@ -114,14 +108,6 @@
         "is_top_level": true,
         "variables": {}
     },
-    "de.appplant.cordova.plugin.local-notification": {
-        "source": {
-            "type": "registry",
-            "id": "de.appplant.cordova.plugin.local-notification"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
     "cordova-plugin-app-event": {
         "source": {
             "type": "registry",
@@ -142,6 +128,14 @@
         "source": {
             "type": "local",
             "path": "../native"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-badge": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-badge"
         },
         "is_top_level": true,
         "variables": {}
