@@ -261,12 +261,18 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.handleSwipeOnElement = function(
     var mails = [mail];
     if (swipeLeft) {
         if (folder.isTrashFolder() || folder.isSpamFolder()) {
+            // remove the mail directly to avoid delay
+            folder.removeMails([mail]);
             return folder.finallyDeleteMails(mails);
         } else {
+            // remove the mail directly to avoid delay
+            folder.removeMails([mail]);
             // move content to trash
             return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mails);
         }
     } else if (this.isSwipeRightPosssible()) {
+        // remove the mail directly to avoid delay
+        folder.removeMails([mail]);
         return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE), mails);
     }
 };

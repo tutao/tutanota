@@ -115,13 +115,13 @@ tutao.tutanota.Bootstrap.init = function () {
 					var windowHeight = $(window).height();
 					var targetHeight = windowHeight - e.keyboardHeight;
 					if ( element.height() != targetHeight){
-						element.animate({height: targetHeight + "px"});
+						element.velocity({height: targetHeight + "px"});
 					}
 				});
 			
 				window.addEventListener('native.keyboardhide', function (){
 					var element = $("body");
-					element.animate({height: "100%"}, 300);
+					element.velocity({height: "100%"}, { duration: 300 });
 				});
 			}
         }

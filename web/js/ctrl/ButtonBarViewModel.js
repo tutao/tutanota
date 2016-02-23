@@ -19,7 +19,7 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
     }
 
     this._moreButtons = ko.observableArray(); // the buttons from the more menu that will be shown as sub-buttons
-    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function() {}, this._isMoreButtonVisible, false, "moreAction",  "more", moreButtonText, null, null, this._moreButtons);
+    this.moreButton = new tutao.tutanota.ctrl.Button(moreButtonText, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function() {}, this._isMoreButtonVisible, true, "moreAction",  "more", moreButtonText, null, null, this._moreButtons);
     this._getSingleButtonWidth = measureFunction;
 
     // the buttons that are visible and no special buttons (prio tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO)
