@@ -46,6 +46,9 @@
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
+        "cordova-plugin-wkwebview-engine": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },

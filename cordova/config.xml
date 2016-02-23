@@ -86,6 +86,12 @@
     <splash src="graphics/app/ios/Default-736h.png" width="1242" height="2208"/>
     <splash src="graphics/app/ios/Default-Landscape-736h.png" width="2208" height="1242"/>
 	
+	<feature name="CDVWKWebViewEngine">
+        <param name="ios-package" value="CDVWKWebViewEngine" />
+    </feature>
+
+    <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+	
   </platform>
 
 

@@ -54,6 +54,9 @@
         },
         "phonegap-plugin-push": {
             "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-wkwebview-engine": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
     "dependent_plugins": {}
