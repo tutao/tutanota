@@ -46,7 +46,7 @@
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.tutanota.native": {
+        "cordova-plugin-wkwebview-engine": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "ionic-plugin-keyboard": {
@@ -55,7 +55,7 @@
         "phonegap-plugin-push": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-wkwebview-engine": {
+        "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },

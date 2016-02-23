@@ -4,10 +4,11 @@ tutao.provide('tutao.native.PushServiceApp');
 
 /**
  * Register or unregister for push notifications
- * @implements {tutao.native.PushServiceBrowser}
+ * @implements {tutao.native.PushServiceInterface}
  */
 tutao.native.PushServiceApp = function(){
     this.pushNotification = null;
+    this._currentPushIdentifier = "";
 };
 
 /**
@@ -38,12 +39,6 @@ tutao.native.PushServiceApp.prototype.register = function() {
             });
 
             self.pushNotification.on('notification', function(data) {
-                // data.message,
-                // data.title,
-                // data.count,
-                // data.sound,
-                // data.image,
-                // data.additionalData
                 // tutao.tutanota.gui.alert("Push notification received: " +  data.title + " foreground: " + data.additionalData.foreground);
                 if (data.additionalData.foreground) {
                     navigator.vibrate([300]);
@@ -62,6 +57,7 @@ tutao.native.PushServiceApp.prototype.register = function() {
 
 tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier, identifierType){
     var listId = tutao.locator.userController.getLoggedInUser().getPushIdentifierList().getList();
+    this._currentPushIdentifier = identifier;
     tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.PushIdentifier, listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function (elements) {
         var existingPushIdentifier = null;
         for(var i=0; i<elements.length;i++){
@@ -87,3 +83,14 @@ tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier
         }
     });
 };
+
+
+/**
+ * @param {string} pushIdentifier The push identifier to check.
+ * @return {boolean} Returns true if the push identifier is assigned to the current device.
+ */
+tutao.native.PushServiceApp.prototype.isCurrentPushIdentifier = function(pushIdentifier) {
+    return this._currentPushIdentifier == pushIdentifier;
+};
+
+

@@ -662,5 +662,13 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+
+  "notificationSettings_action" : "Notifications",
+  "pushIdentiferDeviceType_label" : "Type",
+  "pushIdentiferNumber_label" : "Identifier",
+  "pushIdentiferInfoMessage_msg" : "List of all devices receiving push notifications for the current Tutanota user. You can delete an entry if you do not whish to receive notifications on this device anymore.",
+  "pushIdentiferCurrentDevice_label" : "This device",
+
+
 };

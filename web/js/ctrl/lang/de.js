@@ -662,5 +662,12 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+
+  "notificationSettings_action" : "Benachrichtigungen",
+  "pushIdentiferDeviceType_label" : "Typ",
+  "pushIdentiferNumber_label" : "Identifikationsnummer",
+  "pushIdentiferInfoMessage_msg" : "Auflistung aller Geräte, die für diesen Tutanota-Benutzer Push-Benachrichtigungen erhalten. Ein Eintrag kann entfernt werden, falls keine Benachrichtigungen zu diesem Benutzer erwünscht sind.",
+  "pushIdentiferCurrentDevice_label" : "Dieses Gerät",
+
 };

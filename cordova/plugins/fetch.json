@@ -124,14 +124,6 @@
         "is_top_level": true,
         "variables": {}
     },
-    "de.tutanota.native": {
-        "source": {
-            "type": "local",
-            "path": "../native"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
     "cordova-plugin-badge": {
         "source": {
             "type": "registry",
@@ -144,6 +136,14 @@
         "source": {
             "type": "registry",
             "id": "cordova-plugin-wkwebview-engine"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "de.tutanota.native": {
+        "source": {
+            "type": "local",
+            "path": "../native"
         },
         "is_top_level": true,
         "variables": {}
