@@ -222,14 +222,18 @@ tutao.tutanota.ctrl.ViewManager.prototype.select = function(view, params) {
 		if (tutao.locator.userController.isInternalUserLoggedIn()) {
 			this._internalUserLoggedIn(true);
             document.title = tutao.locator.userController.getUserGroupInfo().getMailAddress() + " - Tutanota";
+            this.headerBarViewModel.moreButton.subButtonsText(tutao.locator.userController.getUserGroupInfo().getMailAddress());
+
 		} else if (tutao.locator.userController.isExternalUserLoggedIn()) {
 			this._externalUserLoggedIn(true);
             document.title = tutao.locator.userController.getUserGroupInfo().getMailAddress() + " - Tutanota";
+            this.headerBarViewModel.moreButton.subButtonsText(tutao.locator.userController.getUserGroupInfo().getMailAddress());
 		} else {
             // reset the document title
             document.title = "Tutanota";
             // reset the custom logos
             this.updateLogos(new tutao.entity.sys.CustomerProperties());
+            this.headerBarViewModel.moreButton.subButtonsText(null);
         }
         this._activeView(view);
         view.activate(params);
