@@ -1,0 +1,46 @@
+{
+    "name": "phonegap-plugin-push",
+    "description": "Register and receive push notifications.",
+    "version": "1.5.3",
+    "homepage": "http://github.com/phonegap/phonegap-plugin-push#readme",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/phonegap/phonegap-plugin-push.git"
+    },
+    "bugs": {
+        "url": "https://github.com/phonegap/phonegap-plugin-push/issues"
+    },
+    "cordova": {
+        "id": "phonegap-plugin-push",
+        "platforms": [
+            "ios",
+            "android",
+            "windows",
+            "browser"
+        ]
+    },
+    "keywords": [
+        "ecosystem:cordova",
+        "ecosystem:phonegap",
+        "cordova-ios",
+        "cordova-android",
+        "cordova-windows8",
+        "cordova-windows",
+        "cordova-wp8",
+        "cordova-browser"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=3.0.0"
+        }
+    ],
+    "author": "Adobe PhoneGap Team",
+    "license": "APL",
+    "scripts": {
+        "test": "jasmine-node --color spec"
+    },
+    "devDependencies": {
+        "jasmine-node": "1.14.5"
+    }
+}

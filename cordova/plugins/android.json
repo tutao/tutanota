@@ -4,208 +4,60 @@
         "uninstalled": []
     },
     "config_munge": {
-        "files": {
-            "res/xml/config.xml": {
-                "parents": {
-                    "/*": [
-                        {
-                            "xml": "<feature name=\"Open\"><param name=\"android-package\" value=\"com.bridge.Open\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Keyboard\"><param name=\"android-package\" value=\"com.ionic.keyboard.IonicKeyboard\" /><param name=\"onload\" value=\"true\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"PushPlugin\"><param name=\"android-package\" value=\"com.plugin.gcm.PushPlugin\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"WebSocket\"><param name=\"android-package\" value=\"com.ququplay.websocket.WebSocket\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Badge\"><param name=\"android-package\" value=\"de.appplant.cordova.plugin.badge.Badge\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Device\"><param name=\"android-package\" value=\"org.apache.cordova.device.Device\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"LocalNotification\"><param name=\"android-package\" value=\"de.appplant.cordova.plugin.localnotification.LocalNotification\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Contacts\"><param name=\"android-package\" value=\"org.apache.cordova.contacts.ContactManager\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"File\"><param name=\"android-package\" value=\"org.apache.cordova.file.FileUtils\" /><param name=\"onload\" value=\"true\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"InAppBrowser\"><param name=\"android-package\" value=\"org.apache.cordova.inappbrowser.InAppBrowser\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"SplashScreen\"><param name=\"android-package\" value=\"org.apache.cordova.splashscreen.SplashScreen\" /><param name=\"onload\" value=\"true\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" onload=\"true\" value=\"org.apache.cordova.statusbar.StatusBar\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Vibration\"><param name=\"android-package\" value=\"org.apache.cordova.vibration.Vibration\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Telephone\"><param name=\"android-package\" value=\"de.tutao.plugin.Telephone\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Crypto\"><param name=\"android-package\" value=\"de.tutao.plugin.Crypto\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"Util\"><param name=\"android-package\" value=\"de.tutao.plugin.Util\" /></feature>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<feature name=\"FileUtil\"><param name=\"android-package\" value=\"de.tutao.file.FileUtil\" /></feature>",
-                            "count": 1
-                        }
-                    ]
-                }
-            },
-            "AndroidManifest.xml": {
-                "parents": {
-                    "/manifest": [
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.WAKE_LOCK\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.VIBRATE\" />",
-                            "count": 2
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"com.google.android.c2dm.permission.RECEIVE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<permission android:name=\"de.tutao.tutanota.permission.C2D_MESSAGE\" android:protectionLevel=\"signature\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"de.tutao.tutanota.permission.C2D_MESSAGE\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" />",
-                            "count": 1
-                        }
-                    ],
-                    "/manifest/application": [
-                        {
-                            "xml": "<activity android:exported=\"true\" android:name=\"com.plugin.gcm.PushHandlerActivity\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<receiver android:name=\"com.plugin.gcm.CordovaGCMBroadcastReceiver\" android:permission=\"com.google.android.c2dm.permission.SEND\"><intent-filter><action android:name=\"com.google.android.c2dm.intent.RECEIVE\" /><action android:name=\"com.google.android.c2dm.intent.REGISTRATION\" /><category android:name=\"de.tutao.tutanota\" /></intent-filter></receiver>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<service android:name=\"com.plugin.gcm.GCMIntentService\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<activity android:launchMode=\"singleInstance\" android:name=\"de.appplant.cordova.plugin.badge.LaunchActivity\" android:theme=\"@android:style/Theme.Black.NoTitleBar\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<receiver android:name=\"de.appplant.cordova.plugin.localnotification.Receiver\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<receiver android:name=\"de.appplant.cordova.plugin.localnotification.Restore\"><intent-filter><action android:name=\"android.intent.action.BOOT_COMPLETED\" /></intent-filter></receiver>",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<activity android:launchMode=\"singleInstance\" android:name=\"de.appplant.cordova.plugin.localnotification.ReceiverActivity\" />",
-                            "count": 1
-                        },
-                        {
-                            "xml": "<provider android:authorities=\"de.tutao.fileprovider\" android:exported=\"false\" android:grantUriPermissions=\"true\" android:name=\"android.support.v4.content.FileProvider\"><meta-data android:name=\"android.support.FILE_PROVIDER_PATHS\" android:resource=\"@xml/paths\" /></provider>",
-                            "count": 1
-                        }
-                    ],
-                    "/*": [
-                        {
-                            "xml": "<uses-permission android:name=\"android.permission.READ_CONTACTS\" />",
-                            "count": 1
-                        }
-                    ]
-                }
-            }
-        }
+        "files": {}
     },
     "installed_plugins": {
-        "com.bridge.open": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "com.ionic.keyboard": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "com.phonegap.plugins.PushPlugin": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-open": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-app-event": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-badge": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-contacts": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-device": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-file": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-file-transfer": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-inappbrowser": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-splashscreen": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-statusbar": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-vibration": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.appplant.cordova.plugin.badge": {
+        "cordova-plugin-wkwebview-engine": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.appplant.cordova.plugin.local-notification": {
+        "ionic-plugin-keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "org.apache.cordova.contacts": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.file": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.inappbrowser": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.splashscreen": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.statusbar": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "org.apache.cordova.vibration": {
+        "phonegap-plugin-push": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
-    "dependent_plugins": {
-        "org.apache.cordova.device": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        }
-    }
+    "dependent_plugins": {}
 }

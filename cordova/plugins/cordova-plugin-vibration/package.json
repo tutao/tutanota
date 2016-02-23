@@ -1,0 +1,39 @@
+{
+  "name": "cordova-plugin-vibration",
+  "version": "2.1.0",
+  "description": "Cordova Vibration Plugin",
+  "cordova": {
+    "id": "cordova-plugin-vibration",
+    "platforms": [
+      "firefoxos",
+      "wp7",
+      "wp8",
+      "android",
+      "amazon-fireos",
+      "ubuntu",
+      "ios",
+      "blackberry10",
+      "tizen"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apache/cordova-plugin-vibration"
+  },
+  "keywords": [
+    "cordova",
+    "vibration",
+    "ecosystem:cordova",
+    "cordova-firefoxos",
+    "cordova-wp7",
+    "cordova-wp8",
+    "cordova-android",
+    "cordova-amazon-fireos",
+    "cordova-ubuntu",
+    "cordova-ios",
+    "cordova-blackberry10",
+    "cordova-tizen"
+  ],
+  "author": "Apache Software Foundation",
+  "license": "Apache 2.0"
+}

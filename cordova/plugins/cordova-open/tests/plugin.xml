@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-open-tests" version="1.0.0">
+  <name>Cordova disusered Open Plugin Tests</name>
+  <license>MIT</license>
+  <js-module src="tests.js" name="tests">
+  </js-module>
+  <dependency id="cordova-plugin-file"/>
+  <dependency id="cordova-plugin-file-transfer"/>
+</plugin>

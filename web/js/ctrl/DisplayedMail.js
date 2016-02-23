@@ -144,7 +144,7 @@ tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(butto
                     tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, mails).then(function() {
                         tutao.locator.mailListViewModel.disableMobileMultiSelect();
                     });
-                }, null, false, "moveAction" + folder.getName(), folder.getIconId()));
+                }, null, false, "moveAction" + folder.getName(), folder.getIconId(), folder.getTooltipTextId()));
             })();
         }
         // add sub-folders

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-open" version="1.0.9">
+  <name>Open</name>
+  <description>Open audio, video, images and more with applications installed on the user's device</description>
+  <license>MIT</license>
+  <keywords>cordova,file,open,intent,video,audio,image,photo,pdf</keywords>
+  <repo>https://github.com/disusered/cordova-open</repo>
+  <issue>https://github.com/disusered/cordova-open/issues</issue>
+  <js-module name="Open" src="www/disusered.open.js">
+    <merges target="cordova.plugins.disusered"/>
+  </js-module>
+  <platform name="android">
+    <config-file parent="/*" target="res/xml/config.xml">
+      <feature name="Open">
+        <param name="android-package" value="com.disusered.Open"/>
+      </feature>
+    </config-file>
+    <config-file parent="/*" target="AndroidManifest.xml"/>
+    <source-file src="src/android/Open.java" target-dir="src/com/disusered"/>
+  </platform>
+  <platform name="ios">
+    <config-file parent="/*" target="config.xml">
+      <feature name="Open">
+        <param name="ios-package" value="Open"/>
+      </feature>
+    </config-file>
+    <framework src="QuickLook.framework" />
+    <framework src="Foundation.framework" />
+    <source-file src="src/ios/Open.m"/>
+    <header-file src="src/ios/Open.h"/>
+  </platform>
+  <dependency id="cordova-plugin-file"/>
+  <dependency id="cordova-plugin-file-transfer"/>
+</plugin>

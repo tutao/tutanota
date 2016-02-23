@@ -1,0 +1,56 @@
+{
+  "name": "cordova-plugin-file-transfer",
+  "version": "1.5.0",
+  "description": "Cordova File Transfer Plugin",
+  "cordova": {
+    "id": "cordova-plugin-file-transfer",
+    "platforms": [
+      "android",
+      "amazon-fireos",
+      "ubuntu",
+      "blackberry10",
+      "ios",
+      "wp7",
+      "wp8",
+      "windows8",
+      "windows",
+      "firefoxos",
+      "browser"
+    ]
+  },
+  "scripts": {
+    "test": "npm run lint && npm run style",
+    "style": "node_modules/.bin/jscs tests/tests.js",
+    "lint": "node_modules/.bin/jshint tests/tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apache/cordova-plugin-file-transfer"
+  },
+  "keywords": [
+    "cordova",
+    "file",
+    "transfer",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-amazon-fireos",
+    "cordova-ubuntu",
+    "cordova-blackberry10",
+    "cordova-ios",
+    "cordova-wp7",
+    "cordova-wp8",
+    "cordova-windows8",
+    "cordova-windows",
+    "cordova-firefoxos",
+    "cordova-browser"
+  ],
+  "peerDependencies": {
+    "cordova-plugin-file": "^3.0.0"
+  },
+  "author": "Apache Software Foundation",
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "jscs": "^2.6.0",
+    "jshint": "^2.8.0"
+  }
+}

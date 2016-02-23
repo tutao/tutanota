@@ -4,10 +4,11 @@ tutao.provide('tutao.native.PushServiceApp');
 
 /**
  * Register or unregister for push notifications
- * @implements {tutao.native.PushServiceBrowser}
+ * @implements {tutao.native.PushServiceInterface}
  */
 tutao.native.PushServiceApp = function(){
-    this.pushNotification = window.plugins.pushNotification;
+    this.pushNotification = null;
+    this._currentPushIdentifier = "";
 };
 
 /**
@@ -15,37 +16,48 @@ tutao.native.PushServiceApp = function(){
  */
 tutao.native.PushServiceApp.prototype.register = function() {
     var self = this;
-    if (cordova.platformId == 'android') {
-        return new Promise(function (resolve, reject) {
-            self.pushNotification.register(
-                resolve,
-                reject,
-                {
-                    "senderID": '707517914653', // TODO (before release): check if senderid can be made public
-                    "ecb": "tutao.locator.pushService.onAndroidNotification"
-                });
-        });
-    } else if (cordova.platformId == 'ios') {
-        return new Promise( function(resolve, reject){
-            self.pushNotification.register(
-                function (token) {
-                    resolve();
-                    self.updatePushIdentifier(token, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
+    PushNotification.hasPermission(function(data) {
+        if (data.isEnabled) {
+            self.pushNotification = PushNotification.init({
+                android: {
+                    senderID: "707517914653"
                 },
-                reject,
-                {
-                    "badge":"true",
-                    "sound":"true",
-                    "alert":"true",
-                    "ecb":"tutao.locator.pushService.onIosNotification"
-                });
-        });
-    }
+                ios: {
+                    alert: "true",
+                    badge: "true",
+                    sound: "true"
+                },
+                windows: {}
+            });
+
+            self.pushNotification.on('registration', function(data) {
+                if ( tutao.env.isIOSApp()) {
+                    self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
+                } else {
+                    self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID);
+                }
+            });
+
+            self.pushNotification.on('notification', function(data) {
+                // tutao.tutanota.gui.alert("Push notification received: " +  data.title + " foreground: " + data.additionalData.foreground);
+                if (data.additionalData.foreground) {
+                    navigator.vibrate([300]);
+                }
+            });
+
+            self.pushNotification.on('error', function(e) {
+                //tutao.tutanota.gui.alert("Error from push service:");
+            });
+        } else {
+            //tutao.tutanota.gui.alert("No permission to receive push notifications.");
+        }
+    });
 };
 
 
 tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier, identifierType){
     var listId = tutao.locator.userController.getLoggedInUser().getPushIdentifierList().getList();
+    this._currentPushIdentifier = identifier;
     tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.PushIdentifier, listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function (elements) {
         var existingPushIdentifier = null;
         for(var i=0; i<elements.length;i++){
@@ -73,51 +85,12 @@ tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier
 };
 
 
-tutao.native.PushServiceApp.prototype.onIosNotification = function(event) {
-    if ( event.foreground == "1" ) {
-		navigator.notification.vibrate(300);
-    }
+/**
+ * @param {string} pushIdentifier The push identifier to check.
+ * @return {boolean} Returns true if the push identifier is assigned to the current device.
+ */
+tutao.native.PushServiceApp.prototype.isCurrentPushIdentifier = function(pushIdentifier) {
+    return this._currentPushIdentifier == pushIdentifier;
 };
 
-tutao.native.PushServiceApp.prototype.onAndroidNotification = function(e) {
-    switch( e.event ){
-        case 'registered':
-            if ( e.regid.length > 0 ) {
-                // Your GCM push server needs to know the regID before it can push to this device
-                // here is where you might want to send it the regID for later use.
-                //console.log("regID = " + e.regid);
-                this.updatePushIdentifier(e.regid, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID);
-            }
-            break;
-        case 'message':
-            // if this flag is set, this notification happened while we were in the foreground.
-            // you might want to play a sound to get the user's attention, throw up a dialog, etc.
-            if ( e.foreground ){
-                // alert("push notification while in foreground");
-                navigator.notification.vibrate(300);
-            }
-            else {  // otherwise we were launched because the user touched a notification in the notification tray.
-                if ( e.coldstart ){
-                    //alert("push notification while in background --COLDSTART NOTIFICATION--");
-                }
-                else{
-                    //alert("push notification while in background --BACKGROUND NOTIFICATION--");
-                }
-            }
 
-            //$("#app-status-ul").append('<li>MESSAGE -> MSG: ' + e.payload.message + '</li>');
-            //Only works for GCM
-            //$("#app-status-ul").append('<li>MESSAGE -> MSGCNT: ' + e.payload.msgcnt + '</li>');
-            //Only works on Amazon Fire OS
-            //$status.append('<li>MESSAGE -> TIME: ' + e.payload.timeStamp + '</li>');
-            break;
-
-        case 'error':
-            //alert(" --ERROR -> MSG:--" + e.msg);
-            break;
-
-        default:
-            //alert("EVENT -> Unknown, an event was received and we do not know what it is");
-            break;
-    }
-};

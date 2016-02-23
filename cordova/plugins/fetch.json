@@ -1,46 +1,9 @@
 {
-    "com.bridge.open": {
-        "source": {
-            "type": "registry",
-            "id": "com.bridge.open"
-        }
-    },
-    "com.ionic.keyboard": {
-        "source": {
-            "type": "registry",
-            "id": "com.ionic.keyboard"
-        }
-    },
-    "com.phonegap.plugins.PushPlugin": {
-        "source": {
-            "type": "git",
-            "url": "https://github.com/phonegap-build/PushPlugin.git",
-            "subdir": "."
-        }
-    },
     "com.ququplay.websocket.WebSocket": {
         "source": {
             "type": "git",
             "url": "https://github.com/mkuklis/phonegap-websocket",
             "subdir": "."
-        }
-    },
-    "de.appplant.cordova.plugin.badge": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/de.appplant.cordova.plugin.badge/0.6.1/package"
-        }
-    },
-    "de.appplant.cordova.plugin.local-notification": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/de.appplant.cordova.plugin.local-notification/0.7.6/package"
-        }
-    },
-    "org.apache.cordova.contacts": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.contacts/0.2.13/package"
         }
     },
     "org.apache.cordova.device": {
@@ -49,36 +12,10 @@
             "path": "/home/mpfau/.plugman/cache/org.apache.cordova.device/0.2.12/package"
         }
     },
-    "org.apache.cordova.file": {
-        "source": {
-            "type": "registry",
-            "id": "org.apache.cordova.file"
-        }
-    },
-    "org.apache.cordova.statusbar": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.statusbar/0.1.8/package"
-        }
-    },
-    "org.apache.cordova.vibration": {
-        "source": {
-            "type": "local",
-            "path": "/home/mpfau/.plugman/cache/org.apache.cordova.vibration/0.3.11/package"
-        }
-    },
     "cordova-plugin-android-support-v4": {
         "source": {
             "type": "registry",
             "id": "cordova-plugin-android-support-v4"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "org.apache.cordova.inappbrowser": {
-        "source": {
-            "type": "registry",
-            "id": "org.apache.cordova.inappbrowser"
         },
         "is_top_level": true,
         "variables": {}
@@ -91,10 +28,114 @@
         "is_top_level": true,
         "variables": {}
     },
-    "org.apache.cordova.splashscreen": {
+    "cordova-open": {
         "source": {
             "type": "registry",
-            "id": "org.apache.cordova.splashscreen"
+            "id": "cordova-open"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-file": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-file@~4.1.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-file-transfer": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-file-transfer"
+        },
+        "is_top_level": false,
+        "variables": {}
+    },
+    "cordova-plugin-device": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-device@~1.1.1"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-contacts": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-contacts@~2.0.1"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-inappbrowser": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-inappbrowser@~1.2.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-splashscreen": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-splashscreen@~3.1.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-statusbar": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-statusbar@~2.1.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-vibration": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-vibration@~2.1.0"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "ionic-plugin-keyboard": {
+        "source": {
+            "type": "registry",
+            "id": "ionic-plugin-keyboard"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-app-event": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-app-event"
+        },
+        "is_top_level": false,
+        "variables": {}
+    },
+    "phonegap-plugin-push": {
+        "source": {
+            "type": "registry",
+            "id": "phonegap-plugin-push"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-badge": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-badge"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-wkwebview-engine": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-wkwebview-engine"
         },
         "is_top_level": true,
         "variables": {}

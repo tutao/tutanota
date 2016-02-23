@@ -1,14 +1,21 @@
 "use strict";
 
-tutao.provide('tutao.native.PushServiceBrowser');
+tutao.provide('tutao.native.PushServiceInterface');
 
 /**
  * Register or unregister for push notifications
- * @implements {tutao.native.PushServiceBrowser}
+ * @interface
  */
-tutao.native.PushServiceBrowser = function() {};
+tutao.native.PushServiceInterface = function() {};
 
 /**
  * @return {Promise.<undefined, Error>} Resolves if the registration of this device has been started.
  */
-tutao.native.PushServiceBrowser.prototype.register = function() {};
+tutao.native.PushServiceInterface.prototype.register = function() {};
+
+
+/**
+ * @param {string} pushIdentifier The push identifier to check.
+ * @return {boolean} Returns true if the push identifier is assigned to the current device.
+ */
+tutao.native.PushServiceInterface.prototype.isCurrentPushIdentifier = function(pushIdentifier) {return false};
