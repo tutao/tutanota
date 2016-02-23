@@ -14,6 +14,7 @@ tutao.entity.tutanota.MailAddress = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._address = null;
     this._name = null;
+    this._name_ = null;
     this._contact = null;
   }
   this._parent = parent;
@@ -29,6 +30,7 @@ tutao.entity.tutanota.MailAddress.prototype.updateData = function(parent, data) 
   this.__id = data._id;
   this._address = data.address;
   this._name = data.name;
+  this._name_ = null;
   this._contact = data.contact;
 };
 
@@ -106,6 +108,7 @@ tutao.entity.tutanota.MailAddress.prototype.getAddress = function() {
 tutao.entity.tutanota.MailAddress.prototype.setName = function(name) {
   var dataToEncrypt = name;
   this._name = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._name_ = name;
   return this;
 };
 
@@ -114,11 +117,15 @@ tutao.entity.tutanota.MailAddress.prototype.setName = function(name) {
  * @return {string} The name of this MailAddress.
  */
 tutao.entity.tutanota.MailAddress.prototype.getName = function() {
+  if (this._name_ != null) {
+    return this._name_;
+  }
   if (this._name == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
+    this._name_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

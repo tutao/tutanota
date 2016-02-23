@@ -17,11 +17,14 @@ tutao.entity.tutanota.Mail = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._confidential = null;
+    this._confidential_ = null;
     this._receivedDate = null;
     this._replyType = null;
+    this._replyType_ = null;
     this._sentDate = null;
     this._state = null;
     this._subject = null;
+    this._subject_ = null;
     this._trashed = null;
     this._unread = null;
     this._attachments = [];
@@ -48,11 +51,14 @@ tutao.entity.tutanota.Mail.prototype.updateData = function(data) {
   this.__owner = data._owner;
   this.__permissions = data._permissions;
   this._confidential = data.confidential;
+  this._confidential_ = null;
   this._receivedDate = data.receivedDate;
   this._replyType = data.replyType;
+  this._replyType_ = null;
   this._sentDate = data.sentDate;
   this._state = data.state;
   this._subject = data.subject;
+  this._subject_ = null;
   this._trashed = data.trashed;
   this._unread = data.unread;
   this._attachments = data.attachments;
@@ -323,6 +329,7 @@ tutao.entity.tutanota.Mail.prototype.getPermissions = function() {
 tutao.entity.tutanota.Mail.prototype.setConfidential = function(confidential) {
   var dataToEncrypt = (confidential) ? '1' : '0';
   this._confidential = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._confidential_ = confidential;
   return this;
 };
 
@@ -331,12 +338,16 @@ tutao.entity.tutanota.Mail.prototype.setConfidential = function(confidential) {
  * @return {boolean} The confidential of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getConfidential = function() {
+  if (this._confidential_ != null) {
+    return this._confidential_;
+  }
   if (this._confidential == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._confidential);
-    return value != '0';
+    this._confidential_ = (value != '0');
+    return this._confidential_;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
       this.getEntityHelper().invalidateSessionKey();
@@ -374,6 +385,7 @@ tutao.entity.tutanota.Mail.prototype.getReceivedDate = function() {
 tutao.entity.tutanota.Mail.prototype.setReplyType = function(replyType) {
   var dataToEncrypt = replyType;
   this._replyType = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._replyType_ = replyType;
   return this;
 };
 
@@ -382,11 +394,15 @@ tutao.entity.tutanota.Mail.prototype.setReplyType = function(replyType) {
  * @return {string} The replyType of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getReplyType = function() {
+  if (this._replyType_ != null) {
+    return this._replyType_;
+  }
   if (this._replyType == "" || !this._entityHelper.getSessionKey()) {
     return "0";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._replyType);
+    this._replyType_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -442,6 +458,7 @@ tutao.entity.tutanota.Mail.prototype.getState = function() {
 tutao.entity.tutanota.Mail.prototype.setSubject = function(subject) {
   var dataToEncrypt = subject;
   this._subject = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._subject_ = subject;
   return this;
 };
 
@@ -450,11 +467,15 @@ tutao.entity.tutanota.Mail.prototype.setSubject = function(subject) {
  * @return {string} The subject of this Mail.
  */
 tutao.entity.tutanota.Mail.prototype.getSubject = function() {
+  if (this._subject_ != null) {
+    return this._subject_;
+  }
   if (this._subject == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._subject);
+    this._subject_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

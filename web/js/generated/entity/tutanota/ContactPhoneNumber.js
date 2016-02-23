@@ -13,8 +13,11 @@ tutao.entity.tutanota.ContactPhoneNumber = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._customTypeName = null;
+    this._customTypeName_ = null;
     this._number = null;
+    this._number_ = null;
     this._type = null;
+    this._type_ = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.ContactPhoneNumber.prototype;
@@ -28,8 +31,11 @@ tutao.entity.tutanota.ContactPhoneNumber = function(parent, data) {
 tutao.entity.tutanota.ContactPhoneNumber.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._customTypeName = data.customTypeName;
+  this._customTypeName_ = null;
   this._number = data.number;
+  this._number_ = null;
   this._type = data.type;
+  this._type_ = null;
 };
 
 /**
@@ -89,6 +95,7 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.getId = function() {
 tutao.entity.tutanota.ContactPhoneNumber.prototype.setCustomTypeName = function(customTypeName) {
   var dataToEncrypt = customTypeName;
   this._customTypeName = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._customTypeName_ = customTypeName;
   return this;
 };
 
@@ -97,11 +104,15 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setCustomTypeName = function(
  * @return {string} The customTypeName of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getCustomTypeName = function() {
+  if (this._customTypeName_ != null) {
+    return this._customTypeName_;
+  }
   if (this._customTypeName == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._customTypeName);
+    this._customTypeName_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -120,6 +131,7 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.getCustomTypeName = function(
 tutao.entity.tutanota.ContactPhoneNumber.prototype.setNumber = function(number) {
   var dataToEncrypt = number;
   this._number = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._number_ = number;
   return this;
 };
 
@@ -128,11 +140,15 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setNumber = function(number) 
  * @return {string} The number of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getNumber = function() {
+  if (this._number_ != null) {
+    return this._number_;
+  }
   if (this._number == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._number);
+    this._number_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -151,6 +167,7 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.getNumber = function() {
 tutao.entity.tutanota.ContactPhoneNumber.prototype.setType = function(type) {
   var dataToEncrypt = type;
   this._type = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._type_ = type;
   return this;
 };
 
@@ -159,11 +176,15 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.setType = function(type) {
  * @return {string} The type of this ContactPhoneNumber.
  */
 tutao.entity.tutanota.ContactPhoneNumber.prototype.getType = function() {
+  if (this._type_ != null) {
+    return this._type_;
+  }
   if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
     return "0";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
+    this._type_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

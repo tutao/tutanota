@@ -16,6 +16,7 @@ tutao.entity.tutanota.MailBody = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._text = null;
+    this._text_ = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.tutanota.MailBody.prototype;
@@ -32,6 +33,7 @@ tutao.entity.tutanota.MailBody.prototype.updateData = function(data) {
   this.__owner = data._owner;
   this.__permissions = data._permissions;
   this._text = data.text;
+  this._text_ = null;
 };
 
 /**
@@ -182,6 +184,7 @@ tutao.entity.tutanota.MailBody.prototype.getPermissions = function() {
 tutao.entity.tutanota.MailBody.prototype.setText = function(text) {
   var dataToEncrypt = text;
   this._text = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._text_ = text;
   return this;
 };
 
@@ -190,11 +193,15 @@ tutao.entity.tutanota.MailBody.prototype.setText = function(text) {
  * @return {string} The text of this MailBody.
  */
 tutao.entity.tutanota.MailBody.prototype.getText = function() {
+  if (this._text_ != null) {
+    return this._text_;
+  }
   if (this._text == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._text);
+    this._text_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

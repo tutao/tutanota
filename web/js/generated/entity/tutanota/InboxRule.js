@@ -13,7 +13,9 @@ tutao.entity.tutanota.InboxRule = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._type = null;
+    this._type_ = null;
     this._value = null;
+    this._value_ = null;
     this._targetFolder = null;
   }
   this._parent = parent;
@@ -28,7 +30,9 @@ tutao.entity.tutanota.InboxRule = function(parent, data) {
 tutao.entity.tutanota.InboxRule.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._type = data.type;
+  this._type_ = null;
   this._value = data.value;
+  this._value_ = null;
   this._targetFolder = data.targetFolder;
 };
 
@@ -89,6 +93,7 @@ tutao.entity.tutanota.InboxRule.prototype.getId = function() {
 tutao.entity.tutanota.InboxRule.prototype.setType = function(type) {
   var dataToEncrypt = type;
   this._type = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._type_ = type;
   return this;
 };
 
@@ -97,11 +102,15 @@ tutao.entity.tutanota.InboxRule.prototype.setType = function(type) {
  * @return {string} The type of this InboxRule.
  */
 tutao.entity.tutanota.InboxRule.prototype.getType = function() {
+  if (this._type_ != null) {
+    return this._type_;
+  }
   if (this._type == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._type);
+    this._type_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -120,6 +129,7 @@ tutao.entity.tutanota.InboxRule.prototype.getType = function() {
 tutao.entity.tutanota.InboxRule.prototype.setValue = function(value) {
   var dataToEncrypt = value;
   this._value = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._value_ = value;
   return this;
 };
 
@@ -128,11 +138,15 @@ tutao.entity.tutanota.InboxRule.prototype.setValue = function(value) {
  * @return {string} The value of this InboxRule.
  */
 tutao.entity.tutanota.InboxRule.prototype.getValue = function() {
+  if (this._value_ != null) {
+    return this._value_;
+  }
   if (this._value == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._value);
+    this._value_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

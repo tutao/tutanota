@@ -14,11 +14,13 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this.__id = null;
     this.__permissions = null;
     this._customEmailSignature = null;
+    this._customEmailSignature_ = null;
     this._defaultSender = null;
     this._defaultUnconfidential = null;
     this._emailSignatureType = null;
     this._groupEncEntropy = null;
     this._noAutomaticContacts = null;
+    this._noAutomaticContacts_ = null;
     this._notificationMailLanguage = null;
     this._imapSyncConfig = [];
     this._inboxRules = [];
@@ -37,11 +39,13 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__permissions = data._permissions;
   this._customEmailSignature = data.customEmailSignature;
+  this._customEmailSignature_ = null;
   this._defaultSender = data.defaultSender;
   this._defaultUnconfidential = data.defaultUnconfidential;
   this._emailSignatureType = data.emailSignatureType;
   this._groupEncEntropy = data.groupEncEntropy;
   this._noAutomaticContacts = data.noAutomaticContacts;
+  this._noAutomaticContacts_ = null;
   this._notificationMailLanguage = data.notificationMailLanguage;
   this._imapSyncConfig = [];
   for (var i=0; i < data.imapSyncConfig.length; i++) {
@@ -210,6 +214,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.getPermissions = function() {
 tutao.entity.tutanota.TutanotaProperties.prototype.setCustomEmailSignature = function(customEmailSignature) {
   var dataToEncrypt = customEmailSignature;
   this._customEmailSignature = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._customEmailSignature_ = customEmailSignature;
   return this;
 };
 
@@ -218,11 +223,15 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setCustomEmailSignature = fun
  * @return {string} The customEmailSignature of this TutanotaProperties.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getCustomEmailSignature = function() {
+  if (this._customEmailSignature_ != null) {
+    return this._customEmailSignature_;
+  }
   if (this._customEmailSignature == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._customEmailSignature);
+    this._customEmailSignature_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -309,6 +318,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.getGroupEncEntropy = function
 tutao.entity.tutanota.TutanotaProperties.prototype.setNoAutomaticContacts = function(noAutomaticContacts) {
   var dataToEncrypt = (noAutomaticContacts) ? '1' : '0';
   this._noAutomaticContacts = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._noAutomaticContacts_ = noAutomaticContacts;
   return this;
 };
 
@@ -317,12 +327,16 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setNoAutomaticContacts = func
  * @return {boolean} The noAutomaticContacts of this TutanotaProperties.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getNoAutomaticContacts = function() {
+  if (this._noAutomaticContacts_ != null) {
+    return this._noAutomaticContacts_;
+  }
   if (this._noAutomaticContacts == "" || !this._entityHelper.getSessionKey()) {
     return false;
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._noAutomaticContacts);
-    return value != '0';
+    this._noAutomaticContacts_ = (value != '0');
+    return this._noAutomaticContacts_;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
       this.getEntityHelper().invalidateSessionKey();

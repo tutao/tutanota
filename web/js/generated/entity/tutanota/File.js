@@ -17,7 +17,9 @@ tutao.entity.tutanota.File = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._mimeType = null;
+    this._mimeType_ = null;
     this._name = null;
+    this._name_ = null;
     this._size = null;
     this._data = null;
     this._parent = null;
@@ -39,7 +41,9 @@ tutao.entity.tutanota.File.prototype.updateData = function(data) {
   this.__owner = data._owner;
   this.__permissions = data._permissions;
   this._mimeType = data.mimeType;
+  this._mimeType_ = null;
   this._name = data.name;
+  this._name_ = null;
   this._size = data.size;
   this._data = data.data;
   this._parent = data.parent;
@@ -242,9 +246,11 @@ tutao.entity.tutanota.File.prototype.getPermissions = function() {
 tutao.entity.tutanota.File.prototype.setMimeType = function(mimeType) {
   if (mimeType == null) {
     this._mimeType = null;
+    this._mimeType_ = null;
   } else {
     var dataToEncrypt = mimeType;
     this._mimeType = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._mimeType_ = mimeType;
   }
   return this;
 };
@@ -257,8 +263,12 @@ tutao.entity.tutanota.File.prototype.getMimeType = function() {
   if (this._mimeType == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._mimeType_ != null) {
+    return this._mimeType_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
+    this._mimeType_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -277,6 +287,7 @@ tutao.entity.tutanota.File.prototype.getMimeType = function() {
 tutao.entity.tutanota.File.prototype.setName = function(name) {
   var dataToEncrypt = name;
   this._name = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._name_ = name;
   return this;
 };
 
@@ -285,11 +296,15 @@ tutao.entity.tutanota.File.prototype.setName = function(name) {
  * @return {string} The name of this File.
  */
 tutao.entity.tutanota.File.prototype.getName = function() {
+  if (this._name_ != null) {
+    return this._name_;
+  }
   if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
+    this._name_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
