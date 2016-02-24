@@ -167,10 +167,11 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
 
 /**
  * Handles a click on the given mail. Shows the selected mail if only one is selected.
+ * @param {bool} mobileMultiSelectionActive True if multi selection on a mobile device is active. Toggles selection of the clicked mail.
  * @return Promise<bool> True if the mail was shown, but not visible before, false otherwise.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail) {
-    var multiSelectOperation = tutao.util.ListSelectionUtils.itemClicked(this._loadedMails, this._selectedMails, mail);
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail, mobileMultiSelectionActive) {
+    var multiSelectOperation = tutao.util.ListSelectionUtils.itemClicked(this._loadedMails, this._selectedMails, mail, mobileMultiSelectionActive);
     if (this._selectedMails().length == 1) {
         return this.selectMail(this._selectedMails()[0]).then(function() {
             return !multiSelectOperation;
@@ -194,7 +195,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviouslySelectedMails 
             tutao.locator.mailViewModel.hideMail();
         }
     } else {
-        this.unselectAllMails();
+        this.unselectAllMails(false);
     }
 };
 
@@ -305,11 +306,14 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isSelectedMail = function(mail
 
 /**
  * Unselects all mails.
+ * @param {bool} storeLastSelectedMails True if the last selected mails shall be stored, false otherwise.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function() {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function(storeLastSelectedMails) {
     tutao.locator.mailViewModel.hideMail();
     this._selectedMails([]);
-    // do not clear _lastSelectedMails here
+    if (!storeLastSelectedMails) {
+        this._lastSelectedMails([]);
+    }
 };
 
 /**

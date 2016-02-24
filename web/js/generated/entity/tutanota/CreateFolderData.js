@@ -12,6 +12,7 @@ tutao.entity.tutanota.CreateFolderData = function(data) {
   } else {
     this.__format = "0";
     this._fileName = null;
+    this._fileName_ = null;
     this._group = null;
     this._listEncSessionKey = null;
     this._symEncSessionKey = null;
@@ -28,6 +29,7 @@ tutao.entity.tutanota.CreateFolderData = function(data) {
 tutao.entity.tutanota.CreateFolderData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._fileName = data.fileName;
+  this._fileName_ = null;
   this._group = data.group;
   this._listEncSessionKey = data.listEncSessionKey;
   this._symEncSessionKey = data.symEncSessionKey;
@@ -121,6 +123,7 @@ tutao.entity.tutanota.CreateFolderData.prototype.getFormat = function() {
 tutao.entity.tutanota.CreateFolderData.prototype.setFileName = function(fileName) {
   var dataToEncrypt = fileName;
   this._fileName = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._fileName_ = fileName;
   return this;
 };
 
@@ -129,11 +132,15 @@ tutao.entity.tutanota.CreateFolderData.prototype.setFileName = function(fileName
  * @return {string} The fileName of this CreateFolderData.
  */
 tutao.entity.tutanota.CreateFolderData.prototype.getFileName = function() {
+  if (this._fileName_ != null) {
+    return this._fileName_;
+  }
   if (this._fileName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._fileName);
+    this._fileName_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

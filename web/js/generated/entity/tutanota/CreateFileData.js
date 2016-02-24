@@ -12,9 +12,11 @@ tutao.entity.tutanota.CreateFileData = function(data) {
   } else {
     this.__format = "0";
     this._fileName = null;
+    this._fileName_ = null;
     this._group = null;
     this._listEncSessionKey = null;
     this._mimeType = null;
+    this._mimeType_ = null;
     this._fileData = null;
     this._parentFolder = null;
   }
@@ -29,9 +31,11 @@ tutao.entity.tutanota.CreateFileData = function(data) {
 tutao.entity.tutanota.CreateFileData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._fileName = data.fileName;
+  this._fileName_ = null;
   this._group = data.group;
   this._listEncSessionKey = data.listEncSessionKey;
   this._mimeType = data.mimeType;
+  this._mimeType_ = null;
   this._fileData = data.fileData;
   this._parentFolder = data.parentFolder;
 };
@@ -129,6 +133,7 @@ tutao.entity.tutanota.CreateFileData.prototype.getFormat = function() {
 tutao.entity.tutanota.CreateFileData.prototype.setFileName = function(fileName) {
   var dataToEncrypt = fileName;
   this._fileName = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._fileName_ = fileName;
   return this;
 };
 
@@ -137,11 +142,15 @@ tutao.entity.tutanota.CreateFileData.prototype.setFileName = function(fileName) 
  * @return {string} The fileName of this CreateFileData.
  */
 tutao.entity.tutanota.CreateFileData.prototype.getFileName = function() {
+  if (this._fileName_ != null) {
+    return this._fileName_;
+  }
   if (this._fileName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._fileName);
+    this._fileName_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -194,6 +203,7 @@ tutao.entity.tutanota.CreateFileData.prototype.getListEncSessionKey = function()
 tutao.entity.tutanota.CreateFileData.prototype.setMimeType = function(mimeType) {
   var dataToEncrypt = mimeType;
   this._mimeType = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._mimeType_ = mimeType;
   return this;
 };
 
@@ -202,11 +212,15 @@ tutao.entity.tutanota.CreateFileData.prototype.setMimeType = function(mimeType) 
  * @return {string} The mimeType of this CreateFileData.
  */
 tutao.entity.tutanota.CreateFileData.prototype.getMimeType = function() {
+  if (this._mimeType_ != null) {
+    return this._mimeType_;
+  }
   if (this._mimeType == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._mimeType);
+    this._mimeType_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

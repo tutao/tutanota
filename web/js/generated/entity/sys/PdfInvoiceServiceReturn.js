@@ -12,6 +12,7 @@ tutao.entity.sys.PdfInvoiceServiceReturn = function(data) {
   } else {
     this.__format = "0";
     this._data = null;
+    this._data_ = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.PdfInvoiceServiceReturn.prototype;
@@ -24,6 +25,7 @@ tutao.entity.sys.PdfInvoiceServiceReturn = function(data) {
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.updateData = function(data) {
   this.__format = data._format;
   this._data = data.data;
+  this._data_ = null;
 };
 
 /**
@@ -89,6 +91,7 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getFormat = function() {
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.setData = function(data) {
   var dataToEncrypt = data;
   this._data = tutao.locator.aesCrypter.encryptBytes(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._data_ = data;
   return this;
 };
 
@@ -97,11 +100,15 @@ tutao.entity.sys.PdfInvoiceServiceReturn.prototype.setData = function(data) {
  * @return {string} The data of this PdfInvoiceServiceReturn.
  */
 tutao.entity.sys.PdfInvoiceServiceReturn.prototype.getData = function() {
+  if (this._data_ != null) {
+    return this._data_;
+  }
   if (this._data == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._data);
+    this._data_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

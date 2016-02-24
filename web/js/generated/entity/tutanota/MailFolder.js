@@ -16,6 +16,7 @@ tutao.entity.tutanota.MailFolder = function(data) {
     this.__permissions = null;
     this._folderType = null;
     this._name = null;
+    this._name_ = null;
     this._mails = null;
     this._parentFolder = null;
     this._subFolders = null;
@@ -35,6 +36,7 @@ tutao.entity.tutanota.MailFolder.prototype.updateData = function(data) {
   this.__permissions = data._permissions;
   this._folderType = data.folderType;
   this._name = data.name;
+  this._name_ = null;
   this._mails = data.mails;
   this._parentFolder = data.parentFolder;
   this._subFolders = data.subFolders;
@@ -201,6 +203,7 @@ tutao.entity.tutanota.MailFolder.prototype.getFolderType = function() {
 tutao.entity.tutanota.MailFolder.prototype.setName = function(name) {
   var dataToEncrypt = name;
   this._name = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._name_ = name;
   return this;
 };
 
@@ -209,11 +212,15 @@ tutao.entity.tutanota.MailFolder.prototype.setName = function(name) {
  * @return {string} The name of this MailFolder.
  */
 tutao.entity.tutanota.MailFolder.prototype.getName = function() {
+  if (this._name_ != null) {
+    return this._name_;
+  }
   if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
+    this._name_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

@@ -90,11 +90,15 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
     }));
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("delete_action", 8, function () {
-        tutao.locator.mailViewModel.deleteMail(self.mail);
+        tutao.locator.mailViewModel.deleteMail(self.mail).then(function() {
+            tutao.locator.mailListViewModel.disableMobileMultiSelect();
+        });
     }, allowMoveToTrash, false, "deleteMailAction", "trash"));
 
     this.buttons.push(new tutao.tutanota.ctrl.Button("finalDelete_action", 8, function () {
-        tutao.locator.mailViewModel.finallyDeleteMail(self);
+        tutao.locator.mailViewModel.finallyDeleteMail(self).then(function() {
+            tutao.locator.mailListViewModel.disableMobileMultiSelect();
+        });
     }, allowFinalDelete, false, "finalDeleteMailAction", "trash"));
 
     // internal
@@ -137,7 +141,9 @@ tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(butto
             (function () { // closure to avoid access to mutable variable i
                 var folder = folders[i];
                 buttons.push(new tutao.tutanota.ctrl.Button("@" + folder.getName(), i, function () {
-                    tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, mails);
+                    tutao.locator.mailFolderListViewModel.selectedFolder().move(folder, mails).then(function() {
+                        tutao.locator.mailListViewModel.disableMobileMultiSelect();
+                    });
                 }, null, false, "moveAction" + folder.getName(), folder.getIconId(), folder.getTooltipTextId()));
             })();
         }

@@ -350,6 +350,15 @@ tutao.tutanota.ctrl.ViewSlider.prototype._getViewWidth = function() {
 	return viewWidth;
 };
 
+/**
+ * Return the width of the given view column.
+ * @param {number} viewColumnId The id of the view column.
+ * @return {number} The width of the view column.
+ */
+tutao.tutanota.ctrl.ViewSlider.prototype.getViewColumnWidth = function(viewColumnId) {
+    return this._viewColumns[viewColumnId].width;
+};
+
 tutao.tutanota.ctrl.ViewSlider.prototype.notifyColumnChange = function() {
     if ( this._updateColumnTitleCallback != undefined){
         var currentTitle = null;

@@ -18,6 +18,7 @@ tutao.entity.sys.GroupInfo = function(data) {
     this._deleted = null;
     this._mailAddress = null;
     this._name = null;
+    this._name_ = null;
     this._group = null;
     this._mailAddressAliases = [];
   }
@@ -38,6 +39,7 @@ tutao.entity.sys.GroupInfo.prototype.updateData = function(data) {
   this._deleted = data.deleted;
   this._mailAddress = data.mailAddress;
   this._name = data.name;
+  this._name_ = null;
   this._group = data.group;
   this._mailAddressAliases = [];
   for (var i=0; i < data.mailAddressAliases.length; i++) {
@@ -259,6 +261,7 @@ tutao.entity.sys.GroupInfo.prototype.getMailAddress = function() {
 tutao.entity.sys.GroupInfo.prototype.setName = function(name) {
   var dataToEncrypt = name;
   this._name = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._name_ = name;
   return this;
 };
 
@@ -267,11 +270,15 @@ tutao.entity.sys.GroupInfo.prototype.setName = function(name) {
  * @return {string} The name of this GroupInfo.
  */
 tutao.entity.sys.GroupInfo.prototype.getName = function() {
+  if (this._name_ != null) {
+    return this._name_;
+  }
   if (this._name == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._name);
+    this._name_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

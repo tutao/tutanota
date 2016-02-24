@@ -13,10 +13,14 @@ tutao.entity.tutanota.DraftData = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bodyText = null;
+    this._bodyText_ = null;
     this._confidential = null;
+    this._confidential_ = null;
     this._senderMailAddress = null;
     this._senderName = null;
+    this._senderName_ = null;
     this._subject = null;
+    this._subject_ = null;
     this._addedAttachments = [];
     this._bccRecipients = [];
     this._ccRecipients = [];
@@ -35,10 +39,14 @@ tutao.entity.tutanota.DraftData = function(parent, data) {
 tutao.entity.tutanota.DraftData.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._bodyText = data.bodyText;
+  this._bodyText_ = null;
   this._confidential = data.confidential;
+  this._confidential_ = null;
   this._senderMailAddress = data.senderMailAddress;
   this._senderName = data.senderName;
+  this._senderName_ = null;
   this._subject = data.subject;
+  this._subject_ = null;
   this._addedAttachments = [];
   for (var i=0; i < data.addedAttachments.length; i++) {
     this._addedAttachments.push(new tutao.entity.tutanota.DraftAttachment(parent, data.addedAttachments[i]));
@@ -157,6 +165,7 @@ tutao.entity.tutanota.DraftData.prototype.getId = function() {
 tutao.entity.tutanota.DraftData.prototype.setBodyText = function(bodyText) {
   var dataToEncrypt = bodyText;
   this._bodyText = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._bodyText_ = bodyText;
   return this;
 };
 
@@ -165,11 +174,15 @@ tutao.entity.tutanota.DraftData.prototype.setBodyText = function(bodyText) {
  * @return {string} The bodyText of this DraftData.
  */
 tutao.entity.tutanota.DraftData.prototype.getBodyText = function() {
+  if (this._bodyText_ != null) {
+    return this._bodyText_;
+  }
   if (this._bodyText == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._bodyText);
+    this._bodyText_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -188,6 +201,7 @@ tutao.entity.tutanota.DraftData.prototype.getBodyText = function() {
 tutao.entity.tutanota.DraftData.prototype.setConfidential = function(confidential) {
   var dataToEncrypt = (confidential) ? '1' : '0';
   this._confidential = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._confidential_ = confidential;
   return this;
 };
 
@@ -196,12 +210,16 @@ tutao.entity.tutanota.DraftData.prototype.setConfidential = function(confidentia
  * @return {boolean} The confidential of this DraftData.
  */
 tutao.entity.tutanota.DraftData.prototype.getConfidential = function() {
+  if (this._confidential_ != null) {
+    return this._confidential_;
+  }
   if (this._confidential == "" || !this._parent._entityHelper.getSessionKey()) {
     return false;
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._confidential);
-    return value != '0';
+    this._confidential_ = (value != '0');
+    return this._confidential_;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
       this.getEntityHelper().invalidateSessionKey();
@@ -236,6 +254,7 @@ tutao.entity.tutanota.DraftData.prototype.getSenderMailAddress = function() {
 tutao.entity.tutanota.DraftData.prototype.setSenderName = function(senderName) {
   var dataToEncrypt = senderName;
   this._senderName = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._senderName_ = senderName;
   return this;
 };
 
@@ -244,11 +263,15 @@ tutao.entity.tutanota.DraftData.prototype.setSenderName = function(senderName) {
  * @return {string} The senderName of this DraftData.
  */
 tutao.entity.tutanota.DraftData.prototype.getSenderName = function() {
+  if (this._senderName_ != null) {
+    return this._senderName_;
+  }
   if (this._senderName == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._senderName);
+    this._senderName_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -267,6 +290,7 @@ tutao.entity.tutanota.DraftData.prototype.getSenderName = function() {
 tutao.entity.tutanota.DraftData.prototype.setSubject = function(subject) {
   var dataToEncrypt = subject;
   this._subject = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._subject_ = subject;
   return this;
 };
 
@@ -275,11 +299,15 @@ tutao.entity.tutanota.DraftData.prototype.setSubject = function(subject) {
  * @return {string} The subject of this DraftData.
  */
 tutao.entity.tutanota.DraftData.prototype.getSubject = function() {
+  if (this._subject_ != null) {
+    return this._subject_;
+  }
   if (this._subject == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._subject);
+    this._subject_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

@@ -8,8 +8,6 @@ tutao.provide('tutao.tutanota.gui.MailView');
  */
 tutao.tutanota.gui.MailView = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
-	this._mailsHeight = 0;
-	this._passwordChannelsHeight = 0;
 	this._welcomeMessage = "";
 };
 
@@ -35,6 +33,10 @@ tutao.tutanota.gui.MailView.prototype.init = function(external, updateColumnTitl
 
 };
 
+tutao.tutanota.gui.MailView.prototype.getMailListColumnWidth = function() {
+    return this._swipeSlider.getViewSlider().getViewColumnWidth(tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST);
+};
+
 /**
  * @inherit
  */
@@ -53,7 +55,7 @@ tutao.tutanota.gui.MailView.prototype.activate = function() {
  * @inherit
  */
 tutao.tutanota.gui.MailView.prototype.deactivate = function() {
-
+    tutao.locator.mailListViewModel.disableMobileMultiSelect();
 };
 
 /**
@@ -312,27 +314,6 @@ tutao.tutanota.gui.MailView.prototype._findNearestOutlookQuotations = function(o
 		i++;
 	}
 	return distances[i] ? $(distances[i]) : $([]);
-};
-
-/**
- * Fades the conversation column in and out.
- */
-tutao.tutanota.gui.MailView.prototype.fadeConversation = function() {
-	$("#innerConversationColumn").children().fadeOut().fadeIn();
-};
-
-/**
- * Fades the conversation column in.
- */
-tutao.tutanota.gui.MailView.prototype.fadeConversationIn = function(callback) {
-	$("#innerConversationColumn").children().hide().fadeIn(callback);
-};
-
-/**
- * Hides the conversation column
- */
-tutao.tutanota.gui.MailView.prototype.hideConversation = function() {
-	$("#innerConversationColumn").children().hide();
 };
 
 /**

@@ -15,6 +15,7 @@ tutao.entity.sys.EmailSenderListElement = function(parent, data) {
     this._hashedValue = null;
     this._type = null;
     this._value = null;
+    this._value_ = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.EmailSenderListElement.prototype;
@@ -30,6 +31,7 @@ tutao.entity.sys.EmailSenderListElement.prototype.updateData = function(parent, 
   this._hashedValue = data.hashedValue;
   this._type = data.type;
   this._value = data.value;
+  this._value_ = null;
 };
 
 /**
@@ -123,6 +125,7 @@ tutao.entity.sys.EmailSenderListElement.prototype.getType = function() {
 tutao.entity.sys.EmailSenderListElement.prototype.setValue = function(value) {
   var dataToEncrypt = value;
   this._value = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._value_ = value;
   return this;
 };
 
@@ -131,11 +134,15 @@ tutao.entity.sys.EmailSenderListElement.prototype.setValue = function(value) {
  * @return {string} The value of this EmailSenderListElement.
  */
 tutao.entity.sys.EmailSenderListElement.prototype.getValue = function() {
+  if (this._value_ != null) {
+    return this._value_;
+  }
   if (this._value == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._value);
+    this._value_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

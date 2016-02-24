@@ -15,6 +15,7 @@ tutao.entity.tutanota.Recipient = function(parent, data) {
     this._autoTransmitPassword = null;
     this._mailAddress = null;
     this._name = null;
+    this._name_ = null;
     this._passwordVerifier = null;
     this._pubEncBucketKey = null;
     this._pubKeyVersion = null;
@@ -39,6 +40,7 @@ tutao.entity.tutanota.Recipient.prototype.updateData = function(parent, data) {
   this._autoTransmitPassword = data.autoTransmitPassword;
   this._mailAddress = data.mailAddress;
   this._name = data.name;
+  this._name_ = null;
   this._passwordVerifier = data.passwordVerifier;
   this._pubEncBucketKey = data.pubEncBucketKey;
   this._pubKeyVersion = data.pubKeyVersion;
@@ -198,6 +200,7 @@ tutao.entity.tutanota.Recipient.prototype.getMailAddress = function() {
 tutao.entity.tutanota.Recipient.prototype.setName = function(name) {
   var dataToEncrypt = name;
   this._name = tutao.locator.aesCrypter.encryptUtf8(this._parent._entityHelper.getSessionKey(), dataToEncrypt);
+  this._name_ = name;
   return this;
 };
 
@@ -206,11 +209,15 @@ tutao.entity.tutanota.Recipient.prototype.setName = function(name) {
  * @return {string} The name of this Recipient.
  */
 tutao.entity.tutanota.Recipient.prototype.getName = function() {
+  if (this._name_ != null) {
+    return this._name_;
+  }
   if (this._name == "" || !this._parent._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._parent._entityHelper.getSessionKey(), this._name);
+    this._name_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

@@ -111,8 +111,8 @@
 <script src="/lib/filesaver.js"></script>
 <script src="/lib/hammer-2.0.4.js"></script>
 <script src="/lib/html-css-sanitizer-r5333-fix1.min.js"></script>
-<script src="/lib/jquery-1.9.1.js"></script>
-<script src="/lib/jquery-transit-0.9.9.js"></script>
+<script src="/lib/jquery-2.2.1.js"></script>
+<script src="/lib/velocity.min.js"></script>
 <script src="/lib/knockout-2.2.1.js"></script>
 <script src="/lib/operative-0.3.1.js"></script>
 <script src="/lib/path-2012-10-03.js"></script>
@@ -564,11 +564,11 @@
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
                 <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
-				<div id="searchAndMailList" >
+				<div id="searchAndMailList" data-bind="swipe: handleSwipeOnElement">
 					<section id="mailList" class="list scrollable">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: getMails(), style: { borderTopWidth: (!tutao.locator.dao.isSupported() && getMails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || getMails().length > 0) ? '7px' : '0px' }">
 							<div class="listElement" >
-								<div class="listElementContent" data-bind="swipe: $parent.handleSwipeOnElement">
+								<div class="listElementContent">
 									<div class="listElementButton fontImage buttonLeft" data-bind="lang:$parent.getSwipeRightLabel().textId, css: $parent.getSwipeRightLabel().iconId" ></div>
 									<div class="mailInList" data-bind="attr: { id: 'mailInList' + getId()[0] + getId()[1] }, fastClick: $parent.mailClicked, css: {selected: $parent.isSelectedMail($data), unreadFont: getUnread()}, drag: getId()[1]">
 										<div class="icons">
@@ -614,7 +614,7 @@
                 <!-- /ko -->
 				<div class="fontImage spinner spinnerActionBar" data-bind="visible: showSpinner"></div>
                 <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
-                    <div data-bind="lang: 'noMail_msg'"></div><br>
+                    <div data-bind="text: getMailSelectionMessage()"></div><br>
                 </div>
 				<div id="innerConversationColumn">
                     <!-- ko if: mail -->

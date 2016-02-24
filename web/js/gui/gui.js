@@ -55,30 +55,72 @@ tutao.tutanota.gui.initKnockout = function() {
 		}
 	};
 
-	ko.bindingHandlers.fadeVisible = {
-			init: function(element, valueAccessor) {
-				// Initially set the element to be instantly visible/hidden depending on the value
-				var value = valueAccessor();
-				$(element).toggle(ko.utils.unwrapObservable(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
-			},
-			update: function(element, valueAccessor) {
-				// Whenever the value subsequently changes, slowly fade the element in or out
-				var value = valueAccessor();
-				ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).fadeOut();
-			}
-	};
+    ko.bindingHandlers.fadeVisible = {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // velocity does not store the original display value (different to jquery), so we have to store it ourselves. we can not use the bindingContext (ViewModel) because there may be multiple fadeVisible bindings on it which would overwrite the value
+            var originalDisplayValue = $(element).css('display');
+            if (originalDisplayValue == "none") {
+                // we can not use "" (original css value) here because the original css value may be "none". So we just assume it is "block"
+                originalDisplayValue = "block";
+            }
+            ko.utils.domData.set(element, "originalDisplayValue", originalDisplayValue);
+            // Initially set the element to be instantly visible/hidden depending on the value
+            var fadeIn = ko.utils.unwrapObservable(valueAccessor());
+            $(element).toggle(fadeIn); // Use "unwrapObservable" so we can handle values that may or may not be observable
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // Whenever the value subsequently changes, slowly fade the element in or out
+            var fadeIn = ko.utils.unwrapObservable(valueAccessor());
+            // we have to check if the element is visible because knockout calls update() even if the value has not changed. this is the case when other bindings on the element fire. See first answer here: http://stackoverflow.com/questions/8324454/why-is-my-knockoutjs-custom-binding-being-triggered
+            var elementVisible = ($(element).css('display') != 'none');
+            // unfortunately we can not use the velocity fadeIn/fadeOut machanism because it does not start from the current value (different to jquery animations) but sets the element completely visible before fadeOut and invisible before fadeIn
+            if (fadeIn) {
+                // we have to stop all running animations because they would interfere with us setting display manually now
+                $(element).velocity("stop", true);
+                if (!elementVisible) {
+                    $(element).css("opacity", 0);
+                    $(element).css('display', ko.utils.domData.get(element, "originalDisplayValue"));
+                }
+                $(element).velocity({ opacity: 1 });
+            } else if (!fadeIn && elementVisible) {
+                // we have to stop all running animations because they would interfere with us setting display manually now
+                $(element).velocity("stop", true);
+                $(element).velocity({ opacity: 0 }, { complete: function() {
+                    $(element).css('display', "none");
+                }});
+            }
+        }
+    };
 
-	ko.bindingHandlers.fadeInVisible = {
-			init: function(element, valueAccessor) {
-				// Initially set the element to be instantly visible/hidden depending on the value
-				var value = valueAccessor();
-				$(element).toggle(ko.utils.unwrapObservable(value)); // Use "unwrapObservable" so we can handle values that may or may not be observable
-			},
-			update: function(element, valueAccessor) {
-				// Whenever the value subsequently changes, slowly fade the element in or out
-				var value = valueAccessor();
-				ko.utils.unwrapObservable(value) ? $(element).fadeIn() : $(element).hide();
-			}
+    // see comments in fadeVisible()
+    ko.bindingHandlers.fadeInVisible = {
+        init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            var originalDisplayValue = $(element).css('display');
+            if (originalDisplayValue == "none") {
+                originalDisplayValue = "block";
+            }
+            ko.utils.domData.set(element, "originalDisplayValue", originalDisplayValue);
+            // Initially set the element to be instantly visible/hidden depending on the value
+            var fadeIn = ko.utils.unwrapObservable(valueAccessor());
+            $(element).toggle(fadeIn); // Use "unwrapObservable" so we can handle values that may or may not be observable
+        },
+        update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+            // Whenever the value subsequently changes, slowly fade the element in or out
+            var fadeIn = ko.utils.unwrapObservable(valueAccessor());
+            var elementVisible = ($(element).css('display') != 'none');
+            if (fadeIn) {
+                $(element).velocity("stop", true);
+                if (!elementVisible) {
+                    $(element).css("opacity", 0);
+                    $(element).css('display', ko.utils.domData.get(element, "originalDisplayValue"));
+                }
+                $(element).velocity({ opacity: 1 });
+            } else if (!fadeIn && elementVisible) {
+                $(element).velocity("stop", true);
+                $(element).css("opacity", 0);
+                $(element).css('display', "none");
+            }
+        }
 	};
 	
 	ko.bindingHandlers.lang = {
@@ -154,13 +196,13 @@ tutao.tutanota.gui.initKnockout = function() {
 	    }
 	};
 	
-	ko.bindingHandlers.fadeLang = {
+/*	ko.bindingHandlers.fadeLang = {
 		update: function(element, valueAccessor, allBindingsAccessor) {
 			var params = allBindingsAccessor()["params"];
 			ko.bindingHandlers.fadeText.update(element, function() { return tutao.locator.languageViewModel.get(valueAccessor(), params); });
 	    }
 	};
-
+*/
 
 	// Custom binding to handle editable text in contenteditable divs.
 	ko.bindingHandlers.editableText = {
@@ -207,7 +249,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			updateForm(currentForms[i].formElement, currentForms[i].container);
 		}
 	});
-	
+	/*
 	ko.bindingHandlers.fadeText = {
 	    init: function(element, valueAccessor) { 
 	        // initially don't show the element        
@@ -223,7 +265,8 @@ tutao.tutanota.gui.initKnockout = function() {
 	        });
 	    }
 	};
-	
+	*/
+    /*
 	ko.bindingHandlers.slideHideTop = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// Initially set the element to be instantly visible/hidden depending on the value
@@ -244,15 +287,14 @@ tutao.tutanota.gui.initKnockout = function() {
 			}
 
 		}
-	};
+	};*/
 	$.fx.speeds._default = 600;
 	var slideViewQueue = [];
 	ko.bindingHandlers.slideView = {
 		previousView: null,
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// Initially set the element to be instantly visible/hidden depending on the value
-			bindingContext.oldValue = ko.utils.unwrapObservable(valueAccessor());
-			$(element).toggle(Boolean(bindingContext.oldValue)); // Use "unwrapObservable" so we can handle values that may or may not be observable
+			$(element).toggle(Boolean(ko.utils.unwrapObservable(valueAccessor()))); // Use "unwrapObservable" so we can handle values that may or may not be observable
 		},
 		update: function(newView, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			var value = ko.utils.unwrapObservable(valueAccessor());
@@ -287,8 +329,14 @@ tutao.tutanota.gui.initKnockout = function() {
 					finishedHandler();
 
 				} else {
-					$(previousView).transition({ y: '-100%' }).transition({display: "none"}, 0);
-					$(newView).transition({ y: '100%' },0).transition({display: ""}, 0).transition({ y: '0%' }, finishedHandler);
+					$(previousView).velocity({ top: '-100%' },  {complete: function() {
+						$(previousView).css({display: "none"});
+					}});                        
+
+					$(newView).velocity({ top: '100%' }, { duration: 0, complete: function() {
+						$(newView).css({display: "block"});
+						$(newView).velocity({ top: '0%' }, { complete: finishedHandler });
+					} });
 				}
 			} else {
 				slideViewQueue.shift();
@@ -298,7 +346,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			}
 		}
 	};	
-	
+	/*
 	// slides the dom-element to the left to hide it and to the right to make it visible
 	ko.bindingHandlers.slideHideLeft = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
@@ -322,7 +370,8 @@ tutao.tutanota.gui.initKnockout = function() {
 			//}, 0);
 		}
 	};
-
+*/
+    /*
 	ko.bindingHandlers.slideVisible = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			// Initially set the element to be instantly visible/hidden depending on the value
@@ -342,9 +391,9 @@ tutao.tutanota.gui.initKnockout = function() {
 				if (value) {
 					$(element).hide().slideDown();
 				} else {
-					/* ATTENTION: The animation time must match the timeout in:
-					 * * tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody
-					 */
+					// ATTENTION: The animation time must match the timeout in:
+					// tutao.tutanota.ctrl.DisplayedMail.prototype._loadBody
+					//
 					$(element).slideUp(function() {
 						$(element).hide();
 					});
@@ -352,7 +401,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			}, 0);
 		}
 	};
-
+*/
     ko.bindingHandlers.drag = {
         init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             // make the element draggable
@@ -398,28 +447,29 @@ tutao.tutanota.gui.initKnockout = function() {
         }
     };
 
-
+    // must be set on the mail list. handles swipe for all indivitual mail entries in the list.
 	ko.bindingHandlers.swipe = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 
-			var listElement = $(element)
 			var ACTION_DISTANCE = 150;
 			var DEFAULT_ANIMATION_TIME = 300;
-			var listElementWidth = listElement.outerWidth();
 			var swipeActive = false;
-			var isSwipeRightPossible = bindingContext.$parent.isSwipeRightPosssible();
 
-			var resetSwipeGesture = function() {
+			// use jquery's animate function instead of velocity because using velocity creates bad effects on the email list (part of email not visible any more)
+			var resetSwipeGesture = function(listElement) {
 				swipeActive = false;
 				listElement.animate({left: 0}, DEFAULT_ANIMATION_TIME);
 			};
 
-
 			// store the function that shall be called when swipe done
 			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
 			if (typeof Hammer !== 'undefined') {
-				var hammertime = new Hammer(element);
+				var hammertime = new Hammer($("#searchAndMailListColumn")[0]);
 				hammertime.on("hammer.input", function(ev) {
+                    var listElement = $(ev.target).closest(".listElementContent");
+                    if (listElement.length == 0) {
+                        return;
+                    }
 					var swipeLeft = ev.deltaX < 0;
 					if (ev.eventType == Hammer.INPUT_START) {
 						swipeActive = true;
@@ -428,22 +478,24 @@ tutao.tutanota.gui.initKnockout = function() {
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
 
 							var animateCallback  = function() {
-									bindingContext.swipeAction(bindingContext.$data, swipeLeft);
-							};
-
+                                var viewModel = ko.dataFor(listElement.get(0));
+								bindingContext.swipeAction(viewModel, swipeLeft);
+                            };
+                            // getting listElement.outerWidth() from the dom element is too expensive, so use the mail list column width
+                            var listElementWidth = tutao.locator.mailView.getMailListColumnWidth();
 							if (swipeLeft) {
 								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)}, DEFAULT_ANIMATION_TIME, animateCallback);
-							} else if (isSwipeRightPossible){
+							} else if (bindingContext.$data.isSwipeRightPosssible()) {
 								listElement.animate({left: listElementWidth + ACTION_DISTANCE}, DEFAULT_ANIMATION_TIME, animateCallback);
 							}
 						} else {
-							resetSwipeGesture();
+							resetSwipeGesture(listElement);
 						}
 					} else if (ev.eventType == Hammer.INPUT_CANCEL) {
-						resetSwipeGesture();
-					}else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
+						resetSwipeGesture(listElement);
+					} else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
 						if (Math.abs(ev.deltaY) > 40 ){
-							resetSwipeGesture();
+							resetSwipeGesture(listElement);
 						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
 							var newContentLeft = ev.deltaX;
 							// Do not animate the swipe gesture more than necessary
@@ -452,7 +504,7 @@ tutao.tutanota.gui.initKnockout = function() {
 							} else if (newContentLeft < -ACTION_DISTANCE){
 								newContentLeft = -ACTION_DISTANCE;
 							}
-							if (isSwipeRightPossible || swipeLeft){
+							if (swipeLeft || bindingContext.$data.isSwipeRightPosssible()) {
 								// animate swipe gesture
 								listElement.css('left', newContentLeft);
 								ev.preventDefault();
@@ -800,6 +852,7 @@ tutao.tutanota.gui.unselect = function(elements) {
 
 /**
  * Makes the changes on the view requested by the view slider.
+ * @param {Object} domElement The dom element.
  * @param {number} left Left position of the view.
  * @param {number} width The width of the view.
  * @param {boolean} initial True if this is the first time the values are set.
@@ -807,11 +860,11 @@ tutao.tutanota.gui.unselect = function(elements) {
 tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, width, initial) {
 	// the transition is done via css
 	if (initial || tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID) {
-        // css transitions on older androids are horribly slow
+        // transitions on older androids are horribly slow
 		$(domElement).css("left", left + "px");
 		$(domElement).css("width", width + "px");
 	} else {
-        $(domElement).transition({left: left + "px", width: width + "px"}, 300);
+        $(domElement).velocity({left: left + "px", width: width + "px"}, { duration: 300 });
 	}
 };
 
@@ -827,16 +880,18 @@ tutao.tutanota.gui.slideAfterAdd = function(domElement) {
  * Slides a dom element down
  * @param {Object} domElement The dom element.
  */
+/*
 tutao.tutanota.gui.slideDown = function(domElement, callback) {
 	if (domElement.nodeType !== tutao.tutanota.gui.TEXT_NODE) {
 		$(domElement).hide().slideDown(400, callback);
 	}
-};
+};*/
 
 /**
  * Slides a dom element before removal instead of removing it immediately.
  * @param {Object} domElement The dom element.
  */
+/*
 tutao.tutanota.gui.slideBeforeRemove = function(domElement) {
 	if (domElement.nodeType !== tutao.tutanota.gui.TEXT_NODE) {
 		// ATTENTION: The animation time must match the timeout in:
@@ -845,7 +900,7 @@ tutao.tutanota.gui.slideBeforeRemove = function(domElement) {
 			$(domElement).remove();
 		});
 	}
-};
+};*/
 
 /**
  * Removes the focus from all currently selected elements. This can be used to hide the keyboard on mobile devices.

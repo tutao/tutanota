@@ -20,6 +20,8 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.showSpinner = ko.computed(function () {
         return this.deleting();
     }, this);
+
+    this._mobileMultiSelectActive = ko.observable(false);
 };
 
 
@@ -27,16 +29,30 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
  * Creates the buttons
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
+    var self = this;
     this.buttons = [
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self.disableMobileMultiSelect();
+        }, function() {
+            // run through the mails existing check in any case to update the knockout binding
+
+            return self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
+        }, false, "stopMultiSelection", "cancelMultiSelect"),
+        new tutao.tutanota.ctrl.Button(null, tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
+            self._mobileMultiSelectActive(true);
+        }, function() {
+            var mailsExisting = tutao.locator.mailFolderListViewModel.selectedFolder().getLoadedMails().length > 0;
+            return mailsExisting && !self._mobileMultiSelectActive() && tutao.tutanota.util.ClientDetector.isMobileDevice();
+        }, false, "startMultiSelection", "multiSelect"),
         new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "moveAction", "moveToFolder", null, null, null, function() {
             var buttons = [];
             tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
             return buttons;
         }),
-        new tutao.tutanota.ctrl.Button("delete_action", 8, this._deleteSelectedMails, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1);
+        new tutao.tutanota.ctrl.Button("delete_action", 8, this.deleteSelectedMails, function() {
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !tutao.locator.mailView.isConversationColumnVisible() && !tutao.tutanota.util.ClientDetector.isMobileDevice();
         }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
@@ -51,6 +67,14 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
     });
 };
 
+tutao.tutanota.ctrl.MailListViewModel.prototype.disableMobileMultiSelect = function() {
+    if (this._mobileMultiSelectActive()) {
+        this._mobileMultiSelectActive(false);
+        if (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 1) {
+            tutao.locator.mailFolderListViewModel.selectedFolder().unselectAllMails(false);
+        }
+    }
+};
 
 /**
  * Initialize the MailListViewModel:
@@ -80,7 +104,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
     });
 };
 
-tutao.tutanota.ctrl.MailListViewModel.prototype._deleteSelectedMails = function() {
+tutao.tutanota.ctrl.MailListViewModel.prototype.deleteSelectedMails = function() {
     var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
 
     if (folder.loading()) {
@@ -97,6 +121,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteSelectedMails = function(
         promise = folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mailsToDelete);
     }
     return promise.lastly(function() {
+        self.disableMobileMultiSelect();
         self.deleting(false);
     });
 };
@@ -146,9 +171,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.getMails = function() {
  * @return {Promise} When the mail is selected or selection was cancelled.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.mailClicked = function(mail) {
+    var self = this;
     return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function(allCancelled) {
         if (allCancelled) {
-            tutao.locator.mailFolderListViewModel.selectedFolder().mailClicked(mail).then(function(mailShown) {
+            tutao.locator.mailFolderListViewModel.selectedFolder().mailClicked(mail, self._mobileMultiSelectActive()).then(function(mailShown) {
                 if (mailShown) {
                     tutao.locator.mailView.showConversationColumn();
                 }
@@ -188,6 +214,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.isFirstMailSelected = function()
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviousMail = function() {
     tutao.locator.mailFolderListViewModel.selectedFolder().selectPreviousMail();
+    this.disableMobileMultiSelect();
 };
 
 /**
@@ -195,6 +222,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectPreviousMail = function() 
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.selectNextMail = function() {
     tutao.locator.mailFolderListViewModel.selectedFolder().selectNextMail();
+    this.disableMobileMultiSelect();
 };
 
 /**
@@ -215,6 +243,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype._deleteFinally = function() {
                 return folder.finallyDeleteMails(allMails);
             }).lastly(function() {
                 self.deleting(false);
+                tutao.locator.mailListViewModel.disableMobileMultiSelect();
             });
         }
     });
@@ -232,12 +261,18 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.handleSwipeOnElement = function(
     var mails = [mail];
     if (swipeLeft) {
         if (folder.isTrashFolder() || folder.isSpamFolder()) {
+            // remove the mail directly to avoid delay
+            folder.removeMails([mail]);
             return folder.finallyDeleteMails(mails);
         } else {
+            // remove the mail directly to avoid delay
+            folder.removeMails([mail]);
             // move content to trash
             return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_TRASH), mails);
         }
     } else if (this.isSwipeRightPosssible()) {
+        // remove the mail directly to avoid delay
+        folder.removeMails([mail]);
         return folder.move(tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_ARCHIVE), mails);
     }
 };

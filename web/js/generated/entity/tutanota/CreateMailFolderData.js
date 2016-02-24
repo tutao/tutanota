@@ -12,6 +12,7 @@ tutao.entity.tutanota.CreateMailFolderData = function(data) {
   } else {
     this.__format = "0";
     this._folderName = null;
+    this._folderName_ = null;
     this._listEncSessionKey = null;
     this._parentFolder = null;
   }
@@ -26,6 +27,7 @@ tutao.entity.tutanota.CreateMailFolderData = function(data) {
 tutao.entity.tutanota.CreateMailFolderData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._folderName = data.folderName;
+  this._folderName_ = null;
   this._listEncSessionKey = data.listEncSessionKey;
   this._parentFolder = data.parentFolder;
 };
@@ -105,6 +107,7 @@ tutao.entity.tutanota.CreateMailFolderData.prototype.getFormat = function() {
 tutao.entity.tutanota.CreateMailFolderData.prototype.setFolderName = function(folderName) {
   var dataToEncrypt = folderName;
   this._folderName = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._folderName_ = folderName;
   return this;
 };
 
@@ -113,11 +116,15 @@ tutao.entity.tutanota.CreateMailFolderData.prototype.setFolderName = function(fo
  * @return {string} The folderName of this CreateMailFolderData.
  */
 tutao.entity.tutanota.CreateMailFolderData.prototype.getFolderName = function() {
+  if (this._folderName_ != null) {
+    return this._folderName_;
+  }
   if (this._folderName == "" || !this._entityHelper.getSessionKey()) {
     return "";
   }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._folderName);
+    this._folderName_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
