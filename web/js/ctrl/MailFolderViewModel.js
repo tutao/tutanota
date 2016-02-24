@@ -14,7 +14,7 @@ tutao.tutanota.ctrl.MailFolderViewModel = function(mailFolder, parentFolder) {
     this._mailFolder = mailFolder;
     this._mailFolderName = ko.observable("");
     this._loadedMails = ko.observableArray();
-    this._lastSelectedMails = ko.observableArray();
+    this._lastShownMail = null;
     this._selectedMails = ko.observableArray();
     this.loading = ko.observable(false);
     this.moreAvailable = ko.observable(true);
@@ -161,23 +161,24 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
         this._updateNumberOfUnreadMails();
     }
     this._selectedMails([mail]);
-    this._lastSelectedMails([mail]);
+    this._lastShownMail = mail;
     return tutao.locator.mailViewModel.showMail(mail);
 };
 
 /**
- * Handles a click on the given mail. Shows the selected mail if only one is selected.
+ * Handles a click on the given mail. Shows the clicked mail if it is not a multiselect operation.
+ * @param {tutao.entity.tutanota.Mail} mail The mail that was clicked.
  * @param {bool} mobileMultiSelectionActive True if multi selection on a mobile device is active. Toggles selection of the clicked mail.
  * @return Promise<bool> True if the mail was shown, but not visible before, false otherwise.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail, mobileMultiSelectionActive) {
     var multiSelectOperation = tutao.util.ListSelectionUtils.itemClicked(this._loadedMails, this._selectedMails, mail, mobileMultiSelectionActive);
-    if (this._selectedMails().length == 1) {
+    if (!multiSelectOperation && this._selectedMails().length == 1) {
         return this.selectMail(this._selectedMails()[0]).then(function() {
             return !multiSelectOperation;
         });
     } else {
-        this._lastSelectedMails(this._selectedMails().slice(0));
+        this._lastShownMail = null;
         tutao.locator.mailViewModel.hideMail();
         return Promise.resolve(false);
     }
@@ -187,13 +188,9 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail, m
  * Selects the last selected mails if any. If there are no last selected mails, all mails are unselected.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviouslySelectedMails = function() {
-    if (this._lastSelectedMails().length > 0) {
-        this._selectedMails(this._lastSelectedMails());
-        if (this._selectedMails().length == 1) {
-            tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
-        } else {
-            tutao.locator.mailViewModel.hideMail();
-        }
+    if (this._lastShownMail) {
+		this._selectedMails([this._lastShownMail]);
+        tutao.locator.mailViewModel.showMail(this._lastShownMail);
     } else {
         this.unselectAllMails(false);
     }
@@ -306,13 +303,13 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.isSelectedMail = function(mail
 
 /**
  * Unselects all mails.
- * @param {bool} storeLastSelectedMails True if the last selected mails shall be stored, false otherwise.
+ * @param {bool} storeLastShownMail True if the last shown mail shall be stored, false otherwise.
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function(storeLastSelectedMails) {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.unselectAllMails = function(storeLastShownMail) {
     tutao.locator.mailViewModel.hideMail();
     this._selectedMails([]);
-    if (!storeLastSelectedMails) {
-        this._lastSelectedMails([]);
+    if (!storeLastShownMail) {
+        this._lastShownMail = null;
     }
 };
 
@@ -336,6 +333,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.finallyDeleteMails = function(
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to remove.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) {
+    var mailWasShown = (this._lastShownMail != null);
     var selectedMailIndex = -1;
     for (var i=0; i<mails.length; i++) {
         if (this.isSelectedMail(mails[i])) {
@@ -343,15 +341,17 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) 
             this._selectedMails.remove(mails[i]);
             tutao.locator.mailViewModel.hideMail();
         }
-        this._lastSelectedMails.remove(mails[i]);
+        if (this._lastShownMail == mails[i]) {
+            this._lastShownMail = null;
+        }
         this._loadedMails.remove(mails[i]);
     }
 
-    // select the next mail
+    // select the next mail if a mail was shown before
     if (selectedMailIndex != -1) {
         selectedMailIndex = Math.min(selectedMailIndex, this._loadedMails().length - 1);
     }
-    if (selectedMailIndex != -1) {
+    if (mailWasShown && selectedMailIndex != -1) {
         this.selectMail(this._loadedMails()[selectedMailIndex]);
     } else {
         tutao.locator.mailViewModel.hideMail();
