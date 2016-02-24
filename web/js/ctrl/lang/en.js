@@ -669,6 +669,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "pushIdentiferNumber_label" : "Identifier",
   "pushIdentiferInfoMessage_msg" : "List of all devices receiving push notifications for the current Tutanota user. You can delete an entry if you do not whish to receive notifications on this device anymore.",
   "pushIdentiferCurrentDevice_label" : "This device",
-  "nbrOfMailsSelected_msg": "{1} emails selected."
-
+  "nbrOfMailsSelected_msg": "{1} emails selected.",
+    "oneMailSelected_msg": "1 email selected."
 };

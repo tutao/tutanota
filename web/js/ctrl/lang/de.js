@@ -669,5 +669,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "pushIdentiferNumber_label" : "Identifikationsnummer",
   "pushIdentiferInfoMessage_msg" : "Auflistung aller Geräte, die für diesen Tutanota-Benutzer Push-Benachrichtigungen erhalten. Ein Eintrag kann entfernt werden, falls keine Benachrichtigungen zu diesem Benutzer erwünscht sind.",
   "pushIdentiferCurrentDevice_label" : "Dieses Gerät",
-  "nbrOfMailsSelected_msg": "{1} E-Mails ausgewählt."
+  "nbrOfMailsSelected_msg": "{1} E-Mails ausgewählt.",
+    "oneMailSelected_msg": "1 E-Mail ausgewählt."
 };
