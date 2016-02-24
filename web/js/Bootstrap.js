@@ -14,7 +14,7 @@ tutao.tutanota.Bootstrap.init = function () {
         $(document).off();
         $(window).off();
 		
-        if (typeof StatusBar != 'undefined') {
+        if (typeof StatusBar != 'undefined' && tutao.env.isIOSApp()) {
 			StatusBar.overlaysWebView(false);
 			StatusBar.backgroundColorByHexString('#f8f8f8');
 			StatusBar.styleDefault();
