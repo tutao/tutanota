@@ -94,7 +94,7 @@
 	
   </platform>
 
-
+  <preference name="FadeSplashScreen" value="false"/>
   <preference name="AndroidLaunchMode" value="singleTop"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
