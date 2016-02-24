@@ -85,55 +85,64 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 tutao.tutanota.security.CajaSanitizer.prototype._preventExternalImageLoading = function(htmlNodes) {
 	for( var i=0; i<htmlNodes.length; i++) {
 		var htmlNode = htmlNodes[i];
-		// find external images
-		this._replaceImageTags(htmlNode);
-		// find external background images
-		this._replaceBackgroundImages(htmlNode);
-		// restore html links
-		this._restoreHtmlLink(htmlNode);
+		if (htmlNode.attributes){
+			// find external images
+			this._replaceImageTags(htmlNode);
+			// find external background images
+			this._replaceBackgroundImages(htmlNode);
+			// restore html links
+			this._restoreHtmlLink(htmlNode);
 
-		this._preventExternalImageLoading(htmlNodes[i].childNodes);
+			this._preventExternalImageLoading(htmlNodes[i].childNodes);
+		}
 	}
 };
 
 
 tutao.tutanota.security.CajaSanitizer.prototype._replaceImageTags = function(htmlNode) {
-	var imageSrc = htmlNode.src || htmlNode.poster;
-	if (imageSrc){
-		var replacementEntry = this._getReplacementEntry(imageSrc);
+	var imageSrcAttr = htmlNode.attributes.getNamedItem('src') || htmlNode.attributes.getNamedItem('poster');
+	if (imageSrcAttr){
+		var replacementEntry = this._getReplacementEntry(imageSrcAttr.value);
 		if (replacementEntry){
-			if (htmlNode.src){
-				htmlNode.src = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-			}
-			if (htmlNode.poster){
-				htmlNode.poster = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
-			}
+			imageSrcAttr.value = tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
+			htmlNode.attributes.setNamedItem(imageSrcAttr);
 		}
 	}
 };
 
 tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = function(htmlNode) {
-	if (htmlNode.style && htmlNode.style.backgroundImage){
+	var htmlNodeStyleAttr = htmlNode.attributes.getNamedItem('style');
+	if (htmlNodeStyleAttr){
+		var styleElement = document.createElement("STYLE");
+		styleElement.style.cssText = htmlNodeStyleAttr.value;
+		var backgroundImage = styleElement.style.backgroundImage;
+		if ( backgroundImage){
+			//htmlNode.attributes.removeNamedItem('style');
+			// remove surrounding url definition. url(<link>)
+			backgroundImage = backgroundImage.replace(/^url\("*/, "");
+			backgroundImage = backgroundImage.replace(/"*\)$/, "");
 
-		// remove surrounding url definition. url(<link>)
-		var backgroundImage = htmlNode.style.backgroundImage;
-		backgroundImage = backgroundImage.replace(/^url\("*/, "");
-		backgroundImage = backgroundImage.replace(/"*\)$/, "");
-
-		var replacementEntry = this._getReplacementEntry(backgroundImage);
-		if(replacementEntry){
-			htmlNode.style.backgroundImage = "url(" + tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + ")";
+			var replacementEntry = this._getReplacementEntry(backgroundImage);
+			if(replacementEntry){
+				styleElement.style.backgroundImage =  "url(" + tutao.entity.tutanota.TutanotaConstants.PREVENT_EXTERNAL_IMAGE_LOADING_ICON + ")";
+				htmlNodeStyleAttr.value = styleElement.style.cssText;
+				htmlNode.attributes.setNamedItem(htmlNodeStyleAttr);
+			}
 		}
 	}
 };
 
 tutao.tutanota.security.CajaSanitizer.prototype._restoreHtmlLink = function(htmlNode) {
 	var originalReference = htmlNode.href;
-	if (htmlNode.href && htmlNode.localName == "a"){
-		var replacementEntry = this._getReplacementEntry(htmlNode.href);
-		if (replacementEntry){
-			htmlNode.href = replacementEntry.original;
-			replacementEntry.isLink = true;
+	if (htmlNode.localName == "a" ){
+		var hrefAttr = htmlNode.attributes.getNamedItem('href');
+		if (hrefAttr) {
+			var replacementEntry = this._getReplacementEntry(hrefAttr.value);
+			if (replacementEntry){
+				hrefAttr.value = replacementEntry.original;
+				htmlNode.attributes.setNamedItem(hrefAttr);
+				replacementEntry.isLink = true;
+			}
 		}
 	}
 };
