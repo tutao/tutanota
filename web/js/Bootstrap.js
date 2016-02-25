@@ -14,11 +14,7 @@ tutao.tutanota.Bootstrap.init = function () {
         $(document).off();
         $(window).off();
 		
-        if (typeof StatusBar != 'undefined') {
-			StatusBar.overlaysWebView(false);
-			StatusBar.backgroundColorByHexString('#f8f8f8');
-			StatusBar.styleDefault();
-        }
+		
 		
         if (tutao.tutanota.util.ClientDetector.isSupported()) {
             $(window).unload(function () {
@@ -115,14 +111,18 @@ tutao.tutanota.Bootstrap.init = function () {
 					var windowHeight = $(window).height();
 					var targetHeight = windowHeight - e.keyboardHeight;
 					if ( element.height() != targetHeight){
-						element.velocity({height: targetHeight + "px"});
+						element.velocity({height: targetHeight + "px"}, { duration: 100 });
 					}
 				});
 			
 				window.addEventListener('native.keyboardhide', function (){
 					var element = $("body");
-					element.velocity({height: "100%"}, { duration: 300 });
+					element.velocity({height: "100%"}, { duration: 100 });
 				});
+				
+				StatusBar.styleDefault();
+				StatusBar.backgroundColorByHexString('#f8f8f8');				
+				StatusBar.overlaysWebView(false);
 			}
         }
 

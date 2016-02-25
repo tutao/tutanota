@@ -91,10 +91,12 @@
     </feature>
 
     <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+	<preference name="StatusBarStyle" value="default" />
+	<preference name="StatusBarOverlaysWebView" value="false" />
 	
   </platform>
 
-
+  <preference name="FadeSplashScreen" value="false"/>
   <preference name="AndroidLaunchMode" value="singleTop"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
   <preference name="iosPersistentFileLocation" value="Library"/>
