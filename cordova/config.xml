@@ -91,6 +91,8 @@
     </feature>
 
     <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+	<preference name="StatusBarStyle" value="default" />
+	<preference name="StatusBarOverlaysWebView" value="false" />
 	
   </platform>
 
