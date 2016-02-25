@@ -107,7 +107,7 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
             tutao.locator.mailViewModel.editDraft(self);
         }, null, false, "newMailAction", "mail-new"));
     } else {
-        this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, false, "newMailAction", "mail-new"));
+        this.buttons.push(new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, isInternalUserLoggedIn, true, "newMailAction", "mail-new"));
     }
 
     this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);

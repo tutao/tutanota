@@ -192,6 +192,7 @@ tutao.tutanota.ctrl.ViewSlider.prototype.setScreenWidth = function(screenWidth) 
  * Adjusts the layout of the view columns according to their properties (prio, min/max width).
  * This function must be called once after the initialization of the ViewSlider
  * is finished (setViewPositionAndSizeReceiver, initial setScreenWidth and addViewColumn for all view columns).
+ * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.ViewSlider.prototype.showDefault = function() {
 	var initial = !this._initialized;
@@ -204,14 +205,22 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showDefault = function() {
 
 		this._minVisibleColumn = this._defaultViewStartIndex;
 		this._maxVisibleColumn = this._defaultViewEndIndex;
-		this.notifyViewPosition(initial);
-	}
-    this.notifyColumnChange();
+        var self = this;
+        // run notifyColumnChange async to avoid wrong column names when it is called too early
+        setTimeout(function() {
+            self.notifyColumnChange();
+        }, 0);
+		return this.notifyViewPosition(initial);
+	} else {
+        this.notifyColumnChange();
+        return Promise.resolve();
+    }
 };
 
 /**
  * Calculates the view position according to the minimum visible column and notifies the position receiver.
  * @param {boolean} initial Indicates if this is an initial notification.
+ * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.ViewSlider.prototype.notifyViewPosition = function(initial) {
 	var x = 0;
@@ -223,14 +232,16 @@ tutao.tutanota.ctrl.ViewSlider.prototype.notifyViewPosition = function(initial) 
 	if (viewWidth < this._screenWidth) {
 		x = (this._screenWidth - viewWidth) / 2;
 	}
-	this._receiver(x, viewWidth, initial);
+	return this._receiver(x, viewWidth, initial);
 };
 
 /**
  * Adjusts the view column positions to make the given view column visible.
  * @param {number} viewColumnId The id of the view columns that shall be made visible.
+ * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId) {
+    var self = this;
 	var initial = !this._initialized; // this may be initial after a screen width change
 	if (!this._initialized) {
 		this._initColumns();
@@ -274,7 +285,11 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 		}
 		this._minVisibleColumn = newMin;
 		this._maxVisibleColumn = newMax;
-		this.notifyViewPosition(initial);
+        // run notifyColumnChange async to avoid wrong column names when it is called too early
+        setTimeout(function() {
+            self.notifyColumnChange();
+        }, 0);
+		return this.notifyViewPosition(initial);
 	} else	if (viewColumnId < this._minVisibleColumn) {
 		// move the view as little as possible so that the column becomes visible
 		// calculate the visible columns
@@ -286,7 +301,11 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 			index++;
 		}
 		this._maxVisibleColumn = index - 1;
-		this.notifyViewPosition(initial);
+        // run notifyColumnChange async to avoid wrong column names when it is called too early
+        setTimeout(function() {
+            self.notifyColumnChange();
+        }, 0);
+		return this.notifyViewPosition(initial);
 	} else if (viewColumnId > this._maxVisibleColumn) {
 		// calculate the visible columns
 		this._maxVisibleColumn = viewColumnId;
@@ -297,9 +316,12 @@ tutao.tutanota.ctrl.ViewSlider.prototype.showViewColumn = function(viewColumnId)
 			index--;
 		}
 		this._minVisibleColumn = index + 1;
-		this.notifyViewPosition(initial);
+        // run notifyColumnChange async to avoid wrong column names when it is called too early
+        setTimeout(function() {
+            self.notifyColumnChange();
+        }, 0);
+        return this.notifyViewPosition(initial);
 	}
-    this.notifyColumnChange();
 };
 
 /**

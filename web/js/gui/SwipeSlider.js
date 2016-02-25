@@ -26,7 +26,7 @@ tutao.tutanota.gui.SwipeSlider = function(view, contentDivId, updateColumnCallba
         this._viewSlider.setViewPositionAndSizeReceiver(function(x, y, initial) {
             self._leftmostVisibleColumn(self._viewSlider.getLeftmostVisibleColumnId());
             self._rightmostVisibleColumn(self._viewSlider.getRightmostVisibleColumnId());
-            tutao.tutanota.gui.viewPositionAndSizeReceiver("#" + contentDivId, x, y, initial);
+            return tutao.tutanota.gui.viewPositionAndSizeReceiver("#" + contentDivId, x, y, initial);
         });
     }
     this._firstActivation = true;

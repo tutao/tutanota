@@ -17,6 +17,8 @@ tutao.tutanota.ctrl.MailFolderListViewModel = function() {
     this._folders = ko.observableArray();
 
     this.buttonBarViewModel = null;
+
+    this._mailListColumnContentLoader = new tutao.util.ColumnContentLoader();
 };
 
 /**
@@ -87,24 +89,37 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSystemFolder = function
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(folder) {
     tutao.locator.mailListViewModel.disableMobileMultiSelect();
     var self = this;
-    if (this.selectedFolder() == folder) {
-        tutao.locator.mailView.showDefaultColumns();
-        return Promise.resolve();
+    if (this.selectedFolder() == folder && this._mailListColumnContentLoader.getObjectToLoad() == null) {
+        return tutao.locator.mailView.showDefaultColumns();
     } else {
         return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
             if (confirmed) {
                 var oldFolder = self.selectedFolder();
-                self.selectedFolder(folder);
-                return folder.selected().then(function () {
-                    tutao.locator.mailView.showDefaultColumns();
+                self._mailListColumnContentLoader.load(folder, !tutao.locator.mailView.isMailListColumnVisible(), function(instruction) {
+                    if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SLIDE_COLUMN) {
+                        return tutao.locator.mailView.showDefaultColumns();
+                    } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_LOAD_CONTENT) {
+                        return folder.selected();
+                    } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SHOW_BUSY) {
+                        tutao.locator.mailListViewModel.switchingFolders(true);
+                        return Promise.resolve();
+                    }
+                }).then(function() {
+                    self.selectedFolder(folder);
+                    tutao.locator.mailListViewModel.switchingFolders(false);
                 }).caught(tutao.NotAuthorizedError, function() {
                     // the folder has been deleted - should not occur if full sync is available.
                     folder.updateOnRemovedFolder();
                     self.selectedFolder(oldFolder);
+                    tutao.locator.mailListViewModel.switchingFolders(false);
                 });
             }
         });
     }
+};
+
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.showAsSelected = function(folder) {
+    return (this.selectedFolder() == folder) || (this._mailListColumnContentLoader.getObjectToLoad() == folder);
 };
 
 

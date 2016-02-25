@@ -856,16 +856,22 @@ tutao.tutanota.gui.unselect = function(elements) {
  * @param {number} left Left position of the view.
  * @param {number} width The width of the view.
  * @param {boolean} initial True if this is the first time the values are set.
+ * @return {Promise} When finished.
  */
 tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, width, initial) {
-	// the transition is done via css
-	if (initial || tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID) {
-        // transitions on older androids are horribly slow
-		$(domElement).css("left", left + "px");
-		$(domElement).css("width", width + "px");
-	} else {
-        $(domElement).velocity({left: left + "px", width: width + "px"}, { duration: 300 });
-	}
+    return new Promise(function(resolve, reject) {
+        // the transition is done via css
+        if (initial || tutao.tutanota.util.ClientDetector.getBrowserType() == tutao.tutanota.util.ClientDetector.BROWSER_TYPE_ANDROID) {
+            // transitions on older androids are horribly slow
+            $(domElement).css("left", left + "px");
+            $(domElement).css("width", width + "px");
+            resolve();
+        } else {
+            $(domElement).velocity({left: left + "px", width: width + "px"}, { duration: 300, complete: function() {
+                resolve();
+            }});
+        }
+    });
 };
 
 /**

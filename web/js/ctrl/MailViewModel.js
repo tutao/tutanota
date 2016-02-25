@@ -9,7 +9,7 @@ tutao.provide('tutao.tutanota.ctrl.MailViewModel');
 tutao.tutanota.ctrl.MailViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
-	this.mail = ko.observable();
+	this.mail = ko.observable(null);
 	this.showSpinner = ko.observable(false);
     this.mail.subscribe(function(){
         // Propagate a columnChange event when the mail changes (e,g. forward an email) to update the column title in the navigation bar.
@@ -18,10 +18,17 @@ tutao.tutanota.ctrl.MailViewModel = function() {
 
     this.width = 0;
 
-    // only contains buttons for the case that no mail is visible, otherwise the buttons of the displayed/composing mail are shown
-    this.buttonBarViewModel = null;
-    this._latestMailToShow = null;
+    this.noMailButtonBarViewModel = null;
+    this.buttonBarViewModel = ko.computed(function() {
+        if (this.mail()) {
+            return this.mail().buttonBarViewModel;
+        } else {
+            return this.noMailButtonBarViewModel;
+        }
+    }, this, { deferEvaluation: true }); // avoid that null is returned before init() is called
     this.notificationBarViewModel = null;
+
+    this._mailListColumnContentLoader = new tutao.util.ColumnContentLoader();
 };
 
 tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
@@ -29,20 +36,20 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
 
     this.buttons = [
         new tutao.tutanota.ctrl.Button("move_action", 9, function() {}, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0);
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !self.showSpinner();
         }, false, "moveAction", "moveToFolder", null, null, null, function() {
             var buttons = [];
             tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons(buttons, tutao.locator.mailFolderListViewModel.getMailFolders(), tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails());
             return buttons;
         }),
         new tutao.tutanota.ctrl.Button("delete_action", 8, tutao.locator.mailListViewModel.deleteSelectedMails, function() {
-            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0);
+            return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !self.showSpinner();
         }, false, "trashMultipleAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 11, tutao.locator.navigator.newMail, function() {
             return tutao.locator.userController.isInternalUserLoggedIn();
         }, false, "newMailAction", "mail-new")
     ];
-    this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
+    this.noMailButtonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
     this.notificationBarViewModel = new tutao.tutanota.ctrl.NotificationBarViewModel();
 
     tutao.locator.mailView.getSwipeSlider().getViewSlider().addWidthObserver(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION, function (width) {
@@ -52,7 +59,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
             self.mail().buttonBarViewModel.setButtonBarWidth(self.width - 6);
             self.notificationBarViewModel.buttonBarViewModel.setButtonBarWidth( (self.width / 5)*2 - 6 ); // keep in sync with css div.notificationButtons width 40%
         }
-        self.buttonBarViewModel.setButtonBarWidth(width - 6);
+        self.noMailButtonBarViewModel.setButtonBarWidth(width - 6);
 
     });
     this.mail.subscribe(function (newMail) {
@@ -67,44 +74,38 @@ tutao.tutanota.ctrl.MailViewModel.prototype.init = function () {
 /**
  * Shows the given mail
  * @param {tutao.entity.tutanota.Mail} mail The mail to show.
- * @return Promise
+ * @param {bool} showConversationColumn True if the view shall be switched to the conversation column, false otherwise.
+ * @return {Promise} When finished.
  */
-tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail) {
+tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail, showConversationColumn) {
     var self = this;
-    if (this.mail() && mail == this.mail().mail) {
-        return Promise.resolve();
+    if (this.mail() && mail == this.mail().mail && this._mailListColumnContentLoader.getObjectToLoad() == null) {
+        if (showConversationColumn && !tutao.locator.mailView.isConversationColumnVisible()) {
+            return tutao.locator.mailView.showConversationColumn();
+        } else {
+            return Promise.resolve();
+        }
     }
 
     var currentMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
-    this._latestMailToShow = currentMail;
-
-    // if the conversation column is not visible, directly show the spinner to avoid that the old email is shortly visible when switching to the conversation column
-    if (tutao.locator.mailView.isConversationColumnVisible()) {
-        // only show the spinner after 200ms if the conversation has not been loaded till then
-        setTimeout(function() {
-            if (self.mail() != currentMail && self._latestMailToShow == currentMail) {
-                self.mail(null);
-                self.showSpinner(true);
-            }
-        }, 200);
-    } else {
-        self.mail(null);
-        self.showSpinner(true);
-    }
-
-    return currentMail.load().then(function(){
-        if (self._latestMailToShow == currentMail ) {
-            self.showSpinner(false);
-            self.mail(currentMail);
-            currentMail.mail.loadConversationEntry();
+    this._mailListColumnContentLoader.load(mail, showConversationColumn && !tutao.locator.mailView.isConversationColumnVisible(), function(instruction) {
+        if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SLIDE_COLUMN) {
+            return tutao.locator.mailView.showConversationColumn();
+        } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_LOAD_CONTENT) {
+            return currentMail.load().then(function() {
+                currentMail.mail.loadConversationEntry();
+            });
+        } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SHOW_BUSY) {
+            self.mail(null);
+            self.showSpinner(true);
+            return Promise.resolve();
         }
+    }).then(function() {
+        self.showSpinner(false);
+        self.mail(currentMail);
     }).caught(tutao.NotFoundError, tutao.NotAuthorizedError, function() {
         // the email seems to be deleted: NotFoundError if the mail body was deleted, NotAuthorizedError if the mail body permission only exists for the sender/recipient
-    }).lastly( function(){
-        if (self._latestMailToShow == currentMail ) {
-            self._latestMailToShow = null; // avoids that in case of an exception the spinner is started above after the timeout
-            self.showSpinner(false);
-        }
+        self.showSpinner(false);
     });
 };
 

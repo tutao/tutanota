@@ -125,6 +125,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
         self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
     }).caught(tutao.AccessDeactivatedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+    }).caught(tutao.ConnectionError, function(e) {
+        self.loginStatus({ type: "neutral", text: "emptyString_msg" });
+        throw e;
     }).lastly(function() {
         self.loginOngoing(false);
     });

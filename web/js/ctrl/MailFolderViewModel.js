@@ -150,7 +150,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSelectedMails = function() 
  * Selects the given mail.
  * @return Promise
  */
-tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
+tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail, showConversationColumn) {
     var self = this;
     if (mail.getUnread()) {
         mail.setUnread(false);
@@ -162,25 +162,23 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail) {
     }
     this._selectedMails([mail]);
     this._lastShownMail = mail;
-    return tutao.locator.mailViewModel.showMail(mail);
+    return tutao.locator.mailViewModel.showMail(mail, showConversationColumn);
 };
 
 /**
  * Handles a click on the given mail. Shows the clicked mail if it is not a multiselect operation.
  * @param {tutao.entity.tutanota.Mail} mail The mail that was clicked.
  * @param {bool} mobileMultiSelectionActive True if multi selection on a mobile device is active. Toggles selection of the clicked mail.
- * @return Promise<bool> True if the mail was shown, but not visible before, false otherwise.
+ * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail, mobileMultiSelectionActive) {
     var multiSelectOperation = tutao.util.ListSelectionUtils.itemClicked(this._loadedMails, this._selectedMails, mail, mobileMultiSelectionActive);
     if (!multiSelectOperation && this._selectedMails().length == 1) {
-        return this.selectMail(this._selectedMails()[0]).then(function() {
-            return !multiSelectOperation;
-        });
+        return this.selectMail(this._selectedMails()[0], true);
     } else {
         this._lastShownMail = null;
         tutao.locator.mailViewModel.hideMail();
-        return Promise.resolve(false);
+        return Promise.resolve();
     }
 };
 
@@ -190,7 +188,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.mailClicked = function(mail, m
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviouslySelectedMails = function() {
     if (this._lastShownMail) {
 		this._selectedMails([this._lastShownMail]);
-        tutao.locator.mailViewModel.showMail(this._lastShownMail);
+        tutao.locator.mailViewModel.showMail(this._lastShownMail, false);
     } else {
         this.unselectAllMails(false);
     }
@@ -214,7 +212,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectPreviousMail = function(
 
     for (var i=1; i<this._loadedMails().length; i++) {
         if (this._loadedMails()[i] == this._selectedMails()[0]) {
-            this.selectMail(this._loadedMails()[i - 1]);
+            this.selectMail(this._loadedMails()[i - 1], false);
             break;
         }
     }
@@ -230,7 +228,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectNextMail = function() {
 
     for (var i=0; i<this._loadedMails().length - 1; i++) {
         if (this._loadedMails()[i] == this._selectedMails()[0]) {
-            this.selectMail(this._loadedMails()[i + 1]);
+            this.selectMail(this._loadedMails()[i + 1], false);
             break;
         }
     }
@@ -281,7 +279,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.selected = function() {
     } else {
         if (this._selectedMails().length > 0) {
             if (this._selectedMails().length == 1) {
-                tutao.locator.mailViewModel.showMail(this._selectedMails()[0]);
+                tutao.locator.mailViewModel.showMail(this._selectedMails()[0], false);
             } else {
                 tutao.locator.mailViewModel.hideMail();
             }
@@ -352,7 +350,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) 
         selectedMailIndex = Math.min(selectedMailIndex, this._loadedMails().length - 1);
     }
     if (mailWasShown && selectedMailIndex != -1) {
-        this.selectMail(this._loadedMails()[selectedMailIndex]);
+        this.selectMail(this._loadedMails()[selectedMailIndex], false);
     } else {
         tutao.locator.mailViewModel.hideMail();
     }

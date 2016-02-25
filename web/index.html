@@ -112,10 +112,10 @@
 <script src="/lib/hammer-2.0.4.js"></script>
 <script src="/lib/html-css-sanitizer-r5333-fix1.min.js"></script>
 <script src="/lib/jquery-2.2.1.js"></script>
-<script src="/lib/velocity.min.js"></script>
 <script src="/lib/knockout-2.2.1.js"></script>
 <script src="/lib/operative-0.3.1.js"></script>
 <script src="/lib/path-2012-10-03.js"></script>
+<script src="/lib/velocity.min.js"></script>
 <script src="/lib/worker/base.js"></script>
 <script src="/lib/worker/base64shim.js"></script>
 <script src="/lib/worker/crypto-jsbn-2012-08-09_1.js"></script>
@@ -524,6 +524,7 @@
 <script src="/js/util/Assert.js"></script>
 <script src="/js/util/BookingUtils.js"></script>
 <script src="/js/util/ClientDetector.js"></script>
+<script src="/js/util/ColumnContentLoader.js"></script>
 <script src="/js/util/CountryList.js"></script>
 <script src="/js/util/CsvConverter.js"></script>
 <script src="/js/util/DataFile.js"></script>
@@ -600,8 +601,8 @@
                             <span data-bind="text: tutao.lang('loadMoreMails_action'), visible: !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></span>
 							<div class="fontImage spinner" data-bind="visible: tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
                         </div>
-                        <div class="infoMessage emptyMailList" data-bind="lang: 'noMails_msg', visible: (getMails().length == 0) && !tutao.locator.mailFolderListViewModel.selectedFolder().loading()"></div>
-                        <div class="infoMessage emptyMailList" data-bind="visible: showSpinner()">
+                        <div class="infoMessage centered" data-bind="lang: 'noMails_msg', visible: (getMails().length == 0) && !tutao.locator.mailFolderListViewModel.selectedFolder().loading() && !showSpinner()"></div>
+                        <div class="infoMessage centered" data-bind="visible: showSpinner()">
 							<div class="fontImage spinner"></div>
                         </div>
 					</section>
@@ -609,19 +610,12 @@
 			</div>
 
 			<div id="conversationColumn" class="viewColumn" data-bind="with: tutao.locator.mailViewModel">
-                <!-- ko ifnot: mail -->
-                <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
-                <!-- /ko -->
-				<div class="fontImage spinner spinnerActionBar" data-bind="visible: showSpinner"></div>
-                <div id="noMail" class="infoMessage" data-bind="visible: (mail() == null && !showSpinner())">
-                    <div data-bind="text: getMailSelectionMessage()"></div><br>
+                <div class="actions" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: buttonBarViewModel() }'></div>
+                <div class="infoMessage centered" data-bind="text: getMailSelectionMessage(), visible: (mail() == null && !showSpinner())"></div>
+                <div class="infoMessage centered" data-bind="visible: showSpinner() || (isComposingState() && mail().busy())">
+                    <div class="fontImage spinner"></div>
                 </div>
-				<div id="innerConversationColumn">
-                    <!-- ko if: mail -->
-                    <div class="actions" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: mail().buttonBarViewModel }'></div>
-                    <!-- ko if: isComposingState() -->
-					<div class="fontImage spinner spinnerActionBar" data-bind="visible: mail().busy"></div>
-                    <!-- /ko -->
+				<div id="innerConversationColumn" data-bind="visible: mail() && !showSpinner() && !(isComposingState() && mail().busy())">
 					<div class="notificationBar" data-bind='visible : notificationBarViewModel.isVisible '>
 						<div class="notificationMessage" data-bind="lang: notificationBarViewModel.messageTextId"></div>
 						<div class="notificationButtons" data-bind='css: { mobile: tutao.tutanota.util.ClientDetector.isMobileDevice() && !isComposingState() }, template: { name: "buttonBar-template",  data: notificationBarViewModel.buttonBarViewModel }'>
@@ -795,7 +789,6 @@
 							</div>
 						<!-- /ko -->
 					</section>
-                    <!-- /ko -->
 				</div>
 			</div>
 			<div id="passwordChannelColumn" class="viewColumn" data-bind="with: tutao.locator.passwordChannelViewModel">
@@ -859,16 +852,14 @@
 								</div>
 							</div>
 						</div>
-						<div id="emptyContactList" class="infoMessage" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
+						<div class="infoMessage centered" data-bind="lang: 'noContacts_msg', visible: (contacts().length == 0)"></div>
 					</section>
 				</div>
 				<!-- <button data-bind="fastClick: function() { importThunderbirdContactsAsCsv(); }">import</button> -->
 			</div>
 
 			<div id="contactColumn" class="viewColumn" data-bind="with: tutao.locator.contactViewModel">
-				<div id="noContact" class="infoMessage" data-bind="visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)">
-					<div data-bind="lang: 'noContact_msg'"></div><br>
-				</div>
+				<div class="infoMessage centered" data-bind="lang: 'noContact_msg', visible: (mode() === tutao.tutanota.ctrl.ContactViewModel.MODE_NONE)"></div>
                 <div class="actions" data-bind='template: { name: "buttonBar-template",  data: buttonBarViewModel }'></div>
                 <div id="innerContactColumn" class="scrollable">
 					<div id="contactWrapper">
@@ -2392,7 +2383,7 @@
     <script type="text/html" id="mailFolder-template">
         <!-- provided data: vm (the MailFolderListViewModel), folders (the array of MailFolderViewModels) -->
         <div data-bind="foreach: folders()">
-            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.selectedFolder() == $data) ? ' selected' : '') + (isCustomFolder() ? ' indented' : '') ,fastClick: $parent.vm.selectFolder, drop: tutao.locator.mailFolderListViewModel.drop"></div>
+            <div class="menuItem fontImage" tabIndex="0" data-bind="text: getName(), attr: {title: tutao.lang(getTooltipTextId())}, css: getIconId() + (($parent.vm.showAsSelected($data)) ? ' selected' : '') + (isCustomFolder() ? ' indented' : '') ,fastClick: $parent.vm.selectFolder, drop: tutao.locator.mailFolderListViewModel.drop"></div>
             <div class="mailFolders" data-bind="template: { name: 'mailFolder-template',  data: { vm: $parent.vm, folders: subFolders } }"></div>
         </div>
     </script>

@@ -84,9 +84,10 @@ tutao.tutanota.gui.MailView.prototype.getSwipeSlider = function() {
 
 /**
  * Makes sure that the default columns are visible (at least including the mail list column).
+ * @return {Promise} When finished.
  */
 tutao.tutanota.gui.MailView.prototype.showDefaultColumns = function() {
-	this._swipeSlider.getViewSlider().showDefault();
+	return this._swipeSlider.getViewSlider().showDefault();
 };
 
 /**
@@ -99,20 +100,13 @@ tutao.tutanota.gui.MailView.prototype.isMailListColumnVisible = function() {
 
 /**
  * Makes sure that the conversation column is visible.
- * @param {function()=} listener The listener to invoke after the conversation column is visible.
+ * @return {Promise} When finished.
  */
-tutao.tutanota.gui.MailView.prototype.showConversationColumn = function(listener) {
+tutao.tutanota.gui.MailView.prototype.showConversationColumn = function() {
 	if (!this.isConversationColumnVisible()) {
-        this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION);
-		if (listener) {
-			setTimeout(function() {
-				listener();
-			}, 400);
-		}
+        return this._swipeSlider.getViewSlider().showViewColumn(tutao.tutanota.gui.MailView.COLUMN_CONVERSATION);
 	} else {
-		if (listener) {
-			listener();
-		}
+		return Promise.resolve();
 	}
 };
 
