@@ -1616,8 +1616,8 @@
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTIFICATION_SETTINGS -->
 							<div data-bind="with: new tutao.tutanota.ctrl.NotificationSettingsViewModel()" >
 								<div class="dataTable">
-									<div class="mediumSizeColumm" data-bind="lang: 'pushIdentiferDeviceType_label'"></div>
-									<div class="" data-bind="lang: 'pushIdentiferNumber_label'"></div>
+									<div class="mediumSizeColumm" data-bind="lang: 'pushIdentifierDeviceType_label'"></div>
+									<div class="" data-bind="lang: 'pushIdentifierNumber_label'"></div>
 									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
@@ -1628,7 +1628,7 @@
 									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removePushIdentifier, attr: {title: tutao.lang('delete_action')}, css: {disabled: !$parent.state.submitEnabled()}"></div>
 								</div>
 								<!-- /ko -->
-								<label class="recordInfo" data-bind="lang: 'pushIdentiferInfoMessage_msg'"></label>
+								<label class="recordInfo" data-bind="lang: 'pushIdentifierInfoMessage_msg'"></label>
 							</div>
 							<!-- /ko -->
 
