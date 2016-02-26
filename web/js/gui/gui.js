@@ -451,6 +451,7 @@ tutao.tutanota.gui.initKnockout = function() {
 
 			// use jquery's animate function instead of velocity because using velocity creates bad effects on the email list (part of email not visible any more)
 			var resetSwipeGesture = function() {
+                // running the animation even if left == 0 would lead to graphic errors when scrolling the email list
                 if (currentlySwipedListElement.position().left != 0) {
                     currentlySwipedListElement.velocity({left: 0}, { duration: DEFAULT_ANIMATION_TIME });
                 }
@@ -479,7 +480,6 @@ tutao.tutanota.gui.initKnockout = function() {
                             };
                             // getting listElement.outerWidth() from the dom element is too expensive, so use the mail list column width
                             var listElementWidth = tutao.locator.mailView.getMailListColumnWidth();
-                            // using velocity leads to graphic errors when scrolling the mail list, e.g. mail list entry not visible any more, so use jquery animations
 							if (swipeLeft) {
                                 currentlySwipedListElement.velocity({left: -(listElementWidth + ACTION_DISTANCE)}, { duration: DEFAULT_ANIMATION_TIME, complete: animateCallback });
 							} else if (bindingContext.$data.isSwipeRightPosssible()) {
