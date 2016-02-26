@@ -447,12 +447,14 @@ tutao.tutanota.gui.initKnockout = function() {
 
 			var ACTION_DISTANCE = 150;
 			var DEFAULT_ANIMATION_TIME = 300;
-			var swipeActive = false;
+            var currentlySwipedListElement = null;
 
 			// use jquery's animate function instead of velocity because using velocity creates bad effects on the email list (part of email not visible any more)
-			var resetSwipeGesture = function(listElement) {
-				swipeActive = false;
-				listElement.animate({left: 0}, DEFAULT_ANIMATION_TIME);
+			var resetSwipeGesture = function() {
+                if (currentlySwipedListElement.position().left != 0) {
+                    currentlySwipedListElement.velocity({left: 0}, { duration: DEFAULT_ANIMATION_TIME });
+                }
+                currentlySwipedListElement = null;
 			};
 
 			// store the function that shall be called when swipe done
@@ -460,37 +462,37 @@ tutao.tutanota.gui.initKnockout = function() {
 			if (typeof Hammer !== 'undefined') {
 				var hammertime = new Hammer($("#searchAndMailListColumn")[0]);
 				hammertime.on("hammer.input", function(ev) {
-                    var listElement = $(ev.target).closest(".listElementContent");
-                    if (listElement.length == 0) {
-                        return;
-                    }
 					var swipeLeft = ev.deltaX < 0;
 					if (ev.eventType == Hammer.INPUT_START) {
-						swipeActive = true;
-					} else if (ev.eventType == Hammer.INPUT_END && swipeActive) {
+                        if (currentlySwipedListElement != null) {
+                            resetSwipeGesture();
+                        }
+                        currentlySwipedListElement = $(ev.target).closest(".listElementContent");
+					} else if (ev.eventType == Hammer.INPUT_END && currentlySwipedListElement != null) {
 						// execute callback
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
 
 							var animateCallback  = function() {
-                                var viewModel = ko.dataFor(listElement.get(0));
+                                var viewModel = ko.dataFor(currentlySwipedListElement.get(0));
+                                currentlySwipedListElement = null;
 								bindingContext.swipeAction(viewModel, swipeLeft);
                             };
                             // getting listElement.outerWidth() from the dom element is too expensive, so use the mail list column width
                             var listElementWidth = tutao.locator.mailView.getMailListColumnWidth();
                             // using velocity leads to graphic errors when scrolling the mail list, e.g. mail list entry not visible any more, so use jquery animations
 							if (swipeLeft) {
-								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)}, DEFAULT_ANIMATION_TIME, animateCallback);
+                                currentlySwipedListElement.velocity({left: -(listElementWidth + ACTION_DISTANCE)}, { duration: DEFAULT_ANIMATION_TIME, complete: animateCallback });
 							} else if (bindingContext.$data.isSwipeRightPosssible()) {
-								listElement.animate({left: listElementWidth + ACTION_DISTANCE}, DEFAULT_ANIMATION_TIME, animateCallback);
+                                currentlySwipedListElement.velocity({left: listElementWidth + ACTION_DISTANCE}, { duration: DEFAULT_ANIMATION_TIME, complete: animateCallback });
 							}
 						} else {
-							resetSwipeGesture(listElement);
+							resetSwipeGesture();
 						}
-					} else if (ev.eventType == Hammer.INPUT_CANCEL) {
-						resetSwipeGesture(listElement);
-					} else if (ev.eventType == Hammer.INPUT_MOVE && swipeActive) {
+					} else if (ev.eventType == Hammer.INPUT_CANCEL && currentlySwipedListElement != null) {
+						resetSwipeGesture();
+					} else if (ev.eventType == Hammer.INPUT_MOVE && currentlySwipedListElement != null) {
 						if (Math.abs(ev.deltaY) > 40 ){
-							resetSwipeGesture(listElement);
+							resetSwipeGesture();
 						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
 							var newContentLeft = ev.deltaX;
 							// Do not animate the swipe gesture more than necessary
@@ -501,7 +503,7 @@ tutao.tutanota.gui.initKnockout = function() {
 							}
 							if (swipeLeft || bindingContext.$data.isSwipeRightPosssible()) {
 								// animate swipe gesture
-								listElement.css('left', newContentLeft);
+                                currentlySwipedListElement.css('left', newContentLeft);
 								ev.preventDefault();
 							}
 						}
