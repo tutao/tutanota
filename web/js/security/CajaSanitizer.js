@@ -133,7 +133,6 @@ tutao.tutanota.security.CajaSanitizer.prototype._replaceBackgroundImages = funct
 };
 
 tutao.tutanota.security.CajaSanitizer.prototype._restoreHtmlLink = function(htmlNode) {
-	var originalReference = htmlNode.href;
 	if (htmlNode.localName == "a" ){
 		var hrefAttr = htmlNode.attributes.getNamedItem('href');
 		if (hrefAttr) {
