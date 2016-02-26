@@ -42,7 +42,7 @@ tutao.util.ColumnContentLoader.prototype.load = function(objectToLoad, slideToTa
                     if (self._currentObjectToLoad() == objectToLoad) {
                         self._currentObjectToLoad(null);
                         finished = true;
-                        resolve(objectToLoad);
+                        resolve();
                     }
                 }).caught(function(e) {
                     handleError(e);

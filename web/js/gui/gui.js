@@ -311,12 +311,6 @@ tutao.tutanota.gui.initKnockout = function() {
 			var previousView = ko.bindingHandlers.slideView.previousView;
 			if (previousView != newView) {
 				var finishedHandler = function () {
-					// TODO remove, after https://github.com/rstacruz/jquery.transit/issues/158 has been fixed
-                    var views = $([newView, previousView]);
-					views.css('-webkit-transform', '');
-                    views.css('-ms-transform', '');
-                    views.css('transform', '');
-
 					ko.bindingHandlers.slideView.previousView = newView;
 					slideViewQueue.shift();
 					if (slideViewQueue.length > 0) {
@@ -447,7 +441,7 @@ tutao.tutanota.gui.initKnockout = function() {
         }
     };
 
-    // must be set on the mail list. handles swipe for all indivitual mail entries in the list.
+    // must be set on the mail list. handles swipe for all individual mail entries in the list.
 	ko.bindingHandlers.swipe = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 
@@ -483,6 +477,7 @@ tutao.tutanota.gui.initKnockout = function() {
                             };
                             // getting listElement.outerWidth() from the dom element is too expensive, so use the mail list column width
                             var listElementWidth = tutao.locator.mailView.getMailListColumnWidth();
+                            // using velocity leads to graphic errors when scrolling the mail list, e.g. mail list entry not visible any more, so use jquery animations
 							if (swipeLeft) {
 								listElement.animate({left: -(listElementWidth + ACTION_DISTANCE)}, DEFAULT_ANIMATION_TIME, animateCallback);
 							} else if (bindingContext.$data.isSwipeRightPosssible()) {

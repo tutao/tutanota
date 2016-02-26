@@ -119,7 +119,11 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(fo
 };
 
 tutao.tutanota.ctrl.MailFolderListViewModel.prototype.showAsSelected = function(folder) {
-    return (this.selectedFolder() == folder) || (this._mailListColumnContentLoader.getObjectToLoad() == folder);
+	if (this._mailListColumnContentLoader.getObjectToLoad()) {
+		return (this._mailListColumnContentLoader.getObjectToLoad() == folder);
+	} else {
+	    return (this.selectedFolder() == folder);
+	}
 };
 
 
