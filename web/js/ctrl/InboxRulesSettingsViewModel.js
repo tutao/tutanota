@@ -104,7 +104,7 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.addInboxRule = functio
 };
 
 tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype.removeInboxRule = function(inboxRuleListEntry) {
-    this.userProperties.inboxRules.splice(inboxRuleListEntry, 1);
+    this.userProperties.inboxRules.remove(inboxRuleListEntry);
     this._updateTutanotaProperties();
 };
 

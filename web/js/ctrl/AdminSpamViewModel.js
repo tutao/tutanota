@@ -122,8 +122,8 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype.addEmailSenderListEntry = funct
     this._updateServerProperties().then(function(){self.domainOrMailAddress("")});
 };
 
-tutao.tutanota.ctrl.AdminSpamViewModel.prototype.removeEmailSenderListEntry = function(emailSenderListEntryIndex) {
-    this.customerServerProperties().emailSenderList.splice(emailSenderListEntryIndex, 1);
+tutao.tutanota.ctrl.AdminSpamViewModel.prototype.removeEmailSenderListEntry = function(emailSenderListEntry) {
+    this.customerServerProperties().emailSenderList.remove(emailSenderListEntry);
     this._updateServerProperties();
 };
 

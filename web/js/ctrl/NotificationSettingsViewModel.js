@@ -28,7 +28,7 @@ tutao.tutanota.ctrl.NotificationSettingsViewModel.prototype.removePushIdentifier
     if (!this.state.submitEnabled()){
         return;
     }
-    this.pushIdentifierListElements.splice(pushIdentifierListElement, 1);
+    this.pushIdentifierListElements.remove(pushIdentifierListElement);
     var self = this;
     self.state.submitting(true);
     return pushIdentifierListElement.erase().caught(tutao.NotFoundError, function(e) {
