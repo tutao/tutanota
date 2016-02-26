@@ -1594,7 +1594,7 @@
 									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
 									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
 									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
-									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeInboxRule($index());}, attr: {title: tutao.lang('delete_action')}"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removeInboxRule, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
 								<div class="dataTable">
@@ -1948,7 +1948,7 @@
 								<div class="dataTable">
 									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
 									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
-									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.removeEmailSenderListEntry($index());}, attr: {title: tutao.lang('delete_action')}"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removeEmailSenderListEntry, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
 								<div class="dataTable">
