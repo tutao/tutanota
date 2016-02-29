@@ -52,12 +52,14 @@ gulp.task('androidTestDist', ['createWebReleaseTest', 'updateAndroidPlatformAndT
 
 gulp.task('prepareiOSProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove ios',
-	'cordova platform add ios'
+	'cordova platform add https://github.com/apache/cordova-ios.git#4.1.0',
+	'cordova prepare ios'
 ]));
 
 gulp.task('prepareiOSTestDist', ['createWebReleaseTest'], shell.task([
     'cordova platform remove ios',
-	'cordova platform add ios'
+	'cordova platform add https://github.com/apache/cordova-ios.git#4.1.0',
+	'cordova prepare ios'
 ]));
 
 

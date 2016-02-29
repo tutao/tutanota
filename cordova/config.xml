@@ -90,7 +90,7 @@
         <param name="ios-package" value="CDVWKWebViewEngine" />
     </feature>
 
-    <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" />
+    <preference name="CordovaWebViewEngine" value="CDVUIWebViewEngine" />  <!-- WKWebView currently deactivated because the accessory keyboard bar cannot be hidden with keyboard plugin -->
 	<preference name="StatusBarStyle" value="default" />
 	<preference name="StatusBarOverlaysWebView" value="false" />
 	
