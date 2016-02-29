@@ -351,8 +351,6 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) 
     }
     if (mailWasShown && selectedMailIndex != -1) {
         this.selectMail(this._loadedMails()[selectedMailIndex], false);
-    } else {
-        tutao.locator.mailViewModel.hideMail();
     }
 };
 
