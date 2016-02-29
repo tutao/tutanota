@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
 
-var androidVersion = "2.8.1";
+var androidVersion = "2.9.2";
 
 gulp.task('default', shell.task([
     // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
@@ -52,12 +52,14 @@ gulp.task('androidTestDist', ['createWebReleaseTest', 'updateAndroidPlatformAndT
 
 gulp.task('prepareiOSProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove ios',
-	'cordova platform add ios'
+	'cordova platform add https://github.com/apache/cordova-ios.git#4.1.0',
+	'cordova prepare ios'
 ]));
 
 gulp.task('prepareiOSTestDist', ['createWebReleaseTest'], shell.task([
     'cordova platform remove ios',
-	'cordova platform add ios'
+	'cordova platform add https://github.com/apache/cordova-ios.git#4.1.0',
+	'cordova prepare ios'
 ]));
 
 

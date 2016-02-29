@@ -48,7 +48,7 @@ tutao.tutanota.ctrl.NotificationSettingsViewModel.prototype.getTextForType = fun
 };
 tutao.tutanota.ctrl.NotificationSettingsViewModel.prototype.getIdentifierForType = function(pushIdentifierListElement) {
     if ( tutao.locator.pushService.isCurrentPushIdentifier(pushIdentifierListElement.getIdentifier())){
-        return tutao.lang('pushIdentiferCurrentDevice_label') + " - " + pushIdentifierListElement.getIdentifier();
+        return tutao.lang('pushIdentifierCurrentDevice_label') + " - " + pushIdentifierListElement.getIdentifier();
     } else {
         return  pushIdentifierListElement.getIdentifier();
     }
