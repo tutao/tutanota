@@ -128,9 +128,8 @@ tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(butto
         for (var a=0; a<mails.length; a++) {
             if ((mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && (folders[i].isSpamFolder() || folders[i].isDraftFolder())) ||
                 (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && (folders[i].isSentFolder() || folders[i].isDraftFolder())) ||
-                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && (folders[i].isSentFolder() || folders[i].isInboxFolder() || folders[i].isSpamFolder()))) {
+                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && (folders[i].isSentFolder() || folders[i].isInboxFolder() || folders[i].isSpamFolder() || folders[i].isArchiveFolder()))) {
                 nbrOfNonAllowedEmails++;
-                break;
             }
         }
         if (nbrOfNonAllowedEmails == mails.length) {
