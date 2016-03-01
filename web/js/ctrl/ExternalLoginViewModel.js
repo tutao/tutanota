@@ -109,10 +109,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 			return self._tryAutoLogin().caught(function(e) {
                 self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
                 if (self.phoneNumbers().length == 1) {
-                    self.sendPasswordStatus({ type: "neutral", text: "clickNumber_msg" });
+                    self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
                 } else {
-                    self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
+                    self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
                 }
+                tutao.locator.viewManager.select(tutao.locator.externalLoginView);
             }).lastly(function() {
                 self.autoLoginActive = false;
             });
@@ -123,14 +124,21 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 			} else {
 				self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
 			}
+            tutao.locator.viewManager.select(tutao.locator.externalLoginView);
             return Promise.resolve();
 		}
 	}).caught(tutao.AccessExpiredError, function(e) {
         self.errorMessageId("expiredLink_msg");
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
     }).caught(tutao.NotAuthenticatedError, function(e) {
         self.errorMessageId("invalidLink_msg");
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
     }).caught(tutao.BadRequestError, function(e) {
         self.errorMessageId("invalidLink_msg");
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+    }).caught(function(e) {
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+        throw e;
     });
 };
 
@@ -296,10 +304,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
         return tutao.locator.loginViewModel.loadEntropy().then(function() {
             return tutao.locator.mailBoxController.initForUser().then(function() {
                 return self._storePasswordIfPossible(password).then(function() {
-                    // no indexing for external users
-                    tutao.locator.replace('dao', new tutao.db.DummyDb);
                     self._showingMail = true;
-                    tutao.entity.sys.ExternalPropertiesReturn.load({}, null).then(function (data) {
+                    return tutao.entity.sys.ExternalPropertiesReturn.load({}, null).then(function (data) {
                         if (data.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
                             tutao.locator.mailView.setWelcomeMessage(tutao.lang("externalWelcomeMessageFree_msg"));
                         } else {
@@ -309,15 +315,20 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
                             .setSmallLogo(data.getSmallLogo())
                             .setBigLogo(data.getBigLogo());
                         tutao.locator.viewManager.updateLogos(properties);
-                        tutao.locator.eventBus.connect(false);
-                        tutao.locator.mailListViewModel.loadInitial();
-                        tutao.locator.navigator.mail();
+
+                        var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
+                        tutao.locator.mailFolderListViewModel.selectedFolder(folder);
+                        return tutao.locator.navigator.mail().then(function() {
+                            tutao.locator.eventBus.connect(false);
+                            tutao.locator.mailListViewModel.loadInitial();
+                        });
                     });
                 });
             });
         });
     }).caught(tutao.AccessExpiredError, function(e) {
-            self.errorMessageId("expiredLink_msg");
+        self.errorMessageId("expiredLink_msg");
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
     }).caught(tutao.NotAuthenticatedError, function(e) {
         if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)){
             // device is not authenticated by server, so delete the device token locally
@@ -328,6 +339,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
         self.state.event("passwordInvalid");
         self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
         self.showMailStatus({ type: "neutral", text: "emptyString_msg" });
+        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
     });
 };
 

@@ -11,6 +11,7 @@ tutao.tutanota.ctrl.ProgressDialogModel = function() {
     this.title = ko.observable(null);
     this.progress = ko.observable(0);
     this.showDialog = ko.observable(false);
+    this._fadeCallback = null;
 };
 
 /**
@@ -18,9 +19,20 @@ tutao.tutanota.ctrl.ProgressDialogModel = function() {
  * @param {string} titleId The message id for the title.
  */
 tutao.tutanota.ctrl.ProgressDialogModel.prototype.open = function(titleId) {
-    this.title(titleId);
-    this.progress(0);
-    this.showDialog(true);
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        self._fadeCallback = resolve;
+        self.title(titleId);
+        self.progress(0);
+        self.showDialog(true);
+    });
+};
+
+tutao.tutanota.ctrl.ProgressDialogModel.prototype.fadeFinished = function() {
+    if (this._fadeCallback) {
+        this._fadeCallback();
+        this._fadeCallback = null;
+    }
 };
 
 /**

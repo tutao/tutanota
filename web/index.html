@@ -556,7 +556,7 @@
 	<!-- div id="dragObject" style="z-index:2; width: 100px; height: 100px; background: red; position: absolute;" dragObject="true"></div-->
 
 	<div id="viewContainer" data-bind="css: { blur: tutao.locator.viewManager.isModalDialogVisible() }">
-		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView">
+		<div id="mailContent" class="content" data-bind="slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.mailView, finishedCallback: tutao.locator.navigator.viewSwitchFinished">
 			<div id="mailFolderColumn" class="viewColumn" data-bind="with: tutao.locator.mailFolderListViewModel">
                 <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
 				<div id="innerMailFolderColumn" class="scrollable menuList">
@@ -2080,7 +2080,7 @@
                 <!-- ko if: newViewModel() -->
                     <div class="actions" data-bind="domInit: function(domElement) { newViewModel().buttonBarViewModel.setButtonBarWidth($(domElement).width()) }, template: { name: 'buttonBar-template',  data: newViewModel().buttonBarViewModel }"></div>
                     <div id="newUsers" class="changeSettingsDetailsInnerColumn scrollable" data-bind="with: newViewModel()">
-                        <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeVisible: csvDialogVisible">
+                        <div id="importUsersFromCsv" class="modalDialog" data-bind="fadeInVisible: csvDialogVisible">
                             <div class="dialogWindow">
                                 <span class="close" data-bind="fastClick: closeCsvDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
                                 <h2 data-bind="lang: 'importCsv_label'"></h2>
@@ -2276,7 +2276,7 @@
 	</div>
 
 
-	<div id="feedback" class="modalDialog scrollable" data-bind="with: tutao.locator.feedbackViewModel, fadeVisible: tutao.locator.feedbackViewModel.showDialog">
+	<div id="feedback" class="modalDialog scrollable" data-bind="with: tutao.locator.feedbackViewModel, fadeInVisible: tutao.locator.feedbackViewModel.showDialog">
 		<div class="dialogWindow">
 			<span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
 			<h2 data-bind="lang: 'errorReport_label'"></h2>
@@ -2287,7 +2287,7 @@
 		</div>
 	</div>
 
-    <div id="developer" class="modalDialog" data-bind="with: tutao.locator.developerViewModel, fadeVisible: tutao.locator.developerViewModel.showDialog">
+    <div id="developer" class="modalDialog" data-bind="with: tutao.locator.developerViewModel, fadeInVisible: tutao.locator.developerViewModel.showDialog">
         <div class="dialogWindow">
             <span class="close" data-bind="fastClick: close, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2 data-bind="lang: 'dev_label'"></h2>
@@ -2305,7 +2305,7 @@
         </div>
     </div>
 
-    <div id="legacyDownloadDialog" class="modalDialog" data-bind="with: tutao.locator.legacyDownloadViewModel, fadeVisible: tutao.locator.legacyDownloadViewModel.dialogVisible">
+    <div id="legacyDownloadDialog" class="modalDialog" data-bind="with: tutao.locator.legacyDownloadViewModel, fadeInVisible: tutao.locator.legacyDownloadViewModel.dialogVisible">
         <div class="dialogWindow">
             <span class="close" data-bind="fastClick: closeDialog, attr: {alt: tutao.lang('close_alt') }" >X</span>
             <h2 data-bind="lang: 'showAttachment_label'"></h2>
@@ -2315,7 +2315,7 @@
         </div>
     </div>
 
-    <div id="progressDialog" class="modalDialog" data-bind="with: tutao.locator.progressDialogModel, fadeVisible: tutao.locator.progressDialogModel.showDialog">
+    <div id="progressDialog" class="modalDialog" data-bind="with: tutao.locator.progressDialogModel, fadeVisible: tutao.locator.progressDialogModel.showDialog, fadeFinished: tutao.locator.progressDialogModel.fadeFinished">
         <div class="dialogWindow">
             <h2 data-bind="lang: title()" ></h2>
             <div class="progressBg defaultMargin dataField" >

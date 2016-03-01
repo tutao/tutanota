@@ -81,7 +81,11 @@ tutao.tutanota.gui.initKnockout = function() {
                     $(element).css("opacity", 0);
                     $(element).css('display', ko.utils.domData.get(element, "originalDisplayValue"));
                 }
-                $(element).velocity({ opacity: 1 });
+                $(element).velocity({ opacity: 1}, { complete: function() {
+                    if (allBindingsAccessor().fadeFinished) {
+                        allBindingsAccessor().fadeFinished();
+                    }
+                }});
             } else if (!fadeIn && elementVisible) {
                 // we have to stop all running animations because they would interfere with us setting display manually now
                 $(element).velocity("stop", true);
@@ -114,7 +118,11 @@ tutao.tutanota.gui.initKnockout = function() {
                     $(element).css("opacity", 0);
                     $(element).css('display', ko.utils.domData.get(element, "originalDisplayValue"));
                 }
-                $(element).velocity({ opacity: 1 });
+                $(element).velocity({ opacity: 1 }, { complete: function() {
+                    if (allBindingsAccessor().fadeFinished) {
+                        allBindingsAccessor().fadeFinished();
+                    }
+                }});
             } else if (!fadeIn && elementVisible) {
                 $(element).velocity("stop", true);
                 $(element).css("opacity", 0);
@@ -300,14 +308,14 @@ tutao.tutanota.gui.initKnockout = function() {
 			var value = ko.utils.unwrapObservable(valueAccessor());
 			if (value) {
 				slideViewQueue.push(function() {
-					ko.bindingHandlers.slideView.runTransition(newView);
+					ko.bindingHandlers.slideView.runTransition(newView, allBindingsAccessor().finishedCallback);
 				});
 				if (slideViewQueue.length == 1) {
 					slideViewQueue[0]();
 				}
 			}
 		},
-		runTransition: function(newView) {
+		runTransition: function(newView, finishedCallback) {
 			var previousView = ko.bindingHandlers.slideView.previousView;
 			if (previousView != newView) {
 				var finishedHandler = function () {
@@ -316,6 +324,9 @@ tutao.tutanota.gui.initKnockout = function() {
 					if (slideViewQueue.length > 0) {
 						slideViewQueue[0]();
 					}
+                    if (finishedCallback) {
+                        finishedCallback();
+                    }
 				};
 				if (newView == $("div#login")[0]) { // just a workaround as long as sliding in the loginview does not work on all devices
 					$(previousView).hide();
@@ -447,7 +458,7 @@ tutao.tutanota.gui.initKnockout = function() {
 
 			var ACTION_DISTANCE = 150;
 			var DEFAULT_ANIMATION_TIME = 300;
-            var currentlySwipedListElement = null;
+            var currentlySwipedListElement = []; // jquery object
 
 			// use jquery's animate function instead of velocity because using velocity creates bad effects on the email list (part of email not visible any more)
 			var resetSwipeGesture = function() {
@@ -455,7 +466,7 @@ tutao.tutanota.gui.initKnockout = function() {
                 if (currentlySwipedListElement.position().left != 0) {
                     currentlySwipedListElement.velocity({left: 0}, { duration: DEFAULT_ANIMATION_TIME });
                 }
-                currentlySwipedListElement = null;
+                currentlySwipedListElement = [];
 			};
 
 			// store the function that shall be called when swipe done
@@ -465,17 +476,17 @@ tutao.tutanota.gui.initKnockout = function() {
 				hammertime.on("hammer.input", function(ev) {
 					var swipeLeft = ev.deltaX < 0;
 					if (ev.eventType == Hammer.INPUT_START) {
-                        if (currentlySwipedListElement != null) {
+                        if (currentlySwipedListElement.length > 0) {
                             resetSwipeGesture();
                         }
                         currentlySwipedListElement = $(ev.target).closest(".listElementContent");
-					} else if (ev.eventType == Hammer.INPUT_END && currentlySwipedListElement != null) {
+					} else if (ev.eventType == Hammer.INPUT_END && currentlySwipedListElement.length > 0) {
 						// execute callback
 						if (Math.abs(ev.deltaX) > ACTION_DISTANCE) {
 
 							var animateCallback  = function() {
                                 var viewModel = ko.dataFor(currentlySwipedListElement.get(0));
-                                currentlySwipedListElement = null;
+                                currentlySwipedListElement = [];
 								bindingContext.swipeAction(viewModel, swipeLeft);
                             };
                             // getting listElement.outerWidth() from the dom element is too expensive, so use the mail list column width
@@ -488,9 +499,9 @@ tutao.tutanota.gui.initKnockout = function() {
 						} else {
 							resetSwipeGesture();
 						}
-					} else if (ev.eventType == Hammer.INPUT_CANCEL && currentlySwipedListElement != null) {
+					} else if (ev.eventType == Hammer.INPUT_CANCEL && currentlySwipedListElement.length > 0) {
 						resetSwipeGesture();
-					} else if (ev.eventType == Hammer.INPUT_MOVE && currentlySwipedListElement != null) {
+					} else if (ev.eventType == Hammer.INPUT_MOVE && currentlySwipedListElement.length > 0) {
 						if (Math.abs(ev.deltaY) > 40 ){
 							resetSwipeGesture();
 						} else if (Math.abs(ev.deltaX) > 10) { // only animate swipe when a horizontal swipe has been recognized
@@ -865,7 +876,9 @@ tutao.tutanota.gui.viewPositionAndSizeReceiver = function(domElement, left, widt
             resolve();
         } else {
             $(domElement).velocity({left: left + "px", width: width + "px"}, { duration: 300, complete: function() {
-                resolve();
+                setTimeout(function() {
+                    resolve();
+                }, 0);
             }});
         }
     });
@@ -882,28 +895,27 @@ tutao.tutanota.gui.slideAfterAdd = function(domElement) {
 /**
  * Slides a dom element down
  * @param {Object} domElement The dom element.
+ * @param {function} callback Called when finished.
  */
-/*
 tutao.tutanota.gui.slideDown = function(domElement, callback) {
 	if (domElement.nodeType !== tutao.tutanota.gui.TEXT_NODE) {
-		$(domElement).hide().slideDown(400, callback);
+		$(domElement).hide().velocity("slideDown", { duration: 400, complete: callback });
 	}
-};*/
+};
 
 /**
  * Slides a dom element before removal instead of removing it immediately.
  * @param {Object} domElement The dom element.
  */
-/*
 tutao.tutanota.gui.slideBeforeRemove = function(domElement) {
 	if (domElement.nodeType !== tutao.tutanota.gui.TEXT_NODE) {
 		// ATTENTION: The animation time must match the timeout in:
 		//   tutao.tutanota.ctrl.ComposingMail.prototype.cancelMail
-		$(domElement).slideUp(function() {
+		$(domElement).velocity("slideUp", { complete: function() {
 			$(domElement).remove();
-		});
+		}});
 	}
-};*/
+};
 
 /**
  * Removes the focus from all currently selected elements. This can be used to hide the keyboard on mobile devices.

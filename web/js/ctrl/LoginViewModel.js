@@ -76,7 +76,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
 };
 
 /**
- * Logs the user in, if allowAutoLogin is true and the user has stored a password
+ * Logs the user in, if allowAutoLogin is true and the user has stored a password. Shows the appropriate view (login or mail view if auto logged in).
  * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
  * @return {Promise} Resolved when finished, rejected if setup fails.
  */
@@ -89,7 +89,11 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
                 return self._tryAutoLogin();
             }
         }
+        tutao.locator.viewManager.select(tutao.locator.loginView);
         return Promise.resolve();
+    }).caught(function(e) {
+        tutao.locator.viewManager.select(tutao.locator.loginView);
+        throw e;
     });
 };
 
@@ -100,13 +104,13 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
  *   <li>Initializes the DBFacade for the user
  *   <li>Switches to the MailView
  * </ul>
- * @return {Promise.<>} Resolves when finished, rejected if failed.
+ * @return {Promise.<bool>} Resolves when finished, rejected in case of exception. Returns true if the login was successful, false otherwise.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 	var self = this;
 	if (!this.loginPossible()) {
         // should not happen login is ongoing, may happen if the login button has been clicked twice.
-		return Promise.resolve();
+		return Promise.resolve(false);
 	}
 	this.loginOngoing(true);
     this.loginStatus({ type: "neutral", text: "login_msg" });
@@ -118,13 +122,17 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
     }).then(function() {
         return self.postLoginActions().then(function() {
             self.passphrase("");
+            return true;
         });
     }).caught(tutao.AccessBlockedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailedOften_msg" });
-    }).caught(tutao.NotAuthenticatedError, function(exception) {
+        return false;
+    }).caught(tutao.NotAuthenticatedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+        return false;
     }).caught(tutao.AccessDeactivatedError, function() {
         self.loginStatus({ type: "invalid", text: "loginFailed_msg" });
+        return false;
     }).caught(tutao.ConnectionError, function(e) {
         self.loginStatus({ type: "neutral", text: "emptyString_msg" });
         throw e;
@@ -150,11 +158,6 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
         }
     }).then(function() {
         return tutao.locator.mailBoxController.initForUser();
-    }).then(function() {
-        // this should be the user id instead of the name later
-        return new Promise(function(resolve, reject) {
-            tutao.locator.dao.init("Tutanota_" + self.mailAddress(), resolve);
-        });
     }).then(function () {
         if (!tutao.locator.userController.isLoggedInUserFreeAccount()) {
             return tutao.locator.viewManager.loadCustomLogos();
@@ -162,19 +165,20 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
             return Promise.resolve();
         }
     }).then(function() {
-        // load all contacts to have them available in cache, e.g. for RecipientInfos
-        return tutao.locator.contactListViewModel.init();
-    }).then(function() {
-        tutao.locator.eventBus.connect(false);
-        tutao.locator.mailListViewModel.loadInitial();
-        tutao.locator.navigator.mail();
-        self.loginFinished(true);
-        tutao.locator.pushService.register();
-        // run the following commands in sequence to avoid parallel loading of the customer
-        self._showApprovalRequestInfo().then(function() {
-            return self._showUpgradeReminder();
-        }).then(function() {
-            self._getInfoMails();
+        var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
+        tutao.locator.mailFolderListViewModel.selectedFolder(folder);
+        return tutao.locator.navigator.mail().then(function() {
+            tutao.locator.eventBus.connect(false);
+            tutao.locator.mailListViewModel.loadInitial();
+            tutao.locator.contactListViewModel.init();
+            self.loginFinished(true);
+            tutao.locator.pushService.register();
+            // run the following commands in sequence to avoid parallel loading of the customer
+            self._showApprovalRequestInfo().then(function() {
+                return self._showUpgradeReminder();
+            }).then(function() {
+                self._getInfoMails();
+            });
         });
     });
 };
@@ -269,7 +273,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
     return this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
         var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
         tutanotaProperties.setGroupEncEntropy(groupEncEntropy);
-        tutanotaProperties.update();
+        return tutanotaProperties.update();
     });
 };
 
@@ -346,12 +350,16 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
         self.loginOngoing(false); // disable shortly to allow login to start
         self.passphrase(password);
         self.autoLoginActive = true;
-        return self.login().then(function () {
+        return self.login().then(function (successful) {
             self.autoLoginActive = false;
+            if (!successful) {
+                tutao.locator.viewManager.select(tutao.locator.loginView);
+            }
         });
     }).caught(tutao.NotFoundError, function (e) {
         self.loginOngoing(false);
         console.log("configured user does not exist: ", e);
+        tutao.locator.viewManager.select(tutao.locator.loginView);
         // suppress login error, if the user does not exist (should only occur during testing)
     });
 };

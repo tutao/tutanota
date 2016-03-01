@@ -152,17 +152,19 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.getSelectedMails = function() 
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.selectMail = function(mail, showConversationColumn) {
     var self = this;
-    if (mail.getUnread()) {
-        mail.setUnread(false);
-        mail.update().caught(tutao.NotFoundError, function(e) {
-            // avoid exception for missing sync
-            self.removeMails([mail]);
-        });
-        this._updateNumberOfUnreadMails();
-    }
     this._selectedMails([mail]);
     this._lastShownMail = mail;
-    return tutao.locator.mailViewModel.showMail(mail, showConversationColumn);
+    return tutao.locator.mailViewModel.showMail(mail, showConversationColumn).then(function() {
+        if (mail.getUnread()) {
+            mail.setUnread(false);
+            self._selectedMails.valueHasMutated(); // call this to update the gui. using _selectedMails should trigger less updates that the whole mail list
+            mail.update().caught(tutao.NotFoundError, function(e) {
+                // avoid exception for missing sync
+                self.removeMails([mail]);
+            });
+            self._updateNumberOfUnreadMails();
+        }
+    });
 };
 
 /**
@@ -327,7 +329,7 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.finallyDeleteMails = function(
 };
 
 /**
- * Removes the given mails from the list and hides it if it is visible in the mail view. Selects the next mail in the list, if any.
+ * Removes the given mails from the list and hides them if they are visible in the mail view. Selects the next mail in the list, if any.
  * @param {Array.<tutao.entity.tutanota.Mail>} mails The mails to remove.
  */
 tutao.tutanota.ctrl.MailFolderViewModel.prototype.removeMails = function(mails) {

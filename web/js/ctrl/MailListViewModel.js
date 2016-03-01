@@ -16,7 +16,7 @@ tutao.tutanota.ctrl.MailListViewModel = function() {
     this.buttonBarViewModel = null;
 
     this._deleting = ko.observable(false);
-    this.switchingFolders = ko.observable(false);
+    this.switchingFolders = ko.observable(true);
 
     this.showSpinner = ko.computed(function () {
         return this._deleting() || this.switchingFolders();
@@ -85,8 +85,10 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.disableMobileMultiSelect = funct
  * @return {Promise} When loading is finished.
  */
 tutao.tutanota.ctrl.MailListViewModel.prototype.loadInitial = function() {
-    var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
-    return tutao.locator.mailFolderListViewModel.selectFolder(folder).then(function() { // this also loads the initial mails
+    var self = this;
+    var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
+    return folder.selected().then(function() { // this also loads the initial mails
+        self.switchingFolders(false);
         if (tutao.locator.userController.isExternalUserLoggedIn()) {
             if (self.mailToShow) {
                 return tutao.entity.tutanota.Mail.load(self.mailToShow).then(function (mail) {

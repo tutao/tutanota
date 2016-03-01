@@ -141,18 +141,19 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {
-            tutao.locator.progressDialogModel.open("loggingOut_msg");
-            tutao.locator.progressDialogModel.updateProgress(33);
-            tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
-                if (confirmed) {
-                    tutao.locator.loginViewModel.storeEntropy().caught(function (e) {
-                        console.log("error while storing entropy", e);
-                    }).finally(function () {
-                        tutao.locator.progressDialogModel.updateProgress(100);
-                        tutao.locator.navigator.logout();
-                        tutao.locator.progressDialogModel.close();
-                    });
-                }
+            tutao.locator.progressDialogModel.open("loggingOut_msg").then(function() {
+                tutao.locator.progressDialogModel.updateProgress(33);
+                tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
+                    if (confirmed) {
+                        tutao.locator.loginViewModel.storeEntropy().caught(function (e) {
+                            console.log("error while storing entropy", e);
+                        }).finally(function () {
+                            tutao.locator.progressDialogModel.updateProgress(100);
+                            tutao.locator.navigator.logout();
+                            tutao.locator.progressDialogModel.close();
+                        });
+                    }
+                });
             });
         }, self.isUserLoggedIn, false, "menu_logout", "logout", 'logout_alt')
 
@@ -264,16 +265,6 @@ tutao.tutanota.ctrl.ViewManager.prototype.isUserLoggedIn = function() {
 tutao.tutanota.ctrl.ViewManager.prototype.isInternalUserLoggedIn = function() {
 	return this._internalUserLoggedIn() || tutao.locator.loginViewModel.loginFinished();
 };
-
-/**
- * Shows the home view (which is currently the mail view).
- */
-tutao.tutanota.ctrl.ViewManager.prototype.showHomeView = function() {
-	if (this.isInternalUserLoggedIn() && this.getActiveView() != tutao.locator.mailView) {
-		this.select(tutao.locator.mailView);
-	}
-};
-
 
 tutao.tutanota.ctrl.ViewManager.prototype.windowSizeChanged = function(width, height) {
     if (this.getActiveView() != null) {

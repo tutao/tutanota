@@ -88,7 +88,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.showMail = function(mail, showConver
     }
 
     var currentMail = new tutao.tutanota.ctrl.DisplayedMail(mail);
-    this._mailListColumnContentLoader.load(mail, showConversationColumn && !tutao.locator.mailView.isConversationColumnVisible(), function(instruction) {
+    return this._mailListColumnContentLoader.load(mail, showConversationColumn && !tutao.locator.mailView.isConversationColumnVisible(), function(instruction) {
         if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SLIDE_COLUMN) {
             return tutao.locator.mailView.showConversationColumn();
         } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_LOAD_CONTENT) {

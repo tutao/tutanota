@@ -123,17 +123,17 @@ tutao.tutanota.ctrl.DisplayedMail = function (mail) {
 tutao.tutanota.ctrl.DisplayedMail.createMoveTargetFolderButtons = function(buttons, folders, mails) {
     var self = this;
     for (var i=0; i<folders.length; i++) {
-        // do not allow moving sent mails to the inbox folder or received mails to the sent folder and their sub-folders
-        var skipFolder = false;
+        var nbrOfNonAllowedEmails = 0;
+        // only allow target folders that make sense for the mail state. if multiple mails are moved, allow all target folders that would be allowed by each single mail.
         for (var a=0; a<mails.length; a++) {
             if ((mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_SENT && (folders[i].isSpamFolder() || folders[i].isDraftFolder())) ||
                 (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_RECEIVED && (folders[i].isSentFolder() || folders[i].isDraftFolder())) ||
-                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && !folders[i].isDraftFolder())) {
-                skipFolder = true;
+                (mails[a].getState() == tutao.entity.tutanota.TutanotaConstants.MAIL_STATE_DRAFT && (folders[i].isSentFolder() || folders[i].isInboxFolder() || folders[i].isSpamFolder()))) {
+                nbrOfNonAllowedEmails++;
                 break;
             }
         }
-        if (skipFolder) {
+        if (nbrOfNonAllowedEmails == mails.length) {
             continue;
         }
         // skip the current folder of the mail, but allow sub-folders
