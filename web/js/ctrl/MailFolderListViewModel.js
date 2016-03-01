@@ -95,7 +95,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.selectFolder = function(fo
         return tutao.locator.mailViewModel.tryCancelAllComposingMails(false).then(function (confirmed) {
             if (confirmed) {
                 var oldFolder = self.selectedFolder();
-                self._mailListColumnContentLoader.load(folder, !tutao.locator.mailView.isMailListColumnVisible(), function(instruction) {
+                self._mailListColumnContentLoader.load(folder, !tutao.locator.mailView.isDefaultColumnsVisible(), function(instruction) {
                     if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_SLIDE_COLUMN) {
                         return tutao.locator.mailView.showDefaultColumns();
                     } else if (instruction == tutao.util.ColumnContentLoader.INSTRUCTION_LOAD_CONTENT) {

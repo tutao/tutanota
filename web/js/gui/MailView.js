@@ -98,6 +98,10 @@ tutao.tutanota.gui.MailView.prototype.isMailListColumnVisible = function() {
     return (this._swipeSlider.getLeftmostVisibleColumnId() <= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST) && (this._swipeSlider.getRightmostVisibleColumnId() >= tutao.tutanota.gui.MailView.COLUMN_MAIL_LIST);
 };
 
+tutao.tutanota.gui.MailView.prototype.isDefaultColumnsVisible = function() {
+    return this._swipeSlider.getViewSlider().isDefaultVisible();
+};
+
 /**
  * Makes sure that the conversation column is visible.
  * @return {Promise} When finished.

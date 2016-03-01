@@ -343,6 +343,14 @@ tutao.tutanota.ctrl.ViewSlider.prototype.isVisible = function(viewColumnId) {
 };
 
 /**
+ * Provides the information if the default view columns are visible.
+ * @return {boolean} Returns true if the default view columns are visible, false otherwise.
+ */
+tutao.tutanota.ctrl.ViewSlider.prototype.isDefaultVisible = function() {
+    return (this._minVisibleColumn == this._defaultViewStartIndex && this._maxVisibleColumn == this._defaultViewEndIndex);
+};
+
+/**
  * Provides the id of the leftmost visible column.
  * @return {number} The id of the leftmost visible column.
  */
