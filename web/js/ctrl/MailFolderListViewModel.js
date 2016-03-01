@@ -126,6 +126,17 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.showAsSelected = function(
 	}
 };
 
+/**
+ * Provides the name of the selected folder.
+ * @returns {string} The name of the selected folder.
+ */
+tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSelectedFolderName = function() {
+    if (this._mailListColumnContentLoader.getObjectToLoad()) {
+        return this._mailListColumnContentLoader.getObjectToLoad().getName();
+    } else {
+        return this.selectedFolder().getName();
+    }
+};
 
 /**
  * Moves the mail from the selected folder with the given element id to the given target folder. If the mail is among the selected, all selected are moved. Called when using drag&drop.
@@ -154,15 +165,6 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.drop = function(targetMail
             break;
         }
     }
-};
-
-
-/**
- * Provides the name of the selected folder.
- * @returns {string} The name of the selected folder.
- */
-tutao.tutanota.ctrl.MailFolderListViewModel.prototype.getSelectedFolderName = function() {
-    return this.selectedFolder().getName();
 };
 
 /**
