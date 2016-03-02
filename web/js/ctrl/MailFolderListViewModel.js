@@ -201,7 +201,7 @@ tutao.tutanota.ctrl.MailFolderListViewModel.prototype.updateNumberOfUnreadMails 
             buttons[i].setBadgeNumber(unreadMails);
         }
     }
-    tutao.locator.notification.updateBadge(unreadMails);
+    tutao.locator.pushService.updateBadge(unreadMails);
 };
 
 

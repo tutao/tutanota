@@ -15,8 +15,3 @@ tutao.native.NotificationInterface = function(){};
  */
 tutao.native.NotificationInterface.prototype.add = function(message) {};
 
-/**
- * Updates the bade number on the app icon (only for ios and windows phone).
- * @param {number} number
- */
-tutao.native.NotificationInterface.prototype.updateBadge = function(number) {};

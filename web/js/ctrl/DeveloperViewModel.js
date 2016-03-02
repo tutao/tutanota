@@ -172,10 +172,10 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
             });
         }),
         new tutao.tutanota.ctrl.DeveloperTest("Increase Badge", function () {
-            tutao.locator.notification.updateBadge(self.badge++);
+            tutao.locator.pushService.updateBadge(self.badge++);
         }),
         new tutao.tutanota.ctrl.DeveloperTest("Decrease Badge", function () {
-            tutao.locator.notification.updateBadge(self.badge--);
+            tutao.locator.pushService.updateBadge(self.badge--);
         }),
 
         new tutao.tutanota.ctrl.DeveloperTest("run tests", function () {

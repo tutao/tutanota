@@ -26,9 +26,7 @@ tutao.native.NotificationBrowser.prototype.add = function(message) {
     });
 };
 
-tutao.native.NotificationBrowser.prototype.updateBadge = function(number) {
-    // no badge available
-};
+
 
 tutao.native.NotificationBrowser.prototype._showIfGranted = function(message, resolve) {
     if (Notification.permission === "granted") {

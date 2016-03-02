@@ -18,4 +18,12 @@ tutao.native.PushServiceInterface.prototype.register = function() {};
  * @param {string} pushIdentifier The push identifier to check.
  * @return {boolean} Returns true if the push identifier is assigned to the current device.
  */
-tutao.native.PushServiceInterface.prototype.isCurrentPushIdentifier = function(pushIdentifier) {return false};
+tutao.native.PushServiceInterface.prototype.isCurrentPushIdentifier = function(pushIdentifier) {};
+
+
+
+/**
+ * Updates the bade number on the app icon (only for ios and windows phone).
+ * @param {number} number
+ */
+tutao.native.PushServiceInterface.prototype.updateBadge = function(number) {};

@@ -94,3 +94,18 @@ tutao.native.PushServiceApp.prototype.isCurrentPushIdentifier = function(pushIde
 };
 
 
+tutao.native.PushServiceApp.prototype.updateBadge = function(number) {
+    if (cordova.platformId == 'ios') {
+        // on ios, the badge is always visible on the home screen
+		if (this.pushNotification != null){
+			this.pushNotification.setApplicationIconBadgeNumber(function() {}, function() {}, number);
+		}
+    } else {
+        // on android, the badge is a part of the notification. Notifications are handled by push service
+    }
+    this.currentBadge = number;
+};
+
+
+
+

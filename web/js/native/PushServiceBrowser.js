@@ -19,3 +19,7 @@ tutao.native.PushServiceBrowser.prototype.register = function() {};
  * @return {boolean} Returns true if the push identifier is assigned to the current device.
  */
 tutao.native.PushServiceBrowser.prototype.isCurrentPushIdentifier = function(pushIdentifier) {return false};
+
+tutao.native.PushServiceBrowser.prototype.updateBadge = function(number) {
+    // no badge available
+};
