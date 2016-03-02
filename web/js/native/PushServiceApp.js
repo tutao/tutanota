@@ -103,7 +103,6 @@ tutao.native.PushServiceApp.prototype.updateBadge = function(number) {
     } else {
         // on android, the badge is a part of the notification. Notifications are handled by push service
     }
-    this.currentBadge = number;
 };
 
 
