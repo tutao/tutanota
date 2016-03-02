@@ -35,13 +35,13 @@ If you build and install the Tutanota Android app by yourself, keep in mind that
 Pre-requisites:
 * An up-to-date version of git is installed
 * An up-to-date version of node js is installed
-* An up-to-date version of the Android SDK (API 22) is installed
+* An up-to-date version of the Android SDK (API 23) is installed
 
 Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 2.8.1): `git checkout tutanota-android-release-2.8.1`
+3. Checkout latest android release (currently 2.9.2): `git checkout tutanota-android-release-2.9.2`
 4. Install cordova globally: `npm install -g cordova`
 5. Install dependencies: `npm install`
 6. Change into the cordova directory: `cd cordova`
