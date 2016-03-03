@@ -33,22 +33,28 @@ tutao.tutanota.ctrl.AdminAliasViewModel = function(adminEditUserViewModel) {
 
 
 tutao.tutanota.ctrl.AdminAliasViewModel.prototype._updateNumberOfAvailableAliases = function() {
-    var self = this;
-    return tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function(mailAddressAliasServiceReturn) {
-        var customerInfo = self._editUserViewModel.adminUserListViewModel.customerInfo();
-        var availableSharedAliases = Number(customerInfo.getSharedEmailAliases()) - Number(customerInfo.getUsedSharedEmailAliases()); // calculate number of free shared aliases
-        var availableUserAliases = Number(mailAddressAliasServiceReturn.getNbrOfFreeAliases()) - self.aliasList().length; // calculate the number free user aliases
-        if (availableUserAliases < 0) {
-            availableUserAliases = 0;
-        }
-        self.maxNbrOfAliases(availableUserAliases + availableSharedAliases);
-        if (self.maxNbrOfAliases() == 0) {
-            self.mailAddressStatus({ type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
-            self.inputEnabled(false);
-        } else if (self._editUserViewModel.isActive()) {
-            self.inputEnabled(true);
-        }
-    });
+    if (!this._editUserViewModel.isActive()) {
+        this.maxNbrOfAliases(0);
+        this.mailAddressStatus({type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
+        this.inputEnabled(false);
+    } else {
+        var self = this;
+        return tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function (mailAddressAliasServiceReturn) {
+            var customerInfo = self._editUserViewModel.adminUserListViewModel.customerInfo();
+            var availableSharedAliases = Number(customerInfo.getSharedEmailAliases()) - Number(customerInfo.getUsedSharedEmailAliases()); // calculate number of free shared aliases
+            var availableUserAliases = Number(mailAddressAliasServiceReturn.getNbrOfFreeAliases()) - self.aliasList().length; // calculate the number free user aliases
+            if (availableUserAliases < 0) {
+                availableUserAliases = 0;
+            }
+            self.maxNbrOfAliases(availableUserAliases + availableSharedAliases);
+            if (self.maxNbrOfAliases() == 0) {
+                self.mailAddressStatus({type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
+                self.inputEnabled(false);
+            } else {
+                self.inputEnabled(true);
+            }
+        });
+    }
 };
 
 
@@ -149,6 +155,8 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.deleteAlias = function(aliasLi
                 } else { // remove alias for custom domain addresses
                     self.aliasList.remove(aliasListElement);
                 }
+            }).caught(tutao.LimitReachedError, function(error) {
+                tutao.tutanota.gui.alert(tutao.lang("adminMaxNbrOfAliasesReached_msg"));
             });
         }
     });
