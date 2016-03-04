@@ -154,6 +154,7 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype.deleteAlias = function(aliasLi
                     aliasListElement.enabled(restore);
                 } else { // remove alias for custom domain addresses
                     self.aliasList.remove(aliasListElement);
+                    self._updateNumberOfAvailableAliases();
                 }
             }).caught(tutao.LimitReachedError, function(error) {
                 tutao.tutanota.gui.alert(tutao.lang("adminMaxNbrOfAliasesReached_msg"));
