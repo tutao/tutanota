@@ -20,7 +20,6 @@ tutao.native.PushServiceApp.prototype.register = function() {
     self.pushNotification = PushNotification.init({
         android: {
             senderID: "707517914653"
-            //iconColor: "red"
         },
         ios: {
             alert: "true",
