@@ -16,41 +16,38 @@ tutao.native.PushServiceApp = function(){
  */
 tutao.native.PushServiceApp.prototype.register = function() {
     var self = this;
-    PushNotification.hasPermission(function(data) {
-        if (data.isEnabled) {
-            self.pushNotification = PushNotification.init({
-                android: {
-                    senderID: "707517914653"
-                },
-                ios: {
-                    alert: "true",
-                    badge: "true",
-                    sound: "true"
-                },
-                windows: {}
-            });
+    //PushNotification.hasPermission(function(data) callback does not work for older android devices.
+    self.pushNotification = PushNotification.init({
+        android: {
+            senderID: "707517914653"
+            //iconColor: "red"
+        },
+        ios: {
+            alert: "true",
+            badge: "true",
+            sound: "true"
+        },
+        windows: {}
+    });
 
-            self.pushNotification.on('registration', function(data) {
-                if ( tutao.env.isIOSApp()) {
-                    self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
-                } else {
-                    self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID);
-                }
-            });
-
-            self.pushNotification.on('notification', function(data) {
-                // tutao.tutanota.gui.alert("Push notification received: " +  data.title + " foreground: " + data.additionalData.foreground);
-                if (data.additionalData.foreground) {
-                    navigator.vibrate([300]);
-                }
-            });
-
-            self.pushNotification.on('error', function(e) {
-                //tutao.tutanota.gui.alert("Error from push service:");
-            });
+    self.pushNotification.on('registration', function(data) {
+        //tutao.tutanota.gui.alert("Push notification registration: " +  data.registrationId);
+        if ( tutao.env.isIOSApp()) {
+            self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_IOS);
         } else {
-            //tutao.tutanota.gui.alert("No permission to receive push notifications.");
+            self.updatePushIdentifier(data.registrationId, tutao.entity.tutanota.TutanotaConstants.PUSH_SERVICE_TYPE_ANDROID);
         }
+    });
+
+    self.pushNotification.on('notification', function(data) {
+         //tutao.tutanota.gui.alert("Push notification received: " +  data.title + " foreground: " + data.additionalData.foreground);
+        if (data.additionalData.foreground) {
+            navigator.vibrate([300]);
+        }
+    });
+
+    self.pushNotification.on('error', function(e) {
+        //tutao.tutanota.gui.alert("Error from push service:");
     });
 };
 
