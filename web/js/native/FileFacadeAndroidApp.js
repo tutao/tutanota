@@ -94,6 +94,17 @@ tutao.native.FileFacadeAndroidApp.prototype.open = function(file) {
     var self = this;
     self.fileUtil.open(file.getLocation(), file.getMimeType()).caught(function() {
         return tutao.tutanota.gui.alert(tutao.lang("canNotOpenFileOnDevice_msg"));
+/* use when sending feedback. currently java exceptions are not received here
+        var message = tutao.lang("canNotOpenFileOnDevice_msg");
+        var timestamp = new Date().toUTCString();
+        return tutao.locator.modalDialogViewModel.showDialog(message, ["send_action", "ok_action"]).then(function(buttonIndex) {
+            if (buttonIndex == 1) {
+                tutao.tutanota.ctrl.FeedbackViewModel.sendFeedbackMail(e.message, timestamp, e).caught(function(e) {
+                    console.log("could not send feedback", e);
+                });
+            }
+        });
+*/
     }).lastly(function () {
         self.fileUtil.deleteFile(file.getLocation());
     });
