@@ -9,7 +9,7 @@ tutao.provide('tutao.crypto.SjclRandomizer');
  * @implements {tutao.crypto.RandomizerInterface}
  */
 tutao.crypto.SjclRandomizer = function() {
-	this.random = new sjcl.random();
+	this.random = sjcl.random;
 };
 
 /**

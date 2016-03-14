@@ -305,7 +305,7 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
                 libsPath + 'base.js',
                 libsPath + 'base64shim.js',
                 libsPath + 'crypto-jsbn-2012-08-09_1.js',
-                libsPath + 'crypto-sjcl-2012-08-09_1.js',
+                libsPath + 'crypto-sjcl-1.3.0_1.js',
                 srcPath + 'crypto/SecureRandom.js',
                 srcPath + 'crypto/Oaep.js',
                 srcPath + 'crypto/Pss.js',

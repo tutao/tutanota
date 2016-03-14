@@ -4,6 +4,14 @@ describe("EncodingConverterTest", function () {
 
     var assert = chai.assert;
 
+    it("StringToArrayBufferAndBack", function () {
+        assert.equal("halloTest € à", tutao.util.EncodingConverter.arrayBufferToString(tutao.util.EncodingConverter.stringToArrayBuffer("halloTest € à")));
+    });
+
+    it("HexToArrayBufferAndBack", function () {
+        assert.equal("ba9012cb349de910924ed81239d18423", tutao.util.EncodingConverter.arrayBufferToHex(tutao.util.EncodingConverter.hexToArrayBuffer("ba9012cb349de910924ed81239d18423")));
+    });
+
     it("HexBase64Roundtrip ", function () {
         assert.equal("ba9012cb349de910924ed81239d18423", tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.hexToBase64("ba9012cb349de910924ed81239d18423")));
     });

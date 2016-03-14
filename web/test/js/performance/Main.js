@@ -10,7 +10,8 @@ var printResult = function(resultLines) {
 
 $(document).ready(function() {
     $("#start").click(function() {
-        test128bitSmallAmount().then(function(resultLines) {
+        var resultLines = [];
+        runTest(resultLines).then(function() {
             printResult(resultLines);
         });
     });

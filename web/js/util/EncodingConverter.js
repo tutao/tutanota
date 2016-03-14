@@ -235,6 +235,53 @@ tutao.util.EncodingConverter.asciiToArrayBuffer = function(string) {
     return buffer;
 };
 
+
+/**
+ * Converts a string to an ArrayBuffer.
+ *
+ * @param {string} string The string to convert.
+ * @return {ArrayBuffer} The ArrayBuffer.
+ */
+tutao.util.EncodingConverter.stringToArrayBuffer = function(string) {
+	var buf = new ArrayBuffer(string.length*2); // 2 bytes for each char
+	var bufView = new Uint16Array(buf);
+	for (var i=0; i<string.length; i++) {
+		bufView[i] = string.charCodeAt(i);
+	}
+	return buf;
+};
+
+
+/**
+ * Converts an ArrayBuffer to a string.
+ *
+ * @param {ArrayBuffer} buffer The ArrayBuffer to convert.
+ * @return {string} The string.
+ */
+tutao.util.EncodingConverter.arrayBufferToString = function(buffer) {
+	return String.fromCharCode.apply(null, new Uint16Array(buffer));
+};
+
+tutao.util.EncodingConverter.hexToArrayBuffer = function(hex) {
+	var buffer = new ArrayBuffer(hex.length / 2);
+	var bufView = new Uint8Array(buffer);
+	for (var i=0; i<buffer.byteLength; i++) {
+		bufView[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+	}
+	return buffer;
+};
+
+tutao.util.EncodingConverter.arrayBufferToHex = function(buffer) {
+	var hexDigits = '0123456789abcdef';
+	var hex = "";
+	var bufView = new Uint8Array(buffer);
+	for (var i=0; i<buffer.byteLength; i++) {
+		var value = bufView[i];
+		hex += hexDigits[value >> 4] + hexDigits[value & 15];
+	}
+	return hex;
+};
+
 /**
  * Converts an ArrayBuffer to a Base64 encoded string.
  * Works only on IE > 10 (uses btoa).
@@ -250,6 +297,10 @@ tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {
         binary += String.fromCharCode( bytes[ i ] );
     }
     return btoa(binary);
+};
+
+tutao.util.EncodingConverter.base64ToArrayBuffer = function(base64) {
+	return tutao.util.EncodingConverter.base64ToArray(base64).buffer;
 };
 
 tutao.util.EncodingConverter.base64ToArray = function(base64) {
