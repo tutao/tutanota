@@ -110,3 +110,13 @@ tutao.util.FunctionUtils.executeInParallel = function(nbrOfThreads, executor, ca
         }
     }
 };
+
+tutao.util.FunctionUtils.promiseWhile = function(predicate, action) {
+    if (predicate()) {
+        return action().then(function() {
+            return tutao.util.FunctionUtils.promiseWhile(predicate, action);
+        });
+    } else {
+        return Promise.resolve();
+    }
+};

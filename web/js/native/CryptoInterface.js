@@ -61,7 +61,7 @@ tutao.native.CryptoInterface.prototype.verifySignature = function (publicKey, by
  * Returns the newly generated key
  * @return {Uint8Array} will return the key.
  */
-tutao.native.CryptoInterface.prototype.generateAesKey = function() {};
+tutao.native.CryptoInterface.prototype.generateRandomKey = function() {};
 
 /**
  * Encrypt bytes with the provided key

@@ -1,15 +1,21 @@
 "use strict";
 
 
-var numberOfSmallAmountTests = 100000;
+var numberOfSmallAmountTests = 10000;
+var smallAmountPlainText = "1234567890";
+var bigAmountPlainTextSizeBytes = 1024 * 1024 * 10;
 
 
 var runTest = function (resultLines) {
     var testFunctions = [
-        //testSjclAES256CbcSmallAmount,
-        //testSjclAES128CbcSBigAmount,
-        //testSjclAES256GcmSmallAmount,
-        testWebCryptoAES256GcmSmallAmount
+        Sjcl_AES_128_CBC_BigAmount,
+        AsmCrypto_AES_256_GCM_BigAmount,
+        WebCrypto_AES_256_GCM_BigAmount,
+
+        Sjcl_AES_128_CBC_SmallAmount,
+        Sjcl_AES_256_GCM_SmallAmount,
+        AsmCrypto_AES_256_GCM_SmallAmount,
+        WebCrypto_AES_256_GCM_SmallAmount
         ];
 
     return Promise.each(testFunctions, function(testFunction) {
@@ -17,107 +23,97 @@ var runTest = function (resultLines) {
     });
 };
 
+var Sjcl_AES_128_CBC_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "Sjcl_AES_128_CBC_BigAmount", new tutao.native.CryptoBrowser());
+};
 
+var Sjcl_AES_128_CBC_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "Sjcl_AES_128_CBC_SmallAmount", new tutao.crypto.SjclAes());
+};
 
+var Sjcl_AES_256_GCM_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "Sjcl_AES_256_GCM_SmallAmount", new tutao.crypto.SjclAesGcm());
+};
 
-var testWebCryptoAES256GcmSmallAmount = function (resultLines) {
+var AsmCrypto_AES_256_GCM_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "AsmCrypto_AES_256_GCM_BigAmount", new tutao.crypto.AsmCryptoAesGcm());
+};
+
+var AsmCrypto_AES_256_GCM_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "AsmCrypto_AES_256_GCM_SmallAmount", new tutao.crypto.AsmCryptoAesGcm());
+};
+
+var WebCrypto_AES_256_GCM_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "WebCrypto_AES_256_GCM_BigAmount", new tutao.crypto.WebCryptoAesGcm());
+};
+
+/**
+ * Special case as the web crypto API does not allow synchronous calls.
+ */
+var WebCrypto_AES_256_GCM_SmallAmount = function (resultLines) {
     var facade = new tutao.crypto.WebCryptoAesGcm();
     var key = facade.generateRandomKey();
     var plainText = "1234567890";
-    var array = new Array(numberOfSmallAmountTests);
-    for (var i=0; i<array.length; i++) {
-        array[i] = "1234567890";
-    }
-
 
     var localCipherText = null;
     var localWebCryptoKey = null;
     var decryptedPlainText = null;
-    return facade._importKey(key).then(function(webCryptoKey){
+    return facade._getWebCryptoKey(key).then(function(webCryptoKey) {
         var startEncrypt = Date.now();
         localWebCryptoKey = webCryptoKey;
-        return Promise.each(array, function (element, index, length) {
+        var i = 0;
+        return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
+            i++;
             return facade.encryptUtf8(localWebCryptoKey, plainText).then(function(cipherText) {
                 localCipherText = cipherText;
             });
         }).then(function() {
-            resultLines.push("test256BitWebCryptoGcmSmallAmount - encrypt: " + (Date.now() - startEncrypt));
-        })
+            resultLines.push("WebCrypto_AES_256_GCM_SmallAmount - encrypt: " + (Date.now() - startEncrypt));
+        });
     }).then(function() {
         var startDecrypt = Date.now();
-        return Promise.each(array, function (element, index, length) {
+        var i = 0;
+        return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
+            i++;
             return facade.decryptUtf8(localWebCryptoKey, localCipherText).then(function(decryptedText) {
                 decryptedPlainText = decryptedText;
             });
         }).then(function() {
-            resultLines.push("test256BitWebCryptoGcmSmallAmount - decrypt: " + (Date.now() - startDecrypt));
+            resultLines.push("WebCrypto_AES_256_GCM_SmallAmount - decrypt: " + (Date.now() - startDecrypt));
         });
     });
 };
 
-
-var testSjclAES256GcmSmallAmount = function (resultLines) {
-    var facade = new tutao.crypto.SjclAesGcm();
+var _testSmallAmount = function(resultLines, testName, facade) {
     var key = facade.generateRandomKey();
-    var plainText = "1234567890";
-    var cipherText = null;
-
-    return new Promise(function(resolve, reject) {
-        try {
-            var start = Date.now();
-            for (var i=0; i<numberOfSmallAmountTests; i++) {
-                cipherText = facade.encryptUtf8(key, plainText);
-            }
-            resultLines.push("testSjclAES256GcmSmallAmount - encrypt: " + (Date.now() - start));
-
-            start = Date.now();
-            var decryptedText = null;
-            for (i=0; i<numberOfSmallAmountTests; i++) {
-                decryptedText = facade.decryptUtf8(key, cipherText);
-            }
-            resultLines.push("testSjclAES256GcmSmallAmount - decrypt: " + (Date.now() - start));
-            resolve();
-        } catch(e){
-            reject(e);
-        }
-    });
-};
-
-
-
-var testSjclAES128CbcSmallAmount = function (resultLines) {
-    var facade = new tutao.crypto.SjclAes();
-    var key = facade.generateRandomKey();
-    var plainText = "1234567890";
     var cipherText = null;
 
     var start = Date.now();
     for (var i=0; i<numberOfSmallAmountTests; i++) {
-        cipherText = facade.encryptUtf8(key, plainText);
+        cipherText = facade.encryptUtf8(key, smallAmountPlainText);
     }
-    resultLines.push("testSjclAES128CbcSmallAmount - encrypt: " + (Date.now() - start));
+    resultLines.push(testName + " - encrypt: " + (Date.now() - start));
 
     start = Date.now();
     var decryptedText = null;
     for (i=0; i<numberOfSmallAmountTests; i++) {
         decryptedText = facade.decryptUtf8(key, cipherText);
     }
-    resultLines.push("testSjclAES128CbcSmallAmount - decrypt: " + (Date.now() - start));
+    resultLines.push(testName + " - decrypt: " + (Date.now() - start));
     return Promise.resolve();
 };
 
-var testSjclAES128CbcSBigAmount = function (resultLines) {
-    var facade = tutao.locator.crypto;
-    var key = _createArray(16); //facade.generateAesKey();
-    var plainText = _createArray(1024 * 1024 * 10); // from AesArrayBufferTest
+var _testBigAmount = function(resultLines, testName, facade) {
+    var key = facade.generateRandomKey();
+    var plainText = _createArray(bigAmountPlainTextSizeBytes);
     var cipherText = null;
 
     var start = Date.now();
     return facade.aesEncrypt(key, plainText).then(function(encrypted) {
-        resultLines.push("testSjclAES128CbcSBigAmount - encrypt: " + (Date.now() - start));
+        resultLines.push(testName + " - encrypt: " + (Date.now() - start));
         start = Date.now();
         return facade.aesDecrypt(key, encrypted, plainText.length).then(function(decrypted) {
-            resultLines.push("testSjclAES128CbcSBigAmount - decrypt: " + (Date.now() - start));
+            resultLines.push(testName + " - decrypt: " + (Date.now() - start));
         });
     });
 };

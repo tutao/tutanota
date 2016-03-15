@@ -366,7 +366,7 @@ tutao.native.CryptoBrowser.prototype.verifySignature = function (publicKey, byte
  * Returns the newly generated key
  * @return {Uint8Array} will return the key.
  */
-tutao.native.CryptoBrowser.prototype.generateAesKey = function() {
+tutao.native.CryptoBrowser.prototype.generateRandomKey = function() {
     return new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(128 / 8)));
 };
 

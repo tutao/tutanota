@@ -86,7 +86,7 @@ describe("AesArrayBufferTest", function () {
         this.timeout(24000);
 
         var facade = _getFacade();
-        var key = facade.generateAesKey();
+        var key = facade.generateRandomKey();
         return _arrayRoundtrip(key, _createArray(0)).then(function () {
             return _arrayRoundtrip(key, _createArray(1)).then(function () {
                 return _arrayRoundtrip(key, _createArray(15)).then(function () {
@@ -173,7 +173,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidSrcBufferLen ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateAesKey();
+        var key = facade.generateRandomKey();
         var encrypted = _createArray(33); // 33 is no valid encrypted size
 
         return assert.isRejected(facade.aesDecrypt(key, encrypted, 2), tutao.crypto.CryptoError);
@@ -181,7 +181,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidDstBufferLen ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateAesKey();
+        var key = facade.generateRandomKey();
         var encrypted = _createArray(48); // encrypted 48 bytes it too big for 4 plain text bytes
 
         return assert.isRejected(facade.aesDecrypt(key, encrypted, 4), tutao.crypto.CryptoError);
@@ -189,7 +189,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidEncrypted ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateAesKey();
+        var key = facade.generateRandomKey();
         return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // change the last byte
             encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1;
@@ -199,7 +199,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidDecryptedSize ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateAesKey();
+        var key = facade.generateRandomKey();
         return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // use 11 instead of 10
             return assert.isRejected(facade.aesDecrypt(key, encrypted, 11), tutao.crypto.CryptoError);

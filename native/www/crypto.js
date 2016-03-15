@@ -61,7 +61,7 @@ Crypto.prototype.rsaDecrypt = function (privateKey, bytes) {
  * Returns the newly generated key
  * @return {Uint8Array} will return the key.
  */
-Crypto.prototype.generateAesKey = function() {
+Crypto.prototype.generateRandomKey = function() {
     return new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(128 / 8)));
 };
 
