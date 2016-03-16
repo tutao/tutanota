@@ -179,7 +179,9 @@ tutao.crypto.SjclAesGcm.prototype._encrypt = function(key, words, randomIv, useP
 		// use the fixed iv, but do not append it to the ciphertext
 		iv = this.fixedIv;
 	}
+	//var beforeTime = Date.now();
 	var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], 128);
+	//console.log("encrypt SjclAesGcm 256: " + (Date.now()- beforeTime))
 	if (randomIv) {
 		return sjcl.codec.base64.fromBits(sjcl.bitArray.concat(iv, encrypted));
 	} else {
@@ -208,7 +210,53 @@ tutao.crypto.SjclAesGcm.prototype._decrypt = function(key, base64, randomIv, use
 		iv = this.fixedIv;
 		ciphertext = encrypted;
 	}
-	return sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], 128);
+	//var beforeTime = Date.now();
+	var cipherText = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], 128);
+	//console.log("decrypt SjclAesGcm 256: " + (Date.now()- beforeTime));
+	return cipherText;
+};
+
+
+/**
+ * Encrypt bytes with the provided key
+ * @param {Object} key The key to use for the encryption.
+ * @param {Uint8Array} bytes
+ * @return {Promise.<Uint8Array, Error>} will return the encrypted bytes.  Resolves to an exception if the encryption failed.
+ */
+tutao.crypto.SjclAesGcm.prototype.aesEncrypt = function (key, bytes) {
+	var self = this;
+	return new Promise(function(resolve, reject) {
+		try {
+			var plainTextBitArray = sjcl.codec.hex.toBits(tutao.util.EncodingConverter.arrayBufferToHex(bytes));
+			var cipherTextBase64 = self._encrypt( key, plainTextBitArray, true, true);
+			var cipherTextArrayBuffer = tutao.util.EncodingConverter.base64ToArrayBuffer(cipherTextBase64);
+			resolve(cipherTextArrayBuffer);
+		} catch(e){
+			reject(e);
+		}
+	});
+};
+
+
+/**
+ * Decrypt bytes with the provided key
+ * @param {Object} key The key to use for the decryption.
+ * @param {Uint8Array} bytes
+ * @param {Number} decryptedBytesLength The number of bytes of the decrypted array.
+ * @return {Promise.<Uint8Array, Error>} will return the decrypted bytes. Resolves to an exception if the encryption failed.
+ */
+tutao.crypto.SjclAesGcm.prototype.aesDecrypt = function (key, bytes, decryptedBytesLength) {
+	var self = this;
+	return new Promise(function(resolve, reject){
+		try {
+			var cipherTextBase64 = tutao.util.EncodingConverter.arrayBufferToBase64(bytes);
+			var plainTextBitArray = self._decrypt( key, cipherTextBase64, true, true);
+			var painTextArrayBuffer = tutao.util.EncodingConverter.hexToArrayBuffer(sjcl.codec.hex.fromBits(plainTextBitArray));
+			resolve(painTextArrayBuffer);
+		} catch(e){
+			reject(e);
+		}
+	});
 };
 
 
