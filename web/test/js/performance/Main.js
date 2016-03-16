@@ -1,18 +1,45 @@
 "use strict";
 
+var results = {small : {}, big : {}};
+var smallAmountNames = ko.observableArray([]);
+var bigAmountNames = ko.observableArray([]);
+var resultLinesSmallAmount = ko.observableArray([]);
+var resultLinesBigAmount = ko.observableArray([]);
+var progressInfo = ko.observable("");
+
 var printResult = function(resultLines) {
-    var resultDiv = $("#result");
-    for (var i=0; i<resultLines.length; i++) {
-        resultDiv.append(resultLines[i] + "<br>");
-    }
-    resultDiv.append("<br>");
+    smallAmountNames(Object.keys(results.small));
+    bigAmountNames(Object.keys(results.big));
+    resultLinesSmallAmount(_getResultLines("small"));
+    resultLinesBigAmount(_getResultLines("big"));
 };
 
+var _getResultLines = function(type) {
+    var testNames = Object.keys(results[type]);
+    var resultCount = 0;
+    if (testNames.length > 0){
+        resultCount = results[type][testNames[0]].encrypt.length;
+    }
+    var lines = [];
+    for(var i=0; i<resultCount; i++) {
+        var line = {resultValues: []};
+        for(var n=0; n<testNames.length; n++) {
+            var testName = testNames[n];
+            line.resultValues.push(results[type][testName].encrypt[i]);
+            line.resultValues.push(results[type][testName].decrypt[i]);
+        }
+        lines.push(line);
+    }
+    return lines;
+};
+
+
 $(document).ready(function() {
+    ko.applyBindings();
     $("#start").click(function() {
-        var resultLines = [];
-        runTest(resultLines).then(function() {
-            printResult(resultLines);
+        runTest(results).then(function() {
+            progressInfo("done");
+            printResult(results);
         });
     });
 });

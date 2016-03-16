@@ -533,9 +533,64 @@
     <script src="/test/js/performance/AesPerformanceTest.js"></script>
     <script src="/test/js/performance/Main.js"></script>
     <script src="/js/util/init.js"></script>
+
+
+    <style>
+        table {
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 5px;
+        }
+        td {
+            width:100px;
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
 <button id="start">Start</button>
-<div id="result"></div>
+<div data-bind="text: progressInfo" ></div>
+
+<table border="1" >
+    <tr>
+        <th  data-bind="visible: smallAmountNames().length >0, attr : {colspan : smallAmountNames().length *2}">Small amount</th>
+    </tr>
+    <tr data-bind="foreach: smallAmountNames">
+        <th colspan="2" data-bind="text: $data"></th>
+    </tr>
+    <tr data-bind="foreach: smallAmountNames">
+        <th>encrypt</th>
+        <th>decrypt</th>
+    </tr>
+    <!-- ko foreach : resultLinesSmallAmount -->
+    <tr data-bind="foreach: resultValues">
+        <td data-bind="text: $data"></td>
+    </tr>
+    <!-- /ko -->
+</table>
+
+<table border="1" >
+    <tr>
+        <th  data-bind="visible: bigAmountNames().length >0, attr : {colspan : bigAmountNames().length *2}">Big amount</th>
+    </tr>
+    <tr data-bind="foreach: bigAmountNames">
+        <th colspan="2" data-bind="text: $data"></th>
+    </tr>
+    <tr data-bind="foreach: bigAmountNames">
+        <th>encrypt</th>
+        <th>decrypt</th>
+    </tr>
+    <!-- ko foreach : resultLinesBigAmount -->
+    <tr data-bind="foreach: resultValues">
+        <td data-bind="text: $data"></td>
+    </tr>
+    <!-- /ko -->
+</table>
+
 </body>
 </html>
