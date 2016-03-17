@@ -9,15 +9,16 @@ tutao.provide('tutao.crypto.SjclAesGcm');
 tutao.crypto.SjclAesGcm = function() {
 	// arbitrary fixed iv
 	this.fixedIv = sjcl.codec.hex.toBits('8888888888888888888888888888888888888888888888888888888888888888');
-	this.keyLength = 256;
-	this.ivLength = 128; // in bits
+    this._keyLengthBytes = 32;
+    this._ivLengthBytes = 16;
+    this._tagSizeBytes = 16;
 };
 
 /**
  * @inheritDoc
  */
 tutao.crypto.SjclAesGcm.prototype.generateRandomKey = function() {
-	return sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8), false);
+	return sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this._keyLengthBytes), false);
 };
 
 /**
@@ -175,14 +176,12 @@ tutao.crypto.SjclAesGcm.prototype.decryptPrivateRsaKey = function(key, base64) {
 tutao.crypto.SjclAesGcm.prototype._encrypt = function(key, words, randomIv, usePadding) {
 	var iv;
 	if (randomIv) {
-		iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this.ivLength / 8));
+		iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this._ivLengthBytes));
 	} else {
 		// use the fixed iv, but do not append it to the ciphertext
 		iv = this.fixedIv;
 	}
-	//var beforeTime = Date.now();
-	var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], 128);
-	//console.log("encrypt SjclAesGcm 256: " + (Date.now()- beforeTime))
+	var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], this._tagSizeBytes * 8);
 	if (randomIv) {
 		return sjcl.codec.base64.fromBits(sjcl.bitArray.concat(iv, encrypted));
 	} else {
@@ -205,16 +204,13 @@ tutao.crypto.SjclAesGcm.prototype._decrypt = function(key, base64, randomIv, use
 	var encrypted = sjcl.codec.base64.toBits(base64);
 	if (randomIv) {
 		// take the iv from the front of the encrypted data
-		iv = sjcl.bitArray.bitSlice(encrypted, 0, this.ivLength);
-		ciphertext = sjcl.bitArray.bitSlice(encrypted, this.ivLength);
+		iv = sjcl.bitArray.bitSlice(encrypted, 0, this._ivLengthBytes * 8);
+		ciphertext = sjcl.bitArray.bitSlice(encrypted, this._ivLengthBytes * 8);
 	} else {
 		iv = this.fixedIv;
 		ciphertext = encrypted;
 	}
-	//var beforeTime = Date.now();
-	var cipherText = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], 128);
-	//console.log("decrypt SjclAesGcm 256: " + (Date.now()- beforeTime));
-	return cipherText;
+return sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], this._tagSizeBytes * 8);
 };
 
 
@@ -229,9 +225,9 @@ tutao.crypto.SjclAesGcm.prototype.aesEncrypt = function (key, bytes) {
 	return new Promise(function(resolve, reject) {
 		try {
 			var plainTextBitArray = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
-			var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(self.ivLength / 8));
+			var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(self._ivLengthBytes));
 			//var beforeTime = Date.now();
-			var cipherTextBitArray = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), plainTextBitArray, iv, [], 128);
+			var cipherTextBitArray = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), plainTextBitArray, iv, [], self._tagSizeBytes * 8);
 			//console.log("encrypt SjclAesGcm 256: " + (Date.now()- beforeTime))
 			var cipherTextArrayBuffer = sjcl.codec.arrayBuffer.fromBits(sjcl.bitArray.concat(iv, cipherTextBitArray));
 			resolve(new Uint8Array(cipherTextArrayBuffer));
@@ -256,15 +252,15 @@ tutao.crypto.SjclAesGcm.prototype.aesDecrypt = function (key, bytes, decryptedBy
 			var cipherTextBitArray = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
 
 			// take the iv from the front of the encrypted data
-			var iv = sjcl.bitArray.bitSlice(cipherTextBitArray, 0, self.ivLength);
-			var ciphertext = sjcl.bitArray.bitSlice(cipherTextBitArray, self.ivLength);
+			var iv = sjcl.bitArray.bitSlice(cipherTextBitArray, 0, self._ivLengthBytes * 8);
+			var ciphertext = sjcl.bitArray.bitSlice(cipherTextBitArray, self._ivLengthBytes * 8);
 
 			//var beforeTime = Date.now();
-			var plainTextBitArray = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], 128);
+			var plainTextBitArray = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], self._tagSizeBytes * 8);
 			//console.log("decrypt SjclAesGcm 256: " + (Date.now()- beforeTime));
 
-			var painTextArrayBuffer = sjcl.codec.hex.fromBits(plainTextBitArray);
-			resolve(new Uint8Array(painTextArrayBuffer));
+			var plainTextArrayBuffer = sjcl.codec.arrayBuffer.fromBits(plainTextBitArray);
+			resolve(new Uint8Array(plainTextArrayBuffer));
 		} catch(e){
 			reject(e);
 		}

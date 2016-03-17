@@ -5,7 +5,9 @@ describe("EncodingConverterTest", function () {
     var assert = chai.assert;
 
     it("StringToArrayBufferAndBack", function () {
-        assert.equal("halloTest € à", tutao.util.EncodingConverter.arrayBufferToString(tutao.util.EncodingConverter.stringToArrayBuffer("halloTest € à")));
+        assert.equal("halloTest € à 草", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("halloTest € à 草")));
+        assert.equal("", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("")));
+        assert.equal("1", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("1")));
     });
 
     it("HexToArrayBufferAndBack", function () {

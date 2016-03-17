@@ -23,6 +23,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.generateRandomKey = function() {
  * @inheritDoc
  */
 tutao.crypto.WebCryptoAesGcm.prototype.keyToHex = function(key) {
+    return tutao.util.EncodingConverter.arrayBufferToHex(key.buffer);
 };
 
 /**
@@ -35,6 +36,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.keyToBase64 = function(key) {
  * @inheritDoc
  */
 tutao.crypto.WebCryptoAesGcm.prototype.hexToKey = function(hex) {
+    return new Uint8Array(tutao.util.EncodingConverter.hexToArrayBuffer(hex));
 };
 
 /**
@@ -46,7 +48,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.base64ToKey = function(base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.WebCryptoAesGcm.prototype.encryptUtf8 = function(webCryptoKey, utf8) {
+tutao.crypto.WebCryptoAesGcm.prototype.encryptUtf8 = function(webCryptoKey, string) {
 	var self = this;
 
 	var iv = this._createIv();
@@ -68,7 +70,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.encryptUtf8 = function(webCryptoKey, utf8
 				//addtl: window.crypto.getRandomValues(new Uint8Array(256))
 			},
 			webCryptoKey, //from generateKey or importKey above
-			tutao.util.EncodingConverter.stringToArrayBuffer(utf8) //ArrayBuffer of data you want to encrypt
+			tutao.util.EncodingConverter.stringToUint8ArrayBuffer(string) //ArrayBuffer of data you want to encrypt
 		).then(function (encrypted) {
 				resolve(tutao.util.EncodingConverter.arrayBufferToBase64(tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted).buffer));
 		}).catch(function (err) {
@@ -109,8 +111,8 @@ tutao.crypto.WebCryptoAesGcm.prototype.decryptUtf8 = function(webCryptoKey, base
 			webCryptoKey, //from generateKey or importKey above
 			encryptedData //ArrayBuffer of the data
 		).then(function(decrypted){
-			var utf8 = tutao.util.EncodingConverter.arrayBufferToString(decrypted);
-			resolve(utf8);
+			var string = tutao.util.EncodingConverter.utf8ArrayBufferToString(decrypted);
+			resolve(string);
 		}).catch(function(err){
 			reject(err);
 		});
