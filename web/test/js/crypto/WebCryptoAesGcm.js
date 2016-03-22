@@ -70,9 +70,9 @@ tutao.crypto.WebCryptoAesGcm.prototype.encryptUtf8 = function(webCryptoKey, stri
 				//addtl: window.crypto.getRandomValues(new Uint8Array(256))
 			},
 			webCryptoKey, //from generateKey or importKey above
-			tutao.util.EncodingConverter.stringToUint8ArrayBuffer(string) //ArrayBuffer of data you want to encrypt
+			tutao.util.EncodingConverter.stringToUtf8Uint8Array(string)
 		).then(function (encrypted) {
-				resolve(tutao.util.EncodingConverter.arrayBufferToBase64(tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted).buffer));
+				resolve(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted)));
 		}).catch(function (err) {
 			reject(err);
 		});
@@ -96,7 +96,7 @@ tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted = function(iv, encrypted) {
 tutao.crypto.WebCryptoAesGcm.prototype.decryptUtf8 = function(webCryptoKey, base64) {
 	var self = this;
 
-	var rawData = new Uint8Array(tutao.util.EncodingConverter.base64ToArrayBuffer(base64));
+	var rawData = tutao.util.EncodingConverter.base64ToUint8Array(base64);
     var iv = new Uint8Array(rawData.buffer, 0, this._ivLengthBytes);
     var encryptedData = new Uint8Array(rawData.buffer, this._ivLengthBytes);
 	return new Promise(function(resolve, reject){
@@ -111,7 +111,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.decryptUtf8 = function(webCryptoKey, base
 			webCryptoKey, //from generateKey or importKey above
 			encryptedData //ArrayBuffer of the data
 		).then(function(decrypted){
-			var string = tutao.util.EncodingConverter.utf8ArrayBufferToString(decrypted);
+			var string = tutao.util.EncodingConverter.utf8Uint8ArrayToString(new Uint8Array(decrypted));
 			resolve(string);
 		}).catch(function(err){
 			reject(err);

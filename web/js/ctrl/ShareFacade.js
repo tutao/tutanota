@@ -63,7 +63,7 @@ tutao.tutanota.ctrl.ShareFacade.encryptKeyForGroup = function(mailAddress, keyTo
         var publicKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
         var bucketKey = new Uint8Array(sjcl.codec.bytes.fromBits(keyToEncrypt));
         return tutao.locator.crypto.rsaEncrypt(publicKey, bucketKey).then(function(encrypted) {
-            return { pubEncKey: tutao.util.EncodingConverter.arrayBufferToBase64(encrypted), pubKeyVersion: publicKeyData.getPubKeyVersion() };
+            return { pubEncKey: tutao.util.EncodingConverter.uint8ArrayToBase64(encrypted), pubKeyVersion: publicKeyData.getPubKeyVersion() };
         });
 	}).caught(tutao.NotFoundError, function(exception) {
         throw new tutao.RecipientsNotFoundError([mailAddress]);

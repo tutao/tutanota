@@ -358,7 +358,7 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
 		}
 		return tutao.entity.sys.Group.load(permission.getGroup()).then(function(group) {
 			var privateKey = self._getPrivateKey(group, Number(bucketPermission.getPubKeyVersion()), groupKey);
-            return tutao.locator.crypto.rsaDecrypt(privateKey, tutao.util.EncodingConverter.base64ToArray(bucketPermission.getPubEncBucketKey())).then(function(bucketKeyBytes) {
+            return tutao.locator.crypto.rsaDecrypt(privateKey, tutao.util.EncodingConverter.base64ToUint8Array(bucketPermission.getPubEncBucketKey())).then(function(bucketKeyBytes) {
                 var bucketKey = sjcl.codec.bytes.toBits(bucketKeyBytes);
                 var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
                 // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions

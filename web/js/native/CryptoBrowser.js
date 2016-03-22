@@ -27,19 +27,19 @@ tutao.native.CryptoBrowser._workerFunctions = {
                 publicKey: {
                     version: 0,
                     keyLength: keyLengthInBits,
-                    modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.n.toByteArray())),
+                    modulus: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.n.toByteArray())),
                     publicExponent: publicExponent
                 },
                 privateKey: {
                     version: 0,
                     keyLength: keyLengthInBits,
-                    modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.n.toByteArray())),
-                    privateExponent: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.d.toByteArray())),
-                    primeP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.p.toByteArray())),
-                    primeQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.q.toByteArray())),
-                    primeExponentP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.dmp1.toByteArray())),
-                    primeExponentQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.dmq1.toByteArray())),
-                    crtCoefficient: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(rsa.coeff.toByteArray()))
+                    modulus: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.n.toByteArray())),
+                    privateExponent: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.d.toByteArray())),
+                    primeP: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.p.toByteArray())),
+                    primeQ: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.q.toByteArray())),
+                    primeExponentP: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.dmp1.toByteArray())),
+                    primeExponentQ: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.dmq1.toByteArray())),
+                    crtCoefficient: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(rsa.coeff.toByteArray()))
                 }
             };
             callback({ type: 'result', result: result});
@@ -149,7 +149,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
         }
     },
     base64ToArray: function(base64) {
-        return tutao.util.EncodingConverter.base64ToArray(base64);
+        return tutao.util.EncodingConverter.base64ToUint8Array(base64);
     },
     _hexToBytes: function (hex) {
         return tutao.util.EncodingConverter.hexToBytes(hex);

@@ -160,7 +160,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.downloadPdf = function(inv
     return tutao.entity.sys.PdfInvoiceServiceReturn.load(data, {}, null).then(function(returnData) {
         // the session key for the pdf data is the same as the invoice session key
         returnData.getEntityHelper().setSessionKey(invoice.getEntityHelper().getSessionKey());
-        var pdfBytes = tutao.util.EncodingConverter.base64ToArray(returnData.getData());
+        var pdfBytes = tutao.util.EncodingConverter.base64ToUint8Array(returnData.getData());
         var tmpFile = new tutao.entity.tutanota.File();
         tmpFile.setName(String(invoice.getNumber()) + ".pdf");
         tmpFile.setMimeType("application/pdf");

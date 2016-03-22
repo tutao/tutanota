@@ -147,245 +147,28 @@ tutao.util.EncodingConverter.base64UrlToBase64 = function(base64url) {
 };
 
 /**
- * Converts the content of an array to a base64 string. For comparison
- * see http://jsperf.com/encoding-xhr-image-data/5
- *
- * @param {Array.<number>} byteArray The Array of bytes.
- * @return {string} The base64 string.
- */
-tutao.util.EncodingConverter.bytesToBase64 = function(byteArray) {
-	var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-	var byteLength = byteArray.length;
-
-	var byteRemainder = byteLength % 3;
-	var mainLength = byteLength - byteRemainder;
-
-	var base64Array = [];
-	base64Array.length = Math.floor((byteLength + 2) / 3 * 4);
-	var index = 0;
-
-	var a, b, c, d;
-	var chunk;
-
-	// Main loop deals with bytes in chunks of 3
-	for (var i = 0; i < mainLength; i = i + 3) {
-		// Combine the three bytes into a single integer
-		chunk = (byteArray[i] << 16) | (byteArray[i + 1] << 8) | byteArray[i + 2];
-
-		// Use bitmasks to extract 6-bit segments from the triplet
-		a = (chunk & 16515072) >> 18; // 16515072 = (2^6 - 1) << 18
-		b = (chunk & 258048) >> 12; // 258048 = (2^6 - 1) << 12
-		c = (chunk & 4032) >> 6; // 4032 = (2^6 - 1) << 6
-		d = chunk & 63; // 63 = 2^6 - 1
-
-		// Convert the raw binary segments to the appropriate ASCII encoding
-		base64Array[index++] = encodings[a];
-		base64Array[index++] = encodings[b];
-		base64Array[index++] = encodings[c];
-		base64Array[index++] = encodings[d];
-	}
-
-	// Deal with the remaining bytes and padding
-	if (byteRemainder == 1) {
-		chunk = byteArray[mainLength];
-
-		a = (chunk & 252) >> 2; // 252 = (2^6 - 1) << 2
-
-		// Set the 4 least significant bits to zero
-		b = (chunk & 3) << 4; // 3 = 2^2 - 1
-
-		base64Array[index++] = encodings[a];
-		base64Array[index++] = encodings[b];
-		base64Array[index++] = '=';
-		//noinspection JSUnusedAssignment
-        base64Array[index++] = '=';
-	} else if (byteRemainder == 2) {
-		chunk = (byteArray[mainLength] << 8) | byteArray[mainLength + 1];
-
-		a = (chunk & 64512) >> 10; // 64512 = (2^6 - 1) << 10
-		b = (chunk & 1008) >> 4; // 1008 = (2^6 - 1) << 4
-
-		// Set the 2 least significant bits to zero
-		c = (chunk & 15) << 2; // 15 = 2^4 - 1
-
-		base64Array[index++] = encodings[a];
-		base64Array[index++] = encodings[b];
-		base64Array[index++] = encodings[c];
-		//noinspection JSUnusedAssignment
-        base64Array[index++] = '=';
-	}
-
-	return base64Array.join('');
-};
-
-/**
- * Converts an ASCII string to an ArrayBuffer string. Do not use this
- * for UTF-8/UTF-16-Strings as this conversion uses only one byte per char!
- *
- * @param {string} string The ASCII-String to convert.
- * @return {ArrayBuffer} The ArrayBuffer.
- */
-tutao.util.EncodingConverter.asciiToArrayBuffer = function(string) {
-    var buffer = new ArrayBuffer(string.length);
-    var bytes = new Uint8Array( buffer );
-    for(var i = 0; i < string.length; i++) {
-        bytes[i] = string.charCodeAt(i);
-    }
-    return buffer;
-};
-
-
-tutao.util.EncodingConverter._UTF8 = {
-    // UTF8 decoding functions
-    'getCharLength': function(theByte) {
-        // 4 bytes encoded char (mask 11110000)
-        if(0xF0 == (theByte&0xF0)) {
-            return 4;
-            // 3 bytes encoded char (mask 11100000)
-        } else if(0xE0 == (theByte&0xE0)) {
-            return 3;
-            // 2 bytes encoded char (mask 11000000)
-        } else if(0xC0 == (theByte&0xC0)) {
-            return 2;
-            // 1 bytes encoded char
-        } else if(theByte == (theByte&0x7F)) {
-            return 1;
-        }
-        return 0;
-    },
-    'getCharCode': function(bytes, byteOffset, charLength) {
-        var charCode = 0, mask = '';
-        byteOffset = byteOffset || 0;
-        // Retrieve charLength if not given
-        charLength = charLength || tutao.util.EncodingConverter._UTF8.getCharLength(bytes[byteOffset]);
-        if(charLength == 0) {
-            throw new Error(bytes[byteOffset].toString(2)+' is not a significative' +
-            ' byte (offset:'+byteOffset+').');
-        }
-        // Return byte value if charlength is 1
-        if(1 === charLength) {
-            return bytes[byteOffset];
-        }
-        // Test UTF8 integrity
-        mask = '00000000'.slice(0, charLength) + 1 + '00000000'.slice(charLength + 1);
-        if(bytes[byteOffset]&(parseInt(mask, 2))) {
-            throw Error('Index ' + byteOffset + ': A ' + charLength + ' bytes' +
-            ' encoded char' +' cannot encode the '+(charLength+1)+'th rank bit to 1.');
-        }
-        // Reading the first byte
-        mask='0000'.slice(0,charLength+1)+'11111111'.slice(charLength+1);
-        charCode+=(bytes[byteOffset]&parseInt(mask,2))<<((--charLength)*6);
-        // Reading the next bytes
-        while(charLength) {
-            if(0x80!==(bytes[byteOffset+1]&0x80)
-                ||0x40===(bytes[byteOffset+1]&0x40)) {
-                throw Error('Index '+(byteOffset+1)+': Next bytes of encoded char'
-                +' must begin with a "10" bit sequence.');
-            }
-            charCode += ((bytes[++byteOffset]&0x3F) << ((--charLength) * 6));
-        }
-        return charCode;
-    },
-    'getStringFromBytes': function(bytes, byteOffset, byteLength, strict) {
-        var charLength, chars = [];
-        byteOffset = byteOffset|0;
-        byteLength=('number' === typeof byteLength ?
-            byteLength :
-        bytes.byteLength || bytes.length
-        );
-        for(; byteOffset < byteLength; byteOffset++) {
-            charLength = tutao.util.EncodingConverter._UTF8.getCharLength(bytes[byteOffset]);
-            if(byteOffset + charLength > byteLength) {
-                if(strict) {
-                    throw Error('Index ' + byteOffset + ': Found a ' + charLength +
-                    ' bytes encoded char declaration but only ' +
-                    (byteLength - byteOffset) +' bytes are available.');
-                }
-            } else {
-                chars.push(String.fromCodePoint(
-                    tutao.util.EncodingConverter._UTF8.getCharCode(bytes, byteOffset, charLength, strict)
-                ));
-            }
-            byteOffset += charLength - 1;
-        }
-        return chars.join('');
-    },
-    // UTF8 encoding functions
-    'getBytesForCharCode': function(charCode) {
-        if(charCode < 128) {
-            return 1;
-        } else if(charCode < 2048) {
-            return 2;
-        } else if(charCode < 65536) {
-            return 3;
-        } else if(charCode < 2097152) {
-            return 4;
-        }
-        throw new Error('CharCode '+charCode+' cannot be encoded with UTF8.');
-    },
-    'setBytesFromCharCode': function(charCode, bytes, byteOffset, neededBytes) {
-        charCode = charCode|0;
-        bytes = bytes || [];
-        byteOffset = byteOffset|0;
-        neededBytes = neededBytes || tutao.util.EncodingConverter._UTF8.getBytesForCharCode(charCode);
-        // Setting the charCode as it to bytes if the byte length is 1
-        if(1 == neededBytes) {
-            bytes[byteOffset] = charCode;
-        } else {
-            // Computing the first byte
-            bytes[byteOffset++] =
-                (parseInt('1111'.slice(0, neededBytes), 2) << 8 - neededBytes) +
-                (charCode >>> ((--neededBytes) * 6));
-            // Computing next bytes
-            for(;neededBytes>0;) {
-                bytes[byteOffset++] = ((charCode>>>((--neededBytes) * 6))&0x3F)|0x80;
-            }
-        }
-        return bytes;
-    },
-    'setBytesFromString': function(string, bytes, byteOffset, byteLength, strict) {
-        string = string || '';
-        bytes = bytes || [];
-        byteOffset = byteOffset|0;
-        byteLength = ('number' === typeof byteLength ?
-            byteLength :
-        bytes.byteLength||Infinity
-        );
-        for(var i = 0, j = string.length; i < j; i++) {
-            var neededBytes = tutao.util.EncodingConverter._UTF8.getBytesForCharCode(string[i].codePointAt(0));
-            if(strict && byteOffset + neededBytes > byteLength) {
-                throw new Error('Not enought bytes to encode the char "' + string[i] +
-                '" at the offset "' + byteOffset + '".');
-            }
-            tutao.util.EncodingConverter._UTF8.setBytesFromCharCode(string[i].codePointAt(0),
-                bytes, byteOffset, neededBytes, strict);
-            byteOffset += neededBytes;
-        }
-        return bytes;
-    }
-};
-
-/**
- * Converts a string to an ArrayBuffer containing a UTF-8 string.
+ * Converts a string to a Uint8Array containing a UTF-8 string data.
  *
  * @param {string} string The string to convert.
- * @return {ArrayBuffer} The ArrayBuffer.
+ * @return {Uint8Array} The array.
  */
-tutao.util.EncodingConverter.stringToUint8ArrayBuffer = function(string) {
-    var bytes = tutao.util.EncodingConverter._UTF8.setBytesFromString(string);
-    return Uint8Array.from(bytes).buffer;
+tutao.util.EncodingConverter.stringToUtf8Uint8Array = function(string) {
+    var utf8 = unescape(encodeURIComponent(string));
+    var uint8Array = new Uint8Array(utf8.length);
+    for (var i = 0; i < utf8.length; i++) {
+        uint8Array[i] = utf8.charCodeAt(i);
+    }
+    return uint8Array;
 };
 
-
 /**
- * Converts an ArrayBuffer containing an UTF-8 string into a string.
+ * Converts an Uint8Array containing UTF-8 string data into a string.
  *
- * @param {ArrayBuffer} buffer The ArrayBuffer to convert.
+ * @param {Uint8Array} uint8Array The Uint8Array.
  * @return {string} The string.
  */
-tutao.util.EncodingConverter.utf8ArrayBufferToString = function(buffer) {
-    return tutao.util.EncodingConverter._UTF8.getStringFromBytes(new Uint8Array(buffer));
+tutao.util.EncodingConverter.utf8Uint8ArrayToString = function(uint8Array) {
+    return decodeURIComponent(escape(String.fromCharCode.apply(null, uint8Array)));
 };
 
 tutao.util.EncodingConverter.hexToArrayBuffer = function(hex) {
@@ -409,15 +192,13 @@ tutao.util.EncodingConverter.arrayBufferToHex = function(buffer) {
 };
 
 /**
- * Converts an ArrayBuffer to a Base64 encoded string.
- * Works only on IE > 10 (uses btoa).
+ * Converts an Uint8Array to a Base64 encoded string.
  *
- * @param {ArrayBuffer} buffer The ASCII-String to convert.
+ * @param {Uint8Array} bytes The bytes to convert.
  * @return {string} The Base64 encoded string.
  */
-tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {
+tutao.util.EncodingConverter.uint8ArrayToBase64 = function(bytes) {
     var binary = '';
-    var bytes = new Uint8Array(buffer);
     var len = bytes.byteLength;
     for (var i = 0; i < len; i++) {
         binary += String.fromCharCode( bytes[ i ] );
@@ -425,11 +206,13 @@ tutao.util.EncodingConverter.arrayBufferToBase64 = function(buffer) {
     return btoa(binary);
 };
 
-tutao.util.EncodingConverter.base64ToArrayBuffer = function(base64) {
-	return tutao.util.EncodingConverter.base64ToArray(base64).buffer;
-};
-
-tutao.util.EncodingConverter.base64ToArray = function(base64) {
+/**
+ * Converts a base64 encoded string to a Uint8Array.
+ *
+ * @param {string} base64 The Base64 encoded string.
+ * @return {Uint8Array} The bytes.
+ */
+tutao.util.EncodingConverter.base64ToUint8Array = function(base64) {
     return new Uint8Array(atob(base64).split("").map(function(c) {
         return c.charCodeAt(0);
     }));

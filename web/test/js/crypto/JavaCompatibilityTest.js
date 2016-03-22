@@ -53,7 +53,7 @@ describe("JavaCompatibilityTest", function () {
                 assert.equal(aesKeyData, tutao.util.EncodingConverter.bytesToHex(jsDecryptedDummyKey));
 
                 // check aes key decryption with rsa (check decryption, because encryption is done with random iv)
-                return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, new Uint8Array(tutao.util.EncodingConverter.base64ToArray(encryptedAesKey))).then(function (jsDecryptedAesKey) {
+                return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, tutao.util.EncodingConverter.base64ToUint8Array(encryptedAesKey)).then(function (jsDecryptedAesKey) {
                     assert.equal(aesHexKey, tutao.util.EncodingConverter.bytesToHex(jsDecryptedAesKey));
                 });
             });

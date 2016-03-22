@@ -62,7 +62,7 @@ tutao.native.RsaUtils.prototype._arrayToPublicKey = function (publicKey) {
     return {
         version: 0,
         keyLength: self.keyLengthInBits,
-        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(publicKey[0].toByteArray())),
+        modulus: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(publicKey[0].toByteArray())),
         publicExponent: tutao.locator.crypto.publicExponent
     };
 };
@@ -72,13 +72,13 @@ tutao.native.RsaUtils.prototype._arrayToPrivateKey = function (privateKey) {
     return {
         version: 0,
         keyLength: self.keyLengthInBits,
-        modulus: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[0].toByteArray())),
-        privateExponent: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[1].toByteArray())),
-        primeP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[2].toByteArray())),
-        primeQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[3].toByteArray())),
-        primeExponentP: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[4].toByteArray())),
-        primeExponentQ: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[5].toByteArray())),
-        crtCoefficient: tutao.util.EncodingConverter.arrayBufferToBase64(new Uint8Array(privateKey[6].toByteArray()))
+        modulus: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[0].toByteArray())),
+        privateExponent: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[1].toByteArray())),
+        primeP: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[2].toByteArray())),
+        primeQ: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[3].toByteArray())),
+        primeExponentP: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[4].toByteArray())),
+        primeExponentQ: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[5].toByteArray())),
+        crtCoefficient: tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(privateKey[6].toByteArray()))
     };
 };
 

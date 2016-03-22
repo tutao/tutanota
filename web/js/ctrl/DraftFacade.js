@@ -362,7 +362,7 @@ tutao.tutanota.ctrl.DraftFacade._addRecipientKeyData = function(bucketKey, servi
                     return tutao.locator.crypto.rsaEncrypt(publicKey, hexBucketKey).then(function(encrypted) {
                         var data = new tutao.entity.tutanota.InternalRecipientKeyData(service);
                         data.setMailAddress(recipient.getAddress());
-                        data.setPubEncBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(encrypted));
+                        data.setPubEncBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(encrypted));
                         data.setPubKeyVersion(publicKeyData.getPubKeyVersion());
                         service.getInternalRecipientKeyData().push(data);
                     });

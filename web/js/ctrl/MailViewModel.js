@@ -300,7 +300,7 @@ tutao.tutanota.ctrl.MailViewModel.prototype.exportMail = function(displayedMail)
     displayedMail.buttonBarViewModel.visibleButtons([]);
     self.showSpinner(true);
     return tutao.tutanota.util.Exporter.toEml(displayedMail).then(function(eml) {
-        var buffer = tutao.util.EncodingConverter.asciiToArrayBuffer(eml);
+        var buffer = tutao.util.EncodingConverter.stringToUtf8Uint8Array(eml).buffer;
         var tmpFile = new tutao.entity.tutanota.File();
         var filename = displayedMail.mail.getSubject();
         if (filename.trim().length == 0) {

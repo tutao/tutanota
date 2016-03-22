@@ -63,7 +63,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
                     "Content-Disposition: attachment;",
                     " filename=" + base64Filename + "",
                     "",
-                    tutao.util.EncodingConverter.arrayBufferToBase64(dataFile.getData()).match(/.{1,78}/g).join("\r\n")
+                    tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(dataFile.getData())).match(/.{1,78}/g).join("\r\n")
                 ]);
             });
         }).then(function() {

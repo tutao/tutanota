@@ -17,7 +17,7 @@ describe("RsaTest", function () {
     }
 
     var hexToUInt8Array = function(hex){
-        return tutao.util.EncodingConverter.base64ToArray(tutao.util.EncodingConverter.hexToBase64(hex));
+        return tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.hexToBase64(hex));
     }
 
 

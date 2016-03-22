@@ -31,9 +31,9 @@ Crypto.prototype.generateRsaKey = function(keyLength) {
  */
 Crypto.prototype.rsaEncrypt = function (publicKey, bytes) {
     return new Promise(function (resolve, reject) {
-        var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
+        var encodedBytes = tutao.util.EncodingConverter.uint8ArrayToBase64(bytes);
         exec(function(result) {
-            resolve(tutao.util.EncodingConverter.base64ToArray(result));
+            resolve(tutao.util.EncodingConverter.base64ToUint8Array(result));
         }, function (error) {
             reject(new tutao.crypto.CryptoError(error));
         }, "Crypto", "rsaEncrypt", [publicKey, encodedBytes]);
@@ -48,9 +48,9 @@ Crypto.prototype.rsaEncrypt = function (publicKey, bytes) {
  */
 Crypto.prototype.rsaDecrypt = function (privateKey, bytes) {
     return new Promise(function (resolve, reject) {
-        var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
+        var encodedBytes = tutao.util.EncodingConverter.uint8ArrayToBase64(bytes);
         exec(function(result) {
-            resolve(tutao.util.EncodingConverter.base64ToArray(result));
+            resolve(tutao.util.EncodingConverter.base64ToUint8Array(result));
         }, function (error) {
             reject(new tutao.crypto.CryptoError(error));
         },"Crypto", "rsaDecrypt", [privateKey, encodedBytes]);
@@ -74,10 +74,10 @@ Crypto.prototype.generateRandomKey = function() {
 Crypto.prototype.aesEncrypt = function (key, bytes) {
 	if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
 		return new Promise(function (resolve, reject) {
-			var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
-			var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+			var encodedBytes = tutao.util.EncodingConverter.uint8ArrayToBase64(bytes);
+			var encodedKey = tutao.util.EncodingConverter.uint8ArrayToBase64(key);
 			exec(function(result) {
-				resolve(tutao.util.EncodingConverter.base64ToArray(result));
+				resolve(tutao.util.EncodingConverter.base64ToUint8Array(result));
 			}, function (error) {
 				reject(new tutao.crypto.CryptoError(error));
 			},"Crypto", "aesEncrypt", [encodedKey, encodedBytes]);
@@ -95,7 +95,7 @@ Crypto.prototype.aesEncrypt = function (key, bytes) {
  */
 Crypto.prototype.aesEncryptFile = function (key, fileUrl) {
     return new Promise(function (resolve, reject) {
-        var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+        var encodedKey = tutao.util.EncodingConverter.uint8ArrayToBase64(key);
         exec(function(result) {
             resolve(result);
         }, function (error) {
@@ -113,10 +113,10 @@ Crypto.prototype.aesEncryptFile = function (key, fileUrl) {
 Crypto.prototype.aesDecrypt = function (key, bytes, decryptedBytesLength) {
 	if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID) {
 		return new Promise(function (resolve, reject) {
-			var encodedBytes = tutao.util.EncodingConverter.bytesToBase64(bytes);
-			var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+			var encodedBytes = tutao.util.EncodingConverter.uint8ArrayToBase64(bytes);
+			var encodedKey = tutao.util.EncodingConverter.uint8ArrayToBase64(key);
 			exec(function(result) {
-				var resultArray = tutao.util.EncodingConverter.base64ToArray(result);
+				var resultArray = tutao.util.EncodingConverter.base64ToUint8Array(result);
 				if (resultArray.length == decryptedBytesLength) {
 					resolve(resultArray);
 				} else {
@@ -139,7 +139,7 @@ Crypto.prototype.aesDecrypt = function (key, bytes, decryptedBytesLength) {
  */
 Crypto.prototype.aesDecryptFile = function (key, fileUrl) {
     return new Promise(function (resolve, reject) {
-        var encodedKey = tutao.util.EncodingConverter.bytesToBase64(key);
+        var encodedKey = tutao.util.EncodingConverter.uint8ArrayToBase64(key);
         exec(function(result) {
             resolve(result);
         }, function (error) {

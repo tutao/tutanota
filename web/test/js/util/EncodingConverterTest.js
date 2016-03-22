@@ -5,9 +5,9 @@ describe("EncodingConverterTest", function () {
     var assert = chai.assert;
 
     it("StringToArrayBufferAndBack", function () {
-        assert.equal("halloTest € à 草", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("halloTest € à 草")));
-        assert.equal("", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("")));
-        assert.equal("1", tutao.util.EncodingConverter.utf8ArrayBufferToString(tutao.util.EncodingConverter.stringToUint8ArrayBuffer("1")));
+        assert.equal("halloTest € à 草", tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.stringToUtf8Uint8Array("halloTest € à 草")));
+        assert.equal("", tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.stringToUtf8Uint8Array("")));
+        assert.equal("1", tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.stringToUtf8Uint8Array("1")));
     });
 
     it("HexToArrayBufferAndBack", function () {
@@ -61,16 +61,7 @@ describe("EncodingConverterTest", function () {
         assert.equal("4fc6fbb10000000000", tutao.util.EncodingConverter.timestampToHexGeneratedId(timestamp + ""));
     });
 
-    it("AsciiToArrayBuffer ", function () {
-        // TODO enable, after we do not use chrome 17 for testing anymore (has wrong equals implementation on array <-> arraybuffer)
-        // assert.equal([97, 98, 99, 35], new Uint8Array(tutao.util.EncodingConverter.asciiToArrayBuffer("abc#")));
-        // ATTENTION, unicode chars are not converted correctly, function works only for ASCII chars
-        // TODO enable after jstestdriver allows utf-8 assert.equal([172], new Uint8Array(tutao.util.EncodingConverter.asciiToArrayBuffer("€")));
+    it("Uint8ArrayToBase64 ", function () {
+        assert.equal("YWJjIw==", tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array("abc#")));
     });
-
-    it("ArrayBufferToBase64 ", function () {
-        assert.equal("YWJjIw==", tutao.util.EncodingConverter.arrayBufferToBase64(tutao.util.EncodingConverter.asciiToArrayBuffer("abc#")));
-    });
-
-
 });

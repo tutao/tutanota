@@ -217,7 +217,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 				var publicKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
 				var hexBucketKey = new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.aesCrypter.keyToHex(bucketKey)));
                 return tutao.locator.crypto.rsaEncrypt(publicKey, hexBucketKey).then(function(encrypted) {
-                    recipient.setPubEncBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(encrypted));
+                    recipient.setPubEncBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(encrypted));
                     recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
                 });
 			}

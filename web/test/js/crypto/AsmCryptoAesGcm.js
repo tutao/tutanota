@@ -50,21 +50,21 @@ tutao.crypto.AsmCryptoAesGcm.prototype.base64ToKey = function(base64) {
  */
 tutao.crypto.AsmCryptoAesGcm.prototype.encryptUtf8 = function(key, string) {
     var iv = this._createIv();
-    var plainText = tutao.util.EncodingConverter.stringToUint8ArrayBuffer(string);
+    var plainText = tutao.util.EncodingConverter.stringToUtf8Uint8Array(string);
     var encrypted = asmCrypto.AES_GCM.encrypt(plainText, key, iv, "", this._tagSizeBytes);
     var merged = tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted);
-    return tutao.util.EncodingConverter.arrayBufferToBase64(merged.buffer);
+    return tutao.util.EncodingConverter.uint8ArrayToBase64(merged);
 };
 
 /**
  * @inheritDoc
  */
 tutao.crypto.AsmCryptoAesGcm.prototype.decryptUtf8 = function(key, base64) {
-    var rawData = new Uint8Array(tutao.util.EncodingConverter.base64ToArrayBuffer(base64));
+    var rawData = tutao.util.EncodingConverter.base64ToUint8Array(base64);
     var iv = new Uint8Array(rawData.buffer, 0, this._ivLengthBytes);
     var encryptedData = new Uint8Array(rawData.buffer, this._ivLengthBytes);
     var decryptedUint8Array = asmCrypto.AES_GCM.decrypt(encryptedData, key, iv, "", this._tagSizeBytes);
-    return tutao.util.EncodingConverter.utf8ArrayBufferToString(decryptedUint8Array.buffer);
+    return tutao.util.EncodingConverter.utf8Uint8ArrayToString(decryptedUint8Array);
 };
 
 

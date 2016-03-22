@@ -61,7 +61,9 @@ describe("AesLibsTest", function () {
 
 
     it("encryptDecryptUtf8Aes256Gcm ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(), new tutao.crypto.AsmCryptoAesGcm() ];
+        var facades = [ new tutao.crypto.SjclAesGcm(),
+                        new tutao.crypto.AsmCryptoAesGcm(),
+                        new tutao.crypto.ForgeCryptoAesGcm() ];
         var plainTexts = [ "", "0", "1", "ab", "1234567890", "€f3020a0990u)=U890437987zf403ÄÄv#w4#4)P(=()=ZE()Zr98p73428f94zgfoiurzetoie"];
 
         Promise.each(plainTexts, function(plainText) {
@@ -75,7 +77,9 @@ describe("AesLibsTest", function () {
     });
 
     it("encryptDecryptUtf8Aes256GcmCompatibility ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(), new tutao.crypto.AsmCryptoAesGcm() ];
+        var facades = [ new tutao.crypto.SjclAesGcm(),
+                        new tutao.crypto.AsmCryptoAesGcm(),
+                        new tutao.crypto.ForgeCryptoAesGcm()];
         var plainTexts = [ "", "0", "1", "ab", "1234567890", "€f3020a0990u)=U890437987zf403ÄÄv#w4#4)P(=()=ZE()Zr98p73428f94zgfoiurzetoie"];
         var commonKeyHex = facades[0].keyToHex(facades[0].generateRandomKey());
 
@@ -97,9 +101,12 @@ describe("AesLibsTest", function () {
         });
     });
 
-    it("encryptDecryptUtf8Aes256GcmBigAmount ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(), new tutao.crypto.AsmCryptoAesGcm(), new tutao.crypto.AsmCryptoAesGcm(), new tutao.crypto.WebCryptoAesGcm() ];
-        var plainText = _createArray(1024 * 100);
+    it("encryptDecryptBytesAes256GcmBigAmount ", function (done) {
+        var facades = [ new tutao.crypto.SjclAesGcm(),
+                        new tutao.crypto.AsmCryptoAesGcm(),
+                        new tutao.crypto.WebCryptoAesGcm(),
+                        new tutao.crypto.ForgeCryptoAesGcm() ];
+        var plainText = _createArray(1024 * 10);
         var cipherText = null;
 
         return Promise.each(facades, function(facade) {

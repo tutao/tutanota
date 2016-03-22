@@ -382,7 +382,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
                                 .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
                                 .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
                                 .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
-                                .setSystemCustomerPubEncAccountingInfoBucketKey(tutao.util.EncodingConverter.arrayBufferToBase64(systemAdminPubEncCustomerBucketKey))
+                                .setSystemCustomerPubEncAccountingInfoBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(systemAdminPubEncCustomerBucketKey))
                                 .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
                                 .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
                                 .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))

@@ -36,7 +36,7 @@ FileUtil.prototype.openFileChooser = function() {
  */
 FileUtil.prototype.write = function(file, bytes) {
     return new Promise(function (resolve, reject) {
-        exec(resolve,reject,"FileUtil", "write",[file, tutao.util.EncodingConverter.bytesToBase64(bytes)]);
+        exec(resolve,reject,"FileUtil", "write",[file, tutao.util.EncodingConverter.uint8ArrayToBase64(bytes)]);
     });
 };
 
@@ -49,7 +49,7 @@ FileUtil.prototype.write = function(file, bytes) {
 FileUtil.prototype.read = function(file) {
     return new Promise(function (resolve, reject) {
         exec(function(result) {
-            resolve(tutao.util.EncodingConverter.base64ToArray(result));
+            resolve(tutao.util.EncodingConverter.base64ToUint8Array(result));
         },reject,"FileUtil", "read",[file]);
     });
 };
