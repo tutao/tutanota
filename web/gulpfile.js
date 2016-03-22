@@ -29,6 +29,7 @@ var request = require('request');
 var async = require('async');
 
 function getIpAddress() {
+    //return "10.0.2.2"; // use when running in android simulator
     var os = require('os');
     if (os.type() == "Darwin") {
         return "192.168.178.51"; //bed

@@ -96,6 +96,7 @@
 	
   </platform>
 
+  <preference name="loadUrlTimeoutValue" value="300000" />
   <preference name="FadeSplashScreen" value="false"/>
   <preference name="AndroidLaunchMode" value="singleTop"/>
   <preference name="AndroidPersistentFileLocation" value="Internal"/>
