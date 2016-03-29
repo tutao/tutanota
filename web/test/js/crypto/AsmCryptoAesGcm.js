@@ -53,7 +53,7 @@ tutao.crypto.AsmCryptoAesGcm.prototype.encryptUtf8 = function(key, string) {
     var bytes = tutao.util.EncodingConverter.stringToUtf8Uint8Array(string);
     var plainText = tutao.crypto.Utils.pad(bytes);
     var encrypted = asmCrypto.AES_GCM.encrypt(plainText, key, iv, "", this._tagSizeBytes);
-    var merged = tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted);
+    var merged = tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted.buffer);
     return tutao.util.EncodingConverter.uint8ArrayToBase64(merged);
 };
 
@@ -123,7 +123,7 @@ tutao.crypto.AsmCryptoAesGcm.prototype.aesEncrypt = function (key, bytes) {
     var iv = this._createIv();
     var plainText = tutao.crypto.Utils.pad(bytes);
     var encrypted = asmCrypto.AES_GCM.encrypt(plainText, key, iv, "", this._tagSizeBytes);
-    var merged = tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted);
+    var merged = tutao.crypto.WebCryptoAesGcm.mergeIvAndEncrypted(iv, encrypted.buffer);
     return Promise.resolve(merged);
 };
 

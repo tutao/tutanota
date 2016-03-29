@@ -63,5 +63,8 @@ tutao.crypto.Utils.unpad = function(bytes) {
     if (paddingLength > bytes.byteLength || paddingLength > tutao.crypto.Utils.PADDING_BLOCK_LENGTH) {
         throw new tutao.crypto.CryptoError("invalid padding: " + paddingLength);
     }
-    return new Uint8Array(bytes.buffer, 0, bytes.byteLength - paddingLength); // or is a subarray fine here instead of a copy?
+    var length = bytes.byteLength - paddingLength;
+	var result = new Uint8Array(length);
+    result.set(bytes.subarray(0,length)); // or is a subarray fine here instead of a copy?
+	return result;
 };
