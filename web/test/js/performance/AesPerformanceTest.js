@@ -9,17 +9,28 @@ var bigAmountPlainTextSizeBytes = 1024 * 1024 * 5;
 var runTest = function (resultLines) {
     var testFunctions = [
         Sjcl_AES_128_CBC_BigAmount,
+
         Sjcl_AES_256_GCM_BigAmount,
-        AsmCrypto_AES_256_GCM_BigAmount,
         WebCrypto_AES_256_GCM_BigAmount,
+        AsmCrypto_AES_256_GCM_BigAmount,
         ForgeCrypto_AES_256_GCM_BigAmount,
 
+        // too bad performance: Sjcl_AES_256_CBC_BigAmount,
+        WebCrypto_AES_256_CBC_BigAmount,
+        AsmCrypto_AES_256_CBC_BigAmount,
+        ForgeCrypto_AES_256_CBC_BigAmount,
 
         Sjcl_AES_128_CBC_SmallAmount,
+
         Sjcl_AES_256_GCM_SmallAmount,
-        AsmCrypto_AES_256_GCM_SmallAmount,
         WebCrypto_AES_256_GCM_SmallAmount,
-        ForgeCrypto_AES_256_GCM_SmallAmount
+        AsmCrypto_AES_256_GCM_SmallAmount,
+        ForgeCrypto_AES_256_GCM_SmallAmount,
+
+        Sjcl_AES_256_CBC_SmallAmount,
+        WebCrypto_AES_256_CBC_SmallAmount,
+        AsmCrypto_AES_256_CBC_SmallAmount,
+        ForgeCrypto_AES_256_CBC_SmallAmount
         ];
 
     return Promise.each(testFunctions, function(testFunction) {
@@ -36,19 +47,35 @@ var Sjcl_AES_128_CBC_SmallAmount = function (resultLines) {
 };
 
 var Sjcl_AES_256_GCM_SmallAmount = function (resultLines) {
-    return _testSmallAmount(resultLines, "Sjcl_AES_256_GCM", new tutao.crypto.SjclAesGcm());
+    return _testSmallAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAesGcm());
 };
 
 var Sjcl_AES_256_GCM_BigAmount = function (resultLines) {
-    return _testBigAmount(resultLines, "Sjcl_AES_256_GCM", new tutao.crypto.SjclAesGcm());
+    return _testBigAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAesGcm());
+};
+
+var Sjcl_AES_256_CBC_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "Sjcl_AES_256_CBC_HMAC", new tutao.crypto.SjclAesCbc());
+};
+
+var Sjcl_AES_256_CBC_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "Sjcl_AES_256_CBC_HMAC", new tutao.crypto.SjclAesCbc());
 };
 
 var AsmCrypto_AES_256_GCM_BigAmount = function (resultLines) {
-    return _testBigAmount(resultLines, "AsmCrypto_AES_256_GCM", new tutao.crypto.AsmCryptoAesGcm());
+    return _testBigAmount(resultLines, "AsmCrypto_AES_256_GCM_PAD", new tutao.crypto.AsmCryptoAesGcm());
 };
 
 var AsmCrypto_AES_256_GCM_SmallAmount = function (resultLines) {
-    return _testSmallAmount(resultLines, "AsmCrypto_AES_256_GCM", new tutao.crypto.AsmCryptoAesGcm());
+    return _testSmallAmount(resultLines, "AsmCrypto_AES_256_GCM_PAD", new tutao.crypto.AsmCryptoAesGcm());
+};
+
+var AsmCrypto_AES_256_CBC_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "AsmCrypto_AES_256_CBC", new tutao.crypto.AsmCryptoAesCbc());
+};
+
+var AsmCrypto_AES_256_CBC_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "AsmCrypto_AES_256_CBC", new tutao.crypto.AsmCryptoAesCbc());
 };
 
 var ForgeCrypto_AES_256_GCM_BigAmount = function (resultLines) {
@@ -59,8 +86,20 @@ var ForgeCrypto_AES_256_GCM_SmallAmount = function (resultLines) {
     return _testSmallAmount(resultLines, "ForgeCrypto_AES_256_GCM", new tutao.crypto.ForgeCryptoAesGcm());
 };
 
+var ForgeCrypto_AES_256_CBC_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "ForgeCrypto_AES_256_CBC", new tutao.crypto.ForgeCryptoAesCbc());
+};
+
+var ForgeCrypto_AES_256_CBC_SmallAmount = function (resultLines) {
+    return _testSmallAmount(resultLines, "ForgeCrypto_AES_256_CBC", new tutao.crypto.ForgeCryptoAesCbc());
+};
+
 var WebCrypto_AES_256_GCM_BigAmount = function (resultLines) {
-    return _testBigAmount(resultLines, "WebCrypto_AES_256_GCM", new tutao.crypto.WebCryptoAesGcm());
+    return _testBigAmount(resultLines, "WebCrypto_AES_256_GCM_PAD", new tutao.crypto.WebCryptoAesGcm());
+};
+
+var WebCrypto_AES_256_CBC_BigAmount = function (resultLines) {
+    return _testBigAmount(resultLines, "WebCrypto_AES_256_CBC_HMAC", new tutao.crypto.WebCryptoAesCbc());
 };
 
 /**
@@ -68,13 +107,24 @@ var WebCrypto_AES_256_GCM_BigAmount = function (resultLines) {
  */
 var WebCrypto_AES_256_GCM_SmallAmount = function (resultLines) {
     var facade = new tutao.crypto.WebCryptoAesGcm();
+    var testName = "WebCrypto_AES_256_GCM";
+    return _runWebCryptoSmallAmountAsync(resultLines, facade, testName);
+};
+
+var WebCrypto_AES_256_CBC_SmallAmount = function (resultLines) {
+    var facade = new tutao.crypto.WebCryptoAesCbc();
+    var testName = "WebCrypto_AES_256_CBC";
+    return _runWebCryptoSmallAmountAsync(resultLines, facade, testName);
+};
+
+
+var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
     var key = facade.generateRandomKey();
     var plainText = "1234567890";
 
     var localCipherText = null;
     var localWebCryptoKey = null;
     var decryptedPlainText = null;
-    var testName = "WebCrypto_AES_256_GCM";
     progressInfo(testName);
     resultLines["small"][testName] = resultLines["small"][testName] || {};
 

@@ -19,4 +19,33 @@ describe("UtilsTest", function () {
         assert.equal(sjcl.codec.hex.fromBits(sjcl.codec.bytes.toBits(a.mgf1(bytes, 65))), "e25f9f0a2c2664632d1be5e2f25b2794c371091b61eb762ad98861da3a2221ee366dcb38806a930d052d8b7bac72a4e59bbe8a78792b4d975ed944dc0f64f6e5c3");
     });
 
+    it("pad ", function () {
+        _testPadding([], 16);
+        _testPadding([1], 15);
+        _testPadding([1,2], 14);
+        _testPadding([1,2,3], 13);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5], 1);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6], 16);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7], 15);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1], 1);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2], 16);
+        _testPadding([1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3], 15);
+    });
+
+    var _testPadding = function(array, expectedNbrOfPaddingBytes) {
+        var padded = tutao.crypto.Utils.pad(new Uint8Array(array));
+        assert.equal(expectedNbrOfPaddingBytes, padded.byteLength - array.length);
+        for (var i=0; i<array.length; i++) {
+            assert.equal(array[i], padded[i]);
+        }
+        for (i=0; i<expectedNbrOfPaddingBytes; i++) {
+            assert.equal(expectedNbrOfPaddingBytes, padded[array.length + i]);
+        }
+
+        var unpadded = tutao.crypto.Utils.unpad(padded);
+        assert.equal(array.length, unpadded.length);
+        for (i=0; i<array.length; i++) {
+            assert.equal(array[i], unpadded[i]);
+        }
+    };
 });

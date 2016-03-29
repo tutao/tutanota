@@ -45,3 +45,23 @@ tutao.crypto.Utils.prototype.i2osp = function (i) {
     array.push((i >> 0) & 255);
     return array;
 };
+
+tutao.crypto.Utils.PADDING_BLOCK_LENGTH = 16;
+
+tutao.crypto.Utils.pad = function(bytes) {
+    var paddingLength = tutao.crypto.Utils.PADDING_BLOCK_LENGTH - (bytes.byteLength % tutao.crypto.Utils.PADDING_BLOCK_LENGTH);
+    var padding = new Uint8Array(paddingLength);
+    padding.fill(paddingLength);
+    var dstBuffer = new Uint8Array(bytes.byteLength + paddingLength);
+    dstBuffer.set(bytes, 0);
+    dstBuffer.set(padding, bytes.byteLength);
+    return dstBuffer;
+};
+
+tutao.crypto.Utils.unpad = function(bytes) {
+    var paddingLength = bytes[bytes.byteLength - 1];
+    if (paddingLength > bytes.byteLength || paddingLength > tutao.crypto.Utils.PADDING_BLOCK_LENGTH) {
+        throw new tutao.crypto.CryptoError("invalid padding: " + paddingLength);
+    }
+    return new Uint8Array(bytes.buffer, 0, bytes.byteLength - paddingLength); // or is a subarray fine here instead of a copy?
+};

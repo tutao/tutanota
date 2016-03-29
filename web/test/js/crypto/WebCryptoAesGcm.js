@@ -128,6 +128,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.decryptUtf8 = function(webCryptoKey, base
 tutao.crypto.WebCryptoAesGcm.prototype.aesEncrypt = function (key, bytes) {
     var self = this;
 
+    var plainText = tutao.crypto.Utils.pad(bytes);
     var iv = this._createIv();
 
     return new Promise(function(resolve, reject) {
@@ -148,7 +149,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.aesEncrypt = function (key, bytes) {
                     //addtl: window.crypto.getRandomValues(new Uint8Array(256))
                 },
                 webCryptoKey, //from generateKey or importKey above
-                bytes //ArrayBuffer of data you want to encrypt
+                plainText //ArrayBuffer of data you want to encrypt
             ).then(function (encrypted) {
                 //returns an ArrayBuffer containing the encrypted data
                 // iv + encrypted data
@@ -190,7 +191,7 @@ tutao.crypto.WebCryptoAesGcm.prototype.aesDecrypt = function (key, bytes, decryp
             ).then(function(decrypted){
                 //returns an ArrayBuffer containing the decrypted data
                 //console.log(new Uint8Array(decrypted));
-                resolve(new Uint8Array(decrypted));
+                resolve(tutao.crypto.Utils.unpad(new Uint8Array(decrypted)));
             }).catch(function(err){
                 reject(err);
             });

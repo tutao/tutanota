@@ -40,14 +40,14 @@ describe("EncodingConverterTest", function () {
         assert.equal("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf", tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.utf8ToHex("7=/=£±™⅛°™⅜£¤°±⅛™¤°°®↑°°ÆÐª±↑£°±↑Ω£®°±đ]łæ}đ2w034r70uf")));
     });
 
-    it("BytesToBase64 ", function () {
-        assert.equal("", tutao.util.EncodingConverter.bytesToBase64([]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32])), tutao.util.EncodingConverter.bytesToBase64([32]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65])), tutao.util.EncodingConverter.bytesToBase64([32, 65]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66])), tutao.util.EncodingConverter.bytesToBase64([32, 65, 66]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66, 67])), tutao.util.EncodingConverter.bytesToBase64([32, 65, 66, 67]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66, 67, 68])), tutao.util.EncodingConverter.bytesToBase64([32, 65, 66, 67, 68]));
-        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([0, 255])), tutao.util.EncodingConverter.bytesToBase64([0, 255]));
+    it("uint8ArrayToBase64 ", function () {
+        assert.equal("", tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(0)));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([32])));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([32, 65])));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([32, 65, 66])));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66, 67])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([32, 65, 66, 67])));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([32, 65, 66, 67, 68])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([32, 65, 66, 67, 68])));
+        assert.equal(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.bytesToHex([0, 255])), tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array([0, 255])));
     });
 
     it("Base64ToBase64Ext ", function () {
