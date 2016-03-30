@@ -7,6 +7,19 @@ var resultLinesSmallAmount = ko.observableArray([]);
 var resultLinesBigAmount = ko.observableArray([]);
 var progressInfo = ko.observable("");
 
+
+if (typeof Uint8Array.prototype.fill !== 'function') {
+    Uint8Array.prototype.fill = function(value, start, end) {
+        start = start || 0;
+        end = end || this.length;
+
+        for (var i = start; i < end; i++) {
+            this[i] = value;
+        }
+    };
+}
+
+
 var printResult = function(resultLines) {
     smallAmountNames(Object.keys(results.small));
     bigAmountNames(Object.keys(results.big));

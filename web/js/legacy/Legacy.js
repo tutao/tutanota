@@ -75,6 +75,18 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
         };
     }
 
+    if (typeof Uint8Array.prototype.fill !== 'function') {
+        Uint8Array.prototype.fill = function(value, start, end) {
+            start = start || 0;
+            end = end || this.length;
+
+            for (var i = start; i < end; i++) {
+                this[i] = value;
+            }
+        };
+    }
+
+
 
     Object.keys = Object.keys || (function () {
         var hasOwnProperty = Object.prototype.hasOwnProperty,

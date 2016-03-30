@@ -8,6 +8,7 @@ var bigAmountPlainTextSizeBytes = 1024 * 1024 * 5;
 
 var runTest = function (resultLines) {
     var testFunctions = [
+
         Sjcl_AES_128_CBC_BigAmount,
 
         Sjcl_AES_256_GCM_BigAmount,
@@ -128,7 +129,7 @@ var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
     progressInfo(testName);
     resultLines["small"][testName] = resultLines["small"][testName] || {};
 
-    return facade._getWebCryptoKey(key).then(function(webCryptoKey) {
+    return facade.getWebCryptoKey(key).then(function(webCryptoKey) {
         var startEncrypt = Date.now();
         localWebCryptoKey = webCryptoKey;
         var i = 0;
@@ -153,6 +154,12 @@ var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
             resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
             resultLines["small"][testName]["decrypt"].push((Date.now() - startDecrypt));
         });
+    }).catch(function(error) {
+        console.log(error);
+        resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
+        resultLines["small"][testName]["encrypt"].push("Error");
+        resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
+        resultLines["small"][testName]["decrypt"].push("Error");
     });
 };
 
@@ -196,6 +203,12 @@ var _testBigAmount = function(resultLines, testName, facade) {
             resultLines["big"][testName]["decrypt"] = resultLines["big"][testName]["decrypt"] || [];
             resultLines["big"][testName]["decrypt"].push((Date.now() - start));
         });
+    }).catch(function(error) {
+        console.log(error);
+        resultLines["big"][testName]["encrypt"] = resultLines["big"][testName]["encrypt"] || [];
+        resultLines["big"][testName]["encrypt"].push("Error");
+        resultLines["big"][testName]["decrypt"] = resultLines["big"][testName]["decrypt"] || [];
+        resultLines["big"][testName]["decrypt"].push("Error");
     });
 };
 

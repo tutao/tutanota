@@ -2,6 +2,15 @@
 
 tutao.provide('tutao.crypto.WebCryptoAesCbc');
 
+
+if (window.crypto && !window.crypto.subtle && window.crypto.webkitSubtle) {
+    window.crypto.subtle = window.crypto.webkitSubtle;
+}
+
+if (!window.crypto.subtle && window.msCrypto.subtle) {
+   // window.crypto.subtle = window.msCrypto.subtle;
+}
+
 /**
  * AES 256 CBC with HMAC
  * @constructor
@@ -138,14 +147,21 @@ tutao.crypto.WebCryptoAesCbc.prototype.aesEncrypt = function (key, bytes) {
                 dstBuffer.set(new Uint8Array(iv), 0);
                 dstBuffer.set(new Uint8Array(encrypted), iv.byteLength);
                     //TODO: use different key
+                console.log("before hmac");
                 return self._calculateHmac(key, new Uint8Array(dstBuffer.buffer, 0, iv.byteLength + encrypted.byteLength)).then(function(hmac) {
+                    console.log("hmac success");
                     dstBuffer.set(hmac, iv.byteLength + encrypted.byteLength);
                     resolve(dstBuffer);
+                }).catch(function(error){
+                    console.log("hmac error: ", error);
+                    reject(error);
                 });
-            }).catch(function (err) {
-                reject(err);
+            }).catch(function (error) {
+                reject(error);
             });
-        })
+        }).catch(function(error){
+            reject(error);
+        });
     });
 };
 
@@ -212,6 +228,8 @@ tutao.crypto.WebCryptoAesCbc.prototype.aesDecrypt = function (key, bytes, decryp
                     reject(err);
                 });
             });
+        }).catch(function(error){
+            reject(error);
         });
     });
 };
@@ -227,6 +245,17 @@ tutao.crypto.WebCryptoAesCbc.prototype._getWebCryptoKey = function(key) {
 		false, //whether the key is extractable (i.e. can be used in exportKey)
 		["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
 	);
+};
+
+tutao.crypto.WebCryptoAesCbc.prototype.getWebCryptoKey = function(key) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        self._getWebCryptoKey(key).then(function(webCryptoKey) {
+            resolve(webCryptoKey);
+        }).catch(function(error) {
+            reject(error);
+        });
+    });
 };
 
 tutao.crypto.WebCryptoAesCbc.prototype._getWebCryptoHmacKey = function(key) {

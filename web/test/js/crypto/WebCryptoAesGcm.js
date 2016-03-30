@@ -2,6 +2,15 @@
 
 tutao.provide('tutao.crypto.WebCryptoAesGcm');
 
+if (window.crypto && !window.crypto.subtle && window.crypto.webkitSubtle) {
+    //window.crypto.subtle = window.crypto.webkitSubtle;
+}
+
+if (!window.crypto.subtle && window.msCrypto.subtle) {
+    //window.crypto.subtle = window.msCrypto.subtle;
+}
+
+
 /**
  * @constructor
  * @implements {tutao.crypto.AesInterface}
@@ -160,7 +169,9 @@ tutao.crypto.WebCryptoAesGcm.prototype.aesEncrypt = function (key, bytes) {
             }).catch(function (err) {
                 reject(err);
             });
-        })
+        }).catch(function(error){
+          reject(error);
+        });
     });
 };
 
@@ -195,6 +206,8 @@ tutao.crypto.WebCryptoAesGcm.prototype.aesDecrypt = function (key, bytes, decryp
             }).catch(function(err){
                 reject(err);
             });
+        }).catch(function(error){
+            reject(error);
         });
     });
 };
@@ -212,6 +225,17 @@ tutao.crypto.WebCryptoAesGcm.prototype._getWebCryptoKey = function(key) {
 	);
 };
 
+
+tutao.crypto.WebCryptoAesGcm.prototype.getWebCryptoKey = function(key) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+       self._getWebCryptoKey(key).then(function(webCryptoKey) {
+           resolve(webCryptoKey);
+       }).catch(function(error) {
+           reject(error);
+       });
+    });
+};
 
 
 /**
