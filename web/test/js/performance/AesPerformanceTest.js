@@ -14,12 +14,12 @@ var runTest = function (resultLines) {
         Sjcl_AES_256_GCM_BigAmount,
         WebCrypto_AES_256_GCM_BigAmount,
         AsmCrypto_AES_256_GCM_BigAmount,
-        ForgeCrypto_AES_256_GCM_BigAmount,
+        //ForgeCrypto_AES_256_GCM_BigAmount, crashes on on ios devices
 
         // too bad performance: Sjcl_AES_256_CBC_BigAmount,
         WebCrypto_AES_256_CBC_BigAmount,
         AsmCrypto_AES_256_CBC_BigAmount,
-        ForgeCrypto_AES_256_CBC_BigAmount,
+        //ForgeCrypto_AES_256_CBC_BigAmount, crashes on on ios devices
 
         Sjcl_AES_128_CBC_SmallAmount,
 

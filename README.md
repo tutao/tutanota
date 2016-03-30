@@ -8,7 +8,7 @@ Tutanota is the end-to-end encrypted email client that enables you to communicat
 ## WebStorm
 Tutanota is built with [WebStorm](https://www.jetbrains.com/webstorm/) from [JetBrains](https://www.jetbrains.com/)
 
-[![WebStorm Logo](https://www.jetbrains.com/webstorm/documentation/docs/logo_webstorm.png)](https://www.jetbrains.com/webstorm/)
+[![WebStorm Logo](logo_WebStorm.png)](https://www.jetbrains.com/webstorm/)
 
 ## Building and running your own Tutanota web client
 
