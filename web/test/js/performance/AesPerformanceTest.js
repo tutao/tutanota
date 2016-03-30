@@ -126,89 +126,97 @@ var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
     var localCipherText = null;
     var localWebCryptoKey = null;
     var decryptedPlainText = null;
-    progressInfo(testName);
     resultLines["small"][testName] = resultLines["small"][testName] || {};
 
-    return facade.getWebCryptoKey(key).then(function(webCryptoKey) {
-        var startEncrypt = Date.now();
-        localWebCryptoKey = webCryptoKey;
-        var i = 0;
-        return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
-            i++;
-            return facade.encryptUtf8(localWebCryptoKey, plainText).then(function(cipherText) {
-                localCipherText = cipherText;
+    console.log(testName + "_small");
+    progressInfo(testName + "_small"); // add delay for gui to update
+    return Promise.delay(50).then(function() {
+        return facade.getWebCryptoKey(key).then(function(webCryptoKey) {
+            var startEncrypt = Date.now();
+            localWebCryptoKey = webCryptoKey;
+            var i = 0;
+            return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
+                i++;
+                return facade.encryptUtf8(localWebCryptoKey, plainText).then(function(cipherText) {
+                    localCipherText = cipherText;
+                });
+            }).then(function() {
+                resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
+                resultLines["small"][testName]["encrypt"].push((Date.now() - startEncrypt));
             });
         }).then(function() {
+            var startDecrypt = Date.now();
+            var i = 0;
+            return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
+                i++;
+                return facade.decryptUtf8(localWebCryptoKey, localCipherText).then(function(decryptedText) {
+                    decryptedPlainText = decryptedText;
+                });
+            }).then(function() {
+                resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
+                resultLines["small"][testName]["decrypt"].push((Date.now() - startDecrypt));
+            });
+        }).catch(function(error) {
+            console.log(error);
             resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
-            resultLines["small"][testName]["encrypt"].push((Date.now() - startEncrypt));
-        });
-    }).then(function() {
-        var startDecrypt = Date.now();
-        var i = 0;
-        return tutao.util.FunctionUtils.promiseWhile(function() { return i < numberOfSmallAmountTests; }, function() {
-            i++;
-            return facade.decryptUtf8(localWebCryptoKey, localCipherText).then(function(decryptedText) {
-                decryptedPlainText = decryptedText;
-            });
-        }).then(function() {
+            resultLines["small"][testName]["encrypt"].push("Error");
             resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
-            resultLines["small"][testName]["decrypt"].push((Date.now() - startDecrypt));
+            resultLines["small"][testName]["decrypt"].push("Error");
         });
-    }).catch(function(error) {
-        console.log(error);
-        resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
-        resultLines["small"][testName]["encrypt"].push("Error");
-        resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
-        resultLines["small"][testName]["decrypt"].push("Error");
     });
 };
 
 var _testSmallAmount = function(resultLines, testName, facade) {
-    progressInfo(testName);
-    var key = facade.generateRandomKey();
-    var cipherText = null;
+    console.log(testName + "_small");
+    progressInfo(testName + "_small"); // add delay for gui to update
+    return Promise.delay(50).then(function() {
+        var key = facade.generateRandomKey();
+        var cipherText = null;
 
-    resultLines["small"][testName] = resultLines["small"][testName] || {};
+        resultLines["small"][testName] = resultLines["small"][testName] || {};
 
-    var start = Date.now();
-    for (var i=0; i<numberOfSmallAmountTests; i++) {
-        cipherText = facade.encryptUtf8(key, smallAmountPlainText);
-    }
-    resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
-    resultLines["small"][testName]["encrypt"].push((Date.now() - start));
+        var start = Date.now();
+        for (var i = 0; i < numberOfSmallAmountTests; i++) {
+            cipherText = facade.encryptUtf8(key, smallAmountPlainText);
+        }
+        resultLines["small"][testName]["encrypt"] = resultLines["small"][testName]["encrypt"] || [];
+        resultLines["small"][testName]["encrypt"].push((Date.now() - start));
 
-    start = Date.now();
-    var decryptedText = null;
-    for (i=0; i<numberOfSmallAmountTests; i++) {
-        decryptedText = facade.decryptUtf8(key, cipherText);
-    }
-    resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
-    resultLines["small"][testName]["decrypt"].push((Date.now() - start));
-    return Promise.resolve();
+        start = Date.now();
+        var decryptedText = null;
+        for (i = 0; i < numberOfSmallAmountTests; i++) {
+            decryptedText = facade.decryptUtf8(key, cipherText);
+        }
+        resultLines["small"][testName]["decrypt"] = resultLines["small"][testName]["decrypt"] || [];
+        resultLines["small"][testName]["decrypt"].push((Date.now() - start));
+    });
 };
 
 var _testBigAmount = function(resultLines, testName, facade) {
-    progressInfo(testName);
-    var key = facade.generateRandomKey();
-    var plainText = _createArray(bigAmountPlainTextSizeBytes);
-    var cipherText = null;
-    resultLines["big"][testName] = resultLines["big"][testName] || {};
+    console.log(testName + "_big");
+    progressInfo(testName + "_big"); // add delay for gui to update
+    return Promise.delay(50).then(function() {
+        var key = facade.generateRandomKey();
+        var plainText = _createArray(bigAmountPlainTextSizeBytes);
+        var cipherText = null;
+        resultLines["big"][testName] = resultLines["big"][testName] || {};
 
-    var start = Date.now();
-    return facade.aesEncrypt(key, plainText).then(function(encrypted) {
-        resultLines["big"][testName]["encrypt"] = resultLines["big"][testName]["encrypt"] || [];
-        resultLines["big"][testName]["encrypt"].push((Date.now() - start));
-        start = Date.now();
-        return facade.aesDecrypt(key, encrypted, plainText.length).then(function(decrypted) {
+        var start = Date.now();
+        return facade.aesEncrypt(key, plainText).then(function (encrypted) {
+            resultLines["big"][testName]["encrypt"] = resultLines["big"][testName]["encrypt"] || [];
+            resultLines["big"][testName]["encrypt"].push((Date.now() - start));
+            start = Date.now();
+            return facade.aesDecrypt(key, encrypted, plainText.length).then(function (decrypted) {
+                resultLines["big"][testName]["decrypt"] = resultLines["big"][testName]["decrypt"] || [];
+                resultLines["big"][testName]["decrypt"].push((Date.now() - start));
+            });
+        }).catch(function (error) {
+            console.log(error);
+            resultLines["big"][testName]["encrypt"] = resultLines["big"][testName]["encrypt"] || [];
+            resultLines["big"][testName]["encrypt"].push("Error");
             resultLines["big"][testName]["decrypt"] = resultLines["big"][testName]["decrypt"] || [];
-            resultLines["big"][testName]["decrypt"].push((Date.now() - start));
+            resultLines["big"][testName]["decrypt"].push("Error");
         });
-    }).catch(function(error) {
-        console.log(error);
-        resultLines["big"][testName]["encrypt"] = resultLines["big"][testName]["encrypt"] || [];
-        resultLines["big"][testName]["encrypt"].push("Error");
-        resultLines["big"][testName]["decrypt"] = resultLines["big"][testName]["decrypt"] || [];
-        resultLines["big"][testName]["decrypt"].push("Error");
     });
 };
 
