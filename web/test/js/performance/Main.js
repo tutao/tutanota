@@ -8,6 +8,12 @@ var resultLinesBigAmount = ko.observableArray([]);
 var progressInfo = ko.observable("");
 
 
+var updateProgress = function(status) {
+    console.log(status);
+    progressInfo(status);
+};
+
+
 if (typeof Uint8Array.prototype.fill !== 'function') {
     Uint8Array.prototype.fill = function(value, start, end) {
         start = start || 0;

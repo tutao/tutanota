@@ -14,12 +14,12 @@ var runTest = function (resultLines) {
         Sjcl_AES_256_GCM_BigAmount,
         WebCrypto_AES_256_GCM_BigAmount,
         AsmCrypto_AES_256_GCM_BigAmount,
-        ForgeCrypto_AES_256_GCM_BigAmount,
+        //ForgeCrypto_AES_256_GCM_BigAmount, crashes on on ios devices
 
         // too bad performance: Sjcl_AES_256_CBC_BigAmount,
         WebCrypto_AES_256_CBC_BigAmount,
         AsmCrypto_AES_256_CBC_BigAmount,
-        ForgeCrypto_AES_256_CBC_BigAmount,
+        //ForgeCrypto_AES_256_CBC_BigAmount, crashes on on ios devices
 
         Sjcl_AES_128_CBC_SmallAmount,
 
@@ -126,7 +126,7 @@ var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
     var localCipherText = null;
     var localWebCryptoKey = null;
     var decryptedPlainText = null;
-    progressInfo(testName);
+    updateProgress(testName);
     resultLines["small"][testName] = resultLines["small"][testName] || {};
 
     return facade.getWebCryptoKey(key).then(function(webCryptoKey) {
@@ -164,7 +164,7 @@ var _runWebCryptoSmallAmountAsync = function(resultLines, facade, testName) {
 };
 
 var _testSmallAmount = function(resultLines, testName, facade) {
-    progressInfo(testName);
+    updateProgress(testName);
     var key = facade.generateRandomKey();
     var cipherText = null;
 
@@ -188,7 +188,7 @@ var _testSmallAmount = function(resultLines, testName, facade) {
 };
 
 var _testBigAmount = function(resultLines, testName, facade) {
-    progressInfo(testName);
+    updateProgress(testName);
     var key = facade.generateRandomKey();
     var plainText = _createArray(bigAmountPlainTextSizeBytes);
     var cipherText = null;
