@@ -60,7 +60,7 @@ tutao.crypto.Utils.pad = function(bytes) {
 
 tutao.crypto.Utils.unpad = function(bytes) {
     var paddingLength = bytes[bytes.byteLength - 1];
-    if (paddingLength > bytes.byteLength || paddingLength > tutao.crypto.Utils.PADDING_BLOCK_LENGTH) {
+    if (paddingLength == 0 || paddingLength > bytes.byteLength || paddingLength > tutao.crypto.Utils.PADDING_BLOCK_LENGTH) {
         throw new tutao.crypto.CryptoError("invalid padding: " + paddingLength);
     }
     var length = bytes.byteLength - paddingLength;

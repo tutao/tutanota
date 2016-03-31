@@ -8,7 +8,7 @@ describe("JavaCompatibilityTest", function () {
 
     var assert = chai.assert;
 
-    it("testJavaCompatibility", function () {
+    it("testRsaJavaCompatibility", function () {
         this.timeout(20000);
         var aesFacade = tutao.locator.aesCrypter;
         var rsaAdapter = new tutao.native.RsaUtils();
@@ -87,4 +87,27 @@ describe("JavaCompatibilityTest", function () {
             });
         });
     }
+
+    it("testAes256GcmJavaCompatibility", function () {
+        var facade = new tutao.crypto.SjclAesGcm();
+        for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
+            var td = compatibilityTestData.aes256GcmTests[i];
+            var key = facade.hexToKey(td.hexKey);
+            if (td.type == "UTF8") {
+                var decryptedUtf8 = facade.decryptUtf8(key, td.cipherTextBase64);
+                assert.equal(decryptedUtf8, td.plainText);
+            } else  if (td.type == "BYTES") {
+                var decryptedBytes = facade.decryptBytes(key, td.cipherTextBase64);
+                assert.equal(decryptedBytes, td.plainText);
+            } else if (td.type == "AES_KEY") {
+                var decryptedKey = facade.decryptKey(key, td.cipherTextBase64);
+                assert.equal(facade.keyToHex(decryptedKey), td.plainText);
+            } else if (td.type == "RSA_KEY") {
+                var decryptedRsaKey = facade.decryptPrivateRsaKey(key, td.cipherTextBase64);
+                assert.equal(decryptedRsaKey, td.plainText);
+            } else {
+                throw new Error("invalid type: " + td.type);
+            }
+        }
+    });
 });

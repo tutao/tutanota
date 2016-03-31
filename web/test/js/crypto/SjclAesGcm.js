@@ -125,7 +125,7 @@ tutao.crypto.SjclAesGcm.prototype.decryptBytes = function(key, base64) {
  */
 tutao.crypto.SjclAesGcm.prototype.encryptKey = function(key, keyToEncrypt) {
 	try {
-		return sjcl.codec.base64.fromBits(this._encrypt(key, new Uint8Array(sjcl.codec.arrayBuffer.fromBits(keyToEncrypt)), false, false));
+		return sjcl.codec.base64.fromBits(this._encrypt(key, new Uint8Array(sjcl.codec.arrayBuffer.fromBits(keyToEncrypt)), true, false));
 	} catch (e) {
 		throw new tutao.crypto.CryptoError("aes key encryption failed", e);
 	}
@@ -136,7 +136,7 @@ tutao.crypto.SjclAesGcm.prototype.encryptKey = function(key, keyToEncrypt) {
  */
 tutao.crypto.SjclAesGcm.prototype.decryptKey = function(key, base64) {
 	try {
-		return sjcl.codec.arrayBuffer.toBits(this._decrypt(key, sjcl.codec.base64.toBits(base64), false, false).buffer);
+		return sjcl.codec.arrayBuffer.toBits(this._decrypt(key, sjcl.codec.base64.toBits(base64), true, false).buffer);
 	} catch (e) {
 		throw new tutao.crypto.CryptoError("aes key decryption failed", e);
 	}
@@ -147,7 +147,7 @@ tutao.crypto.SjclAesGcm.prototype.decryptKey = function(key, base64) {
  */
 tutao.crypto.SjclAesGcm.prototype.encryptPrivateRsaKey = function(key, hexKeyToEncrypt) {
 	try {
-		return sjcl.codec.base64.fromBits(this._encrypt(key, tutao.util.EncodingConverter.stringToUtf8Uint8Array(hexKeyToEncrypt), true, true));
+		return sjcl.codec.base64.fromBits(this._encrypt(key, new Uint8Array(tutao.util.EncodingConverter.hexToArrayBuffer(hexKeyToEncrypt)), true, true));
 	} catch (e) {
 		throw new tutao.crypto.CryptoError("aes private key encryption failed", e);
 	}
@@ -158,7 +158,7 @@ tutao.crypto.SjclAesGcm.prototype.encryptPrivateRsaKey = function(key, hexKeyToE
  */
 tutao.crypto.SjclAesGcm.prototype.decryptPrivateRsaKey = function(key, base64) {
 	try {
-		return sjcl.codec.hex.fromBits(this._decrypt(key, sjcl.codec.base64.toBits(base64), true, true));
+		return tutao.util.EncodingConverter.arrayBufferToHex(this._decrypt(key, sjcl.codec.base64.toBits(base64), true, true).buffer);
 	} catch (e) {
 		throw new tutao.crypto.CryptoError("aes private key decryption failed", e);
 	}
@@ -174,8 +174,10 @@ tutao.crypto.SjclAesGcm.prototype.decryptPrivateRsaKey = function(key, base64) {
  * @return {Object} The encrypted text, as words.
  */
 tutao.crypto.SjclAesGcm.prototype._encrypt = function(key, bytes, randomIv, usePadding) {
-    var padded = tutao.crypto.Utils.pad(bytes);
-    var words = sjcl.codec.arrayBuffer.toBits(padded.buffer);
+    if (usePadding) {
+        bytes = tutao.crypto.Utils.pad(bytes);
+    }
+    var words = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
 	var iv;
 	if (randomIv) {
 		iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this._ivLengthBytes));
@@ -212,8 +214,11 @@ tutao.crypto.SjclAesGcm.prototype._decrypt = function(key, words, randomIv, useP
 		ciphertext = words;
 	}
     var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], this._tagSizeBytes * 8);
-    var padded = new Uint8Array(sjcl.codec.arrayBuffer.fromBits(decrypted));
-    return tutao.crypto.Utils.unpad(padded);
+    var decryptedBytes = new Uint8Array(sjcl.codec.arrayBuffer.fromBits(decrypted));
+    if (usePadding) {
+        decryptedBytes = tutao.crypto.Utils.unpad(decryptedBytes);
+    }
+    return decryptedBytes;
 };
 
 

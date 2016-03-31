@@ -42,25 +42,6 @@ describe("AesLibsTest", function () {
         assert.isTrue(encryptedRandomIv.length === encrypted2RandomIv.length);
     };
 
-
-    // no padding included
-    it.skip("encryptDecryptUtf8Aes256GcmJavaCompatibility ", function (done) {
-        var keyHex = "2ff6e21a978fcfe89422641fcc6c3e056627d8672882697391d72cc1f464f86a";
-        var plainText = "hello";
-        var cipherText = "3OvlTBJ8AGgNL4cggHgHGeIzciIp9Q712JcZUyGknfpIOtoaZQ==";
-
-        var facades = [ new tutao.crypto.AsmCryptoAesGcm(), new tutao.crypto.SjclAesGcm() ];
-
-        return Promise.each(facades, function (facade) {
-            console.log(facade);
-            var key = facade.hexToKey(keyHex);
-            assert.equal(plainText, facade.decryptUtf8(key, cipherText));
-        }).then(function() {
-            done();
-        });
-    });
-
-
     it("encryptDecryptUtf8Aes256 ", function (done) {
         var facades = [ new tutao.crypto.SjclAesGcm(),
                         new tutao.crypto.SjclAesCbc(),
@@ -126,7 +107,7 @@ describe("AesLibsTest", function () {
             return facade.aesEncrypt(key, plainText).then(function(encrypted) {
                 return facade.aesDecrypt(key, encrypted, plainText.length).then(function(decrypted) {
                     assert.equal(plainText.length, decrypted.length);
-                    for (var i=0; i<plainText.length; i++) {
+                    for (var i = 0; i < plainText.length; i++) {
                         assert.equal(plainText[i], decrypted[i]);
                     }
                 });
