@@ -43,7 +43,8 @@ describe("AesLibsTest", function () {
     };
 
     it("encryptDecryptUtf8Aes256 ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(),
+        var facades = [ new tutao.crypto.SjclAes256Gcm(),
+                        new tutao.crypto.SjclAesGcm(),
                         new tutao.crypto.SjclAesCbc(),
                         new tutao.crypto.AsmCryptoAesGcm(),
                         new tutao.crypto.AsmCryptoAesCbc(),
@@ -63,7 +64,7 @@ describe("AesLibsTest", function () {
     });
 
     it("encryptDecryptUtf8Aes256GcmCompatibility ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(),
+        var facades = [ new tutao.crypto.SjclAes256Gcm(),
                         new tutao.crypto.AsmCryptoAesGcm()
             //new tutao.crypto.ForgeCryptoAesGcm() does not contain padding
                         ];
@@ -116,6 +117,38 @@ describe("AesLibsTest", function () {
             done();
         });
     });
+
+    it("encryptDecryptBytesAes256Async", function (done) {
+        var syncFacade = new tutao.crypto.SjclAes256Gcm();
+        var sjclAsyncFacade = new tutao.crypto.SjclAes256GcmAsync();
+        sjclAsyncFacade.init(syncFacade);
+        var facades = [ sjclAsyncFacade,
+            new tutao.crypto.WebCryptoAes256GcmAsync()
+        ];
+        var plainText = _createArray(1024 * 10);
+        var cipherText = null;
+
+        return Promise.each(facades, function(facade) {
+            console.log(facade);
+            var key = syncFacade.generateRandomKey();
+            return new Promise(function(resolve, reject){
+                facade.encryptBytes(key, plainText, function(encrypted) {
+                    assert.equal('result', encrypted.type);
+                    facade.decryptBytes(key, encrypted.result, plainText.length, function(decrypted) {
+                        assert.equal('result', decrypted.type);
+                        assert.equal(plainText.length, decrypted.result.length);
+                        for (var i = 0; i < plainText.length; i++) {
+                            assert.equal(plainText[i], decrypted.result[i]);
+                        }
+                        resolve();
+                    });
+                });
+            });
+        }).then(function() {
+            done();
+        });
+    });
+
 
     var _createArray = function (len) {
         var view = new Uint8Array(len);

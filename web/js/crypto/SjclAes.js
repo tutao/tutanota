@@ -164,8 +164,8 @@ tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function(key, base64) {
 /**
  * Encrypts a list of words with AES in CBC mode.
  * @protected
- * @param {Object} key The key to use for the encryption.
- * @param {Object} words The words to encrypt (sjcl internal structure).
+ * @param {bitArray} key The key to use for the encryption.
+ * @param {bitArray} words The words to encrypt (sjcl internal structure).
  * @param {boolean} randomIv If true, a random initialization vector is used (the same plaintext is not encrypted to the same chiffre text).
  * @param {boolean} usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return {string} The encrypted text, base64 coded.
@@ -189,11 +189,11 @@ tutao.crypto.SjclAes.prototype._encrypt = function(key, words, randomIv, usePadd
 /**
  * Decrypts a base64 coded string with AES in CBC mode into words.
  * @protected
- * @param {Object} key The key to use for the decryption.
+ * @param {bitArray} key The key to use for the decryption.
  * @param {string} base64 A base64 coded string that was encrypted with the same key before.
  * @param {boolean} randomIv If true, a random initialization vector is used (the same plaintext is not encrypted to the same chiffre text).
  * @param {boolean} usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
- * @return {Object} The decrypted words (CryptoJS internal structure).
+ * @return {bitArray} The decrypted words (CryptoJS internal structure).
  */
 tutao.crypto.SjclAes.prototype._decrypt = function(key, base64, randomIv, usePadding) {
 	var iv;
