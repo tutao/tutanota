@@ -48,11 +48,11 @@ var Sjcl_AES_128_CBC_SmallAmount = function (resultLines) {
 };
 
 var Sjcl_AES_256_GCM_SmallAmount = function (resultLines) {
-    return _testSmallAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAesGcm());
+    return _testSmallAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAes256Gcm());
 };
 
 var Sjcl_AES_256_GCM_BigAmount = function (resultLines) {
-    return _testBigAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAesGcm());
+    return _testBigAmount(resultLines, "Sjcl_AES_256_GCM_PAD", new tutao.crypto.SjclAes256Gcm());
 };
 
 var Sjcl_AES_256_CBC_SmallAmount = function (resultLines) {

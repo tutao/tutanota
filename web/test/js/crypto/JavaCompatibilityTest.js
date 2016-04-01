@@ -89,7 +89,7 @@ describe("JavaCompatibilityTest", function () {
     }
 
     it("testAes256GcmJavaCompatibility", function () {
-        var facade = new tutao.crypto.SjclAesGcm();
+        var facade = new tutao.crypto.SjclAes256Gcm();
         for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
             var td = compatibilityTestData.aes256GcmTests[i];
             var key = facade.hexToKey(td.hexKey);
