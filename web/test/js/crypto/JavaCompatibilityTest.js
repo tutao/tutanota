@@ -69,7 +69,7 @@ describe("JavaCompatibilityTest", function () {
                 if (byteLength != 32) {
                     throw new Error(byteLength + "!");
                 } else {
-                    return tutao.util.EncodingConverter.hexToBytes(td.seed);
+                    return td.seed;
                 }
             };
 
@@ -114,7 +114,6 @@ describe("JavaCompatibilityTest", function () {
     it("testAes256GcmAsyncCompatibility ", function (finished) {
         var syncFacade = new tutao.crypto.SjclAes256Gcm();
         var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
-        facades[0].init(syncFacade);
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
                 var key = syncFacade.hexToKey(td.hexKey);

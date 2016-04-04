@@ -37,14 +37,14 @@ describe("Aes256GcmTest", function () {
 
     it("encryptionDecryptionAsyncRoundtrip ", function (finished) {
         var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
-        facades[0].init(_getFacade());
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
                 var key = _getFacade().hexToKey(td.hexKey);
                 if (td.type == "BYTES") {
                     return new Promise(function(resolve, reject) {
                         var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
-                        facade.encryptBytes(key, plainText, function(result) {
+                        var random = tutao.locator.randomizer.generateRandomData(tutao.crypto.AesInterface.IV_BYTE_LENGTH);
+                        facade.encryptBytes(key, plainText, random, function(result) {
                             facade.decryptBytes(key, result.result, plainText.byteLength, function(result) {
                                 assert.equal(plainText.length, result.result.length);
                                 for (var i = 0; i < plainText.length; i++) {
