@@ -54,7 +54,7 @@ describe("KdfTest", function () {
         ];
 
         return Promise.each(pairs, function(pair) {
-            facade.generateKeyFromPassphrase(pair.pw, salt).then(function (hexKey) {
+            return facade.generateKeyFromPassphrase(pair.pw, salt).then(function (hexKey) {
                 assert.equal(pair.hash, hexKey);
             })
         });

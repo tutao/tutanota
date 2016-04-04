@@ -1444,12 +1444,13 @@ sjcl.prng.prototype = {
     this._poolStrength += estimatedEntropy;
   
     /* fire off events */
+      /* TUTAO.arm: removed bad implementation: _fireEvent calls static randomizer instance
     if (oldReady === this._NOT_READY) {
       if (this.isReady() !== this._NOT_READY) {
         this._fireEvent("seeded", Math.max(this._strength, this._poolStrength));
       }
       this._fireEvent("progress", this.getProgress());
-    }
+    }*/
   },
   
   /** Is the generator ready? */
@@ -1718,6 +1719,7 @@ sjcl.prng.prototype = {
 /** an instance for the prng.
 * @see sjcl.prng
 */
+/* TUTAO.arm: removed static randomizer instance because we have our own
 sjcl.random = new sjcl.prng(6);
 
 (function(){
@@ -1763,7 +1765,7 @@ sjcl.random = new sjcl.prng(6);
       //we do not want the library to fail due to randomness not being maintained.
     }
   }
-}());
+}());*/
 /** @fileOverview Bit array codec implementations.
  *
  * @author Marco Munizaga
