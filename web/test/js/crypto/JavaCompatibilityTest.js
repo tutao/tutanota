@@ -88,8 +88,8 @@ describe("JavaCompatibilityTest", function () {
         });
     }
 
-    it("testAes256GcmJavaCompatibility", function () {
-        var facade = new tutao.crypto.SjclAesGcm();
+    it("testAes256GcmSyncCompatibility ", function () {
+        var facade = new tutao.crypto.SjclAes256Gcm();
         for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
             var td = compatibilityTestData.aes256GcmTests[i];
             var key = facade.hexToKey(td.hexKey);
@@ -109,5 +109,31 @@ describe("JavaCompatibilityTest", function () {
                 throw new Error("invalid type: " + td.type);
             }
         }
+    });
+
+    it("testAes256GcmAsyncCompatibility ", function (finished) {
+        var syncFacade = new tutao.crypto.SjclAes256Gcm();
+        var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
+        facades[0].init(syncFacade);
+        Promise.each(facades, function(facade) {
+            return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
+                var key = syncFacade.hexToKey(td.hexKey);
+                if (td.type == "BYTES") {
+                    return new Promise(function(resolve, reject) {
+                        var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
+                        var cipherText = tutao.util.EncodingConverter.base64ToUint8Array(td.cipherTextBase64);
+                        facade.decryptBytes(key, cipherText, plainText.byteLength, function(result) {
+                            assert.equal(plainText.length, result.result.length);
+                            for (var i = 0; i < plainText.length; i++) {
+                                assert.equal(plainText[i], result.result[i]);
+                            }
+                            resolve();
+                        });
+                    });
+                }
+            });
+        }).then(function() {
+            finished();
+        });
     });
 });

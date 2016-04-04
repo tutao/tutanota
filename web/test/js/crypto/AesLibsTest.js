@@ -44,7 +44,6 @@ describe("AesLibsTest", function () {
 
     it("encryptDecryptUtf8Aes256 ", function (done) {
         var facades = [ new tutao.crypto.SjclAes256Gcm(),
-                        new tutao.crypto.SjclAesGcm(),
                         new tutao.crypto.SjclAesCbc(),
                         new tutao.crypto.AsmCryptoAesGcm(),
                         new tutao.crypto.AsmCryptoAesCbc(),
@@ -90,7 +89,7 @@ describe("AesLibsTest", function () {
     });
 
     it("encryptDecryptBytesAes256BigAmount ", function (done) {
-        var facades = [ new tutao.crypto.SjclAesGcm(),
+        var facades = [ new tutao.crypto.SjclAes256Gcm(),
                         new tutao.crypto.SjclAesCbc(),
                         new tutao.crypto.AsmCryptoAesGcm(),
                         new tutao.crypto.AsmCryptoAesCbc(),
