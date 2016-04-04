@@ -4,12 +4,18 @@ describe("Aes256GcmTest", function () {
 
     var assert = chai.assert;
 
-    var _getFacade = function () {
+    var _getSyncFacade = function () {
         return new tutao.crypto.SjclAes256Gcm();
     };
 
+    var _getAsyncFacades = function () {
+        var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
+        facades[0].init(_getSyncFacade());
+        return facades;
+    };
+
     it("encryptionDecryptionSyncRoundtrip ", function () {
-        var facade = _getFacade();
+        var facade = _getSyncFacade();
         for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
             var td = compatibilityTestData.aes256GcmTests[i];
             var key = facade.hexToKey(td.hexKey);
@@ -36,16 +42,17 @@ describe("Aes256GcmTest", function () {
     });
 
     it("encryptionDecryptionAsyncRoundtrip ", function (finished) {
-        var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
-        facades[0].init(_getFacade());
+        var facades = _getAsyncFacades();
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
-                var key = _getFacade().hexToKey(td.hexKey);
+                var key = _getSyncFacade().hexToKey(td.hexKey);
                 if (td.type == "BYTES") {
                     return new Promise(function(resolve, reject) {
                         var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
                         facade.encryptBytes(key, plainText, function(result) {
+                            assert.equal(result.type, "result");
                             facade.decryptBytes(key, result.result, plainText.byteLength, function(result) {
+                                assert.equal(result.type, "result");
                                 assert.equal(plainText.length, result.result.length);
                                 for (var i = 0; i < plainText.length; i++) {
                                     assert.equal(plainText[i], result.result[i]);
@@ -61,8 +68,85 @@ describe("Aes256GcmTest", function () {
         });
     });
 
+    it("encryptWithInvalidKeyAsync ", function (finished) {
+        var key = _getSyncFacade().hexToKey("7878787878");
+        var facades = _getAsyncFacades();
+        Promise.each(facades, function(facade) {
+            return new Promise(function(resolve, reject) {
+                var plainText = new Uint8Array(5);
+                facade.encryptBytes(key, plainText, function(result) {
+                    assert.equal(result.type, "error");
+                    resolve();
+                });
+            });
+        }).then(function() {
+            finished();
+        });
+    });
+
+    it("decryptInvalidDataAsync ", function (finished) {
+        var key = _getSyncFacade().generateRandomKey();
+        var facades = _getAsyncFacades();
+        Promise.each(facades, function(facade) {
+            return new Promise(function(resolve, reject) {
+                var cipherText = new Uint8Array(48);
+                facade.decryptBytes(key, cipherText, 4, function(result) {
+                    assert.equal(result.type, "error");
+                    resolve();
+                });
+            });
+        }).then(function() {
+            finished();
+        });
+    });
+
+    it("decryptWithWrongKeyAsync ", function (finished) {
+        var key1 = _getSyncFacade().generateRandomKey();
+        var key2 = _getSyncFacade().generateRandomKey();
+        var facades = _getAsyncFacades();
+        Promise.each(facades, function(facade) {
+            return new Promise(function(resolve, reject) {
+                var plainText = new Uint8Array(5);
+                facade.encryptBytes(key1, plainText, function(result) {
+                    assert.equal(result.type, "result");
+                    facade.decryptBytes(key2, result.result, plainText.length, function(result) {
+                        assert.equal(result.type, "error");
+                        resolve();
+                    });
+                });
+            });
+        }).then(function() {
+            finished();
+        });
+    });
+
+    it("decryptManipulatedDataAsync ", function (finished) {
+        var key = _getSyncFacade().generateRandomKey();
+        var facades = _getAsyncFacades();
+        Promise.each(facades, function(facade) {
+            return new Promise(function(resolve, reject) {
+                var plainText = new Uint8Array(5);
+                facade.encryptBytes(key, plainText, function(result) {
+                    assert.equal(result.type, "result");
+                    var manipulated = result.result;
+                    if (manipulated[0] == 0) {
+                        manipulated[0] = 1;
+                    } else {
+                        manipulated[0] = 0
+                    }
+                    facade.decryptBytes(key, manipulated, plainText.length, function(result) {
+                        assert.equal(result.type, "error");
+                        resolve();
+                    });
+                });
+            });
+        }).then(function() {
+            finished();
+        });
+    });
+
     it("generateRandomKeyAndHexConversion ", function () {
-        var facade = _getFacade();
+        var facade = _getSyncFacade();
         var key1Hex = facade.keyToHex(facade.generateRandomKey());
         var key2Hex = facade.keyToHex(facade.generateRandomKey());
         var key3Hex = facade.keyToHex(facade.generateRandomKey());
@@ -80,7 +164,7 @@ describe("Aes256GcmTest", function () {
     });
 
     it("generateRandomKeyAndBase64Conversion ", function () {
-        var facade = _getFacade();
+        var facade = _getSyncFacade();
         var key1Base64 = facade.keyToBase64(facade.generateRandomKey());
         var key2Base64 = facade.keyToBase64(facade.generateRandomKey());
         var key3Base64 = facade.keyToBase64(facade.generateRandomKey());
@@ -97,8 +181,8 @@ describe("Aes256GcmTest", function () {
         assert.equal(key3Base64, facade.keyToBase64(facade.base64ToKey(key3Base64)));
     });
 
-    it("EncryptWithInvalidKey ", function () {
-        var facade = _getFacade();
+    it("encryptWithInvalidKeySync ", function () {
+        var facade = _getSyncFacade();
         var key = facade.hexToKey("7878787878");
         try {
             facade.encryptUtf8(key, "hello");
@@ -108,8 +192,8 @@ describe("Aes256GcmTest", function () {
         }
     });
 
-    it("DecryptInvalidData ", function () {
-        var facade = _getFacade();
+    it("decryptInvalidDataSync ", function () {
+        var facade = _getSyncFacade();
         var key = facade.generateRandomKey();
         try {
             facade.decryptUtf8(key, "hello");
@@ -119,8 +203,8 @@ describe("Aes256GcmTest", function () {
         }
     });
 
-    it("DecryptManipulatedData ", function () {
-        var facade = _getFacade();
+    it("decryptManipulatedDataSync ", function () {
+        var facade = _getSyncFacade();
         var key = facade.generateRandomKey();
         try {
             var encrypted = facade.encryptUtf8(key, "hello");
@@ -136,8 +220,8 @@ describe("Aes256GcmTest", function () {
         }
     });
 
-    it("DecryptWithWrongKey ", function () {
-        var facade = _getFacade();
+    it("decryptWithWrongKeySync ", function () {
+        var facade = _getSyncFacade();
         var key = facade.generateRandomKey();
         var key2 = facade.generateRandomKey();
         try {
@@ -149,8 +233,8 @@ describe("Aes256GcmTest", function () {
         }
     });
 
-    it("CiphertextLengths ", function () {
-        var facade = _getFacade();
+    it("ciphertextLengthsSync ", function () {
+        var facade = _getSyncFacade();
         var key = facade.generateRandomKey();
         // check that 15 bytes fit into one block
         assert.equal(48, _getNbrOfBytes(facade.encryptUtf8(key, "1234567890abcde")));
