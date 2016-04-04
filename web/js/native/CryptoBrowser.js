@@ -188,7 +188,6 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
                 srcPath + 'crypto/Pss.js',
                 srcPath + 'crypto/Utils.js',
                 srcPath + 'util/EncodingConverter.js',
-                srcPath + 'crypto/Utils.js',
                 srcPath + 'crypto/AesInterface.js',
                 srcPath + 'crypto/SjclAes128CbcAsync.js'
         ];

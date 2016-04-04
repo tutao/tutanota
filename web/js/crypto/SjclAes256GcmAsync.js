@@ -35,7 +35,7 @@ tutao.crypto.SjclAes256GcmAsync.prototype.decryptBytes = function (key, bytes, d
         var words = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
         var iv = sjcl.bitArray.bitSlice(words, 0, tutao.crypto.AesInterface.IV_BIT_LENGTH);
         var ciphertext = sjcl.bitArray.bitSlice(words, tutao.crypto.AesInterface.IV_BIT_LENGTH);
-        var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], tutao.crypto.AesInterface.IV_BIT_LENGTH);
+        var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], tutao.crypto.AesInterface.TAG_BIT_LENGTH);
         var decryptedBytes = new Uint8Array(sjcl.codec.arrayBuffer.fromBits(decrypted));
         var unpaddedBytes = tutao.crypto.Utils.unpad(decryptedBytes);
         resultCallback({type: 'result', result: unpaddedBytes});
