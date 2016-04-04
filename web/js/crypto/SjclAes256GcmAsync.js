@@ -9,20 +9,17 @@ tutao.provide('tutao.crypto.SjclAes256GcmAsync');
  */
 tutao.crypto.SjclAes256GcmAsync = function() {};
 
-/**
- * @param {tutao.crypto.SjclAes256Gcm} syncInterface
- */
-tutao.crypto.SjclAes256GcmAsync.prototype.init = function (syncInterface) {
-    this._syncInterface = syncInterface;
-};
-
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes256GcmAsync.prototype.encryptBytes = function (key, bytes, resultCallback) {
+tutao.crypto.SjclAes256GcmAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {
     try {
-        var encryptedWords = this._syncInterface._encrypt(key, bytes, true);
+        var paddedBytes = tutao.crypto.Utils.pad(bytes);
+        var words = sjcl.codec.arrayBuffer.toBits(paddedBytes.buffer);
+        var iv = sjcl.codec.hex.toBits(random);
+        var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], tutao.crypto.AesInterface.TAG_BIT_LENGTH);
+        var encryptedWords = sjcl.bitArray.concat(iv, encrypted);
         resultCallback({type: 'result', result: new Uint8Array(sjcl.codec.arrayBuffer.fromBits(encryptedWords))});
     } catch(error) {
         resultCallback({type: 'error', msg : "SjclAes1256Gcm encryption error: " + error.message});
@@ -35,8 +32,13 @@ tutao.crypto.SjclAes256GcmAsync.prototype.encryptBytes = function (key, bytes, r
  */
 tutao.crypto.SjclAes256GcmAsync.prototype.decryptBytes = function (key, bytes, decryptedBytesLength, resultCallback) {
     try {
-        var decrypted = this._syncInterface._decrypt(key, sjcl.codec.arrayBuffer.toBits(bytes.buffer), true);
-        resultCallback({type: 'result', result: decrypted});
+        var words = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
+        var iv = sjcl.bitArray.bitSlice(words, 0, tutao.crypto.AesInterface.IV_BIT_LENGTH);
+        var ciphertext = sjcl.bitArray.bitSlice(words, tutao.crypto.AesInterface.IV_BIT_LENGTH);
+        var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], tutao.crypto.AesInterface.IV_BIT_LENGTH);
+        var decryptedBytes = new Uint8Array(sjcl.codec.arrayBuffer.fromBits(decrypted));
+        var unpaddedBytes = tutao.crypto.Utils.unpad(decryptedBytes);
+        resultCallback({type: 'result', result: unpaddedBytes});
     } catch(error) {
         resultCallback({type: 'error', msg : "SjclAes1256Gcm decryption error: " + error.message});
     }

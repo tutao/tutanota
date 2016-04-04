@@ -8,8 +8,6 @@ tutao.provide('tutao.crypto.SjclAes256Gcm');
  */
 tutao.crypto.SjclAes256Gcm = function() {
     this._keyLengthBytes = 32;
-    this._ivLengthBytes = 16;
-    this._tagSizeBytes = 16;
 };
 
 /**
@@ -175,8 +173,8 @@ tutao.crypto.SjclAes256Gcm.prototype._encrypt = function(key, bytes, usePadding)
 		bytes = tutao.crypto.Utils.pad(bytes); // TODO (bdeterding) consider implementing padding for bit array.
 	}
     var words = sjcl.codec.arrayBuffer.toBits(bytes.buffer);
-	var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this._ivLengthBytes));
-	var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], this._tagSizeBytes * 8);
+	var iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(tutao.crypto.AesInterface.IV_BYTE_LENGTH));
+	var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], tutao.crypto.AesInterface.TAG_BIT_LENGTH);
 	return sjcl.bitArray.concat(iv, encrypted);
 };
 
@@ -190,9 +188,9 @@ tutao.crypto.SjclAes256Gcm.prototype._encrypt = function(key, bytes, usePadding)
  */
 tutao.crypto.SjclAes256Gcm.prototype._decrypt = function(key, words, usePadding) {
 	// take the iv from the front of the encrypted data
-	var iv = sjcl.bitArray.bitSlice(words, 0, this._ivLengthBytes * 8);
-	var ciphertext = sjcl.bitArray.bitSlice(words, this._ivLengthBytes * 8);
-    var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], this._tagSizeBytes * 8);
+	var iv = sjcl.bitArray.bitSlice(words, 0, tutao.crypto.AesInterface.IV_BIT_LENGTH);
+	var ciphertext = sjcl.bitArray.bitSlice(words, tutao.crypto.AesInterface.IV_BIT_LENGTH);
+    var decrypted = sjcl.mode.gcm.decrypt(new sjcl.cipher.aes(key), ciphertext, iv, [], tutao.crypto.AesInterface.TAG_BIT_LENGTH);
     var decryptedBytes = new Uint8Array(sjcl.codec.arrayBuffer.fromBits(decrypted)); // TODO (bdeterding) consider to implement padding for bit array
 	if (usePadding) {
 		decryptedBytes = tutao.crypto.Utils.unpad(decryptedBytes);

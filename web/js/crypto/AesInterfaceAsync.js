@@ -21,16 +21,17 @@ tutao.crypto.AesInterfaceAsync = function() {};
 /**
  * Encrypt bytes with the provided key
  * @param {bitArray} key The key to use for the encryption.
- * @param {Uint8Array} bytes
+ * @param {Uint8Array} bytes The plain text bytes to encrypt.
+ * @param {String} random A hex coded random number used for the initialization vector.
  * @param {aesResultCallback} resultCallback Function to handle the result.
  */
-tutao.crypto.AesInterfaceAsync.prototype.encryptBytes = function (key, bytes, resultCallback) {};
+tutao.crypto.AesInterfaceAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {};
 
 
 /**
  * Decrypt bytes with the provided key
  * @param {bitArray} key The key to use for the decryption.
- * @param {Uint8Array} bytes
+ * @param {Uint8Array} bytes The encrypted bytes
  * @param {Number} decryptedBytesLength The number of bytes of the decrypted array (backward compatibility for AES_128_CBC).
  * @param {aesResultCallback} resultCallback Function to handle the result.
  */

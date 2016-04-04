@@ -6,24 +6,21 @@ tutao.provide('tutao.crypto.WebCryptoAes256GcmAsync');
  * @constructor
  * @implements {tutao.crypto.AesInterfaceAsync}
  */
-tutao.crypto.WebCryptoAes256GcmAsync = function() {
-    this._ivLengthBytes = 16;
-    this._tagSizeBytes = 16;
-};
+tutao.crypto.WebCryptoAes256GcmAsync = function() {};
 
 /**
  * @inheritDoc
  */
-tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, bytes, resultCallback) {
+tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {
     var self = this;
     var plainText = tutao.crypto.Utils.pad(bytes);
-    var iv = tutao.util.EncodingConverter.hexToArrayBuffer(tutao.locator.randomizer.generateRandomData(this._ivLengthBytes));
+    var iv = tutao.util.EncodingConverter.hexToArrayBuffer(random);
     self._getWebCryptoKey(key).then(function(webCryptoKey) {
         return window.crypto.subtle.encrypt(
             {
                 name: "AES-GCM",
                 iv: iv,
-                tagLength: self._tagSizeBytes * 8
+                tagLength: tutao.crypto.AesInterface.TAG_BIT_LENGTH
             },
             webCryptoKey,
             plainText
@@ -46,14 +43,14 @@ tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, byt
  */
 tutao.crypto.WebCryptoAes256GcmAsync.prototype.decryptBytes = function (key, bytes, decryptedBytesLength, resultCallback) {
     var self = this;
-    var iv = new Uint8Array(bytes.buffer, 0, this._ivLengthBytes);
-    var encryptedData = new Uint8Array(bytes.buffer, this._ivLengthBytes);
+    var iv = new Uint8Array(bytes.buffer, 0, tutao.crypto.AesInterface.IV_BYTE_LENGTH);
+    var encryptedData = new Uint8Array(bytes.buffer, tutao.crypto.AesInterface.IV_BYTE_LENGTH);
     self._getWebCryptoKey(key).then(function(webCryptoKey) {
         return window.crypto.subtle.decrypt(
             {
                 name: "AES-GCM",
                 iv: iv,
-                tagLength: self._tagSizeBytes * 8
+                tagLength: tutao.crypto.AesInterface.TAG_BIT_LENGTH
             },
             webCryptoKey,
             encryptedData

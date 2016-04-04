@@ -120,9 +120,7 @@ describe("AesLibsTest", function () {
 
     it("encryptDecryptBytesAes256Async", function (done) {
         var syncFacade = new tutao.crypto.SjclAes256Gcm();
-        var sjclAsyncFacade = new tutao.crypto.SjclAes256GcmAsync();
-        sjclAsyncFacade.init(syncFacade);
-        var facades = [ sjclAsyncFacade,
+        var facades = [ new tutao.crypto.SjclAes256GcmAsync(),
             new tutao.crypto.WebCryptoAes256GcmAsync()
         ];
         var plainText = _createArray(1024 * 10);
@@ -131,8 +129,9 @@ describe("AesLibsTest", function () {
         return Promise.each(facades, function(facade) {
             console.log(facade);
             var key = syncFacade.generateRandomKey();
+            var random = tutao.locator.randomizer.generateRandomData(tutao.crypto.AesInterface.IV_BYTE_LENGTH);
             return new Promise(function(resolve, reject){
-                facade.encryptBytes(key, plainText, function(encrypted) {
+                facade.encryptBytes(key, plainText, random, function(encrypted) {
                     assert.equal('result', encrypted.type);
                     facade.decryptBytes(key, encrypted.result, plainText.length, function(decrypted) {
                         assert.equal('result', decrypted.type);

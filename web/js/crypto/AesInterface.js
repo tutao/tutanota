@@ -9,6 +9,11 @@ tutao.provide('tutao.crypto.AesInterface');
  */
 tutao.crypto.AesInterface = function() {};
 
+tutao.crypto.AesInterface.IV_BYTE_LENGTH = 16;
+tutao.crypto.AesInterface.IV_BIT_LENGTH = tutao.crypto.AesInterface.IV_BYTE_LENGTH * 8;
+tutao.crypto.AesInterface.TAG_BYTE_LENGTH = 16;
+tutao.crypto.AesInterface.TAG_BIT_LENGTH = tutao.crypto.AesInterface.TAG_BYTE_LENGTH * 8;
+
 /**
  * Create a random 128 bit symmetric AES key.
  * @return {bitArray} The key.
