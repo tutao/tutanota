@@ -13,10 +13,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 	this.userId = null;
 	this.mailListId = null;
 	this.mailId = null;
-	this.saltHex = null;
+	this._salt = null;
 
 	// for authentication as long as verifier is not available
-	this.saltHash = null;
+	this._saltHash = null;
 
 	this.phoneNumbers = ko.observableArray();
 	this.phoneNumbers.subscribe(function() {
@@ -94,8 +94,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 	try {
         var userIdLength = tutao.rest.EntityRestInterface.GENERATED_MIN_ID.length;
         self.userId = authInfo.substring(0, userIdLength);
-        self.saltHex = tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(authInfo.substring(userIdLength)));
-        self.saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(self.saltHex));
+        self._salt = tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.base64UrlToBase64(authInfo.substring(userIdLength)));
+        self._saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(self._salt)));
 	} catch (e) {
 		this.errorMessageId("invalidLink_msg");
 		return Promise.reject();
@@ -151,8 +151,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function()
 	return tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
         .setUserId(this.userId)
         .setDeviceToken(this.deviceToken), params, null).then(function(autoLoginDataReturn) {
-			var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(autoLoginDataReturn.getDeviceKey()));
-			return deviceKey;
+            return tutao.util.EncodingConverter.base64ToKey(autoLoginDataReturn.getDeviceKey());
 	});
 };
 
@@ -225,15 +224,11 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
             this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.generateRandomKey();
         } else {
             // it must be created from Math.random() because the Randomizer is not yet fully initialized. Nevertheless this is no security problem because the server knows the password anyway.
-            var hex = "";
-            for (var i=0; i<16; i++) {
-                var r = Math.floor(Math.random() * 256).toString(16);
-                if (r.length == 1) {
-                    r = "0" + r;
-                }
-                hex += r;
+            var key = new Uint8Array(16);
+            for (var i=0; i<key.byteLength; i++) {
+                key[i] = Math.floor(Math.random() * 256);
             }
-            this.symKeyForPasswordTransmission = tutao.locator.aesCrypter.hexToKey(hex);
+            this.symKeyForPasswordTransmission = tutao.util.EncodingConverter.uint8ArrayToKey(key);
         }
 	}
 	
@@ -241,7 +236,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.sendSms = function(phoneNum
 	var service = new tutao.entity.tutanota.PasswordMessagingData()
         .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
 	    .setNumberId(phoneNumber.getId())
-	    .setSymKeyForPasswordTransmission(tutao.locator.aesCrypter.keyToBase64(this.symKeyForPasswordTransmission));
+	    .setSymKeyForPasswordTransmission(tutao.util.EncodingConverter.keyToBase64(this.symKeyForPasswordTransmission));
 	var map = {};
 	this.sentSmsNumberId(phoneNumber.getId());
 	this.state.event("sendSms");
@@ -299,7 +294,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
     self.state.event("checkPassword");
     self.passwordStatus({ type: "neutral", text: "emptyString_msg" });
     self.showMailStatus({ type: "neutral", text: "loadingMail_msg" });
-    return tutao.locator.userController.loginExternalUser(self.userId, password, self.saltHex).then(function() {
+    return tutao.locator.userController.loginExternalUser(self.userId, password, self._salt).then(function() {
         self.state.event("passwordValid");
         return tutao.locator.loginViewModel.loadEntropy().then(function() {
             return tutao.locator.mailBoxController.initForUser().then(function() {
@@ -356,7 +351,7 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 			// register the device and store the encrypted password
 			var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
 			var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
-			deviceService.setDeviceKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.aesCrypter.keyToHex(deviceKey)));
+			deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
 			return deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
 				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, autoLoginPostReturn.getDeviceToken())) {
 					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
@@ -427,6 +422,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.retrievePassword = function
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._getAuthHeaders = function() {
 	var headers = {};
 	headers[tutao.rest.ResourceConstants.USER_ID_PARAMETER_NAME] = this.userId;
-	headers[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = this.saltHash;
+	headers[tutao.rest.ResourceConstants.AUTH_TOKEN_PARAMETER_NAME] = this._saltHash;
 	return headers;
 };

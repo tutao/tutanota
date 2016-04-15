@@ -19,7 +19,7 @@ tutao.tutanota.util.PasswordUtils.generatePassword = function(length) {
 	var password = "";
 	for (var i = 0; i < length; i++) {
 		while (true) {
-			var index = tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(1))[0];
+			var index = tutao.locator.randomizer.generateRandomData(1)[0];
 			// the random value must be within the character set range, otherwise try the next one
 			if (index < tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_CHAR_SET.length) {
 				password += tutao.tutanota.util.PasswordUtils.MESSAGE_PASSWORD_CHAR_SET[index];

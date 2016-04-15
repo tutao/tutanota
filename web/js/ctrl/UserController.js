@@ -26,7 +26,7 @@ tutao.ctrl.UserController.prototype.reset = function () {
     this._updateUser(null);
     this._userPassphraseKey = null;
     this._userClientKey = null;
-    this._hexSalt = null;
+    this._salt = null;
     this._userGroupInfo(null); // indicates that a user is logged in because this is set in the last login step
 
     // only set for external user
@@ -139,10 +139,10 @@ tutao.ctrl.UserController.prototype.getUserClientKey = function () {
 
 /**
  * Provides the salt of the user verifier.
- * @return {string} The salt.
+ * @return {Uint8Array} The salt.
  */
-tutao.ctrl.UserController.prototype.getHexSalt = function () {
-    return this._hexSalt;
+tutao.ctrl.UserController.prototype.getSalt = function () {
+    return this._salt;
 };
 
 /**
@@ -174,16 +174,16 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
     var self = this;
     var cleanMailAddress = mailAddress.toLowerCase().trim();
     return tutao.entity.sys.SaltReturn.load(new tutao.entity.sys.SaltData().setMailAddress(cleanMailAddress), {}, null).then(function (saltData) {
-        self._hexSalt = tutao.util.EncodingConverter.base64ToHex(saltData.getSalt());
-        return tutao.locator.crypto.generateKeyFromPassphrase(passphrase, self._hexSalt);
-    }).then(function (hexKey) {
+        self._salt = tutao.util.EncodingConverter.base64ToUint8Array(saltData.getSalt());
+        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, self._salt);
+    }).then(function (key) {
         // the verifier is always sent as url parameter, so it must be url encoded
-        self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
+        self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(key));
         var authHeaders = {};
         authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
         return tutao.entity.sys.UserIdReturn.load(new tutao.entity.sys.UserIdData().setMailAddress(cleanMailAddress), {}, authHeaders).then(function (userIdReturn) {
             self._userId = userIdReturn.getUserId();
-            self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+            self._userPassphraseKey = key;
             return tutao.entity.sys.User.load(self._userId);
         });
     }).then(function (user) {
@@ -202,13 +202,13 @@ tutao.ctrl.UserController.prototype.loginUser = function (mailAddress, passphras
 
 /**
  * Updates the user login data after a password change.
- * @param {String} hexPassphraseKey The key generated from the users passphrase as hex string.
- * @param {String} hexSalt hex value of the salt.
+ * @param {bitArray} passphraseKey The key generated from the users passphrase.
+ * @param {Uint8Array} salt The salt.
  */
-tutao.ctrl.UserController.prototype.passwordChanged = function (hexPassphraseKey, hexSalt) {
-    this._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexPassphraseKey));
-    this._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexPassphraseKey);
-    this._hexSalt = hexSalt;
+tutao.ctrl.UserController.prototype.passwordChanged = function (passphraseKey, salt) {
+    this._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(passphraseKey));
+    this._userPassphraseKey = passphraseKey;
+    this._salt = salt;
 };
 
 /**
@@ -233,23 +233,23 @@ tutao.ctrl.UserController.prototype.getAuthToken = function () {
  * Logs in an external user. Attention: the external user's user group key is not set here. Set it when the key is loaded via setExternalUserGroupKey().
  * @param {string} userId The user id of the user.
  * @param {string} password The password matching the authentication token.
- * @param {string} saltHex The salt that was used to salt the password, as hex string.
+ * @param {Uint8Array} salt The salt that was used to salt the password.
  * @return {Promise.<>} Resolved when finished, rejected if the login failed.
  */
-tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, password, saltHex) {
+tutao.ctrl.UserController.prototype.loginExternalUser = function (userId, password, salt) {
     var self = this;
     this.reset();
 
-    return tutao.locator.crypto.generateKeyFromPassphrase(password, saltHex).then(function (hexKey) {
+    return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt).then(function (key) {
         // the verifier is always sent as url parameter, so it must be url encoded
-        self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
-        self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(saltHex));
+        self._authVerifier = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(key));
+        self._authToken = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(salt)));
         self._userId = userId;
-        self._hexSalt = saltHex;
+        self._salt = salt;
 
         var authHeaders = {};
         authHeaders[tutao.rest.ResourceConstants.AUTH_VERIFIER_PARAMETER_NAME] = self._authVerifier;
-        self._userPassphraseKey = tutao.locator.aesCrypter.hexToKey(hexKey);
+        self._userPassphraseKey = key;
         return tutao.entity.sys.User.load(self._userId).then(function (user) {
             self._updateUser(user);
             self._userGroupId = user.getUserGroup().getGroup();

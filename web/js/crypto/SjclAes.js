@@ -16,43 +16,7 @@ tutao.crypto.SjclAes = function() {
  * @inheritDoc
  */
 tutao.crypto.SjclAes.prototype.generateRandomKey = function() {
-	return sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8), false);
-};
-
-/**
- * @inheritDoc
- */
-tutao.crypto.SjclAes.prototype.keyToHex = function(key) {
-	return sjcl.codec.hex.fromBits(key);
-};
-
-/**
- * @inheritDoc
- */
-tutao.crypto.SjclAes.prototype.keyToBase64 = function(key) {
-	return sjcl.codec.base64.fromBits(key);
-};
-
-/**
- * @inheritDoc
- */
-tutao.crypto.SjclAes.prototype.hexToKey = function(hex) {
-	try {
-		return sjcl.codec.hex.toBits(hex);
-	} catch (e) {
-		throw new tutao.crypto.CryptoError("hex to aes key failed", e);
-	}
-};
-
-/**
- * @inheritDoc
- */
-tutao.crypto.SjclAes.prototype.base64ToKey = function(base64) {
-	try {
-		return sjcl.codec.base64.toBits(base64);
-	} catch (e) {
-		throw new tutao.crypto.CryptoError("hex to aes key failed", e);
-	}
+	return sjcl.codec.arrayBuffer.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8).buffer);
 };
 
 /**
@@ -173,7 +137,7 @@ tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function(key, base64) {
 tutao.crypto.SjclAes.prototype._encrypt = function(key, words, randomIv, usePadding) {
 	var iv;
 	if (randomIv) {
-		iv = sjcl.codec.hex.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8));
+		iv = sjcl.codec.arrayBuffer.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8).buffer);
 	} else {
 		// use the fixed iv, but do not append it to the ciphertext
 		iv = this.fixedIv;

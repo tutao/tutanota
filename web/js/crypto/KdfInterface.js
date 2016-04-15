@@ -11,14 +11,14 @@ tutao.crypto.KdfInterface = function() {};
 
 /**
  * Create a 128 bit random salt value.
- * return {string} salt 128 bit of random data, encoded as a hex string.
+ * return {Uint8Array} salt 16 byte of random data.
  */
 tutao.crypto.KdfInterface.prototype.generateRandomSalt = function() {};
 
 /**
  * Create a 128 bit symmetric key from the given passphrase.
  * @param {string} passphrase The passphrase to use for key generation as utf8 string.
- * @param {string} salt 128 bit of random data, encoded as a hex string.
- * @return {Promise.<string>} Resolved with the hex codec key
+ * @param {Uint8Array} salt 16 bytes of random data.
+ * @return {Promise.<bitArray>} Resolved with the key as bitArray.
  */
 tutao.crypto.KdfInterface.prototype.generateKeyFromPassphrase = function(passphrase, salt) {};

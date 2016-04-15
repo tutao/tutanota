@@ -309,14 +309,14 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys
 /**
  *
  * @param {tutao.entity.sys.SystemKeysReturn} keyData
- * @returns {string} the group key for the current account type
+ * @returns {bitArray} the group key for the current account type
  * @private
  */
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._getAccountGroupKey = function (keyData) {
     if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-        return keyData.getFreeGroupKey();
+        return tutao.util.EncodingConverter.base64ToKey(keyData.getFreeGroupKey());
     } else if (this.accountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER) {
-        return keyData.getStarterGroupKey();
+        return tutao.util.EncodingConverter.base64ToKey(keyData.getStarterGroupKey());
     } else {
         throw Error("Illegal account type");
     }
@@ -329,9 +329,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-		return tutao.locator.crypto.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKeyHex) {
+		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKey) {
 			tutao.locator.progressDialogModel.progress(5);
-			var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
 
             var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
 			return tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, adminGroupsListKey).spread(function(adminGroupData, adminGroupKey) {
@@ -350,7 +349,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 
 						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
 
-						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(self._getAccountGroupKey(keyData))));
+						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, self._getAccountGroupKey(keyData));
 
 						var systemAdminPubKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
 
@@ -384,8 +383,8 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
                                 .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
                                 .setSystemCustomerPubEncAccountingInfoBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(systemAdminPubEncCustomerBucketKey))
                                 .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
-                                .setSalt(tutao.util.EncodingConverter.hexToBase64(salt))
-                                .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                                .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
+                                .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
                                 .setSymEncAccountGroupKey(symEncAccountGroupKey)
                                 .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 

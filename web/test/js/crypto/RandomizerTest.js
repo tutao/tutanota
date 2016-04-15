@@ -8,7 +8,7 @@ describe("RandomizerTest", function () {
     it("RandomData ", function () {
         var r = tutao.locator.randomizer;
         for (var i = 1; i < 20; i++) {
-            assert.equal(i * 2, r.generateRandomData(i).length);
+            assert.equal(i, r.generateRandomData(i).length);
         }
     });
 

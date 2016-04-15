@@ -6,12 +6,12 @@ tutao.provide('tutao.tutanota.ctrl.GroupData');
  * @param {string} name
  *            the name of the group.
  * @param {string} mailAddr
- * @param {Object} userKey
+ * @param {bitArray} userKey
  *            the symmetric user key used for encrypting the symmetric group key for group
  *            memberships.
- * @param {Object} adminGroupKey
+ * @param {bitArray} adminGroupKey
  *            the key of the admin group, used to encrypt the symmetric group key for the admin group.
- * @param {Object} listKey
+ * @param {bitArray} listKey
  *            the key of the list, used to encrypt all regular data of the group (e.g. name)
  * @return {Promise.<[tutao.entity.sys.CreateGroupData, Object]>}>} Resolves to an array which contains the tutao.entity.sys.CreateGroupData instance and the userGroupKey, rejected if failed.
  */

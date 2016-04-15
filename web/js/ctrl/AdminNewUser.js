@@ -114,9 +114,8 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
             return Promise.reject(new Error("could not create customer, the customerGroupKey is null!"));
         }
 
-        var hexSalt = tutao.locator.kdfCrypter.generateRandomSalt();
-        return tutao.locator.crypto.generateKeyFromPassphrase(self.password(), hexSalt).then(function (userPassphraseKeyHex) {
-            var userPassphraseKey = tutao.locator.aesCrypter.hexToKey(userPassphraseKeyHex);
+        var salt = tutao.locator.kdfCrypter.generateRandomSalt();
+        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), salt).then(function (userPassphraseKey) {
 
             var userGroupsListKey = null;
             return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
@@ -126,8 +125,8 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
                         .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
                         .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
                         .setUserGroupData(userGroupData)
-                        .setSalt(tutao.util.EncodingConverter.hexToBase64(hexSalt))
-                        .setVerifier(tutao.locator.shaCrypter.hashHex(userPassphraseKeyHex))
+                        .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
+                        .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
                         .setMobilePhoneNumber("")
                         .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
@@ -155,7 +154,7 @@ tutao.tutanota.ctrl.AdminNewUser.initGroup = function(groupId, groupKey) {
 	var s = new tutao.entity.tutanota.InitGroupData();
 	
 	s.setGroupId(groupId);
-    s.setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(groupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
+    s.setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(groupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32))));
 
 	var mailShareBucketKey = tutao.locator.aesCrypter.generateRandomKey();
 	var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();

@@ -24,7 +24,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
     },
 
     generateRsaKey: function (keyLengthInBits, publicExponent, randomBytes, callback) {
-        SecureRandom.setNextRandomBytes(randomBytes);
+        SecureRandom.setNextRandomBytes(this._uint8ArrayToByteArray(randomBytes));
         try {
             var rsa = new RSAKey();
             rsa.generate(keyLengthInBits, publicExponent.toString(16)); // must be hex for JSBN
@@ -58,7 +58,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
             var rsa = new RSAKey();
             rsa.n = new BigInteger(new Int8Array(this.base64ToArray(publicKey.modulus))); // BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
             rsa.e = publicKey.publicExponent;
-            var paddedBytes = new tutao.crypto.Oaep().pad(bytes, publicKey.keyLength, randomBytes);
+            var paddedBytes = new tutao.crypto.Oaep().pad(bytes, publicKey.keyLength, this._uint8ArrayToByteArray(randomBytes));
             var paddedHex = this._bytesToHex(paddedBytes);
 
             var bigInt = parseBigInt(paddedHex, 16);
@@ -69,7 +69,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
                 encryptedHex = "0" + encryptedHex;
             }
 
-            callback({ type: 'result', result: new Uint8Array(this._hexToBytes(encryptedHex))});
+            callback({ type: 'result', result: tutao.util.EncodingConverter.hexToUint8Array(encryptedHex)});
         } catch (e) {
             callback({ type: 'error', msg: e.stack });
         }
@@ -97,7 +97,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
             var expectedPaddedHexLength = (privateKey.keyLength / 8 - 1) * 2;
             var fill = Array(expectedPaddedHexLength - decryptedHex.length + 1).join("0"); // creates the missing zeros
             decryptedHex = fill + decryptedHex;
-            var paddedBytes = this._hexToBytes(decryptedHex);
+            var paddedBytes = this._uint8ArrayToByteArray(tutao.util.EncodingConverter.hexToUint8Array(decryptedHex));
             var bytes = new tutao.crypto.Oaep().unpad(paddedBytes, privateKey.keyLength);
             callback({ type: 'result', result: new Uint8Array(bytes)});
         } catch (e) {
@@ -116,7 +116,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
             rsa.dmq1 = new BigInteger(new Int8Array(this.base64ToArray(privateKey.primeExponentQ)));
             rsa.coeff = new BigInteger(new Int8Array(this.base64ToArray(privateKey.crtCoefficient)));
 
-            var paddedBytes = new tutao.crypto.Pss().encode(bytes, privateKey.keyLength - 1, randomBytes);
+            var paddedBytes = new tutao.crypto.Pss().encode(bytes, privateKey.keyLength - 1, this._uint8ArrayToByteArray(randomBytes));
             var paddedHex = this._bytesToHex(paddedBytes);
 
             var bigInt = parseBigInt(paddedHex, 16);
@@ -127,7 +127,7 @@ tutao.native.CryptoBrowser._workerFunctions = {
                 signedHex = "0" + signedHex;
             }
 
-            callback({ type: 'result', result: new Uint8Array(this._hexToBytes(signedHex))});
+            callback({ type: 'result', result: tutao.util.EncodingConverter.hexToUint8Array(signedHex)});
         } catch (e) {
             callback({ type: 'error', msg: e.stack});
         }
@@ -146,8 +146,8 @@ tutao.native.CryptoBrowser._workerFunctions = {
             if ((paddedHex.length % 2) == 1) {
                 paddedHex = "0" + paddedHex;
             }
-
-            new tutao.crypto.Pss().verify(bytes, this._hexToBytes(paddedHex), publicKey.keyLength - 1);
+            var paddedBytes = this._uint8ArrayToByteArray(tutao.util.EncodingConverter.hexToUint8Array(paddedHex));
+            new tutao.crypto.Pss().verify(bytes, paddedBytes, publicKey.keyLength - 1);
 
             callback({ type: 'result', result: undefined});
         } catch (e) {
@@ -157,20 +157,19 @@ tutao.native.CryptoBrowser._workerFunctions = {
     base64ToArray: function(base64) {
         return tutao.util.EncodingConverter.base64ToUint8Array(base64);
     },
-    _hexToBytes: function (hex) {
-        return tutao.util.EncodingConverter.hexToBytes(hex);
+
+    _uint8ArrayToByteArray: function (uint8Array) {
+        return [].slice.call(uint8Array);
     },
     _bytesToHex: function (bytes) {
-        return tutao.util.EncodingConverter.bytesToHex(bytes);
+        return tutao.util.EncodingConverter.uint8ArrayToHex(new Uint8Array(bytes));
     },
 
     aesEncrypt: function(key, plainText, random, callback) {
-        var bitArrayKey = sjcl.codec.arrayBuffer.toBits(key.buffer);
-        this._aes128Cbc.encryptBytes(bitArrayKey, plainText, random, callback);
+        this._aes128Cbc.encryptBytes(key, plainText, random, callback);
     },
     aesDecrypt: function(key, cipherText, decryptedSize, callback) {
-        var bitArrayKey = sjcl.codec.arrayBuffer.toBits(key.buffer);
-        this._aes128Cbc.decryptBytes(bitArrayKey, cipherText, decryptedSize, callback);
+        this._aes128Cbc.decryptBytes(key, cipherText, decryptedSize, callback);
     }
 };
 
@@ -199,22 +198,15 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
 tutao.native.CryptoBrowser.prototype.generateRsaKey = function (keyLength) {
     var self = this;
     keyLength = typeof keyLength !== 'undefined' ? keyLength : this.defaultKeyLengthInBits; // optional param
-    var random = this._random(512);
-    var randomBytes = tutao.util.EncodingConverter.hexToBytes(random);
+    var randomBytes = tutao.locator.randomizer.generateRandomData(512);
     return new Promise(function (resolve, reject) {
         self.worker.generateRsaKey(keyLength, self.publicExponent, randomBytes, self._createReturnHandler(resolve, reject));
     });
 };
 
-// attention: keep in sync with Legacy implementation
-tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
-    return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
-};
-
 tutao.native.CryptoBrowser.prototype.rsaEncrypt = function (publicKey, bytes) {
     var self = this;
-    var random = this._random(32);
-    var randomBytes = tutao.util.EncodingConverter.hexToBytes(random);
+    var randomBytes = tutao.locator.randomizer.generateRandomData(32);
     return new Promise(function (resolve, reject) {
         self.worker.rsaEncrypt(publicKey, bytes, randomBytes, self._createReturnHandler(resolve, reject));
     });
@@ -229,8 +221,7 @@ tutao.native.CryptoBrowser.prototype.rsaDecrypt = function (privateKey, bytes) {
 
 tutao.native.CryptoBrowser.prototype.sign = function (privateKey, bytes) {
     var self = this;
-    var random = this._random(32);
-    var randomBytes = tutao.util.EncodingConverter.hexToBytes(random);
+    var randomBytes = tutao.locator.randomizer.generateRandomData(32);
     return new Promise(function (resolve, reject) {
         self.worker.sign(privateKey, bytes, randomBytes, self._createReturnHandler(resolve, reject));
     });
@@ -243,22 +234,13 @@ tutao.native.CryptoBrowser.prototype.verifySignature = function (publicKey, byte
     });
 };
 
-
-/**
- * Returns the newly generated key
- * @return {Uint8Array} will return the key.
- */
-tutao.native.CryptoBrowser.prototype.generateRandomKey = function() {
-    return new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(128 / 8)));
-};
-
 tutao.native.CryptoBrowser.prototype.aesEncrypt = function (key, bytes) {
     var self = this;
-    var random = this._random(tutao.crypto.AesInterface.IV_BYTE_LENGTH); // for IV
+    var random = tutao.locator.randomizer.generateRandomData(tutao.crypto.AesInterface.IV_BYTE_LENGTH);
     return new Promise(function (resolve, reject) {
-        if (key.length !== (self.aesKeyLength / 8)) {
-            throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
-        }
+        //if (key.length !== (self.aesKeyLength / 8)) {
+        //    throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
+        //}
         self.worker.aesEncrypt(key, bytes, random, self._createReturnHandler(resolve, reject));
     });
 };
@@ -266,16 +248,16 @@ tutao.native.CryptoBrowser.prototype.aesEncrypt = function (key, bytes) {
 tutao.native.CryptoBrowser.prototype.aesDecrypt = function (key, cipherText, decryptedSize) {
     var self = this;
     return new Promise(function (resolve, reject) {
-        var byteKeyLength = self.aesKeyLength / 8;
-        if (key.length !== byteKeyLength) {
-            throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
-        }
-        if (cipherText.length % byteKeyLength != 0 || cipherText.length < 2 * byteKeyLength) {
-            throw new tutao.crypto.CryptoError("invalid src buffer len: " + cipherText.length);
-        }
-        if (decryptedSize < (cipherText.length - 2 * byteKeyLength)) {
-            throw new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + cipherText.length);
-        }
+        //var byteKeyLength = self.aesKeyLength / 8;
+        //if (key.length !== byteKeyLength) {
+        //    throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
+        //}
+        //if (cipherText.length % byteKeyLength != 0 || cipherText.length < 2 * byteKeyLength) {
+        //    throw new tutao.crypto.CryptoError("invalid src buffer len: " + cipherText.length);
+        //}
+        //if (decryptedSize < (cipherText.length - 2 * byteKeyLength)) {
+        //    throw new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + cipherText.length);
+        //}
         self.worker.aesDecrypt(key, cipherText, decryptedSize, self._createReturnHandler(resolve, reject));
     });
 };
@@ -286,11 +268,6 @@ tutao.native.CryptoBrowser.prototype._unsign = function (signedArray) {
         unsignedArray.push(signedArray[i] & 0xff);
     }
     return unsignedArray;
-};
-
-tutao.native.CryptoBrowser.prototype._random = function (byteLength) {
-    // TODO retrieve bytes directly
-    return tutao.locator.randomizer.generateRandomData(byteLength);
 };
 
 tutao.native.CryptoBrowser.prototype._createReturnHandler = function (resolve, reject) {

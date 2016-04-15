@@ -116,7 +116,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype.addEmailSenderListEntry = funct
     var currentValue = this.domainOrMailAddress().toLowerCase().trim();
     var newListEntry = new tutao.entity.sys.EmailSenderListElement(this.customerServerProperties().getCustomerServerProperties());
     newListEntry.setValue(currentValue);
-    newListEntry.setHashedValue(tutao.locator.shaCrypter.hashHex(tutao.util.EncodingConverter.utf8ToHex(currentValue)));
+    newListEntry.setHashedValue(tutao.locator.shaCrypter.hash(tutao.util.EncodingConverter.stringToUtf8Uint8Array(currentValue)));
     newListEntry.setType(this.selectedListType().value);
     this.customerServerProperties().emailSenderList.push(new tutao.entity.sys.EmailSenderListElementEditable(newListEntry));
     this._updateServerProperties().then(function(){self.domainOrMailAddress("")});

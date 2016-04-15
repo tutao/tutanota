@@ -463,7 +463,7 @@ tutao.entity.EntityHelper.aggregatesToJsonData = function(aggregates) {
  * @return {string} The id.
  */
 tutao.entity.EntityHelper.generateAggregateId = function() {
-	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(4)));
+	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(4)));
 };
 
 /**

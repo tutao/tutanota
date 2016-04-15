@@ -11,10 +11,13 @@ describe("ClassHierarchiesTest", function () {
 
         // crypto
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes, tutao.crypto.AesInterface));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes256Gcm, tutao.crypto.AesInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclRandomizer, tutao.crypto.RandomizerInterface));
-        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.WorkerRandomizer, tutao.crypto.RandomizerInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JBCryptAdapter, tutao.crypto.KdfInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclSha256, tutao.crypto.ShaInterface));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes256GcmAsync, tutao.crypto.AesInterfaceAsync));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes128CbcAsync, tutao.crypto.AesInterfaceAsync));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.WebCryptoAes256GcmAsync, tutao.crypto.AesInterfaceAsync));
 
         // native
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.ContactApp, tutao.native.ContactInterface));

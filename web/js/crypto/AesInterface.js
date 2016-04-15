@@ -15,42 +15,6 @@ tutao.crypto.AesInterface.TAG_BYTE_LENGTH = 16;
 tutao.crypto.AesInterface.TAG_BIT_LENGTH = tutao.crypto.AesInterface.TAG_BYTE_LENGTH * 8;
 
 /**
- * Create a random 128 bit symmetric AES key.
- * @return {bitArray} The key.
- */
-tutao.crypto.AesInterface.prototype.generateRandomKey = function() {};
-
-/**
- * Converts the given key to a hex string.
- * @param {bitArray} key The key.
- * @return {String} The hex string representation of the key.
- */
-tutao.crypto.AesInterface.prototype.keyToHex = function(key) {};
-
-/**
- * Converts the given key to a base64 coded string.
- * @param {bitArray} key The key.
- * @return {String} The base64 coded string representation of the key.
- */
-tutao.crypto.AesInterface.prototype.keyToBase64 = function(key) {};
-
-/**
- * Converts the given hex string to a key.
- * @param {String} hex The hex string representation of the key.
- * @return {bitArray} The key.
- * @throws {tutao.crypto.CryptoError} If the conversion fails.
- */
-tutao.crypto.AesInterface.prototype.hexToKey = function(hex) {};
-
-/**
- * Converts the given base64 coded string to a key.
- * @param {String} base64 The base64 coded string representation of the key.
- * @return {bitArray} The key.
- * @throws {tutao.crypto.CryptoError} If the conversion fails.
- */
-tutao.crypto.AesInterface.prototype.base64ToKey = function(base64) {};
-
-/**
  * Encrypts an utf8 coded string with AES.
  * @param {bitArray} key The key to use for the encryption.
  * @param {String} utf8 Utf8 coded data.

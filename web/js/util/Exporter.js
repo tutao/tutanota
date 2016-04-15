@@ -23,8 +23,8 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
             if (mail.getBccRecipients().length > 0) {
                 emlArray.push(tutao.tutanota.util.Exporter._formatRecipient("BCC: ", mail.getBccRecipients()));
             }
-            var subject = (mail.getSubject().trim() == "") ? "" : "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(mail.getSubject())) + "?=";
-            var body = tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(displayedMail.bodyText())).match(/.{1,78}/g)
+            var subject = (mail.getSubject().trim() == "") ? "" : "=?UTF-8?B?" + tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(mail.getSubject())) + "?=";
+            var body = tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(displayedMail.bodyText())).match(/.{1,78}/g)
             if (!body) {
                 body = []
             }
@@ -54,7 +54,7 @@ tutao.tutanota.util.Exporter.toEml = function(displayedMail) {
         var attachments = displayedMail.attachments();
         resolve(Promise.map(attachments, function(attachment) {
             return tutao.locator.fileFacade.readFileData(attachment).then(function(dataFile) {
-                var base64Filename = "=?UTF-8?B?" + tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(attachment.getName())) + "?=";
+                var base64Filename = "=?UTF-8?B?" + tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(attachment.getName())) + "?=";
                 emlArray = emlArray.concat([
                     "--------------79Bu5A16qPEYcVIZL@tutanota",
                     "Content-Type: " + attachment.getMimeType(),

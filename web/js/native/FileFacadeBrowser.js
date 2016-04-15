@@ -103,8 +103,7 @@ tutao.native.FileFacadeBrowser.prototype.readLocalFile = function(file) {
  */
 tutao.native.FileFacadeBrowser.prototype.uploadFileData = function(dataFile, sessionKey) {
 	var fileData = new tutao.entity.tutanota.FileDataDataPost();
-    var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(sessionKey));
-    return tutao.locator.crypto.aesEncrypt(byteSessionKey, new Uint8Array(dataFile.getData())).then(function(encryptedData) {
+    return tutao.locator.crypto.aesEncrypt(sessionKey, new Uint8Array(dataFile.getData())).then(function(encryptedData) {
         // create file data
         fileData.setSize(dataFile.getSize().toString())
             .setGroup(tutao.locator.userController.getUserGroupId());
@@ -135,8 +134,7 @@ tutao.native.FileFacadeBrowser.prototype.readFileData = function(file) {
         if (typeof data === "string") {
             throw new Error("datatype string not supported");
         } else {
-            var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(file._entityHelper._sessionKey));
-            return tutao.locator.crypto.aesDecrypt(byteSessionKey, new Uint8Array(data), Number(file.getSize())).then(function(decryptedData) {
+            return tutao.locator.crypto.aesDecrypt(file.getEntityHelper().getSessionKey(), new Uint8Array(data), Number(file.getSize())).then(function(decryptedData) {
                 return new tutao.tutanota.util.DataFile(decryptedData.buffer, file);
             });
         }

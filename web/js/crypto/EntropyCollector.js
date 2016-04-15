@@ -104,12 +104,12 @@ tutao.crypto.EntropyCollector._getRandomNumber = function() {
 
 /**
  * Adds the given bytes as static entropy.
- * @param {string} bytes Base64 coded byte values.
+ * @param {string} base64 Base64 coded byte values.
  */
-tutao.crypto.EntropyCollector.prototype.addStaticEntropy = function(bytes) {
-    var byteArray = tutao.util.EncodingConverter.hexToBytes(tutao.util.EncodingConverter.base64ToHex(bytes));
-    for (var i=0; i<byteArray.length; i++) {
-        tutao.locator.randomizer.addEntropy(byteArray[i], 8, tutao.crypto.RandomizerInterface.ENTROPY_SRC_STATIC);
+tutao.crypto.EntropyCollector.prototype.addStaticEntropy = function(base64) {
+    var uint8Array = tutao.util.EncodingConverter.base64ToUint8Array(base64);
+    for (var i=0; i<uint8Array.length; i++) {
+        tutao.locator.randomizer.addEntropy(uint8Array[i], 8, tutao.crypto.RandomizerInterface.ENTROPY_SRC_STATIC);
     }
 };
 

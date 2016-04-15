@@ -52,10 +52,7 @@ tutao.crypto.Utils.pad = function(bytes) {
     var paddingLength = tutao.crypto.Utils.PADDING_BLOCK_LENGTH - (bytes.byteLength % tutao.crypto.Utils.PADDING_BLOCK_LENGTH);
     var padding = new Uint8Array(paddingLength);
     padding.fill(paddingLength);
-    var dstBuffer = new Uint8Array(bytes.byteLength + paddingLength);
-    dstBuffer.set(bytes, 0);
-    dstBuffer.set(padding, bytes.byteLength);
-    return dstBuffer;
+    return tutao.crypto.Utils.concat(bytes, padding);
 };
 
 tutao.crypto.Utils.unpad = function(bytes) {
@@ -67,4 +64,20 @@ tutao.crypto.Utils.unpad = function(bytes) {
 	var result = new Uint8Array(length);
     result.set(bytes.subarray(0,length)); // or is a subarray fine here instead of a copy?
 	return result;
+};
+
+tutao.crypto.Utils.concat = function(bytes1, bytes2) {
+    var dstBuffer = new Uint8Array(bytes1.byteLength + bytes2.byteLength);
+    dstBuffer.set(bytes1, 0);
+    dstBuffer.set(bytes2, bytes1.byteLength);
+    return dstBuffer;
+};
+
+/**
+ * Creates the auth verifier from the password key.
+ * @param passwordKey The key.
+ * @returns {string} The auth verifier, encoded as base64 string.
+ */
+tutao.crypto.Utils.createAuthVerifier = function (passwordKey) {
+    return tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(tutao.util.EncodingConverter.keyToUint8Array(passwordKey)));
 };

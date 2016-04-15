@@ -8,6 +8,10 @@ describe("JavaCompatibilityTest", function () {
 
     var assert = chai.assert;
 
+    var _hexToKey = function(hex) {
+        return tutao.util.EncodingConverter.uint8ArrayToKey(tutao.util.EncodingConverter.hexToUint8Array(hex));
+    };
+
     it("testRsaJavaCompatibility", function () {
         this.timeout(20000);
         var aesFacade = tutao.locator.aesCrypter;
@@ -26,7 +30,7 @@ describe("JavaCompatibilityTest", function () {
         var encryptedPrivateRsaKey = "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";
 
         // test the JavaScript encryption with above data
-        var aesKey = aesFacade.hexToKey(aesHexKey);
+        var aesKey = _hexToKey(aesHexKey);
         // run the encryption with static iv. for the random iv we can just check the decryption.
         var jsEncryptedUtf8DataStaticIv = aesFacade.encryptUtf8Index(aesKey, utf8Data);
         assert.equal(encryptedUtf8DataStaticIv, jsEncryptedUtf8DataStaticIv);
@@ -37,7 +41,7 @@ describe("JavaCompatibilityTest", function () {
         assert.equal(utf8Data, jsDecryptedUtf8StaticIv);
 
         // check that the aes key encryption/decryption works like in Java
-        var aesKeyForEncryption = aesFacade.hexToKey(aesKeyData);
+        var aesKeyForEncryption = _hexToKey(aesKeyData);
         var jsEncryptedKeyData = aesFacade.encryptKey(aesKey, aesKeyForEncryption);
         assert.equal(encryptedKeyData, jsEncryptedKeyData);
 
@@ -48,13 +52,13 @@ describe("JavaCompatibilityTest", function () {
         // check that the java generated rsa keys work with js encryption/decryption
         var rsaPrivateKey = rsaAdapter.hexToPrivateKey(rsaPrivateHexKey);
         var rsaPublicKey = rsaAdapter.hexToPublicKey(rsaPublicHexKey);
-        return tutao.locator.crypto.rsaEncrypt(rsaPublicKey, new Uint8Array(tutao.util.EncodingConverter.hexToBytes(aesKeyData))).then(function (jsEncryptedDummyKey) {
+        return tutao.locator.crypto.rsaEncrypt(rsaPublicKey, tutao.util.EncodingConverter.hexToUint8Array(aesKeyData)).then(function (jsEncryptedDummyKey) {
             return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, jsEncryptedDummyKey).then(function (jsDecryptedDummyKey) {
-                assert.equal(aesKeyData, tutao.util.EncodingConverter.bytesToHex(jsDecryptedDummyKey));
+                assert.equal(aesKeyData, tutao.util.EncodingConverter.uint8ArrayToHex(jsDecryptedDummyKey));
 
                 // check aes key decryption with rsa (check decryption, because encryption is done with random iv)
                 return tutao.locator.crypto.rsaDecrypt(rsaPrivateKey, tutao.util.EncodingConverter.base64ToUint8Array(encryptedAesKey)).then(function (jsDecryptedAesKey) {
-                    assert.equal(aesHexKey, tutao.util.EncodingConverter.bytesToHex(jsDecryptedAesKey));
+                    assert.equal(aesHexKey, tutao.util.EncodingConverter.uint8ArrayToHex(jsDecryptedAesKey));
                 });
             });
         });
@@ -77,12 +81,12 @@ describe("JavaCompatibilityTest", function () {
             var publicKey = rsaUtils.hexToPublicKey(td.publicKey);
 
 
-            return crypto.rsaEncrypt(publicKey, tutao.util.EncodingConverter.hexToBytes(td.input)).then(function (encryptedData) {
-                assert.equal(td.result, tutao.util.EncodingConverter.bytesToHex(encryptedData));
+            return crypto.rsaEncrypt(publicKey, tutao.util.EncodingConverter.hexToUint8Array(td.input)).then(function (encryptedData) {
+                assert.equal(td.result, tutao.util.EncodingConverter.uint8ArrayToHex(encryptedData));
 
                 var privateKey = rsaUtils.hexToPrivateKey(td.privateKey);
                 return crypto.rsaDecrypt(privateKey, encryptedData).then(function (data) {
-                    assert.equal(td.input, tutao.util.EncodingConverter.bytesToHex(data));
+                    assert.equal(td.input, tutao.util.EncodingConverter.uint8ArrayToHex(data));
                 });
             });
         });
@@ -92,7 +96,7 @@ describe("JavaCompatibilityTest", function () {
         var facade = new tutao.crypto.SjclAes256Gcm();
         for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
             var td = compatibilityTestData.aes256GcmTests[i];
-            var key = facade.hexToKey(td.hexKey);
+            var key = _hexToKey(td.hexKey);
             if (td.type == "UTF8") {
                 var decryptedUtf8 = facade.decryptUtf8(key, td.cipherTextBase64);
                 assert.equal(decryptedUtf8, td.plainText);
@@ -101,7 +105,7 @@ describe("JavaCompatibilityTest", function () {
                 assert.equal(decryptedBytes, td.plainText);
             } else if (td.type == "AES_KEY") {
                 var decryptedKey = facade.decryptKey(key, td.cipherTextBase64);
-                assert.equal(facade.keyToHex(decryptedKey), td.plainText);
+                assert.equal(tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.keyToBase64(decryptedKey)), td.plainText);
             } else if (td.type == "RSA_KEY") {
                 var decryptedRsaKey = facade.decryptPrivateRsaKey(key, td.cipherTextBase64);
                 assert.equal(decryptedRsaKey, td.plainText);
@@ -116,16 +120,13 @@ describe("JavaCompatibilityTest", function () {
         var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
-                var key = syncFacade.hexToKey(td.hexKey);
+                var key = _hexToKey(td.hexKey);
                 if (td.type == "BYTES") {
                     return new Promise(function(resolve, reject) {
                         var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
                         var cipherText = tutao.util.EncodingConverter.base64ToUint8Array(td.cipherTextBase64);
                         facade.decryptBytes(key, cipherText, plainText.byteLength, function(result) {
-                            assert.equal(plainText.length, result.result.length);
-                            for (var i = 0; i < plainText.length; i++) {
-                                assert.equal(plainText[i], result.result[i]);
-                            }
+                            assert.deepEqual(plainText, result.result);
                             resolve();
                         });
                     });

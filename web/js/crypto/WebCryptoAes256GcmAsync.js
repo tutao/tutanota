@@ -11,15 +11,15 @@ tutao.crypto.WebCryptoAes256GcmAsync = function() {};
 /**
  * @inheritDoc
  */
-tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {
+tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, bytes, iv, resultCallback) {
     var self = this;
     var plainText = tutao.crypto.Utils.pad(bytes);
-    var iv = tutao.util.EncodingConverter.hexToArrayBuffer(random);
+    var ivArrayBuffer = iv.buffer;
     self._getWebCryptoKey(key).then(function(webCryptoKey) {
         return window.crypto.subtle.encrypt(
             {
                 name: "AES-GCM",
-                iv: iv,
+                iv: ivArrayBuffer,
                 tagLength: tutao.crypto.AesInterface.TAG_BIT_LENGTH
             },
             webCryptoKey,
@@ -28,7 +28,7 @@ tutao.crypto.WebCryptoAes256GcmAsync.prototype.encryptBytes = function (key, byt
             //returns an ArrayBuffer containing the encrypted data
             // iv + encrypted data
             var dstBuffer = new Uint8Array(iv.byteLength + encrypted.byteLength);
-            dstBuffer.set(new Uint8Array(iv), 0);
+            dstBuffer.set(iv, 0);
             dstBuffer.set(new Uint8Array(encrypted), iv.byteLength);
             resultCallback({type: 'result', result: dstBuffer});
         });

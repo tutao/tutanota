@@ -13,9 +13,9 @@ describe("KdfTest", function () {
         var facade = _getFacade();
         var salt1 = facade.generateRandomSalt();
         var salt2 = facade.generateRandomSalt();
-        assert.isTrue(salt1 !== salt2);
-        assert.equal(32, salt1.length); // 16 bytes in hex
-        assert.equal(32, salt2.length);
+        assert.notDeepEqual(salt1, salt2);
+        assert.equal(16, salt1.length);
+        assert.equal(16, salt2.length);
     });
 
     it("CreateKeyFromPassphrase ", function () {
@@ -23,19 +23,19 @@ describe("KdfTest", function () {
         var facade = _getFacade();
         var salt1 = facade.generateRandomSalt();
         var salt2 = facade.generateRandomSalt();
-        return facade.generateKeyFromPassphrase("hello", salt1).then(function (key1Hex) {
-            return facade.generateKeyFromPassphrase("hello", salt1).then(function (key2Hex) {
-                return facade.generateKeyFromPassphrase("hello", salt2).then(function (key3Hex) {
-                    return facade.generateKeyFromPassphrase("hellohello", salt1).then(function (key4Hex) {
+        return facade.generateKeyFromPassphrase("hello", salt1).then(function (key1) {
+            return facade.generateKeyFromPassphrase("hello", salt1).then(function (key2) {
+                return facade.generateKeyFromPassphrase("hello", salt2).then(function (key3) {
+                    return facade.generateKeyFromPassphrase("hellohello", salt1).then(function (key4) {
                         // make sure the same password and salt result in the same key
-                        assert.equal(key1Hex, key2Hex);
+                        assert.deepEqual(key1, key2);
                         // make sure a different password or different key result in different keys
-                        assert.isFalse(key1Hex === key3Hex);
-                        assert.isFalse(key1Hex === key4Hex);
+                        assert.notDeepEqual(key1, key3);
+                        assert.notDeepEqual(key1, key4);
                         // test the key length to be 128 bit
-                        assert.equal(32, key1Hex.length); // same as key2Hex
-                        assert.equal(32, key3Hex.length);
-                        assert.equal(32, key4Hex.length);
+                        assert.equal(16, tutao.util.EncodingConverter.keyToUint8Array(key1).length); // same as key2Hex
+                        assert.equal(16, tutao.util.EncodingConverter.keyToUint8Array(key3).length);
+                        assert.equal(16, tutao.util.EncodingConverter.keyToUint8Array(key4).length);
                     });
                 });
             });
@@ -54,8 +54,8 @@ describe("KdfTest", function () {
         ];
 
         return Promise.each(pairs, function(pair) {
-            return facade.generateKeyFromPassphrase(pair.pw, salt).then(function (hexKey) {
-                assert.equal(pair.hash, hexKey);
+            return facade.generateKeyFromPassphrase(pair.pw, tutao.util.EncodingConverter.hexToUint8Array(salt)).then(function (key) {
+                assert.equal(pair.hash, tutao.util.EncodingConverter.uint8ArrayToHex(tutao.util.EncodingConverter.keyToUint8Array(key)));
             })
         });
 

@@ -149,10 +149,6 @@ describe.skip("AesLibsTest", function () {
 
 
     var _createArray = function (len) {
-        var view = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            view[i] = tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(1));
-        }
-        return view;
+        return tutao.locator.randomizer.generateRandomData(len);
     };
 });

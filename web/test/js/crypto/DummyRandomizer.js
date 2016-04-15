@@ -3,7 +3,7 @@
 tutao.provide('tutao.crypto.DummyRandomizer');
 
 tutao.crypto.DummyRandomizer = function() {
-    this._staticData = "9340759180347509812745890172340987132409857109824357012783459012873409123047129843571923479182374981273498172349812734";
+    this._staticData = tutao.util.EncodingConverter.stringToUtf8Uint8Array("9340759180347509812745890172340987132409857109824357012783459012873409123047129843571923479182374981273498172349812734");
 };
 
 /**
@@ -24,8 +24,8 @@ tutao.crypto.DummyRandomizer.prototype.isReady = function() {
  * @inheritDoc
  */
 tutao.crypto.DummyRandomizer.prototype.generateRandomData = function(nbrOfBytes) {
-    if (this._staticData.length < nbrOfBytes * 2) {
+    if (this._staticData.byteLength < nbrOfBytes) {
         throw new tutao.crypto.CryptoError("not enought static bytes");
     }
-    return this._staticData.substring(0, nbrOfBytes * 2);
+    return new Uint8Array(this._staticData.subarray(0, nbrOfBytes)); // copy the data as precaution
 };

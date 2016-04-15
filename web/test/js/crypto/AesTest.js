@@ -56,30 +56,11 @@ describe("AesTest", function () {
         assert.isTrue(encryptedRandomIv.length === encrypted2RandomIv.length);
     };
 
-
-    it("generateRandomKeyAndHexConversion ", function () {
-        var facade = _getFacade();
-        var key1Hex = facade.keyToHex(facade.generateRandomKey());
-        var key2Hex = facade.keyToHex(facade.generateRandomKey());
-        var key3Hex = facade.keyToHex(facade.generateRandomKey());
-        // make sure the keys are different
-        assert.isTrue(key1Hex !== key2Hex);
-        assert.isTrue(key1Hex !== key3Hex);
-        // test the key length to be 128 bit
-        assert.equal(32, key1Hex.length);
-        assert.equal(32, key2Hex.length);
-        assert.equal(32, key3Hex.length);
-        // test conversion
-        assert.equal(key1Hex, facade.keyToHex(facade.hexToKey(key1Hex)));
-        assert.equal(key2Hex, facade.keyToHex(facade.hexToKey(key2Hex)));
-        assert.equal(key3Hex, facade.keyToHex(facade.hexToKey(key3Hex)));
-    });
-
     it("generateRandomKeyAndBase64Conversion ", function () {
         var facade = _getFacade();
-        var key1Base64 = facade.keyToBase64(facade.generateRandomKey());
-        var key2Base64 = facade.keyToBase64(facade.generateRandomKey());
-        var key3Base64 = facade.keyToBase64(facade.generateRandomKey());
+        var key1Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
+        var key2Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
+        var key3Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
         // make sure the keys are different
         assert.isTrue(key1Base64 !== key2Base64);
         assert.isTrue(key1Base64 !== key3Base64);
@@ -88,9 +69,9 @@ describe("AesTest", function () {
         assert.equal(24, key2Base64.length);
         assert.equal(24, key3Base64.length);
         // test conversion
-        assert.equal(key1Base64, facade.keyToBase64(facade.base64ToKey(key1Base64)));
-        assert.equal(key2Base64, facade.keyToBase64(facade.base64ToKey(key2Base64)));
-        assert.equal(key3Base64, facade.keyToBase64(facade.base64ToKey(key3Base64)));
+        assert.equal(key1Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key1Base64)));
+        assert.equal(key2Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key2Base64)));
+        assert.equal(key3Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key3Base64)));
     });
 
     it("EncryptDecryptUtf8 ", function () {
@@ -113,7 +94,7 @@ describe("AesTest", function () {
 
     it("EncryptWithInvalidKey ", function () {
         var facade = _getFacade();
-        var key = facade.hexToKey("7878787878");
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(tutao.util.EncodingConverter.hexToUint8Array("7878787878"));
         try {
             facade.encryptUtf8(key, "hello");
             assert.fail("no error");
@@ -141,7 +122,7 @@ describe("AesTest", function () {
         // an encrypted key must be one block because no padding or random iv is used
         assert.equal(16, _getNbrOfBytes(encrypted));
         var decrypted = facade.decryptKey(key, encrypted);
-        assert.equal(facade.keyToHex(keyToEncrypt), facade.keyToHex(decrypted));
+        assert.equal(tutao.util.EncodingConverter.keyToBase64(keyToEncrypt), tutao.util.EncodingConverter.keyToBase64(decrypted));
     });
 
     it("ThatDifferentKeysResultInDifferentCiphertexts ", function () {

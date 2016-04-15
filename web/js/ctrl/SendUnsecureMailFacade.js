@@ -33,7 +33,7 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
 	    .setSenderName(senderName)
 	    .setConversationType(conversationType)
 	    .setPreviousMessageId(previousMessageId)
-	    .setMailSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(sessionKey))) // for recipients
+	    .setMailSessionKey(tutao.util.EncodingConverter.keyToBase64(sessionKey)) // for recipients
 	    .setListEncSessionKey(aes.encryptKey(mailBoxKey, sessionKey)) // for sender
 	    .setSymEncSessionKey(aes.encryptKey(groupKey, sessionKey)) // for sender
 	    .setSharableEncSessionKey(aes.encryptKey(sharableKey, sessionKey)); // for sharing the mailbox
@@ -41,7 +41,7 @@ tutao.tutanota.ctrl.SendUnsecureMailFacade.sendMail = function(subject, bodyText
     return Promise.each(attachments, function(dataFile, index, number) {
         var attachment = new tutao.entity.tutanota.UnsecureAttachment(service);
         return tutao.tutanota.ctrl.SendMailFacade.createAttachment(attachment, dataFile).then(function(fileSessionKey) {
-            attachment.setFileSessionKey(tutao.util.EncodingConverter.hexToBase64(aes.keyToHex(fileSessionKey)))
+            attachment.setFileSessionKey(tutao.util.EncodingConverter.keyToBase64(fileSessionKey))
                 .setListEncFileSessionKey(aes.encryptKey(mailBoxKey, fileSessionKey));
 
             service.getAttachments().push(attachment);

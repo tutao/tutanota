@@ -271,7 +271,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._loadTutanotaPropertiesUnencrypted 
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.storeEntropy = function() {
     return this._loadTutanotaPropertiesUnencrypted().then(function(tutanotaProperties) {
-        var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32)));
+        var groupEncEntropy = tutao.locator.aesCrypter.encryptBytes(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32)));
         tutanotaProperties.setGroupEncEntropy(groupEncEntropy);
         return tutanotaProperties.update();
     });
@@ -294,7 +294,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
             // register the device and store the encrypted password
             var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
             var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
-            deviceService.setDeviceKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.aesCrypter.keyToHex(deviceKey)));
+            deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
             promise = deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
                 self.config.deviceToken = autoLoginPostReturn.getDeviceToken();
                 var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
@@ -376,8 +376,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function() {
     return tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
         .setUserId(userId)
         .setDeviceToken(this.config.deviceToken), params, null).then(function(autoLoginDataReturn) {
-        var deviceKey = tutao.locator.aesCrypter.hexToKey(tutao.util.EncodingConverter.base64ToHex(autoLoginDataReturn.getDeviceKey()));
-        return deviceKey;
+        return tutao.util.EncodingConverter.base64ToKey(autoLoginDataReturn.getDeviceKey());
     });
 };
 

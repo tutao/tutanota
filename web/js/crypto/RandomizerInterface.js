@@ -33,7 +33,7 @@ tutao.crypto.RandomizerInterface.prototype.isReady = function() {};
 /**
  * Generates random data. The function initRandomDataGenerator must have been called prior to the first call to this function.
  * @param {number} nbrOfBytes The number of bytes the random data shall have.
- * @return {string} A hex coded string of random data.
+ * @return {Uint8Array} An array of random data.
  * @throws {tutao.crypto.CryptoError} if the randomizer is not seeded (isReady == false)
  */
 tutao.crypto.RandomizerInterface.prototype.generateRandomData = function(nbrOfBytes) {};

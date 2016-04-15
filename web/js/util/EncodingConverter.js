@@ -3,6 +3,49 @@
 tutao.provide('tutao.util.EncodingConverter');
 
 /**
+ * Converts the given key to an Uint8Array.
+ * @param {bitArray} key The key.
+ * @return {Uint8Array} The uint8array key.
+ */
+tutao.util.EncodingConverter.keyToUint8Array = function(key) {
+    return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(key));
+};
+
+/**
+ * Converts the given uint8array to a key.
+ * @param {Uint8Array} uint8Array The uint8Array key.
+ * @return {bitArray} The key.
+ * @throws {tutao.crypto.CryptoError} If the conversion fails.
+ */
+tutao.util.EncodingConverter.uint8ArrayToKey = function(uint8Array) {
+    return sjcl.codec.arrayBuffer.toBits(uint8Array.buffer);
+};
+
+
+/**
+ * Converts the given key to a base64 coded string.
+ * @param {bitArray} key The key.
+ * @return {String} The base64 coded string representation of the key.
+ */
+tutao.util.EncodingConverter.keyToBase64 = function(key) {
+    return sjcl.codec.base64.fromBits(key);
+};
+
+/**
+ * Converts the given base64 coded string to a key.
+ * @param {String} base64 The base64 coded string representation of the key.
+ * @return {bitArray} The key.
+ * @throws {tutao.crypto.CryptoError} If the conversion fails.
+ */
+tutao.util.EncodingConverter.base64ToKey = function(base64) {
+    try {
+        return sjcl.codec.base64.toBits(base64);
+    } catch (e) {
+        throw new tutao.crypto.CryptoError("hex to aes key failed", e);
+    }
+};
+
+/**
  * Converts a hex coded string into a base64 coded string.
  *
  * @param {String} hex A hex encoded string.
@@ -20,48 +63,6 @@ tutao.util.EncodingConverter.hexToBase64 = function(hex) {
  */
 tutao.util.EncodingConverter.base64ToHex = function(base64) {
 	return sjcl.codec.hex.fromBits(sjcl.codec.base64.toBits(base64));
-};
-
-/**
- * Converts a utf8 bytes hex coded string into a string.
- *
- * @param {String} hex A hex encoded string.
- * @return {String} A utf8 encoded string.
- */
-tutao.util.EncodingConverter.hexToUtf8 = function(hex) {
-	return sjcl.codec.utf8String.fromBits(sjcl.codec.hex.toBits(hex));
-};
-
-/**
- * Converts a string into a hex coded string containing utf8 bytes.
- *
- * @param {String} utf8 A utf8 encoded string.
- * @return {String} A hex encoded string.
- */
-tutao.util.EncodingConverter.utf8ToHex = function(utf8) {
-	return sjcl.codec.hex.fromBits(sjcl.codec.utf8String.toBits(utf8));
-};
-
-/**
- * Converts a hex coded string into an array of byte values.
- *
- * @param {String} hex A hex encoded string.
- * @return {Array.<number>} An array of byte values. A byte can have the value
- *         0 to 255.
- */
-tutao.util.EncodingConverter.hexToBytes = function(hex) {
-	return sjcl.codec.bytes.fromBits(sjcl.codec.hex.toBits(hex));
-};
-
-/**
- * Converts an array of byte values into a hex coded string.
- *
- * @param {Array.<number>} bytes An array of byte values. A byte can have the value
- *            0 to 255.
- * @return {String} A hex encoded string.
- */
-tutao.util.EncodingConverter.bytesToHex = function(bytes) {
-	return sjcl.codec.hex.fromBits(sjcl.codec.bytes.toBits(bytes));
 };
 
 /**
@@ -171,21 +172,19 @@ tutao.util.EncodingConverter.utf8Uint8ArrayToString = function(uint8Array) {
     return decodeURIComponent(escape(String.fromCharCode.apply(null, uint8Array)));
 };
 
-tutao.util.EncodingConverter.hexToArrayBuffer = function(hex) {
-	var buffer = new ArrayBuffer(hex.length / 2);
-	var bufView = new Uint8Array(buffer);
-	for (var i=0; i<buffer.byteLength; i++) {
+tutao.util.EncodingConverter.hexToUint8Array = function(hex) {
+	var bufView = new Uint8Array(hex.length / 2);
+	for (var i=0; i<bufView.byteLength; i++) {
 		bufView[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
 	}
-	return buffer;
+	return bufView;
 };
 
-tutao.util.EncodingConverter.arrayBufferToHex = function(buffer) {
+tutao.util.EncodingConverter.uint8ArrayToHex = function(uint8Array) {
 	var hexDigits = '0123456789abcdef';
 	var hex = "";
-	var bufView = new Uint8Array(buffer);
-	for (var i=0; i<buffer.byteLength; i++) {
-		var value = bufView[i];
+	for (var i=0; i<uint8Array.byteLength; i++) {
+		var value = uint8Array[i];
 		hex += hexDigits[value >> 4] + hexDigits[value & 15];
 	}
 	return hex;

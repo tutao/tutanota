@@ -345,7 +345,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._switchFreeToPremiumGroup = f
         return new tutao.entity.sys.MembershipAddData()
             .setUser(tutao.locator.userController.getLoggedInUser().getId())
             .setGroup(keyData.getPremiumGroup())
-            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.locator.aesCrypter.base64ToKey(keyData.getPremiumGroupKey())))
+            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.base64ToKey(keyData.getPremiumGroupKey())))
             .setup({}, null)
             .then(function() {
                 return new tutao.entity.sys.MembershipRemoveData()

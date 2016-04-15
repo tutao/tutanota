@@ -11,7 +11,7 @@ tutao.crypto.ShaInterface = function() {};
 
 /**
  * Create the hash of the given data.
- * @param {string} hex Hex coded bytes.
- * @return {string} Base64 coded hash.
+ * @param {Uint8Array} uint8Array The bytes.
+ * @return {Uint8Array} The hash.
  */
-tutao.crypto.ShaInterface.prototype.hashHex = function(hex) {};
+tutao.crypto.ShaInterface.prototype.hash = function(uint8Array) {};

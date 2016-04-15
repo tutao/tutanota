@@ -22,10 +22,10 @@ tutao.crypto.AesInterfaceAsync = function() {};
  * Encrypt bytes with the provided key
  * @param {bitArray} key The key to use for the encryption.
  * @param {Uint8Array} bytes The plain text bytes to encrypt.
- * @param {String} random A hex coded random number used for the initialization vector.
+ * @param {Uint8Array} iv A hex coded random number used for the initialization vector.
  * @param {aesResultCallback} resultCallback Function to handle the result.
  */
-tutao.crypto.AesInterfaceAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {};
+tutao.crypto.AesInterfaceAsync.prototype.encryptBytes = function (key, bytes, iv, resultCallback) {};
 
 
 /**

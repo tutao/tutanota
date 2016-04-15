@@ -18,13 +18,11 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
         };
         tutao.native.CryptoBrowser._workerFunctions = workerFunctions;
         tutao.native.CryptoBrowser.initWorkerFileNames = function() {};
-        tutao.native.CryptoBrowser.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
-            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(passphrase, salt);
-        };
         tutao.native.CryptoBrowser.prototype.aesDecrypt = function (key, cipherText, decryptedSize) {
             var self = this;
             return new Promise(function (resolve, reject) {
-                var byteKeyLength = self.aesKeyLength / 8;
+                //FIXME
+                /*var byteKeyLength = self.aesKeyLength / 8;
                 if (key.length !== byteKeyLength) {
                     throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
                 }
@@ -33,7 +31,7 @@ tutao.tutanota.legacy.Legacy.setup = function(singletons) {
                 }
                 if (decryptedSize < (cipherText.length - 2 * byteKeyLength)) {
                     throw new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + cipherText.length);
-                }
+                }*/
                 tutao.native.CryptoBrowser._workerFunctions.aesDecrypt(key, cipherText, decryptedSize, function(data) {
                     if (data.type != 'result') {
                         reject(new tutao.crypto.CryptoError(data.msg));

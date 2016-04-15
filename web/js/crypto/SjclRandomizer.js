@@ -34,9 +34,9 @@ tutao.crypto.SjclRandomizer.prototype.generateRandomData = function(nbrOfBytes) 
 		// read the minimal number of words to get nbrOfBytes
 		var nbrOfWords = Math.floor((nbrOfBytes + 3) / 4);
 		var words = this.random.randomWords(nbrOfWords);
-		var hex = sjcl.codec.hex.fromBits(words);
+		var arrayBuffer = sjcl.codec.arrayBuffer.fromBits(words);
 		// simply cut off the exceeding bytes
-		return hex.substring(0, nbrOfBytes * 2);
+		return new Uint8Array(new Uint8Array(arrayBuffer, 0, nbrOfBytes)); // truncate the arraybuffer as precaution
 	} catch (e) {
 		throw new tutao.crypto.CryptoError("error during random number generation", e);
 	}

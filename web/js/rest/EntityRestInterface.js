@@ -172,7 +172,7 @@ tutao.rest.EntityRestInterface.firstBiggerThanSecond = function(firstId, secondI
  * @param {string} string The string.
  */
 tutao.rest.EntityRestInterface.stringToCustomId = function(string) {
-	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.hexToBase64(tutao.util.EncodingConverter.utf8ToHex(string)));
+	return tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(string)));
 };
 
 /**
@@ -180,7 +180,7 @@ tutao.rest.EntityRestInterface.stringToCustomId = function(string) {
  * @param {string} customId The custom id.
  */
 tutao.rest.EntityRestInterface.customIdToString = function(customId) {
-	return tutao.util.EncodingConverter.hexToUtf8(tutao.util.EncodingConverter.base64ToHex(tutao.util.EncodingConverter.base64UrlToBase64(customId)));
+	return tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.base64UrlToBase64(customId)));
 };
 
 /**

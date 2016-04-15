@@ -13,9 +13,9 @@ tutao.crypto.SjclAes128CbcAsync = function() {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes128CbcAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {
+tutao.crypto.SjclAes128CbcAsync.prototype.encryptBytes = function (key, bytes, randomIv, resultCallback) {
     try {
-        var iv = sjcl.codec.hex.toBits(random);
+        var iv = sjcl.codec.arrayBuffer.toBits(randomIv.buffer);
         var xor = sjcl.bitArray._xor4;
         var uint32ArraysPerBlock = this._byteKeyLength / 4;
         var prp = new sjcl.cipher.aes(key);

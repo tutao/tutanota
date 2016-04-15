@@ -12,11 +12,19 @@ describe("Aes256GcmTest", function () {
         return [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
     };
 
+    var _hexToKey = function(hex) {
+        return tutao.util.EncodingConverter.uint8ArrayToKey(tutao.util.EncodingConverter.hexToUint8Array(hex));
+    };
+
+    var _keyToHex = function(key) {
+        return tutao.util.EncodingConverter.uint8ArrayToHex(tutao.util.EncodingConverter.keyToUint8Array(key));
+    };
+
     it("encryptionDecryptionSyncRoundtrip ", function () {
         var facade = _getSyncFacade();
         for (var i = 0; i < compatibilityTestData.aes256GcmTests.length; i++) {
             var td = compatibilityTestData.aes256GcmTests[i];
-            var key = facade.hexToKey(td.hexKey);
+            var key = _hexToKey(td.hexKey);
             if (td.type == "UTF8") {
                 var encryptedUtf8 = facade.encryptUtf8(key, td.plainText);
                 var decryptedUtf8 = facade.decryptUtf8(key, encryptedUtf8);
@@ -26,9 +34,9 @@ describe("Aes256GcmTest", function () {
                 var decryptedBytes = facade.decryptBytes(key, encryptedBytes);
                 assert.equal(decryptedBytes, td.plainText);
             } else if (td.type == "AES_KEY") {
-                var encryptedKey = facade.encryptKey(key, facade.hexToKey(td.plainText));
+                var encryptedKey = facade.encryptKey(key, _hexToKey(td.plainText));
                 var decryptedKey = facade.decryptKey(key, encryptedKey);
-                assert.equal(facade.keyToHex(decryptedKey), td.plainText);
+                assert.equal(_keyToHex(decryptedKey), td.plainText);
             } else if (td.type == "RSA_KEY") {
                 var encryptedRsaKey = facade.encryptPrivateRsaKey(key, td.plainText);
                 var decryptedRsaKey = facade.decryptPrivateRsaKey(key, encryptedRsaKey);
@@ -43,7 +51,7 @@ describe("Aes256GcmTest", function () {
         var facades = _getAsyncFacades();
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
-                var key = _getSyncFacade().hexToKey(td.hexKey);
+                var key = _hexToKey(td.hexKey);
                 if (td.type == "BYTES") {
                     return new Promise(function(resolve, reject) {
                         var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
@@ -68,7 +76,7 @@ describe("Aes256GcmTest", function () {
     });
 
     it("encryptWithInvalidKeyAsync ", function (finished) {
-        var key = _getSyncFacade().hexToKey("7878787878");
+        var key = _hexToKey("7878787878");
         var facades = _getAsyncFacades();
         Promise.each(facades, function(facade) {
             return new Promise(function(resolve, reject) {
@@ -147,29 +155,11 @@ describe("Aes256GcmTest", function () {
         });
     });
 
-    it("generateRandomKeyAndHexConversion ", function () {
-        var facade = _getSyncFacade();
-        var key1Hex = facade.keyToHex(facade.generateRandomKey());
-        var key2Hex = facade.keyToHex(facade.generateRandomKey());
-        var key3Hex = facade.keyToHex(facade.generateRandomKey());
-        // make sure the keys are different
-        assert.isTrue(key1Hex !== key2Hex);
-        assert.isTrue(key1Hex !== key3Hex);
-        // test the key length to be 128 bit
-        assert.equal(64, key1Hex.length);
-        assert.equal(64, key2Hex.length);
-        assert.equal(64, key3Hex.length);
-        // test conversion
-        assert.equal(key1Hex, facade.keyToHex(facade.hexToKey(key1Hex)));
-        assert.equal(key2Hex, facade.keyToHex(facade.hexToKey(key2Hex)));
-        assert.equal(key3Hex, facade.keyToHex(facade.hexToKey(key3Hex)));
-    });
-
     it("generateRandomKeyAndBase64Conversion ", function () {
         var facade = _getSyncFacade();
-        var key1Base64 = facade.keyToBase64(facade.generateRandomKey());
-        var key2Base64 = facade.keyToBase64(facade.generateRandomKey());
-        var key3Base64 = facade.keyToBase64(facade.generateRandomKey());
+        var key1Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
+        var key2Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
+        var key3Base64 = tutao.util.EncodingConverter.keyToBase64(facade.generateRandomKey());
         // make sure the keys are different
         assert.isTrue(key1Base64 !== key2Base64);
         assert.isTrue(key1Base64 !== key3Base64);
@@ -178,14 +168,14 @@ describe("Aes256GcmTest", function () {
         assert.equal(44, key2Base64.length);
         assert.equal(44, key3Base64.length);
         // test conversion
-        assert.equal(key1Base64, facade.keyToBase64(facade.base64ToKey(key1Base64)));
-        assert.equal(key2Base64, facade.keyToBase64(facade.base64ToKey(key2Base64)));
-        assert.equal(key3Base64, facade.keyToBase64(facade.base64ToKey(key3Base64)));
+        assert.equal(key1Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key1Base64)));
+        assert.equal(key2Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key2Base64)));
+        assert.equal(key3Base64, tutao.util.EncodingConverter.keyToBase64(tutao.util.EncodingConverter.base64ToKey(key3Base64)));
     });
 
     it("encryptWithInvalidKeySync ", function () {
         var facade = _getSyncFacade();
-        var key = facade.hexToKey("7878787878");
+        var key = _hexToKey("7878787878");
         try {
             facade.encryptUtf8(key, "hello");
             assert.fail("no error");

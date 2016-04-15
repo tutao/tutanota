@@ -39,8 +39,7 @@ tutao.native.FileFacadeAndroidApp.prototype.uploadFileData = function(/*tutao.na
     var self = this;
 
     var fileData = new tutao.entity.tutanota.FileDataDataPost();
-    var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(sessionKey));
-    return tutao.locator.crypto.aesEncryptFile(byteSessionKey, file.getLocation()).then(function (encryptedFileUrl) {
+    return tutao.locator.crypto.aesEncryptFile(sessionKey, file.getLocation()).then(function (encryptedFileUrl) {
         // create file data
         fileData.setSize(String(file.getSize()))
             .setGroup(tutao.locator.userController.getUserGroupId());
@@ -78,8 +77,7 @@ tutao.native.FileFacadeAndroidApp.prototype.readFileData = function(file) {
 	var headers = tutao.entity.EntityHelper.createAuthHeaders();
     var path = tutao.env.getHttpOrigin() + tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, params);
     return self.fileUtil.download(path, file.getName(), headers).then(function (downloadedFileUri) {
-        var byteSessionKey = new Uint8Array(sjcl.codec.bytes.fromBits(file._entityHelper._sessionKey));
-        return tutao.locator.crypto.aesDecryptFile(byteSessionKey, downloadedFileUri).then(function(decryptedFileUri) {
+        return tutao.locator.crypto.aesDecryptFile(file.getEntityHelper().getSessionKey(), downloadedFileUri).then(function(decryptedFileUri) {
             return new tutao.native.AndroidFile(decryptedFileUri, file.getName(), file.getMimeType(), Number(file.getSize()));
         }).lastly(function () {
             self.fileUtil.deleteFile(downloadedFileUri);

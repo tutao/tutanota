@@ -16,10 +16,15 @@ tutao.entity.valueencrypted.EtZeroOrOneValues = function(data) {
     this.__owner = null;
     this.__permissions = null;
     this._bool = null;
+    this._bool_ = null;
     this._bytes = null;
+    this._bytes_ = null;
     this._date = null;
+    this._date_ = null;
     this._number = null;
+    this._number_ = null;
     this._string = null;
+    this._string_ = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.valueencrypted.EtZeroOrOneValues.prototype;
@@ -36,10 +41,15 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.updateData = function(da
   this.__owner = data._owner;
   this.__permissions = data._permissions;
   this._bool = data.bool;
+  this._bool_ = null;
   this._bytes = data.bytes;
+  this._bytes_ = null;
   this._date = data.date;
+  this._date_ = null;
   this._number = data.number;
+  this._number_ = null;
   this._string = data.string;
+  this._string_ = null;
 };
 
 /**
@@ -214,9 +224,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getPermissions = functio
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setBool = function(bool) {
   if (bool == null) {
     this._bool = null;
+    this._bool_ = null;
   } else {
     var dataToEncrypt = (bool) ? '1' : '0';
     this._bool = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._bool_ = bool;
   }
   return this;
 };
@@ -229,9 +241,13 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBool = function() {
   if (this._bool == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._bool_ != null) {
+    return this._bool_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._bool);
-    return value != '0';
+    this._bool_ = (value != '0');
+    return this._bool_;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
       this.getEntityHelper().invalidateSessionKey();
@@ -249,9 +265,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBool = function() {
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setBytes = function(bytes) {
   if (bytes == null) {
     this._bytes = null;
+    this._bytes_ = null;
   } else {
     var dataToEncrypt = bytes;
     this._bytes = tutao.locator.aesCrypter.encryptBytes(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._bytes_ = bytes;
   }
   return this;
 };
@@ -264,8 +282,12 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBytes = function() {
   if (this._bytes == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._bytes_ != null) {
+    return this._bytes_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptBytes(this._entityHelper.getSessionKey(), this._bytes);
+    this._bytes_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -284,9 +306,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getBytes = function() {
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setDate = function(date) {
   if (date == null) {
     this._date = null;
+    this._date_ = null;
   } else {
     var dataToEncrypt = String(date.getTime());
     this._date = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._date_ = date;
   }
   return this;
 };
@@ -299,13 +323,17 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getDate = function() {
   if (this._date == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._date_ != null) {
+    return this._date_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._date);
     if (isNaN(value)) {
       this.getEntityHelper().invalidateSessionKey();
       return new Date(0);
     }
-    return new Date(Number(value));
+    this._date_ = new Date(Number(value));
+    return this._date_;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
       this.getEntityHelper().invalidateSessionKey();
@@ -323,9 +351,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getDate = function() {
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setNumber = function(number) {
   if (number == null) {
     this._number = null;
+    this._number_ = null;
   } else {
     var dataToEncrypt = number;
     this._number = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._number_ = number;
   }
   return this;
 };
@@ -338,8 +368,12 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getNumber = function() {
   if (this._number == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._number_ != null) {
+    return this._number_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._number);
+    this._number_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {
@@ -358,9 +392,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getNumber = function() {
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setString = function(string) {
   if (string == null) {
     this._string = null;
+    this._string_ = null;
   } else {
     var dataToEncrypt = string;
     this._string = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._string_ = string;
   }
   return this;
 };
@@ -373,8 +409,12 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getString = function() {
   if (this._string == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
+  if (this._string_ != null) {
+    return this._string_;
+  }
   try {
     var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._string);
+    this._string_ = value;
     return value;
   } catch (e) {
     if (e instanceof tutao.crypto.CryptoError) {

@@ -72,7 +72,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._switchPremiumToFreeGr
         return new tutao.entity.sys.MembershipAddData()
             .setUser(tutao.locator.userController.getLoggedInUser().getId())
             .setGroup(keyData.getFreeGroup())
-            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.locator.aesCrypter.base64ToKey(keyData.getFreeGroupKey())))
+            .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), tutao.util.EncodingConverter.base64ToKey(keyData.getFreeGroupKey())))
             .setup({}, null)
             .then(function() {
                 return new tutao.entity.sys.MembershipRemoveData()
@@ -110,8 +110,8 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._checkPassword = funct
         this.passwordStatus({ type: "neutral", text: "passwordEnterNeutral_msg" });
     } else {
         this.passwordStatus({ type: "neutral", text: "check_msg" });
-        tutao.locator.crypto.generateKeyFromPassphrase(self.password(), tutao.locator.userController.getHexSalt()).then(function(hexKey) {
-            var v = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.shaCrypter.hashHex(hexKey));
+        tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), tutao.locator.userController.getSalt()).then(function(key) {
+            var v = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(key));
             if(v == tutao.locator.userController.getAuthVerifier()) {
                 self.passwordStatus({ type: "valid", text: "passwordValid_msg" });
             } else {

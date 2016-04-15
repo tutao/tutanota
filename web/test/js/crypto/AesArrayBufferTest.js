@@ -68,11 +68,7 @@ describe("AesArrayBufferTest", function () {
     };
 
     var _createArray = function (len) {
-        var view = new Uint8Array(len);
-        for (var i = 0; i < len; i++) {
-            view[i] = tutao.util.EncodingConverter.hexToBytes(tutao.locator.randomizer.generateRandomData(1));
-        }
-        return view;
+        return tutao.locator.randomizer.generateRandomData(len);
     };
 
     var _getEncryptedArrayBuffer = function (key, bufferLen) {
@@ -86,7 +82,7 @@ describe("AesArrayBufferTest", function () {
         this.timeout(24000);
 
         var facade = _getFacade();
-        var key = facade.generateRandomKey();
+        var key = tutao.locator.aesCrypter.generateRandomKey();
         return _arrayRoundtrip(key, _createArray(0)).then(function () {
             return _arrayRoundtrip(key, _createArray(1)).then(function () {
                 return _arrayRoundtrip(key, _createArray(15)).then(function () {
@@ -102,7 +98,7 @@ describe("AesArrayBufferTest", function () {
 
     it("ArrayBufferImplementationCompatibility ", function () {
         var plainText = new Uint8Array([3, 240, 19]);
-        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]));
         var cipherText = new Uint8Array([255, 223, 151, 34, 157, 32, 197, 116, 80, 245, 27, 255, 230, 26, 233, 238, 179, 27, 47, 148, 75, 41, 233, 210, 185, 108, 45, 109, 3, 227, 75, 10]);
         var facade = tutao.locator.crypto;
         return facade.aesDecrypt(key, cipherText, plainText.length).then(function (decrypted) {
@@ -116,7 +112,7 @@ describe("AesArrayBufferTest", function () {
             return;
         }
         var plainText = new Uint8Array([3, 240, 19]);
-        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]));
         var cipherText = new Uint8Array([255, 223, 151, 34, 157, 32, 197, 116, 80, 245, 27, 255, 230, 26, 233, 238, 179, 27, 47, 148, 75, 41, 233, 210, 185, 108, 45, 109, 3, 227, 75, 10]);
 
         var fileUtil = new tutao.native.device.FileUtil();
@@ -138,7 +134,7 @@ describe("AesArrayBufferTest", function () {
             return;
         }
         var plainText = new Uint8Array([3, 240, 19]);
-        var key = new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]);
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array([181, 50, 148, 196, 166, 19, 212, 184, 249, 95, 122, 48, 226, 175, 32, 189]));
 
         var fileUtil = new tutao.native.device.FileUtil();
         var file = cordova.file.dataDirectory + "test/plain.bin";
@@ -157,7 +153,7 @@ describe("AesArrayBufferTest", function () {
 
     it("EncryptInvalidKey ", function () {
         var facade = tutao.locator.crypto;
-        var key = new Uint8Array([1, 2, 3]);
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array([1, 2, 3]));
         var arrayBuffer = _createArray(10);
 
         return assert.isRejected(facade.aesEncrypt(key, arrayBuffer), tutao.crypto.CryptoError);
@@ -165,7 +161,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidKey ", function () {
         var facade = tutao.locator.crypto;
-        var key = new Uint8Array([1, 2, 3]);
+        var key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array([1, 2, 3]));
         var arrayBuffer = _createArray(10);
 
         return assert.isRejected(facade.aesDecrypt(key, arrayBuffer, 10), tutao.crypto.CryptoError);
@@ -173,7 +169,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidSrcBufferLen ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateRandomKey();
+        var key = tutao.locator.aesCrypter.generateRandomKey();
         var encrypted = _createArray(33); // 33 is no valid encrypted size
 
         return assert.isRejected(facade.aesDecrypt(key, encrypted, 2), tutao.crypto.CryptoError);
@@ -181,7 +177,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidDstBufferLen ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateRandomKey();
+        var key = tutao.locator.aesCrypter.generateRandomKey();
         var encrypted = _createArray(48); // encrypted 48 bytes it too big for 4 plain text bytes
 
         return assert.isRejected(facade.aesDecrypt(key, encrypted, 4), tutao.crypto.CryptoError);
@@ -189,7 +185,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidEncrypted ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateRandomKey();
+        var key = tutao.locator.aesCrypter.generateRandomKey();
         return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // change the last byte
             encrypted[encrypted.length - 1] = encrypted[encrypted.length - 1] + 1;
@@ -199,7 +195,7 @@ describe("AesArrayBufferTest", function () {
 
     it("DecryptInvalidDecryptedSize ", function () {
         var facade = tutao.locator.crypto;
-        var key = facade.generateRandomKey();
+        var key = tutao.locator.aesCrypter.generateRandomKey();
         return _getEncryptedArrayBuffer(key, 10).then(function (encrypted) {
             // use 11 instead of 10
             return assert.isRejected(facade.aesDecrypt(key, encrypted, 11), tutao.crypto.CryptoError);

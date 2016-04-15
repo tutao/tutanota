@@ -167,13 +167,11 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         }
         //console.log(password);
 
-        var saltHex = tutao.locator.kdfCrypter.generateRandomSalt();
-        var saltBase64 = tutao.util.EncodingConverter.hexToBase64(saltHex);
+        var salt = tutao.locator.kdfCrypter.generateRandomSalt();
         // TODO (story performance): make kdf async in worker
         return promise.then(function () {
-            return tutao.locator.crypto.generateKeyFromPassphrase(password, saltHex).then(function(hexKey) {
-                var passwordKey = tutao.locator.aesCrypter.hexToKey(hexKey);
-                var passwordVerifier = tutao.locator.shaCrypter.hashHex(hexKey);
+            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt).then(function(passwordKey) {
+                var passwordVerifier = tutao.crypto.Utils.createAuthVerifier(passwordKey);
                 return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
                     recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);
                     recipient.setPubEncBucketKey(null);
@@ -184,8 +182,8 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
                     }
                     recipient.setSymEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, bucketKey));
                     recipient.setPasswordVerifier(passwordVerifier);
-                    recipient.setSalt(saltBase64);  // starter accounts may not call this facade, so the salt is always sent to the server
-                    recipient.setSaltHash(tutao.locator.shaCrypter.hashHex(saltHex));
+                    recipient.setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt));  // starter accounts may not call this facade, so the salt is always sent to the server
+                    recipient.setSaltHash(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(salt)));
                     recipient.setPwEncCommunicationKey(tutao.locator.aesCrypter.encryptKey(passwordKey, externalUserGroupKey));
 
                     if (!preshared) {
@@ -215,8 +213,8 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
 		return tutao.entity.sys.PublicKeyReturn.load(new tutao.entity.sys.PublicKeyData().setMailAddress(recipientInfo.getMailAddress()), parameters, null).then(function(publicKeyData) {
             if (notFoundRecipients.length == 0) {
 				var publicKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(publicKeyData.getPubKey()));
-				var hexBucketKey = new Uint8Array(tutao.util.EncodingConverter.hexToBytes(tutao.locator.aesCrypter.keyToHex(bucketKey)));
-                return tutao.locator.crypto.rsaEncrypt(publicKey, hexBucketKey).then(function(encrypted) {
+                var uint8ArrayBucketKey = tutao.util.EncodingConverter.keyToUint8Array(bucketKey);
+                return tutao.locator.crypto.rsaEncrypt(publicKey, uint8ArrayBucketKey).then(function(encrypted) {
                     recipient.setPubEncBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(encrypted));
                     recipient.setPubKeyVersion(publicKeyData.getPubKeyVersion());
                 });
@@ -260,7 +258,7 @@ tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey = function(recipientInfo,
                             .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
                             .setVerifier(verifier)
                             .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalGroupInfoListKey))
-                            .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.hexToBase64(tutao.locator.randomizer.generateRandomData(32))));
+                            .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32))));
                         var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
                             .setMailAddress(cleanedMailAddress)
                             .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))

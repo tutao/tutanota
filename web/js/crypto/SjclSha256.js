@@ -13,8 +13,8 @@ tutao.crypto.SjclSha256 = function() {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclSha256.prototype.hashHex = function(hexData) {
+tutao.crypto.SjclSha256.prototype.hash = function(uint8Array) {
 	this._hasher.reset();
-	this._hasher.update(sjcl.codec.hex.toBits(hexData));
-	return sjcl.codec.base64.fromBits(this._hasher.finalize());
+	this._hasher.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer));
+	return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(this._hasher.finalize()));
 };

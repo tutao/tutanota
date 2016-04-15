@@ -13,11 +13,11 @@ tutao.crypto.SjclAes256GcmAsync = function() {};
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes256GcmAsync.prototype.encryptBytes = function (key, bytes, random, resultCallback) {
+tutao.crypto.SjclAes256GcmAsync.prototype.encryptBytes = function (key, bytes, randomIv, resultCallback) {
     try {
         var paddedBytes = tutao.crypto.Utils.pad(bytes);
         var words = sjcl.codec.arrayBuffer.toBits(paddedBytes.buffer);
-        var iv = sjcl.codec.hex.toBits(random);
+        var iv = sjcl.codec.arrayBuffer.toBits(randomIv.buffer);
         var encrypted = sjcl.mode.gcm.encrypt(new sjcl.cipher.aes(key), words, iv, [], tutao.crypto.AesInterface.TAG_BIT_LENGTH);
         var encryptedWords = sjcl.bitArray.concat(iv, encrypted);
         resultCallback({type: 'result', result: new Uint8Array(sjcl.codec.arrayBuffer.fromBits(encryptedWords))});
