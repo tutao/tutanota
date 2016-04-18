@@ -69,11 +69,12 @@ describe("JavaCompatibilityTest", function () {
 
         it("verify rsa implementation and padding: " + i, function () {
             var crypto = new tutao.native.CryptoBrowser();
-            crypto._random = function(byteLength) {
+            var original = tutao.locator.randomizer.generateRandomData;
+            tutao.locator.randomizer.generateRandomData = function(byteLength) {
                 if (byteLength != 32) {
                     throw new Error(byteLength + "!");
                 } else {
-                    return td.seed;
+                    return tutao.util.EncodingConverter.hexToUint8Array(td.seed);
                 }
             };
 
@@ -87,6 +88,8 @@ describe("JavaCompatibilityTest", function () {
                 var privateKey = rsaUtils.hexToPrivateKey(td.privateKey);
                 return crypto.rsaDecrypt(privateKey, encryptedData).then(function (data) {
                     assert.equal(td.input, tutao.util.EncodingConverter.uint8ArrayToHex(data));
+
+                    tutao.locator.randomizer.generateRandomData = original;
                 });
             });
         });
