@@ -360,7 +360,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "loadMore_action": "Load more",
   "loggingOut_msg": "Logging out...",
   "loginAction_msg": "You will only receive secure Tutanota emails after logging in.",
-  "loginFailedOften_msg": "Too many failed login attempts. You can login again latest after one hour.",
+  "loginFailedOften_msg": "Too many failed login attempts. You can login again later after one hour.",
   "loginFailed_msg": "Invalid login credentials. Please try again.",
   "loginNameInfoAdmin_msg": "Optional: the user's name.",
   "login_action": "Log in",
