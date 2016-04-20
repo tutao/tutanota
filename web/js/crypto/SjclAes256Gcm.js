@@ -39,34 +39,29 @@ tutao.crypto.SjclAes256Gcm.prototype.decryptUtf8 = function(key, base64) {
 	}
 };
 
-
 /**
  * @inheritDoc
  */
 tutao.crypto.SjclAes256Gcm.prototype.encryptUtf8Index = function(key, utf8) {
-    try {
-		return sjcl.codec.base64.fromBits(this._encrypt(key, tutao.util.EncodingConverter.stringToUtf8Uint8Array(utf8), true));
-    } catch (e) {
-        throw new tutao.crypto.CryptoError("aes utf8 encryption index failed", e);
-    }
+    throw new tutao.crypto.CryptoError("index encryption is not implemented");
 };
 
 /**
  * @inheritDoc
  */
 tutao.crypto.SjclAes256Gcm.prototype.decryptUtf8Index = function(key, base64) {
-    try {
-		return tutao.util.EncodingConverter.utf8Uint8ArrayToString(this._decrypt(key, sjcl.codec.base64.toBits(base64), true));
-    } catch (e) {
-        throw new tutao.crypto.CryptoError("aes utf8 decryption index failed", e);
-    }
+    throw new tutao.crypto.CryptoError("index encryption is not implemented");
 };
 
 /**
  * @inheritDoc
  */
 tutao.crypto.SjclAes256Gcm.prototype.encryptBytes = function(key, base64) {
-	return sjcl.codec.base64.fromBits(this._encrypt(key, tutao.util.EncodingConverter.base64ToUint8Array(base64), true));
+    try {
+	    return sjcl.codec.base64.fromBits(this._encrypt(key, tutao.util.EncodingConverter.base64ToUint8Array(base64), true));
+    } catch (e) {
+        throw new tutao.crypto.CryptoError("aes bytes encryption failed", e);
+    }
 };
 
 /**

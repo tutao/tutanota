@@ -15,6 +15,12 @@ tutao.crypto.AesInterface.TAG_BYTE_LENGTH = 16;
 tutao.crypto.AesInterface.TAG_BIT_LENGTH = tutao.crypto.AesInterface.TAG_BYTE_LENGTH * 8;
 
 /**
+ * Creates a random key. The key length depends on the specific implementation of this interface.
+ * @return {bitArray} The created key.
+ */
+tutao.crypto.AesInterface.prototype.generateRandomKey = function() {};
+
+/**
  * Encrypts an utf8 coded string with AES.
  * @param {bitArray} key The key to use for the encryption.
  * @param {String} utf8 Utf8 coded data.

@@ -15,12 +15,15 @@ tutao.native.CryptoBrowser = function () {
     this.publicExponent = 65537;
     this.worker = operative(tutao.native.CryptoBrowser._workerFunctions, tutao.native.CryptoBrowser.DEPENDENCIES);
     this.worker.init();
+
+    this._webCrypto256Gcm = new tutao.crypto.WebCryptoAes256GcmAsync();
 };
 
 tutao.native.CryptoBrowser._workerFunctions = {
 
     init: function() {
         this._aes128Cbc = new tutao.crypto.SjclAes128CbcAsync();
+        this._aes256Gcm = new tutao.crypto.SjclAes256GcmAsync();
     },
 
     generateRsaKey: function (keyLengthInBits, publicExponent, randomBytes, callback) {
@@ -166,10 +169,18 @@ tutao.native.CryptoBrowser._workerFunctions = {
     },
 
     aesEncrypt: function(key, plainText, random, callback) {
-        this._aes128Cbc.encryptBytes(key, plainText, random, callback);
+        if (tutao.crypto.Utils.checkIs128BitKey(key)) {
+            this._aes128Cbc.encryptBytes(key, plainText, random, callback);
+        } else {
+            this._aes256Gcm.encryptBytes(key, plainText, random, callback);
+        }
     },
     aesDecrypt: function(key, cipherText, decryptedSize, callback) {
-        this._aes128Cbc.decryptBytes(key, cipherText, decryptedSize, callback);
+        if (tutao.crypto.Utils.checkIs128BitKey(key)) {
+            this._aes128Cbc.decryptBytes(key, cipherText, decryptedSize, callback);
+        } else {
+            this._aes256Gcm.decryptBytes(key, cipherText, decryptedSize, callback);
+        }
     }
 };
 
@@ -188,7 +199,8 @@ tutao.native.CryptoBrowser.initWorkerFileNames = function(basePath) {
                 srcPath + 'crypto/Utils.js',
                 srcPath + 'util/EncodingConverter.js',
                 srcPath + 'crypto/AesInterface.js',
-                srcPath + 'crypto/SjclAes128CbcAsync.js'
+                srcPath + 'crypto/SjclAes128CbcAsync.js',
+                srcPath + 'crypto/SjclAes256GcmAsync.js'
         ];
     } else {
         tutao.native.CryptoBrowser.DEPENDENCIES = ['worker.min.js'];
@@ -238,27 +250,22 @@ tutao.native.CryptoBrowser.prototype.aesEncrypt = function (key, bytes) {
     var self = this;
     var random = tutao.locator.randomizer.generateRandomData(tutao.crypto.AesInterface.IV_BYTE_LENGTH);
     return new Promise(function (resolve, reject) {
-        //if (key.length !== (self.aesKeyLength / 8)) {
-        //    throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
-        //}
-        self.worker.aesEncrypt(key, bytes, random, self._createReturnHandler(resolve, reject));
+        if (tutao.crypto.Utils.checkIs128BitKey(key) || !tutao.crypto.WebCryptoAes256GcmAsync.isSupported()) {
+            self.worker.aesEncrypt(key, bytes, random, self._createReturnHandler(resolve, reject));
+        } else {
+            self._webCrypto256Gcm.encryptBytes(key, bytes, random, self._createReturnHandler(resolve, reject));
+        }
     });
 };
 
 tutao.native.CryptoBrowser.prototype.aesDecrypt = function (key, cipherText, decryptedSize) {
     var self = this;
     return new Promise(function (resolve, reject) {
-        //var byteKeyLength = self.aesKeyLength / 8;
-        //if (key.length !== byteKeyLength) {
-        //    throw new tutao.crypto.CryptoError("invalid key length: " + key.length);
-        //}
-        //if (cipherText.length % byteKeyLength != 0 || cipherText.length < 2 * byteKeyLength) {
-        //    throw new tutao.crypto.CryptoError("invalid src buffer len: " + cipherText.length);
-        //}
-        //if (decryptedSize < (cipherText.length - 2 * byteKeyLength)) {
-        //    throw new tutao.crypto.CryptoError("invalid dst buffer len: " + decryptedSize + ", src buffer len: " + cipherText.length);
-        //}
-        self.worker.aesDecrypt(key, cipherText, decryptedSize, self._createReturnHandler(resolve, reject));
+        if (tutao.crypto.Utils.checkIs128BitKey(key) || !tutao.crypto.WebCryptoAes256GcmAsync.isSupported()) {
+            self.worker.aesDecrypt(key, cipherText, decryptedSize, self._createReturnHandler(resolve, reject));
+        } else {
+            self._webCrypto256Gcm.decryptBytes(key, cipherText, decryptedSize, self._createReturnHandler(resolve, reject));
+        }
     });
 };
 

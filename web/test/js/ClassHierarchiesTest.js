@@ -12,6 +12,7 @@ describe("ClassHierarchiesTest", function () {
         // crypto
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes, tutao.crypto.AesInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclAes256Gcm, tutao.crypto.AesInterface));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.AesSelector, tutao.crypto.AesInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclRandomizer, tutao.crypto.RandomizerInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.JBCryptAdapter, tutao.crypto.KdfInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.crypto.SjclSha256, tutao.crypto.ShaInterface));

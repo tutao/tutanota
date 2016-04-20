@@ -82,3 +82,7 @@ tutao.crypto.WebCryptoAes256GcmAsync.prototype._getWebCryptoKey = function(key) 
         ["encrypt", "decrypt"] //can "encrypt", "decrypt", "wrapKey", or "unwrapKey"
     );
 };
+
+tutao.crypto.WebCryptoAes256GcmAsync.isSupported = function() {
+    return window.crypto && window.crypto.subtle;
+};

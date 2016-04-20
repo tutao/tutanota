@@ -81,3 +81,20 @@ tutao.crypto.Utils.concat = function(bytes1, bytes2) {
 tutao.crypto.Utils.createAuthVerifier = function (passwordKey) {
     return tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(tutao.util.EncodingConverter.keyToUint8Array(passwordKey)));
 };
+
+/**
+ * Provides the information if a key is 128 or 256 bit length.
+ * @param {bitArray} key The key.
+ * @returns {bool} True if the key length is 128, false if the key length is 256 bit.
+ * @throws {tutao.crypto.CryptoError} If the key is not 128 bit and not 256 bit.
+ */
+tutao.crypto.Utils.checkIs128BitKey = function(key) {
+    var bitLength = sjcl.bitArray.bitLength(key);
+    if (bitLength == 128) {
+        return true;
+    } else if (bitLength == 256) {
+        return false;
+    } else {
+        throw new tutao.crypto.CryptoError("invalid key bit length: " + bitLength);
+    }
+};

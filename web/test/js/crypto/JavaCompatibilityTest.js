@@ -119,7 +119,6 @@ describe("JavaCompatibilityTest", function () {
     });
 
     it("testAes256GcmAsyncCompatibility ", function (finished) {
-        var syncFacade = new tutao.crypto.SjclAes256Gcm();
         var facades = [ new tutao.crypto.SjclAes256GcmAsync(), new tutao.crypto.WebCryptoAes256GcmAsync() ];
         Promise.each(facades, function(facade) {
             return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
@@ -135,6 +134,22 @@ describe("JavaCompatibilityTest", function () {
                     });
                 }
             });
+        }).then(function() {
+            finished();
+        });
+    });
+
+    it("testCryptoInterfaceAes256GcmAsyncCompatibility ", function (finished) {
+        var facade = tutao.locator.crypto;
+        return Promise.each(compatibilityTestData.aes256GcmTests, function(td) {
+            var key = _hexToKey(td.hexKey);
+            if (td.type == "BYTES") {
+                var plainText = tutao.util.EncodingConverter.base64ToUint8Array(td.plainText);
+                var cipherText = tutao.util.EncodingConverter.base64ToUint8Array(td.cipherTextBase64);
+                return facade.aesDecrypt(key, cipherText, plainText.byteLength).then(function(decrypted) {
+                    assert.deepEqual(plainText, decrypted);
+                });
+            }
         }).then(function() {
             finished();
         });

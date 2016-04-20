@@ -48,4 +48,13 @@ describe("UtilsTest", function () {
             assert.equal(array[i], unpadded[i]);
         }
     };
+
+    it("checkIs128BitKey", function() {
+        var key128 = new tutao.crypto.SjclAes().generateRandomKey();
+        var key256 = new tutao.crypto.SjclAes256Gcm().generateRandomKey();
+        var badKey = sjcl.codec.arrayBuffer.toBits(tutao.locator.randomizer.generateRandomData(20).buffer);
+        assert.isTrue(tutao.crypto.Utils.checkIs128BitKey(key128));
+        assert.isFalse(tutao.crypto.Utils.checkIs128BitKey(key256));
+        assert.throws(function() { tutao.crypto.Utils.checkIs128BitKey(badKey); }, tutao.crypto.CryptoError);
+    });
 });

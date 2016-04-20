@@ -1,6 +1,6 @@
 "use strict";
 
-describe("AesArrayBufferTest", function () {
+describe("CryptoInterfaceAesTest", function () {
 
     var assert = chai.assert;
 
@@ -17,56 +17,6 @@ describe("AesArrayBufferTest", function () {
         });
     };
 
-    var _encryptArrayBuffer = function (key, iv, arrayBuffer, callback) {
-        var facade = new tutao.crypto.SjclAes();
-
-        // encrypt array buffer
-        facade._encryptArrayBuffer(key, arrayBuffer, iv, function (encrypted, exception) {
-            assert.isUndefined(exception);
-            var encryptedConvertedBits = _arrayBufferToBitArray(encrypted);
-            // encrypt as bitArray
-            var words = _arrayBufferToBitArray(arrayBuffer);
-            var encryptedBits = sjcl.bitArray.concat(iv, sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(key), words, iv, [], true));
-
-            // check equality of enrypted array buffer and bitArray
-            assert.deepEqual(encryptedBits, encryptedConvertedBits);
-            callback();
-        });
-    };
-
-    var _bitArrayToArrayBuffer = function (arr) {
-        var bl = sjcl.bitArray.bitLength(arr) / 8;
-        var arrayBuffer = new ArrayBuffer(bl);
-        var out = new Uint8Array(arrayBuffer);
-        var tmp;
-        for (var i = 0; i < bl; i++) {
-            if ((i & 3) === 0) {
-                tmp = arr[i / 4];
-            }
-            out[i] = (tmp >>> 24);
-            tmp <<= 8;
-        }
-        return arrayBuffer;
-    };
-
-    var _arrayBufferToBitArray = function (arrayBuffer) {
-        var bytes = new Uint8Array(arrayBuffer);
-        var out = [];
-        var i;
-        var tmp = 0;
-        for (i = 0; i < bytes.length; i++) {
-            tmp = tmp << 8 | bytes[i];
-            if ((i & 3) === 3) {
-                out.push(tmp);
-                tmp = 0;
-            }
-        }
-        if (i & 3) {
-            out.push(sjcl.bitArray.partial(8 * (i & 3), tmp));
-        }
-        return out;
-    };
-
     var _createArray = function (len) {
         return tutao.locator.randomizer.generateRandomData(len);
     };
@@ -77,12 +27,27 @@ describe("AesArrayBufferTest", function () {
         return facade.aesEncrypt(key, arrayBuffer);
     };
 
-
-    it("ArrayRoundtrip ", function () {
+    it("EncryptionRoundtrip128 ", function () {
         this.timeout(24000);
 
-        var facade = _getFacade();
         var key = tutao.locator.aesCrypter.generateRandomKey();
+        return _arrayRoundtrip(key, _createArray(0)).then(function () {
+            return _arrayRoundtrip(key, _createArray(1)).then(function () {
+                return _arrayRoundtrip(key, _createArray(15)).then(function () {
+                    return _arrayRoundtrip(key, _createArray(16)).then(function () {
+                        return _arrayRoundtrip(key, _createArray(17)).then(function () {
+                            return _arrayRoundtrip(key, _createArray(12345));
+                        });
+                    });
+                });
+            });
+        });
+    });
+
+    it("EncryptionRoundtrip256 ", function () {
+        this.timeout(24000);
+
+        var key = new tutao.crypto.SjclAes256Gcm().generateRandomKey();
         return _arrayRoundtrip(key, _createArray(0)).then(function () {
             return _arrayRoundtrip(key, _createArray(1)).then(function () {
                 return _arrayRoundtrip(key, _createArray(15)).then(function () {
