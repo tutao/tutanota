@@ -21,7 +21,7 @@ tutao.crypto.JBCryptAdapter.prototype.generateRandomSalt = function() {
 /**
  * @inheritDoc
  */
-tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passphrase, salt) {
+tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passphrase, salt, keyLengthType) {
 	var self = this;
 
 	// jbcrypt needs the salt and password as signed bytes
@@ -33,8 +33,18 @@ tutao.crypto.JBCryptAdapter.prototype.generateKeyFromPassphrase = function(passp
 	var b = new bCrypt();
     return new Promise(function(resolve, reject) {
         b.crypt_raw(passphraseBytes, saltBytes, self.logRounds, function(signedBytes) {
-            var key = tutao.util.EncodingConverter.uint8ArrayToKey(self._signedBytesToUint8Array(signedBytes));
-            resolve(key);
+            if (keyLengthType == tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT) {
+                var key = tutao.util.EncodingConverter.uint8ArrayToKey(self._signedBytesToUint8Array(signedBytes));
+                resolve(key);
+            } else if (keyLengthType == tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_256_BIT) {
+                b.crypt_raw(signedBytes, saltBytes, self.logRounds, function(signedBytes2) {
+                    var key = tutao.util.EncodingConverter.uint8ArrayToKey(self._signedBytesToUint8Array(signedBytes.concat(signedBytes2)));
+                    resolve(key);
+                }, function() {});
+            } else {
+                reject(new Error("invalid key length type: " + keyLengthType));
+            }
+
         }, function() {});
     });
 };

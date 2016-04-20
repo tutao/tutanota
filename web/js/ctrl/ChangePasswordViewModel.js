@@ -113,7 +113,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype.checkOldPassword = functio
 		this.oldPasswordStatus({ type: "neutral", text: "oldPasswordNeutral_msg" });
 	} else {
 		this.oldPasswordStatus({ type: "neutral", text: "check_msg" });
-		tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.oldPassword(), tutao.locator.userController.getSalt()).then(function(key) {
+		tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.oldPassword(), tutao.locator.userController.getSalt(), tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(key) {
 			var v = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(key));
 			if(v == tutao.locator.userController.getAuthVerifier()) {
 				self.oldPasswordStatus({ type: "valid", text: "passwordValid_msg" });
@@ -131,7 +131,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
 	this.changePasswordStatus({ type: "neutral", text: "emptyString_msg" });
 	var self = this;
 	var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-	tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKey) {
+	tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(userPassphraseKey) {
 		var pwEncUserGroupKey = tutao.locator.aesCrypter.encryptKey(userPassphraseKey, tutao.locator.userController.getUserGroupKey());
 		var verifier = tutao.crypto.Utils.createAuthVerifier(userPassphraseKey);
 		

@@ -317,7 +317,7 @@ tutao.tutanota.ctrl.DraftFacade._addRecipientKeyData = function(bucketKey, servi
             var salt = tutao.locator.kdfCrypter.generateRandomSalt();
             // TODO (story performance): make kdf async in worker
             return promise.then(function () {
-                return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt).then(function(passwordKey) {
+                return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(passwordKey) {
                     var passwordVerifier = tutao.crypto.Utils.createAuthVerifier(passwordKey);
                     return tutao.tutanota.ctrl.DraftFacade._getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
                         var data = new tutao.entity.tutanota.SecureExternalRecipientKeyData(service);

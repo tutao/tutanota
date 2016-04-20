@@ -2,6 +2,9 @@
 
 tutao.provide('tutao.entity.tutanota.TutanotaConstants');
 
+tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT = "0";
+tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_256_BIT = "1";
+
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_INVOICE = "0";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD = "1";
 tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_SEPA = "2";

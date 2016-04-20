@@ -110,7 +110,7 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._checkPassword = funct
         this.passwordStatus({ type: "neutral", text: "passwordEnterNeutral_msg" });
     } else {
         this.passwordStatus({ type: "neutral", text: "check_msg" });
-        tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), tutao.locator.userController.getSalt()).then(function(key) {
+        tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), tutao.locator.userController.getSalt(), tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(key) {
             var v = tutao.util.EncodingConverter.base64ToBase64Url(tutao.crypto.Utils.createAuthVerifier(key));
             if(v == tutao.locator.userController.getAuthVerifier()) {
                 self.passwordStatus({ type: "valid", text: "passwordValid_msg" });

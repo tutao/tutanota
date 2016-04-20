@@ -19,6 +19,7 @@ tutao.crypto.KdfInterface.prototype.generateRandomSalt = function() {};
  * Create a 128 bit symmetric key from the given passphrase.
  * @param {string} passphrase The passphrase to use for key generation as utf8 string.
  * @param {Uint8Array} salt 16 bytes of random data.
+ * @param {Number} keyLengthType Defines the length of the key that shall be generated. One of tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_*.
  * @return {Promise.<bitArray>} Resolved with the key as bitArray.
  */
-tutao.crypto.KdfInterface.prototype.generateKeyFromPassphrase = function(passphrase, salt) {};
+tutao.crypto.KdfInterface.prototype.generateKeyFromPassphrase = function(passphrase, salt, keyLengthType) {};

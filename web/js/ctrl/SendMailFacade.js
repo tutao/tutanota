@@ -170,7 +170,7 @@ tutao.tutanota.ctrl.SendMailFacade.handleRecipient = function(recipientInfo, rec
         var salt = tutao.locator.kdfCrypter.generateRandomSalt();
         // TODO (story performance): make kdf async in worker
         return promise.then(function () {
-            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt).then(function(passwordKey) {
+            return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(passwordKey) {
                 var passwordVerifier = tutao.crypto.Utils.createAuthVerifier(passwordKey);
                 return tutao.tutanota.ctrl.SendMailFacade.getExternalGroupKey(recipientInfo, passwordKey, passwordVerifier).then(function(externalUserGroupKey) {
                     recipient.setType(tutao.entity.tutanota.TutanotaConstants.RECIPIENT_TYPE_EXTERNAL);

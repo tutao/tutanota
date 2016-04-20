@@ -329,7 +329,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
 
 		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt).then(function(userPassphraseKey) {
+		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(userPassphraseKey) {
 			tutao.locator.progressDialogModel.progress(5);
 
             var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();

@@ -148,12 +148,12 @@ tutao.tutanota.ctrl.DeveloperViewModel = function() {
             var start = new Date().getTime();
 			self.details("starting native bcrypt");
 			
-			tutao.locator.kdfCrypter.generateKeyFromPassphrase("arm", salt).then(function(nativeKey){
+			tutao.locator.kdfCrypter.generateKeyFromPassphrase("arm", salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(nativeKey){
                 var time = new Date().getTime() - start;
 				self.details("starting browser bcrypt");
 				console.log("native took:" + time + "[ms]:" + nativeKey);
 				start = new Date().getTime();
-				tutao.locator.kdfCrypter.generateKeyFromPassphrase("arm", salt).then(function(browserKey){
+				tutao.locator.kdfCrypter.generateKeyFromPassphrase("arm", salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(browserKey){
 	                var browserTime = new Date().getTime() - start;
 					self.details("finished browser bcrypt");
 					console.log("browser took:" + browserTime + "[ms]:"+ browserKey);

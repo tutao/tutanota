@@ -115,7 +115,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
         }
 
         var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), salt).then(function (userPassphraseKey) {
+        return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function (userPassphraseKey) {
 
             var userGroupsListKey = null;
             return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
