@@ -1,6 +1,6 @@
 "use strict";
 
-describe("FormatterTest", function () {
+describe.only("FormatterTest", function () {
 
     var assert = chai.assert;
 
@@ -23,6 +23,27 @@ describe("FormatterTest", function () {
         assert.equal("We 7. Dec 2011 04:03", tutao.tutanota.util.Formatter.formatDateTime(new Date(2011, 11, 7, 4, 3, 2)));
         assert.isTrue(tutao.tutanota.util.Formatter.formatDateTime(new Date()).length <= 16); // no year
     });
+
+
+    it(" formatDate", function () {
+        tutao.locator.languageViewModel.setCurrentLanguage("de");
+        assert.equal("6. Apr 2015", tutao.tutanota.util.Formatter.formatDate(new Date(2015, 3, 6, 0, 0, 0)));
+        assert.equal("6. Apr 1963", tutao.tutanota.util.Formatter.formatDate(new Date(1963, 3, 6, 0, 0, 0)));
+        tutao.locator.languageViewModel.setCurrentLanguage("en");
+        assert.equal("6. Apr 2015", tutao.tutanota.util.Formatter.formatDate(new Date(2015, 3, 6, 0, 0, 0)));
+        assert.equal("6. Apr 1963", tutao.tutanota.util.Formatter.formatDate(new Date(1963, 3, 6, 0, 0, 0)));
+    });
+
+    it(" formatDateWithWeekday", function () {
+        tutao.locator.languageViewModel.setCurrentLanguage("de");
+        assert.equal("Mo 6. Apr 2015", tutao.tutanota.util.Formatter.formatDateWithWeekday(new Date(2015, 3, 6, 0, 0, 0)));
+        assert.equal("Sa 6. Apr 1963", tutao.tutanota.util.Formatter.formatDateWithWeekday(new Date(1963, 3, 6, 0, 0, 0)));
+        tutao.locator.languageViewModel.setCurrentLanguage("en");
+        assert.equal("Mo 6. Apr 2015", tutao.tutanota.util.Formatter.formatDateWithWeekday(new Date(2015, 3, 6, 0, 0, 0)));
+        assert.equal("Sa 6. Apr 1963", tutao.tutanota.util.Formatter.formatDateWithWeekday(new Date(1963, 3, 6, 0, 0, 0)));
+    });
+
+
 
     it(" formatDateTimeFromYesterdayOn", function () {
         // the day before yesterday
