@@ -84,7 +84,10 @@ tutao.tutanota.util.Formatter.formatSmtpDateTime = function(date) {
  * @return {string} the formatted date in the form '[d]d. Month yyyy'.
  */
 tutao.tutanota.util.Formatter.formatDate = function(date) {
-	return date.toLocaleDateString();
+	var monthNames = tutao.locator.languageViewModel.get("monthNames_label");
+	var currentYear = new Date().getYear();
+	var yearString = (date.getYear() == currentYear) ? "" : " " + (1900 + date.getYear());
+	return date.getDate() + ". " + monthNames[date.getMonth()] + yearString;
 };
 
 /**
@@ -94,10 +97,7 @@ tutao.tutanota.util.Formatter.formatDate = function(date) {
  */
 tutao.tutanota.util.Formatter.formatDateWithWeekday = function(date) {
 	var dayNames = tutao.locator.languageViewModel.get("weekDays_label");
-	var monthNames = tutao.locator.languageViewModel.get("monthNames_label");
-	var currentYear = new Date().getYear();
-	var yearString = (date.getYear() == currentYear) ? "" : " " + (1900 + date.getYear());
-	return dayNames[date.getDay()] + " " + date.getDate() + ". " + monthNames[date.getMonth()] + yearString;
+	return dayNames[date.getDay()] + " " + tutao.tutanota.util.Formatter.formatDate(date);
 };
 
 /**
