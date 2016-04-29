@@ -1,6 +1,6 @@
 "use strict";
 
-describe.only("FormatterTest", function () {
+describe("FormatterTest", function () {
 
     var assert = chai.assert;
 
