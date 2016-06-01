@@ -12,10 +12,10 @@ tutao.entity.sys.GroupRoot = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
-    this._groupShareBucketId = null;
-    this._symEncShareBucketKey = null;
     this._externalGroupInfos = null;
+    this._externalUserAreaGroupInfos = null;
     this._externalUserReferences = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -29,10 +29,10 @@ tutao.entity.sys.GroupRoot = function(data) {
 tutao.entity.sys.GroupRoot.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
-  this._groupShareBucketId = data.groupShareBucketId;
-  this._symEncShareBucketKey = data.symEncShareBucketKey;
   this._externalGroupInfos = data.externalGroupInfos;
+  this._externalUserAreaGroupInfos = (data.externalUserAreaGroupInfos) ? new tutao.entity.sys.UserAreaGroups(this, data.externalUserAreaGroupInfos) : null;
   this._externalUserReferences = data.externalUserReferences;
 };
 
@@ -40,7 +40,7 @@ tutao.entity.sys.GroupRoot.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.GroupRoot.MODEL_VERSION = '16';
+tutao.entity.sys.GroupRoot.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -74,10 +74,10 @@ tutao.entity.sys.GroupRoot.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
-    groupShareBucketId: this._groupShareBucketId, 
-    symEncShareBucketKey: this._symEncShareBucketKey, 
     externalGroupInfos: this._externalGroupInfos, 
+    externalUserAreaGroupInfos: tutao.entity.EntityHelper.aggregatesToJsonData(this._externalUserAreaGroupInfos), 
     externalUserReferences: this._externalUserReferences
   };
 };
@@ -88,19 +88,19 @@ tutao.entity.sys.GroupRoot.prototype.toJsonData = function() {
 tutao.entity.sys.GroupRoot.prototype.TYPE_ID = 110;
 
 /**
- * The id of the groupShareBucketId attribute.
+ * The id of the _ownerGroup attribute.
  */
-tutao.entity.sys.GroupRoot.prototype.GROUPSHAREBUCKETID_ATTRIBUTE_ID = 115;
-
-/**
- * The id of the symEncShareBucketKey attribute.
- */
-tutao.entity.sys.GroupRoot.prototype.SYMENCSHAREBUCKETKEY_ATTRIBUTE_ID = 598;
+tutao.entity.sys.GroupRoot.prototype._OWNERGROUP_ATTRIBUTE_ID = 997;
 
 /**
  * The id of the externalGroupInfos attribute.
  */
 tutao.entity.sys.GroupRoot.prototype.EXTERNALGROUPINFOS_ATTRIBUTE_ID = 116;
+
+/**
+ * The id of the externalUserAreaGroupInfos attribute.
+ */
+tutao.entity.sys.GroupRoot.prototype.EXTERNALUSERAREAGROUPINFOS_ATTRIBUTE_ID = 998;
 
 /**
  * The id of the externalUserReferences attribute.
@@ -133,6 +133,23 @@ tutao.entity.sys.GroupRoot.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the ownerGroup of this GroupRoot.
+ * @param {string} ownerGroup The ownerGroup of this GroupRoot.
+ */
+tutao.entity.sys.GroupRoot.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this GroupRoot.
+ * @return {string} The ownerGroup of this GroupRoot.
+ */
+tutao.entity.sys.GroupRoot.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this GroupRoot.
  * @param {string} permissions The permissions of this GroupRoot.
  */
@@ -150,40 +167,6 @@ tutao.entity.sys.GroupRoot.prototype.getPermissions = function() {
 };
 
 /**
- * Sets the groupShareBucketId of this GroupRoot.
- * @param {string} groupShareBucketId The groupShareBucketId of this GroupRoot.
- */
-tutao.entity.sys.GroupRoot.prototype.setGroupShareBucketId = function(groupShareBucketId) {
-  this._groupShareBucketId = groupShareBucketId;
-  return this;
-};
-
-/**
- * Provides the groupShareBucketId of this GroupRoot.
- * @return {string} The groupShareBucketId of this GroupRoot.
- */
-tutao.entity.sys.GroupRoot.prototype.getGroupShareBucketId = function() {
-  return this._groupShareBucketId;
-};
-
-/**
- * Sets the symEncShareBucketKey of this GroupRoot.
- * @param {string} symEncShareBucketKey The symEncShareBucketKey of this GroupRoot.
- */
-tutao.entity.sys.GroupRoot.prototype.setSymEncShareBucketKey = function(symEncShareBucketKey) {
-  this._symEncShareBucketKey = symEncShareBucketKey;
-  return this;
-};
-
-/**
- * Provides the symEncShareBucketKey of this GroupRoot.
- * @return {string} The symEncShareBucketKey of this GroupRoot.
- */
-tutao.entity.sys.GroupRoot.prototype.getSymEncShareBucketKey = function() {
-  return this._symEncShareBucketKey;
-};
-
-/**
  * Sets the externalGroupInfos of this GroupRoot.
  * @param {string} externalGroupInfos The externalGroupInfos of this GroupRoot.
  */
@@ -198,6 +181,23 @@ tutao.entity.sys.GroupRoot.prototype.setExternalGroupInfos = function(externalGr
  */
 tutao.entity.sys.GroupRoot.prototype.getExternalGroupInfos = function() {
   return this._externalGroupInfos;
+};
+
+/**
+ * Sets the externalUserAreaGroupInfos of this GroupRoot.
+ * @param {tutao.entity.sys.UserAreaGroups} externalUserAreaGroupInfos The externalUserAreaGroupInfos of this GroupRoot.
+ */
+tutao.entity.sys.GroupRoot.prototype.setExternalUserAreaGroupInfos = function(externalUserAreaGroupInfos) {
+  this._externalUserAreaGroupInfos = externalUserAreaGroupInfos;
+  return this;
+};
+
+/**
+ * Provides the externalUserAreaGroupInfos of this GroupRoot.
+ * @return {tutao.entity.sys.UserAreaGroups} The externalUserAreaGroupInfos of this GroupRoot.
+ */
+tutao.entity.sys.GroupRoot.prototype.getExternalUserAreaGroupInfos = function() {
+  return this._externalUserAreaGroupInfos;
 };
 
 /**
@@ -223,7 +223,7 @@ tutao.entity.sys.GroupRoot.prototype.getExternalUserReferences = function() {
  * @return {Promise.<tutao.entity.sys.GroupRoot>} Resolves to the GroupRoot or an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -234,8 +234,19 @@ tutao.entity.sys.GroupRoot.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.GroupRoot>>} Resolves to an array of GroupRoot or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this GroupRoot on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.GroupRoot.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupRoot.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

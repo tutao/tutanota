@@ -42,9 +42,13 @@ tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_OTHER = "3";
 tutao.entity.tutanota.TutanotaConstants.PHONE_NUMBER_TYPE_UNKNOWN = "4";
 
 tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER = "0";
-
-tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS = "1";
-tutao.entity.tutanota.TutanotaConstants.AREA_SYSTEM = "3";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_ADMIN = "1";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_TEAM = "2";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CUSTOMER = "3";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_EXTERNAL = "4";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL = "5";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT = "6";
+tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE = "7";
 
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_SYSTEM = "0";
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE = "1";

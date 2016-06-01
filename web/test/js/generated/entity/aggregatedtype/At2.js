@@ -75,62 +75,62 @@ tutao.entity.aggregatedtype.At2.prototype.toJsonData = function() {
 /**
  * The id of the At2 type.
  */
-tutao.entity.aggregatedtype.At2.prototype.TYPE_ID = 21;
+tutao.entity.aggregatedtype.At2.prototype.TYPE_ID = 26;
 
 /**
  * The id of the BooleanValue attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.BOOLEANVALUE_ATTRIBUTE_ID = 27;
+tutao.entity.aggregatedtype.At2.prototype.BOOLEANVALUE_ATTRIBUTE_ID = 32;
 
 /**
  * The id of the BytesValue attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.BYTESVALUE_ATTRIBUTE_ID = 23;
+tutao.entity.aggregatedtype.At2.prototype.BYTESVALUE_ATTRIBUTE_ID = 28;
 
 /**
  * The id of the DateValue attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.DATEVALUE_ATTRIBUTE_ID = 26;
+tutao.entity.aggregatedtype.At2.prototype.DATEVALUE_ATTRIBUTE_ID = 31;
 
 /**
  * The id of the LongValue attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.LONGVALUE_ATTRIBUTE_ID = 25;
+tutao.entity.aggregatedtype.At2.prototype.LONGVALUE_ATTRIBUTE_ID = 30;
 
 /**
  * The id of the StringValue attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.STRINGVALUE_ATTRIBUTE_ID = 24;
+tutao.entity.aggregatedtype.At2.prototype.STRINGVALUE_ATTRIBUTE_ID = 29;
 
 /**
  * The id of the anyAggregated attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ANYAGGREGATED_ATTRIBUTE_ID = 31;
+tutao.entity.aggregatedtype.At2.prototype.ANYAGGREGATED_ATTRIBUTE_ID = 36;
 
 /**
  * The id of the anyList attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ANYLIST_ATTRIBUTE_ID = 33;
+tutao.entity.aggregatedtype.At2.prototype.ANYLIST_ATTRIBUTE_ID = 38;
 
 /**
  * The id of the anyResource attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ANYRESOURCE_ATTRIBUTE_ID = 29;
+tutao.entity.aggregatedtype.At2.prototype.ANYRESOURCE_ATTRIBUTE_ID = 34;
 
 /**
  * The id of the oneAggregated attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ONEAGGREGATED_ATTRIBUTE_ID = 30;
+tutao.entity.aggregatedtype.At2.prototype.ONEAGGREGATED_ATTRIBUTE_ID = 35;
 
 /**
  * The id of the oneList attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ONELIST_ATTRIBUTE_ID = 32;
+tutao.entity.aggregatedtype.At2.prototype.ONELIST_ATTRIBUTE_ID = 37;
 
 /**
  * The id of the oneResource attribute.
  */
-tutao.entity.aggregatedtype.At2.prototype.ONERESOURCE_ATTRIBUTE_ID = 28;
+tutao.entity.aggregatedtype.At2.prototype.ONERESOURCE_ATTRIBUTE_ID = 33;
 
 /**
  * Sets the BooleanValue of this At2.
@@ -293,6 +293,14 @@ tutao.entity.aggregatedtype.At2.prototype.setOneList = function(oneList) {
  */
 tutao.entity.aggregatedtype.At2.prototype.getOneList = function() {
   return this._oneList;
+};
+
+/**
+ * Loads the oneList of this At2.
+ * @return {Promise.<tutao.entity.aggregatedtype.Let>} Resolves to the loaded oneList of this At2 or an exception if the loading failed.
+ */
+tutao.entity.aggregatedtype.At2.prototype.loadOneList = function() {
+  return tutao.entity.aggregatedtype.Let.load(this._oneList);
 };
 
 /**

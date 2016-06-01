@@ -12,6 +12,7 @@ tutao.entity.sys.RootInstance = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._reference = null;
   }
@@ -26,6 +27,7 @@ tutao.entity.sys.RootInstance = function(data) {
 tutao.entity.sys.RootInstance.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._reference = data.reference;
 };
@@ -34,7 +36,7 @@ tutao.entity.sys.RootInstance.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RootInstance.MODEL_VERSION = '16';
+tutao.entity.sys.RootInstance.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -68,6 +70,7 @@ tutao.entity.sys.RootInstance.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     reference: this._reference
   };
@@ -77,6 +80,11 @@ tutao.entity.sys.RootInstance.prototype.toJsonData = function() {
  * The id of the RootInstance type.
  */
 tutao.entity.sys.RootInstance.prototype.TYPE_ID = 231;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.RootInstance.prototype._OWNERGROUP_ATTRIBUTE_ID = 1021;
 
 /**
  * The id of the reference attribute.
@@ -114,6 +122,23 @@ tutao.entity.sys.RootInstance.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.RootInstance.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this RootInstance.
+ * @param {string} ownerGroup The ownerGroup of this RootInstance.
+ */
+tutao.entity.sys.RootInstance.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this RootInstance.
+ * @return {string} The ownerGroup of this RootInstance.
+ */
+tutao.entity.sys.RootInstance.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -156,7 +181,7 @@ tutao.entity.sys.RootInstance.prototype.getReference = function() {
  * @return {Promise.<tutao.entity.sys.RootInstance>} Resolves to the RootInstance or an exception if the loading failed.
  */
 tutao.entity.sys.RootInstance.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -167,20 +192,20 @@ tutao.entity.sys.RootInstance.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.RootInstance>>} Resolves to an array of RootInstance or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RootInstance.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this RootInstance on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.RootInstance.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.RootInstance.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.RootInstance.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.RootInstance.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -192,7 +217,7 @@ tutao.entity.sys.RootInstance.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.RootInstance>>} Resolves to an array of RootInstance or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.RootInstance.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.RootInstance, tutao.entity.sys.RootInstance.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

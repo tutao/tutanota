@@ -12,6 +12,7 @@ tutao.entity.tutanota.ConversationEntry = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._conversationType = null;
     this._messageId = null;
@@ -29,6 +30,7 @@ tutao.entity.tutanota.ConversationEntry = function(data) {
 tutao.entity.tutanota.ConversationEntry.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._conversationType = data.conversationType;
   this._messageId = data.messageId;
@@ -40,7 +42,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ConversationEntry.MODEL_VERSION = '12';
+tutao.entity.tutanota.ConversationEntry.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -74,6 +76,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     conversationType: this._conversationType, 
     messageId: this._messageId, 
@@ -86,6 +89,11 @@ tutao.entity.tutanota.ConversationEntry.prototype.toJsonData = function() {
  * The id of the ConversationEntry type.
  */
 tutao.entity.tutanota.ConversationEntry.prototype.TYPE_ID = 84;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.ConversationEntry.prototype._OWNERGROUP_ATTRIBUTE_ID = 588;
 
 /**
  * The id of the conversationType attribute.
@@ -130,6 +138,23 @@ tutao.entity.tutanota.ConversationEntry.prototype.setFormat = function(format) {
  */
 tutao.entity.tutanota.ConversationEntry.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this ConversationEntry.
+ * @param {string} ownerGroup The ownerGroup of this ConversationEntry.
+ */
+tutao.entity.tutanota.ConversationEntry.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this ConversationEntry.
+ * @return {string} The ownerGroup of this ConversationEntry.
+ */
+tutao.entity.tutanota.ConversationEntry.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -239,7 +264,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.loadPrevious = function() {
  * @return {Promise.<tutao.entity.tutanota.ConversationEntry>} Resolves to the ConversationEntry or an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, id[1], id[0], {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, id[1], id[0], {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -250,20 +275,20 @@ tutao.entity.tutanota.ConversationEntry.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ConversationEntry>>} Resolves to an array of ConversationEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this ConversationEntry on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.tutanota.ConversationEntry.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 12;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ConversationEntry.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.tutanota.ConversationEntry.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ConversationEntry.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -275,7 +300,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.updateListEncSessionKey = func
  * @return {Promise.<Array.<tutao.entity.tutanota.ConversationEntry>>} Resolves to an array of ConversationEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, listId, start, count, reverse, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, listId, start, count, reverse, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

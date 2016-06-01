@@ -10,6 +10,8 @@ tutao.provide('tutao.entity.sys.InvoiceEditable');
 tutao.entity.sys.InvoiceEditable = function(invoice) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = invoice;
+	this._ownerEncSessionKey = ko.observable(invoice.getOwnerEncSessionKey());
+	this._ownerGroup = ko.observable(invoice.getOwnerGroup());
 	this.country = ko.observable(invoice.getCountry());
 	this.date = ko.observable(invoice.getDate());
 	this.grandTotal = ko.observable(invoice.getGrandTotal());
@@ -39,6 +41,8 @@ tutao.entity.sys.InvoiceEditable.prototype.getInvoice = function() {
  * Updates the underlying Invoice with the modified attributes.
  */
 tutao.entity.sys.InvoiceEditable.prototype.update = function() {
+	this._entity.setOwnerEncSessionKey(this._ownerEncSessionKey());
+	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setCountry(this.country());
 	this._entity.setDate(this.date());
 	this._entity.setGrandTotal(this.grandTotal());

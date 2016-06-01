@@ -14,6 +14,7 @@ tutao.entity.tutanotaunencrypted.MailBox = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._mails = null;
   }
@@ -30,6 +31,7 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._mails = data.mails;
 };
@@ -50,7 +52,7 @@ tutao.entity.tutanotaunencrypted.MailBox.PATH = '/rest/tutanotaunencrypted/mailb
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.MailBox.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQALw';
+tutao.entity.tutanotaunencrypted.MailBox.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAMw';
 
 /**
  * The generated id type flag.
@@ -74,6 +76,7 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     mails: this._mails
   };
@@ -82,22 +85,27 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.toJsonData = function() {
 /**
  * The id of the MailBox type.
  */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.TYPE_ID = 47;
+tutao.entity.tutanotaunencrypted.MailBox.prototype.TYPE_ID = 51;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBox.prototype._AREA_ATTRIBUTE_ID = 53;
+tutao.entity.tutanotaunencrypted.MailBox.prototype._AREA_ATTRIBUTE_ID = 58;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNER_ATTRIBUTE_ID = 52;
+tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNER_ATTRIBUTE_ID = 57;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNERGROUP_ATTRIBUTE_ID = 56;
 
 /**
  * The id of the mails attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.MAILS_ATTRIBUTE_ID = 54;
+tutao.entity.tutanotaunencrypted.MailBox.prototype.MAILS_ATTRIBUTE_ID = 59;
 
 /**
  * Provides the id of this MailBox.
@@ -159,6 +167,23 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerGroup of this MailBox.
+ * @param {string} ownerGroup The ownerGroup of this MailBox.
+ */
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this MailBox.
+ * @return {string} The ownerGroup of this MailBox.
+ */
+tutao.entity.tutanotaunencrypted.MailBox.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this MailBox.
  * @param {string} permissions The permissions of this MailBox.
  */
@@ -198,7 +223,7 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.getMails = function() {
  * @return {Promise.<tutao.entity.tutanotaunencrypted.MailBox>} Resolves to the MailBox or an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBox.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -209,20 +234,18 @@ tutao.entity.tutanotaunencrypted.MailBox.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBox.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBox, tutao.entity.tutanotaunencrypted.MailBox.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
  * Stores this MailBox on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.MailBox.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -236,7 +259,7 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.setup = function(bucketData) 
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -247,7 +270,7 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.update = function() {
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.MailBox.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

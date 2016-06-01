@@ -13,6 +13,8 @@ tutao.entity.sys.Invoice = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__listEncSessionKey = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._country = null;
     this._country_ = null;
@@ -46,6 +48,8 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__listEncSessionKey = data._listEncSessionKey;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._country = data.country;
   this._country_ = null;
@@ -72,7 +76,7 @@ tutao.entity.sys.Invoice.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Invoice.MODEL_VERSION = '16';
+tutao.entity.sys.Invoice.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -107,6 +111,8 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _listEncSessionKey: this.__listEncSessionKey, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     country: this._country, 
     date: this._date, 
@@ -126,6 +132,16 @@ tutao.entity.sys.Invoice.prototype.toJsonData = function() {
  * The id of the Invoice type.
  */
 tutao.entity.sys.Invoice.prototype.TYPE_ID = 739;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.sys.Invoice.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1005;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.Invoice.prototype._OWNERGROUP_ATTRIBUTE_ID = 1004;
 
 /**
  * The id of the country attribute.
@@ -222,6 +238,40 @@ tutao.entity.sys.Invoice.prototype.setListEncSessionKey = function(listEncSessio
  */
 tutao.entity.sys.Invoice.prototype.getListEncSessionKey = function() {
   return this.__listEncSessionKey;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this Invoice.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this Invoice.
+ * @return {string} The ownerEncSessionKey of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this Invoice.
+ * @param {string} ownerGroup The ownerGroup of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Invoice.
+ * @return {string} The ownerGroup of this Invoice.
+ */
+tutao.entity.sys.Invoice.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -572,7 +622,7 @@ tutao.entity.sys.Invoice.prototype.getChanges = function() {
  * @return {Promise.<tutao.entity.sys.Invoice>} Resolves to the Invoice or an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -583,19 +633,19 @@ tutao.entity.sys.Invoice.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Invoice>>} Resolves to an array of Invoice or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates the ownerEncSessionKey on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.Invoice.prototype.updateListEncSessionKey = function() {
+tutao.entity.sys.Invoice.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "17";
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -605,7 +655,7 @@ tutao.entity.sys.Invoice.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.Invoice.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Invoice.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -619,7 +669,7 @@ tutao.entity.sys.Invoice.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Invoice>>} Resolves to an array of Invoice or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Invoice.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Invoice, tutao.entity.sys.Invoice.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

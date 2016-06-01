@@ -12,6 +12,8 @@ tutao.entity.sys.Permission = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._bucketEncSessionKey = null;
     this._ops = null;
@@ -31,6 +33,8 @@ tutao.entity.sys.Permission = function(data) {
 tutao.entity.sys.Permission.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._bucketEncSessionKey = data.bucketEncSessionKey;
   this._ops = data.ops;
@@ -44,7 +48,7 @@ tutao.entity.sys.Permission.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Permission.MODEL_VERSION = '16';
+tutao.entity.sys.Permission.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -78,6 +82,8 @@ tutao.entity.sys.Permission.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     bucketEncSessionKey: this._bucketEncSessionKey, 
     ops: this._ops, 
@@ -92,6 +98,16 @@ tutao.entity.sys.Permission.prototype.toJsonData = function() {
  * The id of the Permission type.
  */
 tutao.entity.sys.Permission.prototype.TYPE_ID = 132;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.sys.Permission.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1002;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.Permission.prototype._OWNERGROUP_ATTRIBUTE_ID = 1001;
 
 /**
  * The id of the bucketEncSessionKey attribute.
@@ -146,6 +162,40 @@ tutao.entity.sys.Permission.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.Permission.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this Permission.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Permission.
+ */
+tutao.entity.sys.Permission.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this Permission.
+ * @return {string} The ownerEncSessionKey of this Permission.
+ */
+tutao.entity.sys.Permission.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this Permission.
+ * @param {string} ownerGroup The ownerGroup of this Permission.
+ */
+tutao.entity.sys.Permission.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Permission.
+ * @return {string} The ownerGroup of this Permission.
+ */
+tutao.entity.sys.Permission.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -281,7 +331,7 @@ tutao.entity.sys.Permission.prototype.loadGroup = function() {
  * @return {Promise.<tutao.entity.sys.Permission>} Resolves to the Permission or an exception if the loading failed.
  */
 tutao.entity.sys.Permission.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -292,20 +342,20 @@ tutao.entity.sys.Permission.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Permission>>} Resolves to an array of Permission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Permission.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this Permission on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.Permission.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Permission.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.Permission.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Permission.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -317,7 +367,7 @@ tutao.entity.sys.Permission.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Permission>>} Resolves to an array of Permission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Permission.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Permission, tutao.entity.sys.Permission.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

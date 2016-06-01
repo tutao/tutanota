@@ -19,23 +19,21 @@ tutao.native.FileFacadeBrowser.WATIR_MODE = false;
  */
 tutao.native.FileFacadeBrowser.prototype.createFile = function(dataFile, sessionKey) {
 	return this.uploadFileData(dataFile, sessionKey).then(function(fileDataId) {
+        var fileGroupId = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE);
+        var fileEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getGroupKey(fileGroupId), sessionKey);
+
         // create file
         var fileService = new tutao.entity.tutanota.CreateFileData();
-        fileService._entityHelper.setSessionKey(sessionKey);
+        fileService.getEntityHelper().setSessionKey(sessionKey);
         fileService.setFileName(dataFile.getName())
             .setMimeType(dataFile.getMimeType())
             .setParentFolder(null)
-            .setFileData(fileDataId);
+            .setFileData(fileDataId)
+            .setGroup(fileGroupId)
+            .setOwnerEncSessionKey(fileEncSessionKey);
 
-        var fileListId = tutao.locator.mailBoxController.getUserFileSystem().getFiles();
-        return fileService._entityHelper.createListEncSessionKey(fileListId).then(function(listEncSessionKey) {
-            return fileService.setGroup(tutao.locator.userController.getUserGroupId())
-                .setListEncSessionKey(listEncSessionKey)
-                .setup({}, null)
-                .then(function(createFileReturn) {
-                var fileId = createFileReturn.getFile();
-                return fileId;
-            });
+        return fileService.setup({}, null).then(function(createFileReturn) {
+            return createFileReturn.getFile();
         });
 	});
 };
@@ -106,7 +104,7 @@ tutao.native.FileFacadeBrowser.prototype.uploadFileData = function(dataFile, ses
     return tutao.locator.crypto.aesEncrypt(sessionKey, new Uint8Array(dataFile.getData())).then(function(encryptedData) {
         // create file data
         fileData.setSize(dataFile.getSize().toString())
-            .setGroup(tutao.locator.userController.getUserGroupId());
+            .setGroup(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL)); // currently only used for attachments
 
         return fileData.setup({}, null).then(function(fileDataPostReturn) {
             // upload file data

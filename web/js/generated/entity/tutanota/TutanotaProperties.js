@@ -12,6 +12,8 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._customEmailSignature = null;
     this._customEmailSignature_ = null;
@@ -37,6 +39,8 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
 tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._customEmailSignature = data.customEmailSignature;
   this._customEmailSignature_ = null;
@@ -62,7 +66,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '12';
+tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -96,6 +100,8 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     customEmailSignature: this._customEmailSignature, 
     defaultSender: this._defaultSender, 
@@ -114,6 +120,16 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
  * The id of the TutanotaProperties type.
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.TYPE_ID = 216;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 598;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype._OWNERGROUP_ATTRIBUTE_ID = 597;
 
 /**
  * The id of the customEmailSignature attribute.
@@ -188,6 +204,40 @@ tutao.entity.tutanota.TutanotaProperties.prototype.setFormat = function(format) 
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this TutanotaProperties.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this TutanotaProperties.
+ * @return {string} The ownerEncSessionKey of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this TutanotaProperties.
+ * @param {string} ownerGroup The ownerGroup of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this TutanotaProperties.
+ * @return {string} The ownerGroup of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -411,7 +461,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.loadLastPushedMail = function
  * @return {Promise.<tutao.entity.tutanota.TutanotaProperties>} Resolves to the TutanotaProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -422,9 +472,20 @@ tutao.entity.tutanota.TutanotaProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.TutanotaProperties>>} Resolves to an array of TutanotaProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -433,7 +494,7 @@ tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

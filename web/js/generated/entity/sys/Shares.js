@@ -12,6 +12,7 @@ tutao.entity.sys.Shares = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._incoming = null;
     this._outgoing = null;
@@ -27,6 +28,7 @@ tutao.entity.sys.Shares = function(data) {
 tutao.entity.sys.Shares.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._incoming = data.incoming;
   this._outgoing = data.outgoing;
@@ -36,7 +38,7 @@ tutao.entity.sys.Shares.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Shares.MODEL_VERSION = '16';
+tutao.entity.sys.Shares.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -70,6 +72,7 @@ tutao.entity.sys.Shares.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     incoming: this._incoming, 
     outgoing: this._outgoing
@@ -80,6 +83,11 @@ tutao.entity.sys.Shares.prototype.toJsonData = function() {
  * The id of the Shares type.
  */
 tutao.entity.sys.Shares.prototype.TYPE_ID = 282;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.Shares.prototype._OWNERGROUP_ATTRIBUTE_ID = 1026;
 
 /**
  * The id of the incoming attribute.
@@ -114,6 +122,23 @@ tutao.entity.sys.Shares.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.Shares.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this Shares.
+ * @param {string} ownerGroup The ownerGroup of this Shares.
+ */
+tutao.entity.sys.Shares.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Shares.
+ * @return {string} The ownerGroup of this Shares.
+ */
+tutao.entity.sys.Shares.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -173,7 +198,7 @@ tutao.entity.sys.Shares.prototype.getOutgoing = function() {
  * @return {Promise.<tutao.entity.sys.Shares>} Resolves to the Shares or an exception if the loading failed.
  */
 tutao.entity.sys.Shares.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -184,8 +209,19 @@ tutao.entity.sys.Shares.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Shares>>} Resolves to an array of Shares or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Shares.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this Shares on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.Shares.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Shares.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

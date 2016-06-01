@@ -10,6 +10,8 @@ tutao.provide('tutao.entity.sys.AccountingInfoEditable');
 tutao.entity.sys.AccountingInfoEditable = function(accountinginfo) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = accountinginfo;
+	this._ownerEncSessionKey = ko.observable(accountinginfo.getOwnerEncSessionKey());
+	this._ownerGroup = ko.observable(accountinginfo.getOwnerGroup());
 	this.business = ko.observable(accountinginfo.getBusiness());
 	this.invoiceAddress = ko.observable(accountinginfo.getInvoiceAddress());
 	this.invoiceCountry = ko.observable(accountinginfo.getInvoiceCountry());
@@ -42,6 +44,8 @@ tutao.entity.sys.AccountingInfoEditable.prototype.getAccountingInfo = function()
  * Updates the underlying AccountingInfo with the modified attributes.
  */
 tutao.entity.sys.AccountingInfoEditable.prototype.update = function() {
+	this._entity.setOwnerEncSessionKey(this._ownerEncSessionKey());
+	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setBusiness(this.business());
 	this._entity.setInvoiceAddress(this.invoiceAddress());
 	this._entity.setInvoiceCountry(this.invoiceCountry());

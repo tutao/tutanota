@@ -14,7 +14,7 @@ tutao.entity.tutanota.Attachment = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._bucketEncFileSessionKey = null;
     this._fileName = null;
-    this._listEncFileSessionKey = null;
+    this._ownerEncFileSessionKey = null;
     this._mimeType = null;
     this._file = null;
     this._fileData = null;
@@ -32,7 +32,7 @@ tutao.entity.tutanota.Attachment.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._bucketEncFileSessionKey = data.bucketEncFileSessionKey;
   this._fileName = data.fileName;
-  this._listEncFileSessionKey = data.listEncFileSessionKey;
+  this._ownerEncFileSessionKey = data.ownerEncFileSessionKey;
   this._mimeType = data.mimeType;
   this._file = data.file;
   this._fileData = data.fileData;
@@ -47,7 +47,7 @@ tutao.entity.tutanota.Attachment.prototype.toJsonData = function() {
     _id: this.__id, 
     bucketEncFileSessionKey: this._bucketEncFileSessionKey, 
     fileName: this._fileName, 
-    listEncFileSessionKey: this._listEncFileSessionKey, 
+    ownerEncFileSessionKey: this._ownerEncFileSessionKey, 
     mimeType: this._mimeType, 
     file: this._file, 
     fileData: this._fileData
@@ -70,9 +70,9 @@ tutao.entity.tutanota.Attachment.prototype.BUCKETENCFILESESSIONKEY_ATTRIBUTE_ID 
 tutao.entity.tutanota.Attachment.prototype.FILENAME_ATTRIBUTE_ID = 180;
 
 /**
- * The id of the listEncFileSessionKey attribute.
+ * The id of the ownerEncFileSessionKey attribute.
  */
-tutao.entity.tutanota.Attachment.prototype.LISTENCFILESESSIONKEY_ATTRIBUTE_ID = 177;
+tutao.entity.tutanota.Attachment.prototype.OWNERENCFILESESSIONKEY_ATTRIBUTE_ID = 177;
 
 /**
  * The id of the mimeType attribute.
@@ -141,20 +141,20 @@ tutao.entity.tutanota.Attachment.prototype.getFileName = function() {
 };
 
 /**
- * Sets the listEncFileSessionKey of this Attachment.
- * @param {string} listEncFileSessionKey The listEncFileSessionKey of this Attachment.
+ * Sets the ownerEncFileSessionKey of this Attachment.
+ * @param {string} ownerEncFileSessionKey The ownerEncFileSessionKey of this Attachment.
  */
-tutao.entity.tutanota.Attachment.prototype.setListEncFileSessionKey = function(listEncFileSessionKey) {
-  this._listEncFileSessionKey = listEncFileSessionKey;
+tutao.entity.tutanota.Attachment.prototype.setOwnerEncFileSessionKey = function(ownerEncFileSessionKey) {
+  this._ownerEncFileSessionKey = ownerEncFileSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncFileSessionKey of this Attachment.
- * @return {string} The listEncFileSessionKey of this Attachment.
+ * Provides the ownerEncFileSessionKey of this Attachment.
+ * @return {string} The ownerEncFileSessionKey of this Attachment.
  */
-tutao.entity.tutanota.Attachment.prototype.getListEncFileSessionKey = function() {
-  return this._listEncFileSessionKey;
+tutao.entity.tutanota.Attachment.prototype.getOwnerEncFileSessionKey = function() {
+  return this._ownerEncFileSessionKey;
 };
 
 /**

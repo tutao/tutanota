@@ -61,7 +61,7 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.updateData = function(d
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '12';
+tutao.entity.tutanota.SendMailFromExternalData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -431,13 +431,13 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.getToRecipient = functi
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.SendMailFromExternalReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.SendMailFromExternalReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.SendMailFromExternalData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailFromExternalData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailFromExternalReturn);
 };

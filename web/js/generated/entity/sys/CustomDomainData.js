@@ -30,7 +30,7 @@ tutao.entity.sys.CustomDomainData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomDomainData.MODEL_VERSION = '16';
+tutao.entity.sys.CustomDomainData.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -103,13 +103,13 @@ tutao.entity.sys.CustomDomainData.prototype.getDomain = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.sys.CustomDomainReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.CustomDomainReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
 };
@@ -118,13 +118,13 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
  * Invokes DELETE on a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.sys.CustomDomainData=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.CustomDomainData>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.CustomDomainData.prototype.erase = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };

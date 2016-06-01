@@ -12,7 +12,7 @@ tutao.entity.tutanota.DraftAttachment = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
-    this._listEncFileSessionKey = null;
+    this._ownerEncFileSessionKey = null;
     this._existingFile = null;
     this._newFile = null;
   }
@@ -27,7 +27,7 @@ tutao.entity.tutanota.DraftAttachment = function(parent, data) {
  */
 tutao.entity.tutanota.DraftAttachment.prototype.updateData = function(parent, data) {
   this.__id = data._id;
-  this._listEncFileSessionKey = data.listEncFileSessionKey;
+  this._ownerEncFileSessionKey = data.ownerEncFileSessionKey;
   this._existingFile = data.existingFile;
   this._newFile = (data.newFile) ? new tutao.entity.tutanota.NewDraftAttachment(parent, data.newFile) : null;
 };
@@ -39,7 +39,7 @@ tutao.entity.tutanota.DraftAttachment.prototype.updateData = function(parent, da
 tutao.entity.tutanota.DraftAttachment.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
-    listEncFileSessionKey: this._listEncFileSessionKey, 
+    ownerEncFileSessionKey: this._ownerEncFileSessionKey, 
     existingFile: this._existingFile, 
     newFile: tutao.entity.EntityHelper.aggregatesToJsonData(this._newFile)
   };
@@ -51,9 +51,9 @@ tutao.entity.tutanota.DraftAttachment.prototype.toJsonData = function() {
 tutao.entity.tutanota.DraftAttachment.prototype.TYPE_ID = 491;
 
 /**
- * The id of the listEncFileSessionKey attribute.
+ * The id of the ownerEncFileSessionKey attribute.
  */
-tutao.entity.tutanota.DraftAttachment.prototype.LISTENCFILESESSIONKEY_ATTRIBUTE_ID = 493;
+tutao.entity.tutanota.DraftAttachment.prototype.OWNERENCFILESESSIONKEY_ATTRIBUTE_ID = 493;
 
 /**
  * The id of the existingFile attribute.
@@ -83,20 +83,20 @@ tutao.entity.tutanota.DraftAttachment.prototype.getId = function() {
 };
 
 /**
- * Sets the listEncFileSessionKey of this DraftAttachment.
- * @param {string} listEncFileSessionKey The listEncFileSessionKey of this DraftAttachment.
+ * Sets the ownerEncFileSessionKey of this DraftAttachment.
+ * @param {string} ownerEncFileSessionKey The ownerEncFileSessionKey of this DraftAttachment.
  */
-tutao.entity.tutanota.DraftAttachment.prototype.setListEncFileSessionKey = function(listEncFileSessionKey) {
-  this._listEncFileSessionKey = listEncFileSessionKey;
+tutao.entity.tutanota.DraftAttachment.prototype.setOwnerEncFileSessionKey = function(ownerEncFileSessionKey) {
+  this._ownerEncFileSessionKey = ownerEncFileSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncFileSessionKey of this DraftAttachment.
- * @return {string} The listEncFileSessionKey of this DraftAttachment.
+ * Provides the ownerEncFileSessionKey of this DraftAttachment.
+ * @return {string} The ownerEncFileSessionKey of this DraftAttachment.
  */
-tutao.entity.tutanota.DraftAttachment.prototype.getListEncFileSessionKey = function() {
-  return this._listEncFileSessionKey;
+tutao.entity.tutanota.DraftAttachment.prototype.getOwnerEncFileSessionKey = function() {
+  return this._ownerEncFileSessionKey;
 };
 
 /**

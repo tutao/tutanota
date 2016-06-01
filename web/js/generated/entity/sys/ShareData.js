@@ -14,7 +14,7 @@ tutao.entity.sys.ShareData = function(data) {
     this._app = null;
     this._bucket = null;
     this._instancePermissions = null;
-    this._ownerGroupId = null;
+    this._shareOwnerGroupId = null;
     this._pubEncBucketKey = null;
     this._pubKeyVersion = null;
     this._shareType = null;
@@ -34,7 +34,7 @@ tutao.entity.sys.ShareData.prototype.updateData = function(data) {
   this._app = data.app;
   this._bucket = data.bucket;
   this._instancePermissions = data.instancePermissions;
-  this._ownerGroupId = data.ownerGroupId;
+  this._shareOwnerGroupId = data.shareOwnerGroupId;
   this._pubEncBucketKey = data.pubEncBucketKey;
   this._pubKeyVersion = data.pubKeyVersion;
   this._shareType = data.shareType;
@@ -46,7 +46,7 @@ tutao.entity.sys.ShareData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ShareData.MODEL_VERSION = '16';
+tutao.entity.sys.ShareData.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -70,7 +70,7 @@ tutao.entity.sys.ShareData.prototype.toJsonData = function() {
     app: this._app, 
     bucket: this._bucket, 
     instancePermissions: this._instancePermissions, 
-    ownerGroupId: this._ownerGroupId, 
+    shareOwnerGroupId: this._shareOwnerGroupId, 
     pubEncBucketKey: this._pubEncBucketKey, 
     pubKeyVersion: this._pubKeyVersion, 
     shareType: this._shareType, 
@@ -100,9 +100,9 @@ tutao.entity.sys.ShareData.prototype.BUCKET_ATTRIBUTE_ID = 296;
 tutao.entity.sys.ShareData.prototype.INSTANCEPERMISSIONS_ATTRIBUTE_ID = 295;
 
 /**
- * The id of the ownerGroupId attribute.
+ * The id of the shareOwnerGroupId attribute.
  */
-tutao.entity.sys.ShareData.prototype.OWNERGROUPID_ATTRIBUTE_ID = 291;
+tutao.entity.sys.ShareData.prototype.SHAREOWNERGROUPID_ATTRIBUTE_ID = 291;
 
 /**
  * The id of the pubEncBucketKey attribute.
@@ -198,20 +198,20 @@ tutao.entity.sys.ShareData.prototype.getInstancePermissions = function() {
 };
 
 /**
- * Sets the ownerGroupId of this ShareData.
- * @param {string} ownerGroupId The ownerGroupId of this ShareData.
+ * Sets the shareOwnerGroupId of this ShareData.
+ * @param {string} shareOwnerGroupId The shareOwnerGroupId of this ShareData.
  */
-tutao.entity.sys.ShareData.prototype.setOwnerGroupId = function(ownerGroupId) {
-  this._ownerGroupId = ownerGroupId;
+tutao.entity.sys.ShareData.prototype.setShareOwnerGroupId = function(shareOwnerGroupId) {
+  this._shareOwnerGroupId = shareOwnerGroupId;
   return this;
 };
 
 /**
- * Provides the ownerGroupId of this ShareData.
- * @return {string} The ownerGroupId of this ShareData.
+ * Provides the shareOwnerGroupId of this ShareData.
+ * @return {string} The shareOwnerGroupId of this ShareData.
  */
-tutao.entity.sys.ShareData.prototype.getOwnerGroupId = function() {
-  return this._ownerGroupId;
+tutao.entity.sys.ShareData.prototype.getShareOwnerGroupId = function() {
+  return this._shareOwnerGroupId;
 };
 
 /**
@@ -303,13 +303,13 @@ tutao.entity.sys.ShareData.prototype.getWritePermission = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<null>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.ShareData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.ShareData.PATH, this, parameters, headers, null);
 };

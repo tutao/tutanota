@@ -54,32 +54,32 @@ tutao.entity.valueunencrypted.Aggregated.prototype.toJsonData = function() {
 /**
  * The id of the Aggregated type.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.TYPE_ID = 37;
+tutao.entity.valueunencrypted.Aggregated.prototype.TYPE_ID = 42;
 
 /**
  * The id of the bool attribute.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.BOOL_ATTRIBUTE_ID = 43;
+tutao.entity.valueunencrypted.Aggregated.prototype.BOOL_ATTRIBUTE_ID = 48;
 
 /**
  * The id of the bytes attribute.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.BYTES_ATTRIBUTE_ID = 39;
+tutao.entity.valueunencrypted.Aggregated.prototype.BYTES_ATTRIBUTE_ID = 44;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.DATE_ATTRIBUTE_ID = 42;
+tutao.entity.valueunencrypted.Aggregated.prototype.DATE_ATTRIBUTE_ID = 47;
 
 /**
  * The id of the number attribute.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.NUMBER_ATTRIBUTE_ID = 41;
+tutao.entity.valueunencrypted.Aggregated.prototype.NUMBER_ATTRIBUTE_ID = 46;
 
 /**
  * The id of the string attribute.
  */
-tutao.entity.valueunencrypted.Aggregated.prototype.STRING_ATTRIBUTE_ID = 40;
+tutao.entity.valueunencrypted.Aggregated.prototype.STRING_ATTRIBUTE_ID = 45;
 
 /**
  * Sets the id of this Aggregated.

@@ -14,6 +14,8 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._bool = null;
     this._bytes = null;
@@ -34,6 +36,8 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.updateData = function(
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._bool = data.bool;
   this._bytes = data.bytes;
@@ -58,7 +62,7 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH = '/rest/valueunencrypted/e
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.ROOT_INSTANCE_ID = 'EHZhbHVldW5lbmNyeXB0ZWQADA';
+tutao.entity.valueunencrypted.EtZeroOrOneValues.ROOT_INSTANCE_ID = 'EHZhbHVldW5lbmNyeXB0ZWQADg';
 
 /**
  * The generated id type flag.
@@ -82,6 +86,8 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.toJsonData = function(
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     bool: this._bool, 
     bytes: this._bytes, 
@@ -94,42 +100,52 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.toJsonData = function(
 /**
  * The id of the EtZeroOrOneValues type.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.TYPE_ID = 12;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.TYPE_ID = 14;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._AREA_ATTRIBUTE_ID = 18;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._AREA_ATTRIBUTE_ID = 22;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._OWNER_ATTRIBUTE_ID = 17;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._OWNER_ATTRIBUTE_ID = 21;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 20;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype._OWNERGROUP_ATTRIBUTE_ID = 19;
 
 /**
  * The id of the bool attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.BOOL_ATTRIBUTE_ID = 23;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.BOOL_ATTRIBUTE_ID = 27;
 
 /**
  * The id of the bytes attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.BYTES_ATTRIBUTE_ID = 19;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.BYTES_ATTRIBUTE_ID = 23;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.DATE_ATTRIBUTE_ID = 22;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.DATE_ATTRIBUTE_ID = 26;
 
 /**
  * The id of the number attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.NUMBER_ATTRIBUTE_ID = 21;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.NUMBER_ATTRIBUTE_ID = 25;
 
 /**
  * The id of the string attribute.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.STRING_ATTRIBUTE_ID = 20;
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.STRING_ATTRIBUTE_ID = 24;
 
 /**
  * Provides the id of this EtZeroOrOneValues.
@@ -188,6 +204,40 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setOwner = function(ow
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getOwner = function() {
   return this.__owner;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this EtZeroOrOneValues.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this EtZeroOrOneValues.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this EtZeroOrOneValues.
+ * @return {string} The ownerEncSessionKey of this EtZeroOrOneValues.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this EtZeroOrOneValues.
+ * @param {string} ownerGroup The ownerGroup of this EtZeroOrOneValues.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this EtZeroOrOneValues.
+ * @return {string} The ownerGroup of this EtZeroOrOneValues.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -315,7 +365,7 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.getString = function()
  * @return {Promise.<tutao.entity.valueunencrypted.EtZeroOrOneValues>} Resolves to the EtZeroOrOneValues or an exception if the loading failed.
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.valueunencrypted.EtZeroOrOneValues, tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.valueunencrypted.EtZeroOrOneValues, tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -326,20 +376,18 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.valueunencrypted.EtZeroOrOneValues>>} Resolves to an array of EtZeroOrOneValues or rejects with an exception if the loading failed.
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.EtZeroOrOneValues, tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.EtZeroOrOneValues, tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
 /**
  * Stores this EtZeroOrOneValues on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setup = function(bucketData) {
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -348,12 +396,23 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.setup = function(bucke
 };
 
 /**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "1";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
  * Updates this EtZeroOrOneValues on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -364,7 +423,7 @@ tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.update = function() {
  */
 tutao.entity.valueunencrypted.EtZeroOrOneValues.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueunencrypted.EtZeroOrOneValues.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

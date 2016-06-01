@@ -13,8 +13,9 @@ tutao.entity.valueencrypted.Let = function(data) {
     this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__listEncSessionKey = null;
     this.__owner = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._bool = null;
     this._bool_ = null;
@@ -39,8 +40,9 @@ tutao.entity.valueencrypted.Let.prototype.updateData = function(data) {
   this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__listEncSessionKey = data._listEncSessionKey;
   this.__owner = data._owner;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._bool = data.bool;
   this._bool_ = null;
@@ -70,7 +72,7 @@ tutao.entity.valueencrypted.Let.PATH = '/rest/valueencrypted/let';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.valueencrypted.Let.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkABg';
+tutao.entity.valueencrypted.Let.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkABw';
 
 /**
  * The generated id type flag.
@@ -93,8 +95,9 @@ tutao.entity.valueencrypted.Let.prototype.toJsonData = function() {
     _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _listEncSessionKey: this.__listEncSessionKey, 
     _owner: this.__owner, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     bool: this._bool, 
     bytes: this._bytes, 
@@ -107,42 +110,52 @@ tutao.entity.valueencrypted.Let.prototype.toJsonData = function() {
 /**
  * The id of the Let type.
  */
-tutao.entity.valueencrypted.Let.prototype.TYPE_ID = 24;
+tutao.entity.valueencrypted.Let.prototype.TYPE_ID = 28;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.valueencrypted.Let.prototype._AREA_ATTRIBUTE_ID = 31;
+tutao.entity.valueencrypted.Let.prototype._AREA_ATTRIBUTE_ID = 36;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.valueencrypted.Let.prototype._OWNER_ATTRIBUTE_ID = 30;
+tutao.entity.valueencrypted.Let.prototype._OWNER_ATTRIBUTE_ID = 35;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.valueencrypted.Let.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 34;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.valueencrypted.Let.prototype._OWNERGROUP_ATTRIBUTE_ID = 33;
 
 /**
  * The id of the bool attribute.
  */
-tutao.entity.valueencrypted.Let.prototype.BOOL_ATTRIBUTE_ID = 36;
+tutao.entity.valueencrypted.Let.prototype.BOOL_ATTRIBUTE_ID = 41;
 
 /**
  * The id of the bytes attribute.
  */
-tutao.entity.valueencrypted.Let.prototype.BYTES_ATTRIBUTE_ID = 32;
+tutao.entity.valueencrypted.Let.prototype.BYTES_ATTRIBUTE_ID = 37;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.valueencrypted.Let.prototype.DATE_ATTRIBUTE_ID = 35;
+tutao.entity.valueencrypted.Let.prototype.DATE_ATTRIBUTE_ID = 40;
 
 /**
  * The id of the number attribute.
  */
-tutao.entity.valueencrypted.Let.prototype.NUMBER_ATTRIBUTE_ID = 34;
+tutao.entity.valueencrypted.Let.prototype.NUMBER_ATTRIBUTE_ID = 39;
 
 /**
  * The id of the string attribute.
  */
-tutao.entity.valueencrypted.Let.prototype.STRING_ATTRIBUTE_ID = 33;
+tutao.entity.valueencrypted.Let.prototype.STRING_ATTRIBUTE_ID = 38;
 
 /**
  * Provides the id of this Let.
@@ -187,23 +200,6 @@ tutao.entity.valueencrypted.Let.prototype.getFormat = function() {
 };
 
 /**
- * Sets the listEncSessionKey of this Let.
- * @param {string} listEncSessionKey The listEncSessionKey of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.setListEncSessionKey = function(listEncSessionKey) {
-  this.__listEncSessionKey = listEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the listEncSessionKey of this Let.
- * @return {string} The listEncSessionKey of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.getListEncSessionKey = function() {
-  return this.__listEncSessionKey;
-};
-
-/**
  * Sets the owner of this Let.
  * @param {string} owner The owner of this Let.
  */
@@ -218,6 +214,40 @@ tutao.entity.valueencrypted.Let.prototype.setOwner = function(owner) {
  */
 tutao.entity.valueencrypted.Let.prototype.getOwner = function() {
   return this.__owner;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this Let.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Let.
+ */
+tutao.entity.valueencrypted.Let.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this Let.
+ * @return {string} The ownerEncSessionKey of this Let.
+ */
+tutao.entity.valueencrypted.Let.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this Let.
+ * @param {string} ownerGroup The ownerGroup of this Let.
+ */
+tutao.entity.valueencrypted.Let.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Let.
+ * @return {string} The ownerGroup of this Let.
+ */
+tutao.entity.valueencrypted.Let.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -427,7 +457,7 @@ tutao.entity.valueencrypted.Let.prototype.getString = function() {
  * @return {Promise.<tutao.entity.valueencrypted.Let>} Resolves to the Let or an exception if the loading failed.
  */
 tutao.entity.valueencrypted.Let.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, id[1], id[0], {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, id[1], id[0], {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -438,7 +468,7 @@ tutao.entity.valueencrypted.Let.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.valueencrypted.Let>>} Resolves to an array of Let or rejects with an exception if the loading failed.
  */
 tutao.entity.valueencrypted.Let.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -450,24 +480,21 @@ tutao.entity.valueencrypted.Let.loadMultiple = function(ids) {
  */
 tutao.entity.valueencrypted.Let.prototype.setup = function(listId) {
   var self = this;
-  return this._entityHelper.createListEncSessionKey(listId).then(function(listEncSessionKey) {
-    self.setListEncSessionKey(listEncSessionKey);
-    self._entityHelper.notifyObservers(false);
-    return tutao.locator.entityRestClient.postElement(tutao.entity.valueencrypted.Let.PATH, self, listId, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-      self.__id = [listId, entity.getGeneratedId()];
-      self.setPermissions(entity.getPermissionListId());
-    });
+  self._entityHelper.notifyObservers(false);
+  return tutao.locator.entityRestClient.postElement(tutao.entity.valueencrypted.Let.PATH, self, listId, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+    self.__id = [listId, entity.getGeneratedId()];
+    self.setPermissions(entity.getPermissionListId());
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates the ownerEncSessionKey on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.valueencrypted.Let.prototype.updateListEncSessionKey = function() {
+tutao.entity.valueencrypted.Let.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 1;
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "1";
   return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Let.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -477,7 +504,7 @@ tutao.entity.valueencrypted.Let.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.valueencrypted.Let.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Let.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Let.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -488,19 +515,19 @@ tutao.entity.valueencrypted.Let.prototype.update = function() {
  */
 tutao.entity.valueencrypted.Let.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueencrypted.Let.PATH, this.__id[1], this.__id[0], {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueencrypted.Let.PATH, this.__id[1], this.__id[0], {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
 
 /**
  * Creates a new Let list on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on the list shall be created.
- * @return {Promise.<string=>} Resolves to the id of the new tutao.entity.valueencrypted.Let list or rejects with an exception if the createList failed.
+ * @param {string} ownerGroupId The group for which the list shall be created.
+ * @return {Promise.<string>} Resolves to the id of the new tutao.entity.valueencrypted.Let list or rejects with an exception if the createList failed.
  */
-tutao.entity.valueencrypted.Let.createList = function(bucketData) {
-  var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, true);
-  params["v"] = 1;
+tutao.entity.valueencrypted.Let.createList = function(ownerGroupId) {
+  var params = tutao.entity.EntityHelper.createPostListPermissionMap(ownerGroupId);
+  params["v"] = "1";
   return tutao.locator.entityRestClient.postList(tutao.entity.valueencrypted.Let.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
     return returnEntity.getGeneratedId();
   });
@@ -515,7 +542,7 @@ tutao.entity.valueencrypted.Let.createList = function(bucketData) {
  * @return {Promise.<Array.<tutao.entity.valueencrypted.Let>>} Resolves to an array of Let or rejects with an exception if the loading failed.
  */
 tutao.entity.valueencrypted.Let.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, listId, start, count, reverse, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.valueencrypted.Let, tutao.entity.valueencrypted.Let.PATH, listId, start, count, reverse, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

@@ -12,6 +12,7 @@ tutao.entity.sys.OutgoingShare = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._app = null;
     this._referenceId = null;
@@ -31,6 +32,7 @@ tutao.entity.sys.OutgoingShare = function(data) {
 tutao.entity.sys.OutgoingShare.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._app = data.app;
   this._referenceId = data.referenceId;
@@ -44,7 +46,7 @@ tutao.entity.sys.OutgoingShare.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.OutgoingShare.MODEL_VERSION = '16';
+tutao.entity.sys.OutgoingShare.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -78,6 +80,7 @@ tutao.entity.sys.OutgoingShare.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     app: this._app, 
     referenceId: this._referenceId, 
@@ -92,6 +95,11 @@ tutao.entity.sys.OutgoingShare.prototype.toJsonData = function() {
  * The id of the OutgoingShare type.
  */
 tutao.entity.sys.OutgoingShare.prototype.TYPE_ID = 271;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.OutgoingShare.prototype._OWNERGROUP_ATTRIBUTE_ID = 1025;
 
 /**
  * The id of the app attribute.
@@ -146,6 +154,23 @@ tutao.entity.sys.OutgoingShare.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.OutgoingShare.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this OutgoingShare.
+ * @param {string} ownerGroup The ownerGroup of this OutgoingShare.
+ */
+tutao.entity.sys.OutgoingShare.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this OutgoingShare.
+ * @return {string} The ownerGroup of this OutgoingShare.
+ */
+tutao.entity.sys.OutgoingShare.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -281,7 +306,7 @@ tutao.entity.sys.OutgoingShare.prototype.loadBucketPermission = function() {
  * @return {Promise.<tutao.entity.sys.OutgoingShare>} Resolves to the OutgoingShare or an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -292,20 +317,20 @@ tutao.entity.sys.OutgoingShare.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.OutgoingShare>>} Resolves to an array of OutgoingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this OutgoingShare on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.OutgoingShare.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.OutgoingShare.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.OutgoingShare.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.OutgoingShare.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -317,7 +342,7 @@ tutao.entity.sys.OutgoingShare.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.OutgoingShare>>} Resolves to an array of OutgoingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.OutgoingShare.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.OutgoingShare, tutao.entity.sys.OutgoingShare.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

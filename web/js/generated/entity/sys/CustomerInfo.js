@@ -12,6 +12,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._activationTime = null;
     this._company = null;
@@ -41,6 +42,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
 tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._activationTime = data.activationTime;
   this._company = data.company;
@@ -67,7 +69,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerInfo.MODEL_VERSION = '16';
+tutao.entity.sys.CustomerInfo.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -101,6 +103,7 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     activationTime: this._activationTime, 
     company: this._company, 
@@ -125,6 +128,11 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
  * The id of the CustomerInfo type.
  */
 tutao.entity.sys.CustomerInfo.prototype.TYPE_ID = 148;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.CustomerInfo.prototype._OWNERGROUP_ATTRIBUTE_ID = 1010;
 
 /**
  * The id of the activationTime attribute.
@@ -229,6 +237,23 @@ tutao.entity.sys.CustomerInfo.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.CustomerInfo.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this CustomerInfo.
+ * @param {string} ownerGroup The ownerGroup of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this CustomerInfo.
+ * @return {string} The ownerGroup of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -566,7 +591,7 @@ tutao.entity.sys.CustomerInfo.prototype.getDomainInfos = function() {
  * @return {Promise.<tutao.entity.sys.CustomerInfo>} Resolves to the CustomerInfo or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -577,20 +602,9 @@ tutao.entity.sys.CustomerInfo.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
-};
-
-/**
- * Updates the listEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
- */
-tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -599,7 +613,7 @@ tutao.entity.sys.CustomerInfo.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.CustomerInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -613,7 +627,7 @@ tutao.entity.sys.CustomerInfo.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

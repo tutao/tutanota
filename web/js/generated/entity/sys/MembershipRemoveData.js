@@ -32,7 +32,7 @@ tutao.entity.sys.MembershipRemoveData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MembershipRemoveData.MODEL_VERSION = '16';
+tutao.entity.sys.MembershipRemoveData.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -144,13 +144,13 @@ tutao.entity.sys.MembershipRemoveData.prototype.loadUser = function() {
  * Invokes DELETE on a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.sys.MembershipRemoveData=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.MembershipRemoveData>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.MembershipRemoveData.prototype.erase = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.MembershipRemoveData.PATH, this, parameters, headers, null);
 };

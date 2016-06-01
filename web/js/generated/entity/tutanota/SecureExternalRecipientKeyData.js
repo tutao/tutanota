@@ -14,6 +14,7 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._autoTransmitPassword = null;
     this._mailAddress = null;
+    this._ownerEncBucketKey = null;
     this._passwordVerifier = null;
     this._pwEncCommunicationKey = null;
     this._salt = null;
@@ -34,6 +35,7 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.updateData = func
   this.__id = data._id;
   this._autoTransmitPassword = data.autoTransmitPassword;
   this._mailAddress = data.mailAddress;
+  this._ownerEncBucketKey = data.ownerEncBucketKey;
   this._passwordVerifier = data.passwordVerifier;
   this._pwEncCommunicationKey = data.pwEncCommunicationKey;
   this._salt = data.salt;
@@ -54,6 +56,7 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.toJsonData = func
     _id: this.__id, 
     autoTransmitPassword: this._autoTransmitPassword, 
     mailAddress: this._mailAddress, 
+    ownerEncBucketKey: this._ownerEncBucketKey, 
     passwordVerifier: this._passwordVerifier, 
     pwEncCommunicationKey: this._pwEncCommunicationKey, 
     salt: this._salt, 
@@ -77,6 +80,11 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.AUTOTRANSMITPASSW
  * The id of the mailAddress attribute.
  */
 tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.MAILADDRESS_ATTRIBUTE_ID = 534;
+
+/**
+ * The id of the ownerEncBucketKey attribute.
+ */
+tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.OWNERENCBUCKETKEY_ATTRIBUTE_ID = 599;
 
 /**
  * The id of the passwordVerifier attribute.
@@ -157,6 +165,23 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.setMailAddress = 
  */
 tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.getMailAddress = function() {
   return this._mailAddress;
+};
+
+/**
+ * Sets the ownerEncBucketKey of this SecureExternalRecipientKeyData.
+ * @param {string} ownerEncBucketKey The ownerEncBucketKey of this SecureExternalRecipientKeyData.
+ */
+tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.setOwnerEncBucketKey = function(ownerEncBucketKey) {
+  this._ownerEncBucketKey = ownerEncBucketKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncBucketKey of this SecureExternalRecipientKeyData.
+ * @return {string} The ownerEncBucketKey of this SecureExternalRecipientKeyData.
+ */
+tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.getOwnerEncBucketKey = function() {
+  return this._ownerEncBucketKey;
 };
 
 /**

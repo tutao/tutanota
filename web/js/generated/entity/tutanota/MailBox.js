@@ -12,9 +12,10 @@ tutao.entity.tutanota.MailBox = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._lastInfoDate = null;
-    this._shareBucketId = null;
     this._symEncShareBucketKey = null;
     this._mails = null;
     this._receivedAttachments = null;
@@ -32,9 +33,10 @@ tutao.entity.tutanota.MailBox = function(data) {
 tutao.entity.tutanota.MailBox.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._lastInfoDate = data.lastInfoDate;
-  this._shareBucketId = data.shareBucketId;
   this._symEncShareBucketKey = data.symEncShareBucketKey;
   this._mails = data.mails;
   this._receivedAttachments = data.receivedAttachments;
@@ -46,7 +48,7 @@ tutao.entity.tutanota.MailBox.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailBox.MODEL_VERSION = '12';
+tutao.entity.tutanota.MailBox.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -80,9 +82,10 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     lastInfoDate: this._lastInfoDate, 
-    shareBucketId: this._shareBucketId, 
     symEncShareBucketKey: this._symEncShareBucketKey, 
     mails: this._mails, 
     receivedAttachments: this._receivedAttachments, 
@@ -97,14 +100,19 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
 tutao.entity.tutanota.MailBox.prototype.TYPE_ID = 125;
 
 /**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.tutanota.MailBox.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 591;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.MailBox.prototype._OWNERGROUP_ATTRIBUTE_ID = 590;
+
+/**
  * The id of the lastInfoDate attribute.
  */
 tutao.entity.tutanota.MailBox.prototype.LASTINFODATE_ATTRIBUTE_ID = 569;
-
-/**
- * The id of the shareBucketId attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.SHAREBUCKETID_ATTRIBUTE_ID = 130;
 
 /**
  * The id of the symEncShareBucketKey attribute.
@@ -157,6 +165,40 @@ tutao.entity.tutanota.MailBox.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the ownerEncSessionKey of this MailBox.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this MailBox.
+ * @return {string} The ownerEncSessionKey of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this MailBox.
+ * @param {string} ownerGroup The ownerGroup of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this MailBox.
+ * @return {string} The ownerGroup of this MailBox.
+ */
+tutao.entity.tutanota.MailBox.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this MailBox.
  * @param {string} permissions The permissions of this MailBox.
  */
@@ -191,23 +233,6 @@ tutao.entity.tutanota.MailBox.prototype.getLastInfoDate = function() {
     throw new tutao.InvalidDataError('invalid time data: ' + this._lastInfoDate);
   }
   return new Date(Number(this._lastInfoDate));
-};
-
-/**
- * Sets the shareBucketId of this MailBox.
- * @param {string} shareBucketId The shareBucketId of this MailBox.
- */
-tutao.entity.tutanota.MailBox.prototype.setShareBucketId = function(shareBucketId) {
-  this._shareBucketId = shareBucketId;
-  return this;
-};
-
-/**
- * Provides the shareBucketId of this MailBox.
- * @return {string} The shareBucketId of this MailBox.
- */
-tutao.entity.tutanota.MailBox.prototype.getShareBucketId = function() {
-  return this._shareBucketId;
 };
 
 /**
@@ -301,7 +326,7 @@ tutao.entity.tutanota.MailBox.prototype.getSystemFolders = function() {
  * @return {Promise.<tutao.entity.tutanota.MailBox>} Resolves to the MailBox or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -312,8 +337,30 @@ tutao.entity.tutanota.MailBox.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBox>>} Resolves to an array of MailBox or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBox.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBox, tutao.entity.tutanota.MailBox.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
+  });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.MailBox.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailBox.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
+ * Updates this MailBox on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.MailBox.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailBox.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

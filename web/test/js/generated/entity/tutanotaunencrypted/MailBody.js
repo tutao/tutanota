@@ -14,6 +14,7 @@ tutao.entity.tutanotaunencrypted.MailBody = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._text = null;
   }
@@ -30,6 +31,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.updateData = function(data) 
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._text = data.text;
 };
@@ -50,7 +52,7 @@ tutao.entity.tutanotaunencrypted.MailBody.PATH = '/rest/tutanotaunencrypted/mail
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.MailBody.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQACA';
+tutao.entity.tutanotaunencrypted.MailBody.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQACQ';
 
 /**
  * The generated id type flag.
@@ -74,6 +76,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     text: this._text
   };
@@ -82,22 +85,27 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.toJsonData = function() {
 /**
  * The id of the MailBody type.
  */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.TYPE_ID = 8;
+tutao.entity.tutanotaunencrypted.MailBody.prototype.TYPE_ID = 9;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBody.prototype._AREA_ATTRIBUTE_ID = 14;
+tutao.entity.tutanotaunencrypted.MailBody.prototype._AREA_ATTRIBUTE_ID = 16;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBody.prototype._OWNER_ATTRIBUTE_ID = 13;
+tutao.entity.tutanotaunencrypted.MailBody.prototype._OWNER_ATTRIBUTE_ID = 15;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanotaunencrypted.MailBody.prototype._OWNERGROUP_ATTRIBUTE_ID = 14;
 
 /**
  * The id of the text attribute.
  */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.TEXT_ATTRIBUTE_ID = 15;
+tutao.entity.tutanotaunencrypted.MailBody.prototype.TEXT_ATTRIBUTE_ID = 17;
 
 /**
  * Provides the id of this MailBody.
@@ -159,6 +167,23 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerGroup of this MailBody.
+ * @param {string} ownerGroup The ownerGroup of this MailBody.
+ */
+tutao.entity.tutanotaunencrypted.MailBody.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this MailBody.
+ * @return {string} The ownerGroup of this MailBody.
+ */
+tutao.entity.tutanotaunencrypted.MailBody.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this MailBody.
  * @param {string} permissions The permissions of this MailBody.
  */
@@ -198,7 +223,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.getText = function() {
  * @return {Promise.<tutao.entity.tutanotaunencrypted.MailBody>} Resolves to the MailBody or an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBody.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -211,7 +236,7 @@ tutao.entity.tutanotaunencrypted.MailBody.load = function(id) {
 tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersion = function(versionId) {
   var map = {};
   map["version"] = versionId;
-  map["v"] = 1;
+  map["v"] = "1";
   return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, this.getId(), null, map, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -222,7 +247,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersion = function(versi
 tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersionInfo = function() {
   var versionData = new tutao.entity.sys.VersionData()
     .setApplication("tutanotaunencrypted")
-    .setType(8)
+    .setType(9)
     .setId(this.getId());
   return tutao.entity.sys.VersionReturn.load(versionData, {}, tutao.entity.EntityHelper.createAuthHeaders());
 };
@@ -233,20 +258,18 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersionInfo = function()
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.MailBody>>} Resolves to an array of MailBody or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.MailBody.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.MailBody, tutao.entity.tutanotaunencrypted.MailBody.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
  * Stores this MailBody on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.MailBody.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.MailBody.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -260,7 +283,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.setup = function(bucketData)
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.MailBody.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.MailBody.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -271,7 +294,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.update = function() {
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.MailBody.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.MailBody.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

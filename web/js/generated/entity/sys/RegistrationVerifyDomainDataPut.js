@@ -30,7 +30,7 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.updateData = function
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationVerifyDomainDataPut.MODEL_VERSION = '16';
+tutao.entity.sys.RegistrationVerifyDomainDataPut.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -103,13 +103,13 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.getAuthToken = functi
  * Updates this service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<null>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.update = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.RegistrationVerifyDomainDataPut.PATH, this, parameters, headers, null);
 };
 /**

@@ -12,9 +12,9 @@ tutao.entity.tutanota.ContactList = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
-    this._shareBucketId = null;
-    this._symEncShareBucketKey = null;
     this._contacts = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -28,9 +28,9 @@ tutao.entity.tutanota.ContactList = function(data) {
 tutao.entity.tutanota.ContactList.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
-  this._shareBucketId = data.shareBucketId;
-  this._symEncShareBucketKey = data.symEncShareBucketKey;
   this._contacts = data.contacts;
 };
 
@@ -38,7 +38,7 @@ tutao.entity.tutanota.ContactList.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ContactList.MODEL_VERSION = '12';
+tutao.entity.tutanota.ContactList.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -72,9 +72,9 @@ tutao.entity.tutanota.ContactList.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
-    shareBucketId: this._shareBucketId, 
-    symEncShareBucketKey: this._symEncShareBucketKey, 
     contacts: this._contacts
   };
 };
@@ -85,14 +85,14 @@ tutao.entity.tutanota.ContactList.prototype.toJsonData = function() {
 tutao.entity.tutanota.ContactList.prototype.TYPE_ID = 153;
 
 /**
- * The id of the shareBucketId attribute.
+ * The id of the _ownerEncSessionKey attribute.
  */
-tutao.entity.tutanota.ContactList.prototype.SHAREBUCKETID_ATTRIBUTE_ID = 158;
+tutao.entity.tutanota.ContactList.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 593;
 
 /**
- * The id of the symEncShareBucketKey attribute.
+ * The id of the _ownerGroup attribute.
  */
-tutao.entity.tutanota.ContactList.prototype.SYMENCSHAREBUCKETKEY_ATTRIBUTE_ID = 159;
+tutao.entity.tutanota.ContactList.prototype._OWNERGROUP_ATTRIBUTE_ID = 592;
 
 /**
  * The id of the contacts attribute.
@@ -125,6 +125,40 @@ tutao.entity.tutanota.ContactList.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the ownerEncSessionKey of this ContactList.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this ContactList.
+ */
+tutao.entity.tutanota.ContactList.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this ContactList.
+ * @return {string} The ownerEncSessionKey of this ContactList.
+ */
+tutao.entity.tutanota.ContactList.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this ContactList.
+ * @param {string} ownerGroup The ownerGroup of this ContactList.
+ */
+tutao.entity.tutanota.ContactList.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this ContactList.
+ * @return {string} The ownerGroup of this ContactList.
+ */
+tutao.entity.tutanota.ContactList.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this ContactList.
  * @param {string} permissions The permissions of this ContactList.
  */
@@ -139,40 +173,6 @@ tutao.entity.tutanota.ContactList.prototype.setPermissions = function(permission
  */
 tutao.entity.tutanota.ContactList.prototype.getPermissions = function() {
   return this.__permissions;
-};
-
-/**
- * Sets the shareBucketId of this ContactList.
- * @param {string} shareBucketId The shareBucketId of this ContactList.
- */
-tutao.entity.tutanota.ContactList.prototype.setShareBucketId = function(shareBucketId) {
-  this._shareBucketId = shareBucketId;
-  return this;
-};
-
-/**
- * Provides the shareBucketId of this ContactList.
- * @return {string} The shareBucketId of this ContactList.
- */
-tutao.entity.tutanota.ContactList.prototype.getShareBucketId = function() {
-  return this._shareBucketId;
-};
-
-/**
- * Sets the symEncShareBucketKey of this ContactList.
- * @param {string} symEncShareBucketKey The symEncShareBucketKey of this ContactList.
- */
-tutao.entity.tutanota.ContactList.prototype.setSymEncShareBucketKey = function(symEncShareBucketKey) {
-  this._symEncShareBucketKey = symEncShareBucketKey;
-  return this;
-};
-
-/**
- * Provides the symEncShareBucketKey of this ContactList.
- * @return {string} The symEncShareBucketKey of this ContactList.
- */
-tutao.entity.tutanota.ContactList.prototype.getSymEncShareBucketKey = function() {
-  return this._symEncShareBucketKey;
 };
 
 /**
@@ -198,7 +198,7 @@ tutao.entity.tutanota.ContactList.prototype.getContacts = function() {
  * @return {Promise.<tutao.entity.tutanota.ContactList>} Resolves to the ContactList or an exception if the loading failed.
  */
 tutao.entity.tutanota.ContactList.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -209,8 +209,30 @@ tutao.entity.tutanota.ContactList.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ContactList>>} Resolves to an array of ContactList or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ContactList.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ContactList, tutao.entity.tutanota.ContactList.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
+  });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.ContactList.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ContactList.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
+ * Updates this ContactList on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.ContactList.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ContactList.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

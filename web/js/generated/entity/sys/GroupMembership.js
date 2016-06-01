@@ -13,6 +13,7 @@ tutao.entity.sys.GroupMembership = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._admin = null;
+    this._groupType = null;
     this._symEncGKey = null;
     this._group = null;
     this._groupInfo = null;
@@ -30,6 +31,7 @@ tutao.entity.sys.GroupMembership = function(parent, data) {
 tutao.entity.sys.GroupMembership.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._admin = data.admin;
+  this._groupType = data.groupType;
   this._symEncGKey = data.symEncGKey;
   this._group = data.group;
   this._groupInfo = data.groupInfo;
@@ -44,6 +46,7 @@ tutao.entity.sys.GroupMembership.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
     admin: this._admin, 
+    groupType: this._groupType, 
     symEncGKey: this._symEncGKey, 
     group: this._group, 
     groupInfo: this._groupInfo, 
@@ -60,6 +63,11 @@ tutao.entity.sys.GroupMembership.prototype.TYPE_ID = 25;
  * The id of the admin attribute.
  */
 tutao.entity.sys.GroupMembership.prototype.ADMIN_ATTRIBUTE_ID = 28;
+
+/**
+ * The id of the groupType attribute.
+ */
+tutao.entity.sys.GroupMembership.prototype.GROUPTYPE_ATTRIBUTE_ID = 1029;
 
 /**
  * The id of the symEncGKey attribute.
@@ -113,6 +121,23 @@ tutao.entity.sys.GroupMembership.prototype.setAdmin = function(admin) {
  */
 tutao.entity.sys.GroupMembership.prototype.getAdmin = function() {
   return this._admin != '0';
+};
+
+/**
+ * Sets the groupType of this GroupMembership.
+ * @param {string} groupType The groupType of this GroupMembership.
+ */
+tutao.entity.sys.GroupMembership.prototype.setGroupType = function(groupType) {
+  this._groupType = groupType;
+  return this;
+};
+
+/**
+ * Provides the groupType of this GroupMembership.
+ * @return {string} The groupType of this GroupMembership.
+ */
+tutao.entity.sys.GroupMembership.prototype.getGroupType = function() {
+  return this._groupType;
 };
 
 /**

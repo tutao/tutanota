@@ -42,14 +42,14 @@ tutao.native.FileFacadeAndroidApp.prototype.uploadFileData = function(/*tutao.na
     return tutao.locator.crypto.aesEncryptFile(sessionKey, file.getLocation()).then(function (encryptedFileUrl) {
         // create file data
         fileData.setSize(String(file.getSize()))
-            .setGroup(tutao.locator.userController.getUserGroupId());
+            .setGroup(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL)); // currently only used for attachments
 
         return fileData.setup({}, null).then(function(fileDataPostReturn) {
             // upload file data
             var fileDataId = fileDataPostReturn.getFileData();
             var putParams = { fileDataId: fileDataId };
             putParams[tutao.rest.ResourceConstants.SW_VERSION_PARAMETER] = tutao.entity.tutanota.FileDataDataReturn.MODEL_VERSION;
-            var path = tutao.env.getHttpOrigin() + tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, putParams)
+            var path = tutao.env.getHttpOrigin() + tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, putParams);
             return self.fileUtil.upload(encryptedFileUrl, path, tutao.entity.EntityHelper.createAuthHeaders()).then(function (responseCode) {
                 if (responseCode == 200) {
                     return fileDataId;

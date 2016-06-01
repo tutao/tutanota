@@ -97,18 +97,17 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
     if (!this.isChangeActionAllowed()) {
         return;
     }
-    this.busy(true)
+    this.busy(true);
     var self = this;
     tutao.entity.sys.GroupInfo.load(this.userGroupInfo.getId()).then(function (groupInfo) {
-        // must refresh, might be changed by an addded alias
+        // must refresh, might be changed by an added alias
         self.userGroupInfo = groupInfo;
-    }).then(function() {
         self.userGroupInfo.setName(self.name());
         self.saveStatus({type: "neutral", text: "save_msg" });
         return self.userGroupInfo.update();
     }).then(function() {
         if (self.isChangePasswordActionAllowed()) {
-            return self._resetPassword().then(function(exception) {
+            return self._resetPassword().then(function() {
                 self.saveStatus({type: "valid", text: "pwChangeValid_msg" });
                 self.adminUserListViewModel.updateUserGroupInfo();
                 tutao.locator.settingsView.showChangeSettingsColumn();
@@ -124,7 +123,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.save = function() {
         var adminGroupMembership = self._getAdminGroupMembership();
         if (self.admin() && !self._isAdmin(self.user())) {
             var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
-            return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
+            return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup) {
                 var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
 
                 return new tutao.entity.sys.MembershipAddData()
@@ -181,7 +180,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._resetPassword = function()
         var adminGroupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), adminGroupMembership.getSymEncGKey());
 
         var self = this;
-        return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup, exception) {
+        return tutao.entity.sys.Group.load(self.userGroupInfo.getGroup()).then(function(userGroup) {
             var userGroupKey = tutao.locator.aesCrypter.decryptKey(adminGroupKey, userGroup.getAdminGroupEncGKey());
             var salt = tutao.locator.kdfCrypter.generateRandomSalt();
             return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(userPassphraseKey) {

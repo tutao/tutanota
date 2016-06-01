@@ -12,6 +12,7 @@ tutao.entity.sys.Group = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._adminGroupEncGKey = null;
     this._enabled = null;
@@ -35,6 +36,7 @@ tutao.entity.sys.Group = function(data) {
 tutao.entity.sys.Group.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._adminGroupEncGKey = data.adminGroupEncGKey;
   this._enabled = data.enabled;
@@ -55,7 +57,7 @@ tutao.entity.sys.Group.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Group.MODEL_VERSION = '16';
+tutao.entity.sys.Group.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -89,6 +91,7 @@ tutao.entity.sys.Group.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     adminGroupEncGKey: this._adminGroupEncGKey, 
     enabled: this._enabled, 
@@ -107,6 +110,11 @@ tutao.entity.sys.Group.prototype.toJsonData = function() {
  * The id of the Group type.
  */
 tutao.entity.sys.Group.prototype.TYPE_ID = 5;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.Group.prototype._OWNERGROUP_ATTRIBUTE_ID = 981;
 
 /**
  * The id of the adminGroupEncGKey attribute.
@@ -181,6 +189,23 @@ tutao.entity.sys.Group.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.Group.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this Group.
+ * @param {string} ownerGroup The ownerGroup of this Group.
+ */
+tutao.entity.sys.Group.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Group.
+ * @return {string} The ownerGroup of this Group.
+ */
+tutao.entity.sys.Group.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -399,7 +424,7 @@ tutao.entity.sys.Group.prototype.loadUser = function() {
  * @return {Promise.<tutao.entity.sys.Group>} Resolves to the Group or an exception if the loading failed.
  */
 tutao.entity.sys.Group.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -410,8 +435,19 @@ tutao.entity.sys.Group.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Group>>} Resolves to an array of Group or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Group.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Group, tutao.entity.sys.Group.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this Group on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.Group.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Group.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

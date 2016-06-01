@@ -30,7 +30,7 @@ tutao.entity.sys.PhoneNumberTypeData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PhoneNumberTypeData.MODEL_VERSION = '16';
+tutao.entity.sys.PhoneNumberTypeData.MODEL_VERSION = '17';
 
 /**
  * The encrypted flag.

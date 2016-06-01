@@ -12,6 +12,7 @@ tutao.entity.sys.InvoiceInfo = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._publishInvoices = null;
     this._specialPriceUserSingle = null;
@@ -29,6 +30,7 @@ tutao.entity.sys.InvoiceInfo = function(data) {
 tutao.entity.sys.InvoiceInfo.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._publishInvoices = data.publishInvoices;
   this._specialPriceUserSingle = data.specialPriceUserSingle;
@@ -40,7 +42,7 @@ tutao.entity.sys.InvoiceInfo.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.InvoiceInfo.MODEL_VERSION = '16';
+tutao.entity.sys.InvoiceInfo.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -74,6 +76,7 @@ tutao.entity.sys.InvoiceInfo.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     publishInvoices: this._publishInvoices, 
     specialPriceUserSingle: this._specialPriceUserSingle, 
@@ -86,6 +89,11 @@ tutao.entity.sys.InvoiceInfo.prototype.toJsonData = function() {
  * The id of the InvoiceInfo type.
  */
 tutao.entity.sys.InvoiceInfo.prototype.TYPE_ID = 752;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.InvoiceInfo.prototype._OWNERGROUP_ATTRIBUTE_ID = 1007;
 
 /**
  * The id of the publishInvoices attribute.
@@ -130,6 +138,23 @@ tutao.entity.sys.InvoiceInfo.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.InvoiceInfo.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this InvoiceInfo.
+ * @param {string} ownerGroup The ownerGroup of this InvoiceInfo.
+ */
+tutao.entity.sys.InvoiceInfo.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this InvoiceInfo.
+ * @return {string} The ownerGroup of this InvoiceInfo.
+ */
+tutao.entity.sys.InvoiceInfo.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -223,7 +248,7 @@ tutao.entity.sys.InvoiceInfo.prototype.getInvoices = function() {
  * @return {Promise.<tutao.entity.sys.InvoiceInfo>} Resolves to the InvoiceInfo or an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceInfo, tutao.entity.sys.InvoiceInfo.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.InvoiceInfo, tutao.entity.sys.InvoiceInfo.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -234,7 +259,7 @@ tutao.entity.sys.InvoiceInfo.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.InvoiceInfo>>} Resolves to an array of InvoiceInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.InvoiceInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceInfo, tutao.entity.sys.InvoiceInfo.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.InvoiceInfo, tutao.entity.sys.InvoiceInfo.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -245,7 +270,7 @@ tutao.entity.sys.InvoiceInfo.loadMultiple = function(ids) {
  */
 tutao.entity.sys.InvoiceInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceInfo.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.InvoiceInfo.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

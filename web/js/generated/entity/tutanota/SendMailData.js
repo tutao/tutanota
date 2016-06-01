@@ -18,13 +18,12 @@ tutao.entity.tutanota.SendMailData = function(data) {
     this._confidential_ = null;
     this._conversationType = null;
     this._language = null;
-    this._listEncSessionKey = null;
+    this._ownerEncSessionKey = null;
     this._previousMessageId = null;
     this._senderMailAddress = null;
     this._senderName = null;
     this._senderName_ = null;
     this._senderNameUnencrypted = null;
-    this._sharableEncSessionKey = null;
     this._subject = null;
     this._subject_ = null;
     this._symEncSessionKey = null;
@@ -50,13 +49,12 @@ tutao.entity.tutanota.SendMailData.prototype.updateData = function(data) {
   this._confidential_ = null;
   this._conversationType = data.conversationType;
   this._language = data.language;
-  this._listEncSessionKey = data.listEncSessionKey;
+  this._ownerEncSessionKey = data.ownerEncSessionKey;
   this._previousMessageId = data.previousMessageId;
   this._senderMailAddress = data.senderMailAddress;
   this._senderName = data.senderName;
   this._senderName_ = null;
   this._senderNameUnencrypted = data.senderNameUnencrypted;
-  this._sharableEncSessionKey = data.sharableEncSessionKey;
   this._subject = data.subject;
   this._subject_ = null;
   this._symEncSessionKey = data.symEncSessionKey;
@@ -82,7 +80,7 @@ tutao.entity.tutanota.SendMailData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailData.MODEL_VERSION = '12';
+tutao.entity.tutanota.SendMailData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -108,12 +106,11 @@ tutao.entity.tutanota.SendMailData.prototype.toJsonData = function() {
     confidential: this._confidential, 
     conversationType: this._conversationType, 
     language: this._language, 
-    listEncSessionKey: this._listEncSessionKey, 
+    ownerEncSessionKey: this._ownerEncSessionKey, 
     previousMessageId: this._previousMessageId, 
     senderMailAddress: this._senderMailAddress, 
     senderName: this._senderName, 
     senderNameUnencrypted: this._senderNameUnencrypted, 
-    sharableEncSessionKey: this._sharableEncSessionKey, 
     subject: this._subject, 
     symEncSessionKey: this._symEncSessionKey, 
     attachments: tutao.entity.EntityHelper.aggregatesToJsonData(this._attachments), 
@@ -154,9 +151,9 @@ tutao.entity.tutanota.SendMailData.prototype.CONVERSATIONTYPE_ATTRIBUTE_ID = 237
 tutao.entity.tutanota.SendMailData.prototype.LANGUAGE_ATTRIBUTE_ID = 231;
 
 /**
- * The id of the listEncSessionKey attribute.
+ * The id of the ownerEncSessionKey attribute.
  */
-tutao.entity.tutanota.SendMailData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 238;
+tutao.entity.tutanota.SendMailData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 238;
 
 /**
  * The id of the previousMessageId attribute.
@@ -177,11 +174,6 @@ tutao.entity.tutanota.SendMailData.prototype.SENDERNAME_ATTRIBUTE_ID = 234;
  * The id of the senderNameUnencrypted attribute.
  */
 tutao.entity.tutanota.SendMailData.prototype.SENDERNAMEUNENCRYPTED_ATTRIBUTE_ID = 235;
-
-/**
- * The id of the sharableEncSessionKey attribute.
- */
-tutao.entity.tutanota.SendMailData.prototype.SHARABLEENCSESSIONKEY_ATTRIBUTE_ID = 240;
 
 /**
  * The id of the subject attribute.
@@ -354,20 +346,20 @@ tutao.entity.tutanota.SendMailData.prototype.getLanguage = function() {
 };
 
 /**
- * Sets the listEncSessionKey of this SendMailData.
- * @param {string} listEncSessionKey The listEncSessionKey of this SendMailData.
+ * Sets the ownerEncSessionKey of this SendMailData.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this SendMailData.
  */
-tutao.entity.tutanota.SendMailData.prototype.setListEncSessionKey = function(listEncSessionKey) {
-  this._listEncSessionKey = listEncSessionKey;
+tutao.entity.tutanota.SendMailData.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this._ownerEncSessionKey = ownerEncSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncSessionKey of this SendMailData.
- * @return {string} The listEncSessionKey of this SendMailData.
+ * Provides the ownerEncSessionKey of this SendMailData.
+ * @return {string} The ownerEncSessionKey of this SendMailData.
  */
-tutao.entity.tutanota.SendMailData.prototype.getListEncSessionKey = function() {
-  return this._listEncSessionKey;
+tutao.entity.tutanota.SendMailData.prototype.getOwnerEncSessionKey = function() {
+  return this._ownerEncSessionKey;
 };
 
 /**
@@ -455,23 +447,6 @@ tutao.entity.tutanota.SendMailData.prototype.setSenderNameUnencrypted = function
  */
 tutao.entity.tutanota.SendMailData.prototype.getSenderNameUnencrypted = function() {
   return this._senderNameUnencrypted;
-};
-
-/**
- * Sets the sharableEncSessionKey of this SendMailData.
- * @param {string} sharableEncSessionKey The sharableEncSessionKey of this SendMailData.
- */
-tutao.entity.tutanota.SendMailData.prototype.setSharableEncSessionKey = function(sharableEncSessionKey) {
-  this._sharableEncSessionKey = sharableEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the sharableEncSessionKey of this SendMailData.
- * @return {string} The sharableEncSessionKey of this SendMailData.
- */
-tutao.entity.tutanota.SendMailData.prototype.getSharableEncSessionKey = function() {
-  return this._sharableEncSessionKey;
 };
 
 /**
@@ -563,13 +538,13 @@ tutao.entity.tutanota.SendMailData.prototype.getToRecipients = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.SendMailReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.SendMailReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.SendMailData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendMailData.PATH, this, parameters, headers, tutao.entity.tutanota.SendMailReturn);
 };

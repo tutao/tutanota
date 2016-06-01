@@ -14,6 +14,8 @@ tutao.entity.valueencrypted.Et = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._bool = null;
     this._bool_ = null;
@@ -39,6 +41,8 @@ tutao.entity.valueencrypted.Et.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._bool = data.bool;
   this._bool_ = null;
@@ -92,6 +96,8 @@ tutao.entity.valueencrypted.Et.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     bool: this._bool, 
     bytes: this._bytes, 
@@ -109,37 +115,47 @@ tutao.entity.valueencrypted.Et.prototype.TYPE_ID = 0;
 /**
  * The id of the _area attribute.
  */
-tutao.entity.valueencrypted.Et.prototype._AREA_ATTRIBUTE_ID = 6;
+tutao.entity.valueencrypted.Et.prototype._AREA_ATTRIBUTE_ID = 8;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.valueencrypted.Et.prototype._OWNER_ATTRIBUTE_ID = 5;
+tutao.entity.valueencrypted.Et.prototype._OWNER_ATTRIBUTE_ID = 7;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.valueencrypted.Et.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 6;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.valueencrypted.Et.prototype._OWNERGROUP_ATTRIBUTE_ID = 5;
 
 /**
  * The id of the bool attribute.
  */
-tutao.entity.valueencrypted.Et.prototype.BOOL_ATTRIBUTE_ID = 11;
+tutao.entity.valueencrypted.Et.prototype.BOOL_ATTRIBUTE_ID = 13;
 
 /**
  * The id of the bytes attribute.
  */
-tutao.entity.valueencrypted.Et.prototype.BYTES_ATTRIBUTE_ID = 7;
+tutao.entity.valueencrypted.Et.prototype.BYTES_ATTRIBUTE_ID = 9;
 
 /**
  * The id of the date attribute.
  */
-tutao.entity.valueencrypted.Et.prototype.DATE_ATTRIBUTE_ID = 10;
+tutao.entity.valueencrypted.Et.prototype.DATE_ATTRIBUTE_ID = 12;
 
 /**
  * The id of the number attribute.
  */
-tutao.entity.valueencrypted.Et.prototype.NUMBER_ATTRIBUTE_ID = 9;
+tutao.entity.valueencrypted.Et.prototype.NUMBER_ATTRIBUTE_ID = 11;
 
 /**
  * The id of the string attribute.
  */
-tutao.entity.valueencrypted.Et.prototype.STRING_ATTRIBUTE_ID = 8;
+tutao.entity.valueencrypted.Et.prototype.STRING_ATTRIBUTE_ID = 10;
 
 /**
  * Provides the id of this Et.
@@ -198,6 +214,40 @@ tutao.entity.valueencrypted.Et.prototype.setOwner = function(owner) {
  */
 tutao.entity.valueencrypted.Et.prototype.getOwner = function() {
   return this.__owner;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this Et.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Et.
+ */
+tutao.entity.valueencrypted.Et.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this Et.
+ * @return {string} The ownerEncSessionKey of this Et.
+ */
+tutao.entity.valueencrypted.Et.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this Et.
+ * @param {string} ownerGroup The ownerGroup of this Et.
+ */
+tutao.entity.valueencrypted.Et.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Et.
+ * @return {string} The ownerGroup of this Et.
+ */
+tutao.entity.valueencrypted.Et.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -407,7 +457,7 @@ tutao.entity.valueencrypted.Et.prototype.getString = function() {
  * @return {Promise.<tutao.entity.valueencrypted.Et>} Resolves to the Et or an exception if the loading failed.
  */
 tutao.entity.valueencrypted.Et.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.valueencrypted.Et, tutao.entity.valueencrypted.Et.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.valueencrypted.Et, tutao.entity.valueencrypted.Et.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -418,20 +468,18 @@ tutao.entity.valueencrypted.Et.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.valueencrypted.Et>>} Resolves to an array of Et or rejects with an exception if the loading failed.
  */
 tutao.entity.valueencrypted.Et.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.valueencrypted.Et, tutao.entity.valueencrypted.Et.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.valueencrypted.Et, tutao.entity.valueencrypted.Et.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
 /**
  * Stores this Et on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.valueencrypted.Et.prototype.setup = function(bucketData) {
+tutao.entity.valueencrypted.Et.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.valueencrypted.Et.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -440,12 +488,23 @@ tutao.entity.valueencrypted.Et.prototype.setup = function(bucketData) {
 };
 
 /**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.valueencrypted.Et.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "1";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Et.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
  * Updates this Et on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
 tutao.entity.valueencrypted.Et.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Et.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.valueencrypted.Et.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -456,7 +515,7 @@ tutao.entity.valueencrypted.Et.prototype.update = function() {
  */
 tutao.entity.valueencrypted.Et.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueencrypted.Et.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.valueencrypted.Et.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

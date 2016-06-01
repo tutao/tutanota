@@ -140,9 +140,14 @@ tutao.tutanota.ctrl.MailBoxController.prototype.loadTutanotaProperties = functio
             migrationService.setProperties(root.getReference())
                 .setSymEncSessionKey(groupEncSessionKey);
             return migrationService.setup({}, null).then(function() {
-                return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
-                    self._properties = properties;
-                })
+                // load the tutanota properties without session key now because owner group and ownerEncSessionkey are not available because the old instance is already in the cache. set both values manually and then load it with session key again.
+                return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, root.getReference(), null, {"v": tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(props) {
+                    props.setOwnerGroup(tutao.locator.userController.getUserGroupId());
+                    props.setOwnerEncSessionKey(groupEncSessionKey);
+                    return tutao.entity.tutanota.TutanotaProperties.load(root.getReference()).then(function(properties) {
+                        self._properties = properties;
+                    })
+                });
             });
         });
     }).then(function() {
@@ -174,12 +179,12 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserMailBox = function() {
 };
 
 /**
- * Provides the bucket data for the mailbox of the logged in user.
+ * Provides key of the mail group.
  *
- * @return {tutao.entity.BucketData} The bucket data.
+ * @return {Object} The key of the mail group.
  */
-tutao.tutanota.ctrl.MailBoxController.prototype.getUserMailBoxBucketData = function() {
-	return new tutao.entity.BucketData(this._mailBox.getShareBucketId(), tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), this._mailBox.getSymEncShareBucketKey()));
+tutao.tutanota.ctrl.MailBoxController.prototype.getMailGroupKey = function() {
+    return tutao.locator.userController.getGroupKey(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL));
 };
 
 /**
@@ -192,15 +197,6 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserContactList = function() 
 };
 
 /**
- * Provides the bucket data for the contact list of the logged in user.
- *
- * @return {tutao.entity.BucketData} The bucket data.
- */
-tutao.tutanota.ctrl.MailBoxController.prototype.getUserContactListBucketData = function() {
-	return new tutao.entity.BucketData(this._contactList.getShareBucketId(), tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), this._contactList.getSymEncShareBucketKey()));
-};
-
-/**
  * Provides the file system of the logged in user.
  *
  * @return {tutao.entity.tutanota.FileSystem} The file system.
@@ -209,23 +205,6 @@ tutao.tutanota.ctrl.MailBoxController.prototype.getUserFileSystem = function() {
 	return this._fileSystem;
 };
 
-/**
- * Provides the bucket data for the file system of the logged in user.
- *
- * @return {tutao.entity.BucketData} The bucket data.
- */
-tutao.tutanota.ctrl.MailBoxController.prototype.getUserFileSystemBucketData = function() {
-	return new tutao.entity.BucketData(this._fileSystem.getShareBucketId(), tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), this._fileSystem.getSymEncShareBucketKey()));
-};
-
-/**
- * Provides the shares instance of the logged in user.
- *
- * @return {tutao.entity.sys.Shares} The shares instance.
- */
-tutao.tutanota.ctrl.MailBoxController.prototype.getUserShares = function() {
-	return this._shares;
-};
 /**
  * Provides the TutanotaProperties instance of the logged in user.
  *

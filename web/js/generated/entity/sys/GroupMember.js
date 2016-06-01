@@ -12,6 +12,7 @@ tutao.entity.sys.GroupMember = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._group = null;
     this._user = null;
@@ -28,6 +29,7 @@ tutao.entity.sys.GroupMember = function(data) {
 tutao.entity.sys.GroupMember.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._group = data.group;
   this._user = data.user;
@@ -38,7 +40,7 @@ tutao.entity.sys.GroupMember.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.GroupMember.MODEL_VERSION = '16';
+tutao.entity.sys.GroupMember.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -72,6 +74,7 @@ tutao.entity.sys.GroupMember.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     group: this._group, 
     user: this._user, 
@@ -83,6 +86,11 @@ tutao.entity.sys.GroupMember.prototype.toJsonData = function() {
  * The id of the GroupMember type.
  */
 tutao.entity.sys.GroupMember.prototype.TYPE_ID = 216;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.GroupMember.prototype._OWNERGROUP_ATTRIBUTE_ID = 1020;
 
 /**
  * The id of the group attribute.
@@ -122,6 +130,23 @@ tutao.entity.sys.GroupMember.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.GroupMember.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this GroupMember.
+ * @param {string} ownerGroup The ownerGroup of this GroupMember.
+ */
+tutao.entity.sys.GroupMember.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this GroupMember.
+ * @return {string} The ownerGroup of this GroupMember.
+ */
+tutao.entity.sys.GroupMember.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -222,7 +247,7 @@ tutao.entity.sys.GroupMember.prototype.loadUserGroupInfo = function() {
  * @return {Promise.<tutao.entity.sys.GroupMember>} Resolves to the GroupMember or an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -233,20 +258,20 @@ tutao.entity.sys.GroupMember.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.GroupMember>>} Resolves to an array of GroupMember or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this GroupMember on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.GroupMember.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupMember.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.GroupMember.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupMember.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -258,7 +283,7 @@ tutao.entity.sys.GroupMember.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.GroupMember>>} Resolves to an array of GroupMember or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupMember.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.GroupMember, tutao.entity.sys.GroupMember.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

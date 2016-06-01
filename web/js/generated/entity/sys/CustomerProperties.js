@@ -12,6 +12,7 @@ tutao.entity.sys.CustomerProperties = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._externalUserWelcomeMessage = null;
     this._lastUpgradeReminder = null;
@@ -29,6 +30,7 @@ tutao.entity.sys.CustomerProperties = function(data) {
 tutao.entity.sys.CustomerProperties.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._externalUserWelcomeMessage = data.externalUserWelcomeMessage;
   this._lastUpgradeReminder = data.lastUpgradeReminder;
@@ -40,7 +42,7 @@ tutao.entity.sys.CustomerProperties.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerProperties.MODEL_VERSION = '16';
+tutao.entity.sys.CustomerProperties.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -74,6 +76,7 @@ tutao.entity.sys.CustomerProperties.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     externalUserWelcomeMessage: this._externalUserWelcomeMessage, 
     lastUpgradeReminder: this._lastUpgradeReminder, 
@@ -86,6 +89,11 @@ tutao.entity.sys.CustomerProperties.prototype.toJsonData = function() {
  * The id of the CustomerProperties type.
  */
 tutao.entity.sys.CustomerProperties.prototype.TYPE_ID = 656;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.CustomerProperties.prototype._OWNERGROUP_ATTRIBUTE_ID = 984;
 
 /**
  * The id of the externalUserWelcomeMessage attribute.
@@ -130,6 +138,23 @@ tutao.entity.sys.CustomerProperties.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.CustomerProperties.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this CustomerProperties.
+ * @param {string} ownerGroup The ownerGroup of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this CustomerProperties.
+ * @return {string} The ownerGroup of this CustomerProperties.
+ */
+tutao.entity.sys.CustomerProperties.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -233,7 +258,7 @@ tutao.entity.sys.CustomerProperties.prototype.getSmallLogo = function() {
  * @return {Promise.<tutao.entity.sys.CustomerProperties>} Resolves to the CustomerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -244,7 +269,7 @@ tutao.entity.sys.CustomerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerProperties>>} Resolves to an array of CustomerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerProperties, tutao.entity.sys.CustomerProperties.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -255,7 +280,7 @@ tutao.entity.sys.CustomerProperties.loadMultiple = function(ids) {
  */
 tutao.entity.sys.CustomerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerProperties.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

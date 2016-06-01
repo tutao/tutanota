@@ -11,8 +11,7 @@ tutao.entity.sys.UpdatePermissionKeyData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._bucketEncSessionKey = null;
-    this._symEncBucketKey = null;
+    this._ownerEncSessionKey = null;
     this._symEncSessionKey = null;
     this._bucketPermission = null;
     this._permission = null;
@@ -27,8 +26,7 @@ tutao.entity.sys.UpdatePermissionKeyData = function(data) {
  */
 tutao.entity.sys.UpdatePermissionKeyData.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._bucketEncSessionKey = data.bucketEncSessionKey;
-  this._symEncBucketKey = data.symEncBucketKey;
+  this._ownerEncSessionKey = data.ownerEncSessionKey;
   this._symEncSessionKey = data.symEncSessionKey;
   this._bucketPermission = data.bucketPermission;
   this._permission = data.permission;
@@ -38,7 +36,7 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.UpdatePermissionKeyData.MODEL_VERSION = '16';
+tutao.entity.sys.UpdatePermissionKeyData.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -59,8 +57,7 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.ENCRYPTED = false;
 tutao.entity.sys.UpdatePermissionKeyData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    bucketEncSessionKey: this._bucketEncSessionKey, 
-    symEncBucketKey: this._symEncBucketKey, 
+    ownerEncSessionKey: this._ownerEncSessionKey, 
     symEncSessionKey: this._symEncSessionKey, 
     bucketPermission: this._bucketPermission, 
     permission: this._permission
@@ -73,14 +70,9 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.toJsonData = function() {
 tutao.entity.sys.UpdatePermissionKeyData.prototype.TYPE_ID = 445;
 
 /**
- * The id of the bucketEncSessionKey attribute.
+ * The id of the ownerEncSessionKey attribute.
  */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.BUCKETENCSESSIONKEY_ATTRIBUTE_ID = 448;
-
-/**
- * The id of the symEncBucketKey attribute.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.SYMENCBUCKETKEY_ATTRIBUTE_ID = 449;
+tutao.entity.sys.UpdatePermissionKeyData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1030;
 
 /**
  * The id of the symEncSessionKey attribute.
@@ -115,37 +107,20 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.getFormat = function() {
 };
 
 /**
- * Sets the bucketEncSessionKey of this UpdatePermissionKeyData.
- * @param {string} bucketEncSessionKey The bucketEncSessionKey of this UpdatePermissionKeyData.
+ * Sets the ownerEncSessionKey of this UpdatePermissionKeyData.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this UpdatePermissionKeyData.
  */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.setBucketEncSessionKey = function(bucketEncSessionKey) {
-  this._bucketEncSessionKey = bucketEncSessionKey;
+tutao.entity.sys.UpdatePermissionKeyData.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this._ownerEncSessionKey = ownerEncSessionKey;
   return this;
 };
 
 /**
- * Provides the bucketEncSessionKey of this UpdatePermissionKeyData.
- * @return {string} The bucketEncSessionKey of this UpdatePermissionKeyData.
+ * Provides the ownerEncSessionKey of this UpdatePermissionKeyData.
+ * @return {string} The ownerEncSessionKey of this UpdatePermissionKeyData.
  */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.getBucketEncSessionKey = function() {
-  return this._bucketEncSessionKey;
-};
-
-/**
- * Sets the symEncBucketKey of this UpdatePermissionKeyData.
- * @param {string} symEncBucketKey The symEncBucketKey of this UpdatePermissionKeyData.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.setSymEncBucketKey = function(symEncBucketKey) {
-  this._symEncBucketKey = symEncBucketKey;
-  return this;
-};
-
-/**
- * Provides the symEncBucketKey of this UpdatePermissionKeyData.
- * @return {string} The symEncBucketKey of this UpdatePermissionKeyData.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.getSymEncBucketKey = function() {
-  return this._symEncBucketKey;
+tutao.entity.sys.UpdatePermissionKeyData.prototype.getOwnerEncSessionKey = function() {
+  return this._ownerEncSessionKey;
 };
 
 /**
@@ -219,13 +194,13 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.loadPermission = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<null>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.UpdatePermissionKeyData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.UpdatePermissionKeyData.PATH, this, parameters, headers, null);
 };

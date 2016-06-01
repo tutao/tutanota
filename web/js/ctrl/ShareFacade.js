@@ -17,7 +17,6 @@ tutao.tutanota.ctrl.ShareFacade.share = function(shareType, shareholderMailAddre
 	shareService.setWritePermission(writePermission);
 
 	var instancePermissionList;
-	var bucketId;
 	var shareBucketKey;
 	if (shareType == tutao.entity.tutanota.TutanotaConstants.SHARE_TYPE_MAIL_BOX) {
 		instancePermissionList = tutao.locator.mailBoxController.getUserMailBox().getPermissions();
