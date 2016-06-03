@@ -12,9 +12,9 @@ tutao.entity.tutanota.FileSystem = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
-    this._shareBucketId = null;
-    this._symEncShareBucketKey = null;
     this._files = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -28,9 +28,9 @@ tutao.entity.tutanota.FileSystem = function(data) {
 tutao.entity.tutanota.FileSystem.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
-  this._shareBucketId = data.shareBucketId;
-  this._symEncShareBucketKey = data.symEncShareBucketKey;
   this._files = data.files;
 };
 
@@ -38,7 +38,7 @@ tutao.entity.tutanota.FileSystem.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileSystem.MODEL_VERSION = '12';
+tutao.entity.tutanota.FileSystem.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -72,9 +72,9 @@ tutao.entity.tutanota.FileSystem.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
-    shareBucketId: this._shareBucketId, 
-    symEncShareBucketKey: this._symEncShareBucketKey, 
     files: this._files
   };
 };
@@ -85,14 +85,14 @@ tutao.entity.tutanota.FileSystem.prototype.toJsonData = function() {
 tutao.entity.tutanota.FileSystem.prototype.TYPE_ID = 28;
 
 /**
- * The id of the shareBucketId attribute.
+ * The id of the _ownerEncSessionKey attribute.
  */
-tutao.entity.tutanota.FileSystem.prototype.SHAREBUCKETID_ATTRIBUTE_ID = 33;
+tutao.entity.tutanota.FileSystem.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 582;
 
 /**
- * The id of the symEncShareBucketKey attribute.
+ * The id of the _ownerGroup attribute.
  */
-tutao.entity.tutanota.FileSystem.prototype.SYMENCSHAREBUCKETKEY_ATTRIBUTE_ID = 34;
+tutao.entity.tutanota.FileSystem.prototype._OWNERGROUP_ATTRIBUTE_ID = 581;
 
 /**
  * The id of the files attribute.
@@ -125,6 +125,40 @@ tutao.entity.tutanota.FileSystem.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the ownerEncSessionKey of this FileSystem.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this FileSystem.
+ */
+tutao.entity.tutanota.FileSystem.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this FileSystem.
+ * @return {string} The ownerEncSessionKey of this FileSystem.
+ */
+tutao.entity.tutanota.FileSystem.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this FileSystem.
+ * @param {string} ownerGroup The ownerGroup of this FileSystem.
+ */
+tutao.entity.tutanota.FileSystem.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this FileSystem.
+ * @return {string} The ownerGroup of this FileSystem.
+ */
+tutao.entity.tutanota.FileSystem.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this FileSystem.
  * @param {string} permissions The permissions of this FileSystem.
  */
@@ -139,40 +173,6 @@ tutao.entity.tutanota.FileSystem.prototype.setPermissions = function(permissions
  */
 tutao.entity.tutanota.FileSystem.prototype.getPermissions = function() {
   return this.__permissions;
-};
-
-/**
- * Sets the shareBucketId of this FileSystem.
- * @param {string} shareBucketId The shareBucketId of this FileSystem.
- */
-tutao.entity.tutanota.FileSystem.prototype.setShareBucketId = function(shareBucketId) {
-  this._shareBucketId = shareBucketId;
-  return this;
-};
-
-/**
- * Provides the shareBucketId of this FileSystem.
- * @return {string} The shareBucketId of this FileSystem.
- */
-tutao.entity.tutanota.FileSystem.prototype.getShareBucketId = function() {
-  return this._shareBucketId;
-};
-
-/**
- * Sets the symEncShareBucketKey of this FileSystem.
- * @param {string} symEncShareBucketKey The symEncShareBucketKey of this FileSystem.
- */
-tutao.entity.tutanota.FileSystem.prototype.setSymEncShareBucketKey = function(symEncShareBucketKey) {
-  this._symEncShareBucketKey = symEncShareBucketKey;
-  return this;
-};
-
-/**
- * Provides the symEncShareBucketKey of this FileSystem.
- * @return {string} The symEncShareBucketKey of this FileSystem.
- */
-tutao.entity.tutanota.FileSystem.prototype.getSymEncShareBucketKey = function() {
-  return this._symEncShareBucketKey;
 };
 
 /**
@@ -198,7 +198,7 @@ tutao.entity.tutanota.FileSystem.prototype.getFiles = function() {
  * @return {Promise.<tutao.entity.tutanota.FileSystem>} Resolves to the FileSystem or an exception if the loading failed.
  */
 tutao.entity.tutanota.FileSystem.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -209,8 +209,30 @@ tutao.entity.tutanota.FileSystem.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileSystem>>} Resolves to an array of FileSystem or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileSystem.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
+  });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.FileSystem.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileSystem.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
+ * Updates this FileSystem on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.FileSystem.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileSystem.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

@@ -12,9 +12,8 @@ tutao.entity.tutanota.DraftCreateData = function(data) {
   } else {
     this.__format = "0";
     this._conversationType = null;
-    this._listEncSessionKey = null;
+    this._ownerEncSessionKey = null;
     this._previousMessageId = null;
-    this._sharableEncSessionKey = null;
     this._symEncSessionKey = null;
     this._draftData = null;
   }
@@ -29,9 +28,8 @@ tutao.entity.tutanota.DraftCreateData = function(data) {
 tutao.entity.tutanota.DraftCreateData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._conversationType = data.conversationType;
-  this._listEncSessionKey = data.listEncSessionKey;
+  this._ownerEncSessionKey = data.ownerEncSessionKey;
   this._previousMessageId = data.previousMessageId;
-  this._sharableEncSessionKey = data.sharableEncSessionKey;
   this._symEncSessionKey = data.symEncSessionKey;
   this._draftData = (data.draftData) ? new tutao.entity.tutanota.DraftData(this, data.draftData) : null;
 };
@@ -40,7 +38,7 @@ tutao.entity.tutanota.DraftCreateData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.DraftCreateData.MODEL_VERSION = '12';
+tutao.entity.tutanota.DraftCreateData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -62,9 +60,8 @@ tutao.entity.tutanota.DraftCreateData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     conversationType: this._conversationType, 
-    listEncSessionKey: this._listEncSessionKey, 
+    ownerEncSessionKey: this._ownerEncSessionKey, 
     previousMessageId: this._previousMessageId, 
-    sharableEncSessionKey: this._sharableEncSessionKey, 
     symEncSessionKey: this._symEncSessionKey, 
     draftData: tutao.entity.EntityHelper.aggregatesToJsonData(this._draftData)
   };
@@ -81,19 +78,14 @@ tutao.entity.tutanota.DraftCreateData.prototype.TYPE_ID = 508;
 tutao.entity.tutanota.DraftCreateData.prototype.CONVERSATIONTYPE_ATTRIBUTE_ID = 511;
 
 /**
- * The id of the listEncSessionKey attribute.
+ * The id of the ownerEncSessionKey attribute.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 512;
+tutao.entity.tutanota.DraftCreateData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 512;
 
 /**
  * The id of the previousMessageId attribute.
  */
 tutao.entity.tutanota.DraftCreateData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 510;
-
-/**
- * The id of the sharableEncSessionKey attribute.
- */
-tutao.entity.tutanota.DraftCreateData.prototype.SHARABLEENCSESSIONKEY_ATTRIBUTE_ID = 514;
 
 /**
  * The id of the symEncSessionKey attribute.
@@ -140,20 +132,20 @@ tutao.entity.tutanota.DraftCreateData.prototype.getConversationType = function()
 };
 
 /**
- * Sets the listEncSessionKey of this DraftCreateData.
- * @param {string} listEncSessionKey The listEncSessionKey of this DraftCreateData.
+ * Sets the ownerEncSessionKey of this DraftCreateData.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this DraftCreateData.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.setListEncSessionKey = function(listEncSessionKey) {
-  this._listEncSessionKey = listEncSessionKey;
+tutao.entity.tutanota.DraftCreateData.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this._ownerEncSessionKey = ownerEncSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncSessionKey of this DraftCreateData.
- * @return {string} The listEncSessionKey of this DraftCreateData.
+ * Provides the ownerEncSessionKey of this DraftCreateData.
+ * @return {string} The ownerEncSessionKey of this DraftCreateData.
  */
-tutao.entity.tutanota.DraftCreateData.prototype.getListEncSessionKey = function() {
-  return this._listEncSessionKey;
+tutao.entity.tutanota.DraftCreateData.prototype.getOwnerEncSessionKey = function() {
+  return this._ownerEncSessionKey;
 };
 
 /**
@@ -171,23 +163,6 @@ tutao.entity.tutanota.DraftCreateData.prototype.setPreviousMessageId = function(
  */
 tutao.entity.tutanota.DraftCreateData.prototype.getPreviousMessageId = function() {
   return this._previousMessageId;
-};
-
-/**
- * Sets the sharableEncSessionKey of this DraftCreateData.
- * @param {string} sharableEncSessionKey The sharableEncSessionKey of this DraftCreateData.
- */
-tutao.entity.tutanota.DraftCreateData.prototype.setSharableEncSessionKey = function(sharableEncSessionKey) {
-  this._sharableEncSessionKey = sharableEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the sharableEncSessionKey of this DraftCreateData.
- * @return {string} The sharableEncSessionKey of this DraftCreateData.
- */
-tutao.entity.tutanota.DraftCreateData.prototype.getSharableEncSessionKey = function() {
-  return this._sharableEncSessionKey;
 };
 
 /**
@@ -228,13 +203,13 @@ tutao.entity.tutanota.DraftCreateData.prototype.getDraftData = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.DraftCreateReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.DraftCreateReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.DraftCreateData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.DraftCreateData.PATH, this, parameters, headers, tutao.entity.tutanota.DraftCreateReturn);
 };

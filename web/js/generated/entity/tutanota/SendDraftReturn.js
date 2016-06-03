@@ -39,7 +39,7 @@ tutao.entity.tutanota.SendDraftReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendDraftReturn.MODEL_VERSION = '12';
+tutao.entity.tutanota.SendDraftReturn.MODEL_VERSION = '13';
 
 /**
  * The encrypted flag.

@@ -14,6 +14,7 @@ tutao.entity.tutanotaunencrypted.Contact = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._birthday = null;
     this._mail = null;
@@ -33,6 +34,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._birthday = data.birthday;
   this._mail = data.mail;
@@ -56,7 +58,7 @@ tutao.entity.tutanotaunencrypted.Contact.PATH = '/rest/tutanotaunencrypted/conta
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.Contact.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAEA';
+tutao.entity.tutanotaunencrypted.Contact.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAEg';
 
 /**
  * The generated id type flag.
@@ -80,6 +82,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     birthday: this._birthday, 
     mail: this._mail, 
@@ -91,37 +94,42 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.toJsonData = function() {
 /**
  * The id of the Contact type.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.TYPE_ID = 16;
+tutao.entity.tutanotaunencrypted.Contact.prototype.TYPE_ID = 18;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype._AREA_ATTRIBUTE_ID = 22;
+tutao.entity.tutanotaunencrypted.Contact.prototype._AREA_ATTRIBUTE_ID = 25;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype._OWNER_ATTRIBUTE_ID = 21;
+tutao.entity.tutanotaunencrypted.Contact.prototype._OWNER_ATTRIBUTE_ID = 24;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanotaunencrypted.Contact.prototype._OWNERGROUP_ATTRIBUTE_ID = 23;
 
 /**
  * The id of the birthday attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.BIRTHDAY_ATTRIBUTE_ID = 25;
+tutao.entity.tutanotaunencrypted.Contact.prototype.BIRTHDAY_ATTRIBUTE_ID = 28;
 
 /**
  * The id of the mail attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.MAIL_ATTRIBUTE_ID = 24;
+tutao.entity.tutanotaunencrypted.Contact.prototype.MAIL_ATTRIBUTE_ID = 27;
 
 /**
  * The id of the name attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.NAME_ATTRIBUTE_ID = 23;
+tutao.entity.tutanotaunencrypted.Contact.prototype.NAME_ATTRIBUTE_ID = 26;
 
 /**
  * The id of the userid attribute.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.USERID_ATTRIBUTE_ID = 26;
+tutao.entity.tutanotaunencrypted.Contact.prototype.USERID_ATTRIBUTE_ID = 29;
 
 /**
  * Provides the id of this Contact.
@@ -180,6 +188,23 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.setOwner = function(owner) {
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.getOwner = function() {
   return this.__owner;
+};
+
+/**
+ * Sets the ownerGroup of this Contact.
+ * @param {string} ownerGroup The ownerGroup of this Contact.
+ */
+tutao.entity.tutanotaunencrypted.Contact.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Contact.
+ * @return {string} The ownerGroup of this Contact.
+ */
+tutao.entity.tutanotaunencrypted.Contact.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -276,7 +301,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.getUserid = function() {
  * @return {Promise.<tutao.entity.tutanotaunencrypted.Contact>} Resolves to the Contact or an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Contact.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -287,20 +312,18 @@ tutao.entity.tutanotaunencrypted.Contact.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Contact>>} Resolves to an array of Contact or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Contact.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Contact, tutao.entity.tutanotaunencrypted.Contact.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
  * Stores this Contact on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaunencrypted.Contact.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.Contact.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Contact.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -314,7 +337,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.setup = function(bucketData) 
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.Contact.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.Contact.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -325,7 +348,7 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.update = function() {
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.Contact.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.Contact.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

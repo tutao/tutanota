@@ -50,6 +50,43 @@ tutao.ctrl.UserController.prototype.getUserGroupKey = function () {
 };
 
 /**
+ * Provides the symmetric group key for the given group type.
+ * @param {string} groupId The group id of the group to get the key for.
+ * @return {Object} The user group key.
+ */
+tutao.ctrl.UserController.prototype.getGroupKey = function (groupId) {
+    if (groupId == this._user().getUserGroup().getGroup()) {
+        return this._userGroupKey;
+    } else {
+        var memberships = this._user().getMemberships();
+        for (var i = 0; i < memberships.length; i++) {
+            if (groupId == memberships[i].getGroup()) {
+                return tutao.locator.aesCrypter.decryptKey(this._userGroupKey, memberships[i].getSymEncGKey());
+            }
+        }
+        return null;
+    }
+};
+
+/**
+ * Provides the group id of one of the user's group of given group type.
+ * @param {string} groupType One of tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_*.
+ * @return {Object} The user group key.
+ */
+tutao.ctrl.UserController.prototype.getGroupId = function (groupType) {
+    if (groupType == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
+        return this._userGroupId;
+    } else {
+        var memberships = this._user().getMemberships();
+        for (var i = 0; i < memberships.length; i++) {
+            if (memberships[i].getGroupType() == groupType) {
+                return memberships[i].getGroup();
+            }
+        }
+    }
+};
+
+/**
  * Provides the authentication verifier of the logged in user.
  * @return {string} The auth verifier.
  */

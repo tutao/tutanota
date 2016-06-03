@@ -182,6 +182,14 @@ tutao.entity.tutanota.ImapSyncConfiguration.prototype.setImapSyncState = functio
 tutao.entity.tutanota.ImapSyncConfiguration.prototype.getImapSyncState = function() {
   return this._imapSyncState;
 };
+
+/**
+ * Loads the imapSyncState of this ImapSyncConfiguration.
+ * @return {Promise.<tutao.entity.tutanota.ImapSyncState>} Resolves to the loaded imapSyncState of this ImapSyncConfiguration or an exception if the loading failed.
+ */
+tutao.entity.tutanota.ImapSyncConfiguration.prototype.loadImapSyncState = function() {
+  return tutao.entity.tutanota.ImapSyncState.load(this._imapSyncState);
+};
 /**
  * Provides the entity helper of this entity.
  * @return {tutao.entity.EntityHelper} The entity helper.

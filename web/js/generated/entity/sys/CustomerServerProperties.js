@@ -12,6 +12,8 @@ tutao.entity.sys.CustomerServerProperties = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._emailSenderList = [];
   }
@@ -26,6 +28,8 @@ tutao.entity.sys.CustomerServerProperties = function(data) {
 tutao.entity.sys.CustomerServerProperties.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._emailSenderList = [];
   for (var i=0; i < data.emailSenderList.length; i++) {
@@ -37,7 +41,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '16';
+tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -71,6 +75,8 @@ tutao.entity.sys.CustomerServerProperties.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     emailSenderList: tutao.entity.EntityHelper.aggregatesToJsonData(this._emailSenderList)
   };
@@ -80,6 +86,16 @@ tutao.entity.sys.CustomerServerProperties.prototype.toJsonData = function() {
  * The id of the CustomerServerProperties type.
  */
 tutao.entity.sys.CustomerServerProperties.prototype.TYPE_ID = 954;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 986;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype._OWNERGROUP_ATTRIBUTE_ID = 985;
 
 /**
  * The id of the emailSenderList attribute.
@@ -109,6 +125,40 @@ tutao.entity.sys.CustomerServerProperties.prototype.setFormat = function(format)
  */
 tutao.entity.sys.CustomerServerProperties.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this CustomerServerProperties.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this CustomerServerProperties.
+ * @return {string} The ownerEncSessionKey of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this CustomerServerProperties.
+ * @param {string} ownerGroup The ownerGroup of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this CustomerServerProperties.
+ * @return {string} The ownerGroup of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -142,7 +192,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.getEmailSenderList = functio
  * @return {Promise.<tutao.entity.sys.CustomerServerProperties>} Resolves to the CustomerServerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -153,9 +203,20 @@ tutao.entity.sys.CustomerServerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerServerProperties>>} Resolves to an array of CustomerServerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "17";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -164,7 +225,7 @@ tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
  */
 tutao.entity.sys.CustomerServerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

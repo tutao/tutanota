@@ -14,6 +14,7 @@ tutao.entity.tutanotaunencrypted.Attachment = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._fileData = null;
   }
@@ -30,6 +31,7 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.updateData = function(data
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._fileData = data.fileData;
 };
@@ -74,6 +76,7 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     fileData: this._fileData
   };
@@ -87,17 +90,22 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.TYPE_ID = 0;
 /**
  * The id of the _area attribute.
  */
-tutao.entity.tutanotaunencrypted.Attachment.prototype._AREA_ATTRIBUTE_ID = 6;
+tutao.entity.tutanotaunencrypted.Attachment.prototype._AREA_ATTRIBUTE_ID = 7;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNER_ATTRIBUTE_ID = 5;
+tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNER_ATTRIBUTE_ID = 6;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNERGROUP_ATTRIBUTE_ID = 5;
 
 /**
  * The id of the fileData attribute.
  */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 7;
+tutao.entity.tutanotaunencrypted.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 8;
 
 /**
  * Provides the id of this Attachment.
@@ -159,6 +167,23 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerGroup of this Attachment.
+ * @param {string} ownerGroup The ownerGroup of this Attachment.
+ */
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Attachment.
+ * @return {string} The ownerGroup of this Attachment.
+ */
+tutao.entity.tutanotaunencrypted.Attachment.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this Attachment.
  * @param {string} permissions The permissions of this Attachment.
  */
@@ -198,7 +223,7 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.getFileData = function() {
  * @return {Promise.<tutao.entity.tutanotaunencrypted.Attachment>} Resolves to the Attachment or an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Attachment.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -209,20 +234,18 @@ tutao.entity.tutanotaunencrypted.Attachment.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanotaunencrypted.Attachment>>} Resolves to an array of Attachment or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanotaunencrypted.Attachment.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanotaunencrypted.Attachment, tutao.entity.tutanotaunencrypted.Attachment.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
  * Stores this Attachment on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.setup = function(bucketData) {
+tutao.entity.tutanotaunencrypted.Attachment.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -236,7 +259,7 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.setup = function(bucketDat
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -247,7 +270,7 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.update = function() {
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.tutanotaunencrypted.Attachment.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

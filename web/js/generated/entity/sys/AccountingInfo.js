@@ -12,6 +12,8 @@ tutao.entity.sys.AccountingInfo = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._business = null;
     this._invoiceAddress = null;
@@ -46,6 +48,8 @@ tutao.entity.sys.AccountingInfo = function(data) {
 tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._business = data.business;
   this._invoiceAddress = data.invoiceAddress;
@@ -74,7 +78,7 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.AccountingInfo.MODEL_VERSION = '16';
+tutao.entity.sys.AccountingInfo.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -108,6 +112,8 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     business: this._business, 
     invoiceAddress: this._invoiceAddress, 
@@ -129,6 +135,16 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
  * The id of the AccountingInfo type.
  */
 tutao.entity.sys.AccountingInfo.prototype.TYPE_ID = 143;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1009;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.AccountingInfo.prototype._OWNERGROUP_ATTRIBUTE_ID = 1008;
 
 /**
  * The id of the business attribute.
@@ -218,6 +234,40 @@ tutao.entity.sys.AccountingInfo.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.AccountingInfo.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerEncSessionKey of this AccountingInfo.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this AccountingInfo.
+ * @return {string} The ownerEncSessionKey of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this AccountingInfo.
+ * @param {string} ownerGroup The ownerGroup of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this AccountingInfo.
+ * @return {string} The ownerGroup of this AccountingInfo.
+ */
+tutao.entity.sys.AccountingInfo.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -654,33 +704,9 @@ tutao.entity.sys.AccountingInfo.prototype.loadInvoiceInfo = function() {
  * @return {Promise.<tutao.entity.sys.AccountingInfo>} Resolves to the AccountingInfo or an exception if the loading failed.
  */
 tutao.entity.sys.AccountingInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.AccountingInfo, tutao.entity.sys.AccountingInfo.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.AccountingInfo, tutao.entity.sys.AccountingInfo.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
-};
-
-/**
- * Loads a version of this AccountingInfo from the server.
- * @param {string} versionId The id of the requested version.
- * @return {Promise.<tutao.entity.sys.AccountingInfo>} Resolves to AccountingInfo or an exception if the loading failed.
- */
-tutao.entity.sys.AccountingInfo.prototype.loadVersion = function(versionId) {
-  var map = {};
-  map["version"] = versionId;
-  map["v"] = 16;
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.AccountingInfo, tutao.entity.sys.AccountingInfo.PATH, this.getId(), null, map, tutao.entity.EntityHelper.createAuthHeaders());
-};
-
-/**
- * Loads information about all versions of this AccountingInfo from the server.
- * @return {Promise.<tutao.entity.sys.VersionReturn>} Resolves to an tutao.entity.sys.VersionReturn or an exception if the loading failed.
- */
-tutao.entity.sys.AccountingInfo.prototype.loadVersionInfo = function() {
-  var versionData = new tutao.entity.sys.VersionData()
-    .setApplication("sys")
-    .setType(143)
-    .setId(this.getId());
-  return tutao.entity.sys.VersionReturn.load(versionData, {}, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -689,9 +715,20 @@ tutao.entity.sys.AccountingInfo.prototype.loadVersionInfo = function() {
  * @return {Promise.<Array.<tutao.entity.sys.AccountingInfo>>} Resolves to an array of AccountingInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.AccountingInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.AccountingInfo, tutao.entity.sys.AccountingInfo.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.AccountingInfo, tutao.entity.sys.AccountingInfo.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.AccountingInfo.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "17";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.AccountingInfo.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -700,7 +737,7 @@ tutao.entity.sys.AccountingInfo.loadMultiple = function(ids) {
  */
 tutao.entity.sys.AccountingInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.AccountingInfo.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.AccountingInfo.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

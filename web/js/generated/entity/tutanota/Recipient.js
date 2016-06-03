@@ -16,6 +16,7 @@ tutao.entity.tutanota.Recipient = function(parent, data) {
     this._mailAddress = null;
     this._name = null;
     this._name_ = null;
+    this._ownerEncBucketKey = null;
     this._passwordVerifier = null;
     this._pubEncBucketKey = null;
     this._pubKeyVersion = null;
@@ -41,6 +42,7 @@ tutao.entity.tutanota.Recipient.prototype.updateData = function(parent, data) {
   this._mailAddress = data.mailAddress;
   this._name = data.name;
   this._name_ = null;
+  this._ownerEncBucketKey = data.ownerEncBucketKey;
   this._passwordVerifier = data.passwordVerifier;
   this._pubEncBucketKey = data.pubEncBucketKey;
   this._pubKeyVersion = data.pubKeyVersion;
@@ -65,6 +67,7 @@ tutao.entity.tutanota.Recipient.prototype.toJsonData = function() {
     autoTransmitPassword: this._autoTransmitPassword, 
     mailAddress: this._mailAddress, 
     name: this._name, 
+    ownerEncBucketKey: this._ownerEncBucketKey, 
     passwordVerifier: this._passwordVerifier, 
     pubEncBucketKey: this._pubEncBucketKey, 
     pubKeyVersion: this._pubKeyVersion, 
@@ -96,6 +99,11 @@ tutao.entity.tutanota.Recipient.prototype.MAILADDRESS_ATTRIBUTE_ID = 165;
  * The id of the name attribute.
  */
 tutao.entity.tutanota.Recipient.prototype.NAME_ATTRIBUTE_ID = 164;
+
+/**
+ * The id of the ownerEncBucketKey attribute.
+ */
+tutao.entity.tutanota.Recipient.prototype.OWNERENCBUCKETKEY_ATTRIBUTE_ID = 600;
 
 /**
  * The id of the passwordVerifier attribute.
@@ -227,6 +235,23 @@ tutao.entity.tutanota.Recipient.prototype.getName = function() {
       throw e;
     }
   }
+};
+
+/**
+ * Sets the ownerEncBucketKey of this Recipient.
+ * @param {string} ownerEncBucketKey The ownerEncBucketKey of this Recipient.
+ */
+tutao.entity.tutanota.Recipient.prototype.setOwnerEncBucketKey = function(ownerEncBucketKey) {
+  this._ownerEncBucketKey = ownerEncBucketKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncBucketKey of this Recipient.
+ * @return {string} The ownerEncBucketKey of this Recipient.
+ */
+tutao.entity.tutanota.Recipient.prototype.getOwnerEncBucketKey = function() {
+  return this._ownerEncBucketKey;
 };
 
 /**

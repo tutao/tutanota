@@ -12,6 +12,7 @@ tutao.entity.sys.User = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._accountType = null;
     this._enabled = null;
@@ -40,6 +41,7 @@ tutao.entity.sys.User = function(data) {
 tutao.entity.sys.User.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._accountType = data.accountType;
   this._enabled = data.enabled;
@@ -71,7 +73,7 @@ tutao.entity.sys.User.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.User.MODEL_VERSION = '16';
+tutao.entity.sys.User.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -105,6 +107,7 @@ tutao.entity.sys.User.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     accountType: this._accountType, 
     enabled: this._enabled, 
@@ -128,6 +131,11 @@ tutao.entity.sys.User.prototype.toJsonData = function() {
  * The id of the User type.
  */
 tutao.entity.sys.User.prototype.TYPE_ID = 84;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.User.prototype._OWNERGROUP_ATTRIBUTE_ID = 995;
 
 /**
  * The id of the accountType attribute.
@@ -227,6 +235,23 @@ tutao.entity.sys.User.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.User.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this User.
+ * @param {string} ownerGroup The ownerGroup of this User.
+ */
+tutao.entity.sys.User.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this User.
+ * @return {string} The ownerGroup of this User.
+ */
+tutao.entity.sys.User.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -488,7 +513,7 @@ tutao.entity.sys.User.prototype.getUserGroup = function() {
  * @return {Promise.<tutao.entity.sys.User>} Resolves to the User or an exception if the loading failed.
  */
 tutao.entity.sys.User.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.User, tutao.entity.sys.User.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -499,8 +524,19 @@ tutao.entity.sys.User.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.User>>} Resolves to an array of User or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.User.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.User, tutao.entity.sys.User.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this User on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.sys.User.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.User.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

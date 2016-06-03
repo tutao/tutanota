@@ -12,13 +12,14 @@ tutao.entity.sys.IncomingShare = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._app = null;
     this._referenceId = null;
     this._referenceListId = null;
     this._shareType = null;
     this._bucketPermission = null;
-    this._ownerGroup = null;
+    this._shareOwnerGroup = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.IncomingShare.prototype;
@@ -31,20 +32,21 @@ tutao.entity.sys.IncomingShare = function(data) {
 tutao.entity.sys.IncomingShare.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._app = data.app;
   this._referenceId = data.referenceId;
   this._referenceListId = data.referenceListId;
   this._shareType = data.shareType;
   this._bucketPermission = data.bucketPermission;
-  this._ownerGroup = data.ownerGroup;
+  this._shareOwnerGroup = data.shareOwnerGroup;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.IncomingShare.MODEL_VERSION = '16';
+tutao.entity.sys.IncomingShare.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -78,13 +80,14 @@ tutao.entity.sys.IncomingShare.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     app: this._app, 
     referenceId: this._referenceId, 
     referenceListId: this._referenceListId, 
     shareType: this._shareType, 
     bucketPermission: this._bucketPermission, 
-    ownerGroup: this._ownerGroup
+    shareOwnerGroup: this._shareOwnerGroup
   };
 };
 
@@ -92,6 +95,11 @@ tutao.entity.sys.IncomingShare.prototype.toJsonData = function() {
  * The id of the IncomingShare type.
  */
 tutao.entity.sys.IncomingShare.prototype.TYPE_ID = 260;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.IncomingShare.prototype._OWNERGROUP_ATTRIBUTE_ID = 1024;
 
 /**
  * The id of the app attribute.
@@ -119,9 +127,9 @@ tutao.entity.sys.IncomingShare.prototype.SHARETYPE_ATTRIBUTE_ID = 266;
 tutao.entity.sys.IncomingShare.prototype.BUCKETPERMISSION_ATTRIBUTE_ID = 270;
 
 /**
- * The id of the ownerGroup attribute.
+ * The id of the shareOwnerGroup attribute.
  */
-tutao.entity.sys.IncomingShare.prototype.OWNERGROUP_ATTRIBUTE_ID = 269;
+tutao.entity.sys.IncomingShare.prototype.SHAREOWNERGROUP_ATTRIBUTE_ID = 269;
 
 /**
  * Provides the id of this IncomingShare.
@@ -146,6 +154,23 @@ tutao.entity.sys.IncomingShare.prototype.setFormat = function(format) {
  */
 tutao.entity.sys.IncomingShare.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this IncomingShare.
+ * @param {string} ownerGroup The ownerGroup of this IncomingShare.
+ */
+tutao.entity.sys.IncomingShare.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this IncomingShare.
+ * @return {string} The ownerGroup of this IncomingShare.
+ */
+tutao.entity.sys.IncomingShare.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -259,28 +284,28 @@ tutao.entity.sys.IncomingShare.prototype.loadBucketPermission = function() {
 };
 
 /**
- * Sets the ownerGroup of this IncomingShare.
- * @param {string} ownerGroup The ownerGroup of this IncomingShare.
+ * Sets the shareOwnerGroup of this IncomingShare.
+ * @param {string} shareOwnerGroup The shareOwnerGroup of this IncomingShare.
  */
-tutao.entity.sys.IncomingShare.prototype.setOwnerGroup = function(ownerGroup) {
-  this._ownerGroup = ownerGroup;
+tutao.entity.sys.IncomingShare.prototype.setShareOwnerGroup = function(shareOwnerGroup) {
+  this._shareOwnerGroup = shareOwnerGroup;
   return this;
 };
 
 /**
- * Provides the ownerGroup of this IncomingShare.
- * @return {string} The ownerGroup of this IncomingShare.
+ * Provides the shareOwnerGroup of this IncomingShare.
+ * @return {string} The shareOwnerGroup of this IncomingShare.
  */
-tutao.entity.sys.IncomingShare.prototype.getOwnerGroup = function() {
-  return this._ownerGroup;
+tutao.entity.sys.IncomingShare.prototype.getShareOwnerGroup = function() {
+  return this._shareOwnerGroup;
 };
 
 /**
- * Loads the ownerGroup of this IncomingShare.
- * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded ownerGroup of this IncomingShare or an exception if the loading failed.
+ * Loads the shareOwnerGroup of this IncomingShare.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded shareOwnerGroup of this IncomingShare or an exception if the loading failed.
  */
-tutao.entity.sys.IncomingShare.prototype.loadOwnerGroup = function() {
-  return tutao.entity.sys.Group.load(this._ownerGroup);
+tutao.entity.sys.IncomingShare.prototype.loadShareOwnerGroup = function() {
+  return tutao.entity.sys.Group.load(this._shareOwnerGroup);
 };
 
 /**
@@ -289,7 +314,7 @@ tutao.entity.sys.IncomingShare.prototype.loadOwnerGroup = function() {
  * @return {Promise.<tutao.entity.sys.IncomingShare>} Resolves to the IncomingShare or an exception if the loading failed.
  */
 tutao.entity.sys.IncomingShare.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -300,20 +325,20 @@ tutao.entity.sys.IncomingShare.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.IncomingShare>>} Resolves to an array of IncomingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.IncomingShare.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this IncomingShare on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.IncomingShare.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.IncomingShare.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.IncomingShare.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.IncomingShare.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -325,7 +350,7 @@ tutao.entity.sys.IncomingShare.prototype.updateListEncSessionKey = function() {
  * @return {Promise.<Array.<tutao.entity.sys.IncomingShare>>} Resolves to an array of IncomingShare or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.IncomingShare.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.IncomingShare, tutao.entity.sys.IncomingShare.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

@@ -12,6 +12,7 @@ tutao.entity.tutanota.FileData = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._size = null;
     this._unreferenced = null;
@@ -28,6 +29,7 @@ tutao.entity.tutanota.FileData = function(data) {
 tutao.entity.tutanota.FileData.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._size = data.size;
   this._unreferenced = data.unreferenced;
@@ -41,7 +43,7 @@ tutao.entity.tutanota.FileData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileData.MODEL_VERSION = '12';
+tutao.entity.tutanota.FileData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -75,6 +77,7 @@ tutao.entity.tutanota.FileData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     size: this._size, 
     unreferenced: this._unreferenced, 
@@ -86,6 +89,11 @@ tutao.entity.tutanota.FileData.prototype.toJsonData = function() {
  * The id of the FileData type.
  */
 tutao.entity.tutanota.FileData.prototype.TYPE_ID = 4;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.FileData.prototype._OWNERGROUP_ATTRIBUTE_ID = 579;
 
 /**
  * The id of the size attribute.
@@ -125,6 +133,23 @@ tutao.entity.tutanota.FileData.prototype.setFormat = function(format) {
  */
 tutao.entity.tutanota.FileData.prototype.getFormat = function() {
   return this.__format;
+};
+
+/**
+ * Sets the ownerGroup of this FileData.
+ * @param {string} ownerGroup The ownerGroup of this FileData.
+ */
+tutao.entity.tutanota.FileData.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this FileData.
+ * @return {string} The ownerGroup of this FileData.
+ */
+tutao.entity.tutanota.FileData.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -192,7 +217,7 @@ tutao.entity.tutanota.FileData.prototype.getBlocks = function() {
  * @return {Promise.<tutao.entity.tutanota.FileData>} Resolves to the FileData or an exception if the loading failed.
  */
 tutao.entity.tutanota.FileData.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -203,8 +228,19 @@ tutao.entity.tutanota.FileData.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileData>>} Resolves to an array of FileData or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileData.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileData, tutao.entity.tutanota.FileData.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
+  });
+};
+
+/**
+ * Updates this FileData on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.FileData.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileData.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 

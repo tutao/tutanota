@@ -14,6 +14,7 @@ tutao.entity.sys.Booking = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._business = null;
     this._createDate = null;
@@ -35,6 +36,7 @@ tutao.entity.sys.Booking.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._business = data.business;
   this._createDate = data.createDate;
@@ -51,7 +53,7 @@ tutao.entity.sys.Booking.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Booking.MODEL_VERSION = '16';
+tutao.entity.sys.Booking.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -87,6 +89,7 @@ tutao.entity.sys.Booking.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     business: this._business, 
     createDate: this._createDate, 
@@ -111,6 +114,11 @@ tutao.entity.sys.Booking.prototype._AREA_ATTRIBUTE_ID = 715;
  * The id of the _owner attribute.
  */
 tutao.entity.sys.Booking.prototype._OWNER_ATTRIBUTE_ID = 714;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.Booking.prototype._OWNERGROUP_ATTRIBUTE_ID = 1003;
 
 /**
  * The id of the business attribute.
@@ -199,6 +207,23 @@ tutao.entity.sys.Booking.prototype.setOwner = function(owner) {
  */
 tutao.entity.sys.Booking.prototype.getOwner = function() {
   return this.__owner;
+};
+
+/**
+ * Sets the ownerGroup of this Booking.
+ * @param {string} ownerGroup The ownerGroup of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Booking.
+ * @return {string} The ownerGroup of this Booking.
+ */
+tutao.entity.sys.Booking.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -330,7 +355,7 @@ tutao.entity.sys.Booking.prototype.getItems = function() {
  * @return {Promise.<tutao.entity.sys.Booking>} Resolves to the Booking or an exception if the loading failed.
  */
 tutao.entity.sys.Booking.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -341,34 +366,9 @@ tutao.entity.sys.Booking.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Booking>>} Resolves to an array of Booking or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Booking.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
-};
-
-/**
- * Stores Booking on the server and updates this instance with _id and _permission values generated on the server.
- * @param {string} listId The list id of the Booking.
- * @return {Promise.<>} Resolves when finished, rejected if the post failed.
- */
-tutao.entity.sys.Booking.prototype.setup = function(listId) {
-  var self = this;
-  self._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.Booking.PATH, self, listId, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-      self.__id = [listId, entity.getGeneratedId()];
-      self.setPermissions(entity.getPermissionListId());
-  });
-};
-
-/**
- * Updates the listEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
- */
-tutao.entity.sys.Booking.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -377,32 +377,8 @@ tutao.entity.sys.Booking.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.Booking.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Booking.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
-  });
-};
-
-/**
- * Deletes this Booking on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the delete failed.
- */
-tutao.entity.sys.Booking.prototype.erase = function() {
-  var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.Booking.PATH, this.__id[1], this.__id[0], {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
-    self._entityHelper.notifyObservers(true);
-  });
-};
-
-/**
- * Creates a new Booking list on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on the list shall be created.
- * @return {Promise.<string=>} Resolves to the id of the new tutao.entity.sys.Booking list or rejects with an exception if the createList failed.
- */
-tutao.entity.sys.Booking.createList = function(bucketData) {
-  var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, false);
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.postList(tutao.entity.sys.Booking.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
-    return returnEntity.getGeneratedId();
   });
 };
 
@@ -415,7 +391,7 @@ tutao.entity.sys.Booking.createList = function(bucketData) {
  * @return {Promise.<Array.<tutao.entity.sys.Booking>>} Resolves to an array of Booking or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Booking.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Booking, tutao.entity.sys.Booking.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

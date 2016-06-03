@@ -64,8 +64,9 @@ tutao.native.PushServiceApp.prototype.updatePushIdentifier = function(identifier
         }
         if (existingPushIdentifier == null){
             new tutao.entity.sys.PushIdentifier()
-                .setOwner(tutao.locator.userController.getUserGroupId())
-                .setArea(tutao.entity.tutanota.TutanotaConstants.AREA_SYSTEM)
+                .setOwnerGroup(tutao.locator.userController.getUserGroupId())
+                .setOwner(tutao.locator.userController.getUserGroupId()) // legacy
+                .setArea("0") // legacy
                 .setPushServiceType(identifierType)
                 .setIdentifier(identifier)
                 .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())

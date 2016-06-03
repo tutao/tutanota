@@ -32,7 +32,7 @@ tutao.entity.tutanota.DraftUpdateData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.DraftUpdateData.MODEL_VERSION = '12';
+tutao.entity.tutanota.DraftUpdateData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -136,13 +136,13 @@ tutao.entity.tutanota.DraftUpdateData.prototype.getDraftData = function() {
  * Updates this service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.DraftUpdateReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.DraftUpdateReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.DraftUpdateData.prototype.update = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   return tutao.locator.entityRestClient.putService(tutao.entity.tutanota.DraftUpdateData.PATH, this, parameters, headers, tutao.entity.tutanota.DraftUpdateReturn);
 };
 /**

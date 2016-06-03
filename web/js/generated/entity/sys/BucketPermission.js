@@ -12,8 +12,9 @@ tutao.entity.sys.BucketPermission = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
-    this._ops = null;
+    this._ownerEncBucketKey = null;
     this._pubEncBucketKey = null;
     this._pubKeyVersion = null;
     this._symEncBucketKey = null;
@@ -31,8 +32,9 @@ tutao.entity.sys.BucketPermission = function(data) {
 tutao.entity.sys.BucketPermission.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
-  this._ops = data.ops;
+  this._ownerEncBucketKey = data.ownerEncBucketKey;
   this._pubEncBucketKey = data.pubEncBucketKey;
   this._pubKeyVersion = data.pubKeyVersion;
   this._symEncBucketKey = data.symEncBucketKey;
@@ -44,7 +46,7 @@ tutao.entity.sys.BucketPermission.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.BucketPermission.MODEL_VERSION = '16';
+tutao.entity.sys.BucketPermission.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -78,8 +80,9 @@ tutao.entity.sys.BucketPermission.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
-    ops: this._ops, 
+    ownerEncBucketKey: this._ownerEncBucketKey, 
     pubEncBucketKey: this._pubEncBucketKey, 
     pubKeyVersion: this._pubKeyVersion, 
     symEncBucketKey: this._symEncBucketKey, 
@@ -94,9 +97,14 @@ tutao.entity.sys.BucketPermission.prototype.toJsonData = function() {
 tutao.entity.sys.BucketPermission.prototype.TYPE_ID = 118;
 
 /**
- * The id of the ops attribute.
+ * The id of the _ownerGroup attribute.
  */
-tutao.entity.sys.BucketPermission.prototype.OPS_ATTRIBUTE_ID = 127;
+tutao.entity.sys.BucketPermission.prototype._OWNERGROUP_ATTRIBUTE_ID = 999;
+
+/**
+ * The id of the ownerEncBucketKey attribute.
+ */
+tutao.entity.sys.BucketPermission.prototype.OWNERENCBUCKETKEY_ATTRIBUTE_ID = 1000;
 
 /**
  * The id of the pubEncBucketKey attribute.
@@ -149,6 +157,23 @@ tutao.entity.sys.BucketPermission.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the ownerGroup of this BucketPermission.
+ * @param {string} ownerGroup The ownerGroup of this BucketPermission.
+ */
+tutao.entity.sys.BucketPermission.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this BucketPermission.
+ * @return {string} The ownerGroup of this BucketPermission.
+ */
+tutao.entity.sys.BucketPermission.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this BucketPermission.
  * @param {string} permissions The permissions of this BucketPermission.
  */
@@ -166,20 +191,20 @@ tutao.entity.sys.BucketPermission.prototype.getPermissions = function() {
 };
 
 /**
- * Sets the ops of this BucketPermission.
- * @param {string} ops The ops of this BucketPermission.
+ * Sets the ownerEncBucketKey of this BucketPermission.
+ * @param {string} ownerEncBucketKey The ownerEncBucketKey of this BucketPermission.
  */
-tutao.entity.sys.BucketPermission.prototype.setOps = function(ops) {
-  this._ops = ops;
+tutao.entity.sys.BucketPermission.prototype.setOwnerEncBucketKey = function(ownerEncBucketKey) {
+  this._ownerEncBucketKey = ownerEncBucketKey;
   return this;
 };
 
 /**
- * Provides the ops of this BucketPermission.
- * @return {string} The ops of this BucketPermission.
+ * Provides the ownerEncBucketKey of this BucketPermission.
+ * @return {string} The ownerEncBucketKey of this BucketPermission.
  */
-tutao.entity.sys.BucketPermission.prototype.getOps = function() {
-  return this._ops;
+tutao.entity.sys.BucketPermission.prototype.getOwnerEncBucketKey = function() {
+  return this._ownerEncBucketKey;
 };
 
 /**
@@ -281,7 +306,7 @@ tutao.entity.sys.BucketPermission.prototype.loadGroup = function() {
  * @return {Promise.<tutao.entity.sys.BucketPermission>} Resolves to the BucketPermission or an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -292,20 +317,20 @@ tutao.entity.sys.BucketPermission.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>} Resolves to an array of BucketPermission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates this BucketPermission on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.sys.BucketPermission.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.BucketPermission.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+tutao.entity.sys.BucketPermission.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.BucketPermission.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
+  });
 };
 
 /**
@@ -317,7 +342,7 @@ tutao.entity.sys.BucketPermission.prototype.updateListEncSessionKey = function()
  * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>} Resolves to an array of BucketPermission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

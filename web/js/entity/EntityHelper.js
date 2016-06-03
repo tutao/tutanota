@@ -66,23 +66,38 @@ tutao.entity.EntityHelper.prototype._isNewObject = function() {
  * @return {Promise.<Object>} Resolves to the entity this function has been called on or an exception if the loading failed.
  */
 tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
-	var self = this;
-	if (!this._entity.ENCRYPTED || this._sessionKey != null) {
-		return Promise.resolve(this._entity);
-	}
-	if (this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) { // check that it is a list element type and that the list key is set
+    var self = this;
+    if (!this._entity.ENCRYPTED || this._sessionKey != null) {
+        return Promise.resolve(this._entity);
+    }
+    if (this._entity.getOwnerEncSessionKey && this._entity.getOwnerEncSessionKey()) {
+        var ownerGroupKey = tutao.locator.userController.getGroupKey(this._entity.getOwnerGroup());
+        if (ownerGroupKey != null) {
+            try {
+                this.setSessionKey(tutao.locator.aesCrypter.decryptKey(ownerGroupKey, this._entity.getOwnerEncSessionKey()));
+                return Promise.resolve(self._entity);
+            } catch (e) {
+                if (e instanceof tutao.crypto.CryptoError) {
+                    console.log("could not load session key", e);
+                    return Promise.resolve(self._entity);
+                } else {
+                    return Promise.reject(e);
+                }
+            }
+        }
+    }
+    if (this._entity.TYPE_ID == tutao.entity.sys.GroupInfo.prototype.TYPE_ID && this._entity.getOwnerGroup() == null && this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) {
+        // legacy for GroupInfo and check that it is a list element type and that the list key is set
 		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
             self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
             return self._entity;
 		}).caught(function(e) {
-            return self._loadSessionKeyOfSinglePermission().caught(function(e) {
-                if (e instanceof tutao.crypto.CryptoError) {
-                    console.log("could not load session key", e);
-                    return self._entity;
-                } else {
-                    throw e;
-                }
-            });
+            if (e instanceof tutao.crypto.CryptoError) {
+                console.log("could not load session key", e);
+                return self._entity;
+            } else {
+                throw e;
+            }
         });
 	} else {
 		return this._loadSessionKeyOfSinglePermission().caught(function(e) {
@@ -106,7 +121,7 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
     //TODO (Performance) avoid to load elements from server if some are already cached.
     return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Permission, this._entity.__permissions).then(function(permissions, exception) {
         if (tutao.locator.userController.isInternalUserLoggedIn()) {
-            self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
+            self.setSessionKey(tutao.entity.EntityHelper._tryGetPermissionOwnerEncSessionKey(permissions));
             if (self._sessionKey != null) {
                 return self._entity;
             }
@@ -119,7 +134,7 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
                 }
             });
         } else {
-            self.setSessionKey(tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions));
+            self.setSessionKey(tutao.entity.EntityHelper._tryGetPermissionOwnerEncSessionKey(permissions));
             if (self._sessionKey != null) {
                 return self._entity;
             }
@@ -137,30 +152,29 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
  * @return {Promise.<Object>} Resolves to the listKey or an exception if the loading failed.
  */
 tutao.entity.EntityHelper.getListKey = function(listId) {
-    return this._getListKey(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID );
+    return this._getListKey(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
 };
 
 tutao.entity.EntityHelper._getListKey = function(listId, startId) {
     var self = this;
     return tutao.entity.sys.Permission.loadRange(listId, startId, 1, false).then(function(permissions) {
-        var listKey = tutao.entity.EntityHelper._tryGetSymEncSessionKey(permissions);
-        if (listKey != null) {
-            return listKey;
+        if (permissions.length == 0) {
+            throw new Error("no list permission found");
         }
-        // we have to create a dummy EntityHelper here because _tryGetPubEncSessionKey is not static. Pass an empty entity to allow updating a public list permission in _updateWithSymPermissionKey()
-        return new tutao.entity.EntityHelper({})._tryGetPubEncSessionKey(permissions).then(function(listKey) {
-            if (listKey != null) {
-                return listKey;
+        var user = tutao.locator.userController.getLoggedInUser();
+        if (permissions[0].getType() == "1" || permissions[0].getType() == "2") {
+            var permissionGroupKey = tutao.locator.userController.getGroupKey(permissions[0].getGroup());
+            if (permissionGroupKey != null) {
+                return tutao.locator.aesCrypter.decryptKey(permissionGroupKey, permissions[0].getSymEncSessionKey());
             }
-            if (permissions.length > 0) {
-                return self._getListKey(listId, permissions[permissions.length -1].getId()[1]);
-            } else {
-                throw new Error("no list permission found");
-            }
-        });
+        }
+        if (permissions.length > 0) {
+            return self._getListKey(listId, permissions[permissions.length -1].getId()[1]);
+        } else {
+            throw new Error("no list permission found");
+        }
     });
 };
-
 
 /**
  * Returns the session key of the entity.
@@ -215,7 +229,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		// find the bucket permission with the same group as the permission and external type
 		var bucketPermission = null;
 		for (var i = 0; i < bucketPermissions.length; i++) {
-			if (bucketPermissions[i].getType() == "3" && permission.getGroup() == bucketPermissions[i].getGroup()) {
+			if (bucketPermissions[i].getType() == "3" && permission.getOwnerGroup() == bucketPermissions[i].getOwnerGroup()) {
 				bucketPermission = bucketPermissions[i];
 				break;
 			}
@@ -223,11 +237,17 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		if (bucketPermission == null) {
 			throw new Error("no corresponding bucket permission found");
 		}
-		var sessionKey;
-        var bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
-        sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
+
+		var bucketPermissionOwnerGroupKey = tutao.locator.userController.getGroupKey(bucketPermission.getOwnerGroup());
+        var bucketKey;
+        if (bucketPermission.getOwnerEncBucketKey()) {
+            bucketKey = tutao.locator.aesCrypter.decryptKey(bucketPermissionOwnerGroupKey, bucketPermission.getOwnerEncBucketKey());
+        } else {
+            bucketKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), bucketPermission.getSymEncBucketKey());
+        }
+        var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
         // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
-        return self._updateWithSymPermissionKey(permission, bucketPermission, tutao.locator.userController.getUserGroupKey(), sessionKey).then(function() {
+        return self._updateWithSymPermissionKey(permission, bucketPermission, bucketPermissionOwnerGroupKey, sessionKey).then(function() {
             return sessionKey;
         });
     });
@@ -239,20 +259,14 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
  * @return {Object} Returns null if no permission was found and the session key otherwise.
  * @throw {tutao.crypto.CryptoError} If an error occurs during session key decryption.
  */
-tutao.entity.EntityHelper._tryGetSymEncSessionKey = function(permissions) {
+tutao.entity.EntityHelper._tryGetPermissionOwnerEncSessionKey = function(permissions) {
 	var user = tutao.locator.userController.getLoggedInUser();
 	for (var i = 0; i < permissions.length; i++) {
-		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && (permissions[i].getType() == "1" || permissions[i].getType() == "2")) {
-			return tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), permissions[i].getSymEncSessionKey());
-		}
-	}
-	var memberships = user.getMemberships();
-	for (var i = 0; i < permissions.length; i++) {
-		for (var a = 0; a < memberships.length; a++) {
-			if (permissions[i].getGroup() == memberships[a].getGroup() && (permissions[i].getType() == "1" || permissions[i].getType() == "2")) {
-				var groupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[a].getSymEncGKey());
-				return tutao.locator.aesCrypter.decryptKey(groupKey, permissions[i].getSymEncSessionKey());
-			}
+		if (permissions[i].getType() == "1" || permissions[i].getType() == "2") {
+            var permissionOwnerGroupKey = tutao.locator.userController.getGroupKey(permissions[i].getOwnerGroup());
+            if (permissionOwnerGroupKey != null) {
+                return tutao.locator.aesCrypter.decryptKey(permissionOwnerGroupKey, permissions[i].getOwnerEncSessionKey());
+            }
 		}
 	}
 	return null;
@@ -268,18 +282,11 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
 	var user = tutao.locator.userController.getLoggedInUser();
     var groupKey;
 	for (var i = 0; i < permissions.length; i++) {
-		if (permissions[i].getGroup() == user.getUserGroup().getGroup() && permissions[i].getType() == "0") {
-			groupKey = tutao.locator.userController.getUserGroupKey();
-			return self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey);
-		}
-	}
-	var memberships = user.getMemberships();
-	for (var i = 0; i < permissions.length; i++) {
-		for (var a = 0; a < memberships.length; a++) {
-			if (permissions[i].getGroup() == memberships[a].getGroup() && permissions[i].getType() == "0") {
-                groupKey = tutao.locator.aesCrypter.decryptKey(tutao.locator.userController.getUserGroupKey(), memberships[a].getSymEncGKey());
-				return self._loadPublicBucketPermissionSessionKey(permissions[i], groupKey);
-			}
+		if (permissions[i].getType() == "0") {
+            var permissionOwnerGroupKey = tutao.locator.userController.getGroupKey(permissions[i].getOwnerGroup());
+            if (permissionOwnerGroupKey != null) {
+                return self._loadPublicBucketPermissionSessionKey(permissions[i], permissionOwnerGroupKey);
+            }
 		}
 	}
 	return Promise.resolve(null);
@@ -289,40 +296,23 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
  * Updates the given public permission with the given symmetric key for faster access.
  * @param {tutao.entity.sys.Permission} permission The permission.
  * @param {tutao.entity.sys.BucketPermission} bucketPermission The bucket permission.
- * @param {Object} groupKey The symmetric group key.
+ * @param {Object} permissionOwnerGroupKey The symmetric group key.
  * @param {Object} sessionKey The symmetric session key.
  * @return {Promise} When finished.
  */
-tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, groupKey, sessionKey) {
+tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, permissionOwnerGroupKey, sessionKey) {
 	var self = this;
-	if (this._entity.getListEncSessionKey) {
-		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
-            self._entity.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(listKey, sessionKey));
-            return self._entity.updateListEncSessionKey();
-		}).caught(function(e) {
-            console.log("this exception is ok for testing if another user is logged asynchronously (this method is not waiting executed synchronous)", e);
-        });
+	if (!this._entity.getOwnerEncSessionKey() && permission.getOwnerGroup() == self._entity.getOwnerGroup()) {
+            self._entity.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(permissionOwnerGroupKey, sessionKey));
+            return self._entity.updateOwnerEncSessionKey();
 	} else {
 		var updateService = new tutao.entity.sys.UpdatePermissionKeyData();
 		updateService.setPermission(permission.getId());
 		updateService.setBucketPermission(bucketPermission.getId());
-		updateService.setSymEncSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, sessionKey));
-		updateService.setSymEncBucketKey(null);
-		updateService.setBucketEncSessionKey(null);
+		updateService.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(permissionOwnerGroupKey, sessionKey));
+        updateService.setSymEncSessionKey(null);
 		return updateService.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 	}
-};
-
-/**
- * Downloads the list key and encrypts the session key of the instance with this key.
- * @param {string} listId The id of the list.
- * @return {Promise.<string>}
- */
-tutao.entity.EntityHelper.prototype.createListEncSessionKey = function(listId) {
-	var self = this;
-	return tutao.entity.EntityHelper.getListKey(listId).then(function(listKey, exception) {
-		return tutao.locator.aesCrypter.encryptKey(listKey, self.getSessionKey());
-	});
 };
 
 /**
@@ -339,16 +329,16 @@ tutao.entity.EntityHelper.prototype._loadBucketPermissions = function(bucketId) 
  * Loads the session key from the given public permission. Updates the permission on the server with the
  * symmetric encrypted session key.
  * @param {tutao.entity.sys.Permission} permission The permission that contains the bucket encrypted session key.
- * @param {Object} groupKey The symmetric group key of the owner group of the permission.
+ * @param {Object} permissionOwnerGroupKey The symmetric group key of the owner group of the permission.
  * @return {Promise.<Object>} Resolves to the session key. Rejects if decrypting the session key failed or the group could not be loaded.
  */
-tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, groupKey) {
+tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = function(permission, permissionOwnerGroupKey) {
 	var self = this;
 	return this._loadBucketPermissions(permission.getBucket().getBucketPermissions()).then(function(bucketPermissions) {
 		// find the bucket permission with the same group as the permission and public type
 		var bucketPermission = null;
 		for (var i = 0; i < bucketPermissions.length; i++) {
-			if (bucketPermissions[i].getType() == "2" && permission.getGroup() == bucketPermissions[i].getGroup()) {
+			if (bucketPermissions[i].getType() == "2" && permission.getOwnerGroup() == bucketPermissions[i].getOwnerGroup()) {
 				bucketPermission = bucketPermissions[i];
 				break;
 			}
@@ -356,13 +346,27 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
 		if (bucketPermission == null) {
 			throw new Error("no corresponding bucket permission found");
 		}
-		return tutao.entity.sys.Group.load(permission.getGroup()).then(function(group) {
-			var privateKey = self._getPrivateKey(group, Number(bucketPermission.getPubKeyVersion()), groupKey);
+
+        var keyPairGroupId;
+        var keyPairGroupKey;
+        if (tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL) == permission.getOwnerGroup() ||
+            tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT) == permission.getOwnerGroup() ||
+            tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE) == permission.getOwnerGroup()) {
+            // as long as the key pair is located on the user group, load it from there
+            keyPairGroupId = tutao.locator.userController.getUserGroupId();
+            keyPairGroupKey = tutao.locator.userController.getUserGroupKey();
+        } else {
+            keyPairGroupId = permission.getOwnerGroup();
+            keyPairGroupKey = permissionOwnerGroupKey;
+        }
+
+		return tutao.entity.sys.Group.load(keyPairGroupId).then(function(keyPairGroup) {
+			var privateKey = self._getPrivateKey(keyPairGroup, Number(bucketPermission.getPubKeyVersion()), keyPairGroupKey);
             return tutao.locator.crypto.rsaDecrypt(privateKey, tutao.util.EncodingConverter.base64ToUint8Array(bucketPermission.getPubEncBucketKey())).then(function(bucketKeyBytes) {
                 var bucketKey = sjcl.codec.bytes.toBits(bucketKeyBytes);
                 var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
                 // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
-                return self._updateWithSymPermissionKey(permission, bucketPermission, groupKey, sessionKey).then(function() {
+                return self._updateWithSymPermissionKey(permission, bucketPermission, permissionOwnerGroupKey, sessionKey).then(function() {
                     return sessionKey;
                 });
             });
@@ -390,39 +394,13 @@ tutao.entity.EntityHelper.prototype._getPrivateKey = function(group, version, sy
 };
 
 /**
- * Returns a map which contains the encrypted session key for post requests.
- * @param {tutao.entity.BucketData} bucketData The bucket for which the shared permission shall be created
- * @return {Object.<string, string>} The post permission map.
- */
-tutao.entity.EntityHelper.prototype.createPostPermissionMap = function(bucketData) {
-	// use the user group as owner for now
-	var map = {};
-	map[tutao.rest.ResourceConstants.GROUP_ID] = tutao.locator.userController.getUserGroupId();
-	if (this._entity.ENCRYPTED) {
-		var symEncSessionKey = tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), this.getSessionKey());
-		map[tutao.rest.ResourceConstants.SYM_ENC_SESSION_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(symEncSessionKey);
-		map[tutao.rest.ResourceConstants.BUCKET_ENC_SESSION_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.aesCrypter.encryptKey(bucketData.getBucketKey(), this.getSessionKey()));
-	}
-	map[tutao.rest.ResourceConstants.BUCKET_PERMISSION_LIST_ID] = bucketData.getBucketId();
-	return map;
-};
-
-/**
  * Returns a map which contains the permission data for creating a list.
- * @param {tutao.entity.BucketData} bucketData The bucket for which the shared permission shall be created
- * @param {boolean} encrypted True if the type for which the list shall be created is encrypted, false otherwise.
+ * @param {string} groupId The group for which the list is created.
  * @return {Object.<string, string>} The map.
  */
-tutao.entity.EntityHelper.createPostListPermissionMap = function(bucketData, encrypted) {
-	// user the user group as owner for now
-	var listKey = tutao.locator.aesCrypter.generateRandomKey();
+tutao.entity.EntityHelper.createPostListPermissionMap = function(groupId) {
 	var map = {};
-	map[tutao.rest.ResourceConstants.GROUP_ID] = tutao.locator.userController.getUserGroupId();
-	if (encrypted) {
-		map[tutao.rest.ResourceConstants.SYM_ENC_LIST_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), listKey));
-		map[tutao.rest.ResourceConstants.BUCKET_ENC_LIST_KEY] = tutao.util.EncodingConverter.base64ToBase64Url(tutao.locator.aesCrypter.encryptKey(bucketData.getBucketKey(), listKey));
-	}
-	map[tutao.rest.ResourceConstants.BUCKET_PERMISSION_LIST_ID] = bucketData.getBucketId();
+	map[tutao.rest.ResourceConstants.GROUP_ID] = groupId;
 	return map;
 };
 

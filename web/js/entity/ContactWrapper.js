@@ -20,9 +20,14 @@ tutao.entity.tutanota.ContactWrapper._editableContactsCache = [];
  * @return {tutao.entity.tutanota.ContactWrapper} The wrapped empty contact.
  */
 tutao.entity.tutanota.ContactWrapper.createEmptyContactWrapper = function() {
-	var contact = new tutao.entity.tutanota.Contact();
-    contact.setOwner(tutao.locator.userController.getUserGroupId());
-    contact.setArea(tutao.entity.tutanota.TutanotaConstants.AREA_CONTACTS);
+    var contactGroupId = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT);
+    var contact = new tutao.entity.tutanota.Contact();
+    // an external user does not have a contact group
+    var contactEncSessionKey = (contactGroupId == null) ? null : tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getGroupKey(contactGroupId), contact.getEntityHelper().getSessionKey());
+    contact.setOwnerGroup(contactGroupId);
+    contact.setOwnerEncSessionKey(contactEncSessionKey);
+    contact.setOwner(tutao.locator.userController.getUserGroupId()); // legacy
+    contact.setArea("0"); // legacy
 	contact.setFirstName("");
 	contact.setLastName("");
 	contact.setCompany("");

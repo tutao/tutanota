@@ -30,7 +30,7 @@ tutao.entity.sys.SaltReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SaltReturn.MODEL_VERSION = '16';
+tutao.entity.sys.SaltReturn.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -110,7 +110,7 @@ tutao.entity.sys.SaltReturn.load = function(entity, parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   return tutao.locator.entityRestClient.getService(tutao.entity.sys.SaltReturn, tutao.entity.sys.SaltReturn.PATH, entity, parameters, headers);
 };
 /**

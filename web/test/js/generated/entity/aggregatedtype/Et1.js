@@ -14,6 +14,8 @@ tutao.entity.aggregatedtype.Et1 = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._anyAggregated = [];
     this._oneAggregated = null;
@@ -31,6 +33,8 @@ tutao.entity.aggregatedtype.Et1.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._anyAggregated = [];
   for (var i=0; i < data.anyAggregated.length; i++) {
@@ -55,7 +59,7 @@ tutao.entity.aggregatedtype.Et1.PATH = '/rest/aggregatedtype/et1';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.aggregatedtype.Et1.ROOT_INSTANCE_ID = 'DmFnZ3JlZ2F0ZWR0eXBlAAw';
+tutao.entity.aggregatedtype.Et1.ROOT_INSTANCE_ID = 'DmFnZ3JlZ2F0ZWR0eXBlAA8';
 
 /**
  * The generated id type flag.
@@ -79,6 +83,8 @@ tutao.entity.aggregatedtype.Et1.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     anyAggregated: tutao.entity.EntityHelper.aggregatesToJsonData(this._anyAggregated), 
     oneAggregated: tutao.entity.EntityHelper.aggregatesToJsonData(this._oneAggregated)
@@ -88,27 +94,37 @@ tutao.entity.aggregatedtype.Et1.prototype.toJsonData = function() {
 /**
  * The id of the Et1 type.
  */
-tutao.entity.aggregatedtype.Et1.prototype.TYPE_ID = 12;
+tutao.entity.aggregatedtype.Et1.prototype.TYPE_ID = 15;
 
 /**
  * The id of the _area attribute.
  */
-tutao.entity.aggregatedtype.Et1.prototype._AREA_ATTRIBUTE_ID = 18;
+tutao.entity.aggregatedtype.Et1.prototype._AREA_ATTRIBUTE_ID = 23;
 
 /**
  * The id of the _owner attribute.
  */
-tutao.entity.aggregatedtype.Et1.prototype._OWNER_ATTRIBUTE_ID = 17;
+tutao.entity.aggregatedtype.Et1.prototype._OWNER_ATTRIBUTE_ID = 22;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.aggregatedtype.Et1.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 21;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.aggregatedtype.Et1.prototype._OWNERGROUP_ATTRIBUTE_ID = 20;
 
 /**
  * The id of the anyAggregated attribute.
  */
-tutao.entity.aggregatedtype.Et1.prototype.ANYAGGREGATED_ATTRIBUTE_ID = 35;
+tutao.entity.aggregatedtype.Et1.prototype.ANYAGGREGATED_ATTRIBUTE_ID = 40;
 
 /**
  * The id of the oneAggregated attribute.
  */
-tutao.entity.aggregatedtype.Et1.prototype.ONEAGGREGATED_ATTRIBUTE_ID = 34;
+tutao.entity.aggregatedtype.Et1.prototype.ONEAGGREGATED_ATTRIBUTE_ID = 39;
 
 /**
  * Provides the id of this Et1.
@@ -170,6 +186,40 @@ tutao.entity.aggregatedtype.Et1.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerEncSessionKey of this Et1.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Et1.
+ */
+tutao.entity.aggregatedtype.Et1.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this Et1.
+ * @return {string} The ownerEncSessionKey of this Et1.
+ */
+tutao.entity.aggregatedtype.Et1.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this Et1.
+ * @param {string} ownerGroup The ownerGroup of this Et1.
+ */
+tutao.entity.aggregatedtype.Et1.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this Et1.
+ * @return {string} The ownerGroup of this Et1.
+ */
+tutao.entity.aggregatedtype.Et1.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this Et1.
  * @param {string} permissions The permissions of this Et1.
  */
@@ -217,7 +267,7 @@ tutao.entity.aggregatedtype.Et1.prototype.getOneAggregated = function() {
  * @return {Promise.<tutao.entity.aggregatedtype.Et1>} Resolves to the Et1 or an exception if the loading failed.
  */
 tutao.entity.aggregatedtype.Et1.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, id, null, {"v" : 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -228,20 +278,18 @@ tutao.entity.aggregatedtype.Et1.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.aggregatedtype.Et1>>} Resolves to an array of Et1 or rejects with an exception if the loading failed.
  */
 tutao.entity.aggregatedtype.Et1.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, ids, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.aggregatedtype.Et1, tutao.entity.aggregatedtype.Et1.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
 /**
  * Stores this Et1 on the server and updates this instance with _id and _permission values generated on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on instance shall be created.
  * @return {Promise.<>} Resolves when finished, rejected if the post failed.
  */
-tutao.entity.aggregatedtype.Et1.prototype.setup = function(bucketData) {
+tutao.entity.aggregatedtype.Et1.prototype.setup = function() {
   var self = this;
-  var params = this._entityHelper.createPostPermissionMap(bucketData)
-  params["v"] = 1
+  var params = { "v" : "1" };
   return tutao.locator.entityRestClient.postElement(tutao.entity.aggregatedtype.Et1.PATH, this, null, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     self.__id = entity.getGeneratedId();
     self.setPermissions(entity.getPermissionListId());
@@ -250,12 +298,23 @@ tutao.entity.aggregatedtype.Et1.prototype.setup = function(bucketData) {
 };
 
 /**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.aggregatedtype.Et1.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "1";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.aggregatedtype.Et1.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
  * Updates this Et1 on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
 tutao.entity.aggregatedtype.Et1.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.aggregatedtype.Et1.PATH, this, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.aggregatedtype.Et1.PATH, this, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -266,7 +325,7 @@ tutao.entity.aggregatedtype.Et1.prototype.update = function() {
  */
 tutao.entity.aggregatedtype.Et1.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.aggregatedtype.Et1.PATH, this.__id, null, {"v": 1}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.aggregatedtype.Et1.PATH, this.__id, null, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };

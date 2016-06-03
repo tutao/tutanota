@@ -12,7 +12,8 @@ tutao.entity.tutanota.MailFolder = function(data) {
   } else {
     this.__format = "0";
     this.__id = null;
-    this.__listEncSessionKey = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._folderType = null;
     this._name = null;
@@ -32,7 +33,8 @@ tutao.entity.tutanota.MailFolder = function(data) {
 tutao.entity.tutanota.MailFolder.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
-  this.__listEncSessionKey = data._listEncSessionKey;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._folderType = data.folderType;
   this._name = data.name;
@@ -46,7 +48,7 @@ tutao.entity.tutanota.MailFolder.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailFolder.MODEL_VERSION = '12';
+tutao.entity.tutanota.MailFolder.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -80,7 +82,8 @@ tutao.entity.tutanota.MailFolder.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     _id: this.__id, 
-    _listEncSessionKey: this.__listEncSessionKey, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     folderType: this._folderType, 
     name: this._name, 
@@ -94,6 +97,16 @@ tutao.entity.tutanota.MailFolder.prototype.toJsonData = function() {
  * The id of the MailFolder type.
  */
 tutao.entity.tutanota.MailFolder.prototype.TYPE_ID = 429;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.tutanota.MailFolder.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 434;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.MailFolder.prototype._OWNERGROUP_ATTRIBUTE_ID = 589;
 
 /**
  * The id of the folderType attribute.
@@ -146,20 +159,37 @@ tutao.entity.tutanota.MailFolder.prototype.getFormat = function() {
 };
 
 /**
- * Sets the listEncSessionKey of this MailFolder.
- * @param {string} listEncSessionKey The listEncSessionKey of this MailFolder.
+ * Sets the ownerEncSessionKey of this MailFolder.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this MailFolder.
  */
-tutao.entity.tutanota.MailFolder.prototype.setListEncSessionKey = function(listEncSessionKey) {
-  this.__listEncSessionKey = listEncSessionKey;
+tutao.entity.tutanota.MailFolder.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncSessionKey of this MailFolder.
- * @return {string} The listEncSessionKey of this MailFolder.
+ * Provides the ownerEncSessionKey of this MailFolder.
+ * @return {string} The ownerEncSessionKey of this MailFolder.
  */
-tutao.entity.tutanota.MailFolder.prototype.getListEncSessionKey = function() {
-  return this.__listEncSessionKey;
+tutao.entity.tutanota.MailFolder.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this MailFolder.
+ * @param {string} ownerGroup The ownerGroup of this MailFolder.
+ */
+tutao.entity.tutanota.MailFolder.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this MailFolder.
+ * @return {string} The ownerGroup of this MailFolder.
+ */
+tutao.entity.tutanota.MailFolder.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
 };
 
 /**
@@ -297,7 +327,7 @@ tutao.entity.tutanota.MailFolder.prototype.getSubFolders = function() {
  * @return {Promise.<tutao.entity.tutanota.MailFolder>} Resolves to the MailFolder or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, id[1], id[0], {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, id[1], id[0], {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -308,19 +338,19 @@ tutao.entity.tutanota.MailFolder.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailFolder>>} Resolves to an array of MailFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
 
 /**
- * Updates the listEncSessionKey on the server.
+ * Updates the ownerEncSessionKey on the server.
  * @return {Promise.<>} Resolves when finished, rejected if the update failed.
  */
-tutao.entity.tutanota.MailFolder.prototype.updateListEncSessionKey = function() {
+tutao.entity.tutanota.MailFolder.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 12;
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -330,7 +360,7 @@ tutao.entity.tutanota.MailFolder.prototype.updateListEncSessionKey = function() 
  */
 tutao.entity.tutanota.MailFolder.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -344,7 +374,7 @@ tutao.entity.tutanota.MailFolder.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailFolder>>} Resolves to an array of MailFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, listId, start, count, reverse, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, listId, start, count, reverse, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

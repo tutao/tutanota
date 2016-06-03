@@ -165,6 +165,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
             return Promise.resolve();
         }
     }).then(function() {
+        // migration for group infos when admin logs in
+        return self._migrateGroupInfos();
+    }).then(function() {
         var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
         tutao.locator.mailFolderListViewModel.selectedFolder(folder);
         return tutao.locator.navigator.mail().then(function() {
@@ -181,6 +184,34 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
             });
         });
     });
+};
+
+/**
+ * Migrates the group infos if
+ * - an admin is logged in and
+ * - the admin itself is already migrated and
+ * - the admin user's group info is not yet migrated
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype._migrateGroupInfos = function () {
+    var user = tutao.locator.userController.getLoggedInUser();
+    if (tutao.locator.userController.isLoggedInUserAdmin() && user.getOwnerGroup() && !tutao.locator.userController.getUserGroupInfo().getOwnerGroup()) {
+        return user.loadCustomer().then(function(customer) {
+            return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.GroupInfo, customer.getUserGroups(), tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(groupInfos) {
+                var customerGroupKey = tutao.locator.userController.getGroupKey(tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CUSTOMER));
+                var data = new tutao.entity.sys.MigrateGroupInfosData();
+                return Promise.each(groupInfos, function(groupInfo) {
+                    var groupInfoData = new tutao.entity.sys.MigratedGroupInfoData(data);
+                    groupInfoData.setGroupInfo(groupInfo.getId());
+                    groupInfoData.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, groupInfo.getEntityHelper().getSessionKey()));
+                    data.getGroupInfos().push(groupInfoData);
+                }).then(function() {
+                    return data.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
+                });
+            });
+        });
+    } else {
+        return Promise.resolve();
+    }
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype._getInfoMails = function () {

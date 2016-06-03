@@ -14,6 +14,7 @@ tutao.entity.sys.PushIdentifier = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._identifier = null;
     this._language = null;
@@ -32,6 +33,7 @@ tutao.entity.sys.PushIdentifier.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._identifier = data.identifier;
   this._language = data.language;
@@ -42,7 +44,7 @@ tutao.entity.sys.PushIdentifier.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PushIdentifier.MODEL_VERSION = '16';
+tutao.entity.sys.PushIdentifier.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -78,6 +80,7 @@ tutao.entity.sys.PushIdentifier.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     identifier: this._identifier, 
     language: this._language, 
@@ -99,6 +102,11 @@ tutao.entity.sys.PushIdentifier.prototype._AREA_ATTRIBUTE_ID = 631;
  * The id of the _owner attribute.
  */
 tutao.entity.sys.PushIdentifier.prototype._OWNER_ATTRIBUTE_ID = 630;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.sys.PushIdentifier.prototype._OWNERGROUP_ATTRIBUTE_ID = 1028;
 
 /**
  * The id of the identifier attribute.
@@ -175,6 +183,23 @@ tutao.entity.sys.PushIdentifier.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerGroup of this PushIdentifier.
+ * @param {string} ownerGroup The ownerGroup of this PushIdentifier.
+ */
+tutao.entity.sys.PushIdentifier.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this PushIdentifier.
+ * @return {string} The ownerGroup of this PushIdentifier.
+ */
+tutao.entity.sys.PushIdentifier.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this PushIdentifier.
  * @param {string} permissions The permissions of this PushIdentifier.
  */
@@ -248,7 +273,7 @@ tutao.entity.sys.PushIdentifier.prototype.getPushServiceType = function() {
  * @return {Promise.<tutao.entity.sys.PushIdentifier>} Resolves to the PushIdentifier or an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, id[1], id[0], {"v" : 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -259,7 +284,7 @@ tutao.entity.sys.PushIdentifier.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.PushIdentifier>>} Resolves to an array of PushIdentifier or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, ids, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -272,21 +297,10 @@ tutao.entity.sys.PushIdentifier.loadMultiple = function(ids) {
 tutao.entity.sys.PushIdentifier.prototype.setup = function(listId) {
   var self = this;
   self._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-      self.__id = [listId, entity.getGeneratedId()];
-      self.setPermissions(entity.getPermissionListId());
+  return tutao.locator.entityRestClient.postElement(tutao.entity.sys.PushIdentifier.PATH, self, listId, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+    self.__id = [listId, entity.getGeneratedId()];
+    self.setPermissions(entity.getPermissionListId());
   });
-};
-
-/**
- * Updates the listEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
- */
-tutao.entity.sys.PushIdentifier.prototype.updateListEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY] = "true";
-  params["v"] = 16;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**
@@ -295,7 +309,7 @@ tutao.entity.sys.PushIdentifier.prototype.updateListEncSessionKey = function() {
  */
 tutao.entity.sys.PushIdentifier.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.PushIdentifier.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -306,19 +320,19 @@ tutao.entity.sys.PushIdentifier.prototype.update = function() {
  */
 tutao.entity.sys.PushIdentifier.prototype.erase = function() {
   var self = this;
-  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.PushIdentifier.PATH, this.__id[1], this.__id[0], {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
+  return tutao.locator.entityRestClient.deleteElement(tutao.entity.sys.PushIdentifier.PATH, this.__id[1], this.__id[0], {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(data) {
     self._entityHelper.notifyObservers(true);
   });
 };
 
 /**
  * Creates a new PushIdentifier list on the server.
- * @param {tutao.entity.BucketData} bucketData The bucket data for which the share permission on the list shall be created.
- * @return {Promise.<string=>} Resolves to the id of the new tutao.entity.sys.PushIdentifier list or rejects with an exception if the createList failed.
+ * @param {string} ownerGroupId The group for which the list shall be created.
+ * @return {Promise.<string>} Resolves to the id of the new tutao.entity.sys.PushIdentifier list or rejects with an exception if the createList failed.
  */
-tutao.entity.sys.PushIdentifier.createList = function(bucketData) {
-  var params = tutao.entity.EntityHelper.createPostListPermissionMap(bucketData, false);
-  params["v"] = 16;
+tutao.entity.sys.PushIdentifier.createList = function(ownerGroupId) {
+  var params = tutao.entity.EntityHelper.createPostListPermissionMap(ownerGroupId);
+  params["v"] = "17";
   return tutao.locator.entityRestClient.postList(tutao.entity.sys.PushIdentifier.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function(returnEntity) {
     return returnEntity.getGeneratedId();
   });
@@ -333,7 +347,7 @@ tutao.entity.sys.PushIdentifier.createList = function(bucketData) {
  * @return {Promise.<Array.<tutao.entity.sys.PushIdentifier>>} Resolves to an array of PushIdentifier or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.PushIdentifier.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, listId, start, count, reverse, {"v": 16}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.PushIdentifier, tutao.entity.sys.PushIdentifier.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

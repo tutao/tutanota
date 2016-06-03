@@ -36,7 +36,7 @@ tutao.entity.sys.SendRegistrationCodeData.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SendRegistrationCodeData.MODEL_VERSION = '16';
+tutao.entity.sys.SendRegistrationCodeData.MODEL_VERSION = '17';
 
 /**
  * The url path to the resource.
@@ -178,13 +178,13 @@ tutao.entity.sys.SendRegistrationCodeData.prototype.getMobilePhoneNumber = funct
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.sys.SendRegistrationCodeReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.SendRegistrationCodeReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.SendRegistrationCodeData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 16;
+  parameters["v"] = "17";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.SendRegistrationCodeData.PATH, this, parameters, headers, tutao.entity.sys.SendRegistrationCodeReturn);
 };

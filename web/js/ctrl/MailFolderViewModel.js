@@ -486,14 +486,13 @@ tutao.tutanota.ctrl.MailFolderViewModel.prototype.createSubFolder = function() {
     var self = this;
     tutao.locator.folderNameDialogViewModel.showDialog("folderNameCreate_label", "", self.getSubFolderNames()).then(function(folderName) {
         if (folderName) {
-            tutao.entity.EntityHelper.getListKey(self._getSubFolderListId()).then(function(subFolderListKey) {
-                var createService = new tutao.entity.tutanota.CreateMailFolderData();
-                createService.setFolderName(folderName);
-                createService.setParentFolder(self.getMailFolderId());
-                createService.setListEncSessionKey(tutao.locator.aesCrypter.encryptKey(subFolderListKey, createService.getEntityHelper().getSessionKey()));
-                createService.setup({}, null).then(function(newFolderReturn){
-                    self._loadSubFolder(newFolderReturn.getNewFolder());
-                });
+            var mailGroupKey = tutao.locator.mailBoxController.getMailGroupKey();
+            var createService = new tutao.entity.tutanota.CreateMailFolderData();
+            createService.setFolderName(folderName);
+            createService.setParentFolder(self.getMailFolderId());
+            createService.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(mailGroupKey, createService.getEntityHelper().getSessionKey()));
+            createService.setup({}, null).then(function(newFolderReturn){
+                self._loadSubFolder(newFolderReturn.getNewFolder());
             });
         }
     });

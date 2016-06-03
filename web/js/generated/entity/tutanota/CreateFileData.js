@@ -14,7 +14,7 @@ tutao.entity.tutanota.CreateFileData = function(data) {
     this._fileName = null;
     this._fileName_ = null;
     this._group = null;
-    this._listEncSessionKey = null;
+    this._ownerEncSessionKey = null;
     this._mimeType = null;
     this._mimeType_ = null;
     this._fileData = null;
@@ -33,7 +33,7 @@ tutao.entity.tutanota.CreateFileData.prototype.updateData = function(data) {
   this._fileName = data.fileName;
   this._fileName_ = null;
   this._group = data.group;
-  this._listEncSessionKey = data.listEncSessionKey;
+  this._ownerEncSessionKey = data.ownerEncSessionKey;
   this._mimeType = data.mimeType;
   this._mimeType_ = null;
   this._fileData = data.fileData;
@@ -44,7 +44,7 @@ tutao.entity.tutanota.CreateFileData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CreateFileData.MODEL_VERSION = '12';
+tutao.entity.tutanota.CreateFileData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -67,7 +67,7 @@ tutao.entity.tutanota.CreateFileData.prototype.toJsonData = function() {
     _format: this.__format, 
     fileName: this._fileName, 
     group: this._group, 
-    listEncSessionKey: this._listEncSessionKey, 
+    ownerEncSessionKey: this._ownerEncSessionKey, 
     mimeType: this._mimeType, 
     fileData: this._fileData, 
     parentFolder: this._parentFolder
@@ -90,9 +90,9 @@ tutao.entity.tutanota.CreateFileData.prototype.FILENAME_ATTRIBUTE_ID = 348;
 tutao.entity.tutanota.CreateFileData.prototype.GROUP_ATTRIBUTE_ID = 350;
 
 /**
- * The id of the listEncSessionKey attribute.
+ * The id of the ownerEncSessionKey attribute.
  */
-tutao.entity.tutanota.CreateFileData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 351;
+tutao.entity.tutanota.CreateFileData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 351;
 
 /**
  * The id of the mimeType attribute.
@@ -180,20 +180,20 @@ tutao.entity.tutanota.CreateFileData.prototype.getGroup = function() {
 };
 
 /**
- * Sets the listEncSessionKey of this CreateFileData.
- * @param {string} listEncSessionKey The listEncSessionKey of this CreateFileData.
+ * Sets the ownerEncSessionKey of this CreateFileData.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this CreateFileData.
  */
-tutao.entity.tutanota.CreateFileData.prototype.setListEncSessionKey = function(listEncSessionKey) {
-  this._listEncSessionKey = listEncSessionKey;
+tutao.entity.tutanota.CreateFileData.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this._ownerEncSessionKey = ownerEncSessionKey;
   return this;
 };
 
 /**
- * Provides the listEncSessionKey of this CreateFileData.
- * @return {string} The listEncSessionKey of this CreateFileData.
+ * Provides the ownerEncSessionKey of this CreateFileData.
+ * @return {string} The ownerEncSessionKey of this CreateFileData.
  */
-tutao.entity.tutanota.CreateFileData.prototype.getListEncSessionKey = function() {
-  return this._listEncSessionKey;
+tutao.entity.tutanota.CreateFileData.prototype.getOwnerEncSessionKey = function() {
+  return this._ownerEncSessionKey;
 };
 
 /**
@@ -286,13 +286,13 @@ tutao.entity.tutanota.CreateFileData.prototype.loadParentFolder = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.CreateFileReturn=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.CreateFileReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.CreateFileData.prototype.setup = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.CreateFileData.PATH, this, parameters, headers, tutao.entity.tutanota.CreateFileReturn);
 };

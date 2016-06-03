@@ -63,12 +63,12 @@ describe.skip("EntityRestCacheTest", function () {
     var initMailElements = function () {
         var self = this;
         var mailList = createMailElements(10);
-        var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(BucketTestUtils.createDummyBucketData(), true));
+        var params = EntityRestTestFunctions.getVersionParams(tutao.entity.EntityHelper.createPostListPermissionMap(true));
 
         return tutao.locator.entityRestClient.postList(tutao.entity.tutanota.Mail.PATH, params, tutao.entity.EntityHelper.createAuthHeaders()).then(function (returnEntity) {
             var listId = returnEntity.getGeneratedId();
             return Promise.each(mailList, function (mailElement) {
-                var elementParams = EntityRestTestFunctions.getVersionParams(mailElement._entityHelper.createPostPermissionMap(BucketTestUtils.createDummyBucketData()));
+                var elementParams = EntityRestTestFunctions.getVersionParams();
                 return tutao.locator.entityRestClient.postElement(tutao.entity.tutanota.Mail.PATH, mailElement, listId, elementParams, tutao.entity.EntityHelper.createAuthHeaders()).then(function (returnEntity) {
                 });
             }).then(function () {

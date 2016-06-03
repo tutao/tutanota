@@ -106,7 +106,7 @@ tutao.rest.ResourceConstants.BUCKET_PERMISSION_LIST_ID = "bucketList";
 /**
  * @const
  */
-tutao.rest.ResourceConstants.UPDATE_LIST_ENC_SESSION_KEY = "updateListEncSessionKey";
+tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY = "updateOwnerEncSessionKey";
 
 // public key service get request
 

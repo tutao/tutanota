@@ -30,7 +30,7 @@ tutao.entity.tutanota.DeleteMailData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.DeleteMailData.MODEL_VERSION = '12';
+tutao.entity.tutanota.DeleteMailData.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -94,13 +94,13 @@ tutao.entity.tutanota.DeleteMailData.prototype.getMails = function() {
  * Invokes DELETE on a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<tutao.entity.tutanota.DeleteMailData=>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.tutanota.DeleteMailData>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.tutanota.DeleteMailData.prototype.erase = function(parameters, headers) {
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = 12;
+  parameters["v"] = "13";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.tutanota.DeleteMailData.PATH, this, parameters, headers, null);
 };

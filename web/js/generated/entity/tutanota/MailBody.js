@@ -14,6 +14,8 @@ tutao.entity.tutanota.MailBody = function(data) {
     this.__format = "0";
     this.__id = null;
     this.__owner = null;
+    this.__ownerEncSessionKey = null;
+    this.__ownerGroup = null;
     this.__permissions = null;
     this._text = null;
     this._text_ = null;
@@ -31,6 +33,8 @@ tutao.entity.tutanota.MailBody.prototype.updateData = function(data) {
   this.__format = data._format;
   this.__id = data._id;
   this.__owner = data._owner;
+  this.__ownerEncSessionKey = data._ownerEncSessionKey;
+  this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._text = data.text;
   this._text_ = null;
@@ -40,7 +44,7 @@ tutao.entity.tutanota.MailBody.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailBody.MODEL_VERSION = '12';
+tutao.entity.tutanota.MailBody.MODEL_VERSION = '13';
 
 /**
  * The url path to the resource.
@@ -76,6 +80,8 @@ tutao.entity.tutanota.MailBody.prototype.toJsonData = function() {
     _format: this.__format, 
     _id: this.__id, 
     _owner: this.__owner, 
+    _ownerEncSessionKey: this.__ownerEncSessionKey, 
+    _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     text: this._text
   };
@@ -95,6 +101,16 @@ tutao.entity.tutanota.MailBody.prototype._AREA_ATTRIBUTE_ID = 42;
  * The id of the _owner attribute.
  */
 tutao.entity.tutanota.MailBody.prototype._OWNER_ATTRIBUTE_ID = 41;
+
+/**
+ * The id of the _ownerEncSessionKey attribute.
+ */
+tutao.entity.tutanota.MailBody.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 584;
+
+/**
+ * The id of the _ownerGroup attribute.
+ */
+tutao.entity.tutanota.MailBody.prototype._OWNERGROUP_ATTRIBUTE_ID = 583;
 
 /**
  * The id of the text attribute.
@@ -161,6 +177,40 @@ tutao.entity.tutanota.MailBody.prototype.getOwner = function() {
 };
 
 /**
+ * Sets the ownerEncSessionKey of this MailBody.
+ * @param {string} ownerEncSessionKey The ownerEncSessionKey of this MailBody.
+ */
+tutao.entity.tutanota.MailBody.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
+  this.__ownerEncSessionKey = ownerEncSessionKey;
+  return this;
+};
+
+/**
+ * Provides the ownerEncSessionKey of this MailBody.
+ * @return {string} The ownerEncSessionKey of this MailBody.
+ */
+tutao.entity.tutanota.MailBody.prototype.getOwnerEncSessionKey = function() {
+  return this.__ownerEncSessionKey;
+};
+
+/**
+ * Sets the ownerGroup of this MailBody.
+ * @param {string} ownerGroup The ownerGroup of this MailBody.
+ */
+tutao.entity.tutanota.MailBody.prototype.setOwnerGroup = function(ownerGroup) {
+  this.__ownerGroup = ownerGroup;
+  return this;
+};
+
+/**
+ * Provides the ownerGroup of this MailBody.
+ * @return {string} The ownerGroup of this MailBody.
+ */
+tutao.entity.tutanota.MailBody.prototype.getOwnerGroup = function() {
+  return this.__ownerGroup;
+};
+
+/**
  * Sets the permissions of this MailBody.
  * @param {string} permissions The permissions of this MailBody.
  */
@@ -219,7 +269,7 @@ tutao.entity.tutanota.MailBody.prototype.getText = function() {
  * @return {Promise.<tutao.entity.tutanota.MailBody>} Resolves to the MailBody or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBody.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, id, null, {"v" : 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, id, null, {"v" : "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -230,8 +280,30 @@ tutao.entity.tutanota.MailBody.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailBody>>} Resolves to an array of MailBody or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailBody.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": 12}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailBody, tutao.entity.tutanota.MailBody.PATH, ids, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
+  });
+};
+
+/**
+ * Updates the ownerEncSessionKey on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.MailBody.prototype.updateOwnerEncSessionKey = function() {
+  var params = {};
+  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
+  params["v"] = "13";
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailBody.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
+};
+
+/**
+ * Updates this MailBody on the server.
+ * @return {Promise.<>} Resolves when finished, rejected if the update failed.
+ */
+tutao.entity.tutanota.MailBody.prototype.update = function() {
+  var self = this;
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailBody.PATH, this, {"v": "13"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+    self._entityHelper.notifyObservers(false);
   });
 };
 
