@@ -92,46 +92,6 @@ tutao.entity.sys.OutgoingShare.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the OutgoingShare type.
- */
-tutao.entity.sys.OutgoingShare.prototype.TYPE_ID = 271;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype._OWNERGROUP_ATTRIBUTE_ID = 1025;
-
-/**
- * The id of the app attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.APP_ATTRIBUTE_ID = 276;
-
-/**
- * The id of the referenceId attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.REFERENCEID_ATTRIBUTE_ID = 279;
-
-/**
- * The id of the referenceListId attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.REFERENCELISTID_ATTRIBUTE_ID = 278;
-
-/**
- * The id of the shareType attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.SHARETYPE_ATTRIBUTE_ID = 277;
-
-/**
- * The id of the shareholderMailAddress attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.SHAREHOLDERMAILADDRESS_ATTRIBUTE_ID = 280;
-
-/**
- * The id of the bucketPermission attribute.
- */
-tutao.entity.sys.OutgoingShare.prototype.BUCKETPERMISSION_ATTRIBUTE_ID = 281;
-
-/**
  * Provides the id of this OutgoingShare.
  * @return {Array.<string>} The id of this OutgoingShare.
  */

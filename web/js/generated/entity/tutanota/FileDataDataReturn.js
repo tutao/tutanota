@@ -56,16 +56,6 @@ tutao.entity.tutanota.FileDataDataReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileDataDataReturn type.
- */
-tutao.entity.tutanota.FileDataDataReturn.prototype.TYPE_ID = 339;
-
-/**
- * The id of the size attribute.
- */
-tutao.entity.tutanota.FileDataDataReturn.prototype.SIZE_ATTRIBUTE_ID = 341;
-
-/**
  * Sets the format of this FileDataDataReturn.
  * @param {string} format The format of this FileDataDataReturn.
  */

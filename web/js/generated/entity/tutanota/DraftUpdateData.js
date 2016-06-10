@@ -59,21 +59,6 @@ tutao.entity.tutanota.DraftUpdateData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DraftUpdateData type.
- */
-tutao.entity.tutanota.DraftUpdateData.prototype.TYPE_ID = 519;
-
-/**
- * The id of the draft attribute.
- */
-tutao.entity.tutanota.DraftUpdateData.prototype.DRAFT_ATTRIBUTE_ID = 522;
-
-/**
- * The id of the draftData attribute.
- */
-tutao.entity.tutanota.DraftUpdateData.prototype.DRAFTDATA_ATTRIBUTE_ID = 521;
-
-/**
  * Sets the format of this DraftUpdateData.
  * @param {string} format The format of this DraftUpdateData.
  */

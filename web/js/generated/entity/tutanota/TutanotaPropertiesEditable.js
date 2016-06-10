@@ -10,8 +10,6 @@ tutao.provide('tutao.entity.tutanota.TutanotaPropertiesEditable');
 tutao.entity.tutanota.TutanotaPropertiesEditable = function(tutanotaproperties) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = tutanotaproperties;
-	this._ownerEncSessionKey = ko.observable(tutanotaproperties.getOwnerEncSessionKey());
-	this._ownerGroup = ko.observable(tutanotaproperties.getOwnerGroup());
 	this.customEmailSignature = ko.observable(tutanotaproperties.getCustomEmailSignature());
 	this.defaultSender = ko.observable(tutanotaproperties.getDefaultSender());
 	this.defaultUnconfidential = ko.observable(tutanotaproperties.getDefaultUnconfidential());
@@ -47,8 +45,6 @@ tutao.entity.tutanota.TutanotaPropertiesEditable.prototype.getTutanotaProperties
  * Updates the underlying TutanotaProperties with the modified attributes.
  */
 tutao.entity.tutanota.TutanotaPropertiesEditable.prototype.update = function() {
-	this._entity.setOwnerEncSessionKey(this._ownerEncSessionKey());
-	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setCustomEmailSignature(this.customEmailSignature());
 	this._entity.setDefaultSender(this.defaultSender());
 	this._entity.setDefaultUnconfidential(this.defaultUnconfidential());

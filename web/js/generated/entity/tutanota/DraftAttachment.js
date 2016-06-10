@@ -46,26 +46,6 @@ tutao.entity.tutanota.DraftAttachment.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DraftAttachment type.
- */
-tutao.entity.tutanota.DraftAttachment.prototype.TYPE_ID = 491;
-
-/**
- * The id of the ownerEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.DraftAttachment.prototype.OWNERENCFILESESSIONKEY_ATTRIBUTE_ID = 493;
-
-/**
- * The id of the existingFile attribute.
- */
-tutao.entity.tutanota.DraftAttachment.prototype.EXISTINGFILE_ATTRIBUTE_ID = 495;
-
-/**
- * The id of the newFile attribute.
- */
-tutao.entity.tutanota.DraftAttachment.prototype.NEWFILE_ATTRIBUTE_ID = 494;
-
-/**
  * Sets the id of this DraftAttachment.
  * @param {string} id The id of this DraftAttachment.
  */

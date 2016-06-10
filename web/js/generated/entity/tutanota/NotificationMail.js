@@ -52,36 +52,6 @@ tutao.entity.tutanota.NotificationMail.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the NotificationMail type.
- */
-tutao.entity.tutanota.NotificationMail.prototype.TYPE_ID = 223;
-
-/**
- * The id of the bodyText attribute.
- */
-tutao.entity.tutanota.NotificationMail.prototype.BODYTEXT_ATTRIBUTE_ID = 226;
-
-/**
- * The id of the mailboxLink attribute.
- */
-tutao.entity.tutanota.NotificationMail.prototype.MAILBOXLINK_ATTRIBUTE_ID = 417;
-
-/**
- * The id of the recipientMailAddress attribute.
- */
-tutao.entity.tutanota.NotificationMail.prototype.RECIPIENTMAILADDRESS_ATTRIBUTE_ID = 227;
-
-/**
- * The id of the recipientName attribute.
- */
-tutao.entity.tutanota.NotificationMail.prototype.RECIPIENTNAME_ATTRIBUTE_ID = 228;
-
-/**
- * The id of the subject attribute.
- */
-tutao.entity.tutanota.NotificationMail.prototype.SUBJECT_ATTRIBUTE_ID = 225;
-
-/**
  * Sets the id of this NotificationMail.
  * @param {string} id The id of this NotificationMail.
  */

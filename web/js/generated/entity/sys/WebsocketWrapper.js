@@ -68,46 +68,6 @@ tutao.entity.sys.WebsocketWrapper.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the WebsocketWrapper type.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.TYPE_ID = 472;
-
-/**
- * The id of the clientVersion attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.CLIENTVERSION_ATTRIBUTE_ID = 683;
-
-/**
- * The id of the msgId attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.MSGID_ATTRIBUTE_ID = 474;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.TYPE_ATTRIBUTE_ID = 475;
-
-/**
- * The id of the authentication attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.AUTHENTICATION_ATTRIBUTE_ID = 476;
-
-/**
- * The id of the chat attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.CHAT_ATTRIBUTE_ID = 477;
-
-/**
- * The id of the entityUpdate attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.ENTITYUPDATE_ATTRIBUTE_ID = 478;
-
-/**
- * The id of the exception attribute.
- */
-tutao.entity.sys.WebsocketWrapper.prototype.EXCEPTION_ATTRIBUTE_ID = 479;
-
-/**
  * Sets the format of this WebsocketWrapper.
  * @param {string} format The format of this WebsocketWrapper.
  */

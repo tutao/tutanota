@@ -65,31 +65,6 @@ tutao.entity.sys.ChangePasswordData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ChangePasswordData type.
- */
-tutao.entity.sys.ChangePasswordData.prototype.TYPE_ID = 534;
-
-/**
- * The id of the code attribute.
- */
-tutao.entity.sys.ChangePasswordData.prototype.CODE_ATTRIBUTE_ID = 539;
-
-/**
- * The id of the pwEncUserGroupKey attribute.
- */
-tutao.entity.sys.ChangePasswordData.prototype.PWENCUSERGROUPKEY_ATTRIBUTE_ID = 538;
-
-/**
- * The id of the salt attribute.
- */
-tutao.entity.sys.ChangePasswordData.prototype.SALT_ATTRIBUTE_ID = 537;
-
-/**
- * The id of the verifier attribute.
- */
-tutao.entity.sys.ChangePasswordData.prototype.VERIFIER_ATTRIBUTE_ID = 536;
-
-/**
  * Sets the format of this ChangePasswordData.
  * @param {string} format The format of this ChangePasswordData.
  */

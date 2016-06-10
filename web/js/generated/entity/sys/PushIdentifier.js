@@ -89,41 +89,6 @@ tutao.entity.sys.PushIdentifier.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PushIdentifier type.
- */
-tutao.entity.sys.PushIdentifier.prototype.TYPE_ID = 625;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype._AREA_ATTRIBUTE_ID = 631;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype._OWNER_ATTRIBUTE_ID = 630;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype._OWNERGROUP_ATTRIBUTE_ID = 1028;
-
-/**
- * The id of the identifier attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype.IDENTIFIER_ATTRIBUTE_ID = 633;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype.LANGUAGE_ATTRIBUTE_ID = 634;
-
-/**
- * The id of the pushServiceType attribute.
- */
-tutao.entity.sys.PushIdentifier.prototype.PUSHSERVICETYPE_ATTRIBUTE_ID = 632;
-
-/**
  * Provides the id of this PushIdentifier.
  * @return {Array.<string>} The id of this PushIdentifier.
  */

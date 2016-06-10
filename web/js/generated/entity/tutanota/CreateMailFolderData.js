@@ -64,26 +64,6 @@ tutao.entity.tutanota.CreateMailFolderData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateMailFolderData type.
- */
-tutao.entity.tutanota.CreateMailFolderData.prototype.TYPE_ID = 450;
-
-/**
- * The id of the folderName attribute.
- */
-tutao.entity.tutanota.CreateMailFolderData.prototype.FOLDERNAME_ATTRIBUTE_ID = 453;
-
-/**
- * The id of the ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.CreateMailFolderData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 454;
-
-/**
- * The id of the parentFolder attribute.
- */
-tutao.entity.tutanota.CreateMailFolderData.prototype.PARENTFOLDER_ATTRIBUTE_ID = 452;
-
-/**
  * Sets the format of this CreateMailFolderData.
  * @param {string} format The format of this CreateMailFolderData.
  */

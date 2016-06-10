@@ -10,10 +10,8 @@ tutao.entity.aggregatedtype.Et1 = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
@@ -29,10 +27,8 @@ tutao.entity.aggregatedtype.Et1 = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.aggregatedtype.Et1.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
@@ -79,10 +75,8 @@ tutao.entity.aggregatedtype.Et1.prototype.ENCRYPTED = true;
  */
 tutao.entity.aggregatedtype.Et1.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
@@ -92,63 +86,11 @@ tutao.entity.aggregatedtype.Et1.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Et1 type.
- */
-tutao.entity.aggregatedtype.Et1.prototype.TYPE_ID = 15;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype._AREA_ATTRIBUTE_ID = 23;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype._OWNER_ATTRIBUTE_ID = 22;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 21;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype._OWNERGROUP_ATTRIBUTE_ID = 20;
-
-/**
- * The id of the anyAggregated attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype.ANYAGGREGATED_ATTRIBUTE_ID = 40;
-
-/**
- * The id of the oneAggregated attribute.
- */
-tutao.entity.aggregatedtype.Et1.prototype.ONEAGGREGATED_ATTRIBUTE_ID = 39;
-
-/**
  * Provides the id of this Et1.
  * @return {string} The id of this Et1.
  */
 tutao.entity.aggregatedtype.Et1.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Et1.
- * @param {string} area The area of this Et1.
- */
-tutao.entity.aggregatedtype.Et1.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Et1.
- * @return {string} The area of this Et1.
- */
-tutao.entity.aggregatedtype.Et1.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -166,23 +108,6 @@ tutao.entity.aggregatedtype.Et1.prototype.setFormat = function(format) {
  */
 tutao.entity.aggregatedtype.Et1.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Et1.
- * @param {string} owner The owner of this Et1.
- */
-tutao.entity.aggregatedtype.Et1.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Et1.
- * @return {string} The owner of this Et1.
- */
-tutao.entity.aggregatedtype.Et1.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

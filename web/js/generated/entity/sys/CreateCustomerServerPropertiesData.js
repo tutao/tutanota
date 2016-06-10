@@ -56,16 +56,6 @@ tutao.entity.sys.CreateCustomerServerPropertiesData.prototype.toJsonData = funct
 };
 
 /**
- * The id of the CreateCustomerServerPropertiesData type.
- */
-tutao.entity.sys.CreateCustomerServerPropertiesData.prototype.TYPE_ID = 961;
-
-/**
- * The id of the adminGroupEncSessionKey attribute.
- */
-tutao.entity.sys.CreateCustomerServerPropertiesData.prototype.ADMINGROUPENCSESSIONKEY_ATTRIBUTE_ID = 963;
-
-/**
  * Sets the format of this CreateCustomerServerPropertiesData.
  * @param {string} format The format of this CreateCustomerServerPropertiesData.
  */

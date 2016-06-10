@@ -4,6 +4,25 @@ describe("ContactWrapperTest", function () {
 
     var assert = chai.assert;
 
+    beforeEach(function () {
+        var userControllerMock = {
+            getUserGroupId: function () {
+                return "";
+            },
+            getGroupId: function () {
+                return "";
+            },
+            getGroupKey: function() {
+                return tutao.locator.aesCrypter.generateRandomKey();
+            }
+        };
+        tutao.locator.replace("userController", userControllerMock);
+    });
+
+    afterEach(function () {
+        tutao.locator.reset();
+    });
+
     it("GetContact", function () {
         var c = new tutao.entity.tutanota.Contact();
         var w = new tutao.entity.tutanota.ContactWrapper(c);

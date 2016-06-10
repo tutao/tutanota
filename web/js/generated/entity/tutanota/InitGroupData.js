@@ -71,41 +71,6 @@ tutao.entity.tutanota.InitGroupData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the InitGroupData type.
- */
-tutao.entity.tutanota.InitGroupData.prototype.TYPE_ID = 385;
-
-/**
- * The id of the groupEncEntropy attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.GROUPENCENTROPY_ATTRIBUTE_ID = 411;
-
-/**
- * The id of the groupId attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.GROUPID_ATTRIBUTE_ID = 387;
-
-/**
- * The id of the symEncContactListSessionKey attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.SYMENCCONTACTLISTSESSIONKEY_ATTRIBUTE_ID = 391;
-
-/**
- * The id of the symEncExternalGroupInfoListKey attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.SYMENCEXTERNALGROUPINFOLISTKEY_ATTRIBUTE_ID = 397;
-
-/**
- * The id of the symEncFileSystemSessionKey attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.SYMENCFILESYSTEMSESSIONKEY_ATTRIBUTE_ID = 394;
-
-/**
- * The id of the symEncMailBoxSessionKey attribute.
- */
-tutao.entity.tutanota.InitGroupData.prototype.SYMENCMAILBOXSESSIONKEY_ATTRIBUTE_ID = 388;
-
-/**
  * Sets the format of this InitGroupData.
  * @param {string} format The format of this InitGroupData.
  */

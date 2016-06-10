@@ -59,21 +59,6 @@ tutao.entity.tutanota.UpdateFileData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UpdateFileData type.
- */
-tutao.entity.tutanota.UpdateFileData.prototype.TYPE_ID = 369;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.UpdateFileData.prototype.FILE_ATTRIBUTE_ID = 371;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.UpdateFileData.prototype.FILEDATA_ATTRIBUTE_ID = 372;
-
-/**
  * Sets the format of this UpdateFileData.
  * @param {string} format The format of this UpdateFileData.
  */

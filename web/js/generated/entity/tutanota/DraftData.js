@@ -87,61 +87,6 @@ tutao.entity.tutanota.DraftData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DraftData type.
- */
-tutao.entity.tutanota.DraftData.prototype.TYPE_ID = 496;
-
-/**
- * The id of the bodyText attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.BODYTEXT_ATTRIBUTE_ID = 499;
-
-/**
- * The id of the confidential attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.CONFIDENTIAL_ATTRIBUTE_ID = 502;
-
-/**
- * The id of the senderMailAddress attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.SENDERMAILADDRESS_ATTRIBUTE_ID = 500;
-
-/**
- * The id of the senderName attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.SENDERNAME_ATTRIBUTE_ID = 501;
-
-/**
- * The id of the subject attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.SUBJECT_ATTRIBUTE_ID = 498;
-
-/**
- * The id of the addedAttachments attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.ADDEDATTACHMENTS_ATTRIBUTE_ID = 506;
-
-/**
- * The id of the bccRecipients attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.BCCRECIPIENTS_ATTRIBUTE_ID = 505;
-
-/**
- * The id of the ccRecipients attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.CCRECIPIENTS_ATTRIBUTE_ID = 504;
-
-/**
- * The id of the removedAttachments attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.REMOVEDATTACHMENTS_ATTRIBUTE_ID = 507;
-
-/**
- * The id of the toRecipients attribute.
- */
-tutao.entity.tutanota.DraftData.prototype.TORECIPIENTS_ATTRIBUTE_ID = 503;
-
-/**
  * Sets the id of this DraftData.
  * @param {string} id The id of this DraftData.
  */

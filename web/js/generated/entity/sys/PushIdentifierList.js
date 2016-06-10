@@ -40,16 +40,6 @@ tutao.entity.sys.PushIdentifierList.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PushIdentifierList type.
- */
-tutao.entity.sys.PushIdentifierList.prototype.TYPE_ID = 635;
-
-/**
- * The id of the list attribute.
- */
-tutao.entity.sys.PushIdentifierList.prototype.LIST_ATTRIBUTE_ID = 637;
-
-/**
  * Sets the id of this PushIdentifierList.
  * @param {string} id The id of this PushIdentifierList.
  */

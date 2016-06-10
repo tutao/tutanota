@@ -80,56 +80,6 @@ tutao.entity.sys.ShareData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ShareData type.
- */
-tutao.entity.sys.ShareData.prototype.TYPE_ID = 289;
-
-/**
- * The id of the app attribute.
- */
-tutao.entity.sys.ShareData.prototype.APP_ATTRIBUTE_ID = 292;
-
-/**
- * The id of the bucket attribute.
- */
-tutao.entity.sys.ShareData.prototype.BUCKET_ATTRIBUTE_ID = 296;
-
-/**
- * The id of the instancePermissions attribute.
- */
-tutao.entity.sys.ShareData.prototype.INSTANCEPERMISSIONS_ATTRIBUTE_ID = 295;
-
-/**
- * The id of the shareOwnerGroupId attribute.
- */
-tutao.entity.sys.ShareData.prototype.SHAREOWNERGROUPID_ATTRIBUTE_ID = 291;
-
-/**
- * The id of the pubEncBucketKey attribute.
- */
-tutao.entity.sys.ShareData.prototype.PUBENCBUCKETKEY_ATTRIBUTE_ID = 298;
-
-/**
- * The id of the pubKeyVersion attribute.
- */
-tutao.entity.sys.ShareData.prototype.PUBKEYVERSION_ATTRIBUTE_ID = 299;
-
-/**
- * The id of the shareType attribute.
- */
-tutao.entity.sys.ShareData.prototype.SHARETYPE_ATTRIBUTE_ID = 293;
-
-/**
- * The id of the shareholderMailAddress attribute.
- */
-tutao.entity.sys.ShareData.prototype.SHAREHOLDERMAILADDRESS_ATTRIBUTE_ID = 294;
-
-/**
- * The id of the writePermission attribute.
- */
-tutao.entity.sys.ShareData.prototype.WRITEPERMISSION_ATTRIBUTE_ID = 297;
-
-/**
  * Sets the format of this ShareData.
  * @param {string} format The format of this ShareData.
  */

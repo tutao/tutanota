@@ -56,16 +56,6 @@ tutao.entity.sys.AutoLoginDataDelete.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AutoLoginDataDelete type.
- */
-tutao.entity.sys.AutoLoginDataDelete.prototype.TYPE_ID = 435;
-
-/**
- * The id of the deviceToken attribute.
- */
-tutao.entity.sys.AutoLoginDataDelete.prototype.DEVICETOKEN_ATTRIBUTE_ID = 437;
-
-/**
  * Sets the format of this AutoLoginDataDelete.
  * @param {string} format The format of this AutoLoginDataDelete.
  */

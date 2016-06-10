@@ -50,16 +50,6 @@ tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.toJsonData = funct
 };
 
 /**
- * The id of the RegistrationVerifyDomainPostReturn type.
- */
-tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.TYPE_ID = 337;
-
-/**
- * The id of the mailSent attribute.
- */
-tutao.entity.sys.RegistrationVerifyDomainPostReturn.prototype.MAILSENT_ATTRIBUTE_ID = 339;
-
-/**
  * Sets the format of this RegistrationVerifyDomainPostReturn.
  * @param {string} format The format of this RegistrationVerifyDomainPostReturn.
  */

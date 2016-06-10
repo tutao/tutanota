@@ -62,26 +62,6 @@ tutao.entity.tutanota.PasswordMessagingData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PasswordMessagingData type.
- */
-tutao.entity.tutanota.PasswordMessagingData.prototype.TYPE_ID = 308;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.tutanota.PasswordMessagingData.prototype.LANGUAGE_ATTRIBUTE_ID = 310;
-
-/**
- * The id of the numberId attribute.
- */
-tutao.entity.tutanota.PasswordMessagingData.prototype.NUMBERID_ATTRIBUTE_ID = 311;
-
-/**
- * The id of the symKeyForPasswordTransmission attribute.
- */
-tutao.entity.tutanota.PasswordMessagingData.prototype.SYMKEYFORPASSWORDTRANSMISSION_ATTRIBUTE_ID = 312;
-
-/**
  * Sets the format of this PasswordMessagingData.
  * @param {string} format The format of this PasswordMessagingData.
  */

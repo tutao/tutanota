@@ -37,11 +37,6 @@ tutao.entity.aggregatedtype.At1.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the At1 type.
- */
-tutao.entity.aggregatedtype.At1.prototype.TYPE_ID = 24;
-
-/**
  * Sets the id of this At1.
  * @param {string} id The id of this At1.
  */

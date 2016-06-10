@@ -65,31 +65,6 @@ tutao.entity.sys.ExternalPropertiesReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ExternalPropertiesReturn type.
- */
-tutao.entity.sys.ExternalPropertiesReturn.prototype.TYPE_ID = 663;
-
-/**
- * The id of the accountType attribute.
- */
-tutao.entity.sys.ExternalPropertiesReturn.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 666;
-
-/**
- * The id of the message attribute.
- */
-tutao.entity.sys.ExternalPropertiesReturn.prototype.MESSAGE_ATTRIBUTE_ID = 665;
-
-/**
- * The id of the bigLogo attribute.
- */
-tutao.entity.sys.ExternalPropertiesReturn.prototype.BIGLOGO_ATTRIBUTE_ID = 925;
-
-/**
- * The id of the smallLogo attribute.
- */
-tutao.entity.sys.ExternalPropertiesReturn.prototype.SMALLLOGO_ATTRIBUTE_ID = 924;
-
-/**
  * Sets the format of this ExternalPropertiesReturn.
  * @param {string} format The format of this ExternalPropertiesReturn.
  */

@@ -59,16 +59,6 @@ tutao.entity.sys.VersionReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the VersionReturn type.
- */
-tutao.entity.sys.VersionReturn.prototype.TYPE_ID = 493;
-
-/**
- * The id of the versions attribute.
- */
-tutao.entity.sys.VersionReturn.prototype.VERSIONS_ATTRIBUTE_ID = 495;
-
-/**
  * Sets the format of this VersionReturn.
  * @param {string} format The format of this VersionReturn.
  */

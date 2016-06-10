@@ -50,16 +50,6 @@ tutao.entity.sys.SaltData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SaltData type.
- */
-tutao.entity.sys.SaltData.prototype.TYPE_ID = 417;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.SaltData.prototype.MAILADDRESS_ATTRIBUTE_ID = 419;
-
-/**
  * Sets the format of this SaltData.
  * @param {string} format The format of this SaltData.
  */

@@ -59,21 +59,6 @@ tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.toJsonData = funct
 };
 
 /**
- * The id of the EncryptTutanotaPropertiesData type.
- */
-tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.TYPE_ID = 473;
-
-/**
- * The id of the symEncSessionKey attribute.
- */
-tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.SYMENCSESSIONKEY_ATTRIBUTE_ID = 476;
-
-/**
- * The id of the properties attribute.
- */
-tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.PROPERTIES_ATTRIBUTE_ID = 475;
-
-/**
  * Sets the format of this EncryptTutanotaPropertiesData.
  * @param {string} format The format of this EncryptTutanotaPropertiesData.
  */

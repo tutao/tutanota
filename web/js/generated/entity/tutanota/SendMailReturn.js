@@ -62,31 +62,6 @@ tutao.entity.tutanota.SendMailReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendMailReturn type.
- */
-tutao.entity.tutanota.SendMailReturn.prototype.TYPE_ID = 246;
-
-/**
- * The id of the messageId attribute.
- */
-tutao.entity.tutanota.SendMailReturn.prototype.MESSAGEID_ATTRIBUTE_ID = 248;
-
-/**
- * The id of the sentDate attribute.
- */
-tutao.entity.tutanota.SendMailReturn.prototype.SENTDATE_ATTRIBUTE_ID = 249;
-
-/**
- * The id of the notifications attribute.
- */
-tutao.entity.tutanota.SendMailReturn.prototype.NOTIFICATIONS_ATTRIBUTE_ID = 250;
-
-/**
- * The id of the senderMail attribute.
- */
-tutao.entity.tutanota.SendMailReturn.prototype.SENDERMAIL_ATTRIBUTE_ID = 251;
-
-/**
  * Sets the format of this SendMailReturn.
  * @param {string} format The format of this SendMailReturn.
  */

@@ -62,31 +62,6 @@ tutao.entity.tutanota.SendDraftReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendDraftReturn type.
- */
-tutao.entity.tutanota.SendDraftReturn.prototype.TYPE_ID = 557;
-
-/**
- * The id of the messageId attribute.
- */
-tutao.entity.tutanota.SendDraftReturn.prototype.MESSAGEID_ATTRIBUTE_ID = 559;
-
-/**
- * The id of the sentDate attribute.
- */
-tutao.entity.tutanota.SendDraftReturn.prototype.SENTDATE_ATTRIBUTE_ID = 560;
-
-/**
- * The id of the notifications attribute.
- */
-tutao.entity.tutanota.SendDraftReturn.prototype.NOTIFICATIONS_ATTRIBUTE_ID = 561;
-
-/**
- * The id of the sentMail attribute.
- */
-tutao.entity.tutanota.SendDraftReturn.prototype.SENTMAIL_ATTRIBUTE_ID = 562;
-
-/**
  * Sets the format of this SendDraftReturn.
  * @param {string} format The format of this SendDraftReturn.
  */

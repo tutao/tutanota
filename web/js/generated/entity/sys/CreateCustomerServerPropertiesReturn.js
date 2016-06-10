@@ -50,16 +50,6 @@ tutao.entity.sys.CreateCustomerServerPropertiesReturn.prototype.toJsonData = fun
 };
 
 /**
- * The id of the CreateCustomerServerPropertiesReturn type.
- */
-tutao.entity.sys.CreateCustomerServerPropertiesReturn.prototype.TYPE_ID = 964;
-
-/**
- * The id of the id attribute.
- */
-tutao.entity.sys.CreateCustomerServerPropertiesReturn.prototype.ID_ATTRIBUTE_ID = 966;
-
-/**
  * Sets the format of this CreateCustomerServerPropertiesReturn.
  * @param {string} format The format of this CreateCustomerServerPropertiesReturn.
  */

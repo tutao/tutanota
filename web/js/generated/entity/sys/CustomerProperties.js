@@ -86,36 +86,6 @@ tutao.entity.sys.CustomerProperties.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CustomerProperties type.
- */
-tutao.entity.sys.CustomerProperties.prototype.TYPE_ID = 656;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.CustomerProperties.prototype._OWNERGROUP_ATTRIBUTE_ID = 984;
-
-/**
- * The id of the externalUserWelcomeMessage attribute.
- */
-tutao.entity.sys.CustomerProperties.prototype.EXTERNALUSERWELCOMEMESSAGE_ATTRIBUTE_ID = 661;
-
-/**
- * The id of the lastUpgradeReminder attribute.
- */
-tutao.entity.sys.CustomerProperties.prototype.LASTUPGRADEREMINDER_ATTRIBUTE_ID = 975;
-
-/**
- * The id of the bigLogo attribute.
- */
-tutao.entity.sys.CustomerProperties.prototype.BIGLOGO_ATTRIBUTE_ID = 923;
-
-/**
- * The id of the smallLogo attribute.
- */
-tutao.entity.sys.CustomerProperties.prototype.SMALLLOGO_ATTRIBUTE_ID = 922;
-
-/**
  * Provides the id of this CustomerProperties.
  * @return {string} The id of this CustomerProperties.
  */

@@ -59,21 +59,6 @@ tutao.entity.sys.VerifyRegistrationCodeData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the VerifyRegistrationCodeData type.
- */
-tutao.entity.sys.VerifyRegistrationCodeData.prototype.TYPE_ID = 351;
-
-/**
- * The id of the authToken attribute.
- */
-tutao.entity.sys.VerifyRegistrationCodeData.prototype.AUTHTOKEN_ATTRIBUTE_ID = 353;
-
-/**
- * The id of the code attribute.
- */
-tutao.entity.sys.VerifyRegistrationCodeData.prototype.CODE_ATTRIBUTE_ID = 354;
-
-/**
  * Sets the format of this VerifyRegistrationCodeData.
  * @param {string} format The format of this VerifyRegistrationCodeData.
  */

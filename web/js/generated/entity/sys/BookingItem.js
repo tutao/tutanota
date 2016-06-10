@@ -58,46 +58,6 @@ tutao.entity.sys.BookingItem.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the BookingItem type.
- */
-tutao.entity.sys.BookingItem.prototype.TYPE_ID = 700;
-
-/**
- * The id of the currentCount attribute.
- */
-tutao.entity.sys.BookingItem.prototype.CURRENTCOUNT_ATTRIBUTE_ID = 703;
-
-/**
- * The id of the currentInvoicedCount attribute.
- */
-tutao.entity.sys.BookingItem.prototype.CURRENTINVOICEDCOUNT_ATTRIBUTE_ID = 706;
-
-/**
- * The id of the featureType attribute.
- */
-tutao.entity.sys.BookingItem.prototype.FEATURETYPE_ATTRIBUTE_ID = 702;
-
-/**
- * The id of the maxCount attribute.
- */
-tutao.entity.sys.BookingItem.prototype.MAXCOUNT_ATTRIBUTE_ID = 704;
-
-/**
- * The id of the price attribute.
- */
-tutao.entity.sys.BookingItem.prototype.PRICE_ATTRIBUTE_ID = 707;
-
-/**
- * The id of the priceType attribute.
- */
-tutao.entity.sys.BookingItem.prototype.PRICETYPE_ATTRIBUTE_ID = 708;
-
-/**
- * The id of the totalInvoicedCount attribute.
- */
-tutao.entity.sys.BookingItem.prototype.TOTALINVOICEDCOUNT_ATTRIBUTE_ID = 705;
-
-/**
  * Sets the id of this BookingItem.
  * @param {string} id The id of this BookingItem.
  */

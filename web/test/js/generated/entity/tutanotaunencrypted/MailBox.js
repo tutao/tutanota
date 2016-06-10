@@ -10,10 +10,8 @@ tutao.entity.tutanotaunencrypted.MailBox = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._mails = null;
@@ -27,10 +25,8 @@ tutao.entity.tutanotaunencrypted.MailBox = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._mails = data.mails;
@@ -52,7 +48,7 @@ tutao.entity.tutanotaunencrypted.MailBox.PATH = '/rest/tutanotaunencrypted/mailb
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.MailBox.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAMw';
+tutao.entity.tutanotaunencrypted.MailBox.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAKw';
 
 /**
  * The generated id type flag.
@@ -72,10 +68,8 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.ENCRYPTED = false;
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     mails: this._mails
@@ -83,53 +77,11 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailBox type.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.TYPE_ID = 51;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype._AREA_ATTRIBUTE_ID = 58;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNER_ATTRIBUTE_ID = 57;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype._OWNERGROUP_ATTRIBUTE_ID = 56;
-
-/**
- * The id of the mails attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.MAILS_ATTRIBUTE_ID = 59;
-
-/**
  * Provides the id of this MailBox.
  * @return {string} The id of this MailBox.
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this MailBox.
- * @param {string} area The area of this MailBox.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this MailBox.
- * @return {string} The area of this MailBox.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -147,23 +99,6 @@ tutao.entity.tutanotaunencrypted.MailBox.prototype.setFormat = function(format) 
  */
 tutao.entity.tutanotaunencrypted.MailBox.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this MailBox.
- * @param {string} owner The owner of this MailBox.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this MailBox.
- * @return {string} The owner of this MailBox.
- */
-tutao.entity.tutanotaunencrypted.MailBox.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

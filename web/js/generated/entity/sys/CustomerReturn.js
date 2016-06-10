@@ -53,21 +53,6 @@ tutao.entity.sys.CustomerReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CustomerReturn type.
- */
-tutao.entity.sys.CustomerReturn.prototype.TYPE_ID = 370;
-
-/**
- * The id of the adminUser attribute.
- */
-tutao.entity.sys.CustomerReturn.prototype.ADMINUSER_ATTRIBUTE_ID = 372;
-
-/**
- * The id of the adminUserGroup attribute.
- */
-tutao.entity.sys.CustomerReturn.prototype.ADMINUSERGROUP_ATTRIBUTE_ID = 373;
-
-/**
  * Sets the format of this CustomerReturn.
  * @param {string} format The format of this CustomerReturn.
  */

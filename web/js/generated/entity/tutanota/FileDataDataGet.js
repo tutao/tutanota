@@ -53,21 +53,6 @@ tutao.entity.tutanota.FileDataDataGet.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileDataDataGet type.
- */
-tutao.entity.tutanota.FileDataDataGet.prototype.TYPE_ID = 331;
-
-/**
- * The id of the base64 attribute.
- */
-tutao.entity.tutanota.FileDataDataGet.prototype.BASE64_ATTRIBUTE_ID = 333;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.FileDataDataGet.prototype.FILE_ATTRIBUTE_ID = 334;
-
-/**
  * Sets the format of this FileDataDataGet.
  * @param {string} format The format of this FileDataDataGet.
  */

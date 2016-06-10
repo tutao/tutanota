@@ -65,31 +65,6 @@ tutao.entity.sys.SendRegistrationCodeData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendRegistrationCodeData type.
- */
-tutao.entity.sys.SendRegistrationCodeData.prototype.TYPE_ID = 341;
-
-/**
- * The id of the accountType attribute.
- */
-tutao.entity.sys.SendRegistrationCodeData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 345;
-
-/**
- * The id of the authToken attribute.
- */
-tutao.entity.sys.SendRegistrationCodeData.prototype.AUTHTOKEN_ATTRIBUTE_ID = 343;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.sys.SendRegistrationCodeData.prototype.LANGUAGE_ATTRIBUTE_ID = 344;
-
-/**
- * The id of the mobilePhoneNumber attribute.
- */
-tutao.entity.sys.SendRegistrationCodeData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_ID = 346;
-
-/**
  * Sets the format of this SendRegistrationCodeData.
  * @param {string} format The format of this SendRegistrationCodeData.
  */

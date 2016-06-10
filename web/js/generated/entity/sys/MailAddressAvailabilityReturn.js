@@ -56,16 +56,6 @@ tutao.entity.sys.MailAddressAvailabilityReturn.prototype.toJsonData = function()
 };
 
 /**
- * The id of the MailAddressAvailabilityReturn type.
- */
-tutao.entity.sys.MailAddressAvailabilityReturn.prototype.TYPE_ID = 312;
-
-/**
- * The id of the available attribute.
- */
-tutao.entity.sys.MailAddressAvailabilityReturn.prototype.AVAILABLE_ATTRIBUTE_ID = 314;
-
-/**
  * Sets the format of this MailAddressAvailabilityReturn.
  * @param {string} format The format of this MailAddressAvailabilityReturn.
  */

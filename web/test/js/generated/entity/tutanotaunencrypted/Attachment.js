@@ -10,10 +10,8 @@ tutao.entity.tutanotaunencrypted.Attachment = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._fileData = null;
@@ -27,10 +25,8 @@ tutao.entity.tutanotaunencrypted.Attachment = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._fileData = data.fileData;
@@ -72,10 +68,8 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.ENCRYPTED = false;
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     fileData: this._fileData
@@ -83,53 +77,11 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Attachment type.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.TYPE_ID = 0;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype._AREA_ATTRIBUTE_ID = 7;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNER_ATTRIBUTE_ID = 6;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype._OWNERGROUP_ATTRIBUTE_ID = 5;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 8;
-
-/**
  * Provides the id of this Attachment.
  * @return {string} The id of this Attachment.
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Attachment.
- * @param {string} area The area of this Attachment.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Attachment.
- * @return {string} The area of this Attachment.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -147,23 +99,6 @@ tutao.entity.tutanotaunencrypted.Attachment.prototype.setFormat = function(forma
  */
 tutao.entity.tutanotaunencrypted.Attachment.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Attachment.
- * @param {string} owner The owner of this Attachment.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Attachment.
- * @return {string} The owner of this Attachment.
- */
-tutao.entity.tutanotaunencrypted.Attachment.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

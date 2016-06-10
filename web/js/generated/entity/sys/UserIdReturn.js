@@ -56,16 +56,6 @@ tutao.entity.sys.UserIdReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserIdReturn type.
- */
-tutao.entity.sys.UserIdReturn.prototype.TYPE_ID = 427;
-
-/**
- * The id of the userId attribute.
- */
-tutao.entity.sys.UserIdReturn.prototype.USERID_ATTRIBUTE_ID = 429;
-
-/**
  * Sets the format of this UserIdReturn.
  * @param {string} format The format of this UserIdReturn.
  */

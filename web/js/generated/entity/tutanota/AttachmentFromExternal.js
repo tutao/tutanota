@@ -52,36 +52,6 @@ tutao.entity.tutanota.AttachmentFromExternal.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AttachmentFromExternal type.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.TYPE_ID = 253;
-
-/**
- * The id of the fileName attribute.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.FILENAME_ATTRIBUTE_ID = 257;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.MIMETYPE_ATTRIBUTE_ID = 258;
-
-/**
- * The id of the recipientBucketEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.RECIPIENTBUCKETENCFILESESSIONKEY_ATTRIBUTE_ID = 256;
-
-/**
- * The id of the senderBucketEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.SENDERBUCKETENCFILESESSIONKEY_ATTRIBUTE_ID = 255;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.AttachmentFromExternal.prototype.FILEDATA_ATTRIBUTE_ID = 259;
-
-/**
  * Sets the id of this AttachmentFromExternal.
  * @param {string} id The id of this AttachmentFromExternal.
  */

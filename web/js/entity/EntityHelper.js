@@ -86,7 +86,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
             }
         }
     }
-    if (this._entity.TYPE_ID == tutao.entity.sys.GroupInfo.prototype.TYPE_ID && this._entity.getOwnerGroup() == null && this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) {
+    if (!this._entity.getOwnerEncSessionKey() && this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) {
         // legacy for GroupInfo and check that it is a list element type and that the list key is set
 		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
             self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));

@@ -50,16 +50,6 @@ tutao.entity.tutanota.DraftUpdateReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DraftUpdateReturn type.
- */
-tutao.entity.tutanota.DraftUpdateReturn.prototype.TYPE_ID = 523;
-
-/**
- * The id of the attachments attribute.
- */
-tutao.entity.tutanota.DraftUpdateReturn.prototype.ATTACHMENTS_ATTRIBUTE_ID = 525;
-
-/**
  * Sets the format of this DraftUpdateReturn.
  * @param {string} format The format of this DraftUpdateReturn.
  */

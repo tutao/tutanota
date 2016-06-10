@@ -5,10 +5,22 @@ describe("RecipientInfoTest", function () {
     var assert = chai.assert;
 
     beforeEach(function () {
+        var userControllerMock = {
+            getUserGroupId: function () {
+                return "";
+            },
+            getGroupId: function () {
+                return "";
+            },
+            getGroupKey: function() {
+                return tutao.locator.aesCrypter.generateRandomKey();
+            }
+        };
+        tutao.locator.replace("userController", userControllerMock);
     });
 
-
     afterEach(function () {
+        tutao.locator.reset();
     });
 
     it(" create contact from recipient info", function () {

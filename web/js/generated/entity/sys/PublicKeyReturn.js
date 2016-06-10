@@ -59,21 +59,6 @@ tutao.entity.sys.PublicKeyReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PublicKeyReturn type.
- */
-tutao.entity.sys.PublicKeyReturn.prototype.TYPE_ID = 412;
-
-/**
- * The id of the pubKey attribute.
- */
-tutao.entity.sys.PublicKeyReturn.prototype.PUBKEY_ATTRIBUTE_ID = 414;
-
-/**
- * The id of the pubKeyVersion attribute.
- */
-tutao.entity.sys.PublicKeyReturn.prototype.PUBKEYVERSION_ATTRIBUTE_ID = 415;
-
-/**
  * Sets the format of this PublicKeyReturn.
  * @param {string} format The format of this PublicKeyReturn.
  */

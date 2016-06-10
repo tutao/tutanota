@@ -103,51 +103,6 @@ tutao.entity.sys.GroupInfo.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the GroupInfo type.
- */
-tutao.entity.sys.GroupInfo.prototype.TYPE_ID = 14;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.sys.GroupInfo.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 983;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.GroupInfo.prototype._OWNERGROUP_ATTRIBUTE_ID = 982;
-
-/**
- * The id of the created attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.CREATED_ATTRIBUTE_ID = 23;
-
-/**
- * The id of the deleted attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.DELETED_ATTRIBUTE_ID = 24;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.MAILADDRESS_ATTRIBUTE_ID = 22;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.NAME_ATTRIBUTE_ID = 21;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.GROUP_ATTRIBUTE_ID = 20;
-
-/**
- * The id of the mailAddressAliases attribute.
- */
-tutao.entity.sys.GroupInfo.prototype.MAILADDRESSALIASES_ATTRIBUTE_ID = 687;
-
-/**
  * Provides the id of this GroupInfo.
  * @return {Array.<string>} The id of this GroupInfo.
  */

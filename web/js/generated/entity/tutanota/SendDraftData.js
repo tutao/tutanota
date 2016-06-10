@@ -86,51 +86,6 @@ tutao.entity.tutanota.SendDraftData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendDraftData type.
- */
-tutao.entity.tutanota.SendDraftData.prototype.TYPE_ID = 547;
-
-/**
- * The id of the bucketEncMailSessionKey attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.BUCKETENCMAILSESSIONKEY_ATTRIBUTE_ID = 551;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.LANGUAGE_ATTRIBUTE_ID = 549;
-
-/**
- * The id of the mailSessionKey attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.MAILSESSIONKEY_ATTRIBUTE_ID = 550;
-
-/**
- * The id of the senderNameUnencrypted attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.SENDERNAMEUNENCRYPTED_ATTRIBUTE_ID = 552;
-
-/**
- * The id of the attachmentKeyData attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.ATTACHMENTKEYDATA_ATTRIBUTE_ID = 555;
-
-/**
- * The id of the internalRecipientKeyData attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.INTERNALRECIPIENTKEYDATA_ATTRIBUTE_ID = 553;
-
-/**
- * The id of the mail attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.MAIL_ATTRIBUTE_ID = 556;
-
-/**
- * The id of the secureExternalRecipientKeyData attribute.
- */
-tutao.entity.tutanota.SendDraftData.prototype.SECUREEXTERNALRECIPIENTKEYDATA_ATTRIBUTE_ID = 554;
-
-/**
  * Sets the format of this SendDraftData.
  * @param {string} format The format of this SendDraftData.
  */

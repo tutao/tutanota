@@ -52,36 +52,6 @@ tutao.entity.sys.Version.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Version type.
- */
-tutao.entity.sys.Version.prototype.TYPE_ID = 480;
-
-/**
- * The id of the operation attribute.
- */
-tutao.entity.sys.Version.prototype.OPERATION_ATTRIBUTE_ID = 484;
-
-/**
- * The id of the timestamp attribute.
- */
-tutao.entity.sys.Version.prototype.TIMESTAMP_ATTRIBUTE_ID = 483;
-
-/**
- * The id of the version attribute.
- */
-tutao.entity.sys.Version.prototype.VERSION_ATTRIBUTE_ID = 482;
-
-/**
- * The id of the author attribute.
- */
-tutao.entity.sys.Version.prototype.AUTHOR_ATTRIBUTE_ID = 485;
-
-/**
- * The id of the authorGroupInfo attribute.
- */
-tutao.entity.sys.Version.prototype.AUTHORGROUPINFO_ATTRIBUTE_ID = 486;
-
-/**
  * Sets the id of this Version.
  * @param {string} id The id of this Version.
  */

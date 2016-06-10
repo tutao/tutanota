@@ -40,16 +40,6 @@ tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype.toJsonData = function
 };
 
 /**
- * The id of the PasswordChannelPhoneNumber type.
- */
-tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype.TYPE_ID = 135;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.tutanota.PasswordChannelPhoneNumber.prototype.NUMBER_ATTRIBUTE_ID = 137;
-
-/**
  * Sets the id of this PasswordChannelPhoneNumber.
  * @param {string} id The id of this PasswordChannelPhoneNumber.
  */

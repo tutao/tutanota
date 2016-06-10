@@ -50,16 +50,6 @@ tutao.entity.sys.MailAddressAvailabilityData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailAddressAvailabilityData type.
- */
-tutao.entity.sys.MailAddressAvailabilityData.prototype.TYPE_ID = 309;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.MailAddressAvailabilityData.prototype.MAILADDRESS_ATTRIBUTE_ID = 311;
-
-/**
  * Sets the format of this MailAddressAvailabilityData.
  * @param {string} format The format of this MailAddressAvailabilityData.
  */

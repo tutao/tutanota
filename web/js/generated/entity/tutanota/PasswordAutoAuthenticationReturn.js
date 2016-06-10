@@ -53,11 +53,6 @@ tutao.entity.tutanota.PasswordAutoAuthenticationReturn.prototype.toJsonData = fu
 };
 
 /**
- * The id of the PasswordAutoAuthenticationReturn type.
- */
-tutao.entity.tutanota.PasswordAutoAuthenticationReturn.prototype.TYPE_ID = 317;
-
-/**
  * Sets the format of this PasswordAutoAuthenticationReturn.
  * @param {string} format The format of this PasswordAutoAuthenticationReturn.
  */

@@ -56,16 +56,6 @@ tutao.entity.sys.AutoLoginDataReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AutoLoginDataReturn type.
- */
-tutao.entity.sys.AutoLoginDataReturn.prototype.TYPE_ID = 438;
-
-/**
- * The id of the deviceKey attribute.
- */
-tutao.entity.sys.AutoLoginDataReturn.prototype.DEVICEKEY_ATTRIBUTE_ID = 440;
-
-/**
  * Sets the format of this AutoLoginDataReturn.
  * @param {string} format The format of this AutoLoginDataReturn.
  */

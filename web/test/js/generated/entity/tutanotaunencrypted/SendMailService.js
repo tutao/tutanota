@@ -62,31 +62,6 @@ tutao.entity.tutanotaunencrypted.SendMailService.prototype.toJsonData = function
 };
 
 /**
- * The id of the SendMailService type.
- */
-tutao.entity.tutanotaunencrypted.SendMailService.prototype.TYPE_ID = 60;
-
-/**
- * The id of the body attribute.
- */
-tutao.entity.tutanotaunencrypted.SendMailService.prototype.BODY_ATTRIBUTE_ID = 63;
-
-/**
- * The id of the title attribute.
- */
-tutao.entity.tutanotaunencrypted.SendMailService.prototype.TITLE_ATTRIBUTE_ID = 62;
-
-/**
- * The id of the recipients attribute.
- */
-tutao.entity.tutanotaunencrypted.SendMailService.prototype.RECIPIENTS_ATTRIBUTE_ID = 65;
-
-/**
- * The id of the sender attribute.
- */
-tutao.entity.tutanotaunencrypted.SendMailService.prototype.SENDER_ATTRIBUTE_ID = 64;
-
-/**
  * Sets the format of this SendMailService.
  * @param {string} format The format of this SendMailService.
  */

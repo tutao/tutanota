@@ -92,46 +92,6 @@ tutao.entity.sys.BucketPermission.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the BucketPermission type.
- */
-tutao.entity.sys.BucketPermission.prototype.TYPE_ID = 118;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.BucketPermission.prototype._OWNERGROUP_ATTRIBUTE_ID = 999;
-
-/**
- * The id of the ownerEncBucketKey attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.OWNERENCBUCKETKEY_ATTRIBUTE_ID = 1000;
-
-/**
- * The id of the pubEncBucketKey attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.PUBENCBUCKETKEY_ATTRIBUTE_ID = 125;
-
-/**
- * The id of the pubKeyVersion attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.PUBKEYVERSION_ATTRIBUTE_ID = 126;
-
-/**
- * The id of the symEncBucketKey attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.SYMENCBUCKETKEY_ATTRIBUTE_ID = 124;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.TYPE_ATTRIBUTE_ID = 123;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.BucketPermission.prototype.GROUP_ATTRIBUTE_ID = 128;
-
-/**
  * Provides the id of this BucketPermission.
  * @return {Array.<string>} The id of this BucketPermission.
  */

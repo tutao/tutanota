@@ -74,46 +74,6 @@ tutao.entity.sys.UserData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserData type.
- */
-tutao.entity.sys.UserData.prototype.TYPE_ID = 396;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.sys.UserData.prototype.DATE_ATTRIBUTE_ID = 878;
-
-/**
- * The id of the mobilePhoneNumber attribute.
- */
-tutao.entity.sys.UserData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_ID = 403;
-
-/**
- * The id of the salt attribute.
- */
-tutao.entity.sys.UserData.prototype.SALT_ATTRIBUTE_ID = 401;
-
-/**
- * The id of the userEncClientKey attribute.
- */
-tutao.entity.sys.UserData.prototype.USERENCCLIENTKEY_ATTRIBUTE_ID = 398;
-
-/**
- * The id of the userEncCustomerGroupKey attribute.
- */
-tutao.entity.sys.UserData.prototype.USERENCCUSTOMERGROUPKEY_ATTRIBUTE_ID = 399;
-
-/**
- * The id of the verifier attribute.
- */
-tutao.entity.sys.UserData.prototype.VERIFIER_ATTRIBUTE_ID = 402;
-
-/**
- * The id of the userGroupData attribute.
- */
-tutao.entity.sys.UserData.prototype.USERGROUPDATA_ATTRIBUTE_ID = 400;
-
-/**
  * Sets the format of this UserData.
  * @param {string} format The format of this UserData.
  */

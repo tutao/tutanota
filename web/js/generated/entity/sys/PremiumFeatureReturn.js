@@ -50,16 +50,6 @@ tutao.entity.sys.PremiumFeatureReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PremiumFeatureReturn type.
- */
-tutao.entity.sys.PremiumFeatureReturn.prototype.TYPE_ID = 978;
-
-/**
- * The id of the activatedFeature attribute.
- */
-tutao.entity.sys.PremiumFeatureReturn.prototype.ACTIVATEDFEATURE_ATTRIBUTE_ID = 980;
-
-/**
  * Sets the format of this PremiumFeatureReturn.
  * @param {string} format The format of this PremiumFeatureReturn.
  */

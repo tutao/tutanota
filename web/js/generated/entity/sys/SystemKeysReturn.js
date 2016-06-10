@@ -74,46 +74,6 @@ tutao.entity.sys.SystemKeysReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SystemKeysReturn type.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.TYPE_ID = 301;
-
-/**
- * The id of the freeGroupKey attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.FREEGROUPKEY_ATTRIBUTE_ID = 305;
-
-/**
- * The id of the premiumGroupKey attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.PREMIUMGROUPKEY_ATTRIBUTE_ID = 306;
-
-/**
- * The id of the starterGroupKey attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.STARTERGROUPKEY_ATTRIBUTE_ID = 307;
-
-/**
- * The id of the systemAdminPubKey attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.SYSTEMADMINPUBKEY_ATTRIBUTE_ID = 303;
-
-/**
- * The id of the systemAdminPubKeyVersion attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.SYSTEMADMINPUBKEYVERSION_ATTRIBUTE_ID = 304;
-
-/**
- * The id of the freeGroup attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.FREEGROUP_ATTRIBUTE_ID = 880;
-
-/**
- * The id of the premiumGroup attribute.
- */
-tutao.entity.sys.SystemKeysReturn.prototype.PREMIUMGROUP_ATTRIBUTE_ID = 881;
-
-/**
  * Sets the format of this SystemKeysReturn.
  * @param {string} format The format of this SystemKeysReturn.
  */

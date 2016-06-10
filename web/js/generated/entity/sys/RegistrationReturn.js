@@ -50,16 +50,6 @@ tutao.entity.sys.RegistrationReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the RegistrationReturn type.
- */
-tutao.entity.sys.RegistrationReturn.prototype.TYPE_ID = 326;
-
-/**
- * The id of the authToken attribute.
- */
-tutao.entity.sys.RegistrationReturn.prototype.AUTHTOKEN_ATTRIBUTE_ID = 328;
-
-/**
  * Sets the format of this RegistrationReturn.
  * @param {string} format The format of this RegistrationReturn.
  */

@@ -43,21 +43,6 @@ tutao.entity.sys.DomainInfo.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DomainInfo type.
- */
-tutao.entity.sys.DomainInfo.prototype.TYPE_ID = 696;
-
-/**
- * The id of the domain attribute.
- */
-tutao.entity.sys.DomainInfo.prototype.DOMAIN_ATTRIBUTE_ID = 698;
-
-/**
- * The id of the validatedMxRecord attribute.
- */
-tutao.entity.sys.DomainInfo.prototype.VALIDATEDMXRECORD_ATTRIBUTE_ID = 699;
-
-/**
  * Sets the id of this DomainInfo.
  * @param {string} id The id of this DomainInfo.
  */

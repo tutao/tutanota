@@ -43,21 +43,6 @@ tutao.entity.sys.MigratedGroupInfoData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MigratedGroupInfoData type.
- */
-tutao.entity.sys.MigratedGroupInfoData.prototype.TYPE_ID = 1031;
-
-/**
- * The id of the ownerEncSessionKey attribute.
- */
-tutao.entity.sys.MigratedGroupInfoData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1033;
-
-/**
- * The id of the groupInfo attribute.
- */
-tutao.entity.sys.MigratedGroupInfoData.prototype.GROUPINFO_ATTRIBUTE_ID = 1034;
-
-/**
  * Sets the id of this MigratedGroupInfoData.
  * @param {string} id The id of this MigratedGroupInfoData.
  */

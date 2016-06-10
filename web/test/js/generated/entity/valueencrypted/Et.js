@@ -10,10 +10,8 @@ tutao.entity.valueencrypted.Et = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
@@ -37,10 +35,8 @@ tutao.entity.valueencrypted.Et = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.valueencrypted.Et.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
@@ -92,10 +88,8 @@ tutao.entity.valueencrypted.Et.prototype.ENCRYPTED = true;
  */
 tutao.entity.valueencrypted.Et.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
@@ -108,78 +102,11 @@ tutao.entity.valueencrypted.Et.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Et type.
- */
-tutao.entity.valueencrypted.Et.prototype.TYPE_ID = 0;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.valueencrypted.Et.prototype._AREA_ATTRIBUTE_ID = 8;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.valueencrypted.Et.prototype._OWNER_ATTRIBUTE_ID = 7;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.valueencrypted.Et.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 6;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.valueencrypted.Et.prototype._OWNERGROUP_ATTRIBUTE_ID = 5;
-
-/**
- * The id of the bool attribute.
- */
-tutao.entity.valueencrypted.Et.prototype.BOOL_ATTRIBUTE_ID = 13;
-
-/**
- * The id of the bytes attribute.
- */
-tutao.entity.valueencrypted.Et.prototype.BYTES_ATTRIBUTE_ID = 9;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.valueencrypted.Et.prototype.DATE_ATTRIBUTE_ID = 12;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.valueencrypted.Et.prototype.NUMBER_ATTRIBUTE_ID = 11;
-
-/**
- * The id of the string attribute.
- */
-tutao.entity.valueencrypted.Et.prototype.STRING_ATTRIBUTE_ID = 10;
-
-/**
  * Provides the id of this Et.
  * @return {string} The id of this Et.
  */
 tutao.entity.valueencrypted.Et.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Et.
- * @param {string} area The area of this Et.
- */
-tutao.entity.valueencrypted.Et.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Et.
- * @return {string} The area of this Et.
- */
-tutao.entity.valueencrypted.Et.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -197,23 +124,6 @@ tutao.entity.valueencrypted.Et.prototype.setFormat = function(format) {
  */
 tutao.entity.valueencrypted.Et.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Et.
- * @param {string} owner The owner of this Et.
- */
-tutao.entity.valueencrypted.Et.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Et.
- * @return {string} The owner of this Et.
- */
-tutao.entity.valueencrypted.Et.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

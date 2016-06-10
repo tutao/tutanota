@@ -56,16 +56,6 @@ tutao.entity.sys.PhoneNumberTypeReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PhoneNumberTypeReturn type.
- */
-tutao.entity.sys.PhoneNumberTypeReturn.prototype.TYPE_ID = 620;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.PhoneNumberTypeReturn.prototype.TYPE_ATTRIBUTE_ID = 622;
-
-/**
  * Sets the format of this PhoneNumberTypeReturn.
  * @param {string} format The format of this PhoneNumberTypeReturn.
  */

@@ -50,16 +50,6 @@ tutao.entity.sys.AutoLoginPostReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AutoLoginPostReturn type.
- */
-tutao.entity.sys.AutoLoginPostReturn.prototype.TYPE_ID = 441;
-
-/**
- * The id of the deviceToken attribute.
- */
-tutao.entity.sys.AutoLoginPostReturn.prototype.DEVICETOKEN_ATTRIBUTE_ID = 443;
-
-/**
  * Sets the format of this AutoLoginPostReturn.
  * @param {string} format The format of this AutoLoginPostReturn.
  */

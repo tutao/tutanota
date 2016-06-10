@@ -56,16 +56,6 @@ tutao.entity.tutanota.PasswordRetrievalReturn.prototype.toJsonData = function() 
 };
 
 /**
- * The id of the PasswordRetrievalReturn type.
- */
-tutao.entity.tutanota.PasswordRetrievalReturn.prototype.TYPE_ID = 323;
-
-/**
- * The id of the transmissionKeyEncryptedPassword attribute.
- */
-tutao.entity.tutanota.PasswordRetrievalReturn.prototype.TRANSMISSIONKEYENCRYPTEDPASSWORD_ATTRIBUTE_ID = 325;
-
-/**
  * Sets the format of this PasswordRetrievalReturn.
  * @param {string} format The format of this PasswordRetrievalReturn.
  */

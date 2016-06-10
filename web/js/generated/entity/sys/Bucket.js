@@ -40,16 +40,6 @@ tutao.entity.sys.Bucket.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Bucket type.
- */
-tutao.entity.sys.Bucket.prototype.TYPE_ID = 129;
-
-/**
- * The id of the bucketPermissions attribute.
- */
-tutao.entity.sys.Bucket.prototype.BUCKETPERMISSIONS_ATTRIBUTE_ID = 131;
-
-/**
  * Sets the id of this Bucket.
  * @param {string} id The id of this Bucket.
  */

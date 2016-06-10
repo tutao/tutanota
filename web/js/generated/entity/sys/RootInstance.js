@@ -77,21 +77,6 @@ tutao.entity.sys.RootInstance.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the RootInstance type.
- */
-tutao.entity.sys.RootInstance.prototype.TYPE_ID = 231;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.RootInstance.prototype._OWNERGROUP_ATTRIBUTE_ID = 1021;
-
-/**
- * The id of the reference attribute.
- */
-tutao.entity.sys.RootInstance.prototype.REFERENCE_ATTRIBUTE_ID = 236;
-
-/**
  * Sets the custom id of this RootInstance.
  * @param {Array.<string>} id The custom id of this RootInstance.
  */

@@ -10,11 +10,8 @@ tutao.entity.valueunencrypted.Et = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
-    this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._bool = null;
@@ -32,11 +29,8 @@ tutao.entity.valueunencrypted.Et = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.valueunencrypted.Et.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
-  this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._bool = data.bool;
@@ -74,7 +68,7 @@ tutao.entity.valueunencrypted.Et.GENERATED_ID = true;
  * The encrypted flag.
  * @const
  */
-tutao.entity.valueunencrypted.Et.prototype.ENCRYPTED = true;
+tutao.entity.valueunencrypted.Et.prototype.ENCRYPTED = false;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
@@ -82,11 +76,8 @@ tutao.entity.valueunencrypted.Et.prototype.ENCRYPTED = true;
  */
 tutao.entity.valueunencrypted.Et.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
-    _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     bool: this._bool, 
@@ -98,78 +89,11 @@ tutao.entity.valueunencrypted.Et.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Et type.
- */
-tutao.entity.valueunencrypted.Et.prototype.TYPE_ID = 0;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype._AREA_ATTRIBUTE_ID = 8;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype._OWNER_ATTRIBUTE_ID = 7;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 6;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype._OWNERGROUP_ATTRIBUTE_ID = 5;
-
-/**
- * The id of the bool attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype.BOOL_ATTRIBUTE_ID = 13;
-
-/**
- * The id of the bytes attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype.BYTES_ATTRIBUTE_ID = 9;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype.DATE_ATTRIBUTE_ID = 12;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype.NUMBER_ATTRIBUTE_ID = 11;
-
-/**
- * The id of the string attribute.
- */
-tutao.entity.valueunencrypted.Et.prototype.STRING_ATTRIBUTE_ID = 10;
-
-/**
  * Provides the id of this Et.
  * @return {string} The id of this Et.
  */
 tutao.entity.valueunencrypted.Et.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Et.
- * @param {string} area The area of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Et.
- * @return {string} The area of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -187,40 +111,6 @@ tutao.entity.valueunencrypted.Et.prototype.setFormat = function(format) {
  */
 tutao.entity.valueunencrypted.Et.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Et.
- * @param {string} owner The owner of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Et.
- * @return {string} The owner of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.getOwner = function() {
-  return this.__owner;
-};
-
-/**
- * Sets the ownerEncSessionKey of this Et.
- * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
-  this.__ownerEncSessionKey = ownerEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the ownerEncSessionKey of this Et.
- * @return {string} The ownerEncSessionKey of this Et.
- */
-tutao.entity.valueunencrypted.Et.prototype.getOwnerEncSessionKey = function() {
-  return this.__ownerEncSessionKey;
 };
 
 /**
@@ -352,7 +242,7 @@ tutao.entity.valueunencrypted.Et.prototype.getString = function() {
  */
 tutao.entity.valueunencrypted.Et.load = function(id) {
   return tutao.locator.entityRestClient.getElement(tutao.entity.valueunencrypted.Et, tutao.entity.valueunencrypted.Et.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity._entityHelper.loadSessionKey();
+    return entity;
   });
 };
 
@@ -363,7 +253,7 @@ tutao.entity.valueunencrypted.Et.load = function(id) {
  */
 tutao.entity.valueunencrypted.Et.loadMultiple = function(ids) {
   return tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.Et, tutao.entity.valueunencrypted.Et.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
-    return tutao.entity.EntityHelper.loadSessionKeys(entities);
+    return entities;
   });
 };
 
@@ -379,17 +269,6 @@ tutao.entity.valueunencrypted.Et.prototype.setup = function() {
     self.setPermissions(entity.getPermissionListId());
     self._entityHelper.notifyObservers(false);
   })
-};
-
-/**
- * Updates the ownerEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
- */
-tutao.entity.valueunencrypted.Et.prototype.updateOwnerEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "1";
-  return tutao.locator.entityRestClient.putElement(tutao.entity.valueunencrypted.Et.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**

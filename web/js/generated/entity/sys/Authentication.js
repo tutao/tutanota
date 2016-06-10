@@ -46,26 +46,6 @@ tutao.entity.sys.Authentication.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Authentication type.
- */
-tutao.entity.sys.Authentication.prototype.TYPE_ID = 453;
-
-/**
- * The id of the authVerifier attribute.
- */
-tutao.entity.sys.Authentication.prototype.AUTHVERIFIER_ATTRIBUTE_ID = 456;
-
-/**
- * The id of the externalAuthToken attribute.
- */
-tutao.entity.sys.Authentication.prototype.EXTERNALAUTHTOKEN_ATTRIBUTE_ID = 968;
-
-/**
- * The id of the userId attribute.
- */
-tutao.entity.sys.Authentication.prototype.USERID_ATTRIBUTE_ID = 455;
-
-/**
  * Sets the id of this Authentication.
  * @param {string} id The id of this Authentication.
  */

@@ -50,16 +50,6 @@ tutao.entity.tutanota.PasswordMessagingReturn.prototype.toJsonData = function() 
 };
 
 /**
- * The id of the PasswordMessagingReturn type.
- */
-tutao.entity.tutanota.PasswordMessagingReturn.prototype.TYPE_ID = 313;
-
-/**
- * The id of the autoAuthenticationId attribute.
- */
-tutao.entity.tutanota.PasswordMessagingReturn.prototype.AUTOAUTHENTICATIONID_ATTRIBUTE_ID = 315;
-
-/**
  * Sets the format of this PasswordMessagingReturn.
  * @param {string} format The format of this PasswordMessagingReturn.
  */

@@ -59,21 +59,6 @@ tutao.entity.sys.RegistrationCaptchaServiceData.prototype.toJsonData = function(
 };
 
 /**
- * The id of the RegistrationCaptchaServiceData type.
- */
-tutao.entity.sys.RegistrationCaptchaServiceData.prototype.TYPE_ID = 674;
-
-/**
- * The id of the response attribute.
- */
-tutao.entity.sys.RegistrationCaptchaServiceData.prototype.RESPONSE_ATTRIBUTE_ID = 677;
-
-/**
- * The id of the token attribute.
- */
-tutao.entity.sys.RegistrationCaptchaServiceData.prototype.TOKEN_ATTRIBUTE_ID = 676;
-
-/**
  * Sets the format of this RegistrationCaptchaServiceData.
  * @param {string} format The format of this RegistrationCaptchaServiceData.
  */

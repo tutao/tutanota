@@ -56,16 +56,6 @@ tutao.entity.sys.SaltReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SaltReturn type.
- */
-tutao.entity.sys.SaltReturn.prototype.TYPE_ID = 420;
-
-/**
- * The id of the salt attribute.
- */
-tutao.entity.sys.SaltReturn.prototype.SALT_ATTRIBUTE_ID = 422;
-
-/**
  * Sets the format of this SaltReturn.
  * @param {string} format The format of this SaltReturn.
  */

@@ -80,26 +80,6 @@ tutao.entity.sys.ExternalUserReference.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ExternalUserReference type.
- */
-tutao.entity.sys.ExternalUserReference.prototype.TYPE_ID = 103;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.ExternalUserReference.prototype._OWNERGROUP_ATTRIBUTE_ID = 996;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.ExternalUserReference.prototype.USER_ATTRIBUTE_ID = 108;
-
-/**
- * The id of the userGroup attribute.
- */
-tutao.entity.sys.ExternalUserReference.prototype.USERGROUP_ATTRIBUTE_ID = 109;
-
-/**
  * Sets the custom id of this ExternalUserReference.
  * @param {Array.<string>} id The custom id of this ExternalUserReference.
  */

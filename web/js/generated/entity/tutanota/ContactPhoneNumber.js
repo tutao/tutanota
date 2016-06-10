@@ -52,26 +52,6 @@ tutao.entity.tutanota.ContactPhoneNumber.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ContactPhoneNumber type.
- */
-tutao.entity.tutanota.ContactPhoneNumber.prototype.TYPE_ID = 49;
-
-/**
- * The id of the customTypeName attribute.
- */
-tutao.entity.tutanota.ContactPhoneNumber.prototype.CUSTOMTYPENAME_ATTRIBUTE_ID = 53;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.tutanota.ContactPhoneNumber.prototype.NUMBER_ATTRIBUTE_ID = 52;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.tutanota.ContactPhoneNumber.prototype.TYPE_ATTRIBUTE_ID = 51;
-
-/**
  * Sets the id of this ContactPhoneNumber.
  * @param {string} id The id of this ContactPhoneNumber.
  */

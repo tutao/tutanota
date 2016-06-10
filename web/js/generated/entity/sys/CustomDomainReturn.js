@@ -56,21 +56,6 @@ tutao.entity.sys.CustomDomainReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CustomDomainReturn type.
- */
-tutao.entity.sys.CustomDomainReturn.prototype.TYPE_ID = 731;
-
-/**
- * The id of the statusCode attribute.
- */
-tutao.entity.sys.CustomDomainReturn.prototype.STATUSCODE_ATTRIBUTE_ID = 733;
-
-/**
- * The id of the invalidDnsRecords attribute.
- */
-tutao.entity.sys.CustomDomainReturn.prototype.INVALIDDNSRECORDS_ATTRIBUTE_ID = 734;
-
-/**
  * Sets the format of this CustomDomainReturn.
  * @param {string} format The format of this CustomDomainReturn.
  */

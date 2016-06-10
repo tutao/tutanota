@@ -59,21 +59,6 @@ tutao.entity.sys.RegistrationConfigReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the RegistrationConfigReturn type.
- */
-tutao.entity.sys.RegistrationConfigReturn.prototype.TYPE_ID = 606;
-
-/**
- * The id of the freeEnabled attribute.
- */
-tutao.entity.sys.RegistrationConfigReturn.prototype.FREEENABLED_ATTRIBUTE_ID = 609;
-
-/**
- * The id of the starterEnabled attribute.
- */
-tutao.entity.sys.RegistrationConfigReturn.prototype.STARTERENABLED_ATTRIBUTE_ID = 608;
-
-/**
  * Sets the format of this RegistrationConfigReturn.
  * @param {string} format The format of this RegistrationConfigReturn.
  */

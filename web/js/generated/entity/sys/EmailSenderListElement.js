@@ -48,26 +48,6 @@ tutao.entity.sys.EmailSenderListElement.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the EmailSenderListElement type.
- */
-tutao.entity.sys.EmailSenderListElement.prototype.TYPE_ID = 949;
-
-/**
- * The id of the hashedValue attribute.
- */
-tutao.entity.sys.EmailSenderListElement.prototype.HASHEDVALUE_ATTRIBUTE_ID = 951;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.EmailSenderListElement.prototype.TYPE_ATTRIBUTE_ID = 953;
-
-/**
- * The id of the value attribute.
- */
-tutao.entity.sys.EmailSenderListElement.prototype.VALUE_ATTRIBUTE_ID = 952;
-
-/**
  * Sets the id of this EmailSenderListElement.
  * @param {string} id The id of this EmailSenderListElement.
  */

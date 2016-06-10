@@ -50,16 +50,6 @@ tutao.entity.tutanota.CreateFolderReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateFolderReturn type.
- */
-tutao.entity.tutanota.CreateFolderReturn.prototype.TYPE_ID = 365;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.CreateFolderReturn.prototype.FILE_ATTRIBUTE_ID = 367;
-
-/**
  * Sets the format of this CreateFolderReturn.
  * @param {string} format The format of this CreateFolderReturn.
  */

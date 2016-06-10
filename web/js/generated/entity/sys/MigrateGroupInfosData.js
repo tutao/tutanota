@@ -59,16 +59,6 @@ tutao.entity.sys.MigrateGroupInfosData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MigrateGroupInfosData type.
- */
-tutao.entity.sys.MigrateGroupInfosData.prototype.TYPE_ID = 1035;
-
-/**
- * The id of the groupInfos attribute.
- */
-tutao.entity.sys.MigrateGroupInfosData.prototype.GROUPINFOS_ATTRIBUTE_ID = 1037;
-
-/**
  * Sets the format of this MigrateGroupInfosData.
  * @param {string} format The format of this MigrateGroupInfosData.
  */
