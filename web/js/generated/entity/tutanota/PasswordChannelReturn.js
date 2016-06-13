@@ -59,16 +59,6 @@ tutao.entity.tutanota.PasswordChannelReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PasswordChannelReturn type.
- */
-tutao.entity.tutanota.PasswordChannelReturn.prototype.TYPE_ID = 327;
-
-/**
- * The id of the phoneNumberChannels attribute.
- */
-tutao.entity.tutanota.PasswordChannelReturn.prototype.PHONENUMBERCHANNELS_ATTRIBUTE_ID = 329;
-
-/**
  * Sets the format of this PasswordChannelReturn.
  * @param {string} format The format of this PasswordChannelReturn.
  */

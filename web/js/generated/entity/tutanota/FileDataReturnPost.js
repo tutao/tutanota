@@ -50,16 +50,6 @@ tutao.entity.tutanota.FileDataReturnPost.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileDataReturnPost type.
- */
-tutao.entity.tutanota.FileDataReturnPost.prototype.TYPE_ID = 342;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.FileDataReturnPost.prototype.FILEDATA_ATTRIBUTE_ID = 344;
-
-/**
  * Sets the format of this FileDataReturnPost.
  * @param {string} format The format of this FileDataReturnPost.
  */

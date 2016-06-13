@@ -53,21 +53,6 @@ tutao.entity.sys.AutoLoginDataGet.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AutoLoginDataGet type.
- */
-tutao.entity.sys.AutoLoginDataGet.prototype.TYPE_ID = 431;
-
-/**
- * The id of the deviceToken attribute.
- */
-tutao.entity.sys.AutoLoginDataGet.prototype.DEVICETOKEN_ATTRIBUTE_ID = 434;
-
-/**
- * The id of the userId attribute.
- */
-tutao.entity.sys.AutoLoginDataGet.prototype.USERID_ATTRIBUTE_ID = 433;
-
-/**
  * Sets the format of this AutoLoginDataGet.
  * @param {string} format The format of this AutoLoginDataGet.
  */

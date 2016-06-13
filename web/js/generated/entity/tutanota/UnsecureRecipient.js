@@ -43,21 +43,6 @@ tutao.entity.tutanota.UnsecureRecipient.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UnsecureRecipient type.
- */
-tutao.entity.tutanota.UnsecureRecipient.prototype.TYPE_ID = 276;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.tutanota.UnsecureRecipient.prototype.MAILADDRESS_ATTRIBUTE_ID = 279;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.UnsecureRecipient.prototype.NAME_ATTRIBUTE_ID = 278;
-
-/**
  * Sets the id of this UnsecureRecipient.
  * @param {string} id The id of this UnsecureRecipient.
  */

@@ -95,51 +95,6 @@ tutao.entity.tutanota.MailBox.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailBox type.
- */
-tutao.entity.tutanota.MailBox.prototype.TYPE_ID = 125;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.MailBox.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 591;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.MailBox.prototype._OWNERGROUP_ATTRIBUTE_ID = 590;
-
-/**
- * The id of the lastInfoDate attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.LASTINFODATE_ATTRIBUTE_ID = 569;
-
-/**
- * The id of the symEncShareBucketKey attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.SYMENCSHAREBUCKETKEY_ATTRIBUTE_ID = 131;
-
-/**
- * The id of the mails attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.MAILS_ATTRIBUTE_ID = 132;
-
-/**
- * The id of the receivedAttachments attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.RECEIVEDATTACHMENTS_ATTRIBUTE_ID = 134;
-
-/**
- * The id of the sentAttachments attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.SENTATTACHMENTS_ATTRIBUTE_ID = 133;
-
-/**
- * The id of the systemFolders attribute.
- */
-tutao.entity.tutanota.MailBox.prototype.SYSTEMFOLDERS_ATTRIBUTE_ID = 443;
-
-/**
  * Provides the id of this MailBox.
  * @return {string} The id of this MailBox.
  */

@@ -50,16 +50,6 @@ tutao.entity.tutanota.CreateMailFolderReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateMailFolderReturn type.
- */
-tutao.entity.tutanota.CreateMailFolderReturn.prototype.TYPE_ID = 455;
-
-/**
- * The id of the newFolder attribute.
- */
-tutao.entity.tutanota.CreateMailFolderReturn.prototype.NEWFOLDER_ATTRIBUTE_ID = 457;
-
-/**
  * Sets the format of this CreateMailFolderReturn.
  * @param {string} format The format of this CreateMailFolderReturn.
  */

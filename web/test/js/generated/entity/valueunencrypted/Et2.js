@@ -10,11 +10,8 @@ tutao.entity.valueunencrypted.Et2 = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
-    this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._aggregationAny = [];
@@ -30,11 +27,8 @@ tutao.entity.valueunencrypted.Et2 = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.valueunencrypted.Et2.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
-  this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._aggregationAny = [];
@@ -61,7 +55,7 @@ tutao.entity.valueunencrypted.Et2.PATH = '/rest/valueunencrypted/et2';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.valueunencrypted.Et2.ROOT_INSTANCE_ID = 'EHZhbHVldW5lbmNyeXB0ZWQAMQ';
+tutao.entity.valueunencrypted.Et2.ROOT_INSTANCE_ID = 'EHZhbHVldW5lbmNyeXB0ZWQAKA';
 
 /**
  * The generated id type flag.
@@ -73,7 +67,7 @@ tutao.entity.valueunencrypted.Et2.GENERATED_ID = true;
  * The encrypted flag.
  * @const
  */
-tutao.entity.valueunencrypted.Et2.prototype.ENCRYPTED = true;
+tutao.entity.valueunencrypted.Et2.prototype.ENCRYPTED = false;
 
 /**
  * Provides the data of this instances as an object that can be converted to json.
@@ -81,11 +75,8 @@ tutao.entity.valueunencrypted.Et2.prototype.ENCRYPTED = true;
  */
 tutao.entity.valueunencrypted.Et2.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
-    _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     aggregationAny: tutao.entity.EntityHelper.aggregatesToJsonData(this._aggregationAny), 
@@ -95,68 +86,11 @@ tutao.entity.valueunencrypted.Et2.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Et2 type.
- */
-tutao.entity.valueunencrypted.Et2.prototype.TYPE_ID = 49;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype._AREA_ATTRIBUTE_ID = 57;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype._OWNER_ATTRIBUTE_ID = 56;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 55;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype._OWNERGROUP_ATTRIBUTE_ID = 54;
-
-/**
- * The id of the aggregationAny attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype.AGGREGATIONANY_ATTRIBUTE_ID = 60;
-
-/**
- * The id of the aggregationOne attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype.AGGREGATIONONE_ATTRIBUTE_ID = 59;
-
-/**
- * The id of the list attribute.
- */
-tutao.entity.valueunencrypted.Et2.prototype.LIST_ATTRIBUTE_ID = 58;
-
-/**
  * Provides the id of this Et2.
  * @return {string} The id of this Et2.
  */
 tutao.entity.valueunencrypted.Et2.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Et2.
- * @param {string} area The area of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Et2.
- * @return {string} The area of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -174,40 +108,6 @@ tutao.entity.valueunencrypted.Et2.prototype.setFormat = function(format) {
  */
 tutao.entity.valueunencrypted.Et2.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Et2.
- * @param {string} owner The owner of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Et2.
- * @return {string} The owner of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.getOwner = function() {
-  return this.__owner;
-};
-
-/**
- * Sets the ownerEncSessionKey of this Et2.
- * @param {string} ownerEncSessionKey The ownerEncSessionKey of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.setOwnerEncSessionKey = function(ownerEncSessionKey) {
-  this.__ownerEncSessionKey = ownerEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the ownerEncSessionKey of this Et2.
- * @return {string} The ownerEncSessionKey of this Et2.
- */
-tutao.entity.valueunencrypted.Et2.prototype.getOwnerEncSessionKey = function() {
-  return this.__ownerEncSessionKey;
 };
 
 /**
@@ -293,7 +193,7 @@ tutao.entity.valueunencrypted.Et2.prototype.getList = function() {
  */
 tutao.entity.valueunencrypted.Et2.load = function(id) {
   return tutao.locator.entityRestClient.getElement(tutao.entity.valueunencrypted.Et2, tutao.entity.valueunencrypted.Et2.PATH, id, null, {"v" : "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
-    return entity._entityHelper.loadSessionKey();
+    return entity;
   });
 };
 
@@ -304,7 +204,7 @@ tutao.entity.valueunencrypted.Et2.load = function(id) {
  */
 tutao.entity.valueunencrypted.Et2.loadMultiple = function(ids) {
   return tutao.locator.entityRestClient.getElements(tutao.entity.valueunencrypted.Et2, tutao.entity.valueunencrypted.Et2.PATH, ids, {"v": "1"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
-    return tutao.entity.EntityHelper.loadSessionKeys(entities);
+    return entities;
   });
 };
 
@@ -320,17 +220,6 @@ tutao.entity.valueunencrypted.Et2.prototype.setup = function() {
     self.setPermissions(entity.getPermissionListId());
     self._entityHelper.notifyObservers(false);
   })
-};
-
-/**
- * Updates the ownerEncSessionKey on the server.
- * @return {Promise.<>} Resolves when finished, rejected if the update failed.
- */
-tutao.entity.valueunencrypted.Et2.prototype.updateOwnerEncSessionKey = function() {
-  var params = {};
-  params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "1";
-  return tutao.locator.entityRestClient.putElement(tutao.entity.valueunencrypted.Et2.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
 /**

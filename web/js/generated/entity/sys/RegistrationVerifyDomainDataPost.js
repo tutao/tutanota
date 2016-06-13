@@ -59,21 +59,6 @@ tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.toJsonData = functio
 };
 
 /**
- * The id of the RegistrationVerifyDomainDataPost type.
- */
-tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.TYPE_ID = 330;
-
-/**
- * The id of the currentAdminMailAddress attribute.
- */
-tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.CURRENTADMINMAILADDRESS_ATTRIBUTE_ID = 333;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.sys.RegistrationVerifyDomainDataPost.prototype.LANGUAGE_ATTRIBUTE_ID = 332;
-
-/**
  * Sets the format of this RegistrationVerifyDomainDataPost.
  * @param {string} format The format of this RegistrationVerifyDomainDataPost.
  */

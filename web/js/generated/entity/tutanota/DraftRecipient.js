@@ -45,21 +45,6 @@ tutao.entity.tutanota.DraftRecipient.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DraftRecipient type.
- */
-tutao.entity.tutanota.DraftRecipient.prototype.TYPE_ID = 482;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.tutanota.DraftRecipient.prototype.MAILADDRESS_ATTRIBUTE_ID = 485;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.DraftRecipient.prototype.NAME_ATTRIBUTE_ID = 484;
-
-/**
  * Sets the id of this DraftRecipient.
  * @param {string} id The id of this DraftRecipient.
  */

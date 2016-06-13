@@ -62,26 +62,6 @@ tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.toJsonData = functi
 };
 
 /**
- * The id of the MailAddressAliasServiceDataDelete type.
- */
-tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.TYPE_ID = 785;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.MAILADDRESS_ATTRIBUTE_ID = 787;
-
-/**
- * The id of the restore attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.RESTORE_ATTRIBUTE_ID = 788;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceDataDelete.prototype.GROUP_ATTRIBUTE_ID = 789;
-
-/**
  * Sets the format of this MailAddressAliasServiceDataDelete.
  * @param {string} format The format of this MailAddressAliasServiceDataDelete.
  */

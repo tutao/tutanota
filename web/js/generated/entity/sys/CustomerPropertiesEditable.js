@@ -10,7 +10,6 @@ tutao.provide('tutao.entity.sys.CustomerPropertiesEditable');
 tutao.entity.sys.CustomerPropertiesEditable = function(customerproperties) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerproperties;
-	this._ownerGroup = ko.observable(customerproperties.getOwnerGroup());
 	this.externalUserWelcomeMessage = ko.observable(customerproperties.getExternalUserWelcomeMessage());
 	this.lastUpgradeReminder = ko.observable(customerproperties.getLastUpgradeReminder());
 	if (customerproperties.getBigLogo()) {
@@ -43,7 +42,6 @@ tutao.entity.sys.CustomerPropertiesEditable.prototype.getCustomerProperties = fu
  * Updates the underlying CustomerProperties with the modified attributes.
  */
 tutao.entity.sys.CustomerPropertiesEditable.prototype.update = function() {
-	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setExternalUserWelcomeMessage(this.externalUserWelcomeMessage());
 	this._entity.setLastUpgradeReminder(this.lastUpgradeReminder());
 		if (this.bigLogo()) {

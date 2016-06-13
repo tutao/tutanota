@@ -16,6 +16,7 @@ tutao.entity.sys.Group = function(data) {
     this.__permissions = null;
     this._adminGroupEncGKey = null;
     this._enabled = null;
+    this._external = null;
     this._type = null;
     this._admin = null;
     this._customer = null;
@@ -40,6 +41,7 @@ tutao.entity.sys.Group.prototype.updateData = function(data) {
   this.__permissions = data._permissions;
   this._adminGroupEncGKey = data.adminGroupEncGKey;
   this._enabled = data.enabled;
+  this._external = data.external;
   this._type = data.type;
   this._admin = data.admin;
   this._customer = data.customer;
@@ -95,6 +97,7 @@ tutao.entity.sys.Group.prototype.toJsonData = function() {
     _permissions: this.__permissions, 
     adminGroupEncGKey: this._adminGroupEncGKey, 
     enabled: this._enabled, 
+    external: this._external, 
     type: this._type, 
     admin: this._admin, 
     customer: this._customer, 
@@ -105,66 +108,6 @@ tutao.entity.sys.Group.prototype.toJsonData = function() {
     user: this._user
   };
 };
-
-/**
- * The id of the Group type.
- */
-tutao.entity.sys.Group.prototype.TYPE_ID = 5;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.Group.prototype._OWNERGROUP_ATTRIBUTE_ID = 981;
-
-/**
- * The id of the adminGroupEncGKey attribute.
- */
-tutao.entity.sys.Group.prototype.ADMINGROUPENCGKEY_ATTRIBUTE_ID = 11;
-
-/**
- * The id of the enabled attribute.
- */
-tutao.entity.sys.Group.prototype.ENABLED_ATTRIBUTE_ID = 12;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.Group.prototype.TYPE_ATTRIBUTE_ID = 10;
-
-/**
- * The id of the admin attribute.
- */
-tutao.entity.sys.Group.prototype.ADMIN_ATTRIBUTE_ID = 224;
-
-/**
- * The id of the customer attribute.
- */
-tutao.entity.sys.Group.prototype.CUSTOMER_ATTRIBUTE_ID = 226;
-
-/**
- * The id of the groupInfo attribute.
- */
-tutao.entity.sys.Group.prototype.GROUPINFO_ATTRIBUTE_ID = 227;
-
-/**
- * The id of the invitations attribute.
- */
-tutao.entity.sys.Group.prototype.INVITATIONS_ATTRIBUTE_ID = 228;
-
-/**
- * The id of the keys attribute.
- */
-tutao.entity.sys.Group.prototype.KEYS_ATTRIBUTE_ID = 13;
-
-/**
- * The id of the members attribute.
- */
-tutao.entity.sys.Group.prototype.MEMBERS_ATTRIBUTE_ID = 229;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.Group.prototype.USER_ATTRIBUTE_ID = 225;
 
 /**
  * Provides the id of this Group.
@@ -257,6 +200,23 @@ tutao.entity.sys.Group.prototype.setEnabled = function(enabled) {
  */
 tutao.entity.sys.Group.prototype.getEnabled = function() {
   return this._enabled != '0';
+};
+
+/**
+ * Sets the external of this Group.
+ * @param {boolean} external The external of this Group.
+ */
+tutao.entity.sys.Group.prototype.setExternal = function(external) {
+  this._external = external ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the external of this Group.
+ * @return {boolean} The external of this Group.
+ */
+tutao.entity.sys.Group.prototype.getExternal = function() {
+  return this._external != '0';
 };
 
 /**

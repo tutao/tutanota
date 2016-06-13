@@ -94,46 +94,6 @@ tutao.entity.tutanota.MailFolder.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailFolder type.
- */
-tutao.entity.tutanota.MailFolder.prototype.TYPE_ID = 429;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 434;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype._OWNERGROUP_ATTRIBUTE_ID = 589;
-
-/**
- * The id of the folderType attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype.FOLDERTYPE_ATTRIBUTE_ID = 436;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype.NAME_ATTRIBUTE_ID = 435;
-
-/**
- * The id of the mails attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype.MAILS_ATTRIBUTE_ID = 437;
-
-/**
- * The id of the parentFolder attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype.PARENTFOLDER_ATTRIBUTE_ID = 439;
-
-/**
- * The id of the subFolders attribute.
- */
-tutao.entity.tutanota.MailFolder.prototype.SUBFOLDERS_ATTRIBUTE_ID = 438;
-
-/**
  * Provides the id of this MailFolder.
  * @return {Array.<string>} The id of this MailFolder.
  */

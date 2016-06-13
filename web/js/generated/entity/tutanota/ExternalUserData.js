@@ -71,41 +71,6 @@ tutao.entity.tutanota.ExternalUserData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ExternalUserData type.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.TYPE_ID = 145;
-
-/**
- * The id of the externalUserEncGroupInfoSessionKey attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.EXTERNALUSERENCGROUPINFOSESSIONKEY_ATTRIBUTE_ID = 150;
-
-/**
- * The id of the groupEncEntropy attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.GROUPENCENTROPY_ATTRIBUTE_ID = 412;
-
-/**
- * The id of the groupEncMailListKey attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.GROUPENCMAILLISTKEY_ATTRIBUTE_ID = 148;
-
-/**
- * The id of the userEncClientKey attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.USERENCCLIENTKEY_ATTRIBUTE_ID = 147;
-
-/**
- * The id of the verifier attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.VERIFIER_ATTRIBUTE_ID = 149;
-
-/**
- * The id of the userGroupData attribute.
- */
-tutao.entity.tutanota.ExternalUserData.prototype.USERGROUPDATA_ATTRIBUTE_ID = 151;
-
-/**
  * Sets the format of this ExternalUserData.
  * @param {string} format The format of this ExternalUserData.
  */

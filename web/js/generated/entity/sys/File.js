@@ -46,26 +46,6 @@ tutao.entity.sys.File.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the File type.
- */
-tutao.entity.sys.File.prototype.TYPE_ID = 917;
-
-/**
- * The id of the data attribute.
- */
-tutao.entity.sys.File.prototype.DATA_ATTRIBUTE_ID = 921;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.sys.File.prototype.MIMETYPE_ATTRIBUTE_ID = 920;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.sys.File.prototype.NAME_ATTRIBUTE_ID = 919;
-
-/**
  * Sets the id of this File.
  * @param {string} id The id of this File.
  */

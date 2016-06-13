@@ -50,16 +50,6 @@ tutao.entity.tutanota.SendUnsecureMailReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendUnsecureMailReturn type.
- */
-tutao.entity.tutanota.SendUnsecureMailReturn.prototype.TYPE_ID = 304;
-
-/**
- * The id of the senderMail attribute.
- */
-tutao.entity.tutanota.SendUnsecureMailReturn.prototype.SENDERMAIL_ATTRIBUTE_ID = 306;
-
-/**
  * Sets the format of this SendUnsecureMailReturn.
  * @param {string} format The format of this SendUnsecureMailReturn.
  */

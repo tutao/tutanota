@@ -50,16 +50,6 @@ tutao.entity.sys.SendRegistrationCodeReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SendRegistrationCodeReturn type.
- */
-tutao.entity.sys.SendRegistrationCodeReturn.prototype.TYPE_ID = 347;
-
-/**
- * The id of the authToken attribute.
- */
-tutao.entity.sys.SendRegistrationCodeReturn.prototype.AUTHTOKEN_ATTRIBUTE_ID = 349;
-
-/**
  * Sets the format of this SendRegistrationCodeReturn.
  * @param {string} format The format of this SendRegistrationCodeReturn.
  */

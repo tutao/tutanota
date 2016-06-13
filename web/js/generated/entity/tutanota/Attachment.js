@@ -55,41 +55,6 @@ tutao.entity.tutanota.Attachment.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Attachment type.
- */
-tutao.entity.tutanota.Attachment.prototype.TYPE_ID = 175;
-
-/**
- * The id of the bucketEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.BUCKETENCFILESESSIONKEY_ATTRIBUTE_ID = 178;
-
-/**
- * The id of the fileName attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.FILENAME_ATTRIBUTE_ID = 180;
-
-/**
- * The id of the ownerEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.OWNERENCFILESESSIONKEY_ATTRIBUTE_ID = 177;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.MIMETYPE_ATTRIBUTE_ID = 181;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.FILE_ATTRIBUTE_ID = 179;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.Attachment.prototype.FILEDATA_ATTRIBUTE_ID = 182;
-
-/**
  * Sets the id of this Attachment.
  * @param {string} id The id of this Attachment.
  */

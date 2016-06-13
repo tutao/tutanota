@@ -56,16 +56,6 @@ tutao.entity.sys.CustomerInfoReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CustomerInfoReturn type.
- */
-tutao.entity.sys.CustomerInfoReturn.prototype.TYPE_ID = 550;
-
-/**
- * The id of the sendMailDisabled attribute.
- */
-tutao.entity.sys.CustomerInfoReturn.prototype.SENDMAILDISABLED_ATTRIBUTE_ID = 552;
-
-/**
  * Sets the format of this CustomerInfoReturn.
  * @param {string} format The format of this CustomerInfoReturn.
  */

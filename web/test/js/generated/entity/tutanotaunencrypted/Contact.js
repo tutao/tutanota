@@ -10,10 +10,8 @@ tutao.entity.tutanotaunencrypted.Contact = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._birthday = null;
@@ -30,10 +28,8 @@ tutao.entity.tutanotaunencrypted.Contact = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._birthday = data.birthday;
@@ -58,7 +54,7 @@ tutao.entity.tutanotaunencrypted.Contact.PATH = '/rest/tutanotaunencrypted/conta
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.Contact.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQAEg';
+tutao.entity.tutanotaunencrypted.Contact.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQADg';
 
 /**
  * The generated id type flag.
@@ -78,10 +74,8 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.ENCRYPTED = false;
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     birthday: this._birthday, 
@@ -92,68 +86,11 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Contact type.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.TYPE_ID = 18;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype._AREA_ATTRIBUTE_ID = 25;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype._OWNER_ATTRIBUTE_ID = 24;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype._OWNERGROUP_ATTRIBUTE_ID = 23;
-
-/**
- * The id of the birthday attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.BIRTHDAY_ATTRIBUTE_ID = 28;
-
-/**
- * The id of the mail attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.MAIL_ATTRIBUTE_ID = 27;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.NAME_ATTRIBUTE_ID = 26;
-
-/**
- * The id of the userid attribute.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.USERID_ATTRIBUTE_ID = 29;
-
-/**
  * Provides the id of this Contact.
  * @return {string} The id of this Contact.
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Contact.
- * @param {string} area The area of this Contact.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Contact.
- * @return {string} The area of this Contact.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -171,23 +108,6 @@ tutao.entity.tutanotaunencrypted.Contact.prototype.setFormat = function(format) 
  */
 tutao.entity.tutanotaunencrypted.Contact.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Contact.
- * @param {string} owner The owner of this Contact.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Contact.
- * @return {string} The owner of this Contact.
- */
-tutao.entity.tutanotaunencrypted.Contact.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

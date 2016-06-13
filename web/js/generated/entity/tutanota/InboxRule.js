@@ -50,26 +50,6 @@ tutao.entity.tutanota.InboxRule.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the InboxRule type.
- */
-tutao.entity.tutanota.InboxRule.prototype.TYPE_ID = 573;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.tutanota.InboxRule.prototype.TYPE_ATTRIBUTE_ID = 575;
-
-/**
- * The id of the value attribute.
- */
-tutao.entity.tutanota.InboxRule.prototype.VALUE_ATTRIBUTE_ID = 576;
-
-/**
- * The id of the targetFolder attribute.
- */
-tutao.entity.tutanota.InboxRule.prototype.TARGETFOLDER_ATTRIBUTE_ID = 577;
-
-/**
  * Sets the id of this InboxRule.
  * @param {string} id The id of this InboxRule.
  */

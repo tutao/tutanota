@@ -11,9 +11,7 @@ tutao.entity.tutanota.ContactEditable = function(contact) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = contact;
 	this._area = ko.observable(contact.getArea());
-	this._ownerEncSessionKey = ko.observable(contact.getOwnerEncSessionKey());
 	this._owner = ko.observable(contact.getOwner());
-	this._ownerGroup = ko.observable(contact.getOwnerGroup());
 	this.autoTransmitPassword = ko.observable(contact.getAutoTransmitPassword());
 	this.birthday = ko.observable(contact.getBirthday());
 	this.comment = ko.observable(contact.getComment());
@@ -59,9 +57,7 @@ tutao.entity.tutanota.ContactEditable.prototype.getContact = function() {
  */
 tutao.entity.tutanota.ContactEditable.prototype.update = function() {
 	this._entity.setArea(this._area());
-	this._entity.setOwnerEncSessionKey(this._ownerEncSessionKey());
 	this._entity.setOwner(this._owner());
-	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setAutoTransmitPassword(this.autoTransmitPassword());
 	this._entity.setBirthday(this.birthday());
 	this._entity.setComment(this.comment());

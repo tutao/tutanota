@@ -56,16 +56,6 @@ tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype.toJsonData = func
 };
 
 /**
- * The id of the DomainMailAddressAvailabilityReturn type.
- */
-tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype.TYPE_ID = 602;
-
-/**
- * The id of the available attribute.
- */
-tutao.entity.sys.DomainMailAddressAvailabilityReturn.prototype.AVAILABLE_ATTRIBUTE_ID = 604;
-
-/**
  * Sets the format of this DomainMailAddressAvailabilityReturn.
  * @param {string} format The format of this DomainMailAddressAvailabilityReturn.
  */

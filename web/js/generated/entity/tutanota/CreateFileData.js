@@ -75,41 +75,6 @@ tutao.entity.tutanota.CreateFileData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateFileData type.
- */
-tutao.entity.tutanota.CreateFileData.prototype.TYPE_ID = 346;
-
-/**
- * The id of the fileName attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.FILENAME_ATTRIBUTE_ID = 348;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.GROUP_ATTRIBUTE_ID = 350;
-
-/**
- * The id of the ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 351;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.MIMETYPE_ATTRIBUTE_ID = 349;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.FILEDATA_ATTRIBUTE_ID = 352;
-
-/**
- * The id of the parentFolder attribute.
- */
-tutao.entity.tutanota.CreateFileData.prototype.PARENTFOLDER_ATTRIBUTE_ID = 353;
-
-/**
  * Sets the format of this CreateFileData.
  * @param {string} format The format of this CreateFileData.
  */

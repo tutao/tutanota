@@ -46,26 +46,6 @@ tutao.entity.sys.CreateGroupListData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateGroupListData type.
- */
-tutao.entity.sys.CreateGroupListData.prototype.TYPE_ID = 365;
-
-/**
- * The id of the adminEncGroupInfoListKey attribute.
- */
-tutao.entity.sys.CreateGroupListData.prototype.ADMINENCGROUPINFOLISTKEY_ATTRIBUTE_ID = 368;
-
-/**
- * The id of the customerEncGroupInfoListKey attribute.
- */
-tutao.entity.sys.CreateGroupListData.prototype.CUSTOMERENCGROUPINFOLISTKEY_ATTRIBUTE_ID = 367;
-
-/**
- * The id of the createGroupData attribute.
- */
-tutao.entity.sys.CreateGroupListData.prototype.CREATEGROUPDATA_ATTRIBUTE_ID = 369;
-
-/**
  * Sets the id of this CreateGroupListData.
  * @param {string} id The id of this CreateGroupListData.
  */

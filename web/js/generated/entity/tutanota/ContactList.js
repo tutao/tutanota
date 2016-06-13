@@ -80,26 +80,6 @@ tutao.entity.tutanota.ContactList.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ContactList type.
- */
-tutao.entity.tutanota.ContactList.prototype.TYPE_ID = 153;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.ContactList.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 593;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.ContactList.prototype._OWNERGROUP_ATTRIBUTE_ID = 592;
-
-/**
- * The id of the contacts attribute.
- */
-tutao.entity.tutanota.ContactList.prototype.CONTACTS_ATTRIBUTE_ID = 160;
-
-/**
  * Provides the id of this ContactList.
  * @return {string} The id of this ContactList.
  */

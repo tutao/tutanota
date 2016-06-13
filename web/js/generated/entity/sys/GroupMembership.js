@@ -55,41 +55,6 @@ tutao.entity.sys.GroupMembership.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the GroupMembership type.
- */
-tutao.entity.sys.GroupMembership.prototype.TYPE_ID = 25;
-
-/**
- * The id of the admin attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.ADMIN_ATTRIBUTE_ID = 28;
-
-/**
- * The id of the groupType attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.GROUPTYPE_ATTRIBUTE_ID = 1029;
-
-/**
- * The id of the symEncGKey attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.SYMENCGKEY_ATTRIBUTE_ID = 27;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.GROUP_ATTRIBUTE_ID = 29;
-
-/**
- * The id of the groupInfo attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.GROUPINFO_ATTRIBUTE_ID = 30;
-
-/**
- * The id of the groupMember attribute.
- */
-tutao.entity.sys.GroupMembership.prototype.GROUPMEMBER_ATTRIBUTE_ID = 230;
-
-/**
  * Sets the id of this GroupMembership.
  * @param {string} id The id of this GroupMembership.
  */

@@ -59,21 +59,6 @@ tutao.entity.tutanota.FileDataDataPost.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileDataDataPost type.
- */
-tutao.entity.tutanota.FileDataDataPost.prototype.TYPE_ID = 335;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.tutanota.FileDataDataPost.prototype.GROUP_ATTRIBUTE_ID = 337;
-
-/**
- * The id of the size attribute.
- */
-tutao.entity.tutanota.FileDataDataPost.prototype.SIZE_ATTRIBUTE_ID = 338;
-
-/**
  * Sets the format of this FileDataDataPost.
  * @param {string} format The format of this FileDataDataPost.
  */

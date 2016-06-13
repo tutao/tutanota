@@ -46,26 +46,6 @@ tutao.entity.tutanotaunencrypted.MailAddress.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailAddress type.
- */
-tutao.entity.tutanotaunencrypted.MailAddress.prototype.TYPE_ID = 30;
-
-/**
- * The id of the address attribute.
- */
-tutao.entity.tutanotaunencrypted.MailAddress.prototype.ADDRESS_ATTRIBUTE_ID = 33;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanotaunencrypted.MailAddress.prototype.NAME_ATTRIBUTE_ID = 32;
-
-/**
- * The id of the contact attribute.
- */
-tutao.entity.tutanotaunencrypted.MailAddress.prototype.CONTACT_ATTRIBUTE_ID = 34;
-
-/**
  * Sets the id of this MailAddress.
  * @param {string} id The id of this MailAddress.
  */

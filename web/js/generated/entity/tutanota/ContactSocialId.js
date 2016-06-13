@@ -52,26 +52,6 @@ tutao.entity.tutanota.ContactSocialId.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ContactSocialId type.
- */
-tutao.entity.tutanota.ContactSocialId.prototype.TYPE_ID = 59;
-
-/**
- * The id of the customTypeName attribute.
- */
-tutao.entity.tutanota.ContactSocialId.prototype.CUSTOMTYPENAME_ATTRIBUTE_ID = 63;
-
-/**
- * The id of the socialId attribute.
- */
-tutao.entity.tutanota.ContactSocialId.prototype.SOCIALID_ATTRIBUTE_ID = 62;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.tutanota.ContactSocialId.prototype.TYPE_ATTRIBUTE_ID = 61;
-
-/**
  * Sets the id of this ContactSocialId.
  * @param {string} id The id of this ContactSocialId.
  */

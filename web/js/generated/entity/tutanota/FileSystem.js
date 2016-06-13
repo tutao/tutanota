@@ -80,26 +80,6 @@ tutao.entity.tutanota.FileSystem.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileSystem type.
- */
-tutao.entity.tutanota.FileSystem.prototype.TYPE_ID = 28;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.FileSystem.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 582;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.FileSystem.prototype._OWNERGROUP_ATTRIBUTE_ID = 581;
-
-/**
- * The id of the files attribute.
- */
-tutao.entity.tutanota.FileSystem.prototype.FILES_ATTRIBUTE_ID = 35;
-
-/**
  * Provides the id of this FileSystem.
  * @return {string} The id of this FileSystem.
  */

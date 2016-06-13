@@ -50,16 +50,6 @@ tutao.entity.tutanota.SendMailFromExternalReturn.prototype.toJsonData = function
 };
 
 /**
- * The id of the SendMailFromExternalReturn type.
- */
-tutao.entity.tutanota.SendMailFromExternalReturn.prototype.TYPE_ID = 272;
-
-/**
- * The id of the senderMail attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalReturn.prototype.SENDERMAIL_ATTRIBUTE_ID = 274;
-
-/**
  * Sets the format of this SendMailFromExternalReturn.
  * @param {string} format The format of this SendMailFromExternalReturn.
  */

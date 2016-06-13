@@ -53,21 +53,6 @@ tutao.entity.base.PersistenceResourcePostReturn.prototype.toJsonData = function(
 };
 
 /**
- * The id of the PersistenceResourcePostReturn type.
- */
-tutao.entity.base.PersistenceResourcePostReturn.prototype.TYPE_ID = 0;
-
-/**
- * The id of the generatedId attribute.
- */
-tutao.entity.base.PersistenceResourcePostReturn.prototype.GENERATEDID_ATTRIBUTE_ID = 2;
-
-/**
- * The id of the permissionListId attribute.
- */
-tutao.entity.base.PersistenceResourcePostReturn.prototype.PERMISSIONLISTID_ATTRIBUTE_ID = 3;
-
-/**
  * Sets the format of this PersistenceResourcePostReturn.
  * @param {string} format The format of this PersistenceResourcePostReturn.
  */

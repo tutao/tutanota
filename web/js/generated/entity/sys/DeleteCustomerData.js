@@ -62,26 +62,6 @@ tutao.entity.sys.DeleteCustomerData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DeleteCustomerData type.
- */
-tutao.entity.sys.DeleteCustomerData.prototype.TYPE_ID = 641;
-
-/**
- * The id of the reason attribute.
- */
-tutao.entity.sys.DeleteCustomerData.prototype.REASON_ATTRIBUTE_ID = 644;
-
-/**
- * The id of the undelete attribute.
- */
-tutao.entity.sys.DeleteCustomerData.prototype.UNDELETE_ATTRIBUTE_ID = 643;
-
-/**
- * The id of the customer attribute.
- */
-tutao.entity.sys.DeleteCustomerData.prototype.CUSTOMER_ATTRIBUTE_ID = 645;
-
-/**
  * Sets the format of this DeleteCustomerData.
  * @param {string} format The format of this DeleteCustomerData.
  */

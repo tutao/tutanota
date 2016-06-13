@@ -65,31 +65,6 @@ tutao.entity.sys.UpdatePermissionKeyData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UpdatePermissionKeyData type.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.TYPE_ID = 445;
-
-/**
- * The id of the ownerEncSessionKey attribute.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 1030;
-
-/**
- * The id of the symEncSessionKey attribute.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.SYMENCSESSIONKEY_ATTRIBUTE_ID = 447;
-
-/**
- * The id of the bucketPermission attribute.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.BUCKETPERMISSION_ATTRIBUTE_ID = 451;
-
-/**
- * The id of the permission attribute.
- */
-tutao.entity.sys.UpdatePermissionKeyData.prototype.PERMISSION_ATTRIBUTE_ID = 450;
-
-/**
  * Sets the format of this UpdatePermissionKeyData.
  * @param {string} format The format of this UpdatePermissionKeyData.
  */

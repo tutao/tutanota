@@ -40,16 +40,6 @@ tutao.entity.tutanota.Subfiles.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Subfiles type.
- */
-tutao.entity.tutanota.Subfiles.prototype.TYPE_ID = 11;
-
-/**
- * The id of the files attribute.
- */
-tutao.entity.tutanota.Subfiles.prototype.FILES_ATTRIBUTE_ID = 27;
-
-/**
  * Sets the id of this Subfiles.
  * @param {string} id The id of this Subfiles.
  */

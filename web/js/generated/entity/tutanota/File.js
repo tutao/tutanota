@@ -105,61 +105,6 @@ tutao.entity.tutanota.File.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the File type.
- */
-tutao.entity.tutanota.File.prototype.TYPE_ID = 13;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanota.File.prototype._AREA_ATTRIBUTE_ID = 20;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.File.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 18;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanota.File.prototype._OWNER_ATTRIBUTE_ID = 19;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.File.prototype._OWNERGROUP_ATTRIBUTE_ID = 580;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.tutanota.File.prototype.MIMETYPE_ATTRIBUTE_ID = 23;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.File.prototype.NAME_ATTRIBUTE_ID = 21;
-
-/**
- * The id of the size attribute.
- */
-tutao.entity.tutanota.File.prototype.SIZE_ATTRIBUTE_ID = 22;
-
-/**
- * The id of the data attribute.
- */
-tutao.entity.tutanota.File.prototype.DATA_ATTRIBUTE_ID = 24;
-
-/**
- * The id of the parent attribute.
- */
-tutao.entity.tutanota.File.prototype.PARENT_ATTRIBUTE_ID = 25;
-
-/**
- * The id of the subFiles attribute.
- */
-tutao.entity.tutanota.File.prototype.SUBFILES_ATTRIBUTE_ID = 26;
-
-/**
  * Provides the id of this File.
  * @return {Array.<string>} The id of this File.
  */

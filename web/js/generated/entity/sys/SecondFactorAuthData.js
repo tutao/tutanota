@@ -59,21 +59,6 @@ tutao.entity.sys.SecondFactorAuthData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the SecondFactorAuthData type.
- */
-tutao.entity.sys.SecondFactorAuthData.prototype.TYPE_ID = 541;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.sys.SecondFactorAuthData.prototype.LANGUAGE_ATTRIBUTE_ID = 543;
-
-/**
- * The id of the service attribute.
- */
-tutao.entity.sys.SecondFactorAuthData.prototype.SERVICE_ATTRIBUTE_ID = 544;
-
-/**
  * Sets the format of this SecondFactorAuthData.
  * @param {string} format The format of this SecondFactorAuthData.
  */

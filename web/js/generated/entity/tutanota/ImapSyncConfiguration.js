@@ -52,36 +52,6 @@ tutao.entity.tutanota.ImapSyncConfiguration.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ImapSyncConfiguration type.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.TYPE_ID = 209;
-
-/**
- * The id of the host attribute.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.HOST_ATTRIBUTE_ID = 211;
-
-/**
- * The id of the password attribute.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.PASSWORD_ATTRIBUTE_ID = 214;
-
-/**
- * The id of the port attribute.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.PORT_ATTRIBUTE_ID = 212;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.USER_ATTRIBUTE_ID = 213;
-
-/**
- * The id of the imapSyncState attribute.
- */
-tutao.entity.tutanota.ImapSyncConfiguration.prototype.IMAPSYNCSTATE_ATTRIBUTE_ID = 215;
-
-/**
  * Sets the id of this ImapSyncConfiguration.
  * @param {string} id The id of this ImapSyncConfiguration.
  */

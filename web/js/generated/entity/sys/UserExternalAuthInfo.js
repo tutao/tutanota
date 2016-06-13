@@ -52,36 +52,6 @@ tutao.entity.sys.UserExternalAuthInfo.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserExternalAuthInfo type.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.TYPE_ID = 77;
-
-/**
- * The id of the authUpdateCounter attribute.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.AUTHUPDATECOUNTER_ATTRIBUTE_ID = 82;
-
-/**
- * The id of the autoAuthenticationId attribute.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.AUTOAUTHENTICATIONID_ATTRIBUTE_ID = 79;
-
-/**
- * The id of the autoTransmitPassword attribute.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.AUTOTRANSMITPASSWORD_ATTRIBUTE_ID = 81;
-
-/**
- * The id of the latestSaltHash attribute.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.LATESTSALTHASH_ATTRIBUTE_ID = 80;
-
-/**
- * The id of the variableAuthInfo attribute.
- */
-tutao.entity.sys.UserExternalAuthInfo.prototype.VARIABLEAUTHINFO_ATTRIBUTE_ID = 83;
-
-/**
  * Sets the id of this UserExternalAuthInfo.
  * @param {string} id The id of this UserExternalAuthInfo.
  */

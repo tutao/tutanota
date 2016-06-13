@@ -53,11 +53,6 @@ tutao.entity.tutanota.ReceiveInfoServiceData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ReceiveInfoServiceData type.
- */
-tutao.entity.tutanota.ReceiveInfoServiceData.prototype.TYPE_ID = 570;
-
-/**
  * Sets the format of this ReceiveInfoServiceData.
  * @param {string} format The format of this ReceiveInfoServiceData.
  */

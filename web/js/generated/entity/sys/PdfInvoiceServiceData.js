@@ -50,16 +50,6 @@ tutao.entity.sys.PdfInvoiceServiceData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PdfInvoiceServiceData type.
- */
-tutao.entity.sys.PdfInvoiceServiceData.prototype.TYPE_ID = 777;
-
-/**
- * The id of the invoice attribute.
- */
-tutao.entity.sys.PdfInvoiceServiceData.prototype.INVOICE_ATTRIBUTE_ID = 779;
-
-/**
  * Sets the format of this PdfInvoiceServiceData.
  * @param {string} format The format of this PdfInvoiceServiceData.
  */

@@ -10,7 +10,6 @@ tutao.provide('tutao.entity.sys.CustomerInfoEditable');
 tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerinfo;
-	this._ownerGroup = ko.observable(customerinfo.getOwnerGroup());
 	this.activationTime = ko.observable(customerinfo.getActivationTime());
 	this.company = ko.observable(customerinfo.getCompany());
 	this.creationTime = ko.observable(customerinfo.getCreationTime());
@@ -52,7 +51,6 @@ tutao.entity.sys.CustomerInfoEditable.prototype.getCustomerInfo = function() {
  * Updates the underlying CustomerInfo with the modified attributes.
  */
 tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
-	this._entity.setOwnerGroup(this._ownerGroup());
 	this._entity.setActivationTime(this.activationTime());
 	this._entity.setCompany(this.company());
 	this._entity.setCreationTime(this.creationTime());

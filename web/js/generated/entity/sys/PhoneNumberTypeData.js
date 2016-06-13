@@ -50,16 +50,6 @@ tutao.entity.sys.PhoneNumberTypeData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PhoneNumberTypeData type.
- */
-tutao.entity.sys.PhoneNumberTypeData.prototype.TYPE_ID = 617;
-
-/**
- * The id of the phoneNumber attribute.
- */
-tutao.entity.sys.PhoneNumberTypeData.prototype.PHONENUMBER_ATTRIBUTE_ID = 619;
-
-/**
  * Sets the format of this PhoneNumberTypeData.
  * @param {string} format The format of this PhoneNumberTypeData.
  */

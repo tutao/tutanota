@@ -52,36 +52,6 @@ tutao.entity.sys.EntityUpdate.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the EntityUpdate type.
- */
-tutao.entity.sys.EntityUpdate.prototype.TYPE_ID = 462;
-
-/**
- * The id of the application attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.APPLICATION_ATTRIBUTE_ID = 464;
-
-/**
- * The id of the instanceId attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.INSTANCEID_ATTRIBUTE_ID = 467;
-
-/**
- * The id of the instanceListId attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.INSTANCELISTID_ATTRIBUTE_ID = 466;
-
-/**
- * The id of the operation attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.OPERATION_ATTRIBUTE_ID = 624;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.EntityUpdate.prototype.TYPE_ATTRIBUTE_ID = 465;
-
-/**
  * Sets the id of this EntityUpdate.
  * @param {string} id The id of this EntityUpdate.
  */

@@ -50,16 +50,6 @@ tutao.entity.sys.PublicKeyData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PublicKeyData type.
- */
-tutao.entity.sys.PublicKeyData.prototype.TYPE_ID = 409;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.PublicKeyData.prototype.MAILADDRESS_ATTRIBUTE_ID = 411;
-
-/**
  * Sets the format of this PublicKeyData.
  * @param {string} format The format of this PublicKeyData.
  */

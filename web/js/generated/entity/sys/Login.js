@@ -77,21 +77,6 @@ tutao.entity.sys.Login.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Login type.
- */
-tutao.entity.sys.Login.prototype.TYPE_ID = 48;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.Login.prototype._OWNERGROUP_ATTRIBUTE_ID = 992;
-
-/**
- * The id of the time attribute.
- */
-tutao.entity.sys.Login.prototype.TIME_ATTRIBUTE_ID = 53;
-
-/**
  * Provides the id of this Login.
  * @return {Array.<string>} The id of this Login.
  */

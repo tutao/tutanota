@@ -46,26 +46,6 @@ tutao.entity.sys.AuthenticatedDevice.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the AuthenticatedDevice type.
- */
-tutao.entity.sys.AuthenticatedDevice.prototype.TYPE_ID = 43;
-
-/**
- * The id of the authType attribute.
- */
-tutao.entity.sys.AuthenticatedDevice.prototype.AUTHTYPE_ATTRIBUTE_ID = 45;
-
-/**
- * The id of the deviceKey attribute.
- */
-tutao.entity.sys.AuthenticatedDevice.prototype.DEVICEKEY_ATTRIBUTE_ID = 47;
-
-/**
- * The id of the deviceToken attribute.
- */
-tutao.entity.sys.AuthenticatedDevice.prototype.DEVICETOKEN_ATTRIBUTE_ID = 46;
-
-/**
  * Sets the id of this AuthenticatedDevice.
  * @param {string} id The id of this AuthenticatedDevice.
  */

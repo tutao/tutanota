@@ -92,46 +92,6 @@ tutao.entity.sys.IncomingShare.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the IncomingShare type.
- */
-tutao.entity.sys.IncomingShare.prototype.TYPE_ID = 260;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.IncomingShare.prototype._OWNERGROUP_ATTRIBUTE_ID = 1024;
-
-/**
- * The id of the app attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.APP_ATTRIBUTE_ID = 265;
-
-/**
- * The id of the referenceId attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.REFERENCEID_ATTRIBUTE_ID = 268;
-
-/**
- * The id of the referenceListId attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.REFERENCELISTID_ATTRIBUTE_ID = 267;
-
-/**
- * The id of the shareType attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.SHARETYPE_ATTRIBUTE_ID = 266;
-
-/**
- * The id of the bucketPermission attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.BUCKETPERMISSION_ATTRIBUTE_ID = 270;
-
-/**
- * The id of the shareOwnerGroup attribute.
- */
-tutao.entity.sys.IncomingShare.prototype.SHAREOWNERGROUP_ATTRIBUTE_ID = 269;
-
-/**
  * Provides the id of this IncomingShare.
  * @return {Array.<string>} The id of this IncomingShare.
  */

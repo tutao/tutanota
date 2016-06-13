@@ -62,26 +62,6 @@ tutao.entity.sys.MembershipAddData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MembershipAddData type.
- */
-tutao.entity.sys.MembershipAddData.prototype.TYPE_ID = 505;
-
-/**
- * The id of the symEncGKey attribute.
- */
-tutao.entity.sys.MembershipAddData.prototype.SYMENCGKEY_ATTRIBUTE_ID = 507;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.MembershipAddData.prototype.GROUP_ATTRIBUTE_ID = 509;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.MembershipAddData.prototype.USER_ATTRIBUTE_ID = 508;
-
-/**
  * Sets the format of this MembershipAddData.
  * @param {string} format The format of this MembershipAddData.
  */

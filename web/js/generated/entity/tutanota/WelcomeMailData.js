@@ -56,16 +56,6 @@ tutao.entity.tutanota.WelcomeMailData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the WelcomeMailData type.
- */
-tutao.entity.tutanota.WelcomeMailData.prototype.TYPE_ID = 401;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.tutanota.WelcomeMailData.prototype.LANGUAGE_ATTRIBUTE_ID = 403;
-
-/**
  * Sets the format of this WelcomeMailData.
  * @param {string} format The format of this WelcomeMailData.
  */

@@ -62,26 +62,6 @@ tutao.entity.sys.UserDataDelete.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserDataDelete type.
- */
-tutao.entity.sys.UserDataDelete.prototype.TYPE_ID = 404;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.sys.UserDataDelete.prototype.DATE_ATTRIBUTE_ID = 879;
-
-/**
- * The id of the restore attribute.
- */
-tutao.entity.sys.UserDataDelete.prototype.RESTORE_ATTRIBUTE_ID = 406;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.UserDataDelete.prototype.USER_ATTRIBUTE_ID = 407;
-
-/**
  * Sets the format of this UserDataDelete.
  * @param {string} format The format of this UserDataDelete.
  */

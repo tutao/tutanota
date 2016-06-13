@@ -59,21 +59,6 @@ tutao.entity.tutanota.MoveMailData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MoveMailData type.
- */
-tutao.entity.tutanota.MoveMailData.prototype.TYPE_ID = 445;
-
-/**
- * The id of the mails attribute.
- */
-tutao.entity.tutanota.MoveMailData.prototype.MAILS_ATTRIBUTE_ID = 448;
-
-/**
- * The id of the targetFolder attribute.
- */
-tutao.entity.tutanota.MoveMailData.prototype.TARGETFOLDER_ATTRIBUTE_ID = 447;
-
-/**
  * Sets the format of this MoveMailData.
  * @param {string} format The format of this MoveMailData.
  */

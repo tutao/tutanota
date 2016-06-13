@@ -99,61 +99,6 @@ tutao.entity.sys.PaymentDataServicePutData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PaymentDataServicePutData type.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.TYPE_ID = 793;
-
-/**
- * The id of the business attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.BUSINESS_ATTRIBUTE_ID = 795;
-
-/**
- * The id of the confirmedCountry attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.CONFIRMEDCOUNTRY_ATTRIBUTE_ID = 804;
-
-/**
- * The id of the invoiceAddress attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.INVOICEADDRESS_ATTRIBUTE_ID = 797;
-
-/**
- * The id of the invoiceCountry attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.INVOICECOUNTRY_ATTRIBUTE_ID = 798;
-
-/**
- * The id of the invoiceName attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.INVOICENAME_ATTRIBUTE_ID = 796;
-
-/**
- * The id of the invoiceVatIdNo attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.INVOICEVATIDNO_ATTRIBUTE_ID = 799;
-
-/**
- * The id of the paymentInterval attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 802;
-
-/**
- * The id of the paymentMethod attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTMETHOD_ATTRIBUTE_ID = 800;
-
-/**
- * The id of the paymentMethodInfo attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTMETHODINFO_ATTRIBUTE_ID = 801;
-
-/**
- * The id of the paymentToken attribute.
- */
-tutao.entity.sys.PaymentDataServicePutData.prototype.PAYMENTTOKEN_ATTRIBUTE_ID = 803;
-
-/**
  * Sets the format of this PaymentDataServicePutData.
  * @param {string} format The format of this PaymentDataServicePutData.
  */

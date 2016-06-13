@@ -55,41 +55,6 @@ tutao.entity.tutanota.UnsecureAttachment.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UnsecureAttachment type.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.TYPE_ID = 280;
-
-/**
- * The id of the fileName attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.FILENAME_ATTRIBUTE_ID = 285;
-
-/**
- * The id of the fileSessionKey attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.FILESESSIONKEY_ATTRIBUTE_ID = 282;
-
-/**
- * The id of the listEncFileSessionKey attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.LISTENCFILESESSIONKEY_ATTRIBUTE_ID = 283;
-
-/**
- * The id of the mimeType attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.MIMETYPE_ATTRIBUTE_ID = 286;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.FILE_ATTRIBUTE_ID = 284;
-
-/**
- * The id of the fileData attribute.
- */
-tutao.entity.tutanota.UnsecureAttachment.prototype.FILEDATA_ATTRIBUTE_ID = 287;
-
-/**
  * Sets the id of this UnsecureAttachment.
  * @param {string} id The id of this UnsecureAttachment.
  */

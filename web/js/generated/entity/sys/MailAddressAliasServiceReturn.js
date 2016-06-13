@@ -56,16 +56,6 @@ tutao.entity.sys.MailAddressAliasServiceReturn.prototype.toJsonData = function()
 };
 
 /**
- * The id of the MailAddressAliasServiceReturn type.
- */
-tutao.entity.sys.MailAddressAliasServiceReturn.prototype.TYPE_ID = 692;
-
-/**
- * The id of the nbrOfFreeAliases attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceReturn.prototype.NBROFFREEALIASES_ATTRIBUTE_ID = 694;
-
-/**
  * Sets the format of this MailAddressAliasServiceReturn.
  * @param {string} format The format of this MailAddressAliasServiceReturn.
  */

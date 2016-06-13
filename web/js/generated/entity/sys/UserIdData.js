@@ -50,16 +50,6 @@ tutao.entity.sys.UserIdData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserIdData type.
- */
-tutao.entity.sys.UserIdData.prototype.TYPE_ID = 424;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.UserIdData.prototype.MAILADDRESS_ATTRIBUTE_ID = 426;
-
-/**
  * Sets the format of this UserIdData.
  * @param {string} format The format of this UserIdData.
  */

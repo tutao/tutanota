@@ -56,16 +56,6 @@ tutao.entity.tutanota.DeleteMailData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DeleteMailData type.
- */
-tutao.entity.tutanota.DeleteMailData.prototype.TYPE_ID = 419;
-
-/**
- * The id of the mails attribute.
- */
-tutao.entity.tutanota.DeleteMailData.prototype.MAILS_ATTRIBUTE_ID = 421;
-
-/**
  * Sets the format of this DeleteMailData.
  * @param {string} format The format of this DeleteMailData.
  */

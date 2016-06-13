@@ -83,31 +83,6 @@ tutao.entity.sys.GroupMember.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the GroupMember type.
- */
-tutao.entity.sys.GroupMember.prototype.TYPE_ID = 216;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.GroupMember.prototype._OWNERGROUP_ATTRIBUTE_ID = 1020;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.GroupMember.prototype.GROUP_ATTRIBUTE_ID = 222;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.GroupMember.prototype.USER_ATTRIBUTE_ID = 223;
-
-/**
- * The id of the userGroupInfo attribute.
- */
-tutao.entity.sys.GroupMember.prototype.USERGROUPINFO_ATTRIBUTE_ID = 221;
-
-/**
  * Provides the id of this GroupMember.
  * @return {Array.<string>} The id of this GroupMember.
  */

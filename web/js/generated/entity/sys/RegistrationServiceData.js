@@ -86,66 +86,6 @@ tutao.entity.sys.RegistrationServiceData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the RegistrationServiceData type.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.TYPE_ID = 316;
-
-/**
- * The id of the accountType attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.ACCOUNTTYPE_ATTRIBUTE_ID = 318;
-
-/**
- * The id of the company attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.COMPANY_ATTRIBUTE_ID = 321;
-
-/**
- * The id of the domain attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.DOMAIN_ATTRIBUTE_ID = 322;
-
-/**
- * The id of the groupName attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.GROUPNAME_ATTRIBUTE_ID = 320;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.LANGUAGE_ATTRIBUTE_ID = 319;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.MAILADDRESS_ATTRIBUTE_ID = 324;
-
-/**
- * The id of the mobilePhoneNumber attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.MOBILEPHONENUMBER_ATTRIBUTE_ID = 323;
-
-/**
- * The id of the source attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.SOURCE_ATTRIBUTE_ID = 874;
-
-/**
- * The id of the specialPriceUserSingle attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 875;
-
-/**
- * The id of the specialPriceUserTotal attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 876;
-
-/**
- * The id of the state attribute.
- */
-tutao.entity.sys.RegistrationServiceData.prototype.STATE_ATTRIBUTE_ID = 325;
-
-/**
  * Sets the format of this RegistrationServiceData.
  * @param {string} format The format of this RegistrationServiceData.
  */

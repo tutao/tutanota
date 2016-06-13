@@ -83,26 +83,6 @@ tutao.entity.sys.CustomerServerProperties.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CustomerServerProperties type.
- */
-tutao.entity.sys.CustomerServerProperties.prototype.TYPE_ID = 954;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.sys.CustomerServerProperties.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 986;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.CustomerServerProperties.prototype._OWNERGROUP_ATTRIBUTE_ID = 985;
-
-/**
- * The id of the emailSenderList attribute.
- */
-tutao.entity.sys.CustomerServerProperties.prototype.EMAILSENDERLIST_ATTRIBUTE_ID = 959;
-
-/**
  * Provides the id of this CustomerServerProperties.
  * @return {string} The id of this CustomerServerProperties.
  */

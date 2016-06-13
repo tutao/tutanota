@@ -10,10 +10,8 @@ tutao.entity.valueencrypted.Let = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
@@ -37,10 +35,8 @@ tutao.entity.valueencrypted.Let = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.valueencrypted.Let.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
@@ -72,7 +68,7 @@ tutao.entity.valueencrypted.Let.PATH = '/rest/valueencrypted/let';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.valueencrypted.Let.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkABw';
+tutao.entity.valueencrypted.Let.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkABg';
 
 /**
  * The generated id type flag.
@@ -92,10 +88,8 @@ tutao.entity.valueencrypted.Let.prototype.ENCRYPTED = true;
  */
 tutao.entity.valueencrypted.Let.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
@@ -108,78 +102,11 @@ tutao.entity.valueencrypted.Let.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Let type.
- */
-tutao.entity.valueencrypted.Let.prototype.TYPE_ID = 28;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.valueencrypted.Let.prototype._AREA_ATTRIBUTE_ID = 36;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.valueencrypted.Let.prototype._OWNER_ATTRIBUTE_ID = 35;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.valueencrypted.Let.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 34;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.valueencrypted.Let.prototype._OWNERGROUP_ATTRIBUTE_ID = 33;
-
-/**
- * The id of the bool attribute.
- */
-tutao.entity.valueencrypted.Let.prototype.BOOL_ATTRIBUTE_ID = 41;
-
-/**
- * The id of the bytes attribute.
- */
-tutao.entity.valueencrypted.Let.prototype.BYTES_ATTRIBUTE_ID = 37;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.valueencrypted.Let.prototype.DATE_ATTRIBUTE_ID = 40;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.valueencrypted.Let.prototype.NUMBER_ATTRIBUTE_ID = 39;
-
-/**
- * The id of the string attribute.
- */
-tutao.entity.valueencrypted.Let.prototype.STRING_ATTRIBUTE_ID = 38;
-
-/**
  * Provides the id of this Let.
  * @return {Array.<string>} The id of this Let.
  */
 tutao.entity.valueencrypted.Let.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this Let.
- * @param {string} area The area of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this Let.
- * @return {string} The area of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -197,23 +124,6 @@ tutao.entity.valueencrypted.Let.prototype.setFormat = function(format) {
  */
 tutao.entity.valueencrypted.Let.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this Let.
- * @param {string} owner The owner of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this Let.
- * @return {string} The owner of this Let.
- */
-tutao.entity.valueencrypted.Let.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

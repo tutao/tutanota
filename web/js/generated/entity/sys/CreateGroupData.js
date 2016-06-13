@@ -58,46 +58,6 @@ tutao.entity.sys.CreateGroupData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateGroupData type.
- */
-tutao.entity.sys.CreateGroupData.prototype.TYPE_ID = 356;
-
-/**
- * The id of the adminEncGKey attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.ADMINENCGKEY_ATTRIBUTE_ID = 363;
-
-/**
- * The id of the encryptedName attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.ENCRYPTEDNAME_ATTRIBUTE_ID = 358;
-
-/**
- * The id of the listEncSessionKey attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.LISTENCSESSIONKEY_ATTRIBUTE_ID = 364;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.MAILADDRESS_ATTRIBUTE_ID = 359;
-
-/**
- * The id of the pubKey attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.PUBKEY_ATTRIBUTE_ID = 360;
-
-/**
- * The id of the symEncGKey attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.SYMENCGKEY_ATTRIBUTE_ID = 362;
-
-/**
- * The id of the symEncPrivKey attribute.
- */
-tutao.entity.sys.CreateGroupData.prototype.SYMENCPRIVKEY_ATTRIBUTE_ID = 361;
-
-/**
  * Sets the id of this CreateGroupData.
  * @param {string} id The id of this CreateGroupData.
  */

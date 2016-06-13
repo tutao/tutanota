@@ -59,21 +59,6 @@ tutao.entity.sys.PremiumFeatureData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PremiumFeatureData type.
- */
-tutao.entity.sys.PremiumFeatureData.prototype.TYPE_ID = 651;
-
-/**
- * The id of the activationCode attribute.
- */
-tutao.entity.sys.PremiumFeatureData.prototype.ACTIVATIONCODE_ATTRIBUTE_ID = 654;
-
-/**
- * The id of the featureName attribute.
- */
-tutao.entity.sys.PremiumFeatureData.prototype.FEATURENAME_ATTRIBUTE_ID = 653;
-
-/**
  * Sets the format of this PremiumFeatureData.
  * @param {string} format The format of this PremiumFeatureData.
  */

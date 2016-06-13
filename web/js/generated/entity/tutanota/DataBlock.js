@@ -43,21 +43,6 @@ tutao.entity.tutanota.DataBlock.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DataBlock type.
- */
-tutao.entity.tutanota.DataBlock.prototype.TYPE_ID = 0;
-
-/**
- * The id of the blockData attribute.
- */
-tutao.entity.tutanota.DataBlock.prototype.BLOCKDATA_ATTRIBUTE_ID = 3;
-
-/**
- * The id of the size attribute.
- */
-tutao.entity.tutanota.DataBlock.prototype.SIZE_ATTRIBUTE_ID = 2;
-
-/**
  * Sets the id of this DataBlock.
  * @param {string} id The id of this DataBlock.
  */

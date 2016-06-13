@@ -53,21 +53,6 @@ tutao.entity.sys.UserReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserReturn type.
- */
-tutao.entity.sys.UserReturn.prototype.TYPE_ID = 392;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.UserReturn.prototype.USER_ATTRIBUTE_ID = 394;
-
-/**
- * The id of the userGroup attribute.
- */
-tutao.entity.sys.UserReturn.prototype.USERGROUP_ATTRIBUTE_ID = 395;
-
-/**
  * Sets the format of this UserReturn.
  * @param {string} format The format of this UserReturn.
  */

@@ -49,31 +49,6 @@ tutao.entity.sys.PriceItemData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PriceItemData type.
- */
-tutao.entity.sys.PriceItemData.prototype.TYPE_ID = 847;
-
-/**
- * The id of the count attribute.
- */
-tutao.entity.sys.PriceItemData.prototype.COUNT_ATTRIBUTE_ID = 850;
-
-/**
- * The id of the featureType attribute.
- */
-tutao.entity.sys.PriceItemData.prototype.FEATURETYPE_ATTRIBUTE_ID = 849;
-
-/**
- * The id of the price attribute.
- */
-tutao.entity.sys.PriceItemData.prototype.PRICE_ATTRIBUTE_ID = 851;
-
-/**
- * The id of the singleType attribute.
- */
-tutao.entity.sys.PriceItemData.prototype.SINGLETYPE_ATTRIBUTE_ID = 852;
-
-/**
  * Sets the id of this PriceItemData.
  * @param {string} id The id of this PriceItemData.
  */

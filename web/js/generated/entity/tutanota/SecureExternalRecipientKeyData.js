@@ -67,56 +67,6 @@ tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.toJsonData = func
 };
 
 /**
- * The id of the SecureExternalRecipientKeyData type.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.TYPE_ID = 532;
-
-/**
- * The id of the autoTransmitPassword attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.AUTOTRANSMITPASSWORD_ATTRIBUTE_ID = 537;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.MAILADDRESS_ATTRIBUTE_ID = 534;
-
-/**
- * The id of the ownerEncBucketKey attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.OWNERENCBUCKETKEY_ATTRIBUTE_ID = 599;
-
-/**
- * The id of the passwordVerifier attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.PASSWORDVERIFIER_ATTRIBUTE_ID = 536;
-
-/**
- * The id of the pwEncCommunicationKey attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.PWENCCOMMUNICATIONKEY_ATTRIBUTE_ID = 540;
-
-/**
- * The id of the salt attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.SALT_ATTRIBUTE_ID = 538;
-
-/**
- * The id of the saltHash attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.SALTHASH_ATTRIBUTE_ID = 539;
-
-/**
- * The id of the symEncBucketKey attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.SYMENCBUCKETKEY_ATTRIBUTE_ID = 535;
-
-/**
- * The id of the passwordChannelPhoneNumbers attribute.
- */
-tutao.entity.tutanota.SecureExternalRecipientKeyData.prototype.PASSWORDCHANNELPHONENUMBERS_ATTRIBUTE_ID = 541;
-
-/**
  * Sets the id of this SecureExternalRecipientKeyData.
  * @param {string} id The id of this SecureExternalRecipientKeyData.
  */

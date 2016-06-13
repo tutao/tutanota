@@ -4,7 +4,6 @@ describe("PasswordChannelViewModelTest", function () {
 
     var assert = chai.assert;
 
-
     beforeEach(function () {
         var self = this;
         this.composingSecureMail = true;
@@ -21,6 +20,20 @@ describe("PasswordChannelViewModelTest", function () {
             }
         };
         tutao.locator.replace("mailViewModel", mailViewModel);
+
+        var userControllerMock = {
+            getUserGroupId: function () {
+                return "";
+            },
+            getGroupId: function () {
+                return "";
+            },
+            getGroupKey: function() {
+                return tutao.locator.aesCrypter.generateRandomKey();
+            }
+        };
+        tutao.locator.replace("userController", userControllerMock);
+
         this.vm = new tutao.tutanota.ctrl.PasswordChannelViewModel();
     });
 

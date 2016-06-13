@@ -40,16 +40,6 @@ tutao.entity.sys.StringWrapper.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the StringWrapper type.
- */
-tutao.entity.sys.StringWrapper.prototype.TYPE_ID = 728;
-
-/**
- * The id of the value attribute.
- */
-tutao.entity.sys.StringWrapper.prototype.VALUE_ATTRIBUTE_ID = 730;
-
-/**
  * Sets the id of this StringWrapper.
  * @param {string} id The id of this StringWrapper.
  */

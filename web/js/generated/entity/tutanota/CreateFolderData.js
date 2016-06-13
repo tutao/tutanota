@@ -70,36 +70,6 @@ tutao.entity.tutanota.CreateFolderData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateFolderData type.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.TYPE_ID = 358;
-
-/**
- * The id of the fileName attribute.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.FILENAME_ATTRIBUTE_ID = 360;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.GROUP_ATTRIBUTE_ID = 361;
-
-/**
- * The id of the ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.OWNERENCSESSIONKEY_ATTRIBUTE_ID = 363;
-
-/**
- * The id of the symEncSessionKey attribute.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.SYMENCSESSIONKEY_ATTRIBUTE_ID = 362;
-
-/**
- * The id of the parentFolder attribute.
- */
-tutao.entity.tutanota.CreateFolderData.prototype.PARENTFOLDER_ATTRIBUTE_ID = 364;
-
-/**
  * Sets the format of this CreateFolderData.
  * @param {string} format The format of this CreateFolderData.
  */

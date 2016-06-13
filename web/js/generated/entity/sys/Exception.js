@@ -43,21 +43,6 @@ tutao.entity.sys.Exception.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Exception type.
- */
-tutao.entity.sys.Exception.prototype.TYPE_ID = 468;
-
-/**
- * The id of the msg attribute.
- */
-tutao.entity.sys.Exception.prototype.MSG_ATTRIBUTE_ID = 471;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.sys.Exception.prototype.TYPE_ATTRIBUTE_ID = 470;
-
-/**
  * Sets the id of this Exception.
  * @param {string} id The id of this Exception.
  */

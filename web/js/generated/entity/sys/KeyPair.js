@@ -46,26 +46,6 @@ tutao.entity.sys.KeyPair.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the KeyPair type.
- */
-tutao.entity.sys.KeyPair.prototype.TYPE_ID = 0;
-
-/**
- * The id of the pubKey attribute.
- */
-tutao.entity.sys.KeyPair.prototype.PUBKEY_ATTRIBUTE_ID = 2;
-
-/**
- * The id of the symEncPrivKey attribute.
- */
-tutao.entity.sys.KeyPair.prototype.SYMENCPRIVKEY_ATTRIBUTE_ID = 3;
-
-/**
- * The id of the version attribute.
- */
-tutao.entity.sys.KeyPair.prototype.VERSION_ATTRIBUTE_ID = 4;
-
-/**
  * Sets the id of this KeyPair.
  * @param {string} id The id of this KeyPair.
  */

@@ -86,36 +86,6 @@ tutao.entity.sys.InvoiceInfo.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the InvoiceInfo type.
- */
-tutao.entity.sys.InvoiceInfo.prototype.TYPE_ID = 752;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.InvoiceInfo.prototype._OWNERGROUP_ATTRIBUTE_ID = 1007;
-
-/**
- * The id of the publishInvoices attribute.
- */
-tutao.entity.sys.InvoiceInfo.prototype.PUBLISHINVOICES_ATTRIBUTE_ID = 759;
-
-/**
- * The id of the specialPriceUserSingle attribute.
- */
-tutao.entity.sys.InvoiceInfo.prototype.SPECIALPRICEUSERSINGLE_ATTRIBUTE_ID = 758;
-
-/**
- * The id of the specialPriceUserTotal attribute.
- */
-tutao.entity.sys.InvoiceInfo.prototype.SPECIALPRICEUSERTOTAL_ATTRIBUTE_ID = 757;
-
-/**
- * The id of the invoices attribute.
- */
-tutao.entity.sys.InvoiceInfo.prototype.INVOICES_ATTRIBUTE_ID = 760;
-
-/**
  * Provides the id of this InvoiceInfo.
  * @return {string} The id of this InvoiceInfo.
  */

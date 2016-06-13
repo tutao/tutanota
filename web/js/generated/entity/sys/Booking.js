@@ -101,56 +101,6 @@ tutao.entity.sys.Booking.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Booking type.
- */
-tutao.entity.sys.Booking.prototype.TYPE_ID = 709;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.sys.Booking.prototype._AREA_ATTRIBUTE_ID = 715;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.sys.Booking.prototype._OWNER_ATTRIBUTE_ID = 714;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.Booking.prototype._OWNERGROUP_ATTRIBUTE_ID = 1003;
-
-/**
- * The id of the business attribute.
- */
-tutao.entity.sys.Booking.prototype.BUSINESS_ATTRIBUTE_ID = 720;
-
-/**
- * The id of the createDate attribute.
- */
-tutao.entity.sys.Booking.prototype.CREATEDATE_ATTRIBUTE_ID = 716;
-
-/**
- * The id of the endDate attribute.
- */
-tutao.entity.sys.Booking.prototype.ENDDATE_ATTRIBUTE_ID = 718;
-
-/**
- * The id of the paymentInterval attribute.
- */
-tutao.entity.sys.Booking.prototype.PAYMENTINTERVAL_ATTRIBUTE_ID = 719;
-
-/**
- * The id of the paymentMonths attribute.
- */
-tutao.entity.sys.Booking.prototype.PAYMENTMONTHS_ATTRIBUTE_ID = 717;
-
-/**
- * The id of the items attribute.
- */
-tutao.entity.sys.Booking.prototype.ITEMS_ATTRIBUTE_ID = 721;
-
-/**
  * Provides the id of this Booking.
  * @return {Array.<string>} The id of this Booking.
  */

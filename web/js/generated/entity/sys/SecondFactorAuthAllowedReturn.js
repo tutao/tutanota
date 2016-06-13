@@ -56,16 +56,6 @@ tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.toJsonData = function()
 };
 
 /**
- * The id of the SecondFactorAuthAllowedReturn type.
- */
-tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.TYPE_ID = 546;
-
-/**
- * The id of the allowed attribute.
- */
-tutao.entity.sys.SecondFactorAuthAllowedReturn.prototype.ALLOWED_ATTRIBUTE_ID = 548;
-
-/**
  * Sets the format of this SecondFactorAuthAllowedReturn.
  * @param {string} format The format of this SecondFactorAuthAllowedReturn.
  */

@@ -56,16 +56,6 @@ tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.toJsonData = function
 };
 
 /**
- * The id of the RegistrationVerifyDomainDataPut type.
- */
-tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.TYPE_ID = 334;
-
-/**
- * The id of the authToken attribute.
- */
-tutao.entity.sys.RegistrationVerifyDomainDataPut.prototype.AUTHTOKEN_ATTRIBUTE_ID = 336;
-
-/**
  * Sets the format of this RegistrationVerifyDomainDataPut.
  * @param {string} format The format of this RegistrationVerifyDomainDataPut.
  */

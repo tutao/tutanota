@@ -59,31 +59,6 @@ tutao.entity.sys.VersionData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the VersionData type.
- */
-tutao.entity.sys.VersionData.prototype.TYPE_ID = 487;
-
-/**
- * The id of the application attribute.
- */
-tutao.entity.sys.VersionData.prototype.APPLICATION_ATTRIBUTE_ID = 489;
-
-/**
- * The id of the id attribute.
- */
-tutao.entity.sys.VersionData.prototype.ID_ATTRIBUTE_ID = 491;
-
-/**
- * The id of the listId attribute.
- */
-tutao.entity.sys.VersionData.prototype.LISTID_ATTRIBUTE_ID = 492;
-
-/**
- * The id of the typeId attribute.
- */
-tutao.entity.sys.VersionData.prototype.TYPEID_ATTRIBUTE_ID = 490;
-
-/**
  * Sets the format of this VersionData.
  * @param {string} format The format of this VersionData.
  */

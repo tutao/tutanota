@@ -40,16 +40,6 @@ tutao.entity.tutanota.MailFolderRef.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailFolderRef type.
- */
-tutao.entity.tutanota.MailFolderRef.prototype.TYPE_ID = 440;
-
-/**
- * The id of the folders attribute.
- */
-tutao.entity.tutanota.MailFolderRef.prototype.FOLDERS_ATTRIBUTE_ID = 442;
-
-/**
  * Sets the id of this MailFolderRef.
  * @param {string} id The id of this MailFolderRef.
  */

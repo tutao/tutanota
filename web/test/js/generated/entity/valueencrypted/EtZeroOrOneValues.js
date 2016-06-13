@@ -10,10 +10,8 @@ tutao.entity.valueencrypted.EtZeroOrOneValues = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
@@ -37,10 +35,8 @@ tutao.entity.valueencrypted.EtZeroOrOneValues = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
@@ -72,7 +68,7 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.PATH = '/rest/valueencrypted/etzer
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.valueencrypted.EtZeroOrOneValues.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkAA4';
+tutao.entity.valueencrypted.EtZeroOrOneValues.ROOT_INSTANCE_ID = 'DnZhbHVlZW5jcnlwdGVkAAw';
 
 /**
  * The generated id type flag.
@@ -92,10 +88,8 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.ENCRYPTED = true;
  */
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
@@ -108,78 +102,11 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.toJsonData = function() 
 };
 
 /**
- * The id of the EtZeroOrOneValues type.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.TYPE_ID = 14;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype._AREA_ATTRIBUTE_ID = 22;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype._OWNER_ATTRIBUTE_ID = 21;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 20;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype._OWNERGROUP_ATTRIBUTE_ID = 19;
-
-/**
- * The id of the bool attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.BOOL_ATTRIBUTE_ID = 27;
-
-/**
- * The id of the bytes attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.BYTES_ATTRIBUTE_ID = 23;
-
-/**
- * The id of the date attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.DATE_ATTRIBUTE_ID = 26;
-
-/**
- * The id of the number attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.NUMBER_ATTRIBUTE_ID = 25;
-
-/**
- * The id of the string attribute.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.STRING_ATTRIBUTE_ID = 24;
-
-/**
  * Provides the id of this EtZeroOrOneValues.
  * @return {string} The id of this EtZeroOrOneValues.
  */
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this EtZeroOrOneValues.
- * @param {string} area The area of this EtZeroOrOneValues.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this EtZeroOrOneValues.
- * @return {string} The area of this EtZeroOrOneValues.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -197,23 +124,6 @@ tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setFormat = function(for
  */
 tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this EtZeroOrOneValues.
- * @param {string} owner The owner of this EtZeroOrOneValues.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this EtZeroOrOneValues.
- * @return {string} The owner of this EtZeroOrOneValues.
- */
-tutao.entity.valueencrypted.EtZeroOrOneValues.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**

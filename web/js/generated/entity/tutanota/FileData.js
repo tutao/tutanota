@@ -86,31 +86,6 @@ tutao.entity.tutanota.FileData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FileData type.
- */
-tutao.entity.tutanota.FileData.prototype.TYPE_ID = 4;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.FileData.prototype._OWNERGROUP_ATTRIBUTE_ID = 579;
-
-/**
- * The id of the size attribute.
- */
-tutao.entity.tutanota.FileData.prototype.SIZE_ATTRIBUTE_ID = 9;
-
-/**
- * The id of the unreferenced attribute.
- */
-tutao.entity.tutanota.FileData.prototype.UNREFERENCED_ATTRIBUTE_ID = 409;
-
-/**
- * The id of the blocks attribute.
- */
-tutao.entity.tutanota.FileData.prototype.BLOCKS_ATTRIBUTE_ID = 10;
-
-/**
  * Provides the id of this FileData.
  * @return {string} The id of this FileData.
  */

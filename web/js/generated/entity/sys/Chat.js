@@ -46,26 +46,6 @@ tutao.entity.sys.Chat.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Chat type.
- */
-tutao.entity.sys.Chat.prototype.TYPE_ID = 457;
-
-/**
- * The id of the recipient attribute.
- */
-tutao.entity.sys.Chat.prototype.RECIPIENT_ATTRIBUTE_ID = 460;
-
-/**
- * The id of the sender attribute.
- */
-tutao.entity.sys.Chat.prototype.SENDER_ATTRIBUTE_ID = 459;
-
-/**
- * The id of the text attribute.
- */
-tutao.entity.sys.Chat.prototype.TEXT_ATTRIBUTE_ID = 461;
-
-/**
  * Sets the id of this Chat.
  * @param {string} id The id of this Chat.
  */

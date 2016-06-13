@@ -88,36 +88,6 @@ tutao.entity.tutanota.MailBody.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailBody type.
- */
-tutao.entity.tutanota.MailBody.prototype.TYPE_ID = 36;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanota.MailBody.prototype._AREA_ATTRIBUTE_ID = 42;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanota.MailBody.prototype._OWNER_ATTRIBUTE_ID = 41;
-
-/**
- * The id of the _ownerEncSessionKey attribute.
- */
-tutao.entity.tutanota.MailBody.prototype._OWNERENCSESSIONKEY_ATTRIBUTE_ID = 584;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.MailBody.prototype._OWNERGROUP_ATTRIBUTE_ID = 583;
-
-/**
- * The id of the text attribute.
- */
-tutao.entity.tutanota.MailBody.prototype.TEXT_ATTRIBUTE_ID = 43;
-
-/**
  * Provides the id of this MailBody.
  * @return {string} The id of this MailBody.
  */

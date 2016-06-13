@@ -83,31 +83,6 @@ tutao.entity.sys.GroupRoot.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the GroupRoot type.
- */
-tutao.entity.sys.GroupRoot.prototype.TYPE_ID = 110;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.GroupRoot.prototype._OWNERGROUP_ATTRIBUTE_ID = 997;
-
-/**
- * The id of the externalGroupInfos attribute.
- */
-tutao.entity.sys.GroupRoot.prototype.EXTERNALGROUPINFOS_ATTRIBUTE_ID = 116;
-
-/**
- * The id of the externalUserAreaGroupInfos attribute.
- */
-tutao.entity.sys.GroupRoot.prototype.EXTERNALUSERAREAGROUPINFOS_ATTRIBUTE_ID = 998;
-
-/**
- * The id of the externalUserReferences attribute.
- */
-tutao.entity.sys.GroupRoot.prototype.EXTERNALUSERREFERENCES_ATTRIBUTE_ID = 117;
-
-/**
  * Provides the id of this GroupRoot.
  * @return {string} The id of this GroupRoot.
  */

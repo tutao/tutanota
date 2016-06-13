@@ -65,31 +65,6 @@ tutao.entity.sys.ResetPasswordData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ResetPasswordData type.
- */
-tutao.entity.sys.ResetPasswordData.prototype.TYPE_ID = 584;
-
-/**
- * The id of the pwEncUserGroupKey attribute.
- */
-tutao.entity.sys.ResetPasswordData.prototype.PWENCUSERGROUPKEY_ATTRIBUTE_ID = 588;
-
-/**
- * The id of the salt attribute.
- */
-tutao.entity.sys.ResetPasswordData.prototype.SALT_ATTRIBUTE_ID = 587;
-
-/**
- * The id of the verifier attribute.
- */
-tutao.entity.sys.ResetPasswordData.prototype.VERIFIER_ATTRIBUTE_ID = 586;
-
-/**
- * The id of the user attribute.
- */
-tutao.entity.sys.ResetPasswordData.prototype.USER_ATTRIBUTE_ID = 589;
-
-/**
  * Sets the format of this ResetPasswordData.
  * @param {string} format The format of this ResetPasswordData.
  */

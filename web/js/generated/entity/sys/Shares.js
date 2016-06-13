@@ -80,26 +80,6 @@ tutao.entity.sys.Shares.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the Shares type.
- */
-tutao.entity.sys.Shares.prototype.TYPE_ID = 282;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.sys.Shares.prototype._OWNERGROUP_ATTRIBUTE_ID = 1026;
-
-/**
- * The id of the incoming attribute.
- */
-tutao.entity.sys.Shares.prototype.INCOMING_ATTRIBUTE_ID = 287;
-
-/**
- * The id of the outgoing attribute.
- */
-tutao.entity.sys.Shares.prototype.OUTGOING_ATTRIBUTE_ID = 288;
-
-/**
  * Provides the id of this Shares.
  * @return {string} The id of this Shares.
  */

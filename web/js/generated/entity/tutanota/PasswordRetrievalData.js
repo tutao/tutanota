@@ -50,16 +50,6 @@ tutao.entity.tutanota.PasswordRetrievalData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PasswordRetrievalData type.
- */
-tutao.entity.tutanota.PasswordRetrievalData.prototype.TYPE_ID = 320;
-
-/**
- * The id of the autoAuthenticationId attribute.
- */
-tutao.entity.tutanota.PasswordRetrievalData.prototype.AUTOAUTHENTICATIONID_ATTRIBUTE_ID = 322;
-
-/**
  * Sets the format of this PasswordRetrievalData.
  * @param {string} format The format of this PasswordRetrievalData.
  */

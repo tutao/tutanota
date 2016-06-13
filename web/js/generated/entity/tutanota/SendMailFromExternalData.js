@@ -97,66 +97,6 @@ tutao.entity.tutanota.SendMailFromExternalData.prototype.toJsonData = function()
 };
 
 /**
- * The id of the SendMailFromExternalData type.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.TYPE_ID = 260;
-
-/**
- * The id of the bodyText attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.BODYTEXT_ATTRIBUTE_ID = 264;
-
-/**
- * The id of the confidential attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.CONFIDENTIAL_ATTRIBUTE_ID = 428;
-
-/**
- * The id of the language attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.LANGUAGE_ATTRIBUTE_ID = 262;
-
-/**
- * The id of the previousMessageId attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.PREVIOUSMESSAGEID_ATTRIBUTE_ID = 266;
-
-/**
- * The id of the recipientBucketEncSessionKey attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.RECIPIENTBUCKETENCSESSIONKEY_ATTRIBUTE_ID = 269;
-
-/**
- * The id of the senderBucketEncSessionKey attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.SENDERBUCKETENCSESSIONKEY_ATTRIBUTE_ID = 268;
-
-/**
- * The id of the senderName attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.SENDERNAME_ATTRIBUTE_ID = 265;
-
-/**
- * The id of the senderSymEncBucketKey attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.SENDERSYMENCBUCKETKEY_ATTRIBUTE_ID = 267;
-
-/**
- * The id of the subject attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.SUBJECT_ATTRIBUTE_ID = 263;
-
-/**
- * The id of the attachments attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.ATTACHMENTS_ATTRIBUTE_ID = 271;
-
-/**
- * The id of the toRecipient attribute.
- */
-tutao.entity.tutanota.SendMailFromExternalData.prototype.TORECIPIENT_ATTRIBUTE_ID = 270;
-
-/**
  * Sets the format of this SendMailFromExternalData.
  * @param {string} format The format of this SendMailFromExternalData.
  */

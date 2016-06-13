@@ -40,16 +40,6 @@ tutao.entity.sys.UserAreaGroups.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the UserAreaGroups type.
- */
-tutao.entity.sys.UserAreaGroups.prototype.TYPE_ID = 987;
-
-/**
- * The id of the list attribute.
- */
-tutao.entity.sys.UserAreaGroups.prototype.LIST_ATTRIBUTE_ID = 989;
-
-/**
  * Sets the id of this UserAreaGroups.
  * @param {string} id The id of this UserAreaGroups.
  */

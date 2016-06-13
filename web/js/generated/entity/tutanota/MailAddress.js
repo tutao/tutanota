@@ -48,26 +48,6 @@ tutao.entity.tutanota.MailAddress.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailAddress type.
- */
-tutao.entity.tutanota.MailAddress.prototype.TYPE_ID = 92;
-
-/**
- * The id of the address attribute.
- */
-tutao.entity.tutanota.MailAddress.prototype.ADDRESS_ATTRIBUTE_ID = 95;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.MailAddress.prototype.NAME_ATTRIBUTE_ID = 94;
-
-/**
- * The id of the contact attribute.
- */
-tutao.entity.tutanota.MailAddress.prototype.CONTACT_ATTRIBUTE_ID = 96;
-
-/**
  * Sets the id of this MailAddress.
  * @param {string} id The id of this MailAddress.
  */

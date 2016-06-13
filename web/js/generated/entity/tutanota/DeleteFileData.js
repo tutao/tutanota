@@ -11,7 +11,6 @@ tutao.entity.tutanota.DeleteFileData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._group = null;
     this._file = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -24,7 +23,6 @@ tutao.entity.tutanota.DeleteFileData = function(data) {
  */
 tutao.entity.tutanota.DeleteFileData.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._group = data.group;
   this._file = data.file;
 };
 
@@ -53,25 +51,9 @@ tutao.entity.tutanota.DeleteFileData.prototype.ENCRYPTED = false;
 tutao.entity.tutanota.DeleteFileData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    group: this._group, 
     file: this._file
   };
 };
-
-/**
- * The id of the DeleteFileData type.
- */
-tutao.entity.tutanota.DeleteFileData.prototype.TYPE_ID = 374;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.tutanota.DeleteFileData.prototype.GROUP_ATTRIBUTE_ID = 376;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.DeleteFileData.prototype.FILE_ATTRIBUTE_ID = 377;
 
 /**
  * Sets the format of this DeleteFileData.
@@ -88,23 +70,6 @@ tutao.entity.tutanota.DeleteFileData.prototype.setFormat = function(format) {
  */
 tutao.entity.tutanota.DeleteFileData.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the group of this DeleteFileData.
- * @param {string} group The group of this DeleteFileData.
- */
-tutao.entity.tutanota.DeleteFileData.prototype.setGroup = function(group) {
-  this._group = group;
-  return this;
-};
-
-/**
- * Provides the group of this DeleteFileData.
- * @return {string} The group of this DeleteFileData.
- */
-tutao.entity.tutanota.DeleteFileData.prototype.getGroup = function() {
-  return this._group;
 };
 
 /**

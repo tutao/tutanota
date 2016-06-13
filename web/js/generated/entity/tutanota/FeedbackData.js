@@ -62,26 +62,6 @@ tutao.entity.tutanota.FeedbackData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the FeedbackData type.
- */
-tutao.entity.tutanota.FeedbackData.prototype.TYPE_ID = 379;
-
-/**
- * The id of the image attribute.
- */
-tutao.entity.tutanota.FeedbackData.prototype.IMAGE_ATTRIBUTE_ID = 383;
-
-/**
- * The id of the msg attribute.
- */
-tutao.entity.tutanota.FeedbackData.prototype.MSG_ATTRIBUTE_ID = 381;
-
-/**
- * The id of the useragent attribute.
- */
-tutao.entity.tutanota.FeedbackData.prototype.USERAGENT_ATTRIBUTE_ID = 382;
-
-/**
  * Sets the format of this FeedbackData.
  * @param {string} format The format of this FeedbackData.
  */

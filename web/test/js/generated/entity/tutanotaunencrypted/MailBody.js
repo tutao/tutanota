@@ -10,10 +10,8 @@ tutao.entity.tutanotaunencrypted.MailBody = function(data) {
   if (data) {
     this.updateData(data);
   } else {
-    this.__area = null;
     this.__format = "0";
     this.__id = null;
-    this.__owner = null;
     this.__ownerGroup = null;
     this.__permissions = null;
     this._text = null;
@@ -27,10 +25,8 @@ tutao.entity.tutanotaunencrypted.MailBody = function(data) {
  * @param {Object=} data The json data to store in this entity.
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.updateData = function(data) {
-  this.__area = data._area;
   this.__format = data._format;
   this.__id = data._id;
-  this.__owner = data._owner;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
   this._text = data.text;
@@ -52,7 +48,7 @@ tutao.entity.tutanotaunencrypted.MailBody.PATH = '/rest/tutanotaunencrypted/mail
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.tutanotaunencrypted.MailBody.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQACQ';
+tutao.entity.tutanotaunencrypted.MailBody.ROOT_INSTANCE_ID = 'E3R1dGFub3RhdW5lbmNyeXB0ZWQABw';
 
 /**
  * The generated id type flag.
@@ -72,10 +68,8 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.ENCRYPTED = false;
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.toJsonData = function() {
   return {
-    _area: this.__area, 
     _format: this.__format, 
     _id: this.__id, 
-    _owner: this.__owner, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
     text: this._text
@@ -83,53 +77,11 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailBody type.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.TYPE_ID = 9;
-
-/**
- * The id of the _area attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype._AREA_ATTRIBUTE_ID = 16;
-
-/**
- * The id of the _owner attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype._OWNER_ATTRIBUTE_ID = 15;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype._OWNERGROUP_ATTRIBUTE_ID = 14;
-
-/**
- * The id of the text attribute.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.TEXT_ATTRIBUTE_ID = 17;
-
-/**
  * Provides the id of this MailBody.
  * @return {string} The id of this MailBody.
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.getId = function() {
   return this.__id;
-};
-
-/**
- * Sets the area of this MailBody.
- * @param {string} area The area of this MailBody.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.setArea = function(area) {
-  this.__area = area;
-  return this;
-};
-
-/**
- * Provides the area of this MailBody.
- * @return {string} The area of this MailBody.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.getArea = function() {
-  return this.__area;
 };
 
 /**
@@ -147,23 +99,6 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.setFormat = function(format)
  */
 tutao.entity.tutanotaunencrypted.MailBody.prototype.getFormat = function() {
   return this.__format;
-};
-
-/**
- * Sets the owner of this MailBody.
- * @param {string} owner The owner of this MailBody.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.setOwner = function(owner) {
-  this.__owner = owner;
-  return this;
-};
-
-/**
- * Provides the owner of this MailBody.
- * @return {string} The owner of this MailBody.
- */
-tutao.entity.tutanotaunencrypted.MailBody.prototype.getOwner = function() {
-  return this.__owner;
 };
 
 /**
@@ -247,7 +182,7 @@ tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersion = function(versi
 tutao.entity.tutanotaunencrypted.MailBody.prototype.loadVersionInfo = function() {
   var versionData = new tutao.entity.sys.VersionData()
     .setApplication("tutanotaunencrypted")
-    .setType(9)
+    .setType(7)
     .setId(this.getId());
   return tutao.entity.sys.VersionReturn.load(versionData, {}, tutao.entity.EntityHelper.createAuthHeaders());
 };

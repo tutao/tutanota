@@ -52,26 +52,6 @@ tutao.entity.tutanota.ContactAddress.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ContactAddress type.
- */
-tutao.entity.tutanota.ContactAddress.prototype.TYPE_ID = 54;
-
-/**
- * The id of the address attribute.
- */
-tutao.entity.tutanota.ContactAddress.prototype.ADDRESS_ATTRIBUTE_ID = 57;
-
-/**
- * The id of the customTypeName attribute.
- */
-tutao.entity.tutanota.ContactAddress.prototype.CUSTOMTYPENAME_ATTRIBUTE_ID = 58;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.tutanota.ContactAddress.prototype.TYPE_ATTRIBUTE_ID = 56;
-
-/**
  * Sets the id of this ContactAddress.
  * @param {string} id The id of this ContactAddress.
  */

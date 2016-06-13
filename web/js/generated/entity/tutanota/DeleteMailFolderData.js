@@ -56,16 +56,6 @@ tutao.entity.tutanota.DeleteMailFolderData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the DeleteMailFolderData type.
- */
-tutao.entity.tutanota.DeleteMailFolderData.prototype.TYPE_ID = 458;
-
-/**
- * The id of the folders attribute.
- */
-tutao.entity.tutanota.DeleteMailFolderData.prototype.FOLDERS_ATTRIBUTE_ID = 460;
-
-/**
  * Sets the format of this DeleteMailFolderData.
  * @param {string} format The format of this DeleteMailFolderData.
  */

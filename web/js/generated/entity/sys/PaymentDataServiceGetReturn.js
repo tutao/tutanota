@@ -56,16 +56,6 @@ tutao.entity.sys.PaymentDataServiceGetReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the PaymentDataServiceGetReturn type.
- */
-tutao.entity.sys.PaymentDataServiceGetReturn.prototype.TYPE_ID = 790;
-
-/**
- * The id of the clientToken attribute.
- */
-tutao.entity.sys.PaymentDataServiceGetReturn.prototype.CLIENTTOKEN_ATTRIBUTE_ID = 792;
-
-/**
  * Sets the format of this PaymentDataServiceGetReturn.
  * @param {string} format The format of this PaymentDataServiceGetReturn.
  */

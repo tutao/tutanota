@@ -52,26 +52,6 @@ tutao.entity.tutanota.ContactMailAddress.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ContactMailAddress type.
- */
-tutao.entity.tutanota.ContactMailAddress.prototype.TYPE_ID = 44;
-
-/**
- * The id of the address attribute.
- */
-tutao.entity.tutanota.ContactMailAddress.prototype.ADDRESS_ATTRIBUTE_ID = 47;
-
-/**
- * The id of the customTypeName attribute.
- */
-tutao.entity.tutanota.ContactMailAddress.prototype.CUSTOMTYPENAME_ATTRIBUTE_ID = 48;
-
-/**
- * The id of the type attribute.
- */
-tutao.entity.tutanota.ContactMailAddress.prototype.TYPE_ATTRIBUTE_ID = 46;
-
-/**
  * Sets the id of this ContactMailAddress.
  * @param {string} id The id of this ContactMailAddress.
  */

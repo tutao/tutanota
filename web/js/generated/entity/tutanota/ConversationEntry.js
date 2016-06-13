@@ -86,36 +86,6 @@ tutao.entity.tutanota.ConversationEntry.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ConversationEntry type.
- */
-tutao.entity.tutanota.ConversationEntry.prototype.TYPE_ID = 84;
-
-/**
- * The id of the _ownerGroup attribute.
- */
-tutao.entity.tutanota.ConversationEntry.prototype._OWNERGROUP_ATTRIBUTE_ID = 588;
-
-/**
- * The id of the conversationType attribute.
- */
-tutao.entity.tutanota.ConversationEntry.prototype.CONVERSATIONTYPE_ATTRIBUTE_ID = 122;
-
-/**
- * The id of the messageId attribute.
- */
-tutao.entity.tutanota.ConversationEntry.prototype.MESSAGEID_ATTRIBUTE_ID = 121;
-
-/**
- * The id of the mail attribute.
- */
-tutao.entity.tutanota.ConversationEntry.prototype.MAIL_ATTRIBUTE_ID = 124;
-
-/**
- * The id of the previous attribute.
- */
-tutao.entity.tutanota.ConversationEntry.prototype.PREVIOUS_ATTRIBUTE_ID = 123;
-
-/**
  * Provides the id of this ConversationEntry.
  * @return {Array.<string>} The id of this ConversationEntry.
  */

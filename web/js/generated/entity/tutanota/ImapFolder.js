@@ -49,31 +49,6 @@ tutao.entity.tutanota.ImapFolder.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the ImapFolder type.
- */
-tutao.entity.tutanota.ImapFolder.prototype.TYPE_ID = 190;
-
-/**
- * The id of the lastseenuid attribute.
- */
-tutao.entity.tutanota.ImapFolder.prototype.LASTSEENUID_ATTRIBUTE_ID = 193;
-
-/**
- * The id of the name attribute.
- */
-tutao.entity.tutanota.ImapFolder.prototype.NAME_ATTRIBUTE_ID = 192;
-
-/**
- * The id of the uidvalidity attribute.
- */
-tutao.entity.tutanota.ImapFolder.prototype.UIDVALIDITY_ATTRIBUTE_ID = 194;
-
-/**
- * The id of the syncInfo attribute.
- */
-tutao.entity.tutanota.ImapFolder.prototype.SYNCINFO_ATTRIBUTE_ID = 195;
-
-/**
  * Sets the id of this ImapFolder.
  * @param {string} id The id of this ImapFolder.
  */

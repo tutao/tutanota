@@ -50,16 +50,6 @@ tutao.entity.tutanota.CreateFileReturn.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the CreateFileReturn type.
- */
-tutao.entity.tutanota.CreateFileReturn.prototype.TYPE_ID = 354;
-
-/**
- * The id of the file attribute.
- */
-tutao.entity.tutanota.CreateFileReturn.prototype.FILE_ATTRIBUTE_ID = 356;
-
-/**
  * Sets the format of this CreateFileReturn.
  * @param {string} format The format of this CreateFileReturn.
  */

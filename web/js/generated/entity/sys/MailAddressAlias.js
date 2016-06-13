@@ -43,21 +43,6 @@ tutao.entity.sys.MailAddressAlias.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailAddressAlias type.
- */
-tutao.entity.sys.MailAddressAlias.prototype.TYPE_ID = 684;
-
-/**
- * The id of the enabled attribute.
- */
-tutao.entity.sys.MailAddressAlias.prototype.ENABLED_ATTRIBUTE_ID = 784;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.MailAddressAlias.prototype.MAILADDRESS_ATTRIBUTE_ID = 686;
-
-/**
  * Sets the id of this MailAddressAlias.
  * @param {string} id The id of this MailAddressAlias.
  */

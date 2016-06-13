@@ -59,21 +59,6 @@ tutao.entity.sys.MailAddressAliasServiceData.prototype.toJsonData = function() {
 };
 
 /**
- * The id of the MailAddressAliasServiceData type.
- */
-tutao.entity.sys.MailAddressAliasServiceData.prototype.TYPE_ID = 688;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceData.prototype.MAILADDRESS_ATTRIBUTE_ID = 690;
-
-/**
- * The id of the group attribute.
- */
-tutao.entity.sys.MailAddressAliasServiceData.prototype.GROUP_ATTRIBUTE_ID = 691;
-
-/**
  * Sets the format of this MailAddressAliasServiceData.
  * @param {string} format The format of this MailAddressAliasServiceData.
  */

@@ -52,36 +52,6 @@ tutao.entity.tutanota.CreateExternalUserGroupData.prototype.toJsonData = functio
 };
 
 /**
- * The id of the CreateExternalUserGroupData type.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.TYPE_ID = 138;
-
-/**
- * The id of the adminEncGKey attribute.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.ADMINENCGKEY_ATTRIBUTE_ID = 143;
-
-/**
- * The id of the encryptedName attribute.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.ENCRYPTEDNAME_ATTRIBUTE_ID = 140;
-
-/**
- * The id of the groupInfoListEncSessionKey attribute.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.GROUPINFOLISTENCSESSIONKEY_ATTRIBUTE_ID = 144;
-
-/**
- * The id of the mailAddress attribute.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.MAILADDRESS_ATTRIBUTE_ID = 141;
-
-/**
- * The id of the symEncGKey attribute.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.SYMENCGKEY_ATTRIBUTE_ID = 142;
-
-/**
  * Sets the id of this CreateExternalUserGroupData.
  * @param {string} id The id of this CreateExternalUserGroupData.
  */
