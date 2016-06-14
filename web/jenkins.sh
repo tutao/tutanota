@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export FIREFOX_BIN=/opt/browsers/firefox-31.0/firefox-bin
+export FIREFOX_BIN=/opt/browsers/firefox-47.0/firefox-bin
 export PATH=$PATH:/opt/node-v0.10.30-linux-x64/bin
 npm prune
 npm install
