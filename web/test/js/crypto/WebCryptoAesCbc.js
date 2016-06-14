@@ -7,7 +7,7 @@ if (window.crypto && !window.crypto.subtle && window.crypto.webkitSubtle) {
     window.crypto.subtle = window.crypto.webkitSubtle;
 }
 
-if (!window.crypto.subtle && window.msCrypto.subtle) {
+if (!window.crypto.subtle && window.msCrypto && window.msCrypto.subtle) {
    // window.crypto.subtle = window.msCrypto.subtle;
 }
 
