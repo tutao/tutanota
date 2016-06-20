@@ -239,6 +239,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 		}
 
 		var bucketPermissionOwnerGroupKey = tutao.locator.userController.getGroupKey(bucketPermission.getOwnerGroup());
+        var bucketPermissionGroupKey = tutao.locator.userController.getGroupKey(bucketPermission.getGroup());
         var bucketKey;
         if (bucketPermission.getOwnerEncBucketKey()) {
             bucketKey = tutao.locator.aesCrypter.decryptKey(bucketPermissionOwnerGroupKey, bucketPermission.getOwnerEncBucketKey());
@@ -247,7 +248,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
         }
         var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
         // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
-        return self._updateWithSymPermissionKey(permission, bucketPermission, bucketPermissionOwnerGroupKey, sessionKey).then(function() {
+        return self._updateWithSymPermissionKey(permission, bucketPermission, bucketPermissionOwnerGroupKey, bucketPermissionGroupKey, sessionKey).then(function() {
             return sessionKey;
         });
     });
@@ -296,11 +297,12 @@ tutao.entity.EntityHelper.prototype._tryGetPubEncSessionKey = function(permissio
  * Updates the given public permission with the given symmetric key for faster access.
  * @param {tutao.entity.sys.Permission} permission The permission.
  * @param {tutao.entity.sys.BucketPermission} bucketPermission The bucket permission.
- * @param {Object} permissionOwnerGroupKey The symmetric group key.
+ * @param {Object} permissionOwnerGroupKey The symmetric group key for the owner group on the permission.
+ * @param {Object} permissionGroupKey The symmetric group key of the group in the permission.
  * @param {Object} sessionKey The symmetric session key.
  * @return {Promise} When finished.
  */
-tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, permissionOwnerGroupKey, sessionKey) {
+tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permission, bucketPermission, permissionOwnerGroupKey, permissionGroupKey, sessionKey) {
 	var self = this;
 	if (!this._entity.getOwnerEncSessionKey() && permission.getOwnerGroup() == self._entity.getOwnerGroup()) {
             self._entity.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(permissionOwnerGroupKey, sessionKey));
@@ -310,7 +312,7 @@ tutao.entity.EntityHelper.prototype._updateWithSymPermissionKey = function(permi
 		updateService.setPermission(permission.getId());
 		updateService.setBucketPermission(bucketPermission.getId());
 		updateService.setOwnerEncSessionKey(tutao.locator.aesCrypter.encryptKey(permissionOwnerGroupKey, sessionKey));
-        updateService.setSymEncSessionKey(null);
+        updateService.setSymEncSessionKey(tutao.locator.aesCrypter.encryptKey(permissionGroupKey, sessionKey));
 		return updateService.setup({}, tutao.entity.EntityHelper.createAuthHeaders());
 	}
 };
@@ -366,7 +368,8 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
                 var bucketKey = sjcl.codec.bytes.toBits(bucketKeyBytes);
                 var sessionKey = tutao.locator.aesCrypter.decryptKey(bucketKey, permission.getBucketEncSessionKey());
                 // finish _updateWithSymPermissionKey() before returning the session key to avoid that parallel updates result in BadRequestExceptions
-                return self._updateWithSymPermissionKey(permission, bucketPermission, permissionOwnerGroupKey, sessionKey).then(function() {
+                var permissionGroupKey = tutao.locator.userController.getGroupKey(permission.getGroup());
+                return self._updateWithSymPermissionKey(permission, bucketPermission, permissionOwnerGroupKey, permissionGroupKey, sessionKey).then(function() {
                     return sessionKey;
                 });
             });

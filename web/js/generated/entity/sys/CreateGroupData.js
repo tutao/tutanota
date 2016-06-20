@@ -13,6 +13,7 @@ tutao.entity.sys.CreateGroupData = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._adminEncGKey = null;
+    this._customerEncUserGroupInfoSessionKey = null;
     this._encryptedName = null;
     this._listEncSessionKey = null;
     this._mailAddress = null;
@@ -32,6 +33,7 @@ tutao.entity.sys.CreateGroupData = function(parent, data) {
 tutao.entity.sys.CreateGroupData.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._adminEncGKey = data.adminEncGKey;
+  this._customerEncUserGroupInfoSessionKey = data.customerEncUserGroupInfoSessionKey;
   this._encryptedName = data.encryptedName;
   this._listEncSessionKey = data.listEncSessionKey;
   this._mailAddress = data.mailAddress;
@@ -48,6 +50,7 @@ tutao.entity.sys.CreateGroupData.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
     adminEncGKey: this._adminEncGKey, 
+    customerEncUserGroupInfoSessionKey: this._customerEncUserGroupInfoSessionKey, 
     encryptedName: this._encryptedName, 
     listEncSessionKey: this._listEncSessionKey, 
     mailAddress: this._mailAddress, 
@@ -89,6 +92,23 @@ tutao.entity.sys.CreateGroupData.prototype.setAdminEncGKey = function(adminEncGK
  */
 tutao.entity.sys.CreateGroupData.prototype.getAdminEncGKey = function() {
   return this._adminEncGKey;
+};
+
+/**
+ * Sets the customerEncUserGroupInfoSessionKey of this CreateGroupData.
+ * @param {string} customerEncUserGroupInfoSessionKey The customerEncUserGroupInfoSessionKey of this CreateGroupData.
+ */
+tutao.entity.sys.CreateGroupData.prototype.setCustomerEncUserGroupInfoSessionKey = function(customerEncUserGroupInfoSessionKey) {
+  this._customerEncUserGroupInfoSessionKey = customerEncUserGroupInfoSessionKey;
+  return this;
+};
+
+/**
+ * Provides the customerEncUserGroupInfoSessionKey of this CreateGroupData.
+ * @return {string} The customerEncUserGroupInfoSessionKey of this CreateGroupData.
+ */
+tutao.entity.sys.CreateGroupData.prototype.getCustomerEncUserGroupInfoSessionKey = function() {
+  return this._customerEncUserGroupInfoSessionKey;
 };
 
 /**
