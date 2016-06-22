@@ -140,7 +140,6 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "loading_msg": "Nalagam ...",
   "loadMore_action": "Naložite več",
   "loginAction_msg": "Varna Tutanota sporočila boste prejeli šele po tem, ko se prijavite.",
-  "loginFailedOften_msg": "Preveč neuspešnih poskusov prijave. Prosimo, poskusite znova kasneje.",
   "loginFailed_msg": "Navedeni podatki se ne ujemajo. Prosimo, poskusite znova.",
   "loginNameInfoAdmin_msg": "Neobvezno: uporabnikovo ime.",
   "login_action": "Prijava",
