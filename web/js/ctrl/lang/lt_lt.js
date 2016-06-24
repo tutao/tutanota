@@ -459,7 +459,6 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "paymentDataEnterData_msg": "Prašome įvesti savo mokėjimo duomenis būsimiems mokėjimams.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium leidžia jums užsiregistruoti 5 elektroninio pašto slapyvardžius vienam naudotojui, ir pridėti neribotą naudotojų paskyrų kiekį (mokama), taip pat ir nuosaviems domenams.",
   "paymentDataPayPalConfirm_msg": "Patvirtinkite savo PayPal sąskaitą.",
-  "paymentDataPayPalLogin_msg": "Prisijungimui prašome paspausti ant PayPal mygtuko.",
   "paymentDataValidation_action": "Patvirtinti",
   "paymentMethodCreditCard_label": "Mokėjimo kortelė",
   "paymentMethodOnAccount_label": "Pirkti šiai sąskaitai",

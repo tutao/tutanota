@@ -485,7 +485,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "paymentDataEnterData_msg": "Please enter your payment data for future payments.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium allows you to register 5 email aliases for your user and add unlimited user accounts (with costs), also for your own domain.",
   "paymentDataPayPalConfirm_msg": "Please confirm your PayPal account.",
-  "paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in.",
+  "paymentDataPayPalLogin_msg": "Please click on the PayPal button to log in. Attention: Our payment provider currently does not support the PayPal Security Key feature. Please deactivate your security key temporarily. Thanks!",
   "paymentDataValidation_action": "Confirm",
   "paymentMethodCreditCard_label": "Credit card",
   "paymentMethodOnAccount_label": "Purchase on account",

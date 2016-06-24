@@ -483,7 +483,6 @@ tutao.tutanota.ctrl.lang.uk_ua.keys = {
   "paymentDataEnterData_msg": "Введіть, будь-ласка, свої платіжні дані для майбутніх оплат.",
   "paymentDataOrderPremiumInfo_msg": "Обліковий запис Tutanota Premium дозволяє вам зареєструвати 5 аліасів ел.пошти для свого користувача і додати безмежну кількість облікових записів користувача (платних), а також, для свого власного домену. ",
   "paymentDataPayPalConfirm_msg": "Підтвердіть свій обліковий запис PayPal, будь-ласка.",
-  "paymentDataPayPalLogin_msg": "Щоб увійти, натисніть кнопку PayPal, будь-ласка.",
   "paymentDataValidation_action": "Підтвердити",
   "paymentMethodCreditCard_label": "Кредитна картка",
   "paymentMethodOnAccount_label": "Купити в кредит",

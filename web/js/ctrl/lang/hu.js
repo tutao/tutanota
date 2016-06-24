@@ -483,7 +483,6 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "paymentDataEnterData_msg": "Adja meg fizetési adatait a jövőbeni kifizetésekhez.",
   "paymentDataOrderPremiumInfo_msg": "A Tutanota Prémiummal felhasználójához 5 e-mail álnév hozható létre és korlátlan számú felhasználói fiók (költségekkel), a saját domain nevéhez is.",
   "paymentDataPayPalConfirm_msg": "Erősítse meg PayPal fiókját.",
-  "paymentDataPayPalLogin_msg": "Kattintson a PayPal gombra a bejelentkezéshez.",
   "paymentDataValidation_action": "Megerősítés",
   "paymentMethodCreditCard_label": "Bankkártya",
   "paymentMethodOnAccount_label": "Vásárlás számlára",

@@ -480,7 +480,6 @@ tutao.tutanota.ctrl.lang.vi.keys = {
   "paymentDataEnterData_msg": "Xin nhập dữ liệu thanh toán của bạn cho những lần sau.",
   "paymentDataOrderPremiumInfo_msg": "Gói Tutanota Đặc biệt cho phép bạn đăng ký 5 tên email khác cho người dùng và thêm tài khoản người dùng không giới hạn (có tính phí) cũng như miền riêng của bạn.",
   "paymentDataPayPalConfirm_msg": "Xin xác nhận tài khoản PayPal của bạn.",
-  "paymentDataPayPalLogin_msg": "Xin nhấp vào nút PayPal để đăng nhập.",
   "paymentDataValidation_action": "Xác nhận",
   "paymentMethodCreditCard_label": "Thẻ tín dụng",
   "paymentMethodOnAccount_label": "Giao dịch trên tài khoản",

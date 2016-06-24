@@ -435,7 +435,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "paymentDataEnterData_msg": "Proszę wprowadzić szczegóły płatności dla przyszłych płatności.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium pozwala zarejestrować 5 aliasów adresu email dla Twojego użytkownika, oraz dodawać nielimitowaną liczbę kont użytkownika (za dopłatą), także dla Twojej własnej domeny.",
   "paymentDataPayPalConfirm_msg": "Proszę potwierdzić Twoje konto PayPal.",
-  "paymentDataPayPalLogin_msg": "Proszę kliknąć na przycisk PayPal, aby się zalogować.",
   "paymentDataValidation_action": "Potwierdź",
   "paymentMethodCreditCard_label": "Karta kredytowa",
   "paymentMethodOnAccount_label": "Zakup na konto",

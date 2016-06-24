@@ -482,7 +482,6 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "paymentDataEnterData_msg": "请输入支付数据以便日后付款。",
   "paymentDataOrderPremiumInfo_msg": "Tutanota 付费版可为您的用户注册5个邮件别名，而且可添加无限的用户（付费），以上同样适用于自有域名。",
   "paymentDataPayPalConfirm_msg": "请确认您的 PayPal 账户。",
-  "paymentDataPayPalLogin_msg": "请点击PayPal按钮来登录。",
   "paymentDataValidation_action": "确认",
   "paymentMethodCreditCard_label": "信用卡",
   "paymentMethodOnAccount_label": "账户内购买",

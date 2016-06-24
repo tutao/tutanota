@@ -424,7 +424,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "paymentDataEnterData_msg": "الرجاء إدخال بيانات الدفع الخاصة بك للمدفوعات في المستقبل.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota\" بريميوم\" يسمح لك بتسجيل 5 أسماء مستعارة لبريدك الإلكتروني وإضافة حسابات غير محدود لحسابات المستخدمين، وكذلك للمجال الخاص بك.",
   "paymentDataPayPalConfirm_msg": "الرجاء التأكد من حسابك على PayPal.",
-  "paymentDataPayPalLogin_msg": "يرجى الضغط على زر PayPal لتسجيل الدخول.",
   "paymentDataValidation_action": "تأكيد",
   "paymentMethodCreditCard_label": "البطاقة الائتمانية",
   "paymentMethodOnAccount_label": "الشراء على الحساب",

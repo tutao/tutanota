@@ -453,7 +453,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "paymentDataEnterData_msg": "Indtast venligst dine betalingsinformationer for kommende betalinger.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium giver dig mulighed for at oprette fem e-mail alias, tilføje ubegrænset antal brugere, samt muligheden for at bruge dit eget domæne.",
   "paymentDataPayPalConfirm_msg": "Bekræft venligst din PayPal konto.",
-  "paymentDataPayPalLogin_msg": "Klik venligst på PayPal knappen for at logge ind.",
   "paymentDataValidation_action": "Bekræft",
   "paymentMethodCreditCard_label": "Kreditkort",
   "paymentMethodOnAccount_label": "Køb på konto",

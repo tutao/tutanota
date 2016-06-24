@@ -436,7 +436,6 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "paymentDataEnterData_msg": "Molimo vas unesite svoje podatke o plaćanju da bismo ih sačuvali za buduća plaćanja.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium omogućuje vam registraciju 5 pseudonima (aliasa) e-pošte za svakog vašeg korisnika i možete dodati neograničen broj korisnika (s troškovima), također i za vašu vlastitu domenu.",
   "paymentDataPayPalConfirm_msg": "Molimo potvrdite svoj PayPal račun.",
-  "paymentDataPayPalLogin_msg": "Za prijavu molimo kliknite na PayPal gumb.",
   "paymentDataValidation_action": "Potvrdi",
   "paymentMethodCreditCard_label": "Kreditna kartica",
   "paymentMethodOnAccount_label": "Kupnja na račun",

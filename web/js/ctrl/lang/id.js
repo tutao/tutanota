@@ -460,7 +460,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "paymentDataEnterData_msg": "Mohon masukkan data pembayaran Anda untuk pembayaran yang akan datang.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium memungkinkan Anda untuk mendaftarkan 5 alias email untuk pengguna Anda dan menambahkan akun pengguna tak terbatas (dengan biaya), juga untuk domain Anda sendiri.",
   "paymentDataPayPalConfirm_msg": "Mohon konfirmasi akun PayPal Anda.",
-  "paymentDataPayPalLogin_msg": "Silahkan klik pada tombol PayPal untuk masuk.",
   "paymentDataValidation_action": "Konfirmasi",
   "paymentMethodCreditCard_label": "Kartu kredit",
   "paymentMethodOnAccount_label": "Pembelian pada akun",

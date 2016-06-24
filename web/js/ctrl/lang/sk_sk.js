@@ -458,7 +458,6 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "paymentDataEnterData_msg": "Prosím, vložte svoje platobné údaje pre budúce platby.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium vám umožní zaregistrovať 5 e-mailových alias a pridať neobmedzené používateľské účty, a to aj na vlastnej doméne.",
   "paymentDataPayPalConfirm_msg": "Prosím, potvrďte svoj PayPal účet.",
-  "paymentDataPayPalLogin_msg": "Prosím, kliknite na tlačidlo PayPal pre prihlásenie.",
   "paymentDataValidation_action": "Potvrdiť",
   "paymentMethodCreditCard_label": "Kreditná karta",
   "paymentMethodOnAccount_label": "Nákup na účet",

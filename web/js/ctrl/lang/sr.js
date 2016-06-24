@@ -425,7 +425,6 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "paymentDataEnterData_msg": "Molimo vas unesite svoje podatke o plaćanju da bismo ih sačuvali za buduća plaćanja.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium omogućuje vam da registrujete 5 pseudonima (aliasa) e-pošte za svakog vašeg korisnika i možete dodati neograničen broj korisnika, takođe i za vaš domen.",
   "paymentDataPayPalConfirm_msg": "Molimo potvrdite svoj PayPal nalog.",
-  "paymentDataPayPalLogin_msg": "Za prijavu molimo kliknite na PayPal dugme.",
   "paymentDataValidation_action": "Potvrdi",
   "paymentMethodCreditCard_label": "Kreditna kartica",
   "paymentMethodOnAccount_label": "Kupovina na račun",

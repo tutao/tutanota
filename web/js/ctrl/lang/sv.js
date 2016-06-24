@@ -437,7 +437,6 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "paymentDataEnterData_msg": "Ange din betalningsinformation för framtida betalningar.",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium tillåter dig att registrera fem e-postalias för ditt användarnamn och lägga till obegränsat användarkonton, även för din egen domän.",
   "paymentDataPayPalConfirm_msg": "Vänligen bekräfta ditt PayPal-konto.",
-  "paymentDataPayPalLogin_msg": "Klicka på PayPal-knappen för att logga in.",
   "paymentDataValidation_action": "Bekräfta",
   "paymentMethodCreditCard_label": "Kreditkort",
   "paymentMethodOnAccount_label": "Köp under konto",

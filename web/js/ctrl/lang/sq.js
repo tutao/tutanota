@@ -482,7 +482,6 @@ tutao.tutanota.ctrl.lang.sq.keys = {
   "paymentDataEnterData_msg": "Të lutem, futi të dhënat tua për pagesat e ardhshme",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium të lejon me i regjistru pesë nofka për llogarinë tënde dhe me shtu llogari përdorësish pakufi (kundrejt pagesës), duke përdorë dhe domenin tënd.",
   "paymentDataPayPalConfirm_msg": "Të lutem, vërtetoje llogarinë e PayPalit.",
-  "paymentDataPayPalLogin_msg": "Kliko në butonin PayPal për ta hapë llogarinë.",
   "paymentDataValidation_action": "Vërteto",
   "paymentMethodCreditCard_label": "Kartela e kreditit",
   "paymentMethodOnAccount_label": "Blerje për këtë llogari",

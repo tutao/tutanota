@@ -478,7 +478,6 @@ tutao.tutanota.ctrl.lang.no.keys = {
   "paymentDataEnterData_msg": "Vennligst oppgi din betalingsinformasjon for fremtidige betalinger.",
   "paymentDataOrderPremiumInfo_msg": "Med Tutanota Premium kan du registrere inntil 5 e-postaliaser for brukeren din og legge til et ubegrenset antall brukere, også for ditt eget domene.",
   "paymentDataPayPalConfirm_msg": "Vennligst bekreft din PayPal-konto.",
-  "paymentDataPayPalLogin_msg": "Vennligst trykk på PayPal-knappen for å logge inn.",
   "paymentDataValidation_action": "Bekreft",
   "paymentMethodCreditCard_label": "Kredittkort",
   "paymentMethodOnAccount_label": "Kjøp på konto",

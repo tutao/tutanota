@@ -481,7 +481,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "paymentDataEnterData_msg": "Vul uw betaalgegevens in voor toekomstige betalingen.",
   "paymentDataOrderPremiumInfo_msg": "Met Tutanota Premium kunt u 5 email aliassen registreren voor uw gebruiker, onbeperkt gebruiker accounts toevoegen (extra kosten per gebruiker), ook voor uw eigen domein.",
   "paymentDataPayPalConfirm_msg": "A.u.b. uw PayPal account bevestigen.",
-  "paymentDataPayPalLogin_msg": "Graag op de Paypal knop klikken om in te loggen.",
   "paymentDataValidation_action": "Bevestig",
   "paymentMethodCreditCard_label": "Creditcard",
   "paymentMethodOnAccount_label": "Koop op rekening",

@@ -485,7 +485,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "paymentDataEnterData_msg": "Bitte gib deine Zahlungsdaten für zukünftige Zahlungen an.",
   "paymentDataOrderPremiumInfo_msg": "Mit Tutanota Premium bekommst du 5 E-Mail-Aliasse pro Benutzer und kannst weitere Benutzer-Accounts anlegen (kostenpflichtig), auch für deine eigene Domain.",
   "paymentDataPayPalConfirm_msg": "Bitte bestätige deinen PayPal-Account.",
-  "paymentDataPayPalLogin_msg": "Bitte klick auf den PayPal-Button um dich anzumelden.",
+  "paymentDataPayPalLogin_msg": "Bitte klick auf den PayPal-Button um dich anzumelden. Achtung: Unser Zahlungsdienstleister unterstützt im Moment den PayPal-Sicherheitsschlüssel nicht. Bitte deaktiviere ihn für die Tutanota-Bestellung. Danke!",
   "paymentDataValidation_action": "Bestätigen",
   "paymentMethodCreditCard_label": "Kreditkarte",
   "paymentMethodOnAccount_label": "Auf Rechnung",

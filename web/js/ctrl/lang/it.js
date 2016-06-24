@@ -482,7 +482,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "paymentDataEnterData_msg": "Inserisci i tuoi dati per i pagamenti futuri",
   "paymentDataOrderPremiumInfo_msg": "Tutanota Premium permette di registrare 5 email alias per ogni utente e aggiungere un numero illimitato di utenti (con dei costi), anche per il proprio dominio.",
   "paymentDataPayPalConfirm_msg": "Conferma il tuo account Paypal.",
-  "paymentDataPayPalLogin_msg": "Clicca sul bottone Paypal per accedere",
   "paymentDataValidation_action": "Conferma",
   "paymentMethodCreditCard_label": "Carta di credito",
   "paymentMethodOnAccount_label": "Acquista ",

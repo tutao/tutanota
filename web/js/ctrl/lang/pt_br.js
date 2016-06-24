@@ -404,7 +404,6 @@ tutao.tutanota.ctrl.lang.pt_br.keys = {
   "passwortChannelColumnHeading_label": "Tutanota",
   "paymentDataEnterData_msg": "Por favor, insira seus dados de pagamento para futuras cobranças. ",
   "paymentDataPayPalConfirm_msg": "Confirme sua conta do PayPal.",
-  "paymentDataPayPalLogin_msg": "Por favor, clique no botão do PayPal para logar. ",
   "paymentDataValidation_action": "Confirme",
   "paymentMethodCreditCard_label": "Cartão de crédito",
   "paymentMethodOnAccount_label": "",
