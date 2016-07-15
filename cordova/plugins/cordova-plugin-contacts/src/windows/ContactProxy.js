@@ -19,6 +19,8 @@
  * 
  */
 
+/* global Windows, WinJS */
+
 var ContactField = require('./ContactField'),
     ContactAddress = require('./ContactAddress'),
     ContactOrganization = require('./ContactOrganization'),
@@ -48,7 +50,8 @@ function convertToContact(windowsContact) {
     // phoneNumbers
     contact.phoneNumbers = [];
     var phoneSource = windowsContact.phoneNumbers || windowsContact.phones;
-    for (var i = 0; i < phoneSource.size; i++) {
+    var i;
+    for (i = 0; i < phoneSource.size; i++) {
         var rawPhone = phoneSource[i];
         var phone = new ContactField(rawPhone.category || rawPhone.kind, rawPhone.value || rawPhone.number);
         contact.phoneNumbers.push(phone);
@@ -57,7 +60,7 @@ function convertToContact(windowsContact) {
     // emails
     contact.emails = [];
     var emailSource = windowsContact.emails;
-    for (var i = 0; i < emailSource.size; i++) {
+    for (i = 0; i < emailSource.size; i++) {
         var rawEmail = emailSource[i];
         var email = new ContactField(rawEmail.category || rawEmail.kind, rawEmail.value || rawEmail.address);
         contact.emails.push(email);
@@ -66,7 +69,7 @@ function convertToContact(windowsContact) {
     // addressres
     contact.addresses = [];
     var addressSource = windowsContact.locations || windowsContact.addresses;
-    for (var i = 0; i < addressSource.size; i++) {
+    for (i = 0; i < addressSource.size; i++) {
         var rawAddress = addressSource[i];
         var address = new ContactAddress(
             null,
@@ -83,7 +86,7 @@ function convertToContact(windowsContact) {
     // ims
     contact.ims = [];
     var imSource = windowsContact.instantMessages || windowsContact.connectedServiceAccounts;
-    for (var i = 0; i < imSource.size; i++) {
+    for (i = 0; i < imSource.size; i++) {
         var rawIm = imSource[i];
         var im = new ContactField(rawIm.category || rawIm.serviceName, rawIm.userName || rawIm.id);
         contact.ims.push(im);
@@ -274,7 +277,9 @@ module.exports = {
             // http://msdn.microsoft.com/en-us/library/windows/apps/xaml/windows.phone.personalinformation.aspx
     
             //We don't need to create Error object here since it will be created at navigator.contacts.find() method
-            fail && fail(ContactError.NOT_SUPPORTED_ERROR);
+            if (fail) {
+                fail(ContactError.NOT_SUPPORTED_ERROR);
+            }
             return;
         }
         
@@ -307,7 +312,9 @@ module.exports = {
             // http://msdn.microsoft.com/en-us/library/windows/apps/xaml/windows.phone.personalinformation.aspx
     
             //We don't need to create Error object here since it will be created at navigator.contacts.find() method
-            fail && fail(ContactError.NOT_SUPPORTED_ERROR);
+            if (fail) {
+                fail(ContactError.NOT_SUPPORTED_ERROR);
+            }
             return;
         }
         
@@ -380,7 +387,7 @@ module.exports = {
         // searchFields is not supported yet due to WP8.1 API limitations.
         // findContactsAsync(String) method will attempt to match the name, email address, or phone number of a contact. 
         // see http://msdn.microsoft.com/en-us/library/windows/apps/dn624861.aspx for details
-        var searchFields = options[0],
+        var searchFields = options[0], // jshint ignore:line
             searchOptions = options[1],
             searchFilter = searchOptions.filter,
             searchMultiple = searchOptions && searchOptions.multiple;

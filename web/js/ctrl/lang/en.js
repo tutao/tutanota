@@ -238,6 +238,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "fax_label": "Fax",
   "feedbackErrorInfo_msg": "The message, error details and your browser identifier are sent encrypted to support@tutao.de.",
   "feedbackLanguageInfo_msg": "Please enter your error report in English or German.",
+  "fileAccessDeniedMobile_msg": "Access to external storage is denied. You can enable it in the settings of your mobile device.",
   "finalDelete_action": "Delete",
   "finished_msg": "Finished.",
   "firstName_placeholder": "First name",

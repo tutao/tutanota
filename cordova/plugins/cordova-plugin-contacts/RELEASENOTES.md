@@ -20,6 +20,22 @@
 -->
 # Release Notes
 
+### 2.1.0 (Apr 15, 2016)
+* CB-11043 **Android** app crashes while trying to save contact with phone numbers array with deleted values
+* CB-10985 Android sets type to `-1` for ims Added a corresponding test
+* CB-11048 Fix spec27's inadvertant breakage that happened during logging rollback
+* CB-11041 `cordova-plugin-contacts` readme must be updated to include instructions on removing phone number from a contact
+* CB-11033 Appium tests: Increased the timeout for updating the contact
+* CB-10399 Added Appium tests
+* Replace `PermissionHelper.java` with `cordova-plugin-compat`
+* CB-8115 incorrect birthday saved to phonebook using Contacts Plugin
+* Changes to stop using global object - remove all created contacts from the emulator
+* CB-10881 Increase timeout for Spec22
+* Fix for the specs 26&27 to use the newly created contacts for removal test
+* CB-10881 Remove test dependency on global object
+* CB-10632 Fixing jasmine test contact removal
+* CB-10636 Add `JSHint` for plugins
+
 ### 2.0.1 (Jan 15, 2016)
 * CB-10159 **Android** Adding restore callback to handle Activity destruction
 * CB-10319 **Android** Adding reflective helper methods for permission requests

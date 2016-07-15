@@ -22,45 +22,8 @@
 var argscheck = require('cordova/argscheck'),
     exec = require('cordova/exec'),
     ContactError = require('./ContactError'),
-    utils = require('cordova/utils');
-
-/**
-* Converts primitives into Complex Object
-* Currently only used for Date fields
-*/
-function convertIn(contact) {
-    var value = contact.birthday;
-    try {
-      contact.birthday = new Date(parseFloat(value));
-    } catch (exception){
-      console.log("Cordova Contact convertIn error: exception creating date.");
-    }
-    return contact;
-}
-
-/**
-* Converts Complex objects into primitives
-* Only conversion at present is for Dates.
-**/
-
-function convertOut(contact) {
-    var value = contact.birthday;
-    if (value !== null) {
-        // try to make it a Date object if it is not already
-        if (!utils.isDate(value)){
-            try {
-                value = new Date(value);
-            } catch(exception){
-                value = null;
-            }
-        }
-        if (utils.isDate(value)){
-            value = value.valueOf(); // convert to milliseconds
-        }
-        contact.birthday = value;
-    }
-    return contact;
-}
+    utils = require('cordova/utils'),
+    convertUtils = require('./convertUtils');
 
 /**
 * Contains information about a single contact.
@@ -161,7 +124,7 @@ Contact.prototype.save = function(successCB, errorCB) {
         if (result) {
             if (successCB) {
                 var fullContact = require('./contacts').create(result);
-                successCB(convertIn(fullContact));
+                successCB(convertUtils.toCordovaFormat(fullContact));
             }
         }
         else {
@@ -169,7 +132,7 @@ Contact.prototype.save = function(successCB, errorCB) {
             fail(ContactError.UNKNOWN_ERROR);
         }
     };
-    var dupContact = convertOut(utils.clone(this));
+    var dupContact = convertUtils.toNativeFormat(utils.clone(this));
     exec(success, fail, "Contacts", "save", [dupContact]);
 };
 

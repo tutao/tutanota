@@ -629,7 +629,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 	tutao.locator.fileFacade.showFileChooser().then(function(fileList) {
 		return self.attachFiles(fileList);
 	}).caught(function(error) {
-        tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        if ( error == "permission_denied") {
+            tutao.tutanota.gui.alert(tutao.lang("fileAccessDeniedMobile_msg"));
+        }else {
+            tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        }
         console.log(error);
     });
 };

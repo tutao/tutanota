@@ -5,6 +5,9 @@
   <description>Native implementation of various tutanota features</description>
   <license>Copyright 2014 Tutao GmbH</license>
   <keywords>tutanota</keywords>
+
+  <dependency id="cordova-plugin-compat" version="^1.0.0" />
+
   <js-module src="www/telephone.js" name="telephone">
     <clobbers target="tutao.native.device.Phone" />
   </js-module>

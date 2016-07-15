@@ -1,0 +1,32 @@
+{
+    "name": "cordova-plugin-compat",
+    "description": "This repo is for remaining backwards compatible with previous versions of Cordova.",
+    "version": "1.0.0",
+    "homepage": "http://github.com/apache/cordova-plugin-compat#readme",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/apache/cordova-plugin-compat.git"
+    },
+    "bugs": {
+        "url": "https://github.com/apache/cordova-plugin-compat/issues"
+    },
+    "cordova": {
+        "id": "cordova-plugin-compat",
+        "platforms": [
+            "android"
+        ]
+    },
+    "keywords": [
+        "ecosystem:cordova",
+        "ecosystem:phonegap",
+        "cordova-android"
+    ],
+    "engines": [
+        {
+            "name": "cordova",
+            "version": ">=5.0.0"
+        }
+    ],
+    "author": "Apache Software Foundation",
+    "license": "Apache-2.0"
+}
