@@ -306,7 +306,7 @@ tutao.tutanota.ctrl.ViewManager.prototype.showNotAvailableForFreeDialog = functi
         tutao.tutanota.gui.alert(tutao.lang("notAvailableInApp_msg"));
     } else {
         var message = tutao.lang("onlyAvailableForPremium_msg") + " " + tutao.lang("premiumOffer_msg") + " " + tutao.lang("moreInfo_msg");
-        tutao.locator.modalDialogViewModel.showDialog(message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], tutao.lang("upgradeReminderTitle_msg"), "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
+        tutao.locator.modalDialogViewModel.showDialog([message], ["upgradeToPremium_action", "upgradeReminderCancel_action"], tutao.lang("upgradeReminderTitle_msg"), "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
             if (selection == 0) {
                 tutao.locator.navigator.settings();
                 tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);

@@ -38,7 +38,7 @@ tutao.entity.sys.Shares.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Shares.MODEL_VERSION = '17';
+tutao.entity.sys.Shares.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -178,7 +178,7 @@ tutao.entity.sys.Shares.prototype.getOutgoing = function() {
  * @return {Promise.<tutao.entity.sys.Shares>} Resolves to the Shares or an exception if the loading failed.
  */
 tutao.entity.sys.Shares.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, id, null, {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -189,7 +189,7 @@ tutao.entity.sys.Shares.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Shares>>} Resolves to an array of Shares or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Shares.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Shares, tutao.entity.sys.Shares.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -200,7 +200,7 @@ tutao.entity.sys.Shares.loadMultiple = function(ids) {
  */
 tutao.entity.sys.Shares.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Shares.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Shares.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

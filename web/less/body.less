@@ -387,9 +387,17 @@ body {
 		  text-align: right;
 		}
 
-		&.mediumSizeColumm {
+		&.mediumSizeColumn {
 		  width: @mediumColumnWidth;
 		  max-width:@mediumColumnWidth;
+
+		  > .dataTableButton {
+			.buttonElement;
+			width: 100%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		  }
+
 		  @media @mobile {
 		  	width: @mediumColumnWidthMobile;
 			max-width:@mediumColumnWidthMobile;

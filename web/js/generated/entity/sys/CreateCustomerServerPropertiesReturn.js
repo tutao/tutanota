@@ -30,7 +30,7 @@ tutao.entity.sys.CreateCustomerServerPropertiesReturn.prototype.updateData = fun
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CreateCustomerServerPropertiesReturn.MODEL_VERSION = '17';
+tutao.entity.sys.CreateCustomerServerPropertiesReturn.MODEL_VERSION = '18';
 
 /**
  * The encrypted flag.

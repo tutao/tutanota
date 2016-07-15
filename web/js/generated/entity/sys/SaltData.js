@@ -30,7 +30,7 @@ tutao.entity.sys.SaltData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.SaltData.MODEL_VERSION = '17';
+tutao.entity.sys.SaltData.MODEL_VERSION = '18';
 
 /**
  * The encrypted flag.

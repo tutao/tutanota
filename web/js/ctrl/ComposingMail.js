@@ -364,6 +364,15 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                     return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
                                 }).caught(tutao.AccessBlockedError, function (exception) {
                                     return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+                                }).caught(tutao.AccessExpiredError, function (exception) {
+                                    if ( tutao.locator.userController.isLoggedInUserAdmin()) {
+                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
+                                            tutao.locator.navigator.settings();
+                                            tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                                        });
+                                    } else {
+                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
+                                    }
                                 });
                             });
                         });

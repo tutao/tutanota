@@ -20,6 +20,8 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.price = ko.observable();
     this.showNextPeriodInfo = ko.observable(false);
     this.invoices = ko.observableArray();
+    this._updatingInvoiceStatus = ko.observable(false);
+
 
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
@@ -166,5 +168,80 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.downloadPdf = function(inv
         tmpFile.setMimeType("application/pdf");
         tmpFile.setSize(String(pdfBytes.byteLength));
         tutao.locator.fileFacade.bytesToFile(pdfBytes, tmpFile).then(tutao.locator.fileFacade.open)
+    });
+};
+
+
+/**
+ * @param {tutao.entity.sys.Invoice} invoice
+ */
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getInvoiceStateText = function(invoice) {
+    if( invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PUBLISHEDFORAUTOMATIC
+        || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PUBLISHEDFORMANUAL
+        || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_CREATED) {
+        return tutao.lang('invoiceStateOpen_label');
+    } else if (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DEBITFAILED
+        || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_FIRSTREMINDER
+        || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_SECONDREMINDER) {
+        if ( this._updatingInvoiceStatus()) {
+            return tutao.lang('pleaseWait_msg');
+        } else {
+            return tutao.lang('invoiceStatePaymentFailed_label');
+        }
+
+    } else if (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PAID) {
+        return tutao.lang('invoiceStatePaid_label');
+    } else if (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DISPUTED) {
+        return tutao.lang('invoiceStateResolving_label');
+    } else if (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_REFUNDED || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DISPUTEACCEPTED) {
+        return tutao.lang('invoiceStateRefunded_label');
+    } else if (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_CANCELLED) {
+        return tutao.lang('invoiceStateCancelled_label');
+    } else {
+        return "";
+    }
+};
+
+
+/**
+ * @param {tutao.entity.sys.Invoice} invoice
+ */
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.isPayButtonEnabled = function(invoice) {
+    return !this._updatingInvoiceStatus()
+        && (invoice.getPaymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_CREDIT_CARD || invoice.getPaymentMethod() == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL)
+        && (invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_FIRSTREMINDER  || invoice.getStatus() == tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_SECONDREMINDER);
+};
+
+
+
+/**
+ * @param {tutao.entity.sys.Invoice} invoice
+ */
+tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.payInvoice = function(invoice) {
+    if ( !this.isPayButtonEnabled(invoice) ) {
+        return;
+    }
+    this._updatingInvoiceStatus(true);
+    var self = this;
+    var confirmMessage = tutao.lang( "invoicePayConfirm_msg", { "{invoiceNumber}" : invoice.getNumber(), "{invoiceDate}" : tutao.tutanota.util.Formatter.formatDate(invoice.getDate())});
+    var priceMessage = tutao.lang('bookingTotalPrice_label') + ": " + tutao.util.BookingUtils.formatPrice(Number(invoice.getGrandTotal()));
+    tutao.locator.modalDialogViewModel.showDialog([confirmMessage, priceMessage], ["invoicePay_action", "cancel_action"]).then(function(buttonIndex){
+        if (buttonIndex == 0) {
+            var service = new tutao.entity.sys.DebitServicePutData();
+            service.setInvoice(invoice.getId());
+            return service.update({},null).then(function(){
+                invoice.setStatus(tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PAID);
+            }).caught(tutao.PreconditionFailedError, function (error) {
+                return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("paymentProviderTransactionFailedError_msg")).then( function() {
+                    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                });
+            }).caught(tutao.BadGatewayError, function (error) {
+                return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("paymentProviderNotAvailableError_msg"));
+            }).caught(tutao.TooManyRequestsError, function (error) {
+                return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("tooManyAttempts_msg"));
+            });
+        }
+    }).lastly(function() {
+        self._updatingInvoiceStatus(false);
     });
 };

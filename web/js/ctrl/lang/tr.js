@@ -383,7 +383,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "promotionCodeSuccess_msg": "Uygulama başarıyla aktive edildi.",
   "pushNewMail_msg": "Yeni e-posta alındı.",
   "pwChangeButtonChangePw_action": "Şifreyi değiştir",
-  "pwChangeInvalidTooManyVerifyAttempts_msg": "İzin verilen girişim sayısı aşıldı. Lütfen daha sonra tekrar deneyin.",
   "pwChangeValid_msg": "Şifre değiştirildi.",
   "pwStrength_title": "Burası girdiğiniz şifrenin güvenlik seviyesini gösteriyor.",
   "readOrTransmissionReceiptWithInternals_msg": "E-postanızda okundu bilgisi veya şifre paylaşımını seçtiniz. Maalesef bu özellikler sadece dış alıcılar için geçerlidir. E-postayı buna rağmen göndermek istiyor musunuz?",
@@ -464,6 +463,7 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "thanks_msg": "İşbirliğiniz için teşekkür ederiz.\nTutanota ekibiniz",
   "title_placeholder": "Başlık",
   "tooBigAttachment_msg": "Bu dosyaların toplam boyutu 25 MB'dan büyük olduğu için eklenemedi:",
+  "tooManyAttempts_msg": "İzin verilen girişim sayısı aşıldı. Lütfen daha sonra tekrar deneyin.",
   "tooManyMails_msg": "Görünen o ki izin verilen e-posta sayısını aştınız. Lütfen daha sonra tekrar deneyiniz veya Premium'a terfi edin.",
   "to_label": "Kime",
   "trashedMails_alt": "Silinen e-postalar",
@@ -500,5 +500,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "welcomeMailSubject_msg": "Kendinizi evinizde hissedin: Bilginiz güvende.",
   "work_label": "İş",
   "xing_label": "XING",
+  "yearly_label": "Yıllık",
   "yesterday_label": "dün"
 };

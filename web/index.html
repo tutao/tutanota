@@ -304,6 +304,7 @@
 <script src="/js/generated/entity/sys/CustomerReturn.js"></script>
 <script src="/js/generated/entity/sys/CustomerServerProperties.js"></script>
 <script src="/js/generated/entity/sys/CustomerServerPropertiesEditable.js"></script>
+<script src="/js/generated/entity/sys/DebitServicePutData.js"></script>
 <script src="/js/generated/entity/sys/DeleteCustomerData.js"></script>
 <script src="/js/generated/entity/sys/DomainInfo.js"></script>
 <script src="/js/generated/entity/sys/DomainInfoEditable.js"></script>
@@ -890,7 +891,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getMailAddresses() -->
 												<div class="dataTable">
-													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getMailAddressTypeName($data)"></div>
+													<div class="mediumSizeColumn light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getMailAddressTypeName($data)"></div>
 													<div class="" data-bind="text: getAddress()"></div>
 													<div class="smallButtonColumn fontImage mail-new" data-bind="fastClick: function() { $parent.sendMail($data) }, attr:{ title: tutao.lang('sendMail_alt') }"></div>
 												</div>
@@ -901,7 +902,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getPhoneNumbers() -->
 												<div class="dataTable">
-													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
+													<div class="mediumSizeColumn light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getPhoneNumberTypeName($data)"></div>
 													<div class="" data-bind="text: getNumber()"></div>
 													<div class="smallButtonColumn">
 														<!-- ko if: (getType() != tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_FAX) -->
@@ -918,7 +919,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getAddresses() -->
 												<div class="dataTable">
-													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
+													<div class="mediumSizeColumn light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
 													<div class="" data-bind="text: getAddress()"></div>
 													<div class="smallButtonColumn">
 														<a target="_blank" data-bind="attr: { href: $parent.getMapUrl($data) }">
@@ -933,7 +934,7 @@
 											<hr />
 											<!-- ko foreach: contactWrapper().getContact().getSocialIds() -->
 												<div class="dataTable">
-													<div class="mediumSizeColumm light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
+													<div class="mediumSizeColumn light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getSocialIdTypeName($data)"></div>
 													<div class="" data-bind="text: getSocialId()"></div>
 													<div class="smallButtonColumn">
 														<!-- ko if: $parent.getSocialIdUrl($data) != null -->
@@ -956,12 +957,12 @@
 											<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 											<hr />
 											<div class="dataTable" data-bind="visible: contactWrapper().getContact().getPresharedPassword() != null">
-												<div class="mediumSizeColumm light" data-bind="lang: 'presharedPasswordHeading_label'"></div>
+												<div class="mediumSizeColumn light" data-bind="lang: 'presharedPasswordHeading_label'"></div>
 												<div class="" data-bind="text: getPresharedPasswordText()"></div>
 												<div class="smallButtonColumn fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showPresharedPassword(true); }, mouseup: function() { showPresharedPassword(false); }}"></div>
 											</div>
 											<div class="dataTable" data-bind="visible: contactWrapper().getContact().getAutoTransmitPassword() != ''">
-												<div class="mediumSizeColumm light" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
+												<div class="mediumSizeColumn light" data-bind="lang: 'autoTransmitPasswordHeading_label'"></div>
 												<div class="" data-bind="text: getAutoTransmitPasswordText()"></div>
 												<div class="smallButtonColumn fontImage right" data-bind="attr: {title: tutao.lang('showPassword_alt')}, event: { mousedown: function() { showAutoTransmitPassword(true); }, mouseup: function() { showAutoTransmitPassword(false); }}"></div>
 											</div>
@@ -983,7 +984,7 @@
 										<hr />
 										<!-- ko foreach: editableContact.mailAddresses -->
 											<div class="dataTable">
-												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
 												<div class="">
 													<input type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: address"/>
 												</div>
@@ -991,7 +992,7 @@
 											</div>
 										<!-- /ko -->
 										<div class="dataTable">
-											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, editableContact.newContactMailAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, editableContact.newContactMailAddress().customTypeName) }'></div>
+											<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_NAMES, editableContact.newContactMailAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_MAIL_ADDRESS_TYPE_CUSTOM, editableContact.newContactMailAddress().customTypeName) }'></div>
 											<div class="" >
 												<input type="email" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactMailAddress().address, event: { blur: editableContact.newContactMailAddressUpdated }"/>
 											</div>
@@ -1002,7 +1003,7 @@
 										<hr />
 										<!-- ko foreach: editableContact.phoneNumbers -->
 											<div class="dataTable">
-												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, customTypeName) }'></div>
 												<div class="" >
 													<input type="tel" data-bind="value: number"/>
 												</div>
@@ -1010,7 +1011,7 @@
 											</div>
 										<!-- /ko -->
 										<div class="dataTable">
-											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, editableContact.newContactPhoneNumber().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, editableContact.newContactPhoneNumber().customTypeName) }'></div>
+											<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_NAMES, editableContact.newContactPhoneNumber().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_PHONE_NUMBER_TYPE_CUSTOM, editableContact.newContactPhoneNumber().customTypeName) }'></div>
 											<div class="" >
 												<input type="tel" data-bind="value: editableContact.newContactPhoneNumber().number, event: { blur: editableContact.newContactPhoneNumberUpdated }"/>
 											</div>
@@ -1021,7 +1022,7 @@
 										<hr />
 										<!-- ko foreach: editableContact.addresses -->
 											<div class="dataTable">
-												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, customTypeName) }'></div>
 												<div class="" >
 													<textarea rows="2" data-bind="value: address" oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 												</div>
@@ -1029,7 +1030,7 @@
 											</div>
 										<!-- /ko -->
 										<div class="dataTable">
-											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, editableContact.newContactAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, editableContact.newContactAddress().customTypeName) }'></div>
+											<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_NAMES, editableContact.newContactAddress().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_ADDRESS_TYPE_CUSTOM, editableContact.newContactAddress().customTypeName) }'></div>
 											<div class="" >
 												<textarea rows="2" data-bind="value: editableContact.newContactAddress().address, event: { blur: editableContact.newContactAddressUpdated }"  oninput='this.rows = Math.max(this.value.split("\n").length, 2);'></textarea>
 											</div>
@@ -1040,7 +1041,7 @@
 										<hr />
 										<!-- ko foreach: editableContact.socialIds -->
 											<div class="dataTable">
-												<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, customTypeName) }'></div>
+												<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, customTypeName) }'></div>
 												<div class="" >
 													<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: socialId"/>
 												</div>
@@ -1048,7 +1049,7 @@
 											</div>
 										<!-- /ko -->
 										<div class="dataTable">
-											<div class="mediumSizeColumm" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, editableContact.newContactSocialId().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, editableContact.newContactSocialId().customTypeName) }'></div>
+											<div class="mediumSizeColumn" data-bind='template: { name: "dropdown-template",  data: new tutao.tutanota.ctrl.DropDownViewModel(tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_NAMES, editableContact.newContactSocialId().type, tutao.entity.tutanota.TutanotaConstants.CONTACT_SOCIAL_ID_TYPE_CUSTOM, editableContact.newContactSocialId().customTypeName) }'></div>
 											<div class="">
 												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.newContactSocialId().socialId, event: { blur: editableContact.newContactSocialIdUpdated }"/>
 											</div>
@@ -1066,7 +1067,7 @@
 										<h2 data-bind="lang: 'passwordsHeading_label'"></h2>
 										<hr />
 										<div class="dataTable">
-											<div class="mediumSizeColumm light" data-bind='lang: "presharedPasswordHeading_label"'></div>
+											<div class="mediumSizeColumn light" data-bind='lang: "presharedPasswordHeading_label"'></div>
 											<div class="" >
 												<input type="text" autocorrect="off" autocapitalize="none" autocomplete="off" spellcheck="false" data-bind="value: editableContact.presharedPassword"/>
 											</div>
@@ -1589,28 +1590,28 @@
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS -->
 							<div id="inboxRulesSettings" data-bind="with: tutao.locator.inboxRulesViewModel" >
 								<div class="dataTable">
-									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleField_label'"></div>
+									<div class="mediumSizeColumn" data-bind="lang: 'inboxRuleField_label'"></div>
 									<div class="" data-bind="lang: 'inboxRuleValue_label'">></div>
-									<div class="mediumSizeColumm" data-bind="lang: 'inboxRuleTargetFolder_label'"></div>
+									<div class="mediumSizeColumn" data-bind="lang: 'inboxRuleTargetFolder_label'"></div>
 									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: userProperties.inboxRules() -->
 								<div class="dataTable">
-									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
+									<div class="mediumSizeColumn light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
 									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
-									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
+									<div class="mediumSizeColumn light" data-bind="text: $parent.getTextForTarget($data.targetFolder()),  attr: {title: $parent.getTextForTarget($data.targetFolder())}, css:{ invalid: $parent.getTextForTarget($data.targetFolder()).length == 0 }"></div>
 									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removeInboxRule, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
 								<div class="dataTable">
-									<div class="mediumSizeColumm">
+									<div class="mediumSizeColumn">
 										<select data-bind="enable: state.entering(), options: availableInboxRules, value: type, optionsText: getTextForType, attr: {title: getTextForType(type())}"></select>
 									</div>
 									<div class="" >
 										<input type="text" data-bind="enable: state.entering(), value: value, valueUpdate: 'input', attr: {placeholder: getPlaceholder() }"/>
 									</div>
-									<div class="mediumSizeColumm">
+									<div class="mediumSizeColumn">
 										<select data-bind="enable: state.entering(), options: availableTargetFolders, value: selectedFolder, optionsText: getTargetName"></select>
 									</div>
 									<div class="smallButtonColumn fontImage confirm" data-bind="fastClick: addInboxRule, attr: {title: tutao.lang('add_action')}, css: {disabled: !state.submitEnabled()}"></div>
@@ -1622,14 +1623,14 @@
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTIFICATION_SETTINGS -->
 							<div data-bind="with: new tutao.tutanota.ctrl.NotificationSettingsViewModel()" >
 								<div class="dataTable">
-									<div class="mediumSizeColumm" data-bind="lang: 'pushIdentifierDeviceType_label'"></div>
+									<div class="mediumSizeColumn" data-bind="lang: 'pushIdentifierDeviceType_label'"></div>
 									<div class="" data-bind="lang: 'pushIdentifierNumber_label'"></div>
 									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: pushIdentifierListElements -->
 								<div class="dataTable">
-									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data)"></div>
+									<div class="mediumSizeColumn light" data-bind="text: $parent.getTextForType($data)"></div>
 									<div class="" data-bind="text: $parent.getIdentifierForType($data), attr: {title: $data.getIdentifier()}"></div>
 									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removePushIdentifier, attr: {title: tutao.lang('delete_action')}, css: {disabled: !$parent.state.submitEnabled()}"></div>
 								</div>
@@ -1702,36 +1703,41 @@
                                     </div>
 									<div class="dataTable">
 										<div class="" data-bind="lang: 'bookingItem_label'"></div>
-										<div class="mediumSizeColumm" data-bind="lang: 'bookingAmount_label'"></div>
-										<div class="mediumSizeColumm price" data-bind="lang: 'bookingPrice_label'"></div>
+										<div class="mediumSizeColumn" data-bind="lang: 'bookingAmount_label'"></div>
+										<div class="mediumSizeColumn price" data-bind="lang: 'bookingPrice_label'"></div>
 									</div>
 									<hr/>
 									<!-- ko foreach: items -->
 									<div class="dataTable">
 										<div class="light" data-bind="lang: name"></div>
-										<div class="mediumSizeColumm light" data-bind="text: $parent.getAmountText($data)"></div>
-										<div class="mediumSizeColumm light price" data-bind="text: $parent.getPriceText($data)"></div>
+										<div class="mediumSizeColumn light" data-bind="text: $parent.getAmountText($data)"></div>
+										<div class="mediumSizeColumn light price" data-bind="text: $parent.getPriceText($data)"></div>
 									</div>
 									<!-- /ko -->
 									<hr/>
 									<div class="dataTable" data-bind="">
 										<div class=""></div>
-										<div class="mediumSizeColumm" data-bind="lang: 'bookingTotalPrice_label'"></div>
-										<div class="mediumSizeColumm price" data-bind="text: getTotalPriceText()"></div>
+										<div class="mediumSizeColumn" data-bind="lang: 'bookingTotalPrice_label'"></div>
+										<div class="mediumSizeColumn price" data-bind="text: getTotalPriceText()"></div>
 									</div>
                                     <div class="light defaultMargin" data-bind="visible: showNextPeriodInfo(), text: '* ' + tutao.lang('nextSubscriptionPeriodInBrackets_msg')"></div>
                                 </div>
                                 <h2 class="marginTop" data-bind="lang: 'invoices_label'"></h2>
                                 <div class="dataTable">
 									<div class="" data-bind="lang: 'date_label'"></div>
-									<div class="mediumSizeColumm price" data-bind="lang: 'invoiceTotal_label'"></div>
-									<div class="smallButtonColumn price"></div>
+									<div class="mediumSizeColumn" data-bind="lang: 'invoiceState_label'"></div>
+									<div class="smallButtonColumn"></div> <!-- placeholder for download invoice column. -->
+									<div class="mediumSizeColumn price" data-bind="lang: 'invoiceTotal_label'"></div>
 								</div>
 								<hr/>
 								<!-- ko foreach: invoices -->
 								<div class="dataTable">
 									<div class="light" data-bind="text: tutao.tutanota.util.Formatter.formatDate(getDate())"></div>
-									<div class="mediumSizeColumm light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
+									<div class="mediumSizeColumn light" data-bind="text: $parent.getInvoiceStateText($data), visible : !$parent.isPayButtonEnabled($data)"></div>
+									<div class="mediumSizeColumn light" data-bind="visible:$parent.isPayButtonEnabled($data)">
+										<div class="dataTableButton single" data-bind="lang: 'invoicePay_action', fastClick: $parent.payInvoice"></div>
+									</div>
+									<div class="mediumSizeColumn light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
 									<div class="smallButtonColumn fontImage download" data-bind="fastClick: function() { $parent.downloadPdf($data); }"></div>
 								</div>
 								<!-- /ko -->
@@ -1945,20 +1951,20 @@
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_SPAM -->
 							<div id="adminSpam" data-bind="with: new tutao.tutanota.ctrl.AdminSpamViewModel()" >
 								<div class="dataTable">
-									<div class="mediumSizeColumm" data-bind="lang: 'emailSenderRule_label'"></div>
+									<div class="mediumSizeColumn" data-bind="lang: 'emailSenderRule_label'"></div>
 									<div class="" data-bind="lang: 'emailSender_label'"></div>
 									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: getEmailSenderListEntries() -->
 								<div class="dataTable">
-									<div class="mediumSizeColumm light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
+									<div class="mediumSizeColumn light" data-bind="text: $parent.getTextForType($data.type()),  attr: {title: $parent.getTextForType($data.type())}"></div>
 									<div class="" data-bind="text: $data.value(), attr: {title: $data.value()}"></div>
 									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: $parent.removeEmailSenderListEntry, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
 								<div class="dataTable">
-									<div class="mediumSizeColumm">
+									<div class="mediumSizeColumn">
 										<select data-bind="enable: state.entering(), options: availableListTypes, value: selectedListType, optionsText: 'text', attr: {title: selectedListType().text}"></select>
 									</div>
 									<div class="" >
@@ -2057,14 +2063,14 @@
 						<div id="adminAddAlias" data-bind="with: new tutao.tutanota.ctrl.AdminAliasViewModel($data)">
 							<div class="dataTable">
 								<div class="" data-bind="lang: 'mailAddressAliases_label'"></div>
-								<div class="mediumSizeColumm"></div>
+								<div class="mediumSizeColumn"></div>
 								<div class="smallButtonColumn" ></div>
 							</div>
 							<hr />
 							<!-- ko foreach: aliasList -->
 							<div class="dataTable">
 								<div class="" data-bind="text: emailAddress"></div>
-								<div class="mediumSizeColumm" data-bind="lang: $parent.getAliasStatusText($data)"></div>
+								<div class="mediumSizeColumn" data-bind="lang: $parent.getAliasStatusText($data)"></div>
 								<div class="smallButtonColumn fontImage" data-bind="fastClick: function(){ $parent.deleteAlias($data); }, css :{ confirm : !$data.enabled(), cancel : $data.enabled() }"></div>
 							</div>
 							<!--/ko -->
@@ -2073,7 +2079,7 @@
 									<input type="text" data-bind="enable: inputEnabled(), css: mailAddressStatus().type, value: mailAddressPrefix, valueUpdate: 'input', attr:{placeholder: tutao.lang()} " />
 								</div>
 								<div class="smallButtonColumn">@</div>
-								<div class="mediumSizeColumm">
+								<div class="mediumSizeColumn">
 									<select data-bind="options: availableDomains, value: domain, enable: inputEnabled()"></select>
 								</div>
 								<div class="smallButtonColumn fontImage confirm" data-bind="css: { disabled: !confirmPossible() }, fastClick: confirm"></div>
@@ -2261,13 +2267,16 @@
 			<!-- ko if: image() != null -->
 			<img data-bind="attr:{src: image()}"/>
 			<!-- /ko -->
-            <div class="modalDialogMessage" data-bind="text: message"></div>
+			<!-- ko foreach: messages -->
+            <div class="modalDialogMessage" data-bind="text: $data"></div>
+			<!-- /ko -->
 			<!-- ko if: externalLink() != null -->
 			<div class="modalDialogMessage"><a class="modalDialogMessage" data-bind="text: externalLink(), attr:{href: externalLink()}"></a></div>
 			<!-- /ko -->
-            <!-- ko foreach: buttons -->
-            <button class="single dialogButton" data-bind="lang: text, fastClick: click"></button>
-            <!-- /ko -->
+            <div data-bind="foreach: buttons">
+            	<button class="single dialogButton" data-bind="lang: text, fastClick: click"></button>
+			</div>
+
         </div>
     </div>
 
