@@ -159,7 +159,7 @@ tutao.tutanota.ctrl.MailListViewModel.getListSenderOrRecipientString = function(
 };
 
 tutao.tutanota.ctrl.MailListViewModel.prototype._isDeleteAllButtonVisible = function() {
-    return !this.showSpinner() && (tutao.locator.mailFolderListViewModel.selectedFolder().isTrashFolder() || tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder()) && this.getMails().length > 0;
+    return !this.showSpinner() && (tutao.locator.mailFolderListViewModel.selectedFolder().isTrashFolder() || tutao.locator.mailFolderListViewModel.selectedFolder().isSpamFolder() || tutao.locator.mailFolderListViewModel.selectedFolder().isSentFolder()) && this.getMails().length > 0;
 };
 
 tutao.tutanota.ctrl.MailListViewModel.prototype.getMails = function() {
@@ -228,7 +228,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.selectNextMail = function() {
 tutao.tutanota.ctrl.MailListViewModel.prototype._deleteFinally = function() {
     var folder = tutao.locator.mailFolderListViewModel.selectedFolder();
 
-    if (folder.loading() || (!folder.isTrashFolder() && !folder.isSpamFolder())) {
+    if (folder.loading() || (!folder.isTrashFolder() && !folder.isSpamFolder() && !folder.isSentFolder())) {
         return Promise.resolve();
     }
     var self = this;
