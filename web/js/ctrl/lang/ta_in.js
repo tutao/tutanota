@@ -122,7 +122,7 @@ tutao.tutanota.ctrl.lang.ta_in.keys = {
   "deleteContact_msg": "நீங்கள் உண்மையில் இந்த தொடர்பை நீக்க விரும்புகிறீர்களா?",
   "deleted_label": "நீக்கப்பட்டது",
   "deleteMail_msg": "இந்த புதிய மின்னஞ்சலை அனுப்பாமலே அழித்துவிட வேண்டுமா?",
-  "deleteTrash_action": "அனைத்தையும் நீக்கு",
+  "deleteAll_action": "அனைத்தையும் நீக்கு",
   "delete_action": "அழித்துவிடு",
   "desiredAddress_label": "விரும்பும் மின்னஞ்சல் முகவரி",
   "dev_label": "டெவலப்பர்",

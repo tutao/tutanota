@@ -55,7 +55,7 @@ tutao.tutanota.ctrl.lang.he_il.keys = {
   "deleteAccountWait_msg": "החשבון בתהליך מחיקה...",
   "deleted_label": "נמחק",
   "deleteMail_msg": "מחק מייל בלי לשלוח?",
-  "deleteTrash_action": "מחק הכל",
+  "deleteAll_action": "מחק הכל",
   "delete_action": "מחק",
   "dev_label": "מפתח",
   "dismiss_action": "בטל",

@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.uk_ua.keys = {
   "deleteContact_msg": "Ви дійсно бажаєте видалити цей контакт?",
   "deleted_label": "Видалено",
   "deleteMail_msg": "Видалити нове повідомлення без надсилання?",
-  "deleteTrash_action": "Видалити все",
+  "deleteAll_action": "Видалити все",
   "delete_action": "Видалити",
   "desiredAddress_label": "Бажана електронна адреса",
   "dev_label": "Розробник",

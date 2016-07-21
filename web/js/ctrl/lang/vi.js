@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.vi.keys = {
   "deleteContact_msg": "Có chắc là bạn muốn xoá liên hệ này?",
   "deleted_label": "Đã xoá",
   "deleteMail_msg": "Xoá email mới chứ không gửi?",
-  "deleteTrash_action": "Xoá hết",
+  "deleteAll_action": "Xoá hết",
   "delete_action": "Xoá",
   "desiredAddress_label": "Địa chỉ email mong muốn",
   "dev_label": "Nhà phát triển",

@@ -96,7 +96,7 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "deleteContact_msg": "Tahdotko varmasti poistaa tämän yhteystiedon?",
   "deleted_label": "Poistettu",
   "deleteMail_msg": "Poista viesti lähettämättä sitä?",
-  "deleteTrash_action": "Poista kaikki",
+  "deleteAll_action": "Poista kaikki",
   "delete_action": "Poista",
   "desiredAddress_label": "Toivottu sähköpostiosoite",
   "dev_label": "Kehittäjä",

@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.es.keys = {
   "deleteContact_msg": "¿Seguro que quieres borrar este contacto?",
   "deleted_label": "Borrado",
   "deleteMail_msg": "¿Desea eliminar el mensaje sin enviar?",
-  "deleteTrash_action": "Borrar todo",
+  "deleteAll_action": "Borrar todo",
   "delete_action": "Borrar",
   "desiredAddress_label": "Dirección de correo deseada",
   "dev_label": "Desarrollador",

@@ -155,7 +155,7 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "deleteContact_msg": "Da li ste sigurni da želite da izbrišete ovaj kontakt?",
   "deleted_label": "Izbrisano",
   "deleteMail_msg": "Brisanje nove e-pošte bez slanja?",
-  "deleteTrash_action": "Обриши све",
+  "deleteAll_action": "Обриши све",
   "delete_action": "Izbrisati",
   "desiredAddress_label": "Željena adresa e-pošte",
   "dev_label": "Developer",

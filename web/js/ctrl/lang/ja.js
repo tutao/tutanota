@@ -72,7 +72,7 @@ tutao.tutanota.ctrl.lang.ja.keys = {
   "deleteAccountWait_msg": "アカウントを削除しています...",
   "deleteContact_msg": "この連絡先を本当に削除しますか？",
   "deleteMail_msg": "新規メールを送信せずに削除しますか？",
-  "deleteTrash_action": "すべて削除",
+  "deleteAll_action": "すべて削除",
   "delete_action": "削除",
   "dev_label": "開発者",
   "discardContactChangesFor_msg": "{1}の連絡先の変更を破棄しますか？",

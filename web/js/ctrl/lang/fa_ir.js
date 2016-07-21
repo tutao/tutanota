@@ -123,7 +123,7 @@ tutao.tutanota.ctrl.lang.fa_ir.keys = {
   "deleteContact_msg": "آیا می خواهید تماسهایتان را پاک کنید؟",
   "deleted_label": "حذف",
   "deleteMail_msg": "ایمیل جدید بدون ارسال حذف شود؟",
-  "deleteTrash_action": "حذف همه",
+  "deleteAll_action": "حذف همه",
   "delete_action": "حذف کردن",
   "desiredAddress_label": "آدرس ایمیل مورد نظر",
   "dev_label": "توسعه دهنده",

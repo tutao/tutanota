@@ -63,7 +63,7 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "deleteContact_msg": "Ali ste prepričani, da želite izbrisati ta stik?",
   "deleted_label": "Izbrisano",
   "deleteMail_msg": "Izbriši novo sporočilo brez pošiljanja?",
-  "deleteTrash_action": "Izbriši vse",
+  "deleteAll_action": "Izbriši vse",
   "delete_action": "Izbriši",
   "desiredAddress_label": "Želeni e-poštni naslov",
   "dev_label": "Razvijalec",

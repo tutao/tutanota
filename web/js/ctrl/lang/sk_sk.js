@@ -162,7 +162,7 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "deleteContact_msg": "Naozaj chcete vymazať tento kontakt?",
   "deleted_label": "Zmazané",
   "deleteMail_msg": "Zmazať nový email bez odoslania?",
-  "deleteTrash_action": "Zmazať všetko",
+  "deleteAll_action": "Zmazať všetko",
   "delete_action": "Zmazať",
   "desiredAddress_label": "Žiadaná emailová adresa",
   "dev_label": "Vývojár",

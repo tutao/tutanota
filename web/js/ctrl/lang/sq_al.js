@@ -97,7 +97,7 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "deleteContact_msg": "A don përnjëmend me fshi këtë kontakt?",
   "deleted_label": "Fshirë",
   "deleteMail_msg": "A don me e fshi mesazhin e ri pa e dërgu?",
-  "deleteTrash_action": "Fshiji të gjitha",
+  "deleteAll_action": "Fshiji të gjitha",
   "delete_action": "Fshije",
   "desiredAddress_label": "Adresa e dëshiruar e postelit",
   "dev_label": "Zhvillues",

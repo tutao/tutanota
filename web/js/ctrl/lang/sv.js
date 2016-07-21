@@ -157,7 +157,7 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "deleteContact_msg": "Är du säker på att du vill radera denna kontakt?",
   "deleted_label": "Radera",
   "deleteMail_msg": "Radera meddelandet utan att skicka?",
-  "deleteTrash_action": "Radera allt",
+  "deleteAll_action": "Radera allt",
   "delete_action": "Radera",
   "desiredAddress_label": "Önskad e-postadress",
   "dev_label": "Utvecklare",

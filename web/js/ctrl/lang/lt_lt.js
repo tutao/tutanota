@@ -171,7 +171,7 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "deleteContact_msg": "Ar tikrai norite pašalinti šį kontaktą?",
   "deleted_label": "Pašalinta",
   "deleteMail_msg": "Pašalinti naują neišsiųstą laišką?",
-  "deleteTrash_action": "Pašalinti visus",
+  "deleteAll_action": "Pašalinti visus",
   "delete_action": "Pašalinti",
   "desiredAddress_label": "Pageidaujamas el. pašto adresas",
   "dev_label": "Programuotojas",

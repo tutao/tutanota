@@ -128,7 +128,7 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "deleteContact_msg": "Kişiyi silmek istediğinize emin misiniz?",
   "deleted_label": "Silindi",
   "deleteMail_msg": "Yeni e-posta gönderilmeden silinsin mi?\n",
-  "deleteTrash_action": "Hepsini sil",
+  "deleteAll_action": "Hepsini sil",
   "delete_action": "Sil",
   "desiredAddress_label": "İstediğiniz e-posta adresi",
   "dev_label": "Geliştirici",

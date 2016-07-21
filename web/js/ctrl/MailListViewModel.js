@@ -54,7 +54,7 @@ tutao.tutanota.ctrl.MailListViewModel.prototype.init = function() {
         new tutao.tutanota.ctrl.Button("delete_action", 8, this.deleteSelectedMails, function() {
             return (tutao.locator.mailFolderListViewModel.selectedFolder().getSelectedMails().length > 0) && !self.showSpinner() && !tutao.locator.mailView.isConversationColumnVisible() && !tutao.tutanota.util.ClientDetector.isMobileDevice();
         }, false, "trashMultipleAction", "trash"),
-        new tutao.tutanota.ctrl.Button("deleteTrash_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteTrashAction", "trash"),
+        new tutao.tutanota.ctrl.Button("deleteAll_action", 10, this._deleteFinally, this._isDeleteAllButtonVisible, false, "deleteAllAction", "trash"),
         new tutao.tutanota.ctrl.Button("newMail_action", 10, tutao.locator.navigator.newMail, function() {
             return tutao.locator.userController.isInternalUserLoggedIn() && !tutao.locator.mailView.isConversationColumnVisible();
         }, false, "newMailAction", "mail-new")

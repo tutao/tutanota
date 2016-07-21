@@ -155,7 +155,7 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "deleteContact_msg": "هل أنت متأكد أنك تريد حذف هذه الجهة؟",
   "deleted_label": "تم الحذف",
   "deleteMail_msg": "حذف البريد الإلكتروني الجديد دون إرسال؟",
-  "deleteTrash_action": "حذف الكل",
+  "deleteAll_action": "حذف الكل",
   "delete_action": "حذف",
   "desiredAddress_label": "عنوان البريد الإلكتروني المطلوب",
   "dev_label": "المطور",

@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.ca_es.keys = {
   "deleteContact_msg": "Esteu segur d'eliminar aquest contacte?",
   "deleted_label": "Eliminats",
   "deleteMail_msg": "Eliminar nou correu electrònic sense enviar?",
-  "deleteTrash_action": "Elimina-ho tot",
+  "deleteAll_action": "Elimina-ho tot",
   "delete_action": "Elimina",
   "desiredAddress_label": "Adreça de correu-e desitjada",
   "dev_label": "Desenvolupador",

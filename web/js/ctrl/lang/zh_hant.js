@@ -98,7 +98,7 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "deleteContact_msg": "確定要刪除此聯絡人？",
   "deleted_label": "已刪除",
   "deleteMail_msg": "尚未寄出新郵件，確定刪除？",
-  "deleteTrash_action": "全部刪除",
+  "deleteAll_action": "全部刪除",
   "delete_action": "刪除",
   "desiredAddress_label": "電子郵件地址",
   "dev_label": "開發人員",

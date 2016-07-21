@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "deleteContact_msg": "Pretende mesmo apagar este contacto?",
   "deleted_label": "Apagado",
   "deleteMail_msg": "Apagar o novo email sem enviar?",
-  "deleteTrash_action": "Apagar tudo",
+  "deleteAll_action": "Apagar tudo",
   "delete_action": "Apagar",
   "desiredAddress_label": "Endereço de email desejado",
   "dev_label": "Desenvolvedor",
