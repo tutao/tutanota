@@ -1003,7 +1003,7 @@ tutao.tutanota.gui.measureActionBarEntry = function(button) {
         return 45;
     } else {
         var measureButton = $("button#measureButton");
-        measureButton.text(tutao.lang(button.getLabelTextId()));
+        measureButton.textContent = tutao.lang(button.getLabelTextId());
         return measureButton.outerWidth(true);
     }
 };
