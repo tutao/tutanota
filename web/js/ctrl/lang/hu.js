@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "deleteContact_msg": "Biztosan törölni akarja a névjegyet?",
   "deleted_label": "Törölve",
   "deleteMail_msg": "Új levél törlése küldés nélkül?",
-  "deleteTrash_action": "Az összes törlése",
+  "deleteAll_action": "Az összes törlése",
   "delete_action": "Törlés",
   "desiredAddress_label": "Igényelt e-mail cím",
   "dev_label": "Fejlesztő",

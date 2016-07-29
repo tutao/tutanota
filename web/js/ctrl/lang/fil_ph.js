@@ -97,7 +97,7 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "deleteContact_msg": "Sigurado ka bang gusto mong burahin ang kontak na ito?",
   "deleted_label": "Nabura",
   "deleteMail_msg": "Burahin ang bagong email ng hindi ipinapadala?",
-  "deleteTrash_action": "Burahin lahat",
+  "deleteAll_action": "Burahin lahat",
   "delete_action": "Burahin",
   "desiredAddress_label": "Nais na email address",
   "dev_label": "Developer",

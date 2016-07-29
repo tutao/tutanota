@@ -146,7 +146,7 @@ tutao.tutanota.ctrl.lang.ru.keys = {
   "deleteContact_msg": "Вы уверены, что хотите удалить этот контакт?",
   "deleted_label": "Удалено",
   "deleteMail_msg": "Удалить новое сообщение электронной почты без его отправки?",
-  "deleteTrash_action": "Удалить всё",
+  "deleteAll_action": "Удалить всё",
   "delete_action": "Удалить",
   "desiredAddress_label": "Требуемый адрес электронной почты",
   "dev_label": "Разработчик",

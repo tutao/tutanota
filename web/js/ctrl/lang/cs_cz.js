@@ -104,7 +104,7 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "deleteContact_msg": "Opravdu si přejete odstranit tento kontakt?",
   "deleted_label": "Odstraněno",
   "deleteMail_msg": "Smazat novou zprávu bez odeslání?",
-  "deleteTrash_action": "Smazat vše",
+  "deleteAll_action": "Smazat vše",
   "delete_action": "Odstranit",
   "desiredAddress_label": "Požadovaná emailová adresa",
   "dev_label": "Vývojář",

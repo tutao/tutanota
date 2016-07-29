@@ -125,7 +125,7 @@ tutao.tutanota.ctrl.lang.ro.keys = {
   "deleteContact_msg": "Sunteti sigur ca vreti sa stergeti acest contact?",
   "deleted_label": "Sters",
   "deleteMail_msg": "Ștergeți noul email fără a-l trimite?",
-  "deleteTrash_action": "Ștergeți toate",
+  "deleteAll_action": "Ștergeți toate",
   "delete_action": "Șterge",
   "desiredAddress_label": "Adresa de e-mail dorita",
   "dev_label": "Dezvoltator",

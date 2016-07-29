@@ -165,7 +165,7 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "deleteContact_msg": "Er du sikker på du vil slette denne kontakt?",
   "deleted_label": "Slettet",
   "deleteMail_msg": "Slet ny e-mail uden at sende?",
-  "deleteTrash_action": "Slet alle",
+  "deleteAll_action": "Slet alle",
   "delete_action": "Slet",
   "desiredAddress_label": "Ønskede e-mail adresse",
   "dev_label": "Udvikler",

@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "deleteContact_msg": "确定要删除该联系人?",
   "deleted_label": "删除",
   "deleteMail_msg": "确定删除未发送的新邮件？",
-  "deleteTrash_action": "全部删除",
+  "deleteAll_action": "全部删除",
   "delete_action": "删除",
   "desiredAddress_label": "期望的邮件地址",
   "dev_label": "开发者",

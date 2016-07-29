@@ -173,7 +173,7 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "deleteContact_msg": "Weet u zeker dat u deze contactpersoon wilt verwijderen?",
   "deleted_label": "Verwijderd",
   "deleteMail_msg": "Nieuwe e-mail verwijderen zonder te verzenden?",
-  "deleteTrash_action": "Verwijder alles",
+  "deleteAll_action": "Verwijder alles",
   "delete_action": "Verwijder",
   "desiredAddress_label": "Gewenste e-mailadres",
   "dev_label": "Ontwikkelaar",

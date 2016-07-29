@@ -97,7 +97,7 @@ tutao.tutanota.ctrl.lang.mk.keys = {
   "deleteContact_msg": "Дали сте сигурни дека сакате да го избришете овој контакт ?",
   "deleted_label": "Избришано",
   "deleteMail_msg": "Избришете ја новата е-маил порака без праќање ?",
-  "deleteTrash_action": "Избриши ги сите",
+  "deleteAll_action": "Избриши ги сите",
   "delete_action": "Избриши",
   "desiredAddress_label": "Посакувана е-маил адреса",
   "dev_label": "Девелопер",

@@ -97,7 +97,7 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "deleteContact_msg": "Kas tahate kindlasti kustutada selle kontakti?",
   "deleted_label": "Kustutatud",
   "deleteMail_msg": "Kustuta uus e-kiri ilma saatmata?",
-  "deleteTrash_action": "Kustuta kõik",
+  "deleteAll_action": "Kustuta kõik",
   "delete_action": "Kustuta",
   "desiredAddress_label": "Soovitud e-posti aadress",
   "dev_label": "Arendaja",

@@ -83,7 +83,7 @@ tutao.tutanota.ctrl.lang.el.keys = {
   "deleteContact_msg": "Επιβεβαιώνετε τη διαγραφή αυτής της επαφής;",
   "deleted_label": "Διαγράφηκε",
   "deleteMail_msg": "Να διαγραφεί το μήνυμα χωρίς να αποσταλεί;",
-  "deleteTrash_action": "Διαγραφή όλων",
+  "deleteAll_action": "Διαγραφή όλων",
   "delete_action": "Διαγραφή",
   "desiredAddress_label": "Επιθυμητή διεύθυνση email",
   "dev_label": "Developer",

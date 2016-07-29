@@ -104,7 +104,7 @@ tutao.tutanota.ctrl.lang.bg_bg.keys = {
   "deleteContact_msg": "Сигурни ли сте, че искате да изтриете този контакт ?",
   "deleted_label": "Изтрити",
   "deleteMail_msg": "Изтриване на новото писмо без да бъде изпратено?",
-  "deleteTrash_action": "Изтрий всички",
+  "deleteAll_action": "Изтрий всички",
   "delete_action": "Изтрий",
   "desiredAddress_label": "Желан електронен адрес",
   "dev_label": "Разработчик",

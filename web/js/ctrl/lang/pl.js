@@ -158,7 +158,7 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "deleteContact_msg": "Usunąć kontakt?",
   "deleted_label": "Usunięte",
   "deleteMail_msg": "Usunąć wiadomość bez wysyłania?",
-  "deleteTrash_action": "Usuń wszystkie",
+  "deleteAll_action": "Usuń wszystkie",
   "delete_action": "Usuń",
   "desiredAddress_label": "Pożądany adres e-mail",
   "dev_label": "Deweloper",

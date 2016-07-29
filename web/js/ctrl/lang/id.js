@@ -171,7 +171,7 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "deleteContact_msg": "Apakah Anda yakin ingin menghapus kontak ini?",
   "deleted_label": "Dihapus",
   "deleteMail_msg": "Hapus surel baru tanpa mengirim?",
-  "deleteTrash_action": "Hapus semua",
+  "deleteAll_action": "Hapus semua",
   "delete_action": "Hapus",
   "desiredAddress_label": "Alamat surel yang diinginkan",
   "dev_label": "Pengembang",

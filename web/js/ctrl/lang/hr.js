@@ -162,7 +162,7 @@ tutao.tutanota.ctrl.lang.hr.keys = {
   "deleteContact_msg": "Jeste li sigurni da želite izbrisati ovaj kontakt?",
   "deleted_label": "Izbrisano",
   "deleteMail_msg": "Brisanje nove e-pošte bez slanja?",
-  "deleteTrash_action": "Obriši sve",
+  "deleteAll_action": "Obriši sve",
   "delete_action": "Izbrisati",
   "desiredAddress_label": "Željena adresa e-pošte",
   "dev_label": "Razvijatelj",
