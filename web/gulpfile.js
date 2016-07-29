@@ -143,7 +143,7 @@ gulp.task('concat', function () {
 
 
 // Keep in sync with tutanota-admin gulpfile.
-var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js"];
+var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js", "js/crypto/AesInterface.js", "js/crypto/SjclAes128CbcAsync.js", "js/crypto/SjclAes256GcmAsync.js"];
 
 gulp.task('minifyWorker', function () {
     gulp.src(WORKER_LIBS)
@@ -405,7 +405,7 @@ gulp.task('default', ['clean', 'distCordovaLocal'], function () {
 gulp.task('translation', function (cb) {    
 	// get all languages from phraseapp
     request({
-        url: 'https://api.phraseapp.com/v2/projects/c524b42d3bcffd79c69528cb70ca2118/locales/',
+        url: 'https://api.phraseapp.com/v2/projects/c524b42d3bcffd79c69528cb70ca2118/locales?per_page=100',
         headers: {
             'User-Agent': 'tutanota (hello@tutao.de)',
             'Authorization': 'token 83c96102984021e90af37983e5212eb79eb8bebbd4744ad341bf367963a032fb'

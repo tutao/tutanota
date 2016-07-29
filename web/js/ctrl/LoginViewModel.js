@@ -228,7 +228,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._showUpgradeReminder = function () 
                     if (properties.getLastUpgradeReminder() == null && (customerInfo.getCreationTime().getTime() + tutao.entity.tutanota.TutanotaConstants.UPGRADE_REMINDER_INTERVAL) < new Date().getTime() ) {
                         var message = tutao.lang("premiumOffer_msg") + " " + tutao.lang("moreInfo_msg");
                         var title = tutao.lang( "upgradeReminderTitle_msg");
-                        return tutao.locator.modalDialogViewModel.showDialog(message, ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
+                        return tutao.locator.modalDialogViewModel.showDialog([message], ["upgradeToPremium_action", "upgradeReminderCancel_action"], title, "https://tutanota.com/pricing", "/graphics/hab.png").then(function(selection) {
                             if ( selection == 0) {
                                 tutao.locator.navigator.settings();
                                 tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
@@ -250,6 +250,15 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._showApprovalRequestInfo = function
     return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
         if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
             return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+        } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID){
+            if (tutao.locator.userController.isLoggedInUserAdmin()) {
+                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
+                    tutao.locator.navigator.settings();
+                    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                });
+            } else {
+                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
+            }
         }
     });
 };

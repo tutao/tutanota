@@ -364,6 +364,15 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                     return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
                                 }).caught(tutao.AccessBlockedError, function (exception) {
                                     return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+                                }).caught(tutao.AccessExpiredError, function (exception) {
+                                    if ( tutao.locator.userController.isLoggedInUserAdmin()) {
+                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
+                                            tutao.locator.navigator.settings();
+                                            tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                                        });
+                                    } else {
+                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
+                                    }
                                 });
                             });
                         });
@@ -620,7 +629,11 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 	tutao.locator.fileFacade.showFileChooser().then(function(fileList) {
 		return self.attachFiles(fileList);
 	}).caught(function(error) {
-        tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        if ( error == "permission_denied") {
+            tutao.tutanota.gui.alert(tutao.lang("fileAccessDeniedMobile_msg"));
+        }else {
+            tutao.tutanota.gui.alert(tutao.lang("couldNotAttachFile_msg"));
+        }
         console.log(error);
     });
 };

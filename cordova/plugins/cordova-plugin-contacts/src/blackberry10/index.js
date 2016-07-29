@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* global PluginResult, JNEXT, escape */
+
 var pimContacts,
-    contactUtils = require("./contactUtils"),
-    contactConsts = require("./contactConsts"),
     ContactError = require("./ContactError"),
     ContactName = require("./ContactName"),
-    ContactFindOptions = require("./ContactFindOptions"),
-    noop = function () {};
-
-function getAccountFilters(options) {
-    if (options.includeAccounts) {
-        options.includeAccounts = options.includeAccounts.map(function (acct) {
-            return acct.id.toString();
-        });
-    }
-
-    if (options.excludeAccounts) {
-        options.excludeAccounts = options.excludeAccounts.map(function (acct) {
-            return acct.id.toString();
-        });
-    }
-}
+    ContactFindOptions = require("./ContactFindOptions");
 
 function populateSearchFields(fields) {
     var i,
@@ -58,21 +44,21 @@ function populateSearchFields(fields) {
             searchFieldsObject[ContactFindOptions.SEARCH_FIELD_PHONE] = true;
         } else if (fields[i] === "emails") {
             searchFieldsObject[ContactFindOptions.SEARCH_FIELD_EMAIL] = true;
-        } else if (field === "addresses") {
+        } else if (fields[i] === "addresses") {
             // not supported by Cascades
-        } else if (field === "ims") {
+        } else if (fields[i] === "ims") {
             // not supported by Cascades
-        } else if (field === "organizations") {
+        } else if (fields[i] === "organizations") {
             searchFieldsObject[ContactFindOptions.SEARCH_FIELD_ORGANIZATION_NAME] = true;
-        } else if (field === "birthday") {
+        } else if (fields[i] === "birthday") {
             // not supported by Cascades
-        } else if (field === "note") {
+        } else if (fields[i] === "note") {
             // not supported by Cascades
-        } else if (field === "photos") {
+        } else if (fields[i] === "photos") {
             // not supported by Cascades
-        } else if (field === "categories") {
+        } else if (fields[i] === "categories") {
             // not supported by Cascades
-        } else if (field === "urls") {
+        } else if (fields[i] === "urls") {
             // not supported by Cascades
         }
     }
@@ -98,8 +84,7 @@ function convertBirthday(birthday) {
 }
 
 function processJnextSaveData(result, JnextData) {
-    var data = JnextData,
-        birthdayInfo;
+    var data = JnextData;
 
     if (data._success === true) {
         data.birthday = convertBirthday(data.birthday);
@@ -124,8 +109,7 @@ function processJnextFindData(eventId, eventHandler, JnextData) {
         i,
         l,
         more = false,
-        resultsObject = {},
-        birthdayInfo;
+        resultsObject = {};
 
     if (data.contacts) {
         for (i = 0, l = data.contacts.length; i < l; i++) {
@@ -192,7 +176,6 @@ module.exports = {
     save: function (successCb, failCb, args, env) {
         var attributes = {},
             result = new PluginResult(args, env),
-            key,
             nativeEmails = [];
 
         attributes = JSON.parse(decodeURIComponent(args[0]));
@@ -286,7 +269,7 @@ JNEXT.PimContacts = function ()
         }
 
         JNEXT.invoke(self.m_id, "find " + JSON.stringify(jnextArgs));
-    }
+    };
 
     self.getContact = function (args) {
         return JSON.parse(JNEXT.invoke(self.m_id, "getContact " + JSON.stringify(args)));

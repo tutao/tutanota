@@ -333,16 +333,16 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 			tutao.locator.progressDialogModel.progress(5);
 
             var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-			return tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, adminGroupsListKey).spread(function(adminGroupData, adminGroupKey) {
+			return tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, null, adminGroupsListKey).spread(function(adminGroupData, adminGroupKey) {
 				tutao.locator.progressDialogModel.progress(35);
                 var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-				return tutao.tutanota.ctrl.GroupData.generateGroupKeys("", self.getMailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function(userGroupData, userGroupKey) {
+				return tutao.tutanota.ctrl.GroupData.generateGroupKeys("", self.getMailAddress(), userPassphraseKey, adminGroupKey, null, userGroupsListKey).spread(function(userGroupData, userGroupKey) {
 					tutao.locator.progressDialogModel.progress(65);
 					// encrypt the admin key with the user key, because the user key was not available before
 					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey));
 
                     var customerGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-					return tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, customerGroupsListKey).spread(function(customerGroupData, customerGroupKey) {
+					return tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, null, customerGroupsListKey).spread(function(customerGroupData, customerGroupKey) {
 						tutao.locator.progressDialogModel.progress(95);
                         var accountingInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
 						var accountingInfoBucketKey = tutao.locator.aesCrypter.generateRandomKey();

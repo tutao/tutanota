@@ -65,6 +65,7 @@ tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_CHALLENGED = "1"
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVED = "0";
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED = "1";
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_SEND_MAILS_APPROVED = "2";
+tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID = "3";
 
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_REQUEST_REGISTRATION = "0";
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_REQUEST_SENT_MAILS = "1";
@@ -348,3 +349,18 @@ tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_TO_EQUALS = "1";
 tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_CC_EQUALS = "2";
 tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_RECIPIENT_BCC_EQUALS = "3";
 tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_SUBJECT_CONTAINS = "4";
+
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_CREATED = "0";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PUBLISHEDFORAUTOMATIC = "1";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PUBLISHEDFORMANUAL = "2";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PAID = "3";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DEBITFAILED = "4";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DISPUTED = "5";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_CANCELLED = "6";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_PARTNERMANAGED = "7";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_FIRSTREMINDER = "8";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_REFUNDED = "9";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DISPUTEACCEPTED = "10";
+tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_SECONDREMINDER = "11";
+
+

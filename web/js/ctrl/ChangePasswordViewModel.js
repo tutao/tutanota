@@ -144,7 +144,7 @@ tutao.tutanota.ctrl.ChangePasswordViewModel.prototype._activateNewPassword = fun
             self.changePasswordStatus({ type: "valid", text: "pwChangeValid_msg" });
             self.state.event("activationOk");
 		}).caught(tutao.TooManyRequestsError, function(exception) {
-            self.changePasswordStatus({ type: "invalid", text: "pwChangeInvalidTooManyVerifyAttempts_msg" });
+            self.changePasswordStatus({ type: "invalid", text: "tooManyAttempts_msg" });
             self.state.event("activationTooManyAttempts");
         }).caught(function(e) {
             self.state.event("serverError");

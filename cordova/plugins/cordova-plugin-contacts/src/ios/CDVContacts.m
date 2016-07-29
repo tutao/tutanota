@@ -593,23 +593,10 @@
     CFErrorRef error = nil;
     // CFIndex status = ABAddressBookGetAuthorizationStatus();
     addressBook = ABAddressBookCreateWithOptions(NULL, &error);
-
-	// TUTAO: ensure that instances of ABAddressBookRef run in same thread queue, see:
-	// http://adrian.schoenig.me/blog/2012/05/05/ios-addressbook-framework-and-gcd/
-	dispatch_queue_t originalQueue = dispatch_get_current_queue();
-
     // NSLog(@"addressBook access: %lu", status);
     ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error) {
             // callback can occur in background, address book must be accessed on thread it was created on
-
-			//https://developer.apple.com/library/ios/documentation/AddressBook/Reference/ABAddressBookRef_iPhoneOS/index.html#//apple_ref/c/func/ABAddressBookRequestAccessWithCompletion
-			//The completion handler is called on an arbitrary queue. If your app uses an address book throughout the app, you are
-			//responsible for ensuring that all usage of that address book is dispatched to a single queue to ensure correct
-			//thread-safe operation.
-
-			// TUTAO: do not run in main queue, because it the blocks ui. Use the addressBook creation thread queue.
-			//dispatch_sync(dispatch_get_main_queue(), ^{
-			dispatch_async(originalQueue, ^{
+            dispatch_sync(dispatch_get_main_queue(), ^{
                 if (error) {
                     workerBlock(NULL, [[CDVAddressBookAccessError alloc] initWithCode:UNKNOWN_ERROR]);
                 } else if (!granted) {

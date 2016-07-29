@@ -119,7 +119,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
 
             var userGroupsListKey = null;
             return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
-                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddress(), userPassphraseKey, adminGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
+                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddress(), userPassphraseKey, adminGroupKey, customerGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
                     /** @type tutao.entity.sys.UserData */
                     var userService = new tutao.entity.sys.UserData()
                         .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))

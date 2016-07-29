@@ -320,7 +320,7 @@ tutao.tutanota.ctrl.DraftFacade._addRecipientKeyData = function(bucketKey, servi
                         if (!preshared) {
                             data.setAutoTransmitPassword(password);
                         }
-                        data.setSymEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalGroupKeys.externalUserGroupKey, bucketKey));
+                        data.setSymEncBucketKey(null); // legacy for old permission system, not used any more
                         data.setOwnerEncBucketKey(tutao.locator.aesCrypter.encryptKey(externalGroupKeys.externalMailGroupKey, bucketKey));
                         data.setPasswordVerifier(passwordVerifier);
                         data.setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt));  // starter accounts may not call this facade, so the salt is always sent to the server

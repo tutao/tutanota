@@ -18,7 +18,9 @@
  * under the License.
  *
 */
- 
+
+/* global ContactPickerOptions */
+
 var self,
     ContactFindOptions = require("./ContactFindOptions"),
     ContactError = require("./ContactError"),

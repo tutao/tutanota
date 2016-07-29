@@ -12,15 +12,19 @@ import java.util.Iterator;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterfaceImpl;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
@@ -30,7 +34,7 @@ import com.ipaulpro.afilechooser.utils.FileUtils;
 
 import de.tutao.plugin.Crypto;
 import de.tutao.plugin.Utils;
-
+ 
 public class FileUtil extends CordovaPlugin {
 	private final static String TAG = "tutao.FileUtil";
 	static final int SHOW_FILE_REQUEST = 24325;
@@ -38,9 +42,51 @@ public class FileUtil extends CordovaPlugin {
 	private static final int HTTP_TIMEOUT = 15 * 1000;
 	private CallbackContext callbackContext;
 
+	private JSONArray args;
+	private String action;
+
+	private static final String READ_EXTERNAL_STORAGE_PERMISSION = Manifest.permission.READ_EXTERNAL_STORAGE;
+	private static final Integer READ_EXTERNAL_STORAGE_REQUEST_CODE = 0;
+
 	@Override
-	public boolean execute(String action, JSONArray args,
-			CallbackContext callbackContext) throws JSONException {
+	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+		this.action = action;
+		this.args = args;
+		this.callbackContext = callbackContext;
+
+
+		// Requesting android runtime permissions. (Android 5+)
+		// We only need to request the read permission even if we want to get write access. There is only one permission of a permission group necessary to get
+		// access to all permission of that permission group. We still have to declare write access in the manifest.
+		// https://developer.android.com/guide/topics/security/permissions.html#perm-groups
+
+		// requesting runtime permissions following the cordova plugin development guidelines.
+		// https://cordova.apache.org/docs/en/latest/guide/platforms/android/plugin.html#android-permissions
+
+		// We use the PermissionHelper from https://github.com/apache/cordova-plugin-compat which provides backward compatibility for older android versions.
+		// The PermissionHelper is also used by the contact plugin.
+		if (this.isPermissionNeeded(action, args) && !PermissionHelper.hasPermission(this, READ_EXTERNAL_STORAGE_PERMISSION)) {
+			PermissionHelper.requestPermission(this, READ_EXTERNAL_STORAGE_REQUEST_CODE, READ_EXTERNAL_STORAGE_PERMISSION);
+			return true;
+		} else {
+			return this.internalExecute(action, args, callbackContext);
+		}
+	}
+
+	private boolean isPermissionNeeded(String action, JSONArray args) throws JSONException {
+		if (action.equals("openFileChooser" )) {
+			return true;
+		} else if (action.equals("write" ) || action.equals("read" ) || action.equals("delete" ) || action.equals("open" )) {
+			String appDir = "file://" + Utils.getDir(webView.getContext()).getAbsolutePath();
+			String requestedFileName = args.getString(0);
+			// no permission is needed if the file is stored in the app dir.
+			return !requestedFileName.startsWith(appDir);
+		} else {
+			return false;
+		}
+	}
+
+	private boolean internalExecute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 		try {
 			if (action.equals("open")) {
 				this.openFile(args.getString(0), args.getString(1), callbackContext);
@@ -81,8 +127,8 @@ public class FileUtil extends CordovaPlugin {
 	}
 
 	private void readFile(CallbackContext callbackContext, String absolutePath) throws IOException {
-		callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.bytesToBase64(Utils.readFile(Utils.uriToFile(webView.getContext(),
-				absolutePath)))));
+			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.bytesToBase64(Utils.readFile(Utils.uriToFile(webView.getContext(),
+					absolutePath)))));
 	}
 
 	private void delete(final CallbackContext callbackContext, final String absolutePath) {
@@ -286,6 +332,21 @@ public class FileUtil extends CordovaPlugin {
 			for (int i = 1; i < headerValues.length(); ++i) {
 				connection.addRequestProperty(headerKey, headerValues.getString(i));
 			}
+		}
+	}
+
+
+	public void onRequestPermissionResult(int requestCode, String[] permissions,  int[] grantResults) throws JSONException {
+		for(int r:grantResults) {
+			if(r == PackageManager.PERMISSION_DENIED) {
+				this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "permission_denied"));
+				return;
+			}
+		}
+		if(requestCode == READ_EXTERNAL_STORAGE_REQUEST_CODE) {
+			this.internalExecute(this.action, this.args, this.callbackContext);;
+		} else {
+			this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "invalid_permission_request"));
 		}
 	}
 

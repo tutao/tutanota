@@ -76,7 +76,7 @@ tutao.tutanota.ctrl.AdminMessagesViewModel.prototype._selectLogo = function(logo
             var logo = new tutao.entity.sys.FileEditable(new tutao.entity.sys.File(self.properties)
                 .setName(fileList[0].getName())
                 .setMimeType(fileList[0].getMimeType())
-                .setData(tutao.util.EncodingConverter.arrayBufferToBase64(fileList[0].getData())));
+                .setData(tutao.util.EncodingConverter.uint8ArrayToBase64(new Uint8Array(fileList[0].getData()))));
             logoObservable(logo);
             self._updateLogos();
         }

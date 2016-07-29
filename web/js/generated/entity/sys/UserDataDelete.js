@@ -34,7 +34,7 @@ tutao.entity.sys.UserDataDelete.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.UserDataDelete.MODEL_VERSION = '17';
+tutao.entity.sys.UserDataDelete.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -157,7 +157,7 @@ tutao.entity.sys.UserDataDelete.prototype.erase = function(parameters, headers) 
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "17";
+  parameters["v"] = "18";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.UserDataDelete.PATH, this, parameters, headers, null);
 };
