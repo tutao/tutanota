@@ -689,5 +689,10 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "replyTo_label": "Antwort",
+  "mailEnvelopeSender_label": "Absender",
+  "mailHeaders_title": "E-Mail-Header",
+  "noMailHeadersInfo_msg": "Keine E-Mail-Header verfügbar, da dies keine empfangene SMTP-Nachricht ist.",
+  "envelopeSenderInfo_msg": "Dieser technische Absender ist eine andere E-Mail-Adresse als die in 'Von' angegebene. Da 'Von' gefälscht werden kann, wird als Information auch der technische Absender angezeigt."
 };

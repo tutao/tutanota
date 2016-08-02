@@ -267,7 +267,7 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.getAttachmentImage = function (file)
  * Creates a bubble from a mail address.
  * @param {tutao.entity.tutanota.MailAddress} mailAddress The mail address.
  * @param {string} meId The id of the text that should be used if the mailAddress is the current user
- * @param {number} defaultInboxRuleField The inbox rule field that shall be shown when creating an inbox rule from this mail address. Must be one of tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_*.
+ * @param {string=} defaultInboxRuleField The inbox rule field that shall be shown when creating an inbox rule from this mail address. Must be one of tutao.entity.tutanota.TutanotaConstants.INBOX_RULE_*. Null if none.
  * @return {tutao.tutanota.ctrl.bubbleinput.Bubble} The bubble.
  */
 tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = function(mailAddress, meId, defaultInboxRuleField) {
@@ -279,3 +279,10 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.createBubbleFromMailAddress = functi
     });
 };
 
+tutao.tutanota.ctrl.DisplayedMail.prototype.isEnvelopeSenderVisible = function() {
+    return (this.mail.getDifferentEnvelopeSender() != null && tutao.tutanota.util.Formatter.getDomainWithoutSubdomains(this.mail.getDifferentEnvelopeSender()) != tutao.tutanota.util.Formatter.getDomainWithoutSubdomains(this.mail.getSender().getAddress()));
+};
+
+tutao.tutanota.ctrl.DisplayedMail.prototype.showSenderWarning = function() {
+    tutao.tutanota.gui.alert(tutao.lang("envelopeSenderInfo_msg"));
+};

@@ -33,7 +33,7 @@ tutao.entity.tutanota.PasswordChannelReturn.prototype.updateData = function(data
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.PasswordChannelReturn.MODEL_VERSION = '13';
+tutao.entity.tutanota.PasswordChannelReturn.MODEL_VERSION = '14';
 
 /**
  * The url path to the resource.
@@ -93,7 +93,7 @@ tutao.entity.tutanota.PasswordChannelReturn.load = function(parameters, headers)
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "13";
+  parameters["v"] = "14";
   return tutao.locator.entityRestClient.getService(tutao.entity.tutanota.PasswordChannelReturn, tutao.entity.tutanota.PasswordChannelReturn.PATH, null, parameters, headers);
 };
 /**
