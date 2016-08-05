@@ -178,6 +178,21 @@ tutao.tutanota.util.Formatter.isTutanotaMailAddress = function(mailAddress) {
 	return false;
 };
 
+/**
+ * Provides the domain name without sub-domains.
+ * @param mailAddress The email address to get the domain from.
+ * @return {string} The domain name.
+ */
+tutao.tutanota.util.Formatter.getDomainWithoutSubdomains = function(mailAddress) {
+	var domain = mailAddress.substring(mailAddress.indexOf("@") + 1).toLowerCase();
+	var lastDot = domain.lastIndexOf(".");
+	var lastButOneDot = domain.lastIndexOf(".", lastDot - 1);
+	if (lastButOneDot == -1) {
+		return domain;
+	} else {
+		return domain.substring(lastButOneDot + 1);
+	}
+};
 
 /**
  * Returns a cleaned mail address from the input mail address. Removes leading or trailing whitespaces and converters

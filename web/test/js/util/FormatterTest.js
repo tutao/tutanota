@@ -258,4 +258,12 @@ describe("FormatterTest", function () {
         assert.deepEqual({ firstName: "Peter", lastName: "Pater Pan" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter.pater.pan@x.de"));
         assert.deepEqual({ firstName: "Peter", lastName: "" }, tutao.tutanota.util.Formatter.mailAddressToFirstAndLastName("peter@x.de"));
     });
+
+    it(" getDomainWithoutSubdomains", function() {
+        assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test@tutanota.de"));
+        assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test@test.tutanota.de"));
+        assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test.test@test.tutanota.de"));
+        assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test.test@test.toast.tutanota.de"));
+        assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test.Test@tutaNota.de"));
+    });
 });

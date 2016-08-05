@@ -40,13 +40,13 @@ gulp.task('androidProdDistUnsigned', ['createWebRelease', 'updateAndroidPlatform
 gulp.task('androidProdDist', ['createWebRelease', 'updateAndroidPlatformAndTutanotaPlugin'], shell.task([
     // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
     // attention: do not use "cordova build" here because it does not respect the --buildConfig
-    'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'
+    'platforms/android/cordova/build --buildConfig /opt/android-keystore/build.json --release android'
 ]));
 
 gulp.task('androidTestDist', ['createWebReleaseTest', 'updateAndroidPlatformAndTutanotaPlugin'], shell.task([
     // attention: platforms/android/cordova/build does not copy the www content itself, but it was cleared and copied because of platform add/remove
     // attention: do not use "cordova build" here because it does not respect the --buildConfig
-    'platforms/android/cordova/build --buildConfig /opt/next-config/android-keystore/build.json --release android'
+    'platforms/android/cordova/build --buildConfig /opt/android-keystore/build.json --release android'
 ]));
 
 

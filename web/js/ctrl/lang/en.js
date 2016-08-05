@@ -691,5 +691,10 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+  "replyTo_label": "ReplyTo",
+  "mailEnvelopeSender_label": "Sender",
+  "mailHeaders_title": "Email headers",
+  "noMailHeadersInfo_msg": "No email headers available because this is not a received SMTP message.",
+  "envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email."
 };

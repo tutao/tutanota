@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.ModalDialogViewModel.prototype.showConfirm = function(messag
  * Shows the dialog with the given buttons. Returns the index of the button that was selected by the user. The index of the last button is returned if the user closes the dialog with "X".
  * @param {Array.<string>} messages The text to display in the dialog.
  * @param {Array.<string>} buttonTextIds The texts to show on the buttons. The number text ids is the number of buttons that are shown.
- * @param {string=} title A title text that shoul appear, if not set the default title will be used.
+ * @param {string=} title A title text that should appear, if not set the default title will be used.
  * @param {string=} externalLink A link to an external website.
  * @param {string=} image Name of an image that should be displayed in the dialog.
  * @return {Promise<Number>} Provides the id of the button that was clicked.
@@ -87,5 +87,8 @@ tutao.tutanota.ctrl.ModalDialogViewModel.prototype.isDefaultButton = function(bu
     return this.buttons.indexOf(button) == 0;
 };
 
+tutao.tutanota.ctrl.ModalDialogViewModel.prototype.isVisible = function() {
+    return this.visible();
+};
 
 
