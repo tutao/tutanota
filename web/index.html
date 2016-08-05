@@ -430,6 +430,7 @@
 <script src="/js/generated/entity/tutanota/DraftUpdateData.js"></script>
 <script src="/js/generated/entity/tutanota/DraftUpdateReturn.js"></script>
 <script src="/js/generated/entity/tutanota/EncryptTutanotaPropertiesData.js"></script>
+<script src="/js/generated/entity/tutanota/EncryptedMailAddress.js"></script>
 <script src="/js/generated/entity/tutanota/ExternalUserData.js"></script>
 <script src="/js/generated/entity/tutanota/FeedbackData.js"></script>
 <script src="/js/generated/entity/tutanota/File.js"></script>
@@ -451,6 +452,7 @@
 <script src="/js/generated/entity/tutanota/MailBox.js"></script>
 <script src="/js/generated/entity/tutanota/MailFolder.js"></script>
 <script src="/js/generated/entity/tutanota/MailFolderRef.js"></script>
+<script src="/js/generated/entity/tutanota/MailHeaders.js"></script>
 <script src="/js/generated/entity/tutanota/MoveMailData.js"></script>
 <script src="/js/generated/entity/tutanota/NewDraftAttachment.js"></script>
 <script src="/js/generated/entity/tutanota/NotificationMail.js"></script>
@@ -1657,13 +1659,18 @@
 							<div id="adminCustomDomain" data-bind="with: new tutao.tutanota.ctrl.AdminCustomDomainViewModel(), visible: !tutao.locator.viewManager.isOutlookAccount()">
 								<div class="dataTable">
 									<div class="" data-bind="lang: 'adminCustomDomain_label'"></div>
+									<div class="largeSizeColumn" data-bind="text: function(){return customDomains().length > 0 ? tutao.lang('catchAllMailbox_label'): '';}()"></div>
 									<div class="smallButtonColumn"></div>
 								</div>
 								<hr />
 								<!-- ko foreach: customDomains -->
 								<div class="dataTable">
-									<div class="" data-bind="text: $data, attr: {title: $data}"></div>
-									<div class="smallButtonColumn fontImage cancel" data-bind="fastClick: function(){$parent.deleteCustomDomain($data);}, attr: {title: tutao.lang('delete_action')}"></div>
+									<div class="" data-bind="text: $data.domain, attr: {title: $data.domain}"></div>
+									<div class="largeSizeColumn">
+										<select data-bind="options: $parent.availableCatchAllGroups, optionsText: $parent.getTextForGroup, value: $data.catchAllGroup, enable: !$parent.busy()"></select>
+									</div>
+									<div class="smallButtonColumn fontImage confirm" data-bind="visible: $parent.isNewCatchAllValue($data), fastClick: function(){$parent.updateCustomDomain($data);}, attr: {title: tutao.lang('update_action')}"></div>
+									<div class="smallButtonColumn fontImage cancel" data-bind="visible: !$parent.isNewCatchAllValue($data), fastClick: function(){$parent.deleteCustomDomain($data);}, attr: {title: tutao.lang('delete_action')}"></div>
 								</div>
 								<!-- /ko -->
 								<div class="dataTable">
