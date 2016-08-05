@@ -12,6 +12,7 @@ tutao.entity.sys.CustomDomainData = function(data) {
   } else {
     this.__format = "0";
     this._domain = null;
+    this._catchAllUserGroup = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomDomainData.prototype;
@@ -24,6 +25,7 @@ tutao.entity.sys.CustomDomainData = function(data) {
 tutao.entity.sys.CustomDomainData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._domain = data.domain;
+  this._catchAllUserGroup = data.catchAllUserGroup;
 };
 
 /**
@@ -51,7 +53,8 @@ tutao.entity.sys.CustomDomainData.prototype.ENCRYPTED = false;
 tutao.entity.sys.CustomDomainData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    domain: this._domain
+    domain: this._domain, 
+    catchAllUserGroup: this._catchAllUserGroup
   };
 };
 
@@ -90,6 +93,31 @@ tutao.entity.sys.CustomDomainData.prototype.getDomain = function() {
 };
 
 /**
+ * Sets the catchAllUserGroup of this CustomDomainData.
+ * @param {string} catchAllUserGroup The catchAllUserGroup of this CustomDomainData.
+ */
+tutao.entity.sys.CustomDomainData.prototype.setCatchAllUserGroup = function(catchAllUserGroup) {
+  this._catchAllUserGroup = catchAllUserGroup;
+  return this;
+};
+
+/**
+ * Provides the catchAllUserGroup of this CustomDomainData.
+ * @return {string} The catchAllUserGroup of this CustomDomainData.
+ */
+tutao.entity.sys.CustomDomainData.prototype.getCatchAllUserGroup = function() {
+  return this._catchAllUserGroup;
+};
+
+/**
+ * Loads the catchAllUserGroup of this CustomDomainData.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded catchAllUserGroup of this CustomDomainData or an exception if the loading failed.
+ */
+tutao.entity.sys.CustomDomainData.prototype.loadCatchAllUserGroup = function() {
+  return tutao.entity.sys.Group.load(this._catchAllUserGroup);
+};
+
+/**
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
@@ -102,6 +130,20 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
   parameters["v"] = "18";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
+};
+
+/**
+ * Updates this service.
+ * @param {Object.<string, string>} parameters The parameters to send to the service.
+ * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
+ * @return {Promise.<null>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ */
+tutao.entity.sys.CustomDomainData.prototype.update = function(parameters, headers) {
+  if (!headers) {
+    headers = tutao.entity.EntityHelper.createAuthHeaders();
+  }
+  parameters["v"] = "18";
+  return tutao.locator.entityRestClient.putService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };
 
 /**

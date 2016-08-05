@@ -14,6 +14,7 @@ tutao.entity.sys.DomainInfo = function(parent, data) {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._domain = null;
     this._validatedMxRecord = null;
+    this._catchAllUserGroup = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.sys.DomainInfo.prototype;
@@ -28,6 +29,7 @@ tutao.entity.sys.DomainInfo.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._domain = data.domain;
   this._validatedMxRecord = data.validatedMxRecord;
+  this._catchAllUserGroup = data.catchAllUserGroup;
 };
 
 /**
@@ -38,7 +40,8 @@ tutao.entity.sys.DomainInfo.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
     domain: this._domain, 
-    validatedMxRecord: this._validatedMxRecord
+    validatedMxRecord: this._validatedMxRecord, 
+    catchAllUserGroup: this._catchAllUserGroup
   };
 };
 
@@ -91,6 +94,31 @@ tutao.entity.sys.DomainInfo.prototype.setValidatedMxRecord = function(validatedM
  */
 tutao.entity.sys.DomainInfo.prototype.getValidatedMxRecord = function() {
   return this._validatedMxRecord != '0';
+};
+
+/**
+ * Sets the catchAllUserGroup of this DomainInfo.
+ * @param {string} catchAllUserGroup The catchAllUserGroup of this DomainInfo.
+ */
+tutao.entity.sys.DomainInfo.prototype.setCatchAllUserGroup = function(catchAllUserGroup) {
+  this._catchAllUserGroup = catchAllUserGroup;
+  return this;
+};
+
+/**
+ * Provides the catchAllUserGroup of this DomainInfo.
+ * @return {string} The catchAllUserGroup of this DomainInfo.
+ */
+tutao.entity.sys.DomainInfo.prototype.getCatchAllUserGroup = function() {
+  return this._catchAllUserGroup;
+};
+
+/**
+ * Loads the catchAllUserGroup of this DomainInfo.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded catchAllUserGroup of this DomainInfo or an exception if the loading failed.
+ */
+tutao.entity.sys.DomainInfo.prototype.loadCatchAllUserGroup = function() {
+  return tutao.entity.sys.Group.load(this._catchAllUserGroup);
 };
 /**
  * Provides the entity helper of this entity.
