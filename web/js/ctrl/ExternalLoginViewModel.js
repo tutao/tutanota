@@ -98,7 +98,8 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
         self._saltHash = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.shaCrypter.hash(self._salt)));
 	} catch (e) {
 		this.errorMessageId("invalidLink_msg");
-		return Promise.reject();
+		tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+		return Promise.resolve();
 	}
 
 	// TODO (timely) show a spinner until now, switch to the view just after the data has been retrieved.
