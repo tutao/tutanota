@@ -694,5 +694,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "mailEnvelopeSender_label": "Absender",
   "mailHeaders_title": "E-Mail-Header",
   "noMailHeadersInfo_msg": "Keine E-Mail-Header verfügbar, da dies keine empfangene SMTP-Nachricht ist.",
-  "envelopeSenderInfo_msg": "Dieser technische Absender ist eine andere E-Mail-Adresse als die in 'Von' angegebene. Da 'Von' gefälscht werden kann, wird als Information auch der technische Absender angezeigt."
+  "envelopeSenderInfo_msg": "Dieser technische Absender ist eine andere E-Mail-Adresse als die in 'Von' angegebene. Da 'Von' gefälscht werden kann, wird als Information auch der technische Absender angezeigt.",
+  "paymentAccountRejected_msg": "Deine Kreditkarte oder dein PayPal-Account wurden schon einmal für eine andere Zahlung verwendet. Aus Sicherheitsgründen müssen wir dies erst freischalten. Wir senden dir eine E-Mail, sobald deine Zahlungsdaten freigeschaltet sind."
 };

@@ -214,6 +214,8 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._handlePaymentDataServiceResu
             self.state.setFailureMessage("creditCardCVVInvalid_msg");
         } else if (statusCode ==  tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_PAYMENT_PROVIDER_NOT_AVAILABLE) {
             self.state.setFailureMessage("paymentProviderNotAvailable_msg");
+        } else if (statusCode ==  tutao.entity.tutanota.TutanotaConstants.PAYMENT_DATA_SERVICE_RESULT_TYPE_OTHER_PAYMENT_ACCOUNT_REJECTED) {
+            self.state.setFailureMessage("paymentAccountRejected_msg");
         } else {
             self.state.setFailureMessage("otherPaymentProviderError_msg");
         }

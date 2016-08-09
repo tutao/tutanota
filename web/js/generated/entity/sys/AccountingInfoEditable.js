@@ -17,6 +17,7 @@ tutao.entity.sys.AccountingInfoEditable = function(accountinginfo) {
 	this.invoiceVatIdNo = ko.observable(accountinginfo.getInvoiceVatIdNo());
 	this.lastInvoiceNbrOfSentSms = ko.observable(accountinginfo.getLastInvoiceNbrOfSentSms());
 	this.lastInvoiceTimestamp = ko.observable(accountinginfo.getLastInvoiceTimestamp());
+	this.paymentAccountIdentifier = ko.observable(accountinginfo.getPaymentAccountIdentifier());
 	this.paymentInterval = ko.observable(accountinginfo.getPaymentInterval());
 	this.paymentMethod = ko.observable(accountinginfo.getPaymentMethod());
 	this.paymentMethodInfo = ko.observable(accountinginfo.getPaymentMethodInfo());
@@ -49,6 +50,7 @@ tutao.entity.sys.AccountingInfoEditable.prototype.update = function() {
 	this._entity.setInvoiceVatIdNo(this.invoiceVatIdNo());
 	this._entity.setLastInvoiceNbrOfSentSms(this.lastInvoiceNbrOfSentSms());
 	this._entity.setLastInvoiceTimestamp(this.lastInvoiceTimestamp());
+	this._entity.setPaymentAccountIdentifier(this.paymentAccountIdentifier());
 	this._entity.setPaymentInterval(this.paymentInterval());
 	this._entity.setPaymentMethod(this.paymentMethod());
 	this._entity.setPaymentMethodInfo(this.paymentMethodInfo());

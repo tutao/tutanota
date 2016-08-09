@@ -694,5 +694,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailEnvelopeSender_label": "Sender",
   "mailHeaders_title": "Email headers",
   "noMailHeadersInfo_msg": "No email headers available because this is not a received SMTP message.",
-  "envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email."
+  "envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
+  "paymentAccountRejected_msg": "Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated."
 };
