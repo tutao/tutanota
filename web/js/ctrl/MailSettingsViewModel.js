@@ -21,7 +21,7 @@ tutao.tutanota.ctrl.MailSettingsViewModel = function() {
     this.emailSignatureTypes = [];
     this.emailSignatureTypes.push({ value: tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_DEFAULT, text: tutao.lang("emailSignatureTypeDefault_msg") });
     this.emailSignatureTypes.push({ value: tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_CUSTOM, text: tutao.lang("emailSignatureTypeCustom_msg") });
-    this.emailSignatureTypes.push({ value: tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_NONE, text: tutao.lang("emailSignatureTypeNone_msg") });
+    this.emailSignatureTypes.push({ value: tutao.entity.tutanota.TutanotaConstants.EMAIL_SIGNATURE_TYPE_NONE, text: tutao.lang("comboBoxSelectionNone_msg") });
 
     this._currentCustomEmailSignature = tutao.locator.mailBoxController.getUserProperties().getCustomEmailSignature();
     this.displayedEmailSignature = ko.observable("");

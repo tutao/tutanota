@@ -344,7 +344,7 @@ public class FileUtil extends CordovaPlugin {
 			}
 		}
 		if(requestCode == READ_EXTERNAL_STORAGE_REQUEST_CODE) {
-			this.internalExecute(this.action, this.args, this.callbackContext);;
+			this.internalExecute(this.action, this.args, this.callbackContext);
 		} else {
 			this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "invalid_permission_request"));
 		}

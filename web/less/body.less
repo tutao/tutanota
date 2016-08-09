@@ -360,6 +360,8 @@ body {
 
 
 	// used in user column for adding aliases, contactColumn, inbox rules, spam rules, invoices overview and custom domain extension
+	@largeColumnWidth: 250px;
+	@largeColumnWidthMobile: 200px;
   	@mediumColumnWidth: 135px;
   	@mediumColumnWidthMobile: 90px;
 	@buttonColumnWidth: 25px;
@@ -385,6 +387,24 @@ body {
 
 		&.price {
 		  text-align: right;
+		}
+
+
+	    &.largeSizeColumn {
+			width: @largeColumnWidth;
+			max-width:@largeColumnWidth;
+
+			> .dataTableButton {
+				.buttonElement;
+				width: 100%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			@media @mobile {
+				width: @largeColumnWidthMobile;
+				max-width:@largeColumnWidthMobile;
+			}
 		}
 
 		&.mediumSizeColumn {
