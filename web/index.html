@@ -1430,53 +1430,48 @@
 							<!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD -->
 								<div id="changePassword" data-bind="with: new tutao.tutanota.ctrl.ChangePasswordViewModel()">
-                                    <!-- ko if: tutao.tutanota.util.ClientDetector.isMobileDevice() -->
-                                        <div class="smallInfoMessage" data-bind="lang: 'changePasswordNotSupported_msg'"></div>
-                                    <!-- /ko -->
-                                    <!-- ko if: !tutao.tutanota.util.ClientDetector.isMobileDevice() -->
-                                        <form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
-                                            <div class="record">
-                                                <label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
-                                                <div class="recordData">
-                                                    <div class="recordValue">
-                                                        <input class="inputField wide" id="oldpassword" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"/>
-                                                    </div>
-                                                    <label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
-                                                </div>
-                                            </div>
-                                            <div class="record">
-                                                <label for="changePasswordNew" class="recordName" data-bind="lang: 'newPassword_label'"></label>
-                                                <div class="recordData">
-                                                    <div class="recordValue">
-                                                        <input id="changePasswordNew" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
-                                                    </div>
-                                                    <label for="changePasswordNew" class="recordStatus" data-bind="css: getPassword1Status().type">
-                                                        <div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
-                                                            <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
-                                                        </div>
-                                                        <div class="passwordStatus" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
-                                                    </label>
-                                                    <div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
-                                                </div>
-                                            </div>
-                                            <div class="record">
-                                                <label for="changePasswordNew2" class="recordName"></label>
-                                                <div class="recordData">
-                                                    <div class="recordValue">
-                                                        <input id="changePasswordNew2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
-                                                    </div>
-                                                    <label for="changePasswordNew2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
-                                                </div>
-                                            </div>
-                                            <div class="record">
-                                                <div class="recordName"></div>
-                                                <div class="formAction">
-                                                    <button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
-                                                    <label class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text"></label>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    <!-- /ko -->
+									<form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
+										<div class="record">
+											<label for="oldpassword" class="recordName" data-bind="lang: 'oldPassword_label'"></label>
+											<div class="recordData">
+												<div class="recordValue">
+													<input class="inputField wide" id="oldpassword" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: (state.getState() == 'EnterPasswords'), css: oldPasswordStatus().type, value: oldPassword, valueUpdate: 'input', event: { change: checkOldPassword }"/>
+												</div>
+												<label for="oldpassword" class="recordStatus" data-bind="css: oldPasswordStatus().type, lang: oldPasswordStatus().text"></label>
+											</div>
+										</div>
+										<div class="record">
+											<label for="changePasswordNew" class="recordName" data-bind="lang: 'newPassword_label'"></label>
+											<div class="recordData">
+												<div class="recordValue">
+													<input id="changePasswordNew" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
+												</div>
+												<label for="changePasswordNew" class="recordStatus" data-bind="css: getPassword1Status().type">
+													<div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
+													</div>
+													<div class="passwordStatus" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
+												</label>
+												<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
+											</div>
+										</div>
+										<div class="record">
+											<label for="changePasswordNew2" class="recordName"></label>
+											<div class="recordData">
+												<div class="recordValue">
+													<input id="changePasswordNew2" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password2, valueUpdate: 'input', css: getPassword2Status().type"/>
+												</div>
+												<label for="changePasswordNew2" class="recordStatus" data-bind="css: getPassword2Status().type, lang: getPassword2Status().text"></label>
+											</div>
+										</div>
+										<div class="record">
+											<div class="recordName"></div>
+											<div class="formAction">
+												<button class="single fontImage confirm" type="submit" data-bind="css: { disabled: !confirmPossible() }, lang: changePasswordButtonTextId()"></button>
+												<label class="recordStatus" data-bind="css: changePasswordStatus().type, lang: changePasswordStatus().text"></label>
+											</div>
+										</div>
+									</form>
                                 </div>
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO -->
