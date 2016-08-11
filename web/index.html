@@ -2068,11 +2068,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="record" data-bind="visible: modifyAdminAllowed">
+                            <div class="record">
                                 <label for="admin" class="recordName" data-bind="lang: 'administrator_label'"></label>
                                 <div class="recordData">
                                     <div class="recordValue">
-                                        <input type="checkbox" id="admin" data-bind="checked: admin, enable: !busy() && isActive()" />
+                                        <input type="checkbox" id="admin" data-bind="checked: admin, enable: !busy() && isActive() && modifyAdminAllowed()"/>
                                     </div>
                                 </div>
                             </div>
