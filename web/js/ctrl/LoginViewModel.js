@@ -143,7 +143,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
     var self = this;
-    return self.loadEntropy().caught(function(error) {
+    return self.loadEntropy().then(function() {
+       return false; // continue normal flow
+    }).caught(function(error) {
         if (error instanceof tutao.NotFoundError) {
             // redo the InitGroupService because it has failed at registration. and fetch entropy before because it could not yet be loaded.
             return new Promise(function (resolve, reject) {
@@ -151,38 +153,45 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
                     resolve();
                 });
             }).then(function () {
-                return tutao.locator.registrationViewModel.initGroup();
+                return tutao.locator.registrationViewModel.initGroup().then(function() {
+                    // the group was not migrated before, so we have to reload all instances
+                    tutao.tutanota.Bootstrap.init();
+                    tutao.locator.loginViewModel.setup(false);
+                    return true; // stop normal flow
+                });
             });
         } else {
             throw error;
         }
-    }).then(function() {
-        return tutao.locator.mailBoxController.initForUser();
-    }).then(function () {
-        if (!tutao.locator.userController.isLoggedInUserFreeAccount()) {
-            return tutao.locator.viewManager.loadCustomLogos();
-        } else {
-            return Promise.resolve();
-        }
-    }).then(function() {
-        // migration for group infos when admin logs in
-        return self._migrateGroupInfos();
-    }).then(function() {
-        var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
-        tutao.locator.mailFolderListViewModel.selectedFolder(folder);
-        return tutao.locator.navigator.mail().then(function() {
-            tutao.locator.eventBus.connect(false);
-            tutao.locator.mailListViewModel.loadInitial();
-            tutao.locator.contactListViewModel.init();
-            self.loginFinished(true);
-            tutao.locator.pushService.register();
-            // run the following commands in sequence to avoid parallel loading of the customer
-            self._showApprovalRequestInfo().then(function() {
-                return self._showUpgradeReminder();
+    }).then(function(stop) {
+        if (!stop) {
+            return tutao.locator.mailBoxController.initForUser().then(function () {
+                if (!tutao.locator.userController.isLoggedInUserFreeAccount()) {
+                    return tutao.locator.viewManager.loadCustomLogos();
+                } else {
+                    return Promise.resolve();
+                }
             }).then(function() {
-                self._getInfoMails();
+                // migration for group infos when admin logs in
+                return self._migrateGroupInfos();
+            }).then(function() {
+                var folder = tutao.locator.mailFolderListViewModel.getSystemFolder(tutao.entity.tutanota.TutanotaConstants.MAIL_FOLDER_TYPE_INBOX);
+                tutao.locator.mailFolderListViewModel.selectedFolder(folder);
+                return tutao.locator.navigator.mail().then(function() {
+                    tutao.locator.eventBus.connect(false);
+                    tutao.locator.mailListViewModel.loadInitial();
+                    tutao.locator.contactListViewModel.init();
+                    self.loginFinished(true);
+                    tutao.locator.pushService.register();
+                    // run the following commands in sequence to avoid parallel loading of the customer
+                    self._showApprovalRequestInfo().then(function() {
+                        return self._showUpgradeReminder();
+                    }).then(function() {
+                        self._getInfoMails();
+                    });
+                });
             });
-        });
+        }
     });
 };
 
