@@ -697,5 +697,13 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailHeaders_title": "Email headers",
   "noMailHeadersInfo_msg": "No email headers available because this is not a received SMTP message.",
   "envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
-  "paymentAccountRejected_msg": "Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated."
+  "paymentAccountRejected_msg": "Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated.",
+
+  "mailAddressAliasesShort_label" : "Aliases",
+
+
+  "buyStorageCapacityInfo_label": "Please choose one of the available storage packages to change the available storage capacity. Additional storage is shared by all users. Apart from that each user has a storage capacity of 1 GB.",
+  "buyEmailAliasInfo_label": "Please choose one of the email alias packages to change the number of available email aliases. Additionally booked email aliases can be used by any user. Apart from that each Premium user has 5 email aliases.",
+
+
 };

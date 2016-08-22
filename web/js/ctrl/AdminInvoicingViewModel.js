@@ -13,6 +13,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.items = ko.observableArray();
     this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, name: "bookingItemUsers_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
     this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: "bookingItemStorage_label", currentAmount: ko.observable(1), nextAmount: ko.observable(1), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, name: "mailAddressAliases_label", currentAmount: ko.observable(1), nextAmount: ko.observable(1), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
 
     this.orderStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
     this.orderSubmitStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
@@ -26,15 +27,20 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
-            self.items()[1].currentAmount(customerInfo.getStorageCapacity());
-            self.items()[1].nextAmount(customerInfo.getStorageCapacity());
+            var storageCapacity = customerInfo.getStorageCapacity() > 1 ? customerInfo.getStorageCapacity() : 0;
+
+            self.items()[1].currentAmount(storageCapacity);
+            self.items()[1].nextAmount(storageCapacity);
+            self.items()[2].currentAmount(customerInfo.getSharedEmailAliases());
+            self.items()[2].nextAmount(customerInfo.getSharedEmailAliases());
+
             customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                 tutao.util.BookingUtils.getCurrentPrice().then(function(price) {
                     self.price(price);
                     for (var i=0; i<price.getCurrentPriceThisPeriod().getItems().length; i++) {
                         var priceItemData = price.getCurrentPriceThisPeriod().getItems()[i];
                         for (var a=0; a<self.items().length; a++) {
-                            var item = self.items()[i];
+                            var item = self.items()[a];
                             if (item.type == priceItemData.getFeatureType()) {
                                 item.currentAmount(Number(priceItemData.getCount()));
                                 item.currentPrice(Number(priceItemData.getPrice()));
@@ -45,7 +51,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                     for (i=0; i<price.getCurrentPriceNextPeriod().getItems().length; i++) {
                         priceItemData = price.getCurrentPriceNextPeriod().getItems()[i];
                         for (a=0; a<self.items().length; a++) {
-                            item = self.items()[i];
+                            item = self.items()[a];
                             if (item.type == priceItemData.getFeatureType()) {
                                 item.nextAmount(Number(priceItemData.getCount()));
                                 item.nextPrice(Number(priceItemData.getPrice()));

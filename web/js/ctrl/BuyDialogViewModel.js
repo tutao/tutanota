@@ -84,10 +84,22 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getBookingText = function() {
             }
         } else {
             var newPackageCount = item.getCount();
-            if (this._count > 0) {
-                return tutao.lang("packageUpgradeUserAccounts_label", {"{1}": newPackageCount});
+            if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE) {
+                if ( this._count < 1000) {
+                    return tutao.lang("storageCapacity_label") + " " + this._count + " GB";
+                } else {
+                    return tutao.lang("storageCapacity_label") + " " +  (this._count/1000) + " TB";
+                }
+            } else if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS){
+                if (this._count > 0) {
+                    return tutao.lang("packageUpgradeUserAccounts_label", {"{1}": newPackageCount});
+                } else {
+                    return tutao.lang("packageDowngradeUserAccounts_label", {"{1}": newPackageCount});
+                }
+            } else if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES) {
+                return this._count +  " " + tutao.lang("mailAddressAliases_label");
             } else {
-                return tutao.lang("packageDowngradeUserAccounts_label", {"{1}": newPackageCount});
+                return ""; // not possible;
             }
         }
     }
@@ -117,10 +129,11 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
     } else {
         var netGrossText = this._price.getFuturePriceNextPeriod().getTaxIncluded() ? tutao.lang("gross_label") : tutao.lang("net_label");
         var periodText = (this._price.getFuturePriceNextPeriod().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
-        if (this._getItem(this._price.getFuturePriceNextPeriod()).getSingleType()) {
+        var futurePriceItem = this._getItem(this._price.getFuturePriceNextPeriod());
+        if (futurePriceItem.getSingleType()) {
             return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()) - Number(this._price.getCurrentPriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
         } else {
-            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
+            return tutao.util.BookingUtils.formatPrice(Number(futurePriceItem.getPrice())) + " " + periodText + " (" + netGrossText + ")";
         }
     }
 };

@@ -1183,6 +1183,61 @@ body {
 	}
   }
 
+
+
+	.buyFeatureOptions {
+		.centered;
+		> div.buyOptionBox {
+			.centered;
+			position:relative;
+			display: inline-block;
+			//margin:0 auto; // center horizontally
+			border: 1px solid @border;
+			//top: @header-height;
+			border-radius: 10px;
+			width:200px;
+			padding: 10px;
+			margin: 10px;
+
+			@media @mobile {
+				//top: @header-height-small;
+				//margin-bottom: @header-height-small;
+				//padding-top:0;
+				//padding-bottom:0;
+			}
+
+			> div.buyOptionHeading {
+				.light;
+				.fadeTextOut;
+				font-size:24px;
+				line-height: @menu_height;
+				> select {
+					font-size:24px;
+					height: 34px;
+					vertical-align: text-bottom;
+				}
+			}
+			> div.buyOptionBody {
+				> div {
+					.fadeTextOut; // ensure only one line per div.
+				}
+				margin-bottom: 15px;
+			}
+
+			> div.buyOptionFooter {
+				line-height: @menu_height;
+			}
+
+			.priceText {
+				.light;
+				font-size:24px;
+			}
+		}
+
+	}
+
+
+
 /*
     #attachmentDialog{
       position: fixed;

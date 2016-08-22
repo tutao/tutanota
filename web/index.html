@@ -142,8 +142,9 @@
 <script src="/js/crypto/SjclSha256.js"></script>
 <script src="/js/crypto/Utils.js"></script>
 <script src="/js/crypto/WebCryptoAes256GcmAsync.js"></script>
-<script src="/js/ctrl/AdminAccountInfoViewModel.js"></script>
 <script src="/js/ctrl/AdminAliasViewModel.js"></script>
+<script src="/js/ctrl/AdminBuyAliasViewModel.js"></script>
+<script src="/js/ctrl/AdminBuyStorageViewModel.js"></script>
 <script src="/js/ctrl/AdminCustomDomainViewModel.js"></script>
 <script src="/js/ctrl/AdminDeleteAccountViewModel.js"></script>
 <script src="/js/ctrl/AdminEditUserViewModel.js"></script>
@@ -159,6 +160,7 @@
 <script src="/js/ctrl/Button.js"></script>
 <script src="/js/ctrl/ButtonBarViewModel.js"></script>
 <script src="/js/ctrl/BuyDialogViewModel.js"></script>
+<script src="/js/ctrl/BuyFeatureModel.js"></script>
 <script src="/js/ctrl/ChangePasswordViewModel.js"></script>
 <script src="/js/ctrl/ComposingMail.js"></script>
 <script src="/js/ctrl/ContactCsvConverter.js"></script>
@@ -282,6 +284,7 @@
 <script src="/js/generated/entity/sys/AutoLoginPostReturn.js"></script>
 <script src="/js/generated/entity/sys/Booking.js"></script>
 <script src="/js/generated/entity/sys/BookingItem.js"></script>
+<script src="/js/generated/entity/sys/BookingServiceData.js"></script>
 <script src="/js/generated/entity/sys/BookingsRef.js"></script>
 <script src="/js/generated/entity/sys/BookingsRefEditable.js"></script>
 <script src="/js/generated/entity/sys/Bucket.js"></script>
@@ -1428,6 +1431,19 @@
 									</div>
 								</div>
 							<!-- /ko -->
+
+							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE -->
+							<div id="adminBuyStorage" data-bind="with: new tutao.tutanota.ctrl.AdminBuyStorageViewModel()">
+								<div data-bind="template: { name: 'buy-options-template', data: $data }"></div>
+							</div>
+							<!-- /ko -->
+
+							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_EMAIL_ALIAS -->
+							<div id="adminBuyAliases" data-bind="with: new tutao.tutanota.ctrl.AdminBuyAliasViewModel()">
+								<div data-bind="template: { name: 'buy-options-template', data: $data }"></div>
+							</div>
+							<!-- /ko -->
+
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_CHANGE_PASSWORD -->
 								<div id="changePassword" data-bind="with: new tutao.tutanota.ctrl.ChangePasswordViewModel()">
 									<form class="recordContainer wide" data-bind="if: overallState() == 'allowed', submit: function() { setTimeout(function() { confirm(); }, 0); }, form: true">
@@ -1473,13 +1489,6 @@
 										</div>
 									</form>
                                 </div>
-                            <!-- /ko -->
-                            <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO -->
-                            <div data-bind="with: new tutao.tutanota.ctrl.AdminAccountInfoViewModel()">
-                                <div class="recordContainer wide" data-bind="foreach: records, form: true">
-                                    <div class="record" data-bind="template: { name: 'displayedRecord-template', data: $data }"></div>
-                                </div>
-                            </div>
                             <!-- /ko -->
 							<!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_USER_LIST -->
 								<div id="adminUserList" data-bind="with: adminUserListViewModel">
@@ -2500,6 +2509,33 @@
 				</div>
 			</div>
 	</script>
+
+
+	<!-- use this with a BuyFeatureViewModel -->
+	<script type="text/html"  id="buy-options-template">
+
+		<h1 class="centered" data-bind="lang: headingTextId"></h1>
+		<div class="light defaultMargin" >
+			<span data-bind="lang: infoTextId"></span>
+		</div>
+
+		<div class="buyFeatureOptions" data-bind="foreach: { data: getBuyOptions() } ">
+			<div class="buyOptionBox">
+				<div class="buyOptionHeading">
+					<div data-bind="text: getFeatureText()"></div>
+				</div>
+				<hr />
+				<div  class="buyOptionBody"  >
+					<div class="priceText" data-bind="text: price()"></div>
+				</div>
+				<div class="buyOptionFooter">
+					<!-- ko if: isBuyVisible() --> <button  class="single wide" data-bind="lang: 'order_action', fastClick: buy, css: { disabled: !isBuyEnabled() }"></button><!-- /ko -->
+					<!-- ko if: !isBuyVisible() --><div  class="centered" data-bind="lang: 'activated_label'"></div><!-- /ko -->
+				</div>
+			</div>
+		</div>
+	</script>
+
 
 </body>
 </html>

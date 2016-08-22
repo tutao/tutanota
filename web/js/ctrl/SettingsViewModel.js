@@ -10,6 +10,12 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.adminUserListViewModel = ko.observable(null);
 
+    /*
+    this.accountType =  ko.computed(function() {
+        return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
+    });
+*/
+
 	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO);
 	this.displayed.subscribe(function(displayed) {
         var self = this;
@@ -40,6 +46,8 @@ tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT = 9;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_SPAM = 10;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_INBOX_RULES_SETTINGS = 11;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTIFICATION_SETTINGS = 12;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_EMAIL_ALIAS = 13;
+tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE = 14;
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_NOTHING = 100;
 
 /**
@@ -66,7 +74,6 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
     var settings = [];
 
     if (tutao.locator.userController.isLoggedInUserAdmin() ) {
-        settings.push(s.DISPLAY_ADMIN_ACCOUNT_INFO);
         settings.push(s.DISPLAY_ADMIN_USER_LIST);
         settings.push(s.DISPLAY_ADMIN_MESSAGES);
         settings.push(s.DISPLAY_ADMIN_SPAM);
@@ -76,15 +83,20 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         if (this.isActivateExtensionEnabled()) {
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
+        if ( tutao.locator.viewManager.isPremiumAccount()) {
+            settings.push(s.DISPLAY_ADMIN_STORAGE);
+            settings.push(s.DISPLAY_ADMIN_EMAIL_ALIAS);
+        }
         if (!tutao.locator.viewManager.isFreeAccount() || this.bookingAvailable()) {
             settings.push(s.DISPLAY_ADMIN_INVOICING);
         }
         if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         }
+
     }
     return settings;
-};
+}
 
 /**
  * Provides the text id for the given setting.
@@ -93,9 +105,9 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(settings) {
     if (tutao.locator.viewManager.isFreeAccount()) {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action", "adminSpam_action", "inboxRulesSettings_action", "notificationSettings_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "upgradeToPremium_action", "adminSpam_action", "inboxRulesSettings_action", "notificationSettings_action", "mailAddressAliases_label", "storageCapacity_label" ][settings];
     } else {
-        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action", "adminSpam_action", "inboxRulesSettings_action", "notificationSettings_action"][settings];
+        return ["userInfo_action", "changePasswordSettings_action", "adminUserList_action", "unsubscribe_action", "adminPremiumFeatures_action", "display_action", "adminEmailSettings_action", "adminInvoicing_action", "adminAccountInfo_action", "adminPayment_action", "adminSpam_action", "inboxRulesSettings_action", "notificationSettings_action", "mailAddressAliases_label", "storageCapacity_label"][settings];
     }
 };
 

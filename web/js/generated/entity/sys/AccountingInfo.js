@@ -26,7 +26,7 @@ tutao.entity.sys.AccountingInfo = function(data) {
     this._invoiceVatIdNo_ = null;
     this._lastInvoiceNbrOfSentSms = null;
     this._lastInvoiceTimestamp = null;
-    this.paymentAccountIdentifier = null;
+    this._paymentAccountIdentifier = null;
     this._paymentAccountIdentifier_ = null;
     this._paymentInterval = null;
     this._paymentMethod = null;
@@ -64,7 +64,7 @@ tutao.entity.sys.AccountingInfo.prototype.updateData = function(data) {
   this._invoiceVatIdNo_ = null;
   this._lastInvoiceNbrOfSentSms = data.lastInvoiceNbrOfSentSms;
   this._lastInvoiceTimestamp = data.lastInvoiceTimestamp;
-  this.paymentAccountIdentifier = data.paymentAccountIdentifier;
+  this._paymentAccountIdentifier = data.paymentAccountIdentifier;
   this._paymentAccountIdentifier_ = null;
   this._paymentInterval = data.paymentInterval;
   this._paymentMethod = data.paymentMethod;
@@ -126,7 +126,7 @@ tutao.entity.sys.AccountingInfo.prototype.toJsonData = function() {
     invoiceVatIdNo: this._invoiceVatIdNo, 
     lastInvoiceNbrOfSentSms: this._lastInvoiceNbrOfSentSms, 
     lastInvoiceTimestamp: this._lastInvoiceTimestamp, 
-    paymentAccountIdentifier: this.paymentAccountIdentifier,
+    paymentAccountIdentifier: this._paymentAccountIdentifier, 
     paymentInterval: this._paymentInterval, 
     paymentMethod: this._paymentMethod, 
     paymentMethodInfo: this._paymentMethodInfo, 
@@ -428,11 +428,11 @@ tutao.entity.sys.AccountingInfo.prototype.getLastInvoiceTimestamp = function() {
  */
 tutao.entity.sys.AccountingInfo.prototype.setPaymentAccountIdentifier = function(paymentAccountIdentifier) {
   if (paymentAccountIdentifier == null) {
-    this.paymentAccountIdentifier = null;
+    this._paymentAccountIdentifier = null;
     this._paymentAccountIdentifier_ = null;
   } else {
     var dataToEncrypt = paymentAccountIdentifier;
-    this.paymentAccountIdentifier = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+    this._paymentAccountIdentifier = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
     this._paymentAccountIdentifier_ = paymentAccountIdentifier;
   }
   return this;
@@ -443,14 +443,14 @@ tutao.entity.sys.AccountingInfo.prototype.setPaymentAccountIdentifier = function
  * @return {string} The paymentAccountIdentifier of this AccountingInfo.
  */
 tutao.entity.sys.AccountingInfo.prototype.getPaymentAccountIdentifier = function() {
-  if (this.paymentAccountIdentifier == null || !this._entityHelper.getSessionKey()) {
+  if (this._paymentAccountIdentifier == null || !this._entityHelper.getSessionKey()) {
     return null;
   }
   if (this._paymentAccountIdentifier_ != null) {
     return this._paymentAccountIdentifier_;
   }
   try {
-    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this.paymentAccountIdentifier);
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._paymentAccountIdentifier);
     this._paymentAccountIdentifier_ = value;
     return value;
   } catch (e) {
