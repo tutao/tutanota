@@ -2,22 +2,18 @@
 
 tutao.provide('tutao.tutanota.ctrl.AdminBuyAliasViewModel.js');
 
+/*
+ * @implements tutao.tutanota.ctrl.BuyFeatureViewModel
+ * @constructor
+ */
 tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
-
-
-    this.headingTextId = "mailAddressAliases_label";
-    this.infoTextId = "buyEmailAliasInfo_label";
-
-    this.used = ko.observable("");
-
-    this.infoRecord = { nameTextId: "mailAddressAliases_label", oTextId: "emailAliasInfo_label", valueObservable: ko.observable("") };
-
     this._buyOptions = [];
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "0", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "10", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "50", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "100", []));
     this.currentValue = ko.observable(null);
+    this.used = ko.observable("-");
 
     var self = this;
     var user = tutao.locator.userController.getLoggedInUser();
@@ -32,7 +28,7 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
             var usedSharedEmailAliases = customerInfo.getUsedSharedEmailAliases();
 
             if (sharedEmailAliases > 0) {
-                self.used(sharedEmailAliases + " "+  tutao.lang('emailAliasesTotal_label') + " / " + usedSharedEmailAliases + " "+  tutao.lang('emailAliasesUsed_label'));
+                self.used(usedSharedEmailAliases);
             } else {
                 self.used("-");
             }
@@ -47,3 +43,13 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.updateCurrentValue = functi
 tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getBuyOptions = function () {
    return this._buyOptions;
 };
+
+tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getHeading = function () {
+    return tutao.lang('emailAliasesUsed_label') + ": " + this.used();
+};
+
+
+tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getInfoText = function () {
+    return tutao.lang('buyEmailAliasInfo_msg');
+};
+

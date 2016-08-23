@@ -161,6 +161,7 @@
 <script src="/js/ctrl/ButtonBarViewModel.js"></script>
 <script src="/js/ctrl/BuyDialogViewModel.js"></script>
 <script src="/js/ctrl/BuyFeatureModel.js"></script>
+<script src="/js/ctrl/BuyFeatureViewModel.js"></script>
 <script src="/js/ctrl/ChangePasswordViewModel.js"></script>
 <script src="/js/ctrl/ComposingMail.js"></script>
 <script src="/js/ctrl/ContactCsvConverter.js"></script>
@@ -274,6 +275,8 @@
 <script src="/js/event/ObservableInterface.js"></script>
 <script src="/js/event/PushListEventTracker.js"></script>
 <script src="/js/generated/entity/base/PersistenceResourcePostReturn.js"></script>
+<script src="/js/generated/entity/monitor/ReadCounterData.js"></script>
+<script src="/js/generated/entity/monitor/ReadCounterReturn.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfo.js"></script>
 <script src="/js/generated/entity/sys/AccountingInfoEditable.js"></script>
 <script src="/js/generated/entity/sys/AuthenticatedDevice.js"></script>
@@ -852,7 +855,7 @@
                                                 <input type="text" tabindex="20" class="recordValue inputField wide preSharedPasswordInput" data-bind="value: getEditableContact().presharedPassword, valueUpdate: 'input'"/>
                                             </div>
                                             <div class="recordStatus">
-                                                <div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                                <div class="pwStrengthBg" class="defaultMargin" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                                     <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, $parent.getPasswordStrength($data))) + '%' }"></div>
                                                 </div>
                                             </div>
@@ -1299,7 +1302,7 @@
 									<input id="newpassword" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: isFormEditable(), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 								</div>
 								<label for="newpassword" class="recordStatus" data-bind="css: getPassword1Status().type">
-									<div class="pwStrengthBg" class="defaultMargin dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+									<div class="pwStrengthBg" class="defaultMargin" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 										<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 									</div>
 									<div class="passwordStatus" data-bind="lang: getPassword1Status().text"></div>
@@ -1463,7 +1466,7 @@
 													<input id="changePasswordNew" class="inputField wide" type="password" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable:  (state.getState() == 'EnterPasswords'), value: password1, valueUpdate: 'input', css: getPassword1Status().type"/>
 												</div>
 												<label for="changePasswordNew" class="recordStatus" data-bind="css: getPassword1Status().type">
-													<div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+													<div class="pwStrengthBg" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
 														<div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
 													</div>
 													<div class="passwordStatus" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
@@ -2050,7 +2053,7 @@
                                         <input id="userPassword" class="inputField wide" type="text" data-bind="hasfocus: passwordFocused, enable: !busy() && isActive(), value: password, valueUpdate: 'input', css: getPasswordStatus().type"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type">
-                                        <div class="pwStrengthBg dataField" data-bind="visible: passwordChanged, attr: {title: tutao.lang('pwStrength_title') }">
+                                        <div class="pwStrengthBg" data-bind="visible: passwordChanged, attr: {title: tutao.lang('pwStrength_title') }">
                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
@@ -2072,6 +2075,13 @@
                                     </div>
                                 </div>
                             </div>
+							<div class="record">
+								<label class="recordName" data-bind="lang: 'storageCapacityUsed_label'"></label>
+								<div class="recordData">
+									<div class="recordValue" data-bind="text: usedStorage()">
+									</div>
+								</div>
+							</div>
                             <div class="record">
                                 <label for="admin" class="recordName" data-bind="lang: 'administrator_label'"></label>
                                 <div class="recordData">
@@ -2174,7 +2184,7 @@
                                         <input class="inputField wide" type="text" data-bind="enable: $parent.state.entering(), value: password, valueUpdate: 'input', css: getPasswordStatus().type, attr: {id: 'password' + $index()}"/>
                                     </div>
                                     <label class="recordStatus" data-bind="css: getPasswordStatus().type, attr: {for: 'password' + $index()}">
-                                        <div class="pwStrengthBg dataField" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
+                                        <div class="pwStrengthBg" data-bind="attr: {title: tutao.lang('pwStrength_title') }">
                                             <div class="pwStrengthFg" data-bind="style: { width: (100 - Math.max(10, getPasswordStrength())) + '%' }"></div>
                                         </div>
                                         <div class="passwordStatus" data-bind="lang: getPasswordStatus().text"></div>
@@ -2362,7 +2372,7 @@
     <div id="progressDialog" class="modalDialog" data-bind="with: tutao.locator.progressDialogModel, fadeVisible: tutao.locator.progressDialogModel.showDialog, fadeFinished: tutao.locator.progressDialogModel.fadeFinished">
         <div class="dialogWindow">
             <h2 data-bind="lang: title()" ></h2>
-            <div class="progressBg defaultMargin dataField" >
+            <div class="progressBg defaultMargin" >
                 <div class="progressFg" data-bind="style: { width: (100 - progress()) + '%' }"></div>
             </div>
         </div>
@@ -2513,12 +2523,10 @@
 
 	<!-- use this with a BuyFeatureViewModel -->
 	<script type="text/html"  id="buy-options-template">
-
-		<h1 class="centered" data-bind="lang: headingTextId"></h1>
+		<h1 class="centered" data-bind="text: getHeading()"></h1>
 		<div class="light defaultMargin" >
-			<span data-bind="lang: infoTextId"></span>
+			<span data-bind="text: getInfoText()"></span>
 		</div>
-
 		<div class="buyFeatureOptions" data-bind="foreach: { data: getBuyOptions() } ">
 			<div class="buyOptionBox">
 				<div class="buyOptionHeading">

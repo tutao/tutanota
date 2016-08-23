@@ -148,3 +148,13 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsDetailsColumnText = f
 tutao.tutanota.ctrl.SettingsViewModel.prototype.isActivateExtensionEnabled = function() {
     return tutao.env.mode == tutao.Mode.Browser;
 };
+
+
+tutao.tutanota.ctrl.SettingsViewModel.prototype.readCounterValue = function(monitorValue, ownerId) {
+    return tutao.entity.monitor.ReadCounterReturn.load(new tutao.entity.monitor.ReadCounterData().setMonitor(monitorValue).setOwner(ownerId), {}, null).then(function(readCounterReturn) {
+        return readCounterReturn.getValue();
+    });
+};
+
+
+

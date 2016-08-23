@@ -365,4 +365,7 @@ tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_REFUNDED = "9";
 tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_DISPUTEACCEPTED = "10";
 tutao.entity.tutanota.TutanotaConstants.INVOICE_STATUS_SECONDREMINDER = "11";
 
+tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_INTERNAL = "UsedMemoryInternalNew";
+tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_EXTERNAL = "UsedMemoryExternalNew";
+tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY = "UsedMemoryNew";
 

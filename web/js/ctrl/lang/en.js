@@ -702,8 +702,11 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailAddressAliasesShort_label" : "Aliases",
 
 
-  "buyStorageCapacityInfo_label": "Please choose one of the available storage packages to change the available storage capacity. Additional storage is shared by all users. Apart from that each user has a storage capacity of 1 GB.",
-  "buyEmailAliasInfo_label": "Please choose one of the email alias packages to change the number of available email aliases. Additionally booked email aliases can be used by any user. Apart from that each Premium user has 5 email aliases.",
+  "buyStorageCapacityInfo_msg": "Please choose one of the available storage packages to change the available storage capacity. Additional storage is shared by all users. Apart from that each user has a storage capacity of 1 GB.",
+  "buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. Additionally booked email aliases can be used by any user. Apart from that each Premium user has 5 email aliases.",
+  "storageCapacityUsed_label": "Used storage",
+  "emailAliasesUsed_label" : "Used email aliasses"
+
 
 
 };

@@ -39,6 +39,8 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     this.passwordChangeAllowed = ko.observable(false);
     this.deleteUserAllowed = ko.observable(false);
     this.modifyAdminAllowed = ko.observable(false);
+    this.usedStorage = ko.observable("-");
+
     var self = this;
     tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {
         if (userGroup.getType() == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
@@ -53,6 +55,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
             });
         }
     });
+    this.updateUsedStorage();
 };
 
 /**
@@ -284,4 +287,20 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.getPasswordStrength = funct
 
 tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isActive = function() {
     return (this.userGroupInfo.getDeleted() == null);
+};
+
+
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.updateUsedStorage = function() {
+    var mailGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL);
+    var contactGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT);
+    var fileGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE);
+
+    var self = this;
+    return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY, mailGroupid).then(function(mailStorage){
+        return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY, contactGroupid).then(function(contactStorage){
+            return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY, fileGroupid).then(function(fileStorage){
+                self.usedStorage( tutao.tutanota.util.Formatter.formatStorageSize(Number(mailStorage) + Number(contactStorage) + Number(fileStorage)));
+            });
+        });
+    });
 };

@@ -266,4 +266,42 @@ describe("FormatterTest", function () {
         assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test.test@test.toast.tutanota.de"));
         assert.equal("tutanota.de",  tutao.tutanota.util.Formatter.getDomainWithoutSubdomains("test.Test@tutaNota.de"));
     });
+
+
+    it(" formatBytes", function() {
+        assert.equal("0 GB",  tutao.tutanota.util.Formatter.formatStorageSize(0));
+        assert.equal("0 GB",  tutao.tutanota.util.Formatter.formatStorageSize(999));
+        var kByte = 1000;
+        assert.equal("0 GB",  tutao.tutanota.util.Formatter.formatStorageSize(kByte));
+
+        var mByte = kByte * kByte;
+        assert.equal("0 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte));
+        assert.equal("0,001 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte + 100));
+        assert.equal("0,001 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte + kByte));
+        assert.equal("0,001 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte + 100*kByte));
+        assert.equal("0,002 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte + 1000*kByte));
+        assert.equal("0,999 GB",  tutao.tutanota.util.Formatter.formatStorageSize(mByte * kByte -1));
+
+
+        var gByte = mByte * kByte;
+        assert.equal("1 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte));
+        assert.equal("1 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte + 100));
+        assert.equal("1,001 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte + mByte));
+        assert.equal("1,01 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte + 10*mByte));
+        assert.equal("1,1 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte + 100*mByte));
+        assert.equal("20 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte * 20));
+        assert.equal("999,999 GB",  tutao.tutanota.util.Formatter.formatStorageSize(gByte * kByte -1));
+
+
+        var tByte = gByte * kByte;
+        assert.equal("1000 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte));
+        assert.equal("1000 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte + 100));
+        assert.equal("1001 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte + gByte));
+        assert.equal("1010 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte + 10*gByte));
+        assert.equal("1100 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte + 100*gByte));
+        assert.equal("20000 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte * 20));
+        assert.equal("999999,999 GB",  tutao.tutanota.util.Formatter.formatStorageSize(tByte * kByte -10));
+
+    });
+
 });

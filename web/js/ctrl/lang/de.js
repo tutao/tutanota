@@ -196,7 +196,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "edit_action": "Bearbeiten",
   "emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
   "emailAliasesTotal_label": "insgesamt",
-  "emailAliasesUsed_label": "verwendet",
+
   "emailAliasInfo_label": "Zusätzliche Anzahl gebuchter E-Mail-Aliasse, die von beliebigen Benutzern verwendet werden können. Jeder Premium-Benutzer hat unabhängig davon 5 E-Mail-Aliasse zur Verfügung.",
   "emailSenderBlacklist_action": "Immer Spam",
   "emailSenderDiscardlist_action": "Verwerfen",
@@ -700,7 +700,9 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "paymentAccountRejected_msg": "Deine Kreditkarte oder dein PayPal-Account wurden schon einmal für eine andere Zahlung verwendet. Aus Sicherheitsgründen müssen wir dies erst freischalten. Wir senden dir eine E-Mail, sobald deine Zahlungsdaten freigeschaltet sind.",
   "mailAddressAliasesShort_label" : "Aliase",
 
-  "buyStorageCapacityInfo_label": "Bitte wähle eine der verfügbaren Speicher-Pakete aus um die verfügbare Speicherkapazität zu ändern. Zusätzlich gebuchte Speicherkapazität, kann von allen Benutzer geteilt werden. Jeder Benutzer hat unabhängig davon eine Speicherkapazität von 1 GB.",
-  "buyEmailAliasInfo_label": "Bitte wähle eine der verfügbaren E-Mail-Alias-Pakete aus um die verfügbaren E-Mail-Aliasse zu ändern. Zusätzlich gebuchte E-Mail-Aliasse, können von beliebigen Benutzern verwendet werden. Jeder Premium-Benutzer hat unabhängig davon 5 E-Mail-Aliasse zur Verfügung.",
+  "buyStorageCapacityInfo_msg": "Bitte wähle eine der verfügbaren Speicher-Pakete aus um die verfügbare Speicherkapazität zu ändern. Zusätzlich gebuchte Speicherkapazität, kann von allen Benutzer geteilt werden. Jeder Benutzer hat unabhängig davon eine Speicherkapazität von 1 GB.",
+  "buyEmailAliasInfo_msg": "Bitte wähle eine der verfügbaren E-Mail-Alias-Pakete aus um die verfügbaren E-Mail-Aliasse zu ändern. Zusätzlich gebuchte E-Mail-Aliasse, können von beliebigen Benutzern verwendet werden. Jeder Premium-Benutzer hat unabhängig davon 5 E-Mail-Aliasse zur Verfügung.",
+  "storageCapacityUsed_label": "Belegter Speicherplatz:",
+  "emailAliasesUsed_label": "Verwendete E-Mail-Aliasse:"
 
 };

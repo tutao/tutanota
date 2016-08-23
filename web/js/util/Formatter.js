@@ -392,4 +392,30 @@ tutao.tutanota.util.Formatter.urlEncodeHtmlTags = function(text) {
 };
 
 
+/**
+ * Formates the given storage size in bytes to string.
+ * @param Number The storage size value in bytes
+ * @returns {string} The formated bytes.
+ */
+tutao.tutanota.util.Formatter.formatStorageSize = function(bytes) {
+	var mByte = Math.pow(1000, 2); // or 1024 for binary
+	var gByte = Math.pow(1000, 3);
+	var floatValueAsString = "0";
+	if ( bytes > mByte) { // storage is at least 1 MB
+		 floatValueAsString = (bytes / gByte).toString();
+	}
+	var parts = floatValueAsString.split('.');
+	if (parts.length > 1) { // cut of last
+		var decimalPlaces = parts[1];
+		if (decimalPlaces.length > 3) {
+			decimalPlaces = decimalPlaces.substr(0,3);
+		}
+		if ( Number(decimalPlaces) > 0){
+			floatValueAsString = parts[0] + ',' + decimalPlaces;
+		} else {
+			floatValueAsString = parts[0];
+		}
+	}
+	return floatValueAsString + ' GB';
+};
 
