@@ -66,15 +66,23 @@ tutao.tutanota.ctrl.BuyFeatureModel.prototype.buy = function () {
     }
     var self = this;
     self.busy(true);
-    tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount).then(function(accepted){
+    tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount).then(function(accepted) {
         if (accepted) {
             var service = new tutao.entity.sys.BookingServiceData();
             service.setAmount(self._featureAmount);
             service.setFeatureType(self._featureType);
             service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
-            service.setup({}, null).then(function(){
+            return service.setup({}, null).then(function () {
                 self._parent.updateCurrentValue(service.getAmount());
             })
+        }
+    }).caught(tutao.PreconditionFailedError, function (error) {
+        if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES){
+            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("emailAliasesToManyActivatedForBooking_msg"));
+        } else if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
+            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("storageCapacityToManyUsedForBooking_msg"));
+        } else {
+            throw error;
         }
     }).lastly(function(){
         self.busy(false);

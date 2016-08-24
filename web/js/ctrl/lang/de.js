@@ -703,6 +703,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "buyStorageCapacityInfo_msg": "Bitte wähle eine der verfügbaren Speicher-Pakete aus um die verfügbare Speicherkapazität zu ändern. Zusätzlich gebuchte Speicherkapazität, kann von allen Benutzer geteilt werden. Jeder Benutzer hat unabhängig davon eine Speicherkapazität von 1 GB.",
   "buyEmailAliasInfo_msg": "Bitte wähle eine der verfügbaren E-Mail-Alias-Pakete aus um die verfügbaren E-Mail-Aliasse zu ändern. Zusätzlich gebuchte E-Mail-Aliasse, können von beliebigen Benutzern verwendet werden. Jeder Premium-Benutzer hat unabhängig davon 5 E-Mail-Aliasse zur Verfügung.",
   "storageCapacityUsed_label": "Belegter Speicherplatz:",
-  "emailAliasesUsed_label": "Verwendete E-Mail-Aliasse:"
+  "emailAliasesUsed_label": "Verwendete E-Mail-Aliasse:",
+  "emailAliasesToManyActivatedForBooking_msg": "Es sind zu viele E-Mail-Aliasse für diese Buchung aktiviert. Bitte deaktiviere alle nicht mehr benötigten E-Mail-Aliasse.",
+  "storageCapacityToManyUsedForBooking_msg": "Es wird zu viel Speicherplatz für diese Buchung verbraucht. Bitte lösche nicht mehr benötigte Inhalte."
 
 };
