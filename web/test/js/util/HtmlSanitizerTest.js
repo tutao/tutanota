@@ -33,6 +33,7 @@ describe("HtmlSanitizerTest", function () {
         var sanitizedLink = tutao.locator.htmlSanitizer.sanitize(simpleHtmlLink, true).text;
         assert.include(sanitizedLink, 'href="https://tutanota.com"');
         assert.include(sanitizedLink, 'target="_blank"');
+        assert.include(sanitizedLink, 'rel="noopener noreferrer"');
         assert.include(sanitizedLink, '>here</a>');
 
         var htmlLink = '<a href="https://www.coursera.org/maestro/auth/normal/change_email.php?payload=9722E7n3bcN/iM08q79eG2plUafuyc6Yj631JIMAuZgGAQL0UdTqbP7w2bH8b7fmpsljKMVVVpF81l0zD1HMVQ==|Iv5+NfeRQh0Gk7/Idr0jsIZfC69Mnixw0FNbTRNmuUTgIqLefDMOhKBqY8prtvyBB7jV8kZy9XtGDue7uuUMwNYv1ucDvn/RYt76LAVXIQrY9BhW1Y381ZyMbuhB14LERDe05DUJgQI6XkM9gxM3APT7RZs48ERUIb/MstkJtxw=">here</a>';
@@ -40,6 +41,7 @@ describe("HtmlSanitizerTest", function () {
 
         assert.include(sanitizedLink, 'href="https://www.coursera.org/maestro/auth/normal/change_email.php?payload=9722E7n3bcN/iM08q79eG2plUafuyc6Yj631JIMAuZgGAQL0UdTqbP7w2bH8b7fmpsljKMVVVpF81l0zD1HMVQ==|Iv5+NfeRQh0Gk7/Idr0jsIZfC69Mnixw0FNbTRNmuUTgIqLefDMOhKBqY8prtvyBB7jV8kZy9XtGDue7uuUMwNYv1ucDvn/RYt76LAVXIQrY9BhW1Y381ZyMbuhB14LERDe05DUJgQI6XkM9gxM3APT7RZs48ERUIb/MstkJtxw="');
         assert.include(sanitizedLink, 'target="_blank"');
+        assert.include(sanitizedLink, 'rel="noopener noreferrer"');
         assert.include(sanitizedLink, '>here</a>');
     });
 

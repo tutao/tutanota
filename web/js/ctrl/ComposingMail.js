@@ -142,10 +142,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype._hasAttachmentsChanged = function() 
 };
 
 /**
- * @param {string} bodyText The unsanitized body text. May be an empty string.
+ * @param {string} bodyText The unsanitized body text. The external content is not blocked. May be an empty string.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.setBody = function(bodyText) {
-    tutao.locator.mailView.setComposingBody(bodyText);
+    tutao.locator.mailView.setComposingBody(bodyText, false);
     this._lastBodyText = tutao.locator.mailView.getComposingBody();
 };
 

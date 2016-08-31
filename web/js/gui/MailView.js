@@ -140,13 +140,14 @@ tutao.tutanota.gui.MailView.prototype.isPasswordChannelColumnVisible = function(
 /**
  * Sets the composing mail body text.
  * @param {string} text The html body text.
+ * @param {bool} blockExternalContent If external images shall be blocked.
  */
-tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text) {
+tutao.tutanota.gui.MailView.prototype.setComposingBody = function(text, blockeExternalContent) {
 	var composeBody = $(".conversation").find(".composeBody");
     if (composeBody.length == 0) {
         throw new Error("no composing mail created");
     }
-	var result = tutao.locator.htmlSanitizer.sanitize(text, false);
+	var result = tutao.locator.htmlSanitizer.sanitize(text, blockeExternalContent);
     composeBody.append(result.text);
     this.addSubmitCheckToDivs(composeBody);
 };
