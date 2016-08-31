@@ -72,14 +72,14 @@ tutao.tutanota.Bootstrap.init = function () {
             var listener = new tutao.tutanota.ctrl.AppCacheListener();
         }
 
-
-		// open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
-		$(document).on("click", "a", function(e){
-			tutao.tutanota.gui.openLink(this.href);
-            return false;
-		});
-
         if (tutao.env.mode == tutao.Mode.App) {
+            // open links in default browser on mobile devices. Requires cordova plugin org.apache.cordova.inappbrowser
+            // do not register the click event for Tutanota in normal browsers, because it can not add "noopener" to the "rel" tag and setting it in the new opened window with JS does not work in Safari. See https://dev.to/ben/the-targetblank-vulnerability-by-example
+            $(document).on("click", "a", function (e) {
+                tutao.tutanota.gui.openLink(this.href);
+                return false;
+            });
+
 			if (cordova.platformId == "android") {
 				var util = new tutao.native.device.Util();
 				document.addEventListener("backbutton", function () {
