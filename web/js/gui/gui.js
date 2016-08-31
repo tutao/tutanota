@@ -972,8 +972,9 @@ tutao.tutanota.gui.adjustPanelHeight = function () {
 
 
 /**
- * Opens a link in a new browser window
- * @param {string} href
+ * Opens a link in a new browser window. Attention: does not take care of rel="noopener"! Only open links with this this function if we are sure they are no security risk
+ * @param {string} href The URL to open.
+ * @return {window} The opened window.
  */
 tutao.tutanota.gui.openLink = function(href) {
     if (tutao.env.mode == tutao.Mode.App) {

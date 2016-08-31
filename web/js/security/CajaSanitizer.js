@@ -71,7 +71,7 @@ tutao.tutanota.security.CajaSanitizer.prototype.sanitize = function(html, blockE
 
 		// set target="_blank" for all links
 		var domHtml = $('<div>').append(cleanHtml);
-		domHtml.find("a").attr("target", "_blank");
+		domHtml.find("a").attr({ target: "_blank", rel: "noopener noreferrer" });
 
 		return {"text" : domHtml.html(), "externalImages" : externalImages };
 	} catch (e) {

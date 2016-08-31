@@ -372,7 +372,14 @@ tutao.tutanota.util.Formatter.urlify = function(text) {
 		switch( match.getType() ) {
 			case 'url' :
 				// true: let Autolinker perform its normal anchor tag replacement,  false: don't auto-link this particular item leave as-is
-				return tutao.util.StringUtils.startsWith( match.getMatchedText(),  "http") || tutao.util.StringUtils.startsWith( match.getMatchedText(),  "www.");
+				if (tutao.util.StringUtils.startsWith( match.getMatchedText(),  "http") || tutao.util.StringUtils.startsWith( match.getMatchedText(),  "www.")) {
+					var tag = match.buildTag(); // returns an `Autolinker.HtmlTag` instance for an <a> tag
+					tag.setAttr('target', '_blank');
+					tag.setAttr('rel', 'noopener noreferrer');
+					return tag;
+				} else {
+					return false;
+				}
 		}
 	}});
 };

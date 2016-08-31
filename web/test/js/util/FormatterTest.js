@@ -209,14 +209,14 @@ describe("FormatterTest", function () {
 
     it(" validHtmlLinks", function() {
         // html links
-        assert.equal('<a href=\"http://hello.it\" target=\"_blank\">http://hello.it</a>', tutao.tutanota.util.Formatter.urlify("http://hello.it"));
-        assert.equal('<a href=\"https://hello.it\" target=\"_blank\">https://hello.it</a>', tutao.tutanota.util.Formatter.urlify("https://hello.it"));
-        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\">http://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("http://www.tutanota.de"));
-        assert.equal('<a href=\"https://www.tutanota.de\" target=\"_blank\">https://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("https://www.tutanota.de"));
+        assert.equal('<a href=\"http://hello.it\" target=\"_blank\" rel=\"noopener noreferrer\">http://hello.it</a>', tutao.tutanota.util.Formatter.urlify("http://hello.it"));
+        assert.equal('<a href=\"https://hello.it\" target=\"_blank\" rel=\"noopener noreferrer\">https://hello.it</a>', tutao.tutanota.util.Formatter.urlify("https://hello.it"));
+        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">http://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("http://www.tutanota.de"));
+        assert.equal('<a href=\"https://www.tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">https://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("https://www.tutanota.de"));
            // email adresses
-        assert.equal('<a href=\"mailto:bed-free@tutanota.de\" target=\"_blank\">bed-free@tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("bed-free@tutanota.de"));
+        assert.equal('<a href=\"mailto:bed-free@tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">bed-free@tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("bed-free@tutanota.de"));
 
-        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\">http://www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("www.tutanota.de"));
+        assert.equal('<a href=\"http://www.tutanota.de\" target=\"_blank\" rel=\"noopener noreferrer\">www.tutanota.de</a>', tutao.tutanota.util.Formatter.urlify("www.tutanota.de"));
     });
 
     it(" invalidHtmlLinks", function() {

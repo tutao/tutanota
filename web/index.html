@@ -948,7 +948,7 @@
 													<div class="mediumSizeColumn light" data-bind="text: tutao.entity.tutanota.ContactWrapper.getAddressTypeName($data)"></div>
 													<div class="" data-bind="text: getAddress()"></div>
 													<div class="smallButtonColumn">
-														<a target="_blank" data-bind="attr: { href: $parent.getMapUrl($data) }">
+														<a target="_blank" rel="noopener noreferrer" data-bind="attr: { href: $parent.getMapUrl($data) }">
 															<div class="fontImage right" data-bind="attr: {title: tutao.lang('showAddress_alt')}"></div>
 														</a>
 													</div>
@@ -964,7 +964,7 @@
 													<div class="" data-bind="text: getSocialId()"></div>
 													<div class="smallButtonColumn">
 														<!-- ko if: $parent.getSocialIdUrl($data) != null -->
-														<a target="_blank" data-bind="attr: { href: $parent.getSocialIdUrl($data) }">
+														<a target="_blank" rel="noopener noreferrer" data-bind="attr: { href: $parent.getSocialIdUrl($data) }">
 															<div class="fontImage right" data-bind="attr: {title: tutao.lang('openSocial_alt')}"></div>
 														</a>
 														<!-- /ko -->
@@ -1129,12 +1129,12 @@
 						<div id="unsupportedBrowserMessage" data-bind="lang: 'unsupportedBrowser_msg'"></div>
 					<!-- /ko -->
 					<ul>
-						<li><a target="_blank" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
-                        <li><a target="_blank" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
-                        <li><a target="_blank" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
-                        <li><a target="_blank" href="http://www.apple.com/de/safari">Safari (Desktop, iOS)</a></li>
-						<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
-                        <li><a target="_blank" href="http://de.blackberry.com/software/smartphones/blackberry-10-os.html">Blackberry 10</a></li>
+						<li><a target="_blank" rel="noopener noreferrer" href="http://www.mozilla.org/de/firefox">Firefox (Desktop)</a></li>
+                        <li><a target="_blank" rel="noopener noreferrer" href="http://www.google.com/chrome">Chrome (Desktop, Android)</a></li>
+                        <li><a target="_blank" rel="noopener noreferrer" href="http://www.opera.com/de/mobile/operabrowser">Opera (Desktop, Android)</a></li>
+                        <li><a target="_blank" rel="noopener noreferrer" href="http://www.apple.com/de/safari">Safari (Desktop, iOS)</a></li>
+						<li><a target="_blank" rel="noopener noreferrer" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
+                        <li><a target="_blank" rel="noopener noreferrer" href="http://de.blackberry.com/software/smartphones/blackberry-10-os.html">Blackberry 10</a></li>
 					</ul>
 					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
 				</div>
@@ -1309,7 +1309,7 @@
 								</label>
 								<label class="recordStatus invalid"><b data-bind="lang: 'passwordImportance_msg'"></b></label>
 								<!-- ko if: !tutao.env.isIOSApp() -->
-								<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
+								<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" rel="noopener noreferrer" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
 								<!-- /ko -->
 							</div>
 						</div>
@@ -1370,9 +1370,9 @@
 					<div class="smallInfoMessage">
 						<span data-bind="lang: 'browserNoKeygen_msg'"></span><br>
 						<ul>
-							<li><a target="_blank" href="http://www.google.com/chrome">Google Chrome</a></li>
-							<li><a target="_blank" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
-							<li><a target="_blank" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
+							<li><a target="_blank" rel="noopener noreferrer" href="http://www.google.com/chrome">Google Chrome</a></li>
+							<li><a target="_blank" rel="noopener noreferrer" href="http://http://www.mozilla.org/de/firefox">Mozilla Firefox</a></li>
+							<li><a target="_blank" rel="noopener noreferrer" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Microsoft Internet Explorer 10/11</a></li>
 						</ul>
 						<br><span data-bind="lang: 'thanks_msg'"></span><br><span data-bind="lang: 'claim_label'"></span>
 					</div>
@@ -1386,9 +1386,9 @@
 				<!-- ko if: pageStatus() == tutao.tutanota.ctrl.RegistrationViewModel.PAGE_STATUS_DISABLED -->
 					<div class="smallInfoMessage socialMediaLinks">
 						<div data-bind="lang: 'regDisabledFree_msg'"></div>
-						<a href="https://twitter.com/TutanotaTeam" target="_blank"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
-						<a href="https://www.facebook.com/tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
-						<a href="https://plus.google.com/+Tutanota" target="_blank"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
+						<a href="https://twitter.com/TutanotaTeam" target="_blank" rel="noopener noreferrer"><img class="socialMediaIcon" src="graphics/twitter.png"></a>
+						<a href="https://www.facebook.com/tutanota" target="_blank" rel="noopener noreferrer"><img class="socialMediaIcon" src="graphics/facebook.png"></a>
+						<a href="https://plus.google.com/+Tutanota" target="_blank" rel="noopener noreferrer"><img class="socialMediaIcon" src="graphics/google-plus.png"></a>
 					</div>
 				<!-- /ko -->
 			</div>
@@ -1471,7 +1471,7 @@
 													</div>
 													<div class="passwordStatus" data-bind="css: getPassword1Status().type, lang: getPassword1Status().text"></div>
 												</label>
-												<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
+												<div class="recordInfo"><a href="https://en.wikipedia.org/wiki/Password_strength#Guidelines_for_strong_passwords" target="_blank" rel="noopener noreferrer" data-bind="lang: 'goodPassphrase_action' " tabindex="-1"></a></div>
 											</div>
 										</div>
 										<div class="record">
@@ -1784,7 +1784,7 @@
                                     <h1 class="centered" data-bind="lang: 'upgradeToPremiumHeading_label', visible: (step() > -1)"></h1>
                                     <div class="light defaultMargin" data-bind="visible: step() == 0">
                                         <span data-bind="lang: 'premiumOffer_msg'"></span>
-                                        <span data-bind="lang: 'moreInfo_msg'"></span> <a target="_blank" href="https://tutanota.com/pricing">https://tutanota.com/pricing</a>
+                                        <span data-bind="lang: 'moreInfo_msg'"></span> <a target="_blank" rel="noopener noreferrer" href="https://tutanota.com/pricing">https://tutanota.com/pricing</a>
                                     </div>
                                     <form class="recordContainer wide" data-bind="if: !state.loading() && step() == 0, submit: enterAccountingInfo, form: true">
                                         <div class="record">
@@ -1953,7 +1953,7 @@
                                                 <button class="single" data-bind="css: { disabled: busy() || !properties().smallLogo() }, lang: 'delete_action', fastClick: deleteSmallLogo"></button>
                                             </div>
                                             <label for="smallCustomLogo" class="recordInfo">
-                                                <span data-bind="lang: 'moreInfo_msg'"> </span> <a target="_blank" data-bind="text: getLogoInfoLink(), attr: { href: getLogoInfoLink() }"></a>
+                                                <span data-bind="lang: 'moreInfo_msg'"> </span> <a target="_blank" rel="noopener noreferrer" data-bind="text: getLogoInfoLink(), attr: { href: getLogoInfoLink() }"></a>
                                             </label>
                                         </div>
                                     </div>
@@ -1966,7 +1966,7 @@
                                                 <button class="single" data-bind="css: { disabled: busy() || !properties().bigLogo() }, lang: 'delete_action', fastClick: deleteBigLogo"></button>
                                             </div>
                                             <label for="bigCustomLogo" class="recordInfo">
-                                                <span data-bind="lang: 'moreInfo_msg'"> </span> <a target="_blank" data-bind="text: getLogoInfoLink(), attr: { href: getLogoInfoLink() }"></a>
+                                                <span data-bind="lang: 'moreInfo_msg'"> </span> <a target="_blank" rel="noopener noreferrer" data-bind="text: getLogoInfoLink(), attr: { href: getLogoInfoLink() }"></a>
                                             </label>
                                         </div>
                                     </div>
