@@ -39,7 +39,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
     this.passwordChangeAllowed = ko.observable(false);
     this.deleteUserAllowed = ko.observable(false);
     this.modifyAdminAllowed = ko.observable(false);
-    this.usedStorage = ko.observable("-");
+    this.usedStorage = ko.observable("0");
 
     var self = this;
     tutao.entity.sys.Group.load(userGroupInfo.getGroup()).then(function(userGroup) {

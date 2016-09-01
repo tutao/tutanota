@@ -36,6 +36,9 @@ describe("ClassHierarchiesTest", function () {
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.rest.EntityRestClient, tutao.rest.EntityRestInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.rest.EntityRestDummy, tutao.rest.EntityRestInterface));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.rest.EntityRestCache, tutao.rest.EntityRestInterface));
+
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.tutanota.ctrl.AdminBuyAliasViewModel, tutao.tutanota.ctrl.BuyFeatureViewModel));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.tutanota.ctrl.AdminBuyStorageViewModel, tutao.tutanota.ctrl.BuyFeatureViewModel));
     });
 
     it("CheckInterface ", function () {

@@ -1,19 +1,21 @@
 "use strict";
 
-tutao.provide('tutao.tutanota.ctrl.AdminBuyAliasViewModel.js');
+tutao.provide('tutao.tutanota.ctrl.AdminBuyAliasViewModel');
 
 /*
  * @implements tutao.tutanota.ctrl.BuyFeatureViewModel
  * @constructor
  */
 tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
     this._buyOptions = [];
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "0", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "10", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "50", []));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "100", []));
     this.currentValue = ko.observable(null);
-    this.used = ko.observable("-");
+    this.used = ko.observable("0");
 
     var self = this;
     var user = tutao.locator.userController.getLoggedInUser();
@@ -25,13 +27,7 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
             self.updateCurrentValue(bookEmailAliases.toString());
             self._buyOptions[0].freeAmount(freeEmailAliases);
 
-            var usedSharedEmailAliases = customerInfo.getUsedSharedEmailAliases();
-
-            if (sharedEmailAliases > 0) {
-                self.used(usedSharedEmailAliases);
-            } else {
-                self.used("-");
-            }
+            self.used(customerInfo.getUsedSharedEmailAliases());
         });
     })
 };

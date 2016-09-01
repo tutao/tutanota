@@ -12,8 +12,8 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
 
     this.items = ko.observableArray();
     this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, name: "bookingItemUsers_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: "bookingItemStorage_label", currentAmount: ko.observable(1), nextAmount: ko.observable(1), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, name: "mailAddressAliases_label", currentAmount: ko.observable(1), nextAmount: ko.observable(1), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: "bookingItemStorage_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, name: "mailAddressAliases_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
 
     this.orderStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
     this.orderSubmitStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });

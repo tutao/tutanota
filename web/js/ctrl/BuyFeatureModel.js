@@ -7,6 +7,8 @@ tutao.provide('tutao.tutanota.ctrl.BuyFeatureModel.js');
 
 
 tutao.tutanota.ctrl.BuyFeatureModel = function(parentModel, featureType, featureAmount) {
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
+
     this._parent = parentModel;
     this._featureType = featureType;
     this.active = ko.observable(false);

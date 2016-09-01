@@ -6,6 +6,7 @@ tutao.provide('tutao.tutanota.ctrl.AdminBuyStorageViewModel.js');
 * @constructor
 */
 tutao.tutanota.ctrl.AdminBuyStorageViewModel = function(adminEditUserViewModel) {
+    tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._buyOptions = [];
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "0", []));
