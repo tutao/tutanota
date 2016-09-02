@@ -362,7 +362,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._switchFreeToPremiumGroup = f
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype._customerUpdated = function() {
     this.customer.unregisterObserver(this._customerUpdated);
-    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_ACCOUNT_INFO);
+    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING);
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
