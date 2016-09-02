@@ -11,9 +11,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.storage = ko.observable(0);
 
     this.items = ko.observableArray();
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, name: "bookingItemUsers_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: "bookingItemStorage_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
-    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, name: "mailAddressAliases_label", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, name: tutao.lang("bookingItemUsers_label"), currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, name: tutao.lang("bookingItemStorage_label") + " (GB)", currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
+    this.items.push({ type: tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, name: tutao.lang("mailAddressAliases_label"), currentAmount: ko.observable(0), nextAmount: ko.observable(0), currentPrice: ko.observable(0), nextPrice: ko.observable(0) });
 
     this.orderStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
     this.orderSubmitStatus = ko.observable({ type: "neutral", text: "emptyString_msg" });
@@ -121,16 +121,12 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getNetGrossInfoTextId = fu
 };
 
 tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getAmountText = function(item) {
-    var unitPostfix = "";
-    if (item.type == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE) {
-        unitPostfix = " GB";
-    }
     if (!this.price()) {
         return tutao.lang('loading_msg');
     } else if (item.currentAmount() != item.nextAmount()) {
-        return item.currentAmount() + unitPostfix + " (" + item.nextAmount() + unitPostfix + ")*";
+        return item.currentAmount() + " (" + item.nextAmount() + ")*";
     } else {
-        return item.currentAmount() + unitPostfix;
+        return item.currentAmount();
     }
 };
 
@@ -138,9 +134,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getPriceText = function(it
     if (!this.price()) {
         return tutao.lang('loading_msg');
     } else if (item.currentPrice() != item.nextPrice()) {
-        return tutao.util.BookingUtils.formatPrice(item.currentPrice()) + " (" + tutao.util.BookingUtils.formatPrice(item.nextPrice()) + ")*";
+        return tutao.util.BookingUtils.formatPrice(item.currentPrice(), false) + " (" + tutao.util.BookingUtils.formatPrice(item.nextPrice(), false) + ")*";
     } else {
-        return tutao.util.BookingUtils.formatPrice(item.currentPrice());
+        return tutao.util.BookingUtils.formatPrice(item.currentPrice(), false);
     }
 };
 
@@ -148,9 +144,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.getTotalPriceText = functi
     if (!this.price()) {
         return tutao.lang('loading_msg');
     } else if (this.price().getCurrentPriceThisPeriod().getPrice() != this.price().getCurrentPriceNextPeriod().getPrice()) {
-        return tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceThisPeriod().getPrice())) + " (" + tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceNextPeriod().getPrice())) + ")*";
+        return tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceThisPeriod().getPrice()), false) + " (" + tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceNextPeriod().getPrice()), false) + ")*";
     } else {
-        return tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceThisPeriod().getPrice()));
+        return tutao.util.BookingUtils.formatPrice(Number(this.price().getCurrentPriceThisPeriod().getPrice()), false);
     }
 };
 
@@ -235,7 +231,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel.prototype.payInvoice = function(invo
     this._updatingInvoiceStatus(true);
     var self = this;
     var confirmMessage = tutao.lang( "invoicePayConfirm_msg", { "{invoiceNumber}" : invoice.getNumber(), "{invoiceDate}" : tutao.tutanota.util.Formatter.formatDate(invoice.getDate())});
-    var priceMessage = tutao.lang('bookingTotalPrice_label') + ": " + tutao.util.BookingUtils.formatPrice(Number(invoice.getGrandTotal()));
+    var priceMessage = tutao.lang('bookingTotalPrice_label') + ": " + tutao.util.BookingUtils.formatPrice(Number(invoice.getGrandTotal()), false);
     tutao.locator.modalDialogViewModel.showDialog([confirmMessage, priceMessage], ["invoicePay_action", "cancel_action"]).then(function(buttonIndex){
         if (buttonIndex == 0) {
             var service = new tutao.entity.sys.DebitServicePutData();

@@ -37,16 +37,18 @@ tutao.util.BookingUtils.getCurrentPrice = function() {
 /**
  * Formats the given price including currency.
  * @param {Number} price The given price.
+ * @param {boolean} includeCurrency true if the currency should be included.
  * @returns {string} The price string.
  */
-tutao.util.BookingUtils.formatPrice = function(price) {
+tutao.util.BookingUtils.formatPrice = function(price, includeCurrency ) {
     var string = price.toFixed(2).replace(".", ",");
+    var currency = includeCurrency ? (" " + tutao.entity.tutanota.TutanotaConstants.CURRENCY_SYMBOL_EUR) : "";
     if (string.indexOf(",") == -1) {
-        return string + ",00 EUR";
+        return string + ",00" + currency;
     } else if (string.indexOf(",") == string.length - 2) {
-        return string + "0 EUR";
+        return string + "0" + currency;
     } else {
-        return string + " EUR";
+        return string + currency;
     }
 };
 

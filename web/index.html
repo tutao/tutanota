@@ -1743,12 +1743,12 @@
 									<div class="dataTable">
 										<div class="" data-bind="lang: 'bookingItem_label'"></div>
 										<div class="mediumSizeColumn" data-bind="lang: 'bookingAmount_label'"></div>
-										<div class="mediumSizeColumn price" data-bind="lang: 'bookingPrice_label'"></div>
+										<div class="mediumSizeColumn price" data-bind="text: tutao.lang('bookingPrice_label') + ' (' + tutao.entity.tutanota.TutanotaConstants.CURRENCY_SYMBOL_EUR + ')'"></div>
 									</div>
 									<hr/>
 									<!-- ko foreach: items -->
 									<div class="dataTable">
-										<div class="light" data-bind="lang: name"></div>
+										<div class="light" data-bind="text: name"></div>
 										<div class="mediumSizeColumn light" data-bind="text: $parent.getAmountText($data)"></div>
 										<div class="mediumSizeColumn light price" data-bind="text: $parent.getPriceText($data)"></div>
 									</div>
@@ -1766,7 +1766,7 @@
 									<div class="" data-bind="lang: 'date_label'"></div>
 									<div class="mediumSizeColumn" data-bind="lang: 'invoiceState_label'"></div>
 									<div class="smallButtonColumn"></div> <!-- placeholder for download invoice column. -->
-									<div class="mediumSizeColumn price" data-bind="lang: 'invoiceTotal_label'"></div>
+									<div class="mediumSizeColumn price" data-bind="text: tutao.lang('invoiceTotal_label') + ' (' + tutao.entity.tutanota.TutanotaConstants.CURRENCY_SYMBOL_EUR + ')'"></div>
 								</div>
 								<hr/>
 								<!-- ko foreach: invoices -->

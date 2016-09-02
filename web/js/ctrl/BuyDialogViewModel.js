@@ -131,9 +131,10 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
         var periodText = (this._price.getFuturePriceNextPeriod().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
         var futurePriceItem = this._getItem(this._price.getFuturePriceNextPeriod());
         if (futurePriceItem.getSingleType()) {
-            return tutao.util.BookingUtils.formatPrice(Number(this._price.getFuturePriceNextPeriod().getPrice()) - Number(this._price.getCurrentPriceNextPeriod().getPrice())) + " " + periodText + " (" + netGrossText + ")";
+            var priceDiff = Number(futurePriceItem.getPrice()) - Number(this._getItem(this._price.getCurrentPriceNextPeriod()).getPrice()); // getPrice returns the total price for an item
+            return tutao.util.BookingUtils.formatPrice(priceDiff, true) + " " + periodText + " (" + netGrossText + ")";
         } else {
-            return tutao.util.BookingUtils.formatPrice(Number(futurePriceItem.getPrice())) + " " + periodText + " (" + netGrossText + ")";
+            return tutao.util.BookingUtils.formatPrice(Number(futurePriceItem.getPrice()), true) + " " + periodText + " (" + netGrossText + ")";
         }
     }
 };
@@ -142,7 +143,7 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceInfoText = function() {
     if (!this.loaded()) {
         return tutao.lang("loading_msg");
     } else if (this._price.getCurrentPeriodAddedPrice() != null && this._price.getCurrentPeriodAddedPrice() > 0) {
-        return tutao.lang("priceForCurrentAccountingPeriod_label", { "{1}": tutao.util.BookingUtils.formatPrice(Number(this._price.getCurrentPeriodAddedPrice())) });
+        return tutao.lang("priceForCurrentAccountingPeriod_label", { "{1}": tutao.util.BookingUtils.formatPrice(Number(this._price.getCurrentPeriodAddedPrice())) }, true);
     } else if (this.isUnbuy()) {
         return tutao.lang("priceChangeValidFrom_label", { "{1}": tutao.tutanota.util.Formatter.formatDate(this._price.getPeriodEndDate()) });
     } else {

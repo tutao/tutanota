@@ -27,7 +27,7 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
         return Promise.each(newPrice.getFuturePriceNextPeriod().getItems(), function(priceItem){
             if ( priceItem.getFeatureType() == self._featureType){
                 var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
-                self.price(tutao.util.BookingUtils.formatPrice(Number(priceItem.getPrice())));
+                self.price(tutao.util.BookingUtils.formatPrice(Number(priceItem.getPrice()), true));
                 if (paymentInterval == "12") {
                     self.paymentIntervalText(tutao.lang('perYear_label'));
                 } else {
