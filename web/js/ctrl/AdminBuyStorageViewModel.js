@@ -9,10 +9,10 @@ tutao.tutanota.ctrl.AdminBuyStorageViewModel = function(adminEditUserViewModel) 
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._buyOptions = [];
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "0", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "10", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "100", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "1000", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "0", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "10", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "100", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE, "1000", []));
 
     this.currentValue = ko.observable(null);
     this.busy = ko.observable(false);

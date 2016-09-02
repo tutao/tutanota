@@ -10,10 +10,10 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._buyOptions = [];
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "0", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "10", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "50", []));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyFeatureModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "100", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "0", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "10", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "40", []));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, "100", []));
     this.currentValue = ko.observable(null);
     this.used = ko.observable("0");
 

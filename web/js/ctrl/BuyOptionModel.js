@@ -3,10 +3,10 @@
  */
 
 
-tutao.provide('tutao.tutanota.ctrl.BuyFeatureModel.js');
+tutao.provide('tutao.tutanota.ctrl.BuyOptionModel.js');
 
 
-tutao.tutanota.ctrl.BuyFeatureModel = function(parentModel, featureType, featureAmount) {
+tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureAmount) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this._parent = parentModel;
@@ -41,7 +41,7 @@ tutao.tutanota.ctrl.BuyFeatureModel = function(parentModel, featureType, feature
 };
 
 
-tutao.tutanota.ctrl.BuyFeatureModel.prototype.getFeatureText = function () {
+tutao.tutanota.ctrl.BuyOptionModel.prototype.getFeatureText = function () {
     if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
         if ( this._featureAmount == 0) {
             return this.freeAmount() + " GB";
@@ -62,7 +62,7 @@ tutao.tutanota.ctrl.BuyFeatureModel.prototype.getFeatureText = function () {
 };
 
 
-tutao.tutanota.ctrl.BuyFeatureModel.prototype.buy = function () {
+tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
     if (!this.isBuyEnabled()) {
         return;
     }
@@ -91,10 +91,10 @@ tutao.tutanota.ctrl.BuyFeatureModel.prototype.buy = function () {
     });
 };
 
-tutao.tutanota.ctrl.BuyFeatureModel.prototype.isBuyEnabled = function () {
+tutao.tutanota.ctrl.BuyOptionModel.prototype.isBuyEnabled = function () {
     return  this.isBuyVisible() && !this.busy();
 };
 
-tutao.tutanota.ctrl.BuyFeatureModel.prototype.isBuyVisible = function () {
+tutao.tutanota.ctrl.BuyOptionModel.prototype.isBuyVisible = function () {
     return this._featureAmount != this._parent.currentValue();
 };

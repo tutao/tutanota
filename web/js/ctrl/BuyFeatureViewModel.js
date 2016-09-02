@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.getInfoText = function () {};
 
 /**
  * Returns a list of available buy options for this feature.
- * @return {Array.<tutao.tutanota.ctrl.BuyFeatureModel>} description of the feature.
+ * @return {Array.<tutao.tutanota.ctrl.BuyOptionModel>} description of the feature.
  */
 tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.getBuyOptions = function () {};
 
