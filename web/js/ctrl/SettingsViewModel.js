@@ -10,12 +10,6 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
     this.adminUserListViewModel = ko.observable(null);
 
-    /*
-    this.accountType =  ko.computed(function() {
-        return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
-    });
-*/
-
 	this.displayed = ko.observable(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO);
 	this.displayed.subscribe(function(displayed) {
         var self = this;
@@ -87,16 +81,15 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
             settings.push(s.DISPLAY_ADMIN_STORAGE);
             settings.push(s.DISPLAY_ADMIN_EMAIL_ALIAS);
         }
-        if (!tutao.locator.viewManager.isFreeAccount() || this.bookingAvailable()) {
-            settings.push(s.DISPLAY_ADMIN_INVOICING);
-        }
+        settings.push(s.DISPLAY_ADMIN_INVOICING);
+
         if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         }
 
     }
     return settings;
-}
+};
 
 /**
  * Provides the text id for the given setting.

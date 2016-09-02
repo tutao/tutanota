@@ -23,6 +23,10 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.invoices = ko.observableArray();
     this._updatingInvoiceStatus = ko.observable(false);
 
+    this.accountType =  ko.computed(function() {
+        return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
+    });
+
 
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
@@ -33,37 +37,38 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
             self.items()[1].nextAmount(storageCapacity);
             self.items()[2].currentAmount(customerInfo.getSharedEmailAliases());
             self.items()[2].nextAmount(customerInfo.getSharedEmailAliases());
-
-            customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                tutao.util.BookingUtils.getCurrentPrice().then(function(price) {
-                    self.price(price);
-                    for (var i=0; i<price.getCurrentPriceThisPeriod().getItems().length; i++) {
-                        var priceItemData = price.getCurrentPriceThisPeriod().getItems()[i];
-                        for (var a=0; a<self.items().length; a++) {
-                            var item = self.items()[a];
-                            if (item.type == priceItemData.getFeatureType()) {
-                                item.currentAmount(Number(priceItemData.getCount()));
-                                item.currentPrice(Number(priceItemData.getPrice()));
-                                break;
-                            }
-                        }
-                    }
-                    for (i=0; i<price.getCurrentPriceNextPeriod().getItems().length; i++) {
-                        priceItemData = price.getCurrentPriceNextPeriod().getItems()[i];
-                        for (a=0; a<self.items().length; a++) {
-                            item = self.items()[a];
-                            if (item.type == priceItemData.getFeatureType()) {
-                                item.nextAmount(Number(priceItemData.getCount()));
-                                item.nextPrice(Number(priceItemData.getPrice()));
-                                if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
-                                    self.showNextPeriodInfo(true);
+            if(customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM){ // only load prices for premium accounts.
+                customerInfo.loadAccountingInfo().then(function(accountingInfo) {
+                    tutao.util.BookingUtils.getCurrentPrice().then(function(price) {
+                        self.price(price);
+                        for (var i=0; i<price.getCurrentPriceThisPeriod().getItems().length; i++) {
+                            var priceItemData = price.getCurrentPriceThisPeriod().getItems()[i];
+                            for (var a=0; a<self.items().length; a++) {
+                                var item = self.items()[a];
+                                if (item.type == priceItemData.getFeatureType()) {
+                                    item.currentAmount(Number(priceItemData.getCount()));
+                                    item.currentPrice(Number(priceItemData.getPrice()));
+                                    break;
                                 }
-                                break;
                             }
                         }
-                    }
+                        for (i=0; i<price.getCurrentPriceNextPeriod().getItems().length; i++) {
+                            priceItemData = price.getCurrentPriceNextPeriod().getItems()[i];
+                            for (a=0; a<self.items().length; a++) {
+                                item = self.items()[a];
+                                if (item.type == priceItemData.getFeatureType()) {
+                                    item.nextAmount(Number(priceItemData.getCount()));
+                                    item.nextPrice(Number(priceItemData.getPrice()));
+                                    if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
+                                        self.showNextPeriodInfo(true);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    });
                 });
-            });
+            }
             return customerInfo;
         }).then(function(customerInfo) {
             return customerInfo.loadAccountingInfo().then(function(accountingInfo) {

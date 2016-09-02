@@ -1716,24 +1716,30 @@
                             <!-- /ko -->
                             <!-- ko if: displayed() == tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_INVOICING -->
                             <div data-bind="with: new tutao.tutanota.ctrl.AdminInvoicingViewModel()" >
-                                <div data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
-                                    <h2 data-bind="lang: 'currentlyBooked_label'"></h2>
-                                    <div class="recordContainer wide" data-bind="form: true">
-                                        <div class="record">
-                                            <label class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
-                                            <div class="recordData">
-                                                <div class="recordValue" data-bind="lang: getUsageTextId()"></div>
-                                                <div class="recordInfo" data-bind="lang: getNetGrossInfoTextId()"></div>
-                                            </div>
-                                        </div>
-                                        <div class="record">
-                                            <label class="recordName" data-bind="lang: 'subscription_label'"></label>
-                                            <div class="recordData">
-                                                <div class="recordValue" data-bind="lang: getSubscriptionTextId()"></div>
-                                                <div class="recordInfo" data-bind="text: getEndOfSubscriptionText()"></div>
-                                            </div>
-                                        </div>
-                                    </div>
+								<h2 data-bind="lang: 'currentlyBooked_label'"></h2>
+								<div class="recordContainer wide" data-bind="form: true">
+									<div class="record">
+										<label class="recordName" data-bind="lang: 'accountType_label'"></label>
+										<div class="recordData">
+											<div class="recordValue" data-bind="text: accountType()"></div>
+										</div>
+									</div>
+									<div class="record" data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
+										<label class="recordName" data-bind="lang: 'businessOrPrivateUsage_label'"></label>
+										<div class="recordData">
+											<div class="recordValue" data-bind="lang: getUsageTextId()"></div>
+											<div class="recordInfo" data-bind="lang: getNetGrossInfoTextId()"></div>
+										</div>
+									</div>
+									<div class="record" data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
+										<label class="recordName" data-bind="lang: 'subscription_label'"></label>
+										<div class="recordData">
+											<div class="recordValue" data-bind="lang: getSubscriptionTextId()"></div>
+											<div class="recordInfo" data-bind="text: getEndOfSubscriptionText()"></div>
+										</div>
+									</div>
+								</div>
+								<div data-bind="visible: tutao.locator.viewManager.isPremiumAccount()">
 									<div class="dataTable">
 										<div class="" data-bind="lang: 'bookingItem_label'"></div>
 										<div class="mediumSizeColumn" data-bind="lang: 'bookingAmount_label'"></div>
