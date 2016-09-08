@@ -31,6 +31,14 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
+            var storageCapacity = Math.max(Number(customerInfo.getIncludedStorageCapacity()), Number(customerInfo.getPromotionStorageCapacity()));
+            var emailAliases = Math.max(Number(customerInfo.getIncludedEmailAliases()), Number(customerInfo.getPromotionEmailAliases()));
+
+            self.items()[1].currentAmount(storageCapacity);
+            self.items()[1].nextAmount(storageCapacity);
+            self.items()[2].currentAmount(emailAliases);
+            self.items()[2].nextAmount(emailAliases);
+
             if(customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM){ // only load prices for premium accounts.
                 customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                     tutao.util.BookingUtils.getCurrentPrice().then(function(price) {
@@ -40,7 +48,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                             for (var a=0; a<self.items().length; a++) {
                                 var item = self.items()[a];
                                 if (item.type == priceItemData.getFeatureType()) {
-                                    item.currentAmount(Number(priceItemData.getCount()));
+                                    if ( Number(priceItemData.getCount()) != 0){
+                                        item.currentAmount(Number(priceItemData.getCount()));
+                                    }
                                     item.currentPrice(Number(priceItemData.getPrice()));
                                     break;
                                 }
@@ -51,7 +61,9 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                             for (a=0; a<self.items().length; a++) {
                                 item = self.items()[a];
                                 if (item.type == priceItemData.getFeatureType()) {
-                                    item.nextAmount(Number(priceItemData.getCount()));
+                                    if ( Number(priceItemData.getCount()) != 0){
+                                        item.nextAmount(Number(priceItemData.getCount()));
+                                    }
                                     item.nextPrice(Number(priceItemData.getPrice()));
                                     if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
                                         self.showNextPeriodInfo(true);

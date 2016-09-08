@@ -11,7 +11,7 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
 
     this._buyOptions = [];
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, 0));
-    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, 10));
+    this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, 20));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, 40));
     this._buyOptions.push(new tutao.tutanota.ctrl.BuyOptionModel(this, tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES, 100));
     this._currentValue = ko.observable(null);
@@ -47,11 +47,7 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getBuyOptions = function ()
 };
 
 tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getHeading = function () {
-    var text = tutao.lang('emailAliasesUsed_label') + ": " + this._usedAliases();
-    if (this._usedAliases() > 0) {
-        text += " " + tutao.lang("emailAliasesEnabled_label") +  ": " + this._activeAliases();
-    }
-    return text;
+    return tutao.lang('emailAliasesUsed_label', {"{used}": this._usedAliases(), "{active}": this._activeAliases()});
 };
 
 

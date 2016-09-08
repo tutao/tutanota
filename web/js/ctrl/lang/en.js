@@ -196,7 +196,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "edit_action": "Edit",
   "emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
   "emailAliasesTotal_label": "total",
-  "emailAliasesUsed_label": "used",
   "emailAliasInfo_label": "Additionally booked email aliases which can be used by any user. Apart from that each Premium user has 5 email aliases.",
   "emailSenderBlacklist_action": "Always spam",
   "emailSenderDiscardlist_action": "Discard",
@@ -699,14 +698,11 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "envelopeSenderInfo_msg": "The technical sender is different than the email address in 'From'. As 'From' can be faked, the technical sender is also displayed to understand who actually sent this email.",
   "paymentAccountRejected_msg": "Your credit card or PayPal account was already used for a different Tutanota payment. For security reasons we have to activate this first. We will send you an email as soon as your payment data is activated.",
 
-  "mailAddressAliasesShort_label" : "Aliases",
-
-
+  "mailAddressAliasesShort_label" : "aliases",
   "buyStorageCapacityInfo_msg": "Please choose one of the available storage packages to change the available storage capacity. Additional storage is shared by all users. Apart from that each user has a storage capacity of 1 GB.",
   "buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. Additionally booked email aliases can be used by any user. Apart from that each Premium user has 5 email aliases.",
-  "storageCapacityUsed_label": "Used storage",
-  "emailAliasesUsed_label" : "Email aliases used",
-  "emailAliasesEnabled_label" : "enabled",
+  "storageCapacityUsed_label": "{storage} used",
+  "emailAliasesUsed_label" : "{used} used, {active} activated",
   "emailAliasesToManyActivatedForBooking_msg": "They are too many email aliases active to process this order. Please deactivate you email aliases first.",
   "storageCapacityToManyUsedForBooking_msg": "There is too much storage used to process this order. Please free some memory to continue.",
   "included_label" : "Included",

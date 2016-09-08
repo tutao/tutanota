@@ -52,7 +52,7 @@ tutao.tutanota.ctrl.AdminBuyStorageViewModel.prototype.getBuyOptions = function 
 };
 
 tutao.tutanota.ctrl.AdminBuyStorageViewModel.prototype.getHeading = function () {
-    return tutao.lang('storageCapacityUsed_label') + ": "+ tutao.tutanota.util.Formatter.formatStorageSize(this._usedMemory());
+    return tutao.lang('storageCapacityUsed_label', {"{storage}": tutao.tutanota.util.Formatter.formatStorageSize(this._usedMemory())});
 };
 
 

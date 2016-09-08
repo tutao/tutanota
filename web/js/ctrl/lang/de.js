@@ -698,16 +698,15 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "noMailHeadersInfo_msg": "Keine E-Mail-Header verfügbar, da dies keine empfangene SMTP-Nachricht ist.",
   "envelopeSenderInfo_msg": "Dieser technische Absender ist eine andere E-Mail-Adresse als die in 'Von' angegebene. Da 'Von' gefälscht werden kann, wird als Information auch der technische Absender angezeigt.",
   "paymentAccountRejected_msg": "Deine Kreditkarte oder dein PayPal-Account wurden schon einmal für eine andere Zahlung verwendet. Aus Sicherheitsgründen müssen wir dies erst freischalten. Wir senden dir eine E-Mail, sobald deine Zahlungsdaten freigeschaltet sind.",
-  "mailAddressAliasesShort_label" : "Aliase",
+  "mailAddressAliasesShort_label" : "Aliasse",
 
   "buyStorageCapacityInfo_msg": "Bitte wähle eine der verfügbaren Speicher-Pakete aus um die verfügbare Speicherkapazität zu ändern. Zusätzlich gebuchte Speicherkapazität, kann von allen Benutzer geteilt werden. Jeder Benutzer hat unabhängig davon eine Speicherkapazität von 1 GB.",
   "buyEmailAliasInfo_msg": "Bitte wähle eine der verfügbaren E-Mail-Alias-Pakete aus um die verfügbaren E-Mail-Aliasse zu ändern. Zusätzlich gebuchte E-Mail-Aliasse, können von beliebigen Benutzern verwendet werden. Jeder Premium-Benutzer hat unabhängig davon 5 E-Mail-Aliasse zur Verfügung.",
-  "storageCapacityUsed_label": "Belegter Speicherplatz",
-  "emailAliasesUsed_label": "E-Mail-Aliasse verwendet",
-  "emailAliasesEnabled_label" : "aktiviert",
+  "storageCapacityUsed_label": "{storage} verwendet",
+  "emailAliasesUsed_label": "{used} verwendet, {active} aktiviert",
   "emailAliasesToManyActivatedForBooking_msg": "Es sind zu viele E-Mail-Aliasse für diese Buchung aktiviert. Bitte deaktiviere alle nicht mehr benötigten E-Mail-Aliasse.",
   "storageCapacityToManyUsedForBooking_msg": "Es wird zu viel Speicherplatz für diese Buchung verbraucht. Bitte lösche nicht mehr benötigte Inhalte.",
   "included_label" : "Inklusive",
-  "accountSwitchAdditionalPackagesActive_msg" : "Bitte deaktiviere alle zusätzlich gebuchten Alias- oder Speicher-Pakete, dann kann der Account-Typ gewechselt werden.",
+  "accountSwitchAdditionalPackagesActive_msg" : "Bitte deaktiviere alle zusätzlich gebuchten Alias- und Speicher-Pakete, dann kann der Account-Typ gewechselt werden.",
 
 };
