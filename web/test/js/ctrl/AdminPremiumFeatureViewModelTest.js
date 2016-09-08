@@ -7,7 +7,7 @@ describe("AdminPremiumFeatureViewModelTest", function () {
 
     beforeEach(function () {
         var customerInfoMock  = {};
-        customerInfoMock.getStorageCapacity = function(){return 1};
+        customerInfoMock.getIncludedStorageCapacity = function(){return 1};
         var customerMock = {};
         customerMock.loadCustomerInfo = function(){return Promise.resolve(customerInfoMock)};
         var userMock = {};

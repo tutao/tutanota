@@ -31,12 +31,6 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
         return customer.loadCustomerInfo().then(function(customerInfo) {
-            var storageCapacity = customerInfo.getStorageCapacity() > 1 ? customerInfo.getStorageCapacity() : 0;
-
-            self.items()[1].currentAmount(storageCapacity);
-            self.items()[1].nextAmount(storageCapacity);
-            self.items()[2].currentAmount(customerInfo.getSharedEmailAliases());
-            self.items()[2].nextAmount(customerInfo.getSharedEmailAliases());
             if(customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM){ // only load prices for premium accounts.
                 customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                     tutao.util.BookingUtils.getCurrentPrice().then(function(price) {

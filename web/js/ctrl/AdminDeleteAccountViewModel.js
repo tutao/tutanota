@@ -60,6 +60,9 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.unsubscribePremium = f
             }).caught(tutao.InvalidDataError, function (exception) {
                 self.state.setFailureMessage("accountSwitchTooManyActiveUsers_msg");
                 self.state.failure(true);
+            }).caught(tutao.PreconditionFailedError, function (exception) {
+                self.state.setFailureMessage("accountSwitchAdditionalPackagesActive_msg");
+                self.state.failure(true);
             }).caught(function (error) {
                 self.state.failure(true);
             });

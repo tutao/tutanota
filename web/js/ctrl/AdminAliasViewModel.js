@@ -41,12 +41,12 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype._updateNumberOfAvailableAliase
         var self = this;
         return tutao.entity.sys.MailAddressAliasServiceReturn.load({}, null).then(function (mailAddressAliasServiceReturn) {
             var customerInfo = self._editUserViewModel.adminUserListViewModel.customerInfo();
-            var availableSharedAliases = Number(customerInfo.getSharedEmailAliases()) - Number(customerInfo.getUsedSharedEmailAliases()); // calculate number of free shared aliases
-            var availableUserAliases = Number(mailAddressAliasServiceReturn.getNbrOfFreeAliases()) - self.aliasList().length; // calculate the number free user aliases
-            if (availableUserAliases < 0) {
-                availableUserAliases = 0;
+            var totalSharedAliases = Number(mailAddressAliasServiceReturn.getTotalAliases());
+            var availableSharedAliases = totalSharedAliases - Number(mailAddressAliasServiceReturn.getUsedAliases());
+            if (availableSharedAliases < 0) {
+                availableSharedAliases = 0;
             }
-            self.maxNbrOfAliases(availableUserAliases + availableSharedAliases);
+            self.maxNbrOfAliases(availableSharedAliases);
             if (self.maxNbrOfAliases() == 0) {
                 self.mailAddressStatus({type: "neutral", text: "adminMaxNbrOfAliasesReached_msg"});
                 self.inputEnabled(false);

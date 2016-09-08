@@ -28,4 +28,17 @@ tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.getInfoText = function () {};
 tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.getBuyOptions = function () {};
 
 
+/**
+ * Updates the current buy option.
+ * @param {tutao.tutanota.ctrl.BuyOptionModel} newValue
+ */
+tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.updateCurrentOption = function (newValue) {};
+
+/**
+ * @return {tutao.tutanota.ctrl.BuyOptionModel} The current buy option.
+ */
+tutao.tutanota.ctrl.BuyFeatureViewModel.prototype.getCurrentOption = function () {};
+
+
+
 

@@ -11,7 +11,10 @@ tutao.entity.sys.MailAddressAliasServiceReturn = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._enabledAliases = null;
     this._nbrOfFreeAliases = null;
+    this._totalAliases = null;
+    this._usedAliases = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.MailAddressAliasServiceReturn.prototype;
@@ -23,7 +26,10 @@ tutao.entity.sys.MailAddressAliasServiceReturn = function(data) {
  */
 tutao.entity.sys.MailAddressAliasServiceReturn.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._enabledAliases = data.enabledAliases;
   this._nbrOfFreeAliases = data.nbrOfFreeAliases;
+  this._totalAliases = data.totalAliases;
+  this._usedAliases = data.usedAliases;
 };
 
 /**
@@ -51,7 +57,10 @@ tutao.entity.sys.MailAddressAliasServiceReturn.prototype.ENCRYPTED = false;
 tutao.entity.sys.MailAddressAliasServiceReturn.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    nbrOfFreeAliases: this._nbrOfFreeAliases
+    enabledAliases: this._enabledAliases, 
+    nbrOfFreeAliases: this._nbrOfFreeAliases, 
+    totalAliases: this._totalAliases, 
+    usedAliases: this._usedAliases
   };
 };
 
@@ -73,6 +82,23 @@ tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getFormat = function() 
 };
 
 /**
+ * Sets the enabledAliases of this MailAddressAliasServiceReturn.
+ * @param {string} enabledAliases The enabledAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.setEnabledAliases = function(enabledAliases) {
+  this._enabledAliases = enabledAliases;
+  return this;
+};
+
+/**
+ * Provides the enabledAliases of this MailAddressAliasServiceReturn.
+ * @return {string} The enabledAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getEnabledAliases = function() {
+  return this._enabledAliases;
+};
+
+/**
  * Sets the nbrOfFreeAliases of this MailAddressAliasServiceReturn.
  * @param {string} nbrOfFreeAliases The nbrOfFreeAliases of this MailAddressAliasServiceReturn.
  */
@@ -87,6 +113,40 @@ tutao.entity.sys.MailAddressAliasServiceReturn.prototype.setNbrOfFreeAliases = f
  */
 tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getNbrOfFreeAliases = function() {
   return this._nbrOfFreeAliases;
+};
+
+/**
+ * Sets the totalAliases of this MailAddressAliasServiceReturn.
+ * @param {string} totalAliases The totalAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.setTotalAliases = function(totalAliases) {
+  this._totalAliases = totalAliases;
+  return this;
+};
+
+/**
+ * Provides the totalAliases of this MailAddressAliasServiceReturn.
+ * @return {string} The totalAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getTotalAliases = function() {
+  return this._totalAliases;
+};
+
+/**
+ * Sets the usedAliases of this MailAddressAliasServiceReturn.
+ * @param {string} usedAliases The usedAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.setUsedAliases = function(usedAliases) {
+  this._usedAliases = usedAliases;
+  return this;
+};
+
+/**
+ * Provides the usedAliases of this MailAddressAliasServiceReturn.
+ * @return {string} The usedAliases of this MailAddressAliasServiceReturn.
+ */
+tutao.entity.sys.MailAddressAliasServiceReturn.prototype.getUsedAliases = function() {
+  return this._usedAliases;
 };
 
 /**

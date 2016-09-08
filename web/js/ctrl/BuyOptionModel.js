@@ -5,7 +5,13 @@
 
 tutao.provide('tutao.tutanota.ctrl.BuyOptionModel.js');
 
-
+/**
+ *
+ * @param {tutao.tutanota.ctrl.BuyFeatureViewModel} parentModel
+ * @param {string} featureType The booking item feature type.s
+ * @param {Number} featureAmount
+ * @constructor
+ */
 tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureAmount) {
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
@@ -13,27 +19,37 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
     this._featureType = featureType;
     this.active = ko.observable(false);
     this._featureAmount = featureAmount;
-    this.freeAmount = ko.observable("0");
+    this.freeAmount = ko.observable(0);
     this.price = ko.observable("");
     this.busy = ko.observable(true);
 
     this.paymentInterval = ko.observable("");
     this.paymentIntervalText = ko.observable("");
 
-
     var self = this;
+
     // init price
     tutao.util.BookingUtils.getPrice(this._featureType, featureAmount, null, null, null).then(function(newPrice) {
-        return Promise.each(newPrice.getFuturePriceNextPeriod().getItems(), function(priceItem){
-            if ( priceItem.getFeatureType() == self._featureType){
-                var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
-                self.price(tutao.util.BookingUtils.formatPrice(Number(priceItem.getPrice()), true));
-                if (paymentInterval == "12") {
-                    self.paymentIntervalText(tutao.lang('perYear_label'));
-                } else {
-                    self.paymentIntervalText(tutao.lang('perMonth_label'));
-                }
+        var currentCount = 0;
+        return Promise.each(newPrice.getCurrentPriceNextPeriod().getItems(), function(priceItem){
+            if (priceItem.getFeatureType() == self._featureType){
+                currentCount = Number(priceItem.getCount());
             }
+        }).then(function(){
+            if (self._featureAmount == currentCount) {
+                self._parent.updateCurrentOption(self);
+            }
+            return Promise.each(newPrice.getFuturePriceNextPeriod().getItems(), function(priceItem){
+                if ( priceItem.getFeatureType() == self._featureType){
+                    var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
+                    self.price(tutao.util.BookingUtils.formatPrice(Number(priceItem.getPrice()), true));
+                    if (paymentInterval == "12") {
+                        self.paymentIntervalText(tutao.lang('perYear_label'));
+                    } else {
+                        self.paymentIntervalText(tutao.lang('perMonth_label'));
+                    }
+                }
+            });
         });
     }).lastly(function(){
         self.busy(false);
@@ -42,20 +58,15 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
 
 
 tutao.tutanota.ctrl.BuyOptionModel.prototype.getFeatureText = function () {
+    var visibleAmount = this.getVisibleAmount();
     if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
-        if ( this._featureAmount == 0) {
-            return this.freeAmount() + " GB";
-        } else if (this._featureAmount < 1000) {
-            return this._featureAmount + " GB";
+         if (visibleAmount < 1000) {
+            return visibleAmount + " GB";
         } else {
-            return (this._featureAmount / 1000) + " TB";
+            return (visibleAmount / 1000) + " TB";
         }
     } else  if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES ){
-        if ( this._featureAmount == 0){
-            return this.freeAmount() + " " + tutao.lang("mailAddressAliasesShort_label");
-        } else {
-            return this._featureAmount + " " + tutao.lang("mailAddressAliasesShort_label");
-        }
+        return visibleAmount + " " + tutao.lang("mailAddressAliasesShort_label");
     } else {
         return "";  // should not happen
     }
@@ -71,11 +82,11 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
     tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount).then(function(accepted) {
         if (accepted) {
             var service = new tutao.entity.sys.BookingServiceData();
-            service.setAmount(self._featureAmount);
+            service.setAmount(self._featureAmount.toString());
             service.setFeatureType(self._featureType);
             service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
             return service.setup({}, null).then(function () {
-                self._parent.updateCurrentValue(service.getAmount());
+                self._parent.updateCurrentOption(self);
             })
         }
     }).caught(tutao.PreconditionFailedError, function (error) {
@@ -96,5 +107,24 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.isBuyEnabled = function () {
 };
 
 tutao.tutanota.ctrl.BuyOptionModel.prototype.isBuyVisible = function () {
-    return this._featureAmount != this._parent.currentValue();
+    return  this._parent.getCurrentOption() != this && (this == this._parent.getBuyOptions()[0] || this.getVisibleAmount() > this._parent.getBuyOptions()[0].getVisibleAmount());
 };
+
+tutao.tutanota.ctrl.BuyOptionModel.prototype.getStatusText = function () {
+    if ( this._parent.getCurrentOption() == this) {
+        return tutao.lang('activated_label');
+    } else {
+        return tutao.lang('included_label');
+    }
+};
+
+tutao.tutanota.ctrl.BuyOptionModel.prototype.getVisibleAmount = function () {
+    return Math.max(this._featureAmount, this.freeAmount());
+};
+
+
+
+
+
+
+

@@ -16,10 +16,12 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	this.deletionReason = ko.observable(customerinfo.getDeletionReason());
 	this.deletionTime = ko.observable(customerinfo.getDeletionTime());
 	this.domain = ko.observable(customerinfo.getDomain());
+	this.includedEmailAliases = ko.observable(customerinfo.getIncludedEmailAliases());
+	this.includedStorageCapacity = ko.observable(customerinfo.getIncludedStorageCapacity());
+	this.promotionEmailAliases = ko.observable(customerinfo.getPromotionEmailAliases());
+	this.promotionStorageCapacity = ko.observable(customerinfo.getPromotionStorageCapacity());
 	this.registrationMailAddress = ko.observable(customerinfo.getRegistrationMailAddress());
-	this.sharedEmailAliases = ko.observable(customerinfo.getSharedEmailAliases());
 	this.source = ko.observable(customerinfo.getSource());
-	this.storageCapacity = ko.observable(customerinfo.getStorageCapacity());
 	this.testEndTime = ko.observable(customerinfo.getTestEndTime());
 	this.usedSharedEmailAliases = ko.observable(customerinfo.getUsedSharedEmailAliases());
 	if (customerinfo.getBookings()) {
@@ -57,10 +59,12 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 	this._entity.setDeletionReason(this.deletionReason());
 	this._entity.setDeletionTime(this.deletionTime());
 	this._entity.setDomain(this.domain());
+	this._entity.setIncludedEmailAliases(this.includedEmailAliases());
+	this._entity.setIncludedStorageCapacity(this.includedStorageCapacity());
+	this._entity.setPromotionEmailAliases(this.promotionEmailAliases());
+	this._entity.setPromotionStorageCapacity(this.promotionStorageCapacity());
 	this._entity.setRegistrationMailAddress(this.registrationMailAddress());
-	this._entity.setSharedEmailAliases(this.sharedEmailAliases());
 	this._entity.setSource(this.source());
-	this._entity.setStorageCapacity(this.storageCapacity());
 	this._entity.setTestEndTime(this.testEndTime());
 	this._entity.setUsedSharedEmailAliases(this.usedSharedEmailAliases());
 		if (this.bookings()) {

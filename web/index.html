@@ -2545,7 +2545,7 @@
 				</div>
 				<div class="buyOptionFooter">
 					<!-- ko if: isBuyVisible() --> <button  class="single wide" data-bind="lang: 'order_action', fastClick: buy, css: { disabled: !isBuyEnabled() }"></button><!-- /ko -->
-					<!-- ko if: !isBuyVisible() --><div  class="centered" data-bind="lang: 'activated_label'"></div><!-- /ko -->
+					<!-- ko if: !isBuyVisible() --><div  class="centered" data-bind="text: getStatusText()"></div><!-- /ko -->
 				</div>
 			</div>
 		</div>

@@ -20,10 +20,12 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._deletionReason = null;
     this._deletionTime = null;
     this._domain = null;
+    this._includedEmailAliases = null;
+    this._includedStorageCapacity = null;
+    this._promotionEmailAliases = null;
+    this._promotionStorageCapacity = null;
     this._registrationMailAddress = null;
-    this._sharedEmailAliases = null;
     this._source = null;
-    this._storageCapacity = null;
     this._testEndTime = null;
     this._usedSharedEmailAliases = null;
     this._accountingInfo = null;
@@ -50,10 +52,12 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   this._deletionReason = data.deletionReason;
   this._deletionTime = data.deletionTime;
   this._domain = data.domain;
+  this._includedEmailAliases = data.includedEmailAliases;
+  this._includedStorageCapacity = data.includedStorageCapacity;
+  this._promotionEmailAliases = data.promotionEmailAliases;
+  this._promotionStorageCapacity = data.promotionStorageCapacity;
   this._registrationMailAddress = data.registrationMailAddress;
-  this._sharedEmailAliases = data.sharedEmailAliases;
   this._source = data.source;
-  this._storageCapacity = data.storageCapacity;
   this._testEndTime = data.testEndTime;
   this._usedSharedEmailAliases = data.usedSharedEmailAliases;
   this._accountingInfo = data.accountingInfo;
@@ -111,10 +115,12 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     deletionReason: this._deletionReason, 
     deletionTime: this._deletionTime, 
     domain: this._domain, 
+    includedEmailAliases: this._includedEmailAliases, 
+    includedStorageCapacity: this._includedStorageCapacity, 
+    promotionEmailAliases: this._promotionEmailAliases, 
+    promotionStorageCapacity: this._promotionStorageCapacity, 
     registrationMailAddress: this._registrationMailAddress, 
-    sharedEmailAliases: this._sharedEmailAliases, 
     source: this._source, 
-    storageCapacity: this._storageCapacity, 
     testEndTime: this._testEndTime, 
     usedSharedEmailAliases: this._usedSharedEmailAliases, 
     accountingInfo: this._accountingInfo, 
@@ -309,6 +315,74 @@ tutao.entity.sys.CustomerInfo.prototype.getDomain = function() {
 };
 
 /**
+ * Sets the includedEmailAliases of this CustomerInfo.
+ * @param {string} includedEmailAliases The includedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setIncludedEmailAliases = function(includedEmailAliases) {
+  this._includedEmailAliases = includedEmailAliases;
+  return this;
+};
+
+/**
+ * Provides the includedEmailAliases of this CustomerInfo.
+ * @return {string} The includedEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getIncludedEmailAliases = function() {
+  return this._includedEmailAliases;
+};
+
+/**
+ * Sets the includedStorageCapacity of this CustomerInfo.
+ * @param {string} includedStorageCapacity The includedStorageCapacity of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setIncludedStorageCapacity = function(includedStorageCapacity) {
+  this._includedStorageCapacity = includedStorageCapacity;
+  return this;
+};
+
+/**
+ * Provides the includedStorageCapacity of this CustomerInfo.
+ * @return {string} The includedStorageCapacity of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getIncludedStorageCapacity = function() {
+  return this._includedStorageCapacity;
+};
+
+/**
+ * Sets the promotionEmailAliases of this CustomerInfo.
+ * @param {string} promotionEmailAliases The promotionEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setPromotionEmailAliases = function(promotionEmailAliases) {
+  this._promotionEmailAliases = promotionEmailAliases;
+  return this;
+};
+
+/**
+ * Provides the promotionEmailAliases of this CustomerInfo.
+ * @return {string} The promotionEmailAliases of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getPromotionEmailAliases = function() {
+  return this._promotionEmailAliases;
+};
+
+/**
+ * Sets the promotionStorageCapacity of this CustomerInfo.
+ * @param {string} promotionStorageCapacity The promotionStorageCapacity of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setPromotionStorageCapacity = function(promotionStorageCapacity) {
+  this._promotionStorageCapacity = promotionStorageCapacity;
+  return this;
+};
+
+/**
+ * Provides the promotionStorageCapacity of this CustomerInfo.
+ * @return {string} The promotionStorageCapacity of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getPromotionStorageCapacity = function() {
+  return this._promotionStorageCapacity;
+};
+
+/**
  * Sets the registrationMailAddress of this CustomerInfo.
  * @param {string} registrationMailAddress The registrationMailAddress of this CustomerInfo.
  */
@@ -326,23 +400,6 @@ tutao.entity.sys.CustomerInfo.prototype.getRegistrationMailAddress = function() 
 };
 
 /**
- * Sets the sharedEmailAliases of this CustomerInfo.
- * @param {string} sharedEmailAliases The sharedEmailAliases of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.setSharedEmailAliases = function(sharedEmailAliases) {
-  this._sharedEmailAliases = sharedEmailAliases;
-  return this;
-};
-
-/**
- * Provides the sharedEmailAliases of this CustomerInfo.
- * @return {string} The sharedEmailAliases of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.getSharedEmailAliases = function() {
-  return this._sharedEmailAliases;
-};
-
-/**
  * Sets the source of this CustomerInfo.
  * @param {string} source The source of this CustomerInfo.
  */
@@ -357,23 +414,6 @@ tutao.entity.sys.CustomerInfo.prototype.setSource = function(source) {
  */
 tutao.entity.sys.CustomerInfo.prototype.getSource = function() {
   return this._source;
-};
-
-/**
- * Sets the storageCapacity of this CustomerInfo.
- * @param {string} storageCapacity The storageCapacity of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.setStorageCapacity = function(storageCapacity) {
-  this._storageCapacity = storageCapacity;
-  return this;
-};
-
-/**
- * Provides the storageCapacity of this CustomerInfo.
- * @return {string} The storageCapacity of this CustomerInfo.
- */
-tutao.entity.sys.CustomerInfo.prototype.getStorageCapacity = function() {
-  return this._storageCapacity;
 };
 
 /**
