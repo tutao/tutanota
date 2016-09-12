@@ -17,11 +17,13 @@ tutao.tutanota.ctrl.AdminBuyStorageViewModel = function(adminEditUserViewModel) 
     this._currentValue = ko.observable(0);
     this.busy = ko.observable(false);
     this._usedMemory = ko.observable(0);
+    this.customer;
 
     var self = this;
     var user = tutao.locator.userController.getLoggedInUser();
     this.busy(true);
     user.loadCustomer().then(function(customer) {
+        self.customer = customer;
         return customer.loadCustomerInfo().then(function (customerInfo) {
             var includedStorage = Number(customerInfo.getIncludedStorageCapacity());
             var promotionStorage = Number(customerInfo.getPromotionStorageCapacity());
@@ -52,7 +54,7 @@ tutao.tutanota.ctrl.AdminBuyStorageViewModel.prototype.getBuyOptions = function 
 };
 
 tutao.tutanota.ctrl.AdminBuyStorageViewModel.prototype.getHeading = function () {
-    return tutao.lang('storageCapacityUsed_label', {"{storage}": tutao.tutanota.util.Formatter.formatStorageSize(this._usedMemory())});
+    return tutao.lang('amountUsed_label', {"{amount}": tutao.tutanota.util.Formatter.formatStorageSize(this._usedMemory())});
 };
 
 

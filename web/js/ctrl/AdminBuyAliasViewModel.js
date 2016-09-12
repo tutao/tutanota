@@ -17,11 +17,13 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel = function(adminEditUserViewModel) {
     this._currentValue = ko.observable(null);
     this._usedAliases = ko.observable(0);
     this._activeAliases = ko.observable(0);
+    this.customer = null;
 
 
     var self = this;
     var user = tutao.locator.userController.getLoggedInUser();
     user.loadCustomer().then(function(customer) {
+        self.customer = customer;
         return customer.loadCustomerInfo().then(function(customerInfo) {
             var includedAliases = Number(customerInfo.getIncludedEmailAliases());
             var promotionAliases = Number(customerInfo.getPromotionEmailAliases());
@@ -47,7 +49,7 @@ tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getBuyOptions = function ()
 };
 
 tutao.tutanota.ctrl.AdminBuyAliasViewModel.prototype.getHeading = function () {
-    return tutao.lang('emailAliasesUsed_label', {"{used}": this._usedAliases(), "{active}": this._activeAliases()});
+    return tutao.lang('amountUsedAndActivated_label', {"{used}": this._usedAliases(), "{active}": this._activeAliases()});
 };
 
 

@@ -701,12 +701,15 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "mailAddressAliasesShort_label" : "aliases",
   "buyStorageCapacityInfo_msg": "Please choose one of the available storage packages to change the available storage capacity. Additional storage is shared by all users. Apart from that each user has a storage capacity of 1 GB.",
   "buyEmailAliasInfo_msg": "Please choose one of the email alias packages to change the number of available email aliases. Additionally booked email aliases can be used by any user. Apart from that each Premium user has 5 email aliases.",
-  "storageCapacityUsed_label": "{storage} used",
-  "emailAliasesUsed_label" : "{used} used, {active} activated",
-  "emailAliasesToManyActivatedForBooking_msg": "They are too many email aliases active to process this order. Please deactivate you email aliases first.",
-  "storageCapacityToManyUsedForBooking_msg": "There is too much storage used to process this order. Please free some memory to continue.",
+
+  "amountUsed_label": "{amount} used",
+  "amountUsedAndActivated_label" : "{used} used, {active} activated",
+  "emailAliasesTooManyActivatedForBooking_msg": "They are too many email aliases active to process this order. Please deactivate you email aliases first.",
+  "storageCapacityTooManyUsedForBooking_msg": "There is too much storage used to process this order. Please free some memory to continue.",
   "included_label" : "Included",
   "accountSwitchAdditionalPackagesActive_msg": "Please deactivate all additional booked storage and alias packages before switching the account type.",
+  "active_label" : "Active",
+  "storageCapacityUsed_label": "Used storage",
 
 
 };

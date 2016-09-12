@@ -77,7 +77,7 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
         if (this.isActivateExtensionEnabled()) {
             settings.push(s.DISPLAY_ADMIN_PAYMENT); // includes upgrade to premium
         }
-        if ( tutao.locator.viewManager.isPremiumAccount()) {
+        if ( tutao.locator.viewManager.isPremiumAccount() || tutao.locator.viewManager.isFreeAccount()) {
             settings.push(s.DISPLAY_ADMIN_STORAGE);
             settings.push(s.DISPLAY_ADMIN_EMAIL_ALIAS);
         }

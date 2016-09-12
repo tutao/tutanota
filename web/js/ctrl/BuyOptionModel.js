@@ -31,7 +31,12 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
     // init price
     tutao.util.BookingUtils.getPrice(this._featureType, featureAmount, null, null, null).then(function(newPrice) {
         var currentCount = 0;
-        return Promise.each(newPrice.getCurrentPriceNextPeriod().getItems(), function(priceItem){
+
+        var items = [];
+        if ( newPrice.getCurrentPriceNextPeriod() != null ) { // current price is not set when no booking has been executed before, e.g. for free accounts.
+            items = newPrice.getCurrentPriceNextPeriod().getItems();
+        }
+        return Promise.each(items, function(priceItem){
             if (priceItem.getFeatureType() == self._featureType){
                 currentCount = Number(priceItem.getCount());
             }
@@ -79,6 +84,11 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
     }
     var self = this;
     self.busy(true);
+    if (tutao.locator.viewManager.isFreeAccount() || this._parent.customer.getCanceledPremiumAccount() ) {
+        tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        return;
+    }
+
     tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount).then(function(accepted) {
         if (accepted) {
             var service = new tutao.entity.sys.BookingServiceData();
@@ -91,9 +101,9 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
         }
     }).caught(tutao.PreconditionFailedError, function (error) {
         if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES){
-            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("emailAliasesToManyActivatedForBooking_msg"));
+            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("emailAliasesTooManyActivatedForBooking_msg"));
         } else if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
-            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("storageCapacityToManyUsedForBooking_msg"));
+            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("storageCapacityTooManyUsedForBooking_msg"));
         } else {
             throw error;
         }
@@ -112,7 +122,7 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.isBuyVisible = function () {
 
 tutao.tutanota.ctrl.BuyOptionModel.prototype.getStatusText = function () {
     if ( this._parent.getCurrentOption() == this) {
-        return tutao.lang('activated_label');
+        return tutao.lang('active_label');
     } else {
         return tutao.lang('included_label');
     }
