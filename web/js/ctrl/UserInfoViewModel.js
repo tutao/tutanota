@@ -21,19 +21,20 @@ tutao.tutanota.ctrl.UserInfoViewModel = function() {
     this.showAddinLink = (user.getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER);
 
     var self = this;
-	user.getUserGroup().loadGroupInfo().then(function(userGroup, exception) {
-        self.records[0].valueObservable(userGroup.getMailAddress());
+	user.getUserGroup().loadGroupInfo().then(function(userGroupInfo) {
+        self.records[0].valueObservable(userGroupInfo.getMailAddress());
         var aliasNames = "-";
-        var aliases = userGroup.getMailAddressAliases();
+        var aliases = userGroupInfo.getMailAddressAliases();
         Promise.each(aliases, function(alias) {
             if (aliasNames == "-") {
                 aliasNames = alias.getMailAddress();
             } else {
                 aliasNames += ", " + alias.getMailAddress();
             }
+        }).then(function(){
+            self.records[1].valueObservable(aliasNames);
+            self.records[2].valueObservable(userGroupInfo.getName());
         });
-        self.records[1].valueObservable(aliasNames);
-        self.records[2].valueObservable(userGroup.getName());
 	}).caught(function(e) {
         self.records[0].valueObservable("?");
         self.records[1].valueObservable("?");
