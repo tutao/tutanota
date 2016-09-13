@@ -38,7 +38,7 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.showDialog = function(featureTy
             });
         });
     }).then(function() {
-        if (!self.isPriceChange()) {
+        if (!self.isPriceChange() || self.isZeroPrice()) {
             return Promise.resolve(true);
         } else {
             return new Promise(function (resolve, reject) {
@@ -49,15 +49,6 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.showDialog = function(featureTy
     })
 };
 
-tutao.tutanota.ctrl.BuyDialogViewModel.prototype._getItem = function(priceData) {
-    var items = priceData.getItems();
-    for (var i = 0; i < items.length; i++) {
-        if (items[i].getFeatureType() == this._featureType) {
-            return items[i];
-        }
-    }
-    return null; // should not happen
-};
 
 tutao.tutanota.ctrl.BuyDialogViewModel.prototype.ok = function() {
     this.visible(false);
@@ -75,7 +66,7 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getBookingText = function() {
     if (!this.loaded()) {
         return tutao.lang("loading_msg");
     } else {
-        var item = this._getItem(this._price.getFuturePriceNextPeriod());
+        var item = tutao.util.BookingUtils.getPriceItem(this._price.getFuturePriceNextPeriod(), this._featureType);
         if (item.getSingleType()) {
             if (this._count > 0) {
                 return this._count + " " + tutao.lang("bookingItemUsers_label");
@@ -129,9 +120,9 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
     } else {
         var netGrossText = this._price.getFuturePriceNextPeriod().getTaxIncluded() ? tutao.lang("gross_label") : tutao.lang("net_label");
         var periodText = (this._price.getFuturePriceNextPeriod().getPaymentInterval() == "12") ? tutao.lang('perYear_label') : tutao.lang('perMonth_label');
-        var futurePriceItem = this._getItem(this._price.getFuturePriceNextPeriod());
+        var futurePriceItem = tutao.util.BookingUtils.getPriceItem(this._price.getFuturePriceNextPeriod(), this._featureType);
         if (futurePriceItem.getSingleType()) {
-            var priceDiff = Number(futurePriceItem.getPrice()) - Number(this._getItem(this._price.getCurrentPriceNextPeriod()).getPrice()); // getPrice returns the total price for an item
+            var priceDiff = Number(futurePriceItem.getPrice()) - Number(tutao.util.BookingUtils.getPriceItem(this._price.getCurrentPriceNextPeriod(), this._featureType).getPrice()); // getPrice returns the total price for an item
             return tutao.util.BookingUtils.formatPrice(priceDiff, true) + " " + periodText + " (" + netGrossText + ")";
         } else {
             return tutao.util.BookingUtils.formatPrice(Number(futurePriceItem.getPrice()), true) + " " + periodText + " (" + netGrossText + ")";
@@ -179,4 +170,9 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.isUnbuy = function() {
 
 tutao.tutanota.ctrl.BuyDialogViewModel.prototype.isPriceChange = function() {
     return (this.loaded() && Number(this._price.getCurrentPriceNextPeriod().getPrice()) != Number(this._price.getFuturePriceNextPeriod().getPrice()));
+};
+
+
+tutao.tutanota.ctrl.BuyDialogViewModel.prototype.isZeroPrice = function() {
+    return (this.loaded() && tutao.util.BookingUtils.getPriceItem(this._price.getFuturePriceNextPeriod(), this._featureType)) == null;
 };

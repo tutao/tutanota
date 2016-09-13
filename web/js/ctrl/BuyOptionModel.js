@@ -31,31 +31,33 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
     // init price
     tutao.util.BookingUtils.getPrice(this._featureType, featureAmount, null, null, null).then(function(newPrice) {
         var currentCount = 0;
-
         var items = [];
-        if ( newPrice.getCurrentPriceNextPeriod() != null ) { // current price is not set when no booking has been executed before, e.g. for free accounts.
-            items = newPrice.getCurrentPriceNextPeriod().getItems();
+
+        // Get the current count from the price service - stored in current price next period.
+        var currentPriceItemNextPeriod = tutao.util.BookingUtils.getPriceItem(newPrice.getCurrentPriceNextPeriod(), self._featureType);
+        if ( currentPriceItemNextPeriod != null) {
+            currentCount = Number(currentPriceItemNextPeriod.getCount());
         }
-        return Promise.each(items, function(priceItem){
-            if (priceItem.getFeatureType() == self._featureType){
-                currentCount = Number(priceItem.getCount());
-            }
-        }).then(function(){
-            if (self._featureAmount == currentCount) {
-                self._parent.updateCurrentOption(self);
-            }
-            return Promise.each(newPrice.getFuturePriceNextPeriod().getItems(), function(priceItem){
-                if ( priceItem.getFeatureType() == self._featureType){
-                    var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
-                    self.price(tutao.util.BookingUtils.formatPrice(Number(priceItem.getPrice()), true));
-                    if (paymentInterval == "12") {
-                        self.paymentIntervalText(tutao.lang('perYear_label'));
-                    } else {
-                        self.paymentIntervalText(tutao.lang('perMonth_label'));
-                    }
-                }
-            });
-        });
+
+        if (self._featureAmount == currentCount) {
+            self._parent.updateCurrentOption(self);
+        }
+
+        // format price. if no price is available show zero price.
+        var futurePriceItemNextPeriod = tutao.util.BookingUtils.getPriceItem(newPrice.getFuturePriceNextPeriod(), self._featureType);
+        if (futurePriceItemNextPeriod != null){
+            self.price(tutao.util.BookingUtils.formatPrice(Number(futurePriceItemNextPeriod.getPrice()), true));
+        } else {
+            self.price(tutao.util.BookingUtils.formatPrice(0, true));
+        }
+
+        var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
+        if (paymentInterval == "12") {
+            self.paymentIntervalText(tutao.lang('perYear_label'));
+        } else {
+            self.paymentIntervalText(tutao.lang('perMonth_label'));
+        }
+
     }).lastly(function(){
         self.busy(false);
     });

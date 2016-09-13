@@ -69,3 +69,23 @@ tutao.util.BookingUtils.getPaymentMethodNameTextId = function(paymentMethod) {
         return "";
     }
 };
+
+
+/**
+ * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
+ * @param {?tutao.entity.sys.PriceData} priceData The given price data.
+ * @param {string} featureType The booking item feature type
+ * @return {?tutao.entity.sys.PriceItemData} The price item or null
+ */
+tutao.util.BookingUtils.getPriceItem = function(priceData, featureType) {
+    if (priceData != null) {
+        var items = priceData.getItems();
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].getFeatureType() == featureType) {
+                return items[i];
+            }
+        }
+    }
+    return null;
+};
+
