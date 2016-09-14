@@ -89,3 +89,18 @@ tutao.util.BookingUtils.getPriceItem = function(priceData, featureType) {
     return null;
 };
 
+
+/**
+ * Returns the price for the feature type from the price data if available. otherwise 0.
+ * @return {Number} The price
+ */
+tutao.util.BookingUtils.getPriceFromPriceData = function(priceData, featureType) {
+    var item = tutao.util.BookingUtils.getPriceItem(priceData, featureType);
+    if (item != null){
+        return Number(item.getPrice());
+    } else {
+        return 0;
+    }
+};
+
+

@@ -44,12 +44,8 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
         }
 
         // format price. if no price is available show zero price.
-        var futurePriceItemNextPeriod = tutao.util.BookingUtils.getPriceItem(newPrice.getFuturePriceNextPeriod(), self._featureType);
-        if (futurePriceItemNextPeriod != null){
-            self.price(tutao.util.BookingUtils.formatPrice(Number(futurePriceItemNextPeriod.getPrice()), true));
-        } else {
-            self.price(tutao.util.BookingUtils.formatPrice(0, true));
-        }
+        var futurePriceNextPeriod = tutao.util.BookingUtils.getPriceFromPriceData(newPrice.getFuturePriceNextPeriod(), self._featureType);
+        self.price(tutao.util.BookingUtils.formatPrice(futurePriceNextPeriod, true));
 
         var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
         if (paymentInterval == "12") {
@@ -91,7 +87,7 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
         return;
     }
 
-    tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount).then(function(accepted) {
+    tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount, this.freeAmount()).then(function(accepted) {
         if (accepted) {
             var service = new tutao.entity.sys.BookingServiceData();
             service.setAmount(self._featureAmount.toString());

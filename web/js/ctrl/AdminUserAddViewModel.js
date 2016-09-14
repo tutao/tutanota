@@ -124,7 +124,7 @@ tutao.tutanota.ctrl.AdminUserAddViewModel.prototype.createAccounts = function() 
     var self = this;
     var count = self.newUsers().length;
     self.state.submitting(true);
-    tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count).then(function(confirmed) {
+    tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, count, 0).then(function(confirmed) {
         if (confirmed) {
             self.state.setSubmittingMessage("@" + tutao.lang("createActionStatus_msg", {"{index}": 0, "{count}": count}));
             return Promise.each(self.newUsers(), function(newUser) {

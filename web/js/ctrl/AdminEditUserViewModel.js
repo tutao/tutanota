@@ -254,7 +254,7 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.deleteUser = function() {
         }
         return availablePromise.then(function(available) {
             if (available) {
-                tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, (restore) ? 1 : -1).then(function (confirmed) {
+                tutao.locator.buyDialogViewModel.showDialog(tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_USERS, (restore) ? 1 : -1, 0).then(function (confirmed) {
                     if (confirmed) {
                         new tutao.entity.sys.UserDataDelete()
                             .setUser(group.getUser())
