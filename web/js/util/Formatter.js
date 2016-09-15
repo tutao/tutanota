@@ -426,3 +426,14 @@ tutao.tutanota.util.Formatter.formatStorageSize = function(bytes) {
 	return floatValueAsString + ' GB';
 };
 
+
+
+/**
+ * Returns a cleaned mime type string. Removes leading or trailing quotation marks.
+ *
+ * @param {string} mimeType The input mime type.
+ * @return {string} The cleaned mime type.
+ */
+tutao.tutanota.util.Formatter.getCleanedMimeType = function(mimeType){
+	return mimeType.replace("\"", "").replace("'", "");
+};

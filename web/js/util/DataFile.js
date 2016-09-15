@@ -11,12 +11,12 @@ tutao.provide('tutao.tutanota.util.DataFile');
 tutao.tutanota.util.DataFile = function(data, file) {
 	if (file instanceof tutao.entity.tutanota.File) {
 		this._name = file.getName();
-		this._mimeType = file.getMimeType();
+		this._mimeType =  tutao.tutanota.util.Formatter.getCleanedMimeType(file.getMimeType());
 		this._id = file.getId();
 	} else { // instanceof File, must be in else block as IE 8/9 do not support the type File (and they use only tutao.entity.tutanota.File)
 		this._name = file.name;
 		if (file.type && file.type !== "") {
-			this._mimeType = file.type;
+			this._mimeType = tutao.tutanota.util.Formatter.getCleanedMimeType(file.type);
 		} else {
 			this._mimeType = "application/octet-stream";
 		}

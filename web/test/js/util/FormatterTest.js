@@ -304,4 +304,10 @@ describe("FormatterTest", function () {
 
     });
 
+
+    it( " formatMimeType", function() {
+        assert.equal("application/pdf",tutao.tutanota.util.Formatter.getCleanedMimeType("application/pdf") );
+        assert.equal("application/pdf",tutao.tutanota.util.Formatter.getCleanedMimeType("\"application/pdf'") );
+    });
+
 });

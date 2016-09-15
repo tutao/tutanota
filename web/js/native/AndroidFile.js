@@ -14,7 +14,7 @@ tutao.native.AndroidFile = function(location, name, mimeType, size) {
     this._name = name;
     this._location = location;
     if (mimeType && mimeType !== "") {
-        this._mimeType = mimeType
+        this._mimeType = tutao.tutanota.util.Formatter.getCleanedMimeType(mimeType);
     } else {
         this._mimeType = "application/octet-stream";
     }
