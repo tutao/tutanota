@@ -70,7 +70,7 @@ describe("RsaTest", function () {
         assert.equal(0, rsaUtils._keyToHex(privateKey).length % 2);
     });
 
-    it("rsa key roundtrip", function(done) {
+    it("rsa key roundtrip", function() {
         //this.timeout(300000); // 5 min
         if (tutao.supportsRsaKeyGeneration()) {
 
@@ -88,7 +88,6 @@ describe("RsaTest", function () {
                 return facade.rsaEncrypt(keyPair.publicKey, plain).then(function(encrypted) {
                     return facade.rsaDecrypt(keyPair.privateKey, encrypted).then(function(plainAgain) {
                         assert.deepEqual(plain, plainAgain);
-                        done();
                     });
                 });
             });
