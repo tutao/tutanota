@@ -2531,6 +2531,7 @@
 	<!-- use this with a BuyFeatureViewModel -->
 	<script type="text/html"  id="buy-options-template">
 		<h1 class="centered" data-bind="text: getHeading()"></h1>
+		<!-- ko if: tutao.env.mode == tutao.Mode.Browser-->
 		<div class="light defaultMargin" >
 			<span data-bind="text: getInfoText()"></span>
 		</div>
@@ -2549,6 +2550,7 @@
 				</div>
 			</div>
 		</div>
+		<!-- /ko -->
 	</script>
 
 
