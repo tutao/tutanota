@@ -69,7 +69,7 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.getFeatureText = function () {
             return (visibleAmount / 1000) + " TB";
         }
     } else  if (this._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES ){
-        return visibleAmount + " " + tutao.lang("mailAddressAliasesShort_label");
+        return tutao.lang("mailAddressAliasesShort_label", {"{amount}" : visibleAmount});
     } else {
         return "";  // should not happen
     }

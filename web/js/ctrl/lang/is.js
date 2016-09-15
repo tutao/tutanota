@@ -13,7 +13,6 @@ tutao.tutanota.ctrl.lang.is.keys = {
   "folderNameCreate_label": "Stofna möppu",
   "help_label": "Fá hjálp:",
   "importCsv_label": "Flytja inn CSV gögn",
-  "legacyNoAttachmentsIeMobile_msg": "Internet Explorer í farsíma styður ekki að hægt sé að ná í né bæta við viðhengi í tölvupósti. Ef þig vantar þann möguleika, vinsamlega notaðu einhvern af eftirfarandi vöfrum.",
   "linkedin_label": "Linkedin",
   "move_action": "Flytja",
   "newMails_msg": "Nýr Tutanota tölvupóstur móttekinn",
