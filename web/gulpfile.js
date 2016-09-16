@@ -114,6 +114,12 @@ gulp.task('minify', function () {
             .pipe(replace("\"use strict\";", ""))
             .pipe(uglify()),
 
+        gulp.src(['js/generated/entity/monitor/**/*.js'])
+            .pipe(sourcemaps.init())
+            .pipe(concat('gen5.js'))
+            .pipe(replace("\"use strict\";", ""))
+            .pipe(uglify()),
+
         gulp.src(['js/**/*.js', '!js/generated/entity/**', '!js/util/init.js'])
             .pipe(sourcemaps.init())
             .pipe(concat('js.js'))
