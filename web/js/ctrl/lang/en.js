@@ -4,7 +4,7 @@ tutao.tutanota.ctrl.lang.en.id = "en";
 tutao.tutanota.ctrl.lang.en.keys = {
   "accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
   "accountSettings_label": "Account",
-  "accountSwitchAdditionalPackagesActive_msg": "Please deactivate the booked storage or alias package before switching the account type.",
+  "accountSwitchAdditionalPackagesActive_msg": "Please deactivate the booked storage or alias package and disable all email aliases before switching the account type.",
   "accountSwitchTooManyActiveUsers_msg": "Please deactivate all additional users before switching the account type.",
   "accountType_label": "Account type",
   "account_label": "User",

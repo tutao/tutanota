@@ -4,7 +4,7 @@ tutao.tutanota.ctrl.lang.de.id = "de";
 tutao.tutanota.ctrl.lang.de.keys = {
   "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
   "accountSettings_label": "Account",
-  "accountSwitchAdditionalPackagesActive_msg": "Bitte deaktiviere das gebuchte Alias- oder Speicher-Paket, dann kann der Account-Typ gewechselt werden.",
+  "accountSwitchAdditionalPackagesActive_msg": "Bitte deaktiviere das gebuchte Speicher- oder Alias-Paket und deaktivere alle E-Mail-Aliasse, dann kann der Account-Typ gewechselt werden.",
   "accountSwitchTooManyActiveUsers_msg": "Bitte deaktiviere alle zusätzlichen Benutzer, dann kann der Account-Typ gewechselt werden.",
   "accountType_label": "Account-Typ",
   "account_label": "Benutzer",
