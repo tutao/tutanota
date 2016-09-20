@@ -59,6 +59,9 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
     });
 };
 
+tutao.tutanota.ctrl.BuyOptionModel.prototype.loading = function() {
+    return this.price().length == 0;
+};
 
 tutao.tutanota.ctrl.BuyOptionModel.prototype.getFeatureText = function () {
     var visibleAmount = this.getVisibleAmount();
@@ -84,6 +87,7 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
     self.busy(true);
     if (tutao.locator.viewManager.isFreeAccount() || this._parent.customer.getCanceledPremiumAccount() ) {
         tutao.locator.viewManager.showNotAvailableForFreeDialog();
+        self.busy(false);
         return;
     }
 
