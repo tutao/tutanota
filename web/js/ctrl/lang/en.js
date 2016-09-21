@@ -442,7 +442,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "noConnection_msg": "You are offline. A connection to Tutanota could not be established.",
   "noContacts_msg": "There are no contacts in this list.",
   "noContact_msg": "No contact selected.",
-  "noMailHeadersInfo_msg": "No email headers available because this is not a received SMTP message.",
+  "noMailHeadersInfo_msg": "No email headers available for this message.",
   "noMails_msg": "Congrats! Nothing to do here.",
   "noMail_msg": "No email selected.",
   "nonConfidentialStatus_msg": "This message is not sent end-to-end encrypted.",

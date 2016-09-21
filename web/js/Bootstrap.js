@@ -27,7 +27,11 @@ tutao.tutanota.Bootstrap.init = function () {
         }
 
         tutao.tutanota.Bootstrap.initControllers();
-        Promise.longStackTraces();
+        try {
+            Promise.longStackTraces();
+        } catch (e) {
+            console.log("error calling Promise.longStackTraces()", e);
+        }
         Promise.onPossiblyUnhandledRejection(function (e) {
             if (e instanceof tutao.ConnectionError) {
                 var checkForMaintenance = function () {

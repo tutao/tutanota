@@ -108,6 +108,13 @@ describe("FormatterTest", function () {
         assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd. de"));
         assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.d e"));
         assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.de "));
+
+        // long local part
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress(new Array(64 + 1).join("a") + "@tutanota.de"));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(new Array(65 + 1).join("a") + "@tutanota.de"));
+        // long mail address
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(240 + 1).join("a") + ".de"));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(241 + 1).join("a") + ".de"));
     });
 
     it(" isValidTutanotaLocalPart", function () {

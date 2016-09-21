@@ -143,6 +143,13 @@ tutao.tutanota.util.Formatter.isMailAddress = function(string) {
     if (tutao.util.StringUtils.startsWith(string, "-")) {
         return false;
     }
+	// check lengths (see https://tools.ietf.org/html/rfc5321#section-4.5.3)
+	if (string.length > 254) { // 256 minus "<" and ">" of the path
+		return false;
+	}
+	if (string.indexOf("@") > 64) {
+		return false;
+	}
 	// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
 	return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 };
