@@ -492,15 +492,8 @@ tutao.tutanota.ctrl.MailViewModel.prototype._createMailAllowed = function() {
                 return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg")).then(function () {
                     return false;
                 });
-            } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID){
-                if (tutao.locator.userController.isLoggedInUserAdmin()) {
-                    return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
-                        tutao.locator.navigator.settings();
-                        tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-                    });
-                } else {
-                    return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
-                }
+            } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID && !tutao.locator.userController.isLoggedInUserAdmin()){
+                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
             } else {
                 return self.tryCancelAllComposingMails(false);
             }

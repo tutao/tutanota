@@ -2542,7 +2542,7 @@
 				</div>
 				<hr />
 				<div  class="buyOptionBody"  >
-					<div class="priceText" data-bind="text: price()"></div>
+					<div class="priceText" data-bind="text: price(), css : { fontImage : loading(), spinner: loading()}"></div>
 				</div>
 				<div class="buyOptionFooter">
 					<!-- ko if: isBuyVisible() --> <button  class="single wide" data-bind="lang: 'order_action', fastClick: buy, css: { disabled: !isBuyEnabled() }"></button><!-- /ko -->

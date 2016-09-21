@@ -23,7 +23,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
     this.invoices = ko.observableArray();
     this._updatingInvoiceStatus = ko.observable(false);
 
-    this.accountType =  ko.computed(function() {
+    this.accountType = ko.computed(function() {
         return "Tutanota " + tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES[Number(tutao.locator.viewManager.getLoggedInUserAccountType())];
     });
 
@@ -39,45 +39,7 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
             self.items()[2].currentAmount(emailAliases);
             self.items()[2].nextAmount(emailAliases);
 
-            if(customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM){ // only load prices for premium accounts.
-                customerInfo.loadAccountingInfo().then(function(accountingInfo) {
-                    tutao.util.BookingUtils.getCurrentPrice().then(function(price) {
-                        self.price(price);
-                        for (var i=0; i<price.getCurrentPriceThisPeriod().getItems().length; i++) {
-                            var priceItemData = price.getCurrentPriceThisPeriod().getItems()[i];
-                            for (var a=0; a<self.items().length; a++) {
-                                var item = self.items()[a];
-                                if (item.type == priceItemData.getFeatureType()) {
-                                    if ( Number(priceItemData.getCount()) != 0){
-                                        item.currentAmount(Number(priceItemData.getCount()));
-                                    }
-                                    item.currentPrice(Number(priceItemData.getPrice()));
-                                    break;
-                                }
-                            }
-                        }
-                        for (i=0; i<price.getCurrentPriceNextPeriod().getItems().length; i++) {
-                            priceItemData = price.getCurrentPriceNextPeriod().getItems()[i];
-                            for (a=0; a<self.items().length; a++) {
-                                item = self.items()[a];
-                                if (item.type == priceItemData.getFeatureType()) {
-                                    if ( Number(priceItemData.getCount()) != 0){
-                                        item.nextAmount(Number(priceItemData.getCount()));
-                                    }
-                                    item.nextPrice(Number(priceItemData.getPrice()));
-                                    if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
-                                        self.showNextPeriodInfo(true);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                });
-            }
-            return customerInfo;
-        }).then(function(customerInfo) {
-            return customerInfo.loadAccountingInfo().then(function(accountingInfo) {
+            customerInfo.loadAccountingInfo().then(function(accountingInfo) {
                 return accountingInfo.loadInvoiceInfo().then(function(invoiceInfo) {
                     return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Invoice, invoiceInfo.getInvoices()).then(function(invoices) {
                         var publishedInvoices = [];
@@ -88,6 +50,31 @@ tutao.tutanota.ctrl.AdminInvoicingViewModel = function() {
                         }
                         self.invoices(publishedInvoices);
                     });
+                }).then(function () {
+                    if(customer.getType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM) { // only load prices for premium accounts.
+                        return tutao.util.BookingUtils.getCurrentPrice().then(function (price) {
+                            self.price(price);
+                            for (var a = 0; a < self.items().length; a++) {
+                                var item = self.items()[a];
+                                var currentPriceItem = tutao.util.BookingUtils.getPriceItem(price.getCurrentPriceThisPeriod(), item.type);
+                                if (currentPriceItem != null) {
+                                    item.currentAmount(Number(currentPriceItem.getCount()));
+                                    item.currentPrice(Number(currentPriceItem.getPrice()));
+                                }
+
+                                var nextPriceItem = tutao.util.BookingUtils.getPriceItem(price.getCurrentPriceNextPeriod(), item.type);
+                                if (nextPriceItem != null) {
+                                    item.nextAmount(Number(nextPriceItem.getCount()));
+                                    item.nextPrice(Number(nextPriceItem.getPrice()));
+                                }
+
+                                if (item.nextAmount() != item.currentAmount() || item.nextPrice() != item.currentPrice()) {
+                                    self.showNextPeriodInfo(true);
+                                }
+                            }
+
+                        });
+                    }
                 });
             });
         });
