@@ -363,17 +363,23 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                 }).caught(tutao.TooManyRequestsError, function (exception) {
                                     return tutao.tutanota.gui.alert(tutao.lang("tooManyMails_msg"));
                                 }).caught(tutao.AccessBlockedError, function (exception) {
-                                    return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
-                                }).caught(tutao.AccessExpiredError, function (exception) {
-                                    if ( tutao.locator.userController.isLoggedInUserAdmin()) {
-                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
-                                            tutao.locator.navigator.settings();
-                                            tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
-                                        });
-                                    } else {
-                                        return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
-                                    }
-                                });
+                                    return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer){
+                                        if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED) {
+                                            return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
+                                        } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID) {
+                                            if (tutao.locator.userController.isLoggedInUserAdmin()) {
+                                                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
+                                                    tutao.locator.navigator.settings();
+                                                    tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                                                });
+                                            } else {
+                                                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaidUser_msg"));
+                                            }
+                                        } else {
+                                            throw exception;
+                                        }
+                                    });
+                                })
                             });
                         });
                     } else {
