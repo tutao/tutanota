@@ -74,10 +74,21 @@ tutao.ctrl.UserController.prototype.getGroupKey = function (groupId) {
  * @return {Object} The user group key.
  */
 tutao.ctrl.UserController.prototype.getGroupId = function (groupType) {
+    return this.getGroupIdFromUser(this._user(), groupType);
+};
+
+
+/**
+ * Provides the group id of one of the user's group of given group type.
+ * @param {string} groupType One of tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_*.
+ * @param {tutao.entity.sys.User } user The user to get the group id from.
+ * @return {Object} The user group key.
+ */
+tutao.ctrl.UserController.prototype.getGroupIdFromUser = function (user, groupType) {
     if (groupType == tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_USER) {
-        return this._userGroupId;
+        return user.getUserGroup().getGroup();
     } else {
-        var memberships = this._user().getMemberships();
+        var memberships = user.getMemberships();
         for (var i = 0; i < memberships.length; i++) {
             if (memberships[i].getGroupType() == groupType) {
                 return memberships[i].getGroup();

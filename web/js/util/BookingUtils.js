@@ -66,7 +66,7 @@ tutao.util.BookingUtils.getPaymentMethodNameTextId = function(paymentMethod) {
     } else if (paymentMethod == tutao.entity.tutanota.TutanotaConstants.PAYMENT_METHOD_PAY_PAL) {
         return "@PayPal";
     } else {
-        return "";
+        return "@";
     }
 };
 

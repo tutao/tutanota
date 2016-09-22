@@ -52,10 +52,11 @@ tutao.tutanota.ctrl.AdminEditUserViewModel = function(adminUserListViewModel, us
                     self.deleteUserAllowed(true);
                 }
                 self.modifyAdminAllowed(tutao.locator.userController.getLoggedInUser().getId() != user.getId());
+                self._updateUsedStorage(user);
             });
         }
     });
-    this.updateUsedStorage();
+
 };
 
 /**
@@ -290,10 +291,10 @@ tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.isActive = function() {
 };
 
 
-tutao.tutanota.ctrl.AdminEditUserViewModel.prototype.updateUsedStorage = function() {
-    var mailGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL);
-    var contactGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT);
-    var fileGroupid = tutao.locator.userController.getGroupId(tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE);
+tutao.tutanota.ctrl.AdminEditUserViewModel.prototype._updateUsedStorage = function(user) {
+    var mailGroupid = tutao.locator.userController.getGroupIdFromUser(user, tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_MAIL);
+    var contactGroupid = tutao.locator.userController.getGroupIdFromUser(user, tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_CONTACT);
+    var fileGroupid = tutao.locator.userController.getGroupIdFromUser(user, tutao.entity.tutanota.TutanotaConstants.GROUP_TYPE_FILE);
 
     var self = this;
     return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY, mailGroupid).then(function(mailStorage){
