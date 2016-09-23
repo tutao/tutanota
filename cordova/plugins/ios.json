@@ -16,6 +16,9 @@
         "cordova-plugin-app-event": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
+        "cordova-plugin-compat": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "cordova-plugin-contacts": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },

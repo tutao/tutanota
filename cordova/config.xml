@@ -9,6 +9,10 @@
   </author>
   <content src="index.html"/>
   <access origin="*"/>
+  
+  <engine name="android" spec="5.1.0" />
+  <engine name="ios" spec="4.1.0" />
+    
   <!-- See:
          * http://cordova.apache.org/docs/en/edge/config_ref_images.md.html
          * https://gist.github.com/LinusU/7515016
