@@ -19,6 +19,8 @@
  *
 */
 
+/* global cordova, FileSystem */
+
 var argscheck = require('cordova/argscheck'),
     exec = require('cordova/exec'),
     FileTransferError = require('./FileTransferError'),
@@ -156,7 +158,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
                 self.onprogress(newProgressEvent(result));
             }
         } else {
-            successCallback && successCallback(result);
+            if (successCallback) {
+                successCallback(result);
+            }
         }
     };
     exec(win, fail, 'FileTransfer', 'upload', [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);

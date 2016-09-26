@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-file-transfer-tests"
-    version="1.5.0">
+    version="1.6.0">
     <name>Cordova File Transfer Plugin Tests</name>
     <license>Apache 2.0</license>
 

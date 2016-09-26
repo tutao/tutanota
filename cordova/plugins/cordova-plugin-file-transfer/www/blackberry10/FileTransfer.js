@@ -20,7 +20,7 @@
 */
 
 var argscheck = require('cordova/argscheck'),
-    FileTransferError = require('./FileTransferError');
+    FileTransferError = require('./FileTransferError'),
     xhrImpl = require('./BB10XHRImplementation');
 
 
@@ -128,7 +128,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
                 self.onprogress(result);
             }
         } else {
-            successCallback && successCallback(result);
+            if (successCallback) {
+                successCallback(result);
+            }
         }
     };
     xhrImpl.upload(win, fail, [filePath, server, fileKey, fileName, mimeType, params, trustAllHosts, chunkedMode, headers, this._id, httpMethod]);
