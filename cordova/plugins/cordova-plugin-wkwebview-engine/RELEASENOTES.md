@@ -21,6 +21,9 @@
 
 # Release Notes
 
+### 1.0.3 (Apr 15, 2016)
+* CB-10636 Add `JSHint` for plugins
+
 ### 1.0.2 (Feb 09, 2016)
 * [CB-10269](https://issues.apache.org/jira/browse/CB-10269) - Replace cordova exec only when present in wkwebview
 * [CB-10202](https://issues.apache.org/jira/browse/CB-10202) - Add README quirk about WKWebview does not work with the AllowInlineMediaPlayback preference
