@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    xmlns:rim="http://www.blackberry.com/ns/widgets"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:m3="http://schemas.microsoft.com/appx/2014/manifest"
+    xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+    id="cordova-plugin-contacts"
+    version="2.1.0">
+
+    <name>Contacts</name>
+    <description>Cordova Contacts Plugin</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,contacts</keywords>
+    <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-contacts.git</repo>
+    <issue>https://issues.apache.org/jira/browse/CB/component/12320652</issue>
+
+    <dependency id="cordova-plugin-compat" version="^1.0.0" />
+
+    <js-module src="www/contacts.js" name="contacts">
+        <clobbers target="navigator.contacts" />
+    </js-module>
+
+    <js-module src="www/Contact.js" name="Contact">
+        <clobbers target="Contact" />
+    </js-module>
+
+    <js-module src="www/convertUtils.js" name="convertUtils">
+    </js-module>
+
+    <js-module src="www/ContactAddress.js" name="ContactAddress">
+        <clobbers target="ContactAddress" />
+    </js-module>
+
+    <js-module src="www/ContactError.js" name="ContactError">
+        <clobbers target="ContactError" />
+    </js-module>
+
+    <js-module src="www/ContactField.js" name="ContactField">
+        <clobbers target="ContactField" />
+    </js-module>
+
+    <js-module src="www/ContactFindOptions.js" name="ContactFindOptions">
+        <clobbers target="ContactFindOptions" />
+    </js-module>
+
+    <js-module src="www/ContactName.js" name="ContactName">
+        <clobbers target="ContactName" />
+    </js-module>
+
+    <js-module src="www/ContactOrganization.js" name="ContactOrganization">
+        <clobbers target="ContactOrganization" />
+    </js-module>
+
+    <js-module src="www/ContactFieldType.js" name="ContactFieldType">
+        <merges target="" />
+    </js-module>
+
+    <!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Contacts">
+                <param name="android-package" value="org.apache.cordova.contacts.ContactManager"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.READ_CONTACTS" />
+            <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+            <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+        </config-file>
+
+        <source-file src="src/android/ContactAccessor.java" target-dir="src/org/apache/cordova/contacts" />
+        <source-file src="src/android/ContactAccessorSdk5.java" target-dir="src/org/apache/cordova/contacts" />
+        <source-file src="src/android/ContactManager.java" target-dir="src/org/apache/cordova/contacts" />
+        <source-file src="src/android/ContactInfoDTO.java" target-dir="src/org/apache/cordova/contacts" />
+    </platform>
+
+    <!-- amazon-fireos -->
+    <platform name="amazon-fireos">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Contacts">
+                <param name="android-package" value="org.apache.cordova.contacts.ContactManager"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.READ_CONTACTS" />
+            <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+            <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+        </config-file>
+
+        <source-file src="src/android/ContactAccessor.java" target-dir="src/org/apache/cordova/contacts" />
+        <source-file src="src/android/ContactAccessorSdk5.java" target-dir="src/org/apache/cordova/contacts" />
+        <source-file src="src/android/ContactManager.java" target-dir="src/org/apache/cordova/contacts" />
+    </platform>
+
+    <!-- ubuntu -->
+    <platform name="ubuntu">
+        <config-file target="config.xml" parent="/*">
+            <feature name="Contacts">
+                <param policy_group="contacts" policy_version="1" />
+            </feature>
+        </config-file>
+        <header-file src="src/ubuntu/contacts.h" />
+        <source-file src="src/ubuntu/contacts.cpp" />
+    </platform>
+
+    <!-- ios -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="Contacts">
+                <param name="ios-package" value="CDVContacts"/>
+            </feature>
+        </config-file>
+
+        <js-module src="www/ios/contacts.js" name="contacts-ios">
+            <merges target="navigator.contacts" />
+        </js-module>
+
+        <js-module src="www/ios/Contact.js" name="Contact-iOS">
+            <merges target="Contact" />
+        </js-module>
+
+        <header-file src="src/ios/CDVContacts.h" />
+        <source-file src="src/ios/CDVContacts.m" />
+        <header-file src="src/ios/CDVContact.h" />
+        <source-file src="src/ios/CDVContact.m" />
+
+        <framework src="AddressBook.framework" weak="true" />
+        <framework src="AddressBookUI.framework" weak="true" />
+        <framework src="CoreGraphics.framework" />
+    </platform>
+
+    <!-- blackberry10 -->
+    <platform name="blackberry10">
+        <config-file target="www/config.xml" parent="/widget">
+            <feature name="Contacts" value="Contacts"/>
+        </config-file>
+        <config-file target="www/config.xml" parent="/widget/rim:permissions">
+            <rim:permit>access_pimdomain_contacts</rim:permit>
+        </config-file>
+        <source-file src="src/blackberry10/index.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactActivity.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactAddress.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/contactConsts.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactError.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactField.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactFindOptions.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactName.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactNews.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactOrganization.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/ContactPhoto.js" target-dir="Contacts"></source-file>
+        <source-file src="src/blackberry10/contactUtils.js" target-dir="Contacts"></source-file>
+        <dependency id="com.blackberry.utils" />
+        <dependency id="com.blackberry.pim.lib" />
+    </platform>
+
+
+    <!-- wp8 -->
+    <platform name="wp8">
+        <config-file target="config.xml" parent="/*">
+            <feature name="Contacts">
+                <param name="wp-package" value="Contacts"/>
+            </feature>
+        </config-file>
+
+        <config-file target="Properties/WMAppManifest.xml" parent="/Deployment/App/Capabilities">
+            <Capability Name="ID_CAP_CONTACTS" />
+        </config-file>
+
+        <source-file src="src/wp/Contacts.cs" />
+        <source-file src="src/wp/ContactsHelper.cs" />
+        <source-file src="src/wp/ContactPicker.xaml" />
+        <source-file src="src/wp/ContactPicker.xaml.cs" />
+        <source-file src="src/wp/ContactPickerTask.cs" />
+    </platform>
+
+    <!-- firefoxos -->
+    <platform name="firefoxos">
+        <config-file target="config.xml" parent="/*">
+            <permission name="contacts" access="readwrite" description="Required for accessing address book."
+                        privileged="true"/>
+        </config-file>
+        <js-module src="src/firefoxos/ContactsProxy.js" name="ContactsProxy">
+            <runs />
+        </js-module>
+    </platform>
+
+    <!-- Windows 8 -->
+    <platform name="windows8">
+        <js-module src="src/windows8/ContactProxy.js" name="ContactProxy">
+            <merges target="" />
+        </js-module>
+    </platform>
+
+    <!-- Windows -->
+    <platform name="windows">
+        <js-module src="src/windows/ContactProxy.js" name="ContactProxy">
+            <merges target="" />
+        </js-module>
+        <config-file target="package.phone.appxmanifest" parent="/Package/Capabilities">
+            <m3:Capability Name="contacts" />
+        </config-file>
+        <config-file target="package.appxmanifest" parent="/Package/Capabilities" versions=">=10.0.0">
+            <uap:Capability Name="contacts" />
+        </config-file>
+    </platform>
+
+</plugin>
