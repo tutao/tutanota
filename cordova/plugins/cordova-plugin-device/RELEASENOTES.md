@@ -20,9 +20,23 @@
 -->
 # Release Notes
 
+### 1.1.3 (Sep 08, 2016)
+* [CB-11795](https://issues.apache.org/jira/browse/CB-11795) Add 'protective' entry to cordovaDependencies
+* Add badges for paramedic builds on Jenkins
+* Add pull request template.
+* Readme: Add fenced code blocks with langauage hints
+* [CB-10996](https://issues.apache.org/jira/browse/CB-10996) Adding front matter to `README.md`
+
+### 1.1.2 (Apr 15, 2016)
+* Use passed device, follow create policy forf `CFUUIDCreate`
+* [CB-10631](https://issues.apache.org/jira/browse/CB-10631) Fix for `device.uuid` in **iOS 5.1.1**
+* Updating the comment to exclude URL
+* [CB-10636](https://issues.apache.org/jira/browse/CB-10636) Add `JSHint` for plugins
+* Refactored `deviceInfo` on **iOS** for better readability.
+
 ### 1.1.1 (Jan 15, 2016)
-* CB-10238 **OSX** Move `device-plugin` out from `cordovalib` to the plugin repository
-* CB-9923 Update `device.platform` documentation for **Browser** platform
+* [CB-10238](https://issues.apache.org/jira/browse/CB-10238) **OSX** Move `device-plugin` out from `cordovalib` to the plugin repository
+* [CB-9923](https://issues.apache.org/jira/browse/CB-9923) Update `device.platform` documentation for **Browser** platform
 
 ### 1.1.0 (Nov 18, 2015)
 * [CB-10035](https://issues.apache.org/jira/browse/CB-10035) Updated `RELEASENOTES` to be newest to oldest

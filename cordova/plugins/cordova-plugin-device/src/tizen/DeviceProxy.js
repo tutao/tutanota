@@ -20,7 +20,6 @@
 */
 
 var tizen = require('cordova/platform');
-var cordova = require('cordova');
 
 module.exports = {
     getDeviceInfo: function(success, error) {

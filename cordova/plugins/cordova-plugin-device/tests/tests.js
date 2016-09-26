@@ -19,6 +19,8 @@
  *
 */
 
+/* jshint jasmine: true */
+
 exports.defineAutoTests = function() {
   describe('Device Information (window.device)', function () {
     it("should exist", function() {
@@ -27,18 +29,18 @@ exports.defineAutoTests = function() {
 
     it("should contain a platform specification that is a string", function() {
       expect(window.device.platform).toBeDefined();
-      expect((new String(window.device.platform)).length > 0).toBe(true);
+      expect((String(window.device.platform)).length > 0).toBe(true);
     });
 
     it("should contain a version specification that is a string", function() {
       expect(window.device.version).toBeDefined();
-      expect((new String(window.device.version)).length > 0).toBe(true);
+      expect((String(window.device.version)).length > 0).toBe(true);
     });
 
     it("should contain a UUID specification that is a string or a number", function() {
       expect(window.device.uuid).toBeDefined();
       if (typeof window.device.uuid == 'string' || typeof window.device.uuid == 'object') {
-        expect((new String(window.device.uuid)).length > 0).toBe(true);
+        expect((String(window.device.uuid)).length > 0).toBe(true);
       } else {
         expect(window.device.uuid > 0).toBe(true);
       }
@@ -46,12 +48,12 @@ exports.defineAutoTests = function() {
 
     it("should contain a cordova specification that is a string", function() {
       expect(window.device.cordova).toBeDefined();
-      expect((new String(window.device.cordova)).length > 0).toBe(true);
+      expect((String(window.device.cordova)).length > 0).toBe(true);
     });
 
     it("should depend on the presence of cordova.version string", function() {
       expect(window.cordova.version).toBeDefined();
-      expect((new String(window.cordova.version)).length > 0).toBe(true);
+      expect((String(window.cordova.version)).length > 0).toBe(true);
     });
 
     it("should contain device.cordova equal to cordova.version", function() {
@@ -60,12 +62,12 @@ exports.defineAutoTests = function() {
 
     it("should contain a model specification that is a string", function() {
       expect(window.device.model).toBeDefined();
-      expect((new String(window.device.model)).length > 0).toBe(true);
+      expect((String(window.device.model)).length > 0).toBe(true);
     });
 
     it("should contain a manufacturer property that is a string", function() {
       expect(window.device.manufacturer).toBeDefined();
-      expect((new String(window.device.manufacturer)).length > 0).toBe(true);
+      expect((String(window.device.manufacturer)).length > 0).toBe(true);
     });
 
     it("should contain an isVirtual property that is a boolean", function() {
@@ -75,7 +77,7 @@ exports.defineAutoTests = function() {
 
     it("should contain a serial number specification that is a string", function() {
       expect(window.device.serial).toBeDefined();
-      expect((new String(window.device.serial)).length > 0).toBe(true);
+      expect((String(window.device.serial)).length > 0).toBe(true);
 
     });
 
@@ -83,7 +85,7 @@ exports.defineAutoTests = function() {
 };
 
 exports.defineManualTests = function(contentEl, createActionButton) {
-  var logMessage = function (message, color) {
+    var logMessage = function (message, color) {
         var log = document.getElementById('info');
         var logLine = document.createElement('div');
         if (color) {
@@ -91,12 +93,12 @@ exports.defineManualTests = function(contentEl, createActionButton) {
         }
         logLine.innerHTML = message;
         log.appendChild(logLine);
-    }
+    };
 
     var clearLog = function () {
         var log = document.getElementById('info');
         log.innerHTML = '';
-    }
+    };
 
     var device_tests = '<h3>Press Dump Device button to get device information</h3>' +
         '<div id="dump_device"></div>' +

@@ -20,8 +20,6 @@
  */
 //example UA String for Firefox OS 
 //Mozilla/5.0 (Mobile; rv:26.0) Gecko/26.0 Firefox/26.0
-var firefoxos = require('cordova/platform');
-var cordova = require('cordova');
 
 //UA parsing not recommended but currently this is the only way to get the Firefox OS version
 //https://developer.mozilla.org/en-US/docs/Gecko_user_agent_string_reference
