@@ -30,7 +30,9 @@
           
         [previewCtrl.navigationItem setRightBarButtonItem:nil];
           
-        [self.viewController presentViewController:previewCtrl animated:YES completion:nil];
+        dispatch_async(dispatch_get_main_queue(), ^{
+          [self.viewController presentViewController:previewCtrl animated:YES completion:nil];
+        });
 
         NSLog(@"cordova.disusered.open - Success!");
         commandResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK

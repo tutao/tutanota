@@ -1,0 +1,309 @@
+/*
+       Licensed to the Apache Software Foundation (ASF) under one
+       or more contributor license agreements.  See the NOTICE file
+       distributed with this work for additional information
+       regarding copyright ownership.  The ASF licenses this file
+       to you under the Apache License, Version 2.0 (the
+       "License"); you may not use this file except in compliance
+       with the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing,
+       software distributed under the License is distributed on an
+       "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+       KIND, either express or implied.  See the License for the
+       specific language governing permissions and limitations
+       under the License.
+*/
+
+// GENERATED FILE! DO NOT EDIT!
+
+apply plugin: 'android'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    // Switch the Android Gradle plugin version requirement depending on the
+    // installed version of Gradle. This dependency is documented at
+    // http://tools.android.com/tech-docs/new-build-system/version-compatibility
+    // and https://issues.apache.org/jira/browse/CB-8143
+    if (gradle.gradleVersion >= "2.2") {
+        dependencies {
+            classpath 'com.android.tools.build:gradle:1.0.0+'
+        }
+    } else if (gradle.gradleVersion >= "2.1") {
+        dependencies {
+            classpath 'com.android.tools.build:gradle:0.14.0+'
+        }
+    } else {
+        dependencies {
+            classpath 'com.android.tools.build:gradle:0.12.0+'
+        }
+    }
+}
+
+// Allow plugins to declare Maven dependencies via build-extras.gradle.
+repositories {
+    mavenCentral()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2.1'
+}
+
+// Configuration properties. Set these via environment variables, build-extras.gradle, or gradle.properties.
+// Refer to: http://www.gradle.org/docs/current/userguide/tutorial_this_and_that.html
+ext {
+    apply from: 'CordovaLib/cordova.gradle'
+    // The value for android.compileSdkVersion.
+    if (!project.hasProperty('cdvCompileSdkVersion')) {
+        cdvCompileSdkVersion = null;
+    }
+    // The value for android.buildToolsVersion.
+    if (!project.hasProperty('cdvBuildToolsVersion')) {
+        cdvBuildToolsVersion = null;
+    }
+    // Sets the versionCode to the given value.
+    if (!project.hasProperty('cdvVersionCode')) {
+        cdvVersionCode = null
+    }
+    // Sets the minSdkVersion to the given value.
+    if (!project.hasProperty('cdvMinSdkVersion')) {
+        cdvMinSdkVersion = null
+    }
+    // Whether to build architecture-specific APKs.
+    if (!project.hasProperty('cdvBuildMultipleApks')) {
+        cdvBuildMultipleApks = null
+    }
+    // .properties files to use for release signing.
+    if (!project.hasProperty('cdvReleaseSigningPropertiesFile')) {
+        cdvReleaseSigningPropertiesFile = null
+    }
+    // .properties files to use for debug signing.
+    if (!project.hasProperty('cdvDebugSigningPropertiesFile')) {
+        cdvDebugSigningPropertiesFile = null
+    }
+    // Set by build.js script.
+    if (!project.hasProperty('cdvBuildArch')) {
+        cdvBuildArch = null
+    }
+
+    // Plugin gradle extensions can append to this to have code run at the end.
+    cdvPluginPostBuildExtras = []
+}
+
+// PLUGIN GRADLE EXTENSIONS START
+// PLUGIN GRADLE EXTENSIONS END
+
+def hasBuildExtras = file('build-extras.gradle').exists()
+if (hasBuildExtras) {
+    apply from: 'build-extras.gradle'
+}
+
+// Set property defaults after extension .gradle files.
+if (ext.cdvCompileSdkVersion == null) {
+    ext.cdvCompileSdkVersion = privateHelpers.getProjectTarget()
+}
+if (ext.cdvBuildToolsVersion == null) {
+    ext.cdvBuildToolsVersion = privateHelpers.findLatestInstalledBuildTools()
+}
+if (ext.cdvDebugSigningPropertiesFile == null && file('debug-signing.properties').exists()) {
+    ext.cdvDebugSigningPropertiesFile = 'debug-signing.properties'
+}
+if (ext.cdvReleaseSigningPropertiesFile == null && file('release-signing.properties').exists()) {
+    ext.cdvReleaseSigningPropertiesFile = 'release-signing.properties'
+}
+
+// Cast to appropriate types.
+ext.cdvBuildMultipleApks = cdvBuildMultipleApks == null ? false : cdvBuildMultipleApks.toBoolean();
+ext.cdvMinSdkVersion = cdvMinSdkVersion == null ? null : Integer.parseInt('' + cdvMinSdkVersion)
+ext.cdvVersionCode = cdvVersionCode == null ? null : Integer.parseInt('' + cdvVersionCode)
+
+def computeBuildTargetName(debugBuild) {
+    def ret = 'assemble'
+    if (cdvBuildMultipleApks && cdvBuildArch) {
+        def arch = cdvBuildArch == 'arm' ? 'armv7' : cdvBuildArch
+        ret += '' + arch.toUpperCase().charAt(0) + arch.substring(1);
+    }
+    return ret + (debugBuild ? 'Debug' : 'Release')
+}
+
+// Make cdvBuild a task that depends on the debug/arch-sepecific task.
+task cdvBuildDebug
+cdvBuildDebug.dependsOn {
+    return computeBuildTargetName(true)
+}
+
+task cdvBuildRelease
+cdvBuildRelease.dependsOn {
+    return computeBuildTargetName(false)
+}
+
+task cdvPrintProps << {
+    println('cdvCompileSdkVersion=' + cdvCompileSdkVersion)
+    println('cdvBuildToolsVersion=' + cdvBuildToolsVersion)
+    println('cdvVersionCode=' + cdvVersionCode)
+    println('cdvMinSdkVersion=' + cdvMinSdkVersion)
+    println('cdvBuildMultipleApks=' + cdvBuildMultipleApks)
+    println('cdvReleaseSigningPropertiesFile=' + cdvReleaseSigningPropertiesFile)
+    println('cdvDebugSigningPropertiesFile=' + cdvDebugSigningPropertiesFile)
+    println('cdvBuildArch=' + cdvBuildArch)
+    println('computedVersionCode=' + android.defaultConfig.versionCode)
+    android.productFlavors.each { flavor ->
+        println('computed' + flavor.name.capitalize() + 'VersionCode=' + flavor.versionCode)
+    }
+}
+
+android {
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            resources.srcDirs = ['src']
+            aidl.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    defaultConfig {
+        versionCode cdvVersionCode ?: Integer.parseInt("" + privateHelpers.extractIntFromManifest("versionCode") + "0")
+        if (cdvMinSdkVersion != null) {
+            minSdkVersion cdvMinSdkVersion
+        }
+    }
+
+    compileSdkVersion cdvCompileSdkVersion
+    buildToolsVersion cdvBuildToolsVersion
+
+    if (Boolean.valueOf(cdvBuildMultipleApks)) {
+        productFlavors {
+            armv7 {
+                versionCode defaultConfig.versionCode + 2
+                ndk {
+                    abiFilters "armeabi-v7a", ""
+                }
+            }
+            x86 {
+                versionCode defaultConfig.versionCode + 4
+                ndk {
+                    abiFilters "x86", ""
+                }
+            }
+            all {
+                ndk {
+                    abiFilters "all", ""
+                }
+            }
+        }
+    } else if (!cdvVersionCode) {
+      def minSdkVersion = cdvMinSdkVersion ?: privateHelpers.extractIntFromManifest("minSdkVersion")
+      // Vary versionCode by the two most common API levels:
+      // 14 is ICS, which is the lowest API level for many apps.
+      // 20 is Lollipop, which is the lowest API level for the updatable system webview.
+      if (minSdkVersion >= 20) {
+        defaultConfig.versionCode += 9
+      } else if (minSdkVersion >= 14) {
+        defaultConfig.versionCode += 8
+      }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_6
+        targetCompatibility JavaVersion.VERSION_1_6
+    }
+
+    if (cdvReleaseSigningPropertiesFile) {
+        signingConfigs {
+            release {
+                // These must be set or Gradle will complain (even if they are overridden).
+                keyAlias = ""
+                keyPassword = "__unset" // And these must be set to non-empty in order to have the signing step added to the task graph.
+                storeFile = null
+                storePassword = "__unset"
+            }
+        }
+        buildTypes {
+            release {
+                signingConfig signingConfigs.release
+            }
+        }
+        addSigningProps(cdvReleaseSigningPropertiesFile, signingConfigs.release)
+    }
+    if (cdvDebugSigningPropertiesFile) {
+        addSigningProps(cdvDebugSigningPropertiesFile, signingConfigs.debug)
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    // SUB-PROJECT DEPENDENCIES START
+    debugCompile project(path: "CordovaLib", configuration: "debug")
+    releaseCompile project(path: "CordovaLib", configuration: "release")
+    // SUB-PROJECT DEPENDENCIES END
+}
+
+def promptForReleaseKeyPassword() {
+    if (!cdvReleaseSigningPropertiesFile) {
+        return;
+    }
+    if ('__unset'.equals(android.signingConfigs.release.storePassword)) {
+        android.signingConfigs.release.storePassword = privateHelpers.promptForPassword('Enter key store password: ')
+    }
+    if ('__unset'.equals(android.signingConfigs.release.keyPassword)) {
+        android.signingConfigs.release.keyPassword = privateHelpers.promptForPassword('Enter key password: ');
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    taskGraph.getAllTasks().each() { task ->
+        if (task.name == 'validateReleaseSigning') {
+            promptForReleaseKeyPassword()
+        }
+    }
+}
+
+def addSigningProps(propsFilePath, signingConfig) {
+    def propsFile = file(propsFilePath)
+    def props = new Properties()
+    propsFile.withReader { reader ->
+        props.load(reader)
+    }
+
+    def storeFile = new File(props.get('key.store') ?: privateHelpers.ensureValueExists(propsFilePath, props, 'storeFile'))
+    if (!storeFile.isAbsolute()) {
+        storeFile = RelativePath.parse(true, storeFile.toString()).getFile(propsFile.getParentFile())
+    }
+    if (!storeFile.exists()) {
+        throw new FileNotFoundException('Keystore file does not exist: ' + storeFile.getAbsolutePath())
+    }
+    signingConfig.keyAlias = props.get('key.alias') ?: privateHelpers.ensureValueExists(propsFilePath, props, 'keyAlias')
+    signingConfig.keyPassword = props.get('keyPassword', props.get('key.alias.password', signingConfig.keyPassword))
+    signingConfig.storeFile = storeFile
+    signingConfig.storePassword = props.get('storePassword', props.get('key.store.password', signingConfig.storePassword))
+    def storeType = props.get('storeType', props.get('key.store.type', ''))
+    if (!storeType) {
+        def filename = storeFile.getName().toLowerCase();
+        if (filename.endsWith('.p12') || filename.endsWith('.pfx')) {
+            storeType = 'pkcs12'
+        } else {
+            storeType = signingConfig.storeType // "jks"
+        }
+    }
+    signingConfig.storeType = storeType
+}
+
+for (def func : cdvPluginPostBuildExtras) {
+    func()
+}
+
+// This can be defined within build-extras.gradle as:
+//     ext.postBuildExtras = { ... code here ... }
+if (hasProperty('postBuildExtras')) {
+    postBuildExtras()
+}

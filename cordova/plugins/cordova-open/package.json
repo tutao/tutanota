@@ -1,6 +1,6 @@
 {
   "name": "cordova-open",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Open audio, video, images and more with applications installed on the user's device",
   "cordova": {
     "id": "com.disusered.open",

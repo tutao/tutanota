@@ -1,0 +1,51 @@
+{
+    "cordova-plugin-whitelist": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-whitelist@1"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-test-framework": {
+        "source": {
+            "type": "git",
+            "url": "http://git-wip-us.apache.org/repos/asf/cordova-plugin-test-framework.git",
+            "subdir": "."
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-open": {
+        "source": {
+            "type": "local",
+            "path": "/Users/carlosrosquillas/Development/projects/cordova-open"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "cordova-plugin-file": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-file"
+        },
+        "is_top_level": false,
+        "variables": {}
+    },
+    "cordova-plugin-file-transfer": {
+        "source": {
+            "type": "registry",
+            "id": "cordova-plugin-file-transfer"
+        },
+        "is_top_level": false,
+        "variables": {}
+    },
+    "cordova-open-tests": {
+        "source": {
+            "type": "local",
+            "path": "/Users/carlosrosquillas/Development/projects/cordova-open/tests"
+        },
+        "is_top_level": true,
+        "variables": {}
+    }
+}
