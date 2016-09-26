@@ -20,8 +20,18 @@
 -->
 # Release Notes
 
+### 2.1.2 (Sep 08, 2016)
+* [CB-11795](https://issues.apache.org/jira/browse/CB-11795) Add 'protective' entry to cordovaDependencies
+* add JIRA issue tracker link
+* Add badges for paramedic builds on Jenkins
+* Add pull request template.
+* [CB-10996](https://issues.apache.org/jira/browse/CB-10996) Adding front matter to README.md
+
+### 2.1.1 (Apr 15, 2016)
+* [CB-10636](https://issues.apache.org/jira/browse/CB-10636) Add `JSHint` for plugins
+
 ### 2.1.0 (Jan 15, 2016)
-* CB-9365 Add support for 'vibrateWithPattern' to **Windows Phone 8.1 / Windows 10**
+* [CB-9365](https://issues.apache.org/jira/browse/CB-9365) Add support for 'vibrateWithPattern' to **Windows Phone 8.1 / Windows 10**
 
 ### 2.0.0 (Nov 18, 2015)
 * [CB-10035](https://issues.apache.org/jira/browse/CB-10035) Updated `RELEASENOTES` to be newest to oldest

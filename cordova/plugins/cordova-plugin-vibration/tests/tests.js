@@ -19,6 +19,8 @@
  *
  */
 
+/* jshint jasmine: true */
+
 exports.defineAutoTests = function () {
 
     describe('Vibration (navigator.notification.vibrate)', function () {
@@ -42,12 +44,12 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         }
         logLine.innerHTML = message;
         log.appendChild(logLine);
-    }
+    };
 
     var clearLog = function () {
         var log = document.getElementById('info');
         log.innerHTML = '';
-    }
+    };
 
     //-------------------------------------------------------------------------
     // Vibrations
@@ -119,6 +121,9 @@ exports.defineManualTests = function (contentEl, createActionButton) {
     //reference to the timeout variable
     var timeout;
 
+    //check whether there is an ongoing vibration
+    var vibrateOn = false;
+
     //special long vibrate used to test cancel
     var longVibrate = function() {
         clearLog();
@@ -145,16 +150,11 @@ exports.defineManualTests = function (contentEl, createActionButton) {
         vibrateOn = true;
         logMessage("navigator.vibrate(15000)\nnavigator.vibrate(45000)", "green");
         timeout = setTimeout(resetVibrateOn, 45000); //if user doesn't cancel vibrate, reset vibrateOn var after 45 seconds
-    }
+    };
 
     function resetVibrateOn() {
         vibrateOn = false;
     }
-
-    //check whether there is an ongoing vibration
-    var vibrateOn = false;
-
-
 
 
     var vibrate_tests = '<h1>Vibrate Tests</h1>' +

@@ -19,6 +19,8 @@
  *
 */
 
+/* global PluginResult, JNEXT */
+
 var vibration;
 
 module.exports = {

@@ -55,14 +55,14 @@ module.exports = {
         /* Aligning with w3c spec */
         
         //vibrate
-        if ((typeof param == 'number') && param != 0)
+        if ((typeof param == 'number') && param !== 0)
             exec(null, null, "Vibration", "vibrate", [param]);
 
         //vibrate with array ( i.e. vibrate([3000]) )
         else if ((typeof param == 'object') && param.length == 1)
         {
             //cancel if vibrate([0])
-            if (param[0] == 0)
+            if (param[0] === 0)
                 exec(null, null, "Vibration", "cancelVibration", []);
 
             //else vibrate
