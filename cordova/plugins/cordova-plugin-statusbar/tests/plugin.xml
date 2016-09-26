@@ -22,7 +22,7 @@
     xmlns:rim="http://www.blackberry.com/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="cordova-plugin-statusbar-tests"
-    version="2.1.1">
+    version="2.1.3">
     <name>Cordova StatusBar Plugin Tests</name>
     <license>Apache 2.0</license>
 

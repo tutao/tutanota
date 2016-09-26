@@ -18,8 +18,6 @@
  *
  */
 
-var cordova = require('cordova');
-
 function notSupported() {
     console.log('StatusBar is not supported');
     return false;

@@ -19,6 +19,9 @@
  *
 */
 
+/* jshint jasmine: true */
+/* global StatusBar */
+
 exports.defineAutoTests = function () {
     describe("StatusBar", function () {
         it("statusbar.spec.1 should exist", function() {

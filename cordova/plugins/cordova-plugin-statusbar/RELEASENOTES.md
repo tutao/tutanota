@@ -20,6 +20,16 @@
 -->
 # Release Notes
 
+### 2.1.3 (Apr 15, 2016)
+* CB-11018 Fix statusbar with `inappbrowser` causing incorrect orientation on **iOS8**
+* CB-10884 `Inappbrowser` breaks UI while Screen orientation changes from landscape to portrait on **iOS**
+
+### 2.1.2 (Mar 09, 2016)
+* [CB-10752](https://issues.apache.org/jira/browse/CB-10752) for for status bar overlays the webview on **iOS** 6 in some cases
+* [CB-10683](https://issues.apache.org/jira/browse/CB-10683) Fix wrong StatusBar.isVisible initial value on **Windows**
+* [CB-10636](https://issues.apache.org/jira/browse/CB-10636) Add JSHint for plugins
+* [CB-10047](https://issues.apache.org/jira/browse/CB-10047) fix **iOS** 8 deprecated warnings
+
 ### 2.1.1 (Feb 09, 2016)
 * [CB-10102](https://issues.apache.org/jira/browse/CB-10102) The removeObserver code was wrong and it might crash on plugin deallocation
 
@@ -33,7 +43,7 @@
 * Added `weakSelf` reference for block use
 * Fixes [CB-4712](https://issues.apache.org/jira/browse/CB-4712), [CB-5439](https://issues.apache.org/jira/browse/CB-5439) statusbar issues
 * Fixing contribute link.
-* [CB-7965](https://issues.apache.org/jira/browse/CB-7965) Add cordova-plugin-statusbar support for **browser** platform
+* [CB-7965](https://issues.apache.org/jira/browse/CB-7965) Add cordova-plugin-statusbar support for **Browser** platform
 * Don't use `IsAtLeastiOSVersion` macro to determine height
 * Use correct statusbar height for landscape orientation in iOS >= 8
 * remove travis-ci
