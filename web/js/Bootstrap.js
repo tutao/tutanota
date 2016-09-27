@@ -184,7 +184,9 @@ tutao.tutanota.Bootstrap.initLocator = function() {
         if (cordova.platformId == "android") {
             fileFacadeImpl = tutao.native.FileFacadeAndroidApp;
             configFacadeImpl = tutao.native.ConfigApp;
-        }
+        } else if (cordova.platformId == "ios") {
+			fileFacadeImpl = tutao.native.FileFacadeIosApp;
+		}
         pushServiceFacadeImpl = tutao.native.PushServiceApp;
     }
 
