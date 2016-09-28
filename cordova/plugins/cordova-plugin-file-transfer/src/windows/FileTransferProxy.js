@@ -26,14 +26,15 @@
 var FTErr = require('./FileTransferError'),
     ProgressEvent = require('cordova-plugin-file.ProgressEvent'),
     FileUploadResult = require('cordova-plugin-file.FileUploadResult'),
-    FileProxy = require('cordova-plugin-file.FileProxy'),
-    FileEntry = require('cordova-plugin-file.FileEntry');
+    FileProxy = require('cordova-plugin-file.FileProxy');
 
 var appData = Windows.Storage.ApplicationData.current;
 
 var LINE_START = "--";
 var LINE_END = "\r\n";
 var BOUNDARY = '+++++';
+
+var fileTransferOps = [];
 
 // Some private helper functions, hidden by the module
 function cordovaPathToNative(path) {
@@ -144,8 +145,6 @@ function doUpload (upload, uploadId, filePath, server, successCallback, errorCal
     );
 }
 
-var fileTransferOps = [];
-
 function FileTransferOperation(state, promise) {
     this.state = state;
     this.promise = promise;
@@ -178,6 +177,15 @@ exec(win, fail, 'FileTransfer', 'upload',
 
         var isMultipart = typeof headers["Content-Type"] === 'undefined';
 
+        function stringToByteArray(str) {
+            var byteCharacters = atob(str);
+            var byteNumbers = new Array(byteCharacters.length);
+            for (var i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            return new Uint8Array(byteNumbers);
+        }
+
         if (!filePath || (typeof filePath !== 'string')) {
             errorCallback(new FTErr(FTErr.FILE_NOT_FOUND_ERR, null, server));
             return;
@@ -200,15 +208,6 @@ exec(win, fail, 'FileTransfer', 'upload',
             fileTransferOps[uploadId] = new FileTransferOperation(FileTransferOperation.PENDING, null);
 
             var fileDataString = filePath.substr(commaIndex + 1);
-
-            function stringToByteArray(str) {
-                var byteCharacters = atob(str);
-                var byteNumbers = new Array(byteCharacters.length);
-                for (var i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                return new Uint8Array(byteNumbers);
-            };
 
             // setting request headers for uploader
             var uploader = new Windows.Networking.BackgroundTransfer.BackgroundUploader();
@@ -357,7 +356,8 @@ exec(win, fail, 'FileTransfer', 'upload',
                     // adding params supplied to request payload
                     var transferParts = [];
                     for (var key in params) {
-                        if (params.hasOwnProperty(key)) {
+                        // Create content part for params only if value is specified because CreateUploadAsync fails otherwise
+                        if (params.hasOwnProperty(key) && params[key] !== null && params[key] !== undefined && params[key].toString() !== "") {
                             var contentPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart();
                             contentPart.setHeader("Content-Disposition", "form-data; name=\"" + key + "\"");
                             contentPart.setText(params[key]);
@@ -367,6 +367,7 @@ exec(win, fail, 'FileTransfer', 'upload',
 
                     // Adding file to upload to request payload
                     var fileToUploadPart = new Windows.Networking.BackgroundTransfer.BackgroundTransferContentPart(fileKey, fileName);
+                    fileToUploadPart.setHeader("Content-Type", mimeType);
                     fileToUploadPart.setFile(storageFile);
                     transferParts.push(fileToUploadPart);
 

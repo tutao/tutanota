@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-wkwebview-engine",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The official Apache Cordova WKWebView Engine Plugin",
   "main": "index.js",
   "scripts": {
@@ -14,6 +14,13 @@
     "cordova",
     "wkwebview"
   ],
+  "scripts": {
+    "test": "npm run jshint",
+    "jshint": "node node_modules/jshint/bin/jshint src"
+  },
   "author": "Apache Cordova",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "jshint": "^2.6.0"
+  }
 }

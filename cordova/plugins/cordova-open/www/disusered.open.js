@@ -20,11 +20,10 @@ var exec = require('cordova/exec');
 exports.open = function(uri, success, error, trustAllCertificates) {
   if (!uri || arguments.length === 0) { return false; }
 
-  uri = encodeURI(uri);
-
   if (uri.match('http')) {
     downloadAndOpen(uri, success, error, trustAllCertificates);
   } else {
+    uri = encodeURI(uri);
     exec(onSuccess.bind(this, uri, success),
          onError.bind(this, error), 'Open', 'open', [uri]);
   }

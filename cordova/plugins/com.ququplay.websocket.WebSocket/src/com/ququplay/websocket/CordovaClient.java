@@ -104,7 +104,18 @@ public class CordovaClient extends WebSocketClient {
 
   @Override
   public void onClose(int code, String reason, boolean remote) {
-    sendResult("", "close", PluginResult.Status.OK);
+	JSONObject event = null;
+	//Add close specific information
+	try {
+      event = createEvent("", "close");
+	  event.put("code", Integer.toString(code));
+      event.put("reason", reason);
+    }
+    catch (JSONException e) {
+      e.printStackTrace();
+    }
+	
+	sendResult(event, PluginResult.Status.OK);
   }
 
   @Override
@@ -114,6 +125,10 @@ public class CordovaClient extends WebSocketClient {
 
   private void sendResult(Object message, String type, Status status) {
     JSONObject event = createEvent(message, type);
+    sendResult(event, status);
+  }
+
+  private void sendResult(JSONObject event, Status status) {
     PluginResult pluginResult = new PluginResult(status, event);
     pluginResult.setKeepCallback(true);
     this.callbackContext.sendPluginResult(pluginResult);

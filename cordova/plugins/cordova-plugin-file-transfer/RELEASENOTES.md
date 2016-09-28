@@ -20,24 +20,50 @@
 -->
 # Release Notes
                                               
+### 1.6.0 (Sep 08, 2016)
+* [CB-11795](https://issues.apache.org/jira/browse/CB-11795) Add 'protective' entry to cordovaDependencies
+* [CB-9022](https://issues.apache.org/jira/browse/CB-9022) Fix exception thrown by call to `remapApi` on main thread
+* Plugin uses `Android Log class` and not `Cordova LOG class`
+* [CB-9022](https://issues.apache.org/jira/browse/CB-9022) Resolve source URI on background thread
+* [CB-11316](https://issues.apache.org/jira/browse/CB-11316) **windows**: Added `content-type` for files
+* Close invalid PRs
+* [CB-11497](https://issues.apache.org/jira/browse/CB-11497) Use `cordova-vm` for testing 304 errors
+* Add badges for paramedic builds on Jenkins
+* documentation with a wrong log message in `fileTransfer.download` function
+* added link to sample
+* Add pull request template.
+* [CB-10974](https://issues.apache.org/jira/browse/CB-10974) Cordova file transfer `Content-Length` header problem
+* Add fenced code blocks to help code formatting
+* [CB-11165](https://issues.apache.org/jira/browse/CB-11165) removed peer dependency
+* [CB-11003](https://issues.apache.org/jira/browse/CB-11003) Adding sample section to documentation.
+* [CB-10996](https://issues.apache.org/jira/browse/CB-10996) Adding front matter to README.md
+
+### 1.5.1 (Apr 15, 2016)
+* [CB-10536](https://issues.apache.org/jira/browse/CB-10536) Removing flaky test assertions about abort callback latency
+* Removing the expectation in `spec.34` for the transfer method to be called.
+* [CB-10978](https://issues.apache.org/jira/browse/CB-10978) Fix `file-transfer.tests` JSHint issues
+* [CB-10782](https://issues.apache.org/jira/browse/CB-10782) Occasional failure in file transfer tests causing mobilespec crash
+* [CB-10771](https://issues.apache.org/jira/browse/CB-10771) Fixing failure when empty string passed as a value for option parameter in upload function
+* [CB-10636](https://issues.apache.org/jira/browse/CB-10636) Add `JSHint` for plugins
+
 ### 1.5.0 (Jan 15, 2016)
-* CB-10208 Fix `file-transfer` multipart form data upload format on **Windows**
-* CB-9837 Add data `URI` support to `file-transfer` upload on **iOS**
-* CB-9600 `FileUploadOptions` params not posted on **iOS**
-* CB-9840 Fallback `file-transfer` `uploadResponse` encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
-* CB-9840 Fallback `file-transfer` upload/download response encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
-* CB-8641 **Windows Phone 8.1** Some `file-transfer` plugin tests occasionally fail in `mobilespec`
+* [CB-10208](https://issues.apache.org/jira/browse/CB-10208) Fix `file-transfer` multipart form data upload format on **Windows**
+* [CB-9837](https://issues.apache.org/jira/browse/CB-9837) Add data `URI` support to `file-transfer` upload on **iOS**
+* [CB-9600](https://issues.apache.org/jira/browse/CB-9600) `FileUploadOptions` params not posted on **iOS**
+* [CB-9840](https://issues.apache.org/jira/browse/CB-9840) Fallback `file-transfer` `uploadResponse` encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
+* [CB-9840](https://issues.apache.org/jira/browse/CB-9840) Fallback `file-transfer` upload/download response encoding to `latin1` in case not encoded with `UTF-8` on **iOS**
+* [CB-8641](https://issues.apache.org/jira/browse/CB-8641) **Windows Phone 8.1** Some `file-transfer` plugin tests occasionally fail in `mobilespec`
 * Adding linting and fixing linter warnings. Reducing timeouts to 7 seconds.
-* CB-10100 updated file dependency to not grab new majors
-* CB-7006 Empty file is created on file transfer if server response is 304
-* CB-10098 `filetransfer.spec.33` is faulty
-* CB-9969 Filetransfer upload error deletes original file
-* CB-10088 `filetransfer spec.10` and `spec.11` test is faulty
-* CB-9969 Filetransfer upload error deletes original file
-* CB-10086 There are two `spec.31` tests for `file-transfer` tests
-* CB-10037 Add progress indicator to file-transfer manual tests
-* CB-9563 Mulptipart form data is used even a header named `Content-Type` is present
-* CB-8863 fix block usage of self
+* [CB-10100](https://issues.apache.org/jira/browse/CB-10100) updated file dependency to not grab new majors
+* [CB-7006](https://issues.apache.org/jira/browse/CB-7006) Empty file is created on file transfer if server response is 304
+* [CB-10098](https://issues.apache.org/jira/browse/CB-10098) `filetransfer.spec.33` is faulty
+* [CB-9969](https://issues.apache.org/jira/browse/CB-9969) Filetransfer upload error deletes original file
+* [CB-10088](https://issues.apache.org/jira/browse/CB-10088) `filetransfer spec.10` and `spec.11` test is faulty
+* [CB-9969](https://issues.apache.org/jira/browse/CB-9969) Filetransfer upload error deletes original file
+* [CB-10086](https://issues.apache.org/jira/browse/CB-10086) There are two `spec.31` tests for `file-transfer` tests
+* [CB-10037](https://issues.apache.org/jira/browse/CB-10037) Add progress indicator to file-transfer manual tests
+* [CB-9563](https://issues.apache.org/jira/browse/CB-9563) Mulptipart form data is used even a header named `Content-Type` is present
+* [CB-8863](https://issues.apache.org/jira/browse/CB-8863) fix block usage of self
 
 ### 1.4.0 (Nov 18, 2015)
 * [CB-10035](https://issues.apache.org/jira/browse/CB-10035) Updated `RELEASENOTES` to be newest to oldest

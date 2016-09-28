@@ -101,25 +101,36 @@ hasWebSocket() || (function() {
       var events = this.events[event.type] || [];
 
       for (var i = 0, l = events.length; i < l; i++) {
-        events[i](event);
+        //FIX (russaa): call event handler in context of the WebSocket instance
+        events[i].call(this, event);
       }
 
       handler = this["on" + event.type];
-      if (handler) handler(event);
+      //FIX (russaa): call event handler in context of the WebSocket instance
+      if (handler) handler.call(this, event);
     },
 
     _handleEvent: function (event) {
       this.readyState = event.readyState;
 
-      if (event.type == "message") {
+      switch (event.type) {
+      case "message":
         event = createMessageEvent("message", event.data);
-      } 
-      else if (event.type == "messageBinary") {
+        break;
+      case "messageBinary":
         var result = arrayToBinaryType(event.data, this.binaryType);
         event = createBinaryMessageEvent("message", result);
-      } 
-      else {
+        break;
+      case "close":
+        var reason = event.reason;
+        var code = event.code;
+        event = this._createSimpleEvent(event.type);
+        event.reason = reason;
+        event.code = code;
+        break;
+      default:
         event = createSimpleEvent(event.type);
+        break;
       }
       
       this.dispatchEvent(event);
@@ -208,15 +219,15 @@ hasWebSocket() || (function() {
 
   Array.isArray = Array.isArray || function (args) {
     return Object.prototype.toString.call(args) === "[object Array]";
-  }
+  };
   
   window.ArrayBuffer = window.ArrayBuffer || function () {
     throw "ArrayBuffer not supported on this platform";
-  }
+  };
   
   window.Blob = window.Blob || function () {
     throw "Blob not supported on this platform";
-  }
+  };
 
 }());
 

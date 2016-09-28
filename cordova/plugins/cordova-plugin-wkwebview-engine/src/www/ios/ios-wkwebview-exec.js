@@ -24,12 +24,8 @@
  * commands.
  */
 var cordova = require('cordova'),
-    channel = require('cordova/channel'),
     utils = require('cordova/utils'),
-    base64 = require('cordova/base64'),
-    commandQueue = [], // Contains pending JS->Native messages.
-    isInContextOfEvalJs = 0,
-    failSafeTimerId = 0;
+    base64 = require('cordova/base64');
 
 function massageArgsJsToNative(args) {
     if (!args || utils.typeName(args) != 'Array') {
@@ -88,7 +84,7 @@ var iOSExec = function() {
     //     bridgeMode = jsToNativeModes.WK_WEBVIEW_BINDING;
     // }
 
-    var successCallback, failCallback, service, action, actionArgs, splitCommand;
+    var successCallback, failCallback, service, action, actionArgs;
     var callbackId = null;
     if (typeof arguments[0] !== "string") {
         // FORMAT ONE
@@ -104,8 +100,8 @@ var iOSExec = function() {
         // an invalid callbackId and passes it even if no callbacks were given.
         callbackId = 'INVALID';
     } else {
-   		throw new Error('The old format of this exec call has been removed (deprecated since 2.1). Change to: ' +
-			'cordova.exec(null, null, \'Service\', \'action\', [ arg1, arg2 ]);');
+   	    throw new Error('The old format of this exec call has been removed (deprecated since 2.1). Change to: ' +
+            'cordova.exec(null, null, \'Service\', \'action\', [ arg1, arg2 ]);');
     }
 
     // If actionArgs is not provided, default to an empty array
@@ -125,7 +121,7 @@ var iOSExec = function() {
     var command = [callbackId, service, action, JSON.parse(JSON.stringify(actionArgs))];
     window.webkit.messageHandlers.cordova.postMessage(command);
 
-}
+};
 
 iOSExec.nativeCallback = function(callbackId, status, message, keepCallback, debug) {
     
@@ -155,7 +151,7 @@ function cordovaExec() {
 
 function execProxy() {
     cordovaExec().apply(null, arguments);
-};
+}
 
 execProxy.nativeFetchMessages = function() {
     return cordovaExec().nativeFetchMessages.apply(null, arguments);

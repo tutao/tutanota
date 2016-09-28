@@ -7,19 +7,16 @@
         "files": {}
     },
     "installed_plugins": {
-        "com.ququplay.websocket.WebSocket": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "cordova-open": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "cordova-plugin-app-event": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "cordova-plugin-compat": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-contacts": {
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-app-event": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-device": {
@@ -29,6 +26,9 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-file-transfer": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-inappbrowser": {
@@ -55,7 +55,7 @@
         "phonegap-plugin-push": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "de.tutanota.native": {
+        "cordova-plugin-contacts": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },

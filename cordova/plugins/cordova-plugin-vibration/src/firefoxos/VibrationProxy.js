@@ -19,8 +19,6 @@
  *
 */
 
-var cordova = require('cordova');
-
 module.exports = {
 
     vibrate: function(success, fail, milliseconds) {

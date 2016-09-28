@@ -19,6 +19,8 @@
  *
  */
 
+/* global Windows, WinJS, Vibration */
+
 function checkReqs(actionName, fail) {
     if (!(Windows.Phone && Windows.Phone.Devices && Windows.Phone.Devices.Notification && Windows.Phone.Devices.Notification.VibrationDevice) && WinJS.Utilities.isPhone !== true) {       
         fail(actionName + ' is unsupported by this platform.');
@@ -35,7 +37,7 @@ function tryDoAction(actionName, success, fail, args, action) {
         }
 
         action(args);
-        success();        
+        success();
     } catch (e) {
         fail('Error occured while trying to ' + actionName + ': ' + e);
     }
@@ -102,7 +104,9 @@ function checkPatternReqs(args, fail) {
 
     if (!passed) {
         console.error(errMsg);
-        fail && fail(errMsg);
+        if (fail) {
+            fail(errMsg);
+        }
     }
 
     return {
@@ -125,7 +129,9 @@ function vibratePattern(patternArr, shouldRepeat, fail, patternCycle) {
             return previousValue.then(function () {
                 module.exports.vibrate(function () { }, function (err) {
                     console.error(err);
-                    fail && fail(err);
+                    if (fail) {
+                        fail(err);
+                    }
                 }, [currentValue]);
 
                 if (index === patternArr.length - 1 && shouldRepeat) {
@@ -192,12 +198,18 @@ if (VibrationDevice) {
         },
         cancelVibration: function(success, fail, args) {
             try {
-                patternChainPromise && patternChainPromise.cancel();
+                if (patternChainPromise) {
+                    patternChainPromise.cancel();
+                }
                 VibrationDevice.getDefault().cancel();
-                success && success();
+                if (success) {
+                    success();
+                }
             }
             catch (e) {
-                fail && fail(e);
+                if (fail) {
+                    fail(e);
+                }
             }
         }
     };
@@ -220,14 +232,20 @@ if (VibrationDevice) {
     // code paths where no vibration mechanism is present
     module.exports = {
         vibrate: function (success, fail) {
-            fail && fail('"vibrate" is unsupported by this device.');
+            if (fail) {
+                fail('"vibrate" is unsupported by this device.');
+            }
         },
         vibrateWithPattern: function (success, fail, args) {
-            fail && fail('"vibrateWithPattern" is unsupported by this device.');
+            if (fail) {
+                fail('"vibrateWithPattern" is unsupported by this device.');
+            }
         },
 
         cancelVibration: function (success, fail, args) {
-            success && success();
+            if (success) {
+                success();
+            }
         }
     };
 }

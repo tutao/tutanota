@@ -99,7 +99,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     // Check if target URL doesn't contain spaces. If contains, it should be escaped first
     // (see https://github.com/apache/cordova-plugin-file-transfer/blob/master/doc/index.md#upload)
     if (!checkURL(server)) {
-        errorCallback && errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, filePath, server));
+        if (errorCallback) {
+            errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, filePath, server));
+        }
         return;
     }
 
@@ -125,9 +127,13 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
     xhr.withCredentials = withCredentials;
 
     var fail = errorCallback && function(code, status, response) {
-        transfers[this._id] && delete transfers[this._id];
+        if (transfers[this._id]) {
+            delete transfers[this._id];
+        }
         var error = new FileTransferError(code, filePath, server, status, response);
-        errorCallback && errorCallback(error);
+        if (errorCallback) {
+            errorCallback(error);
+        }
     };
 
     window.resolveLocalFileSystemURL(filePath, function(entry) {
@@ -182,7 +188,9 @@ FileTransfer.prototype.upload = function(filePath, server, successCallback, erro
                 };
 
                 xhr.upload.onprogress = function (e) {
-                    that.onprogress && that.onprogress(e);
+                    if (that.onprogress) {
+                        that.onprogress(e);
+                    }
                 };
 
                 xhr.send(fd);
@@ -217,7 +225,9 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     // Check if target URL doesn't contain spaces. If contains, it should be escaped first
     // (see https://github.com/apache/cordova-plugin-file-transfer/blob/master/doc/index.md#download)
     if (!checkURL(source)) {
-        errorCallback && errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, source, target));
+        if (errorCallback) {
+            errorCallback(new FileTransferError(FileTransferError.INVALID_URL_ERR, source, target));
+        }
         return;
     }
 
@@ -236,7 +246,9 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     var xhr = transfers[this._id] = new XMLHttpRequest();
     xhr.withCredentials = withCredentials;
     var fail = errorCallback && function(code, status, response) {
-        transfers[that._id] && delete transfers[that._id];
+        if (transfers[that._id]) {
+            delete transfers[that._id];
+        }
         // In XHR GET reqests we're setting response type to Blob
         // but in case of error we need to raise event with plain text response
         if (response instanceof Blob) {
@@ -268,7 +280,9 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
                             if (!evt.target.error) {
                                 entry.filesystemName = entry.filesystem.name;
                                 delete transfers[that._id];
-                                successCallback && successCallback(entry);
+                                if (successCallback) {
+                                    successCallback(entry);
+                                }
                             } else {
                                 fail(FileTransferError.FILE_NOT_FOUND_ERR);
                             }
@@ -288,7 +302,9 @@ FileTransfer.prototype.download = function(source, target, successCallback, erro
     };
 
     xhr.onprogress = function (e) {
-        that.onprogress && that.onprogress(e);
+        if (that.onprogress) {
+            that.onprogress(e);
+        }
     };
 
     xhr.onerror = function () {

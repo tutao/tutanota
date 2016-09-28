@@ -8,7 +8,7 @@ The `cordova.plugins.Keyboard` object provides functions to make interacting wit
 Methods
 -------
 
-- cordova.plugins.Keyboard.hideKeyboardAccessoryBar
+- ~~cordova.plugins.Keyboard.hideKeyboardAccessoryBar~~ (**removed in 2.0, see below**)
 - cordova.plugins.Keyboard.close
 - cordova.plugins.Keyboard.disableScroll
 - cordova.plugins.Keyboard.show
@@ -27,8 +27,13 @@ These events are fired on the window.
   * A number `keyboardHeight` is given on the event object, which is the pixel height of the keyboard.
 - native.keyboardhide
 
-Keyboard.hideKeyboardAccessoryBar
+
+# API reference
+
+~~Keyboard.hideKeyboardAccessoryBar~~
 =================
+
+**NOTE: This method started causing apps to be rejected from the App Store, so has been removed until a workaround is found.**
 
 Hide the keyboard accessory bar with the next, previous and done buttons.
 
@@ -51,7 +56,7 @@ Close the keyboard if it is open.
 Supported Platforms
 -------------------
 
-- iOS, Android, Blackberry 10, Windows 
+- iOS, Android, Blackberry 10, Windows
 
 
 Keyboard.disableScroll
@@ -76,7 +81,7 @@ Force keyboard to be shown. This typically helps if autofocus on a text element 
 
 Supported Platforms
 
-- Android, Blackberry 10, Windows 
+- Android, Blackberry 10, Windows
 
 native.keyboardshow
 =================

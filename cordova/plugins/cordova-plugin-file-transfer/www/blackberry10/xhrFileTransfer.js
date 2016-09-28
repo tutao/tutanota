@@ -19,7 +19,8 @@
  *
 */
 
-/*global Blob:false */
+/* global Blob:false */
+
 var cordova = require('cordova'),
     resolve = cordova.require('cordova-plugin-file.resolveLocalFileSystemURIProxy'),
     requestAnimationFrame = cordova.require('cordova-plugin-file.bb10RequestAnimationFrame'),
@@ -221,7 +222,7 @@ module.exports = {
 
         xhr[id].onabort = function (e) {
             onFail(new FileTransferError(FileTransferError.ABORT_ERR, source, target, xhr[id].status, xhr[id].response));
-        }
+        };
 
         xhr[id].onload = function () {
             if (xhr[id].readyState === xhr[id].DONE) {

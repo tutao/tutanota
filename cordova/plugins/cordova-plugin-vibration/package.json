@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-vibration",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Cordova Vibration Plugin",
   "cordova": {
     "id": "cordova-plugin-vibration",
@@ -34,6 +34,20 @@
     "cordova-blackberry10",
     "cordova-tizen"
   ],
+  "scripts": {
+    "test": "npm run jshint",
+    "jshint": "jshint www && jshint src && jshint tests"
+  },
   "author": "Apache Software Foundation",
-  "license": "Apache 2.0"
+  "license": "Apache-2.0",
+  "engines": {
+    "cordovaDependencies": {
+      "3.0.0": {
+        "cordova": ">100"
+      }
+    }
+  },
+  "devDependencies": {
+    "jshint": "^2.6.0"
+  }
 }

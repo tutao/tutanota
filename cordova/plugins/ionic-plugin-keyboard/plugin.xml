@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="ionic-plugin-keyboard"
-    version="1.0.8">
+    version="1.0.9">
     <name>Keyboard</name>
     <description>Ionic Keyboard Plugin</description>
     <license>Apache 2.0</license>
@@ -41,8 +41,10 @@
 
         <header-file src="src/ios/IonicKeyboard.h" />
         <source-file src="src/ios/IonicKeyboard.m" />
+    <!--
         <header-file src="src/ios/UIWebViewExtension.h" />
         <source-file src="src/ios/UIWebViewExtension.m" />
+     -->
     </platform>
 
     <!-- blackberry10 -->

@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-statusbar",
-  "version": "2.1.1",
+  "version": "2.1.3",
   "description": "Cordova StatusBar Plugin",
   "cordova": {
     "id": "cordova-plugin-statusbar",
@@ -26,6 +26,10 @@
     "cordova-wp8",
     "cordova-windows"
   ],
+  "scripts": {
+    "test": "npm run jshint",
+    "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests"
+  },
   "engines": [
     {
       "name": "cordova",
@@ -33,5 +37,8 @@
     }
   ],
   "author": "Apache Software Foundation",
-  "license": "Apache 2.0"
+  "license": "Apache 2.0",
+  "devDependencies": {
+    "jshint": "^2.6.0"
+  }
 }

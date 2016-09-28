@@ -61,7 +61,7 @@ FileUtil.prototype.read = function(file) {
  */
 FileUtil.prototype.deleteFile = function(file) {
     return new Promise(function (resolve, reject) {
-        exec(resolve,reject,"FileUtil", "delete",[file]);
+        exec(resolve,reject,"FileUtil", "deleteFile",[file]);
     });
 };
 

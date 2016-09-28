@@ -55,7 +55,14 @@
     // which didn't user identifierForVendor
     NSString* app_uuid = [userDefaults stringForKey:UUID_KEY];
     if (app_uuid == nil) {
-        app_uuid = [[device identifierForVendor] UUIDString];
+        if ([device respondsToSelector:@selector(identifierForVendor)]) {
+            app_uuid = [[device identifierForVendor] UUIDString];
+        } else {
+            CFUUIDRef uuid = CFUUIDCreate(NULL);
+            app_uuid = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
+            CFRelease(uuid);
+        }
+
         [userDefaults setObject:app_uuid forKey:UUID_KEY];
         [userDefaults synchronize];
     }
@@ -74,17 +81,16 @@
 - (NSDictionary*)deviceProperties
 {
     UIDevice* device = [UIDevice currentDevice];
-    NSMutableDictionary* devProps = [NSMutableDictionary dictionaryWithCapacity:4];
 
-    [devProps setObject:@"Apple" forKey:@"manufacturer"];
-    [devProps setObject:[device modelVersion] forKey:@"model"];
-    [devProps setObject:@"iOS" forKey:@"platform"];
-    [devProps setObject:[device systemVersion] forKey:@"version"];
-    [devProps setObject:[self uniqueAppInstanceIdentifier:device] forKey:@"uuid"];
-    [devProps setObject:[[self class] cordovaVersion] forKey:@"cordova"];
-    [devProps setObject:@([self isVirtual]) forKey:@"isVirtual"];
-    NSDictionary* devReturn = [NSDictionary dictionaryWithDictionary:devProps];
-    return devReturn;
+    return @{
+             @"manufacturer": @"Apple",
+             @"model": [device modelVersion],
+             @"platform": @"iOS",
+             @"version": [device systemVersion],
+             @"uuid": [self uniqueAppInstanceIdentifier:device],
+             @"cordova": [[self class] cordovaVersion],
+             @"isVirtual": @([self isVirtual])
+             };
 }
 
 + (NSString*)cordovaVersion
