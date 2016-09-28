@@ -260,9 +260,6 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.createAccount = function() {
         }).caught(tutao.AccessDeactivatedError, function(e) {
             self._reset();
             return tutao.tutanota.gui.alert( tutao.lang("createAccountAccessDeactivated_msg" ));
-        }).caught(tutao.LimitReachedError, function(e) {
-            self._reset();
-            return tutao.tutanota.gui.alert(tutao.lang("createAccountTooManyAccountsError_msg"));
         });
     } else if (this._createAccountState() == tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA) {
         this._createAccountState(tutao.tutanota.ctrl.RegistrationViewModel.PROCESS_STATE_CAPTCHA_RUNNING);

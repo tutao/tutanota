@@ -13,6 +13,7 @@ tutao.entity.sys.DomainInfoEditable = function(domaininfo) {
 	this._id = ko.observable(domaininfo.getId());
 	this.domain = ko.observable(domaininfo.getDomain());
 	this.validatedMxRecord = ko.observable(domaininfo.getValidatedMxRecord());
+	this.catchAllUserGroup = ko.observable(domaininfo.getCatchAllUserGroup());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -36,5 +37,6 @@ tutao.entity.sys.DomainInfoEditable.prototype.update = function() {
 	this._entity.setId(this._id());
 	this._entity.setDomain(this.domain());
 	this._entity.setValidatedMxRecord(this.validatedMxRecord());
+	this._entity.setCatchAllUserGroup(this.catchAllUserGroup());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };
