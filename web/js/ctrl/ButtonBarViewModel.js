@@ -62,8 +62,10 @@ tutao.tutanota.ctrl.ButtonBarViewModel = function(buttons, moreButtonText, measu
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype.setButtonBarWidth = function(width) {
-    this.maxWidth = width - 1; // 1 spare pixels for button with rounding inaccuracy
-    this.updateSpecialButtons();
+    if (width != 0) {
+        this.maxWidth = width - 1; // 1 spare pixels for button with rounding inaccuracy
+        this.updateSpecialButtons();
+    }
 };
 
 tutao.tutanota.ctrl.ButtonBarViewModel.prototype._isMoreButtonVisible = function() {
