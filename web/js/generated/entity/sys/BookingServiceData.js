@@ -34,7 +34,7 @@ tutao.entity.sys.BookingServiceData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.BookingServiceData.MODEL_VERSION = '18';
+tutao.entity.sys.BookingServiceData.MODEL_VERSION = '19';
 
 /**
  * The url path to the resource.
@@ -149,7 +149,7 @@ tutao.entity.sys.BookingServiceData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "18";
+  parameters["v"] = "19";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.BookingServiceData.PATH, this, parameters, headers, null);
 };

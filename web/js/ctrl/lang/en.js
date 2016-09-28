@@ -686,5 +686,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+  "takeoverMailAddress_label": "Takeover mail address",
+  "takeoverMailAddressInfo_msg": "Optional: Specify the target Premium account admin email address in order to re-use the deleted email address as user or alias of the target account.",
+  "deleteAccountWithTakeoverConfirm_msg": "Do you really want to delete your account? Your email address can be taken over by the account {1}.",
+  "takeoverAccountInvalid_msg": "The takeover email address does not belong to a Premium admin."
 };

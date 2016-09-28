@@ -23,6 +23,7 @@ tutao.entity.sys.AccountingInfoEditable = function(accountinginfo) {
 	this.paymentMethodInfo = ko.observable(accountinginfo.getPaymentMethodInfo());
 	this.paymentProviderCustomerId = ko.observable(accountinginfo.getPaymentProviderCustomerId());
 	this.secondCountryInfo = ko.observable(accountinginfo.getSecondCountryInfo());
+	this.invoiceInfo = ko.observable(accountinginfo.getInvoiceInfo());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -56,5 +57,6 @@ tutao.entity.sys.AccountingInfoEditable.prototype.update = function() {
 	this._entity.setPaymentMethodInfo(this.paymentMethodInfo());
 	this._entity.setPaymentProviderCustomerId(this.paymentProviderCustomerId());
 	this._entity.setSecondCountryInfo(this.secondCountryInfo());
+	this._entity.setInvoiceInfo(this.invoiceInfo());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

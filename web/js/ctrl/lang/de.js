@@ -686,5 +686,9 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "takeoverMailAddress_label": "E-Mail-Adresse für Übernahme",
+  "takeoverMailAddressInfo_msg": "Optional: Gib hier die E-Mail-Adresse des Admins eines Premium-Accounts an, der die gelöschte E-Mail-Adresse für einen Benutzer oder als Alias übernehmen soll.",
+  "deleteAccountWithTakeoverConfirm_msg": "Möchtest du den Account wirklich löschen? Deine E-Mail-Adresse kann von dem Account {1} übernommen werden.",
+  "takeoverAccountInvalid_msg": "Die E-Mail-Adresse für die Übernahme gehört nicht einem Premium-Admin."
 };
