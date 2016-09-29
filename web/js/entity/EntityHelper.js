@@ -119,7 +119,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
 tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function() {
     var self = this;
     //TODO (Performance) avoid to load elements from server if some are already cached.
-    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Permission, this._entity.__permissions).then(function(permissions, exception) {
+    return tutao.rest.EntityRestInterface.loadAll(tutao.entity.sys.Permission, this._entity.__permissions).then(function(permissions) {
         if (tutao.locator.userController.isInternalUserLoggedIn()) {
             self.setSessionKey(tutao.entity.EntityHelper._tryGetPermissionOwnerEncSessionKey(permissions));
             if (self._sessionKey != null) {

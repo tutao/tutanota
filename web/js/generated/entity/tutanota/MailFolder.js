@@ -48,7 +48,7 @@ tutao.entity.tutanota.MailFolder.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailFolder.MODEL_VERSION = '14';
+tutao.entity.tutanota.MailFolder.MODEL_VERSION = '15';
 
 /**
  * The url path to the resource.
@@ -287,7 +287,7 @@ tutao.entity.tutanota.MailFolder.prototype.getSubFolders = function() {
  * @return {Promise.<tutao.entity.tutanota.MailFolder>} Resolves to the MailFolder or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, id[1], id[0], {"v" : "14"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, id[1], id[0], {"v" : "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -298,7 +298,7 @@ tutao.entity.tutanota.MailFolder.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailFolder>>} Resolves to an array of MailFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, ids, {"v": "14"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, ids, {"v": "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -310,7 +310,7 @@ tutao.entity.tutanota.MailFolder.loadMultiple = function(ids) {
 tutao.entity.tutanota.MailFolder.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "14";
+  params["v"] = "15";
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -320,7 +320,7 @@ tutao.entity.tutanota.MailFolder.prototype.updateOwnerEncSessionKey = function()
  */
 tutao.entity.tutanota.MailFolder.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, {"v": "14"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailFolder.PATH, this, {"v": "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -334,7 +334,7 @@ tutao.entity.tutanota.MailFolder.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailFolder>>} Resolves to an array of MailFolder or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailFolder.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, listId, start, count, reverse, {"v": "14"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.MailFolder, tutao.entity.tutanota.MailFolder.PATH, listId, start, count, reverse, {"v": "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
