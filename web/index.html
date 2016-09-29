@@ -1539,6 +1539,16 @@
                                             <label for="deleteReason" class="recordInfo" data-bind="lang: 'deleteAccountReasonInfo_msg'"></label>
                                         </div>
                                     </div>
+									<div class="record">
+										<label for="takeoverMailAddress" class="recordName" data-bind="lang: 'takeoverMailAddress_label'"></label>
+										<div class="recordData">
+											<div class="recordValue">
+												<input id="takeoverMailAddress" class="inputField wide" type="text" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !busy(), value: takeoverMailAddress"/>
+											</div>
+											<label for="takeoverMailAddress" class="recordStatus" data-bind="css: takeoverMailAddressStatus().type, lang: takeoverMailAddressStatus().text"></label>
+											<label for="takeoverMailAddress" class="recordInfo" data-bind="lang: 'takeoverMailAddressInfo_msg'"></label>
+										</div>
+									</div>
                                     <div class="record">
                                         <label for="password" class="recordName" data-bind="lang: 'password_label'"></label>
                                         <div class="recordData">

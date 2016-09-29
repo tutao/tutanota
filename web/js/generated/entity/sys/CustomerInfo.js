@@ -32,6 +32,7 @@ tutao.entity.sys.CustomerInfo = function(data) {
     this._bookings = null;
     this._customer = null;
     this._domainInfos = [];
+    this._takeoverCustomer = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomerInfo.prototype;
@@ -67,13 +68,14 @@ tutao.entity.sys.CustomerInfo.prototype.updateData = function(data) {
   for (var i=0; i < data.domainInfos.length; i++) {
     this._domainInfos.push(new tutao.entity.sys.DomainInfo(this, data.domainInfos[i]));
   }
+  this._takeoverCustomer = data.takeoverCustomer;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerInfo.MODEL_VERSION = '18';
+tutao.entity.sys.CustomerInfo.MODEL_VERSION = '19';
 
 /**
  * The url path to the resource.
@@ -126,7 +128,8 @@ tutao.entity.sys.CustomerInfo.prototype.toJsonData = function() {
     accountingInfo: this._accountingInfo, 
     bookings: tutao.entity.EntityHelper.aggregatesToJsonData(this._bookings), 
     customer: this._customer, 
-    domainInfos: tutao.entity.EntityHelper.aggregatesToJsonData(this._domainInfos)
+    domainInfos: tutao.entity.EntityHelper.aggregatesToJsonData(this._domainInfos), 
+    takeoverCustomer: this._takeoverCustomer
   };
 };
 
@@ -536,12 +539,37 @@ tutao.entity.sys.CustomerInfo.prototype.getDomainInfos = function() {
 };
 
 /**
+ * Sets the takeoverCustomer of this CustomerInfo.
+ * @param {string} takeoverCustomer The takeoverCustomer of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.setTakeoverCustomer = function(takeoverCustomer) {
+  this._takeoverCustomer = takeoverCustomer;
+  return this;
+};
+
+/**
+ * Provides the takeoverCustomer of this CustomerInfo.
+ * @return {string} The takeoverCustomer of this CustomerInfo.
+ */
+tutao.entity.sys.CustomerInfo.prototype.getTakeoverCustomer = function() {
+  return this._takeoverCustomer;
+};
+
+/**
+ * Loads the takeoverCustomer of this CustomerInfo.
+ * @return {Promise.<tutao.entity.sys.Customer>} Resolves to the loaded takeoverCustomer of this CustomerInfo or an exception if the loading failed.
+ */
+tutao.entity.sys.CustomerInfo.prototype.loadTakeoverCustomer = function() {
+  return tutao.entity.sys.Customer.load(this._takeoverCustomer);
+};
+
+/**
  * Loads a CustomerInfo from the server.
  * @param {Array.<string>} id The id of the CustomerInfo.
  * @return {Promise.<tutao.entity.sys.CustomerInfo>} Resolves to the CustomerInfo or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, id[1], id[0], {"v" : "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -552,7 +580,7 @@ tutao.entity.sys.CustomerInfo.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, ids, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -563,7 +591,7 @@ tutao.entity.sys.CustomerInfo.loadMultiple = function(ids) {
  */
 tutao.entity.sys.CustomerInfo.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerInfo.PATH, this, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -577,7 +605,7 @@ tutao.entity.sys.CustomerInfo.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerInfo>>} Resolves to an array of CustomerInfo or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerInfo.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.CustomerInfo, tutao.entity.sys.CustomerInfo.PATH, listId, start, count, reverse, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

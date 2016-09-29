@@ -33,6 +33,9 @@ tutao.entity.sys.CustomerInfoEditable = function(customerinfo) {
 	for (var i = 0; i < customerinfo.getDomainInfos().length; i++) {
 		this.domainInfos.push(new tutao.entity.sys.DomainInfoEditable(customerinfo.getDomainInfos()[i]));
 	}
+	this.accountingInfo = ko.observable(customerinfo.getAccountingInfo());
+	this.customer = ko.observable(customerinfo.getCustomer());
+	this.takeoverCustomer = ko.observable(customerinfo.getTakeoverCustomer());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -78,5 +81,8 @@ tutao.entity.sys.CustomerInfoEditable.prototype.update = function() {
 		this.domainInfos()[i].update();
 		this._entity.getDomainInfos().push(this.domainInfos()[i].getDomainInfo());
 	}
+	this._entity.setAccountingInfo(this.accountingInfo());
+	this._entity.setCustomer(this.customer());
+	this._entity.setTakeoverCustomer(this.takeoverCustomer());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

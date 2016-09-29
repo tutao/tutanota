@@ -41,7 +41,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '18';
+tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '19';
 
 /**
  * The url path to the resource.
@@ -172,7 +172,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.getEmailSenderList = functio
  * @return {Promise.<tutao.entity.sys.CustomerServerProperties>} Resolves to the CustomerServerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -183,7 +183,7 @@ tutao.entity.sys.CustomerServerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerServerProperties>>} Resolves to an array of CustomerServerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -195,7 +195,7 @@ tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
 tutao.entity.sys.CustomerServerProperties.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "18";
+  params["v"] = "19";
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -205,7 +205,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateOwnerEncSessionKey = f
  */
 tutao.entity.sys.CustomerServerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

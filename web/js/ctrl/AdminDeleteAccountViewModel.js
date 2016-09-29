@@ -10,6 +10,9 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel = function() {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 
     this.reason = ko.observable("");
+    this.takeoverMailAddress = ko.observable("");
+    this.takeoverMailAddress.subscribe(this._checkTakeoverMailAddress);
+    this.takeoverMailAddressStatus = ko.observable({ type: "valid", text: "emptyString_msg" });
 
 	this.password = ko.observable("");
     this.password.subscribe(this._checkPassword);
@@ -125,11 +128,24 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._checkPassword = funct
 };
 
 /**
+ * Checks if the entered takeover mail address is a valid mail address.
+ */
+tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype._checkTakeoverMailAddress = function() {
+    if (this.takeoverMailAddress().trim() == "") {
+        this.takeoverMailAddressStatus({ type: "valid", text: "emptyString_msg" });
+    } else if (tutao.tutanota.util.Formatter.getCleanedMailAddress(this.takeoverMailAddress())) {
+        this.takeoverMailAddressStatus({ type: "valid", text: "validInputFormat_msg" });
+    } else {
+        this.takeoverMailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg" });
+    }
+};
+
+/**
  * Provides the information if the user may press the confirm button.
  * @return {boolean} True if the button can be presse, false otherwise.
  */
 tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirmPossible = function() {
-	return  !this.busy() && this.passwordStatus().type == "valid";
+	return  !this.busy() && this.passwordStatus().type == "valid" && this.takeoverMailAddressStatus().type == "valid";
 };
 
 /**
@@ -140,8 +156,9 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirm = function() {
         return;
     }
     var self = this;
-    this.password("");
-    tutao.tutanota.gui.confirm(tutao.lang("deleteAccountConfirm_msg")).then(function(confirmed) {
+    var takeover = (self.takeoverMailAddress().trim() != "");
+    var confirmMessage = (takeover) ? tutao.lang("deleteAccountWithTakeoverConfirm_msg", { "{1}": self.takeoverMailAddress() }) : tutao.lang("deleteAccountConfirm_msg");
+    tutao.tutanota.gui.confirm(confirmMessage).then(function(confirmed) {
         if (confirmed) {
             self.busy(true);
             self.deleteAccountStatus({ type: "neutral", text: "deleteAccountWait_msg" });
@@ -149,11 +166,20 @@ tutao.tutanota.ctrl.AdminDeleteAccountViewModel.prototype.confirm = function() {
             customerService.setUndelete(false);
             customerService.setCustomer(tutao.locator.userController.getLoggedInUser().getCustomer());
             customerService.setReason(self.reason());
+            if (takeover) {
+                customerService.setTakeoverMailAddress(tutao.tutanota.util.Formatter.getCleanedMailAddress(self.takeoverMailAddress()));
+            } else {
+                customerService.setTakeoverMailAddress(null);
+            }
             tutao.locator.eventBus.notifyNewDataReceived = function() {}; // avoid NotAuthenticatedError
             return customerService.erase({}, null).then(function() {
+                self.password("");
                 return tutao.tutanota.gui.alert(tutao.locator.languageViewModel.get("deleteAccountDeleted_msg")).then(function() {
                     tutao.locator.navigator.logout();
                 });
+            }).caught(tutao.InvalidDataError, function(e) {
+                self.deleteAccountStatus({ type: "invalid", text: "takeoverAccountInvalid_msg" });
+                self.busy(false);
             });
         }
     });

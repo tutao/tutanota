@@ -12,6 +12,7 @@ tutao.entity.sys.DeleteCustomerData = function(data) {
   } else {
     this.__format = "0";
     this._reason = null;
+    this._takeoverMailAddress = null;
     this._undelete = null;
     this._customer = null;
   }
@@ -26,6 +27,7 @@ tutao.entity.sys.DeleteCustomerData = function(data) {
 tutao.entity.sys.DeleteCustomerData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._reason = data.reason;
+  this._takeoverMailAddress = data.takeoverMailAddress;
   this._undelete = data.undelete;
   this._customer = data.customer;
 };
@@ -34,7 +36,7 @@ tutao.entity.sys.DeleteCustomerData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.DeleteCustomerData.MODEL_VERSION = '18';
+tutao.entity.sys.DeleteCustomerData.MODEL_VERSION = '19';
 
 /**
  * The url path to the resource.
@@ -56,6 +58,7 @@ tutao.entity.sys.DeleteCustomerData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     reason: this._reason, 
+    takeoverMailAddress: this._takeoverMailAddress, 
     undelete: this._undelete, 
     customer: this._customer
   };
@@ -93,6 +96,23 @@ tutao.entity.sys.DeleteCustomerData.prototype.setReason = function(reason) {
  */
 tutao.entity.sys.DeleteCustomerData.prototype.getReason = function() {
   return this._reason;
+};
+
+/**
+ * Sets the takeoverMailAddress of this DeleteCustomerData.
+ * @param {string} takeoverMailAddress The takeoverMailAddress of this DeleteCustomerData.
+ */
+tutao.entity.sys.DeleteCustomerData.prototype.setTakeoverMailAddress = function(takeoverMailAddress) {
+  this._takeoverMailAddress = takeoverMailAddress;
+  return this;
+};
+
+/**
+ * Provides the takeoverMailAddress of this DeleteCustomerData.
+ * @return {string} The takeoverMailAddress of this DeleteCustomerData.
+ */
+tutao.entity.sys.DeleteCustomerData.prototype.getTakeoverMailAddress = function() {
+  return this._takeoverMailAddress;
 };
 
 /**
@@ -147,7 +167,7 @@ tutao.entity.sys.DeleteCustomerData.prototype.erase = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "18";
+  parameters["v"] = "19";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.DeleteCustomerData.PATH, this, parameters, headers, null);
 };
