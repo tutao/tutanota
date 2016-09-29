@@ -22,6 +22,9 @@
 - (void)download:(CDVInvokedUrlCommand*)command;
 
 
++ (NSString*) getEncryptedFolder:(NSError **) error;
++ (NSString*) getDecryptedFolder:(NSError **) error;
+
 @end
 
 #endif

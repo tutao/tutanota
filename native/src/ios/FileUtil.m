@@ -97,7 +97,6 @@
 
 - (void)download:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
 		
 		if ([command.arguments objectAtIndex:0] != [NSNull null] && [command.arguments objectAtIndex:1] != [NSNull null] && [command.arguments objectAtIndex:2] != [NSNull null] ) {
 			NSURL * url = [NSURL URLWithString:[command.arguments objectAtIndex:0]];
@@ -110,32 +109,34 @@
 			
 			NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
 			NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
-			
-			
-			//- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request completionHandler:(void (^)(NSData * _Nullable data, NSURLResponse * 	 response, NSError * _Nullable error))completionHandler;
+            
 			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-			//[[session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-				NSLog(@"Got response %@ with error %@.\n", response, error);
+				//NSLog(@"Got response %@ with error %@.\n", response, error);
 				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+                if (error){
+                    [self sendErrorResult:error invokedCommand:command];
+                    return;
+                }
 				if ([httpResponse statusCode] == 200) {
-					//NSURL *tmpDirURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
-					//NSURL *encryptedFileURL = [tmpDirURL URLByAppendingPathExtension:fileName];
-					//NSString *path= [encryptedFileURL path];
-					NSString *filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
-					
-					//data would be the NSData that you get from the S3 bucket
-					NSError *error = nil;
-					//[[NSFileManager defaultManager] createFileAtPath:path contents: data attributes: nil];
+                    NSError *error = nil;
+					NSString *encryptedPath = [FileUtil getEncryptedFolder: &error];
+                    if (error) {
+                        [self sendErrorResult:error invokedCommand:command];
+                        return;
+                    }
+                    NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
 					[data writeToFile:filePath options: NSDataWritingAtomic error:&error];
+                    //NSLog(@"Filename: %@", filePath);
 					if (!error) {
 						CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
 						[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
 					} else {
-					    NSLog(@"error %@.\n", error);
-						[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error description]] callbackId:command.callbackId];
+                        [self sendErrorResult:error invokedCommand:command];
+                        return;
 					}
 				} else {
-					[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsInt:[httpResponse statusCode]] callbackId:command.callbackId];
+                    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsNSInteger:[httpResponse statusCode]];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 				}
 				//NSLog(@"DATA:\n%@\nEND DATA\n", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 			}] resume];
@@ -175,6 +176,32 @@
 		
 	 }];
 };
+
+- (void) sendErrorResult:(NSError*)error invokedCommand:(CDVInvokedUrlCommand*)command{
+    NSLog(@"error %@.\n", error);
+    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error description]];
+    [self.commandDelegate sendPluginResult: pluginResult callbackId:command.callbackId];
+};
+
+
++ (NSString*) getEncryptedFolder:(NSError**)error {
+    NSString * encryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"encrpted"];
+    [[NSFileManager defaultManager] createDirectoryAtPath:encryptedFolder
+                              withIntermediateDirectories:YES
+                                               attributes:nil
+                                                    error:error];
+    return encryptedFolder;
+};
+
++ (NSString*) getDecryptedFolder:(NSError**)error  {
+    NSString * decryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"decrypted"];
+    [[NSFileManager defaultManager] createDirectoryAtPath:decryptedFolder
+                              withIntermediateDirectories:YES
+                                               attributes:nil
+                                                    error:error];
+    return decryptedFolder;
+};
+
 
 @end
 
