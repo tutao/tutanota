@@ -10,7 +10,7 @@
   <content src="index.html"/>
   <access origin="*"/>
   
-  <engine name="android" spec="5.1.0" />
+  <engine name="android" spec="5.2.2" />
   <engine name="ios" spec="4.2.1" />
     
   <!-- See:

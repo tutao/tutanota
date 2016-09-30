@@ -116,14 +116,6 @@
         "is_top_level": true,
         "variables": {}
     },
-    "de.tutanota.native": {
-        "source": {
-            "type": "local",
-            "path": "../native"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
     "cordova-plugin-contacts": {
         "source": {
             "type": "registry",
@@ -144,6 +136,14 @@
         "source": {
             "type": "registry",
             "id": "phonegap-plugin-push@1.5.3"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "de.tutanota.native": {
+        "source": {
+            "type": "local",
+            "path": "../native"
         },
         "is_top_level": true,
         "variables": {}

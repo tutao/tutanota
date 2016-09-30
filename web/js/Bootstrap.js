@@ -55,7 +55,12 @@ tutao.tutanota.Bootstrap.init = function () {
                     tutao.tutanota.gui.alert(tutao.lang("unknownError_msg"));
                 }
             }
-            console.log(e.stack);
+            if (e.stack) {
+                console.log("error:" + e.stack);
+            } else {
+                console.log("error: " + e);
+            }
+
         });
 
         if (!tutao.tutanota.app) {

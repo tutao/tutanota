@@ -76,7 +76,7 @@ public class FileUtil extends CordovaPlugin {
 	private boolean isPermissionNeeded(String action, JSONArray args) throws JSONException {
 		if (action.equals("openFileChooser" )) {
 			return true;
-		} else if (action.equals("write" ) || action.equals("read" ) || action.equals("delete" ) || action.equals("open" )) {
+		} else if (action.equals("write" ) || action.equals("read" ) || action.equals("deleteFile" ) || action.equals("open" )) {
 			String appDir = "file://" + Utils.getDir(webView.getContext()).getAbsolutePath();
 			String requestedFileName = args.getString(0);
 			// no permission is needed if the file is stored in the app dir.
@@ -96,7 +96,7 @@ public class FileUtil extends CordovaPlugin {
 				this.writeFile(callbackContext, args.getString(0), args.getString(1));
 			} else if (action.equals("read")) {
 				this.readFile(callbackContext, args.getString(0));
-			} else if (action.equals("delete")) {
+			} else if (action.equals("deleteFile")) {
 				this.delete(callbackContext, args.getString(0));
 			} else if (action.equals("getName")) {
 				this.getName(callbackContext, args.getString(0));
@@ -110,7 +110,7 @@ public class FileUtil extends CordovaPlugin {
 				this.download(callbackContext, args.getString(0), args.getString(1), args.getJSONObject(2));
 			} else {
 				callbackContext.sendPluginResult(new PluginResult(
-						PluginResult.Status.ERROR, "unsupported method"));
+						PluginResult.Status.ERROR, "unsupported method: " + action));
 				return false;
 			}
 			return true;
