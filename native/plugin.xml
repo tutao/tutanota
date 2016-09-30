@@ -90,7 +90,7 @@
         <string>Shows notification when new email arrives.</string>
     </config-file>
 	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
-        <string>Find contacts and take the email address when writing an email.</string>
+        <string>Find recipient email address in contacts.</string>
     </config-file>>
 	<resource-file src="res/ios/de.lproj" target="de.lproj" />
 	
