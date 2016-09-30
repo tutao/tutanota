@@ -22,7 +22,7 @@
 #if !defined(OPENSSL_NO_SHA) && !defined(OPENSSL_NO_SHA1)
 #include <stdio.h>
 //#include "cryptlib.h"
-
+#include <string.h> // to avoid implicit declaration of memset error.
 #include <openssl/crypto.h>
 #include <openssl/buffer.h> 
 #include <openssl/bio.h> 
