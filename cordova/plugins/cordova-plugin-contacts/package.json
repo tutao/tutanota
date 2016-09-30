@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-contacts",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Cordova Contacts Plugin",
   "cordova": {
     "id": "cordova-plugin-contacts",
@@ -41,6 +41,13 @@
   },
   "author": "Apache Software Foundation",
   "license": "Apache-2.0",
+  "engines": {
+    "cordovaDependencies": {
+      "3.0.0": {
+        "cordova": ">100"
+      }
+    }
+  },
   "devDependencies": {
     "jshint": "^2.6.0"
   }

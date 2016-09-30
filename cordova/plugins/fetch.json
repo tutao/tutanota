@@ -1,4 +1,11 @@
 {
+    "com.ququplay.websocket.WebSocket": {
+        "source": {
+            "type": "git",
+            "url": "https://github.com/mkuklis/phonegap-websocket",
+            "subdir": "."
+        }
+    },
     "org.apache.cordova.device": {
         "source": {
             "type": "local",
@@ -13,43 +20,10 @@
         "is_top_level": true,
         "variables": {}
     },
-    "cordova-plugin-compat": {
+    "cordova-plugin-whitelist": {
         "source": {
             "type": "registry",
-            "id": "cordova-plugin-compat@1.0.0"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "de.tutanota.native": {
-        "source": {
-            "type": "local",
-            "path": "../native"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "com.ququplay.websocket.WebSocket": {
-        "source": {
-            "type": "git",
-            "url": "https://github.com/mkuklis/phonegap-websocket",
-            "subdir": "."
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "cordova-plugin-app-event": {
-        "source": {
-            "type": "registry",
-            "id": "cordova-plugin-app-event"
-        },
-        "is_top_level": true,
-        "variables": {}
-    },
-    "cordova-plugin-device": {
-        "source": {
-            "type": "registry",
-            "id": "cordova-plugin-device@~1.1.1"
+            "id": "cordova-plugin-whitelist"
         },
         "is_top_level": true,
         "variables": {}
@@ -67,13 +41,13 @@
             "type": "registry",
             "id": "cordova-plugin-file-transfer"
         },
-        "is_top_level": true,
+        "is_top_level": false,
         "variables": {}
     },
-    "cordova-open": {
+    "cordova-plugin-device": {
         "source": {
             "type": "registry",
-            "id": "cordova-open@~1.0.9"
+            "id": "cordova-plugin-device@~1.1.1"
         },
         "is_top_level": true,
         "variables": {}
@@ -110,34 +84,42 @@
         "is_top_level": true,
         "variables": {}
     },
-    "cordova-plugin-whitelist": {
+    "cordova-plugin-app-event": {
         "source": {
             "type": "registry",
-            "id": "cordova-plugin-whitelist@~1.0.0"
+            "id": "cordova-plugin-app-event"
         },
-        "is_top_level": true,
+        "is_top_level": false,
         "variables": {}
     },
     "cordova-plugin-wkwebview-engine": {
         "source": {
             "type": "registry",
-            "id": "cordova-plugin-wkwebview-engine@~1.0.2"
+            "id": "cordova-plugin-wkwebview-engine"
         },
         "is_top_level": true,
         "variables": {}
     },
-    "ionic-plugin-keyboard": {
+    "cordova-plugin-compat": {
         "source": {
             "type": "registry",
-            "id": "ionic-plugin-keyboard@~1.0.8"
+            "id": "cordova-plugin-compat@1.0.0"
         },
         "is_top_level": true,
         "variables": {}
     },
-    "phonegap-plugin-push": {
+    "cordova-open": {
         "source": {
             "type": "registry",
-            "id": "phonegap-plugin-push@~1.5.3"
+            "id": "cordova-open"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "de.tutanota.native": {
+        "source": {
+            "type": "local",
+            "path": "../native"
         },
         "is_top_level": true,
         "variables": {}
@@ -145,7 +127,23 @@
     "cordova-plugin-contacts": {
         "source": {
             "type": "registry",
-            "id": "cordova-plugin-contacts@~2.1.0"
+            "id": "cordova-plugin-contacts"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "ionic-plugin-keyboard": {
+        "source": {
+            "type": "registry",
+            "id": "ionic-plugin-keyboard"
+        },
+        "is_top_level": true,
+        "variables": {}
+    },
+    "phonegap-plugin-push": {
+        "source": {
+            "type": "registry",
+            "id": "phonegap-plugin-push@1.5.3"
         },
         "is_top_level": true,
         "variables": {}

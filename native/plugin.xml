@@ -79,6 +79,23 @@
 	<config-file target="*-Info.plist" parent="UIStatusBarHidden">
             <true/>
 	</config-file>
+	<!-- Default strings for permission request. -->
+    <config-file parent="NSCameraUsageDescription" target="*-Info.plist">
+        <string>Take a picture or video for adding it as attachment.</string>
+    </config-file>
+	<config-file parent="NSPhotoLibraryUsageDescription" target="*-Info.plist">
+        <string>Add a picture from your library as attachment.</string>
+    </config-file>
+	<config-file parent="NSMicrophoneUsageDescription" target="*-Info.plist">
+        <string>Used when recording a video as attachment.</string>
+    </config-file>
+    <config-file parent="NSRemindersUsageDescription" target="*-Info.plist">
+        <string>Shows notification when new email arrives.</string>
+    </config-file>
+	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
+        <string>Find recipient email address in contacts.</string>
+    </config-file>>
+	<resource-file src="res/ios/de.lproj" target="de.lproj" />
 	
     <framework src="Foundation.framework"/>
 	<source-file src="src/ios/Crypto.m" compiler-flags="-ITutanota/include/"/>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.tutao.tutanota" version="2.11.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.tutao.tutanota" version="2.12.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
   <name>Tutanota</name>
   <description>
     Tutanota is the secure client for end-to-end encrypted mail.
@@ -41,7 +41,7 @@
 
   <platform name="ios">
   	<preference name="deployment-target" value="9.0" />
-	<preference name="Orientation" value="all" /> 
+	<preference name="Orientation" value="all" />
 	<preference name="BackupWebStorage" value="none" />
 	
 	<!-- iPhone (iOS 5,6 Spotlight) (iOS 5-8 Settings) -->
@@ -94,10 +94,10 @@
         <param name="ios-package" value="CDVWKWebViewEngine" />
     </feature>
 
-    <preference name="CordovaWebViewEngine" value="CDVUIWebViewEngine" />  <!-- WKWebView currently deactivated because the accessory keyboard bar cannot be hidden with keyboard plugin -->
+    <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" /> 
 	<preference name="StatusBarStyle" value="default" />
 	<preference name="StatusBarOverlaysWebView" value="false" />
-		
+	
   </platform>
 
   <preference name="loadUrlTimeoutValue" value="300000" />
@@ -107,5 +107,4 @@
   <preference name="iosPersistentFileLocation" value="Library"/>
   <preference name="android-minSdkVersion" value="14" />
   <preference name="android-targetSdkVersion" value="23" />
-  
 </widget>

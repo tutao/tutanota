@@ -4,20 +4,29 @@
 
 @implementation IonicKeyboard
 
-// @synthesize hideKeyboardAccessoryBar = _hideKeyboardAccessoryBar;
+@synthesize hideKeyboardAccessoryBar = _hideKeyboardAccessoryBar;
 @synthesize disableScroll = _disableScroll;
 //@synthesize styleDark = _styleDark;
 
 - (void)pluginInitialize {
 
-    NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
-    __weak IonicKeyboard* weakSelf = self;
-
+    Class wkClass = NSClassFromString([@[@"UI", @"Web", @"Browser", @"View"] componentsJoinedByString:@""]);
+    wkMethod = class_getInstanceMethod(wkClass, @selector(inputAccessoryView));
+    wkOriginalImp = method_getImplementation(wkMethod);
+    Class uiClass = NSClassFromString([@[@"WK", @"Content", @"View"] componentsJoinedByString:@""]);
+    uiMethod = class_getInstanceMethod(uiClass, @selector(inputAccessoryView));
+    uiOriginalImp = method_getImplementation(uiMethod);
+    nilImp = imp_implementationWithBlock(^(id _s) {
+        return nil;
+    });
+    
     //set defaults
-    // self.hideKeyboardAccessoryBar = YES;
+    self.hideKeyboardAccessoryBar = YES;
     self.disableScroll = NO;
     //self.styleDark = NO;
-
+    
+    NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
+    __weak IonicKeyboard* weakSelf = self;
     _keyboardShowObserver = [nc addObserverForName:UIKeyboardWillShowNotification
                                object:nil
                                queue:[NSOperationQueue mainQueue]
@@ -42,6 +51,7 @@
                                    [weakSelf.commandDelegate evalJs:@"cordova.fireWindowEvent('native.hidekeyboard'); "];
                                }];
 }
+
 - (BOOL)disableScroll {
     return _disableScroll;
 }
@@ -62,24 +72,28 @@
     _disableScroll = disableScroll;
 }
 
+//keyboard swizzling inspired by:
+//https://github.com/cjpearson/cordova-plugin-keyboard/
 
-// - (BOOL)hideKeyboardAccessoryBar {
-//     return _hideKeyboardAccessoryBar;
-// }
-//
-// - (void)setHideKeyboardAccessoryBar:(BOOL)hideKeyboardAccessoryBar {
-//     if (hideKeyboardAccessoryBar == _hideKeyboardAccessoryBar || ![self.webView isKindOfClass:[UIWebView class]]) {
-//         return;
-//     }
-//     if (hideKeyboardAccessoryBar) {
-//         ((UIWebView*)self.webView).hackishlyHidesInputAccessoryView = YES;
-//     }
-//     else {
-//         ((UIWebView*)self.webView).hackishlyHidesInputAccessoryView = NO;
-//     }
-//
-//     _hideKeyboardAccessoryBar = hideKeyboardAccessoryBar;
-// }
+- (BOOL)hideKeyboardAccessoryBar {
+    return _hideKeyboardAccessoryBar;
+}
+
+- (void)setHideKeyboardAccessoryBar:(BOOL)hideKeyboardAccessoryBar {
+    if (hideKeyboardAccessoryBar == _hideKeyboardAccessoryBar) {
+        return;
+    }
+
+    if (hideKeyboardAccessoryBar) {
+        method_setImplementation(wkMethod, nilImp);
+        method_setImplementation(uiMethod, nilImp);
+    } else {
+        method_setImplementation(wkMethod, wkOriginalImp);
+        method_setImplementation(uiMethod, uiOriginalImp);
+    }
+    
+    _hideKeyboardAccessoryBar = hideKeyboardAccessoryBar;
+}
 
 /*
 - (BOOL)styleDark {
@@ -129,15 +143,15 @@
     }
 }
 
-// - (void) hideKeyboardAccessoryBar:(CDVInvokedUrlCommand*)command {
-//     if (!command.arguments || ![command.arguments count]){
-//       return;
-//     }
-//     id value = [command.arguments objectAtIndex:0];
-//     if (value != [NSNull null]) {
-//       self.hideKeyboardAccessoryBar = [value boolValue];
-//     }
-// }
+- (void) hideKeyboardAccessoryBar:(CDVInvokedUrlCommand*)command {
+    if (!command.arguments || ![command.arguments count]){
+        return;
+    }
+    id value = [command.arguments objectAtIndex:0];
+    if (value != [NSNull null]) {
+        self.hideKeyboardAccessoryBar = [value boolValue];
+    }
+}
 
 - (void) close:(CDVInvokedUrlCommand*)command {
     [self.webView endEditing:YES];

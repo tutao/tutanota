@@ -20,8 +20,8 @@ import java.util.HashMap;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.util.Log;
 import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.LOG;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -112,7 +112,7 @@ public abstract class ContactAccessor {
                 }
             }
         } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
+            LOG.e(LOG_TAG, e.getMessage(), e);
         }
         return map;
     }
@@ -132,13 +132,13 @@ public abstract class ContactAccessor {
             if (obj != null) {
                 value = obj.getString(property);
                 if (value.equals("null")) {
-                    Log.d(LOG_TAG, property + " is string called 'null'");
+                    LOG.d(LOG_TAG, property + " is string called 'null'");
                     value = null;
                 }
             }
        }
         catch (JSONException e) {
-            Log.d(LOG_TAG, "Could not get = " + e.getMessage());
+            LOG.d(LOG_TAG, "Could not get = " + e.getMessage());
         }
         return value;
     }
@@ -159,10 +159,10 @@ public abstract class ContactAccessor {
      * @throws JSONException
      */
     public abstract JSONObject getContactById(String id) throws JSONException;
-    
+
     /**
      * Handles searching through SDK-specific contacts API.
-     * @param desiredFields fields that will filled. All fields will be filled if null 
+     * @param desiredFields fields that will filled. All fields will be filled if null
      * @throws JSONException
      */
     public abstract JSONObject getContactById(String id, JSONArray desiredFields) throws JSONException;
@@ -171,9 +171,9 @@ public abstract class ContactAccessor {
      * Handles removing a contact from the database.
      */
     public abstract boolean remove(String id);
-    
+
    /**
-     * A class that represents the where clause to be used in the database query 
+     * A class that represents the where clause to be used in the database query
      */
     class WhereOptions {
         private String where;

@@ -153,7 +153,8 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
     if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios') {
         return new Promise(function(resolve, reject) {
             window.requestFileSystem(LocalFileSystem.TEMPORARY, dataFile.getSize(), function(fs) {
-                var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
+                //var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
+				var fileName = window.encodeURIComponent(dataFile.getName()).replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
                 fs.root.getFile(fileName, {create: true}, function(fileEntry) {
                     // Create a FileWriter object for our FileEntry (log.txt).
                     fileEntry.createWriter(function(fileWriter) {

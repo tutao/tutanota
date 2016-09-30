@@ -81,8 +81,11 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getAccountSettings = function() 
             settings.push(s.DISPLAY_ADMIN_STORAGE);
             settings.push(s.DISPLAY_ADMIN_EMAIL_ALIAS);
         }
-        settings.push(s.DISPLAY_ADMIN_INVOICING);
-
+		
+		if (!tutao.env.isIOSApp() ) {
+		    settings.push(s.DISPLAY_ADMIN_INVOICING);
+		}
+		
         if (tutao.locator.viewManager.isFreeAccount() || tutao.locator.viewManager.isPremiumAccount()) {
             settings.push(s.DISPLAY_ADMIN_DELETE_ACCOUNT);
         }
