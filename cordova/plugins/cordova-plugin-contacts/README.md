@@ -1,3 +1,7 @@
+---
+title: Contacts
+description: Manage the contacts on the device.
+---
 <!---
 # license: Licensed to the Apache Software Foundation (ASF) under one
 #         or more contributor license agreements.  See the NOTICE file
@@ -17,18 +21,21 @@
 #         under the License.
 -->
 
-[![Build Status](https://travis-ci.org/apache/cordova-plugin-contacts.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-contacts)
+|Android|iOS| Windows 8.1 Store | Windows 8.1 Phone | Windows 10 Store | Travis CI |
+|:-:|:-:|:-:|:-:|:-:|:-:|
+|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=android,PLUGIN=cordova-plugin-contacts)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=android,PLUGIN=cordova-plugin-contacts/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=ios,PLUGIN=cordova-plugin-contacts)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=ios,PLUGIN=cordova-plugin-contacts/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=windows-8.1-store,PLUGIN=cordova-plugin-contacts)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=windows-8.1-store,PLUGIN=cordova-plugin-contacts/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=windows-8.1-phone,PLUGIN=cordova-plugin-contacts)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=windows-8.1-phone,PLUGIN=cordova-plugin-contacts/)|[![Build Status](http://cordova-ci.cloudapp.net:8080/buildStatus/icon?job=cordova-periodic-build/PLATFORM=windows-10-store,PLUGIN=cordova-plugin-contacts)](http://cordova-ci.cloudapp.net:8080/job/cordova-periodic-build/PLATFORM=windows-10-store,PLUGIN=cordova-plugin-contacts/)|[![Build Status](https://travis-ci.org/apache/cordova-plugin-contacts.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-contacts)
 
 # cordova-plugin-contacts
 
 This plugin defines a global `navigator.contacts` object, which provides access to the device contacts database.
 
 Although the object is attached to the global scoped `navigator`, it is not available until after the `deviceready` event.
-
-    document.addEventListener("deviceready", onDeviceReady, false);
-    function onDeviceReady() {
-        console.log(navigator.contacts);
-    }
+```js
+document.addEventListener("deviceready", onDeviceReady, false);
+function onDeviceReady() {
+console.log(navigator.contacts);
+}
+```
 
 __WARNING__: Collection and use of contact data raises
 important privacy issues.  Your app's privacy policy should discuss
@@ -62,6 +69,17 @@ It is also possible to install via repo url directly ( unstable )
     cordova plugin add https://github.com/apache/cordova-plugin-contacts.git
 
 
+### iOS Quirks
+
+Since iOS 10 it's mandatory to add a `NSContactsUsageDescription` entry in the info.plist.
+
+`NSContactsUsageDescription` describes the reason that the app accesses the user’s contacts. When the system prompts the user to allow access, this string is displayed as part of the dialog box. To add this entry you can pass the variable `CONTACTS_USAGE_DESCRIPTION` on plugin install.
+
+Example:
+`cordova plugin add cordova-plugin-contacts --variable CONTACTS_USAGE_DESCRIPTION="your usage message"`
+
+If you don't pass the variable, the plugin will add an empty string as value.
+
 ### Firefox OS Quirks
 
 Create __www/manifest.webapp__ as described in
@@ -70,14 +88,15 @@ Add relevant permisions.
 There is also a need to change the webapp type to "privileged"  - [Manifest Docs](https://developer.mozilla.org/en-US/Apps/Developing/Manifest#type).
 __WARNING__: All privileged apps enforce [Content Security Policy](https://developer.mozilla.org/en-US/Apps/CSP) which forbids inline script. Initialize your application in another way.
 
-	"type": "privileged",
-	"permissions": {
-		"contacts": {
-			"access": "readwrite",
-			"description": "Describe why there is a need for such permission"
-		}
+```json
+"type": "privileged",
+"permissions": {
+	"contacts": {
+		"access": "readwrite",
+		"description": "Describe why there is a need for such permission"
 	}
-
+}
+```
 ### Windows Quirks
 
 **Prior to Windows 10:** Any contacts returned from `find` and `pickContact` methods are readonly, so your application cannot modify them.
@@ -126,7 +145,9 @@ database, for which you need to invoke the `Contact.save` method.
 
 ### Example
 
+```js
     var myContact = navigator.contacts.create({"displayName": "Test User"});
+```
 
 ## navigator.contacts.find
 
@@ -180,22 +201,24 @@ Supported values for both __contactFields__ and __contactFindOptions.desiredFiel
 
 ### Example
 
-    function onSuccess(contacts) {
-        alert('Found ' + contacts.length + ' contacts.');
-    };
+```js
+function onSuccess(contacts) {
+	alert('Found ' + contacts.length + ' contacts.');
+};
 
-    function onError(contactError) {
-        alert('onError!');
-    };
+function onError(contactError) {
+	alert('onError!');
+};
 
-    // find all contacts with 'Bob' in any name field
-    var options      = new ContactFindOptions();
-    options.filter   = "Bob";
-    options.multiple = true;
-    options.desiredFields = [navigator.contacts.fieldType.id];
-    options.hasPhoneNumber = true;
-    var fields       = [navigator.contacts.fieldType.displayName, navigator.contacts.fieldType.name];
-    navigator.contacts.find(fields, onSuccess, onError, options);
+// find all contacts with 'Bob' in any name field
+var options      = new ContactFindOptions();
+options.filter   = "Bob";
+options.multiple = true;
+options.desiredFields = [navigator.contacts.fieldType.id];
+options.hasPhoneNumber = true;
+var fields       = [navigator.contacts.fieldType.displayName, navigator.contacts.fieldType.name];
+navigator.contacts.find(fields, onSuccess, onError, options);
+```
 
 ### Windows Quirks
 
@@ -222,11 +245,13 @@ function specified by the __contactSuccess__ parameter.
 
 ### Example
 
-    navigator.contacts.pickContact(function(contact){
-            console.log('The following contact has been selected:' + JSON.stringify(contact));
-        },function(err){
-            console.log('Error: ' + err);
-        });
+```js
+navigator.contacts.pickContact(function(contact){
+        console.log('The following contact has been selected:' + JSON.stringify(contact));
+    },function(err){
+        console.log('Error: ' + err);
+    });
+```
 
 ### Android Quirks
 
@@ -311,75 +336,82 @@ for details.
 
 ### Save Example
 
-    function onSuccess(contact) {
-        alert("Save Success");
-    };
+```js
+function onSuccess(contact) {
+    alert("Save Success");
+};
 
-    function onError(contactError) {
-        alert("Error = " + contactError.code);
-    };
+function onError(contactError) {
+    alert("Error = " + contactError.code);
+};
 
-    // create a new contact object
-    var contact = navigator.contacts.create();
-    contact.displayName = "Plumber";
-    contact.nickname = "Plumber";            // specify both to support all devices
+// create a new contact object
+var contact = navigator.contacts.create();
+contact.displayName = "Plumber";
+contact.nickname = "Plumber";            // specify both to support all devices
 
-    // populate some fields
-    var name = new ContactName();
-    name.givenName = "Jane";
-    name.familyName = "Doe";
-    contact.name = name;
+// populate some fields
+var name = new ContactName();
+name.givenName = "Jane";
+name.familyName = "Doe";
+contact.name = name;
 
-    // save to device
-    contact.save(onSuccess,onError);
+// save to device
+contact.save(onSuccess,onError);
+```
 
 ### Clone Example
 
-        // clone the contact object
-        var clone = contact.clone();
-        clone.name.givenName = "John";
-        console.log("Original contact name = " + contact.name.givenName);
-        console.log("Cloned contact name = " + clone.name.givenName);
+```js
+// clone the contact object
+var clone = contact.clone();
+clone.name.givenName = "John";
+console.log("Original contact name = " + contact.name.givenName);
+console.log("Cloned contact name = " + clone.name.givenName);
+```
 
 ### Remove Example
 
-    function onSuccess() {
-        alert("Removal Success");
-    };
+```js
+function onSuccess() {
+    alert("Removal Success");
+};
 
-    function onError(contactError) {
-        alert("Error = " + contactError.code);
-    };
+function onError(contactError) {
+    alert("Error = " + contactError.code);
+};
 
-    // remove the contact from the device
-    contact.remove(onSuccess,onError);
-
+// remove the contact from the device
+contact.remove(onSuccess,onError);
+```
 ### Removing phone number(s) from a saved contact
 
-    // Example to create a contact with 3 phone numbers and then remove
-    // 2 phone numbers. This example is for illustrative purpose only
-    var myContact = navigator.contacts.create({"displayName": "Test User"});
-    var phoneNumbers = [];
+```js
+// Example to create a contact with 3 phone numbers and then remove
+// 2 phone numbers. This example is for illustrative purpose only
+var myContact = navigator.contacts.create({"displayName": "Test User"});
+var phoneNumbers = [];
 
-    phoneNumbers[0] = new ContactField('work', '768-555-1234', false);
-    phoneNumbers[1] = new ContactField('mobile', '999-555-5432', true); // preferred number
-    phoneNumbers[2] = new ContactField('home', '203-555-7890', false);
+phoneNumbers[0] = new ContactField('work', '768-555-1234', false);
+phoneNumbers[1] = new ContactField('mobile', '999-555-5432', true); // preferred number
+phoneNumbers[2] = new ContactField('home', '203-555-7890', false);
 
-    myContact.phoneNumbers = phoneNumbers;
-    myContact.save(function (contact_obj) {
-        var contactObjToModify = contact_obj.clone();
-        contact_obj.remove(function(){
-            var phoneNumbers = [contactObjToModify.phoneNumbers[0]];
-            contactObjToModify.phoneNumbers = phoneNumbers;
-            contactObjToModify.save(function(c_obj){
-                console.log("All Done");
-            }, function(error){
-                console.log("Not able to save the cloned object: " + error);
-            });
-        }, function(contactError) {
-            console.log("Contact Remove Operation failed: " + contactError);
+myContact.phoneNumbers = phoneNumbers;
+myContact.save(function (contact_obj) {
+    var contactObjToModify = contact_obj.clone();
+    contact_obj.remove(function(){
+        var phoneNumbers = [contactObjToModify.phoneNumbers[0]];
+        contactObjToModify.phoneNumbers = phoneNumbers;
+        contactObjToModify.save(function(c_obj){
+            console.log("All Done");
+        }, function(error){
+            console.log("Not able to save the cloned object: " + error);
         });
+    }, function(contactError) {
+        console.log("Contact Remove Operation failed: " + contactError);
     });
+});
+```
 
 ### Android 2.X Quirks
 
@@ -479,33 +511,35 @@ a `ContactAddress[]` array.
 
 ### Example
 
-    // display the address information for all contacts
+```js
+// display the address information for all contacts
 
-    function onSuccess(contacts) {
-        for (var i = 0; i < contacts.length; i++) {
-            for (var j = 0; j < contacts[i].addresses.length; j++) {
-                alert("Pref: "         + contacts[i].addresses[j].pref          + "\n" +
-                    "Type: "           + contacts[i].addresses[j].type          + "\n" +
-                    "Formatted: "      + contacts[i].addresses[j].formatted     + "\n" +
-                    "Street Address: " + contacts[i].addresses[j].streetAddress + "\n" +
-                    "Locality: "       + contacts[i].addresses[j].locality      + "\n" +
-                    "Region: "         + contacts[i].addresses[j].region        + "\n" +
-                    "Postal Code: "    + contacts[i].addresses[j].postalCode    + "\n" +
-                    "Country: "        + contacts[i].addresses[j].country);
-            }
+function onSuccess(contacts) {
+    for (var i = 0; i < contacts.length; i++) {
+        for (var j = 0; j < contacts[i].addresses.length; j++) {
+            alert("Pref: "         + contacts[i].addresses[j].pref          + "\n" +
+                "Type: "           + contacts[i].addresses[j].type          + "\n" +
+                "Formatted: "      + contacts[i].addresses[j].formatted     + "\n" +
+                "Street Address: " + contacts[i].addresses[j].streetAddress + "\n" +
+                "Locality: "       + contacts[i].addresses[j].locality      + "\n" +
+                "Region: "         + contacts[i].addresses[j].region        + "\n" +
+                "Postal Code: "    + contacts[i].addresses[j].postalCode    + "\n" +
+                "Country: "        + contacts[i].addresses[j].country);
         }
-    };
+    }
+};
 
-    function onError(contactError) {
-        alert('onError!');
-    };
+function onError(contactError) {
+    alert('onError!');
+};
 
-    // find all contacts
-    var options = new ContactFindOptions();
-    options.filter = "";
-    options.multiple = true;
-    var filter = ["displayName", "addresses"];
-    navigator.contacts.find(filter, onSuccess, onError, options);
+// find all contacts
+var options = new ContactFindOptions();
+options.filter = "";
+options.multiple = true;
+var filter = ["displayName", "addresses"];
+navigator.contacts.find(filter, onSuccess, onError, options);
+```
 
 ### Android 2.X Quirks
 
@@ -603,18 +637,20 @@ string.
 
 ### Example
 
-        // create a new contact
-        var contact = navigator.contacts.create();
+```js
+// create a new contact
+var contact = navigator.contacts.create();
 
-        // store contact phone numbers in ContactField[]
-        var phoneNumbers = [];
-        phoneNumbers[0] = new ContactField('work', '212-555-1234', false);
-        phoneNumbers[1] = new ContactField('mobile', '917-555-5432', true); // preferred number
-        phoneNumbers[2] = new ContactField('home', '203-555-7890', false);
-        contact.phoneNumbers = phoneNumbers;
+// store contact phone numbers in ContactField[]
+var phoneNumbers = [];
+phoneNumbers[0] = new ContactField('work', '212-555-1234', false);
+phoneNumbers[1] = new ContactField('mobile', '917-555-5432', true); // preferred number
+phoneNumbers[2] = new ContactField('home', '203-555-7890', false);
+contact.phoneNumbers = phoneNumbers;
 
-        // save the contact
-        contact.save();
+// save the contact
+contact.save();
+```
 
 ### Android Quirks
 
@@ -667,26 +703,28 @@ Contains different kinds of information about a `Contact` object's name.
 
 ### Example
 
-    function onSuccess(contacts) {
-        for (var i = 0; i < contacts.length; i++) {
-            alert("Formatted: "  + contacts[i].name.formatted       + "\n" +
-                "Family Name: "  + contacts[i].name.familyName      + "\n" +
-                "Given Name: "   + contacts[i].name.givenName       + "\n" +
-                "Middle Name: "  + contacts[i].name.middleName      + "\n" +
-                "Suffix: "       + contacts[i].name.honorificSuffix + "\n" +
-                "Prefix: "       + contacts[i].name.honorificSuffix);
-        }
-    };
+```js
+function onSuccess(contacts) {
+    for (var i = 0; i < contacts.length; i++) {
+        alert("Formatted: "  + contacts[i].name.formatted       + "\n" +
+            "Family Name: "  + contacts[i].name.familyName      + "\n" +
+            "Given Name: "   + contacts[i].name.givenName       + "\n" +
+            "Middle Name: "  + contacts[i].name.middleName      + "\n" +
+            "Suffix: "       + contacts[i].name.honorificSuffix + "\n" +
+            "Prefix: "       + contacts[i].name.honorificSuffix);
+    }
+};
 
-    function onError(contactError) {
-        alert('onError!');
-    };
+function onError(contactError) {
+    alert('onError!');
+};
 
-    var options = new ContactFindOptions();
-    options.filter = "";
-    options.multiple = true;
-    filter = ["displayName", "name"];
-    navigator.contacts.find(filter, onSuccess, onError, options);
+var options = new ContactFindOptions();
+options.filter = "";
+options.multiple = true;
+filter = ["displayName", "name"];
+navigator.contacts.find(filter, onSuccess, onError, options);
+```
 
 ### Android Quirks
 
@@ -760,27 +798,29 @@ properties.  A `Contact` object stores one or more
 
 ### Example
 
-    function onSuccess(contacts) {
-        for (var i = 0; i < contacts.length; i++) {
-            for (var j = 0; j < contacts[i].organizations.length; j++) {
-                alert("Pref: "      + contacts[i].organizations[j].pref       + "\n" +
-                    "Type: "        + contacts[i].organizations[j].type       + "\n" +
-                    "Name: "        + contacts[i].organizations[j].name       + "\n" +
-                    "Department: "  + contacts[i].organizations[j].department + "\n" +
-                    "Title: "       + contacts[i].organizations[j].title);
-            }
+```js
+function onSuccess(contacts) {
+    for (var i = 0; i < contacts.length; i++) {
+        for (var j = 0; j < contacts[i].organizations.length; j++) {
+            alert("Pref: "      + contacts[i].organizations[j].pref       + "\n" +
+                "Type: "        + contacts[i].organizations[j].type       + "\n" +
+                "Name: "        + contacts[i].organizations[j].name       + "\n" +
+                "Department: "  + contacts[i].organizations[j].department + "\n" +
+                "Title: "       + contacts[i].organizations[j].title);
         }
-    };
+    }
+};
 
-    function onError(contactError) {
-        alert('onError!');
-    };
+function onError(contactError) {
+    alert('onError!');
+};
 
-    var options = new ContactFindOptions();
-    options.filter = "";
-    options.multiple = true;
-    filter = ["displayName", "organizations"];
-    navigator.contacts.find(filter, onSuccess, onError, options);
+var options = new ContactFindOptions();
+options.filter = "";
+options.multiple = true;
+filter = ["displayName", "organizations"];
+navigator.contacts.find(filter, onSuccess, onError, options);
+```
 
 ### Android 2.X Quirks
 

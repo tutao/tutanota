@@ -41,6 +41,8 @@ describe('Contacts Android', function () {
     var driver;
     var webviewContext;
     var promiseCount = 0;
+    // going to set this to false if session is created successfully
+    var failedToStart = true;
 
     function getNextPromiseId() {
         return 'appium_promise_' + promiseCount++;
@@ -58,31 +60,29 @@ describe('Contacts Android', function () {
 
     function getDriver() {
         driver = wdHelper.getDriver(PLATFORM);
-        return wdHelper.getWebviewContext(driver)
+        return driver.getWebviewContext()
             .then(function(context) {
                 webviewContext = context;
                 return driver.context(webviewContext);
             })
-            .then(function () {
-                return wdHelper.waitForDeviceReady(driver);
-            })
-            .then(function () {
-                return wdHelper.injectLibraries(driver);
-            });
+            .waitForDeviceReady()
+            .injectLibraries();
     }
 
-    function addContact(firstName, lastName) {
+    function addContact(firstName, lastName, bday) {
+        var bdayString = bday ? bday.toDateString() : undefined;
         var contactName = contactsHelper.getContactName(firstName, lastName);
         return driver
             .context(webviewContext)
             .setAsyncScriptTimeout(MINUTE)
-            .executeAsync(function(contactname, callback) {
+            .executeAsync(function(contactname, bday, callback) {
                 navigator.contacts.create({
                     'displayName': contactname.formatted,
                     'name': contactname,
-                    'note': 'DeleteMe'
+                    'note': 'DeleteMe',
+                    'birthday': new Date(bday)
                 }).save(callback, callback);
-            }, [contactName])
+            }, [contactName, bdayString])
             .then(function(result) {
                 if (result && result.hasOwnProperty('code')) {
                     throw result;
@@ -107,9 +107,13 @@ describe('Contacts Android', function () {
             .then(function () {
                 switch (PLATFORM) {
                     case 'ios':
-                        return driver.waitForElementByXPath(UNORM.nfd('//UIAStaticText[@label="' + name + '"]'), MINUTE);
+                        return driver
+                            .waitForElementByXPath(UNORM.nfd('//UIAStaticText[@label="' + name + '"]'), 20000)
+                            .elementByXPath(UNORM.nfd('//UIAStaticText[@label="' + name + '"]'))
+                            .elementByXPath(UNORM.nfd('//UIAStaticText[@label="' + name + '"]'));
                     case 'android':
-                        return driver.waitForElementByXPath('//android.widget.TextView[@text="' + name + '"]', MINUTE);
+                        return driver
+                            .waitForElementByXPath('//android.widget.TextView[@text="' + name + '"]', MINUTE);
                 }
             })
             .click()
@@ -117,6 +121,9 @@ describe('Contacts Android', function () {
             .executeAsync(function (pID, cb) {
                 navigator._appiumPromises[pID].promise
                 .then(function (contact) {
+                    // for some reason Appium cannot get Date object
+                    // let's make birthday a string then
+                    contact.birthday = contact.birthday.toDateString();
                     cb(contact);
                 }, function (err) {
                     cb('ERROR: ' + err);
@@ -133,7 +140,7 @@ describe('Contacts Android', function () {
     function renameContact(oldName, newGivenName, newFamilyName) {
         return driver
             .context(webviewContext)
-            .setAsyncScriptTimeout(5 * MINUTE)
+            .setAsyncScriptTimeout(7 * MINUTE)
             .executeAsync(function (oldname, newgivenname, newfamilyname, callback) {
                 var obj = new ContactFindOptions();
                 obj.filter = oldname;
@@ -214,22 +221,34 @@ describe('Contacts Android', function () {
             });
     }
 
+    function checkSession(done) {
+        if (failedToStart) {
+            fail('Failed to start a session');
+            done();
+        }
+    }
+
     it('contacts.ui.util configuring driver and starting a session', function (done) {
         getDriver()
-            .fail(fail)
+            .then(function () {
+                failedToStart = false;
+            }, fail)
             .done(done);
-    }, 5 * MINUTE);
+    }, 10 * MINUTE);
 
     describe('Picking contacts', function () {
         afterEach(function (done) {
+            checkSession(done);
             removeTestContacts()
                 .finally(done);
         }, MINUTE);
 
         it('contacts.ui.spec.1 Pick a contact', function (done) {
+            checkSession(done);
+            var bday = new Date(1991, 1, 1);
             driver
                 .then(function () {
-                    return addContact('Test', 'Contact');
+                    return addContact('Test', 'Contact', bday);
                 })
                 .then(function () {
                     return pickContact('Test Contact');
@@ -237,12 +256,14 @@ describe('Contacts Android', function () {
                 .then(function (contact) {
                     expect(contact.name.givenName).toBe('Test');
                     expect(contact.name.familyName).toBe('Contact');
+                    expect(contact.birthday).toBe(bday.toDateString());
                 })
                 .fail(saveScreenshotAndFail)
                 .done(done);
         }, 5 * MINUTE);
 
         it('contacts.ui.spec.2 Update an existing contact', function (done) {
+            checkSession(done);
             driver
                 .then(function () {
                     return addContact('Dooney', 'Evans');
@@ -263,9 +284,10 @@ describe('Contacts Android', function () {
                 })
                 .fail(saveScreenshotAndFail)
                 .done(done);
-        }, 5 * MINUTE);
+        }, 10 * MINUTE);
 
         it('contacts.ui.spec.3 Create a contact with no name', function (done) {
+            checkSession(done);
             driver
                 .then(function () {
                     return addContact();
@@ -293,6 +315,7 @@ describe('Contacts Android', function () {
         }, 5 * MINUTE);
 
         it('contacts.ui.spec.4 Create a contact with Unicode characters in name', function (done) {
+            checkSession(done);
             driver
                 .then(function () {
                     return addContact('Н€йромонах', 'ФеофаЊ');
@@ -310,8 +333,9 @@ describe('Contacts Android', function () {
     });
 
     it('contacts.ui.util Destroy the session', function (done) {
+        checkSession(done);
         driver
             .quit()
             .done(done);
-    }, MINUTE);
+    }, 5 * MINUTE);
 });

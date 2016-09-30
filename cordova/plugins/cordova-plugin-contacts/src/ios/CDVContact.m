@@ -69,6 +69,15 @@ static NSDictionary* org_apache_cordova_contacts_defaultFields = nil;
     return record;
 }
 
+/* for CoreFoundation types, we need to still manually memory manage under ARC */
+- (void) dealloc
+{
+    if (record != NULL) {
+        CFRelease(record);
+        record = NULL;
+    }
+}
+
 /* Rather than creating getters and setters for each AddressBook (AB) Property, generic methods are used to deal with
  * simple properties,  MultiValue properties( phone numbers and emails) and MultiValueDictionary properties (Ims and addresses).
  * The dictionaries below are used to translate between the W3C identifiers and the AB properties.   Using the dictionaries,

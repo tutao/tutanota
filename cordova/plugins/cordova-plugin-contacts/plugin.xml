@@ -24,7 +24,7 @@
     xmlns:m3="http://schemas.microsoft.com/appx/2014/manifest"
     xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
     id="cordova-plugin-contacts"
-    version="2.1.0">
+    version="2.2.0">
 
     <name>Contacts</name>
     <description>Cordova Contacts Plugin</description>
@@ -130,6 +130,11 @@
             <feature name="Contacts">
                 <param name="ios-package" value="CDVContacts"/>
             </feature>
+        </config-file>
+
+        <preference name="CONTACTS_USAGE_DESCRIPTION" default=" " />
+        <config-file target="*-Info.plist" parent="NSContactsUsageDescription">
+            <string>$CONTACTS_USAGE_DESCRIPTION</string>
         </config-file>
 
         <js-module src="www/ios/contacts.js" name="contacts-ios">

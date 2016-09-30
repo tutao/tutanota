@@ -19,9 +19,6 @@
         "cordova-plugin-compat": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-contacts": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "cordova-plugin-device": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
@@ -49,13 +46,16 @@
         "cordova-plugin-wkwebview-engine": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
+        "de.tutanota.native": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-contacts": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
         "ionic-plugin-keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "phonegap-plugin-push": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "de.tutanota.native": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
