@@ -11,7 +11,7 @@
   <access origin="*"/>
   
   <engine name="android" spec="5.1.0" />
-  <engine name="ios" spec="4.1.0" />
+  <engine name="ios" spec="4.2.1" />
     
   <!-- See:
          * http://cordova.apache.org/docs/en/edge/config_ref_images.md.html
@@ -40,7 +40,7 @@
   </platform>
 
   <platform name="ios">
-  	<preference name="deployment-target" value="7.0" />
+  	<preference name="deployment-target" value="9.0" />
 	<preference name="Orientation" value="all" />
 	<preference name="BackupWebStorage" value="none" />
 	
@@ -94,7 +94,7 @@
         <param name="ios-package" value="CDVWKWebViewEngine" />
     </feature>
 
-    <preference name="CordovaWebViewEngine" value="CDVUIWebViewEngine" />  <!-- WKWebView currently deactivated because the accessory keyboard bar cannot be hidden with keyboard plugin -->
+    <preference name="CordovaWebViewEngine" value="CDVWKWebViewEngine" /> 
 	<preference name="StatusBarStyle" value="default" />
 	<preference name="StatusBarOverlaysWebView" value="false" />
 	
