@@ -7,25 +7,19 @@
         "files": {}
     },
     "installed_plugins": {
-        "com.ququplay.websocket.WebSocket": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "cordova-open": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-app-event": {
+        "cordova-plugin-compat": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-compat": {
+        "cordova-plugin-contacts": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-device": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-file": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
-        "cordova-plugin-file-transfer": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
         "cordova-plugin-inappbrowser": {
@@ -46,9 +40,6 @@
         "cordova-plugin-wkwebview-engine": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
-        "cordova-plugin-contacts": {
-            "PACKAGE_NAME": "de.tutao.tutanota"
-        },
         "ionic-plugin-keyboard": {
             "PACKAGE_NAME": "de.tutao.tutanota"
         },
@@ -59,5 +50,15 @@
             "PACKAGE_NAME": "de.tutao.tutanota"
         }
     },
-    "dependent_plugins": {}
+    "dependent_plugins": {
+        "com.ququplay.websocket.WebSocket": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-file-transfer": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        },
+        "cordova-plugin-app-event": {
+            "PACKAGE_NAME": "de.tutao.tutanota"
+        }
+    }
 }
