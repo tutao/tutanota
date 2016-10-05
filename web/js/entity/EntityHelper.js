@@ -159,7 +159,7 @@ tutao.entity.EntityHelper._getListKey = function(listId, startId) {
     var self = this;
     return tutao.entity.sys.Permission.loadRange(listId, startId, 1, false).then(function(permissions) {
         if (permissions.length == 0) {
-            throw new Error("no list permission found");
+            throw new tutao.NotAuthorizedError("no list permission found");
         }
         var user = tutao.locator.userController.getLoggedInUser();
         if (permissions[0].getType() == "1" || permissions[0].getType() == "2") {
@@ -171,7 +171,7 @@ tutao.entity.EntityHelper._getListKey = function(listId, startId) {
         if (permissions.length > 0) {
             return self._getListKey(listId, permissions[permissions.length -1].getId()[1]);
         } else {
-            throw new Error("no list permission found");
+            throw new tutao.NotAuthorizedError("no list permission found");
         }
     });
 };
@@ -218,12 +218,12 @@ tutao.entity.EntityHelper.prototype.invalidateSessionKey = function() {
 tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permissions) {
     var self = this;
 	if (permissions.length == 0) {
-		return Promise.reject(new Error("no permission found"));
+		return Promise.reject(new tutao.NotAuthorizedError("no permission found"));
 	}
 	// there should be only one permission
 	var permission = permissions[0];
 	if (permission.getType() != "5") {
-		return Promise.reject(new Error("no external permission type: " + permission.getType()));
+		return Promise.reject(new tutao.NotAuthorizedError("no external permission type: " + permission.getType()));
 	}
 	return this._loadBucketPermissions(permission.getBucket().getBucketPermissions()).then(function(bucketPermissions) {
 		// find the bucket permission with the same group as the permission and external type
@@ -235,7 +235,7 @@ tutao.entity.EntityHelper.prototype._tryGetExternalSessionKey = function(permiss
 			}
 		}
 		if (bucketPermission == null) {
-			throw new Error("no corresponding bucket permission found");
+			throw new tutao.NotAuthorizedError("no corresponding bucket permission found");
 		}
 
 		var bucketPermissionOwnerGroupKey = tutao.locator.userController.getGroupKey(bucketPermission.getOwnerGroup());
@@ -346,7 +346,7 @@ tutao.entity.EntityHelper.prototype._loadPublicBucketPermissionSessionKey = func
 			}
 		}
 		if (bucketPermission == null) {
-			throw new Error("no corresponding bucket permission found");
+			throw new tutao.NotAuthorizedError("no corresponding bucket permission found");
 		}
 
         var keyPairGroupId;
