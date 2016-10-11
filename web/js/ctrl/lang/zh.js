@@ -4,6 +4,7 @@ tutao.tutanota.ctrl.lang.zh.id = "zh";
 tutao.tutanota.ctrl.lang.zh.keys = {
   "accountDeactivated_msg": "很不幸，您的Tutanota帐户已停用，请联系管理员。",
   "accountSettings_label": "账户",
+  "accountSwitchAdditionalPackagesActive_msg": "变更账户类型前，请先停用预订的存储或别名包，并停用所有别名。",
   "accountSwitchTooManyActiveUsers_msg": "变更账户类型前请停用所有附加用户。",
   "accountType_label": "账户类型",
   "account_label": "用户",
@@ -61,6 +62,8 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "browserNoKeygen_msg": "感谢您选择Tutanota作为今后的邮件客户端，在注册过程中会生成安全密钥，不幸的是，其所需的性能高出您当前的浏览器或设备所能提供的，请在笔记本或台式机上使用以下浏览器注册：",
   "businessOrPrivateUsage_label": "使用",
   "businessUse_label": "商业",
+  "buyEmailAliasInfo_msg": "请从以下可用邮件别名包中选择一个变更别名数量，该预定别名为所有用户共享。",
+  "buyStorageCapacityInfo_msg": "请从以下可用存储包中选择一个变更存储容量，该预定存储为所有用户共享。",
   "buy_action": "买",
   "by_label": "来自",
   "callNumber_alt": "拨打该号码",
