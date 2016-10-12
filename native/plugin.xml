@@ -92,6 +92,21 @@
 	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
         <string>Find recipient email address in contacts.</string>
     </config-file>>
+	<config-file parent="CFBundleURLTypes" target="*-Info.plist">
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>CFBundleURLName</key>
+				<string>de.tutao.tutanota</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+				<string>tutanota</string>
+				</array>
+			</dict>
+	</array>
+    </config-file>>
+	
 	<resource-file src="res/ios/lang/sq.lproj" target="sq.lproj" />
 	<resource-file src="res/ios/lang/hr.lproj" target="hr.lproj" />
 	<resource-file src="res/ios/lang/zh_hant.lproj" target="zh_hant.lproj" />
