@@ -82,7 +82,6 @@ tutao.tutanota.ctrl.lang.ta_in.keys = {
   "continue_action": "தொடரும்",
   "couldNotAttachFile_msg": "இந்த கோப்பை ஏற்க முடியவில்லை.",
   "countryMismatch_msg": "உங்கள் நாட்டை சரிபார்க்கும் போது பிழை ஏற்ப்பட்டது.",
-  "createAccountAccessDeactivated_msg": "அதிகமான கோரிக்கைகள். தயவு செய்து சிறிது நேரத்திற்கு பின் முயற்சிக்கவும்.",
   "createAccountInvalidCaptcha_msg": "துரதிர்ஷ்டவசமாக, உங்கள் பதில் தவறானது. மீண்டும் முயற்சிக்கவும்.",
   "createAccountRunning_msg": "கணக்கு உருவாக்கப்படுகிறது ...",
   "createAccountTooManyAccountsError_msg": "மன்னிக்கவும், கணக்குகளின் எண்ணிக்கை அதிகபட்ச எண்ணிக்கையை அடைந்துவிட்டது.",

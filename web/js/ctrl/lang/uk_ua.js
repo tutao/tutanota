@@ -109,7 +109,6 @@ tutao.tutanota.ctrl.lang.uk_ua.keys = {
   "corrupted_msg": "Даний елемент пошкоджено і його неможливо показати правильно",
   "couldNotAttachFile_msg": "Даний файл завантажити неможливо.",
   "countryMismatch_msg": "Помилка перевірки вашої країни.",
-  "createAccountAccessDeactivated_msg": "Занадто багато запитів. Спробуйте пізніше.",
   "createAccountInvalidCaptcha_msg": "На жаль, відповідь не правильна. Спробуйте ще раз.",
   "createAccountRunning_msg": "Створюється обліковий запис ...",
   "createAccountTooManyAccountsError_msg": "Вибачте, але досягнуто максимальної кількості облікових записів.",

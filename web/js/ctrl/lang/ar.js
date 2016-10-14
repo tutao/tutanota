@@ -101,7 +101,6 @@ tutao.tutanota.ctrl.lang.ar.keys = {
   "corrupted_msg": "هذا العنصر تالف ولا يمكن عرضه بشكل صحيح.",
   "couldNotAttachFile_msg": "لا يمكن تحميل الملف.",
   "countryMismatch_msg": "خطأ أثناء التحقق من بلدك.",
-  "createAccountAccessDeactivated_msg": "الطلبات كثيرة جدا. يرجى المحاولة لاحقا.",
   "createAccountInvalidCaptcha_msg": "للأسف، فإن الجواب غسر صحيح. حاول مرة أخرى.",
   "createAccountRunning_msg": "يتم الآن إنشاء حساب ...",
   "createAccountTooManyAccountsError_msg": "عفوا، لقد تم الوصول إلى الحد الأقصى لعدد الحسابات.",

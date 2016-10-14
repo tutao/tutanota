@@ -101,7 +101,6 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "corrupted_msg": "Ovaj element je neispravan i ne može biti ispravno prikazan.",
   "couldNotAttachFile_msg": "Datoteka nije mogla da se učita.",
   "countryMismatch_msg": "Greška prilikom verifikacije vaše države.",
-  "createAccountAccessDeactivated_msg": "Previše zahteva. Pokušajte ponovo kasnije.",
   "createAccountInvalidCaptcha_msg": "Nažalost, odgovor nije tačan. Molimo vas pokušajte ponovo.",
   "createAccountRunning_msg": "Račun se kreira...",
   "createAccountTooManyAccountsError_msg": "Žao nam je, postignut je maksimalni broj naloga.",

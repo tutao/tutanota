@@ -109,7 +109,6 @@ tutao.tutanota.ctrl.lang.vi.keys = {
   "corrupted_msg": "Thành phần này đã bị hỏng và không thể được hiển thị chính xác.",
   "couldNotAttachFile_msg": "Không thể tải tập tin này.",
   "countryMismatch_msg": "Lỗi khi xác minh quốc gia của bạn.",
-  "createAccountAccessDeactivated_msg": "Qua nhiều yêu cầu. Xin thử lại sau.",
   "createAccountInvalidCaptcha_msg": "Thật tiếc là mật khẩu đã sai. Xin thử lại.",
   "createAccountRunning_msg": "Đang tạo tài khoản...",
   "createAccountTooManyAccountsError_msg": "Xin lỗi, đã đạt đến số tài khoản tối đa.",

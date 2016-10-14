@@ -85,7 +85,6 @@ tutao.tutanota.ctrl.lang.ro.keys = {
   "continue_action": "Continuă",
   "corrupted_msg": "Acest element este corupt si nu poate fi afisat corect",
   "couldNotAttachFile_msg": "Fișierul nu a putut fi încărcat.",
-  "createAccountAccessDeactivated_msg": "Prea multe cereri. Va rugam sa reincercati mai tarziu.",
   "createAccountInvalidCaptcha_msg": "Din pacate, raspunsul este gresit. Va rugam sa o luati de la capat.",
   "createAccountRunning_msg": "Se creează contul...",
   "createAccountTooManyAccountsError_msg": "Ne pare rau, insa a fost atins numarul maxim de contacte.",

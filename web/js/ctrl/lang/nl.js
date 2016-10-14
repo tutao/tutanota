@@ -109,7 +109,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "corrupted_msg": "Dit element is beschadigd en kan niet correct weergegeven worden.",
   "couldNotAttachFile_msg": "Het bestand kon niet geladen worden.",
   "countryMismatch_msg": "Fout bij verificatie land.",
-  "createAccountAccessDeactivated_msg": "Teveel aanvragen. Probeert u het later opnieuw.",
   "createAccountInvalidCaptcha_msg": "Helaas is het antwoord fout. Probeert u het a.u.b. opnieuw.",
   "createAccountRunning_msg": "Account wordt gemaakt...",
   "createAccountTooManyAccountsError_msg": "Sorry, het maximale aantal accounts is bereikt.",

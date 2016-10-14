@@ -72,7 +72,6 @@ tutao.tutanota.ctrl.lang.cs_cz.keys = {
   "contacts_label": "Kontakty",
   "contentBlocked_msg": "Automatické nahrávání obrázků bylo zablokováno k ochraně vašeho soukromí.",
   "couldNotAttachFile_msg": "Soubor nelze načíst.",
-  "createAccountAccessDeactivated_msg": "Příliš mnoho žádostí. Zkuste to prosím později.",
   "createAccountInvalidCaptcha_msg": "Odpověď je bohužel nesprávná. Zkuste to prosím znovu.",
   "createAccountRunning_msg": "Vytváří se účet...",
   "createAccountTooManyAccountsError_msg": "Bohužel byl dosažen maximální počet účtů.",

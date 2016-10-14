@@ -101,7 +101,6 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "corrupted_msg": "Detta element är skadad och kan inte visas korrekt.",
   "couldNotAttachFile_msg": "Filen kunde inte laddas.",
   "countryMismatch_msg": "Fel vid verifiering av ditt land.",
-  "createAccountAccessDeactivated_msg": "Alltför många förfrågningar. Försök igen senare.",
   "createAccountInvalidCaptcha_msg": "Tyvärr, svaret är fel. Vänligen börja om igen.",
   "createAccountRunning_msg": "Konto skapas ...",
   "createAccountTooManyAccountsError_msg": "Tyvärr, men det maximalt antal konton har uppnåtts.",

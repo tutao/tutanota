@@ -88,7 +88,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "corrupted_msg": "Bu öğe bozuk ve doğru olarak gösterilemeyebilir.",
   "couldNotAttachFile_msg": "Dosya yüklenemiyor.",
   "countryMismatch_msg": "Ülkenizi onaylamakta hata oluştu.",
-  "createAccountAccessDeactivated_msg": "Çok fazla istek var. Lütfen daha sonra tekrar deneyin.",
   "createAccountInvalidCaptcha_msg": "Malaesef, yanlış cevap. Lütfen tekrar deneyin.",
   "createAccountRunning_msg": "Hesap oluşturuluyor...",
   "createAccountTooManyAccountsError_msg": "Üzgünüz, ama maksimum hesap adetine ulaşıldı.",

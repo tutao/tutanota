@@ -105,7 +105,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "corrupted_msg": "Dette element er beskadiget og kan ikke vises korrekt.",
   "couldNotAttachFile_msg": "Filen kunne ikke indlæses",
   "countryMismatch_msg": "Kunne ikke verificere dit land.",
-  "createAccountAccessDeactivated_msg": "For mange forespørgelser. Prøv venligst igen senere.",
   "createAccountInvalidCaptcha_msg": "Uheldigvis er svaret forkert. Prøv venligst igen.",
   "createAccountRunning_msg": "Konto bliver oprettet ...",
   "createAccountTooManyAccountsError_msg": "Beklager, men det maksimale antal af konti er nået.",

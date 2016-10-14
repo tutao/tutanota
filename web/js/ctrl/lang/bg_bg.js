@@ -71,7 +71,6 @@ tutao.tutanota.ctrl.lang.bg_bg.keys = {
   "contentBlocked_msg": "Автоматичното зареждане на изображения е блокирано за да запази Вашата поверителност.",
   "couldNotAttachFile_msg": "Файлът не може да бъде зареден .",
   "countryMismatch_msg": "Грешка при проверка на вашата страна.",
-  "createAccountAccessDeactivated_msg": "Твърде много заявки. Моля, опитайте отново по-късно.",
   "createAccountInvalidCaptcha_msg": "За съжаление, отговорът е грешен. Моля започнете отначало.",
   "createAccountRunning_msg": "Профила се създава ...",
   "createAccountTooManyAccountsError_msg": "Съжаляваме, но максимума брой на потребители е достигнат.",

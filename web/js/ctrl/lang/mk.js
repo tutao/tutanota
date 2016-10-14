@@ -68,7 +68,6 @@ tutao.tutanota.ctrl.lang.mk.keys = {
   "contacts_label": "Контакти",
   "contentBlocked_msg": "Автоматското вчитување на слики беше блокирано за да се заштити вашата приватност.",
   "couldNotAttachFile_msg": "Фајлот не може да се прочита .",
-  "createAccountAccessDeactivated_msg": "Премногу побарувања . Ве молиме обидете се повторно .",
   "createAccountInvalidCaptcha_msg": "За жал ,одговорот е погрешен .Ве молиме почнете отпочеток .",
   "createAccountRunning_msg": "Сметката се креира ...",
   "createAccountTooManyAccountsError_msg": "Извинете , но максимумот број на сметки е достигнат .",

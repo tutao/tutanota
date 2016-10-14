@@ -68,7 +68,6 @@ tutao.tutanota.ctrl.lang.sq_al.keys = {
   "contacts_label": "Kontaktet",
   "contentBlocked_msg": "Ngarkimi automatik i imazheve është bllokuar për të mbrojtur privatësinë tuaj. ",
   "couldNotAttachFile_msg": "Dokumenti nuk mund te ngarkohet. ",
-  "createAccountAccessDeactivated_msg": "Shumë kërkesa. Të lutem, provo sërish më vonë.",
   "createAccountInvalidCaptcha_msg": "Fatkeqësisht, përgjigjja është gabim. Të lutem, fillo sërish.",
   "createAccountRunning_msg": "Llogaria po krijohet...",
   "createAccountTooManyAccountsError_msg": "Na vjen keq, por kemi mbërri maksimumin e llogarive.",

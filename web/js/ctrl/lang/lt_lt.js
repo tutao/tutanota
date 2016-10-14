@@ -108,7 +108,6 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "corrupted_msg": "Šis elementas yra sugadintas ir negali būti parodytas teisingai.",
   "couldNotAttachFile_msg": "Failo įkelti nepavyko.",
   "countryMismatch_msg": "Klaida identifikuojant jūsų šalį.",
-  "createAccountAccessDeactivated_msg": "Per daug užklausų. Bandykite vėliau.",
   "createAccountInvalidCaptcha_msg": "Deja, atsakymas neteisingas. Pradėkite iš naujo.",
   "createAccountRunning_msg": "Paskyra kuriama...",
   "createAccountTooManyAccountsError_msg": "Atsiprašome, tačiau pasiekta paskyrų kiekio riba.",

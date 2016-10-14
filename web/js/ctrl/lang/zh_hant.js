@@ -69,7 +69,6 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "contacts_label": "聯絡人",
   "contentBlocked_msg": "為保護您的隱私，圖片不會自動載入",
   "couldNotAttachFile_msg": "無法載入檔案",
-  "createAccountAccessDeactivated_msg": "太多請求，請稍後再試",
   "createAccountInvalidCaptcha_msg": "不幸的，答案錯誤。請再試一次。",
   "createAccountRunning_msg": "帳號將要被建立。",
   "createAccountTooManyAccountsError_msg": "很抱歉，在達到帳戶的最大數量。",

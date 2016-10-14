@@ -104,7 +104,6 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "corrupted_msg": "Tento prvok je poškodený a nemôže byť správne zobrazený.",
   "couldNotAttachFile_msg": "Súbor nemôže byť načítaný.",
   "countryMismatch_msg": "Chyba pri overovaní vašej krajiny.",
-  "createAccountAccessDeactivated_msg": "Príliš veľa požiadaviek. Prosím skús znova neskôr.",
   "createAccountInvalidCaptcha_msg": "Odpoveď je nesprávna. Skús znova.",
   "createAccountRunning_msg": "Účet je vytváraný ...",
   "createAccountTooManyAccountsError_msg": "Maximálny počet účtov bol dosiahnutý.",

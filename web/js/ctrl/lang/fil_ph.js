@@ -68,7 +68,6 @@ tutao.tutanota.ctrl.lang.fil_ph.keys = {
   "contacts_label": "Mga kontak",
   "contentBlocked_msg": "Ang kusang pag load ng larawan ay pinigilan para bantayan ang iyong pagkapribado.",
   "couldNotAttachFile_msg": "Ang file na ito ay hindi mai-load.",
-  "createAccountAccessDeactivated_msg": "Masyang maraming request. Pakisubukan ulit mamaya.",
   "createAccountInvalidCaptcha_msg": "Sa kasamaang-palad, mali ang sagot. Pakisimulan ulit.",
   "createAccountRunning_msg": "Ginagawa ang account...",
   "createAccountTooManyAccountsError_msg": "Paumanhin, ngunit naabot na ang sagad na bilang ng mga account.",

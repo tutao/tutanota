@@ -69,7 +69,6 @@ tutao.tutanota.ctrl.lang.fi.keys = {
   "contacts_alt": "Yhteystiedot",
   "contacts_label": "Yhteystiedot",
   "couldNotAttachFile_msg": "Tiedostoa ei voitu ladata.",
-  "createAccountAccessDeactivated_msg": "Liikaa pyyntöjä. Yritä uudelleen myöhemmin.",
   "createAccountInvalidCaptcha_msg": "Vastaus on väärin. Yritä uudelleen.",
   "createAccountRunning_msg": "Käyttäjätiliä luodaan...",
   "createAccountTooManyAccountsError_msg": "Ikävä kyllä käyttätilien enimmäismäärä on saavutettu.",

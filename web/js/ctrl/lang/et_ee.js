@@ -68,7 +68,6 @@ tutao.tutanota.ctrl.lang.et_ee.keys = {
   "contacts_label": "Kontaktid",
   "contentBlocked_msg": "Automaatne piltide laadimine on blokeeritud, et kaitsta Teie privaatsust.",
   "couldNotAttachFile_msg": "Faili ei saanud laadida.",
-  "createAccountAccessDeactivated_msg": "Liiga palju taotlusi. Palun proovige hiljem uuesti.",
   "createAccountInvalidCaptcha_msg": "Kahjuks vastus on vale. Proovige uuesti.",
   "createAccountRunning_msg": "Kontot luuakse...",
   "createAccountTooManyAccountsError_msg": "Vabandage, kuid maksimaalne arv kontosid on saavutatud.",

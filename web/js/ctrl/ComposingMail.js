@@ -368,7 +368,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.sendMail = function() {
                                             return tutao.tutanota.gui.alert(tutao.lang("waitingForApproval_msg"));
                                         } else if (customer.getApprovalStatus() == tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_INVOICE_NOT_PAID) {
                                             if (tutao.locator.userController.isLoggedInUserAdmin()) {
-                                                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg")).then(function(){
+                                                return tutao.tutanota.gui.alert(tutao.lang("invoiceNotPaid_msg", {"{1}": tutao.env.getHttpOrigin()})).then(function(){
                                                     tutao.locator.navigator.settings();
                                                     tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
                                                 });

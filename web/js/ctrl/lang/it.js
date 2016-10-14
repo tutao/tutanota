@@ -109,7 +109,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "corrupted_msg": "Questo elemento è danneggiato e non può essere mostrato correttamente.",
   "couldNotAttachFile_msg": "Il file non può essere caricato.",
   "countryMismatch_msg": "Errore nella verifica del tuo paese.",
-  "createAccountAccessDeactivated_msg": "Troppe richieste: per favore riprova più tardi.",
   "createAccountInvalidCaptcha_msg": "Purtroppo la risposta è sbagliata. Per favore riprova.",
   "createAccountRunning_msg": "Stiamo creando l'account...",
   "createAccountTooManyAccountsError_msg": "Ci dispiace ma è stato raggiunto il massimo numero di account.",

@@ -109,7 +109,6 @@ tutao.tutanota.ctrl.lang.sq.keys = {
   "corrupted_msg": "Ky element është prishë, dhe nuk mund të shfaqet si duhet.",
   "couldNotAttachFile_msg": "Fajlli s'u hap dot.",
   "countryMismatch_msg": "Ndodhi një gabim gjatë vërtetimit të shtetit.",
-  "createAccountAccessDeactivated_msg": "Tepër shum kërkesa. Të lutem, provo sërish më vonë.",
   "createAccountInvalidCaptcha_msg": "Fatkeqësisht, përgjigjja është gabim. Të lutem, fillo sërish.",
   "createAccountRunning_msg": "Llogaria po krijohet...",
   "createAccountTooManyAccountsError_msg": "Na vjen keq, por kemi mbërri maksimumin e llogarive.",
