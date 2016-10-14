@@ -437,6 +437,19 @@ gulp.task('translation', function (cb) {
 					    translation += "tutao.tutanota.ctrl.lang." + code + ".keys = ";					
 					    translation += body + ";";					    
 					    fs.writeFileSync("js/ctrl/lang/" + code + ".js", translation);
+						
+						var iosLangDir = "../native/res/ios/lang/" + code + ".lproj" ;
+                        if (!fs.existsSync(iosLangDir)) {
+                            fs.mkdirSync(iosLangDir);
+                        }
+                        var iosTranslations = "";
+                        var keys = JSON.parse(body);
+                        iosTranslations += keys.cameraUsageDescription_msg ? ("NSCameraUsageDescription = \"" + keys.cameraUsageDescription_msg + "\";\n") : "";
+                        iosTranslations += keys.photoLibraryUsageDescription_msg ? ("NSPhotoLibraryUsageDescription = \"" + keys.photoLibraryUsageDescription_msg + "\";\n") : "";
+                        iosTranslations += keys.microphoneUsageDescription_msg ? ("NSMicrophoneUsageDescription = \"" + keys.microphoneUsageDescription_msg + "\";\n") : "";
+                        iosTranslations += keys.contactsUsageDescription_msg ? ("NSContactsUsageDescription = \"" + keys.contactsUsageDescription_msg + "\";\n") : "";
+                        iosTranslations += keys.remindersUsageDescription_msg ? ("NSRemindersUsageDescription = \"" + keys.remindersUsageDescription_msg + "\";\n") : "";
+                        fs.writeFileSync(iosLangDir + "/InfoPlist.strings", iosTranslations);
 						console.log(code);
 					    callback();
 					} else {
