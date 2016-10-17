@@ -457,7 +457,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "notAvailableInApp_msg": "Diese Funktion ist in der mobilen App nicht verfügbar.",
   "notePassword_msg": "Bitte das Passwort notieren und an den Benutzer weitergeben.",
   "notFound404_msg": "Leider konnte die aufgerufene Seite nicht gefunden werden. Bitte prüfe die URL nach Fehlern und aktualisiere die aktuelle Seite.",
-  "notificationMailSendFailureBody_msg": "Es tut uns leid, aber die folgende E-Mail konnte nicht zugestellt werden.",
+  "notificationMailSendFailureBody_msg": "Es tut uns leid, aber die folgende Benachrichtigungs-E-Mail konnte nicht zugestellt werden.",
   "notificationMailSignatureMessage_msg": "<p style=\"font-family:'Calibri',sans-serif\">Guten Tag,</p><p style=\"font-family:'Calibri',sans-serif\">ich habe gerade eine vertrauliche Nachricht gesendet. Daf&uuml;r benutze ich <a href='https://tutanota.de/business'>Tutanota</a>, den gepr&uuml;ften und zertifizierten Service aus Deutschland f&uuml;r verschl&uuml;sselte E-Mails. Diese und alle bisher ausgetauschten Nachrichten k&ouml;nnen ganz einfach &uuml;ber den folgenden Link abgerufen werden:</p><p style=\"font-family:'Calibri',sans-serif\"><a href='{1}'>Nachricht anzeigen</a></p><p style=\"font-family:'Calibri',sans-serif\">Oder kopieren Sie diesen Link in Ihren Browser:<br>{1}</p><p style=\"font-family:'Calibri',sans-serif\">Diese E-Mail wurde für die &Uuml;bermittlung des Links automatisch erzeugt. Der Link bleibt g&uuml;ltig, bis ich Ihnen eine neue vertrauliche Nachricht sende.</p><p style=\"font-family:'Calibri',sans-serif\">Mit freundlichen Gr&uuml;&szlig;en<br/>{2}</p>",
   "notificationMailSignatureNone_msg": "<keine>",
   "notificationMailSignatureSubject_msg": "Vertrauliche Nachricht von {1}",

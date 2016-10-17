@@ -95,7 +95,55 @@
 	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
         <string>Find recipient email address in contacts.</string>
     </config-file>>
-	<resource-file src="res/ios/de.lproj" target="de.lproj" />
+	<config-file parent="CFBundleURLTypes" target="*-Info.plist">
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>CFBundleURLName</key>
+				<string>de.tutao.tutanota</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+				<string>tutanota</string>
+				</array>
+			</dict>
+	</array>
+    </config-file>>
+	
+	<resource-file src="res/ios/lang/sq.lproj" target="sq.lproj" />
+	<resource-file src="res/ios/lang/hr.lproj" target="hr.lproj" />
+	<resource-file src="res/ios/lang/zh_hant.lproj" target="zh_hant.lproj" />
+	<resource-file src="res/ios/lang/en.lproj" target="en.lproj" />
+	<resource-file src="res/ios/lang/nl.lproj" target="nl.lproj" />
+	<resource-file src="res/ios/lang/de.lproj" target="de.lproj" />
+	<resource-file src="res/ios/lang/el.lproj" target="el.lproj" />
+	<resource-file src="res/ios/lang/fr.lproj" target="fr.lproj" />
+	<resource-file src="res/ios/lang/it.lproj" target="it.lproj" />
+	<resource-file src="res/ios/lang/pl.lproj" target="pl.lproj" />
+	<resource-file src="res/ios/lang/pt_pt.lproj" target="pt_pt.lproj" />
+	<resource-file src="res/ios/lang/pt_br.lproj" target="pt_br.lproj" />
+	<resource-file src="res/ios/lang/ro.lproj" target="ro.lproj" />
+	<resource-file src="res/ios/lang/ru.lproj" target="ru.lproj" />
+	<resource-file src="res/ios/lang/es.lproj" target="es.lproj" />
+	<resource-file src="res/ios/lang/tr.lproj" target="tr.lproj" />
+	<resource-file src="res/ios/lang/fi.lproj" target="fi.lproj" />
+	<resource-file src="res/ios/lang/lt_lt.lproj" target="lt_lt.lproj" />
+	<resource-file src="res/ios/lang/mk.lproj" target="mk.lproj" />
+	<resource-file src="res/ios/lang/sr.lproj" target="sr.lproj" />
+	<resource-file src="res/ios/lang/bg_bg.lproj" target="bg_bg.lproj" />
+	<resource-file src="res/ios/lang/cs_cz.lproj" target="cs_cz.lproj" />
+	<resource-file src="res/ios/lang/da_dk.lproj" target="da_dk.lproj" />
+	<resource-file src="res/ios/lang/et_ee.lproj" target="et_ee.lproj" />
+	<resource-file src="res/ios/lang/fil_ph.lproj" target="fil_ph.lproj" />
+	<resource-file src="res/ios/lang/hu.lproj" target="hu.lproj" />
+	<resource-file src="res/ios/lang/id.lproj" target="id.lproj" />
+	<resource-file src="res/ios/lang/no.lproj" target="no.lproj" />
+	<resource-file src="res/ios/lang/sk_sk.lproj" target="sk_sk.lproj" />
+	<resource-file src="res/ios/lang/sv.lproj" target="sv.lproj" />
+	<resource-file src="res/ios/lang/ta_in.lproj" target="ta_in.lproj" />
+	<resource-file src="res/ios/lang/uk_ua.lproj" target="uk_ua.lproj" />
+	<resource-file src="res/ios/lang/vi.lproj" target="vi.lproj" />
+	<resource-file src="res/ios/lang/ca_es.lproj" target="ca_es.lproj" />
 	
     <framework src="Foundation.framework"/>
 	<source-file src="src/ios/Crypto.m" compiler-flags="-ITutanota/include/"/>
