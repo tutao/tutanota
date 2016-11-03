@@ -1,37 +1,80 @@
-#import "FileUtil.h"
-#import <Cordova/CDV.h>
 
-@implementation FileUtil
+#import <Cordova/CDV.h>
+#import <QuickLook/QuickLook.h>
+#import <MobileCoreServices/MobileCoreServices.h>
+#include "TutaoUtils.h"
+#include "TutaoFileViewer.h"
+#include "FileUtil.h"
+#include "TutaoFileChooser.h"
+
+@implementation FileUtil {
+	CDVInvokedUrlCommand *_command;
+	TutaoFileChooser *_attachmentChooser;
+}
+
+
+- (void)pluginInitialize{
+	_attachmentChooser = [[TutaoFileChooser alloc]initWithPlugin:self];
+}
+
 
 - (void)open:(CDVInvokedUrlCommand*)command{
-	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-	 }];
+	NSString * filePath = [command.arguments objectAtIndex:0];
+
+	TutaoFileViewer *viewer = [[TutaoFileViewer alloc]initWithPlugin:self];
+	[viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
+		if (error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+		}
+	}];
+	
+	/*
+    QLPreviewController *previewController = [[QLPreviewController alloc] init];
+    previewController.dataSource = quickLookDataSource;
+    previewController.delegate = quickLookDataSource;
+    
+  	if ([QLPreviewController canPreviewItem:fileUrl]){
+		[[self viewController] presentViewController:previewController animated:YES completion:^{
+			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+		}];
+	} else {
+		[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+	}*/
 }
 
 - (void)openFileChooser:(CDVInvokedUrlCommand*)command{
+	/*
+	NSArray *UTIs = @[@"public.content"];
 	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-	 }];
-};
+		UIDocumentMenuViewController *importMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:UTIs
+                                                     inMode:UIDocumentPickerModeImport];
+		importMenu.delegate = self;
+		[[self viewController] presentViewController:importMenu animated:YES completion:nil];
+	}];
+	*/
+	[_attachmentChooser openWithResultHandler:^(NSString *filePath, NSError *error) {
+		if(error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			if (filePath){
+				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath] callbackId:command.callbackId];
+			} else {
+				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT] callbackId:command.callbackId];
+			}
+		}
+	}];
+}
+
 
 - (void)write:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
-		
 		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
-};
+}
 
 - (void)read:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
@@ -41,59 +84,96 @@
 		
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
-};
-
+}
 
 - (void)deleteFile:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
+		NSString * filePath = [command.arguments objectAtIndex:0];
+	// TODO: do check deleteFile call in FileFacade
+	//	[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
-};
+}
 
 - (void)getName:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
-		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
+		NSString *filePath = [command.arguments objectAtIndex:0];
+		NSString *fileName = [filePath lastPathComponent];		
+		if ( [FileUtil fileExistsAtPath:filePath]){
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:fileName];
+		} else {
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"file does not exists"];
+		}
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
-};
+}
 
 - (void)getMimeType:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
 		CDVPluginResult* pluginResult = nil;
 		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
+		NSString *filePath = [command.arguments objectAtIndex:0];
+		NSString *mimeType = [self getFileMIMEType: [filePath lastPathComponent]];
+		if (mimeType){
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:mimeType];
+		} else {
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"no mime type available"];
+		}
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	 }];
-};
+}
 
 - (void)getSize:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
+		NSString *filePath = [command.arguments objectAtIndex:0];
+		NSURL *fileURL = [NSURL fileURLWithPath:filePath];
 		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-		
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		NSNumber *fileSizeValue = nil;
+		NSError *fileSizeError = nil;
+		[fileURL getResourceValue:&fileSizeValue
+                   forKey:NSURLFileSizeKey
+                    error:&fileSizeError];
+	
+		if (fileSizeValue) {
+			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsNSInteger:[fileSizeValue integerValue]];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		} else {
+			[TutaoUtils sendErrorResult:fileSizeError invokedCommand:command delegate:self.commandDelegate];
+		}
+
 	 }];
-};
+}
 
 
 - (void)upload:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
+		NSString * filePath = [command.arguments objectAtIndex:0];
+		NSURL * url = [NSURL URLWithString:[command.arguments objectAtIndex:1]];
+		NSDictionary * headers = [command.arguments objectAtIndex:2];
 		
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+		NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+		[request setHTTPMethod:@"PUT"];
+		[request setValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
+		[request setAllHTTPHeaderFields:headers];
 		
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
+		NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+		
+		NSURL *fileUrl = [FileUtil urlFromPath:filePath];
+		NSURLSessionUploadTask *task = [session uploadTaskWithRequest:request fromFile:fileUrl completionHandler:^(NSData * data, NSURLResponse * response, NSError *error) {
+			if (error){
+				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+                return;
+            }
+			NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
+			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsNSInteger:[httpResponse statusCode]] callbackId:command.callbackId];
+		}];
+		[task resume];
 	 }];
-};
+}
 
 - (void)download:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
@@ -109,19 +189,19 @@
 			
 			NSURLSessionConfiguration * configuration = [NSURLSessionConfiguration ephemeralSessionConfiguration];	// Ephemeral sessions do not store any data to disk; all caches, credential stores, and so on are kept in RAM.
 			NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
-            
+
 			[[session dataTaskWithRequest: request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 				//NSLog(@"Got response %@ with error %@.\n", response, error);
 				NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse*)response;
                 if (error){
-                    [self sendErrorResult:error invokedCommand:command];
+                    [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
                     return;
                 }
 				if ([httpResponse statusCode] == 200) {
                     NSError *error = nil;
 					NSString *encryptedPath = [FileUtil getEncryptedFolder: &error];
                     if (error) {
-                        [self sendErrorResult:error invokedCommand:command];
+                        [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
                         return;
                     }
                     NSString *filePath = [encryptedPath stringByAppendingPathComponent:fileName];
@@ -131,7 +211,7 @@
 						CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
 						[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
 					} else {
-                        [self sendErrorResult:error invokedCommand:command];
+                        [TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
                         return;
 					}
 				} else {
@@ -143,55 +223,20 @@
 		} else {
 			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"invalid arguments"] callbackId:command.callbackId];
 		}
-
-
-		/*
-					try {
-						con.setConnectTimeout(HTTP_TIMEOUT);
-						con.setReadTimeout(HTTP_TIMEOUT);
-						con.setRequestMethod("GET");
-						con.setDoInput(true);
-						con.setUseCaches(false);
-						addHeadersToRequest(con, headers);
-						con.connect();
-
-						Context context = webView.getContext();
-						File encryptedDir = new File(Utils.getDir(context), Crypto.TEMP_DIR_ENCRYPTED);
-						encryptedDir.mkdirs();
-						File encryptedFile = new File(encryptedDir, filename);
-
-						IOUtils.copy(con.getInputStream(), new FileOutputStream(encryptedFile));
-
-						callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.fileToUri(encryptedFile)));
-					} finally {
-						con.disconnect();
-					}
-				} catch (Exception e) {
-					Log.e(TAG, "error during download from " + sourceUrl, e);
-					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
-				}
-			}
-			*/
-	
-		
 	 }];
-};
+}
 
-- (void) sendErrorResult:(NSError*)error invokedCommand:(CDVInvokedUrlCommand*)command{
-    NSLog(@"error %@.\n", error);
-    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error description]];
-    [self.commandDelegate sendPluginResult: pluginResult callbackId:command.callbackId];
-};
+
 
 
 + (NSString*) getEncryptedFolder:(NSError**)error {
-    NSString * encryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"encrpted"];
+    NSString * encryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"encrypted"];
     [[NSFileManager defaultManager] createDirectoryAtPath:encryptedFolder
                               withIntermediateDirectories:YES
                                                attributes:nil
                                                     error:error];
     return encryptedFolder;
-};
+}
 
 + (NSString*) getDecryptedFolder:(NSError**)error  {
     NSString * decryptedFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"decrypted"];
@@ -199,8 +244,31 @@
                               withIntermediateDirectories:YES
                                                attributes:nil
                                                     error:error];
-    return decryptedFolder;
+    return decryptedFolder;	
+}
+
+
++ (BOOL) fileExistsAtPath:(NSString*)path  {
+	return [[NSFileManager defaultManager] fileExistsAtPath:path];
 };
+
+
+- (NSString*) getFileMIMEType:(NSString*) file {
+    CFStringRef UTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)[file pathExtension], NULL);
+    CFStringRef MIMEType = UTTypeCopyPreferredTagWithClass (UTI, kUTTagClassMIMEType);
+    CFRelease(UTI);
+    return (__bridge NSString *)MIMEType;
+}
+
++ (NSURL*) urlFromPath:(NSString*)path{
+	return  [NSURL fileURLWithPath:path];
+};
+
++ (NSString*) pathFromUrl:(NSURL*)url	{
+	return [url path];
+};
+
+
 
 
 @end

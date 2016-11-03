@@ -146,15 +146,27 @@
 	<resource-file src="res/ios/lang/ca_es.lproj" target="ca_es.lproj" />
 	
     <framework src="Foundation.framework"/>
+    <source-file src="src/ios/TutaoFileChooser.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/TutaoFileChooser.h"/>
+    <source-file src="src/ios/TutaoFileViewer.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/TutaoFileViewer.h"/>
+   	<source-file src="src/ios/TutaoUtils.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/Tutaoutils.h"/>
+   	<source-file src="src/ios/TutaoErrorFactory.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/TutaoErrorFactory.h"/>
+	<source-file src="src/ios/TutaoEncodingConverter.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/TutaoEncodingConverter.h"/>
+	<source-file src="src/ios/TutaoAes128Facade.m" compiler-flags="-ITutanota/include/"/>
+    <header-file src="include/ios/TutaoAes128Facade.h"/>
 	<source-file src="src/ios/Crypto.m" compiler-flags="-ITutanota/include/"/>
-    <header-file src="src/ios/Crypto.h"/>
+    <header-file src="include/ios/Crypto.h"/>
 	<source-file src="src/ios/FileUtil.m" compiler-flags="-ITutanota/include/"/>
-    <header-file src="src/ios/FileUtil.h"/>
-	<header-file src="src/ios/rsa_oaep_sha256.h"/>
+    <header-file src="include/ios/FileUtil.h"/>
+	<header-file src="include/ios/rsa_oaep_sha256.h"/>
 	<source-file src="src/ios/rsa_oaep_sha256.c" compiler-flags="-ITutanota/include/"/>
-	<source-file src="lib/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
-	<header-file src="src/ios/JFBCrypt.h"/>
+	<source-file src="libs/ios/openssl/libcrypto.a" target-dir="libs" framework="true" />
+	<header-file src="include/ios/JFBCrypt.h"/>
 	<source-file src="src/ios/JFBCrypt.m"/>
-	<header-file src="src/ios/JFGC.h"/>
+	<header-file src="include/ios/JFGC.h"/>
   </platform>
 </plugin>

@@ -13,12 +13,17 @@
 
 @interface Crypto : CDVPlugin
 
+/* Definitions from the Crypto.js interface. */
 - (void)seed:(CDVInvokedUrlCommand*)command;
 - (void)generateRsaKey:(CDVInvokedUrlCommand*)command;
 - (void)rsaEncrypt:(CDVInvokedUrlCommand*)command;
 - (void)rsaDecrypt:(CDVInvokedUrlCommand*)command;
 - (void)generateKeyFromPassphrase:(CDVInvokedUrlCommand*)command;
 
+- (void)aesEncrypt:(CDVInvokedUrlCommand*)command;
+- (void)aesEncryptFile:(CDVInvokedUrlCommand*)command;
+- (void)aesDecrypt:(CDVInvokedUrlCommand*)command;
+- (void)aesDecryptFile:(CDVInvokedUrlCommand*)command;
 
 @end
 
