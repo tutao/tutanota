@@ -1,16 +1,16 @@
 "use strict";
 
-tutao.provide('tutao.native.AndroidFile');
+tutao.provide('tutao.native.AppFile');
 
 /**
- * An android file contains the file name, the URI to the unencrypted file and the session key.
+ * An app file contains the file name, the URI to the unencrypted file and the session key.
  * @param {String} location The URI of the unencrypted file
  * @param {String} name The name of the file
  * @param {String} mimeType The mimeType of the file
  * @param {Number} size The size of the file
  * @constructor
  */
-tutao.native.AndroidFile = function(location, name, mimeType, size) {
+tutao.native.AppFile = function(location, name, mimeType, size) {
     this._name = name;
     this._location = location;
     if (mimeType && mimeType !== "") {
@@ -25,7 +25,7 @@ tutao.native.AndroidFile = function(location, name, mimeType, size) {
  * Provides the name of the file.
  * @return {string} The name of the file.
  */
-tutao.native.AndroidFile.prototype.getName = function() {
+tutao.native.AppFile.prototype.getName = function() {
 	return this._name;
 };
 
@@ -33,7 +33,7 @@ tutao.native.AndroidFile.prototype.getName = function() {
  * Provides the URI to the content of the file
  * @return {ArrayBuffer|String} The content of the file as ArrayBuffer or base64 string in LEGACY mode.
  */
-tutao.native.AndroidFile.prototype.getLocation = function() {
+tutao.native.AppFile.prototype.getLocation = function() {
 	return this._location;
 };
 
@@ -41,7 +41,7 @@ tutao.native.AndroidFile.prototype.getLocation = function() {
  * Provides the mime type of the file. If the mime type is not known, by default "application/octet-stream" is used.
  * @return {string} The mime type of the file.
  */
-tutao.native.AndroidFile.prototype.getMimeType = function() {
+tutao.native.AppFile.prototype.getMimeType = function() {
 	return this._mimeType;
 };
 
@@ -49,6 +49,6 @@ tutao.native.AndroidFile.prototype.getMimeType = function() {
  * Provides the size of the file.
  * @return {number} The size of the file in bytes.
  */
-tutao.native.AndroidFile.prototype.getSize = function() {
+tutao.native.AppFile.prototype.getSize = function() {
 	return this._size;
 };

@@ -43,7 +43,7 @@ FileUtil.prototype.write = function(file, bytes) {
 /**
  * ONLY FOR TESTING
  * Read a file
- * @param {tutao.native.AndroidFile} file The file to read.
+ * @param {tutao.native.AppFile} file The file to read.
  * @returns {Promise.<Uint8Array>}
  */
 FileUtil.prototype.read = function(file) {
@@ -102,7 +102,7 @@ FileUtil.prototype.getSize = function(file) {
 
 /**
  * Uploads the binary data of a file to tutadb
- * @param {tutao.native.AndroidFile} file
+ * @param {tutao.native.AppFile} file
  * @param {string} targetUrl
  * @param {object} headers
  * @returns {Promise}
@@ -141,6 +141,13 @@ FileUtil.prototype._createConnectionErrorHandler = function(rejectFunction) {
     }
 };
 
+
+FileUtil.prototype.clearFileData = function() {
+    var self = this;
+    return new Promise(function (resolve, reject) {
+        exec(resolve, self._createConnectionErrorHandler(reject),"FileUtil", "clearFileData",[]);
+    });
+};
 
 var fileUtil = FileUtil;
 module.exports = fileUtil;

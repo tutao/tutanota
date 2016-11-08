@@ -10,55 +10,36 @@
 @implementation FileUtil {
 	CDVInvokedUrlCommand *_command;
 	TutaoFileChooser *_attachmentChooser;
+	TutaoFileViewer *_viewer;
+	NSMutableSet<NSString*> *_attachmentsForUpload;
 }
 
 
 - (void)pluginInitialize{
 	_attachmentChooser = [[TutaoFileChooser alloc]initWithPlugin:self];
+	_viewer = [[TutaoFileViewer alloc]initWithPlugin:self];
+	_attachmentsForUpload = [[NSMutableSet alloc]init];
 }
 
 
 - (void)open:(CDVInvokedUrlCommand*)command{
 	NSString * filePath = [command.arguments objectAtIndex:0];
-
-	TutaoFileViewer *viewer = [[TutaoFileViewer alloc]initWithPlugin:self];
-	[viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
+	[_viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
 		if (error){
 			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
 		} else {
 			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 		}
 	}];
-	
-	/*
-    QLPreviewController *previewController = [[QLPreviewController alloc] init];
-    previewController.dataSource = quickLookDataSource;
-    previewController.delegate = quickLookDataSource;
-    
-  	if ([QLPreviewController canPreviewItem:fileUrl]){
-		[[self viewController] presentViewController:previewController animated:YES completion:^{
-			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-		}];
-	} else {
-		[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
-	}*/
 }
 
 - (void)openFileChooser:(CDVInvokedUrlCommand*)command{
-	/*
-	NSArray *UTIs = @[@"public.content"];
-	[self.commandDelegate runInBackground:^{
-		UIDocumentMenuViewController *importMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:UTIs
-                                                     inMode:UIDocumentPickerModeImport];
-		importMenu.delegate = self;
-		[[self viewController] presentViewController:importMenu animated:YES completion:nil];
-	}];
-	*/
 	[_attachmentChooser openWithResultHandler:^(NSString *filePath, NSError *error) {
 		if(error){
 			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
 		} else {
 			if (filePath){
+				[_attachmentsForUpload addObject:filePath];
 				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath] callbackId:command.callbackId];
 			} else {
 				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT] callbackId:command.callbackId];
@@ -88,12 +69,12 @@
 
 - (void)deleteFile:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
-		CDVPluginResult* pluginResult = nil;
 		NSString * filePath = [command.arguments objectAtIndex:0];
-	// TODO: do check deleteFile call in FileFacade
-	//	[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
-		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		// do not delete files if they haven't been uploaded yet.
+		if (![_attachmentsForUpload containsObject:filePath]){
+			[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+		}
+		[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
 	 }];
 }
 
@@ -226,6 +207,14 @@
 	 }];
 }
 
+- (void)clearFileData:(CDVInvokedUrlCommand*)command{
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	for(NSString *filePath in _attachmentsForUpload){
+		// ignore errors
+		[fileManager removeItemAtPath:filePath error:nil];
+	}
+	[_attachmentsForUpload removeAllObjects];
+}
 
 
 

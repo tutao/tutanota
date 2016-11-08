@@ -27,7 +27,7 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     this.sender = ko.observable(sender);
 	this.composerSubject = ko.observable("");
 	this.subjectFieldFocused = ko.observable(false);
-    // @type {function():Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>
+    // @type {function():Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile>
 	this._attachments = ko.observableArray();
 	this.currentlyDownloadingAttachment = ko.observable(null); // null or a DataFile
 
@@ -418,6 +418,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype._updatePreviousMail = function() {
 
 tutao.tutanota.ctrl.ComposingMail.prototype.closeDraft = function(restorePreviousMail) {
     this._freeBubbles();
+	tutao.locator.fileFacade.clearFileData();
     if (restorePreviousMail) {
         this._restoreViewState();
     }
@@ -558,7 +559,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.getConfidentialStateMessageId = func
 
 /**
  * Offers the user to download the given data file which was added to this mail.
- * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile} dataFile The file to download.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile} dataFile The file to download.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dataFile) {
     if (this.busy()) {
@@ -585,7 +586,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.downloadNewAttachment = function(dat
 
 /**
  * Removes the given data file from the attachments.
- * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile} dataFile The file to remove.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile} dataFile The file to remove.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.removeAttachment = function(dataFile) {
     if (this.busy()) {
@@ -646,7 +647,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 
 /**
  * Attaches the files to this mail.
- * @param {Array.<tutao.tutanota.util.DataFile|tutao.native.AndroidFile>} fileList The files to attach.
+ * @param {Array.<tutao.tutanota.util.DataFile|tutao.native.AppFile>} fileList The files to attach.
  * @return {Promise} When finished.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
@@ -673,7 +674,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachFiles = function(fileList) {
 
 /**
  * Provides the image class that shall be shown in the attachment.
- * @param {tutao.tutanota.util.DataFile|tutao.native.AndroidFile} dataFile The file.
+ * @param {tutao.tutanota.util.DataFile|tutao.native.AppFile} dataFile The file.
  * @return {String} The name of the image.
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.getAttachmentImage = function(dataFile) {

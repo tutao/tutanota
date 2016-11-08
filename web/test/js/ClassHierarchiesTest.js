@@ -26,7 +26,7 @@ describe("ClassHierarchiesTest", function () {
 
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.CryptoBrowser, tutao.native.CryptoInterface));
 
-        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.FileFacadeAndroidApp, tutao.native.FileFacade));
+        assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.FileFacadeApp, tutao.native.FileFacade));
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.FileFacadeBrowser, tutao.native.FileFacade));
 
         assert.isTrue(ClassHierarchiesTest.checkInterface(tutao.native.NotificationApp, tutao.native.NotificationInterface));

@@ -1,12 +1,12 @@
 "use strict";
 
-tutao.provide('tutao.native.FileFacadeIosApp');
+tutao.provide('tutao.native.FileFacadeApp');
 
 /**
  * @implements {tutao.native.FileFacade}
  * @constructor
  */
-tutao.native.FileFacadeIosApp = function() {
+tutao.native.FileFacadeApp = function() {
     this.fileUtil = new tutao.native.device.FileUtil();
     tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 };
@@ -14,7 +14,7 @@ tutao.native.FileFacadeIosApp = function() {
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.createFile = function(file, sessionKey) {
+tutao.native.FileFacadeApp.prototype.createFile = function(file, sessionKey) {
 	// implement together with FileView.
 };
 
@@ -22,11 +22,11 @@ tutao.native.FileFacadeIosApp.prototype.createFile = function(file, sessionKey) 
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.showFileChooser = function() {
+tutao.native.FileFacadeApp.prototype.showFileChooser = function() {
     var self = this;
     return self.fileUtil.openFileChooser().then(function (uri) {
         return Promise.join(self.fileUtil.getName(uri), self.fileUtil.getMimeType(uri), self.fileUtil.getSize(uri), function (name, mimeType, size) {
-            return [new tutao.native.AndroidFile(uri, name, 	mimeType, size)];
+            return [new tutao.native.AppFile(uri, name, mimeType, size)];
         });
     });
 };
@@ -34,8 +34,8 @@ tutao.native.FileFacadeIosApp.prototype.showFileChooser = function() {
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.uploadFileData = function(/*tutao.native.AndroidFile*/file, sessionKey) {
-    tutao.util.Assert.assert(file instanceof tutao.native.AndroidFile, "unsupported file type");
+tutao.native.FileFacadeApp.prototype.uploadFileData = function(/*tutao.native.AppFile*/file, sessionKey) {
+    tutao.util.Assert.assert(file instanceof tutao.native.AppFile, "unsupported file type");
     var self = this;
 
     var fileData = new tutao.entity.tutanota.FileDataDataPost();
@@ -66,7 +66,7 @@ tutao.native.FileFacadeIosApp.prototype.uploadFileData = function(/*tutao.native
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.readFileData = function(file) {
+tutao.native.FileFacadeApp.prototype.readFileData = function(file) {
     var self = this;
 
     var fileParams = new tutao.entity.tutanota.FileDataDataGet()
@@ -78,7 +78,7 @@ tutao.native.FileFacadeIosApp.prototype.readFileData = function(file) {
     var path = tutao.env.getHttpOrigin() + tutao.rest.EntityRestClient.createUrl(tutao.entity.tutanota.FileDataDataReturn.PATH, null, null, params);
     return self.fileUtil.download(path, file.getName(), headers).then(function (downloadedFileUri) {
         return tutao.locator.crypto.aesDecryptFile(file.getEntityHelper().getSessionKey(), downloadedFileUri).then(function(decryptedFileUri) {
-            return new tutao.native.AndroidFile(decryptedFileUri, file.getName(), file.getMimeType(), Number(file.getSize()));
+            return new tutao.native.AppFile(decryptedFileUri, file.getName(), file.getMimeType(), Number(file.getSize()));
         }).lastly(function () {
             self.fileUtil.deleteFile(downloadedFileUri);
         });
@@ -88,7 +88,7 @@ tutao.native.FileFacadeIosApp.prototype.readFileData = function(file) {
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.open = function(file) {
+tutao.native.FileFacadeApp.prototype.open = function(file) {
     var self = this;
     self.fileUtil.open(file.getLocation(), file.getMimeType()).caught(function() {
         return tutao.tutanota.gui.alert(tutao.lang("canNotOpenFileOnDevice_msg"));
@@ -111,9 +111,16 @@ tutao.native.FileFacadeIosApp.prototype.open = function(file) {
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeIosApp.prototype.bytesToFile = function(bytes, file) {
+tutao.native.FileFacadeApp.prototype.bytesToFile = function(bytes, file) {
     var fileUri = this.configFile = cordova.file.dataDirectory + "temp/decrypted/" + file.getName();
     return this.fileUtil.write(fileUri, bytes).then(function () {
-        return new tutao.native.AndroidFile(fileUri, file.getName(), file.getMimeType(), bytes.byteLength);
+        return new tutao.native.AppFile(fileUri, file.getName(), file.getMimeType(), bytes.byteLength);
     });
 };
+
+tutao.native.FileFacadeApp.prototype.clearFileData = function() {
+	return this.fileUtil.clearFileData();
+};
+
+
+

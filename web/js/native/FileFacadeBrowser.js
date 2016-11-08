@@ -237,3 +237,10 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
 tutao.native.FileFacadeBrowser.prototype.provideDownload = function(dataFile) {
 
 };
+
+
+tutao.native.FileFacadeBrowser.prototype.clearFileData = function() {
+	return Promise.resolve();
+};
+
+

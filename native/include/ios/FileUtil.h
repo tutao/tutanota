@@ -22,6 +22,8 @@
 - (void)getSize:(CDVInvokedUrlCommand*)command;
 - (void)upload:(CDVInvokedUrlCommand*)command;
 - (void)download:(CDVInvokedUrlCommand*)command;
+- (void)clearFileData:(CDVInvokedUrlCommand*)command;
+
 
 /** Helper functions for file access. */
 + (NSString*) getEncryptedFolder:(NSError **) error;

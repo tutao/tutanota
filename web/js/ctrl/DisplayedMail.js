@@ -227,17 +227,14 @@ tutao.tutanota.ctrl.DisplayedMail.prototype.downloadAttachment = function (file)
     if (this.currentlyDownloadingAttachment()) {
         return;
     }
-	if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios' && file.getSize() > (7*1024*1024) ) {
-		tutao.tutanota.gui.alert(tutao.lang("downloadAttachmentNotPossible_msg"));
-	} else {
-	    var self = this;
-		this.currentlyDownloadingAttachment(file);
-		tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
-			return tutao.locator.fileFacade.open(dataFile);
-		}).lastly(function (e) {
-			self.currentlyDownloadingAttachment(null);
-		});
-	}
+
+	var self = this;
+	this.currentlyDownloadingAttachment(file);
+	tutao.locator.fileFacade.readFileData(file).then(function (dataFile) {
+		return tutao.locator.fileFacade.open(dataFile);
+	}).lastly(function (e) {
+		self.currentlyDownloadingAttachment(null);
+	});
 };
 
 /**
