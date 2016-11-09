@@ -22,9 +22,17 @@ tutao.native.FileFacadeApp.prototype.createFile = function(file, sessionKey) {
 /**
  * @inheritDoc
  */
-tutao.native.FileFacadeApp.prototype.showFileChooser = function() {
+tutao.native.FileFacadeApp.prototype.showFileChooser = function(srcButton) {
     var self = this;
-    return self.fileUtil.openFileChooser().then(function (uri) {
+	var domButton = $(srcButton.domElement());
+	var srcRect = {
+		"x" : domButton.offset().left,
+		"y" : domButton.offset().top,
+		"width" : domButton.width(),
+		"height" : domButton.height()
+	};
+	
+    return self.fileUtil.openFileChooser(srcRect).then(function (uri) {
         return Promise.join(self.fileUtil.getName(uri), self.fileUtil.getMimeType(uri), self.fileUtil.getSize(uri), function (name, mimeType, size) {
             return [new tutao.native.AppFile(uri, name, mimeType, size)];
         });

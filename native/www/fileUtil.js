@@ -18,12 +18,14 @@ FileUtil.prototype.open = function(file, mimeType) {
 };
 
 /**
- * Opens a file chooser to select a file
+ * Opens a file chooser to select a file. The file chooser opens next to a location specified by srcRect on larger devices (iPad).
+ * The rectangle must be specifed using values for x, y, height and width.
+ * @param {object} srcRect Dictonory containing the location of the button which has been pressed to open the file chooser.
  * @return {Promise.<undefined, Error>}.
  */
-FileUtil.prototype.openFileChooser = function() {
+FileUtil.prototype.openFileChooser = function(srcRect) {
     return new Promise(function (resolve, reject) {
-        exec(resolve,reject,"FileUtil", "openFileChooser",[]);
+        exec(resolve,reject,"FileUtil", "openFileChooser",[srcRect]);
     });
 };
 

@@ -54,6 +54,8 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
     var notBusy = function() {
         return !self.busy();
     };
+	
+	this._attachFilesButton = new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment");
 	this.buttons = [
         new tutao.tutanota.ctrl.Button("dismiss_action", tutao.tutanota.ctrl.Button.ALWAYS_VISIBLE_PRIO, function () {
             self.closeDraft(true);
@@ -61,7 +63,7 @@ tutao.tutanota.ctrl.ComposingMail = function(draft, conversationType, previousMe
         new tutao.tutanota.ctrl.Button("save_action", 8, function() {
             self.saveDraft(true);
         }, notBusy, true, "composer_save", "moveToFolder"),
-        new tutao.tutanota.ctrl.Button("attachFiles_action", 9, this.attachSelectedFiles, notBusy, true, "composer_attach", "attachment"),
+        this._attachFilesButton,
         new tutao.tutanota.ctrl.Button("send_action", 10, this.sendMail, notBusy, false, "composer_send", "send")
     ];
 	this.buttonBarViewModel = new tutao.tutanota.ctrl.ButtonBarViewModel(this.buttons, null, tutao.tutanota.gui.measureActionBarEntry);
@@ -633,7 +635,7 @@ tutao.tutanota.ctrl.ComposingMail.prototype.attachDroppedFiles = function(data, 
  */
 tutao.tutanota.ctrl.ComposingMail.prototype.attachSelectedFiles = function() {
 	var self = this;
-	tutao.locator.fileFacade.showFileChooser().then(function(fileList) {
+	tutao.locator.fileFacade.showFileChooser(self._attachFilesButton).then(function(fileList) {
 		return self.attachFiles(fileList);
 	}).caught(function(error) {
         if ( error == "permission_denied") {

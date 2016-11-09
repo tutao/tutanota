@@ -17,7 +17,7 @@
 
 - (TutaoFileChooser *) initWithPlugin:(CDVPlugin*) cdvPlugin;
 
-- (void)openWithResultHandler:(void(^)(NSString *filePath, NSError *error))completionHandler;
+- (void)openAt:(NSDictionary *)srcRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler;
 
 @end
 

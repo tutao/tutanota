@@ -1,4 +1,4 @@
-//
+
 //  TutaoFileChooser
 //  Tutanota
 //
@@ -24,39 +24,64 @@
 	NSArray *_supportedUTIs;
 	void(^imagePickerCompletionHandler)();
 	void(^resultHandler)(NSString * filePath, NSError* error);
+	UIPopoverPresentationController *_popOverPresentationController;
+	CGRect _currentSrcRect;
 }
 
 - (TutaoFileChooser*) initWithPlugin:(CDVPlugin*) plugin {
+	_currentSrcRect = CGRectZero;
 	_cdvPlugin = plugin;
 	_supportedUTIs = @[@"public.content"];
-	
-	UIImagePickerController *localImagePickerController = [[UIImagePickerController alloc] init];
-	localImagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
-	localImagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
-	localImagePickerController.allowsEditing = NO;
-	
-	_imagePickerController = localImagePickerController;
+	_imagePickerController = [[UIImagePickerController alloc] init];
+	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
+	_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
 	_imagePickerController.delegate = self;
 	
-	UIViewController *localViewController = _cdvPlugin.viewController;;
+	TutaoFileChooser *__weak weakSelf = self;
 	imagePickerCompletionHandler = ^void(){
-        [localViewController presentViewController:localImagePickerController animated:YES completion:nil];
+		[weakSelf showImagePicker]; // capture the weak reference to avoid the reference cycle
     };
 	
 	return self;
 }
 
+-(void) showImagePicker{
+	UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
+	popOverController.sourceView = _cdvPlugin.webView;
+	popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
+	popOverController.sourceRect = _currentSrcRect;
+	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
+}
 
-- (void)openWithResultHandler:(void(^)(NSString * filePath, NSError* error))completionHandler{
+- (void)openAt:(NSDictionary *)srcRect completion:(void(^)(NSString *filePath, NSError *error))completionHandler{
 	if (resultHandler){
 		completionHandler(nil, [TutaoErrorFactory createError:@"file chooser already open"]);
 		return;
 	}
-
 	resultHandler = completionHandler;
+	_currentSrcRect = CGRectZero;
+	if (srcRect) {
+		_currentSrcRect.origin.x   = [[srcRect valueForKey:@"x"] integerValue];
+        _currentSrcRect.origin.y   = [[srcRect valueForKey:@"y"] integerValue];
+		_currentSrcRect.size.width = [[srcRect valueForKey:@"width"] integerValue];
+		_currentSrcRect.size.height= [[srcRect valueForKey:@"height"] integerValue];
+	}
+
 	
 	_attachmentTypeMenu = [[UIDocumentMenuViewController alloc] initWithDocumentTypes:_supportedUTIs inMode:UIDocumentPickerModeImport];
 	_attachmentTypeMenu.delegate = self;
+	
+	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+		//_popOverController = [[UIPopoverPresentationController alloc] initWithPresentedViewController:_imagePickerController presentingViewController:_cdvPlugin.viewController];
+		_attachmentTypeMenu.modalPresentationStyle = UIModalPresentationPopover;
+		_popOverPresentationController = [_attachmentTypeMenu popoverPresentationController];
+		_popOverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionUp | UIPopoverArrowDirectionDown;
+		_popOverPresentationController.sourceView = _cdvPlugin.webView;
+		_popOverPresentationController.sourceRect = _currentSrcRect;
+	}
+	
+	
 	
 	[_attachmentTypeMenu addOptionWithTitle:@"Photos" image:nil order:UIDocumentMenuOrderFirst handler:imagePickerCompletionHandler];
 	[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];

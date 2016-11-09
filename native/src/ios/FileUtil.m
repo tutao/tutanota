@@ -34,7 +34,9 @@
 }
 
 - (void)openFileChooser:(CDVInvokedUrlCommand*)command{
-	[_attachmentChooser openWithResultHandler:^(NSString *filePath, NSError *error) {
+	NSDictionary *srcRect = [command.arguments objectAtIndex:0];
+
+	[_attachmentChooser openAt:srcRect completion:^(NSString *filePath, NSError *error) {
 		if(error){
 			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
 		} else {
@@ -46,7 +48,9 @@
 			}
 		}
 	}];
+
 }
+
 
 
 - (void)write:(CDVInvokedUrlCommand*)command{

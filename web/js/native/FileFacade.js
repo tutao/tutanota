@@ -10,9 +10,10 @@ tutao.native.FileFacade = function() {};
 
 /**
  * Shows a file chooser and lets the user select multiple files.
+ * @param tutao.tutanota.ctrl.Button The button which has been pressed.
  * @return {Promise.<Array.<tutao.tutanota.util.DataFile|tutao.tutanota.native.AppFile>>} Resolves to the FileList.
  */
-tutao.native.FileFacade.prototype.showFileChooser = function() {};
+tutao.native.FileFacade.prototype.showFileChooser = function(srcButton) {};
 
 /**
  * Creates a new file on the server in the user file system.
