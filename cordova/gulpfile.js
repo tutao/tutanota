@@ -50,17 +50,31 @@ gulp.task('androidTestDist', ['createWebReleaseTest', 'updateAndroidPlatformAndT
 ]));
 
 
-gulp.task('prepareiOSProdDist', ['createWebRelease'], shell.task([
+gulp.task('prepareIOSProdDist', ['createWebRelease'], shell.task([
     'cordova platform remove ios',
 	'cordova platform add ios',
 	'cordova prepare ios'
 ]));
 
-gulp.task('prepareiOSTestDist', ['createWebReleaseTest'], shell.task([
+gulp.task('prepareIOSTestDist', ['createWebReleaseTest'], shell.task([
     'cordova platform remove ios',
 	'cordova platform add ios',
 	'cordova prepare ios'
 ]));
+
+gulp.task('prepareIOSLocal', shell.task([
+	'cd ../web; gulp distCordovaLocal',
+    'cordova platform remove ios',
+	'cordova platform add ios',
+	'cordova prepare ios'
+]));
+
+
+gulp.task('preparePluginTests', shell.task([
+	'cordova plugins add http://git-wip-us.apache.org/repos/asf/cordova-plugin-test-framework.git',
+    'cordova plugins add ../native/tests/'
+]));
+
 
 
 

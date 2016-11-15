@@ -150,32 +150,6 @@ tutao.native.FileFacadeBrowser.prototype.bytesToFile = function(bytes, file) {
  * @inheritDoc
  */
 tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
-    if (tutao.env.mode == tutao.Mode.App && cordova.platformId == 'ios') {
-        return new Promise(function(resolve, reject) {
-            window.requestFileSystem(LocalFileSystem.TEMPORARY, dataFile.getSize(), function(fs) {
-                //var fileName = dataFile.getName().replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
-				var fileName = window.encodeURIComponent(dataFile.getName()).replace(/[ :\	\\/§$%&\*\=\?#°\^\|<>]/g, "_");
-                fs.root.getFile(fileName, {create: true}, function(fileEntry) {
-                    // Create a FileWriter object for our FileEntry (log.txt).
-                    fileEntry.createWriter(function(fileWriter) {
-                        fileWriter.onwriteend = function(e) {
-                            cordova.plugins.disusered.open(fileEntry.toURL(), resolve, reject);
-                        };
-
-                        fileWriter.onerror = function(e) {
-                            reject(e);
-                        };
-						var blob = new Blob([dataFile.getData()], {type: dataFile.getMimeType()});
-                        fileWriter.write(blob);
-                    }, function(e) {
-                        reject(e);
-                    });
-                }, function(e) {
-                    reject(e);
-                });
-            });
-        });
-    } else {
         // all other browsers
         navigator.saveBlob = navigator.saveBlob || navigator.msSaveBlob || navigator.mozSaveBlob || navigator.webkitSaveBlob;
         window.saveAs = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs;
@@ -225,8 +199,7 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
                 fileSaverSaveAs(new Blob([dataFile.getData()], {type: mimeType}), dataFile.getName());
                 return Promise.resolve();
             }
-        }
-    }
+		}
 };
 
 /**
@@ -237,3 +210,10 @@ tutao.native.FileFacadeBrowser.prototype.open = function(dataFile) {
 tutao.native.FileFacadeBrowser.prototype.provideDownload = function(dataFile) {
 
 };
+
+
+tutao.native.FileFacadeBrowser.prototype.clearFileData = function() {
+	return Promise.resolve();
+};
+
+

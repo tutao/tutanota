@@ -20,6 +20,10 @@
 #import <openssl/bn.h>
 #import <openssl/rand.h>
 #import "JFBCrypt.h"
+#include "TutaoAes128Facade.h"
+#include "TutaoEncodingConverter.h"
+#include "FileUtil.h"
+#include "TutaoUtils.h"
 
 @implementation Crypto
 
@@ -280,6 +284,155 @@
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
      }];
 }
+
+- (void)aesEncrypt:(CDVInvokedUrlCommand*)command{
+     [self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		NSString *keyBase64 = [command.arguments objectAtIndex:0];
+		NSString *plainTextBase64 = [command.arguments objectAtIndex:1];
+		NSData *key = [TutaoEncodingConverter base64ToBytes:keyBase64];
+		NSData *plainTextData = [TutaoEncodingConverter base64ToBytes:plainTextBase64];
+		NSError *error=nil;
+		 
+		TutaoAes128Facade *aesFacade = [[TutaoAes128Facade alloc]init];
+		NSData *iv = [self generateIv];
+		if(!iv){
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"failed to create iv"];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+			return;
+		}
+		NSData* encryptedData = [aesFacade encrypt:plainTextData withKey:key withIv:iv error:&error];
+		if (error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			NSString *encryptedDataBase64 = [TutaoEncodingConverter bytesToBase64:encryptedData];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:encryptedDataBase64];
+		}
+     }];
+};
+
+
+- (void)aesEncryptFile:(CDVInvokedUrlCommand*)command{
+     [self.commandDelegate runInBackground:^{
+		NSError *error;
+
+		NSData *key =[TutaoEncodingConverter base64ToBytes:[command.arguments objectAtIndex:0]];
+		NSString *filePath = [command.arguments objectAtIndex:1];
+		 
+		if (![FileUtil fileExistsAtPath:filePath]){
+			[TutaoUtils sendErrorMessage:@"file does not exists" invokedCommand:command delegate:self.commandDelegate];
+			return;
+		};
+
+		NSString *encryptedFolder = [FileUtil getEncryptedFolder:&error];
+		if(error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+			return;
+		}
+
+		NSInputStream *plainTextFileStream = [[NSInputStream alloc] initWithFileAtPath:filePath];
+		
+		NSString *encryptedFilePath = [encryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
+		NSOutputStream *encryptedFileStream = [[NSOutputStream alloc] initToFileAtPath:encryptedFilePath append:NO];
+
+		[plainTextFileStream open];
+		[encryptedFileStream open];
+		
+
+		NSData *iv = [self generateIv];
+		TutaoAes128Facade *aesFacade = [[TutaoAes128Facade alloc]init];
+		 
+		[aesFacade encryptStream:plainTextFileStream result:encryptedFileStream withKey:key withIv:iv error:&error];
+		
+		[plainTextFileStream close];
+		[encryptedFileStream close];
+		
+		if (error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:encryptedFilePath];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		}
+     }];
+};
+
+
+- (void)aesDecrypt:(CDVInvokedUrlCommand*)command{
+     [self.commandDelegate runInBackground:^{
+		CDVPluginResult* pluginResult = nil;
+		NSData *key = [TutaoEncodingConverter base64ToBytes:[command.arguments objectAtIndex:0]];
+		NSData *encryptedData = [TutaoEncodingConverter base64ToBytes:[command.arguments objectAtIndex:1]];
+		NSError *error=nil;
+		 
+		TutaoAes128Facade *aesFacade = [[TutaoAes128Facade alloc]init];
+		
+		NSData* plainTextData = [aesFacade decrypt:encryptedData withKey:key error:&error];
+		if (error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			NSString *plainTextBase64 = [TutaoEncodingConverter bytesToBase64:plainTextData];
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:plainTextBase64];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		}
+     }];
+};
+
+
+- (void)aesDecryptFile:(CDVInvokedUrlCommand*)command{
+     [self.commandDelegate runInBackground:^{
+		NSError *error;
+		NSData *key =[TutaoEncodingConverter base64ToBytes:[command.arguments objectAtIndex:0]];
+		NSString *filePath = [command.arguments objectAtIndex:1];
+		 
+		if (![FileUtil fileExistsAtPath:filePath]){
+			[TutaoUtils sendErrorMessage:@"file does not exists" invokedCommand:command delegate:self.commandDelegate];
+			return;
+		};
+
+		NSString *decryptedFolder = [FileUtil getDecryptedFolder:&error];
+		if(error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+			return;
+		}
+	
+		NSInputStream *encryptedFileStream = [[NSInputStream alloc] initWithFileAtPath:filePath];
+		NSString *plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
+		NSOutputStream *plainTextFileStream = [[NSOutputStream alloc] initToFileAtPath:plainTextFilePath append:NO];
+	
+		[plainTextFileStream open];
+		[encryptedFileStream open];
+		
+		TutaoAes128Facade *aesFacade = [[TutaoAes128Facade alloc]init];
+		 
+		[aesFacade decryptStream:encryptedFileStream result:plainTextFileStream withKey:key error:&error];
+		
+		[plainTextFileStream close];
+		[encryptedFileStream close];
+		
+		if (error){
+			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+		} else {
+			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:plainTextFilePath];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		}
+     }];
+};
+
+- (NSData*) generateIv {
+	unsigned char buffer[TUTAO_IV_BYTE_SIZE];
+	int rc = RAND_bytes(buffer, TUTAO_IV_BYTE_SIZE);
+	if (rc!=1){
+		return nil;
+	}
+	return [[NSData alloc]initWithBytes:buffer length:TUTAO_IV_BYTE_SIZE];
+}
+
+- (void) sendErrorMessage:(NSString*)errorMessage invokedCommand:(CDVInvokedUrlCommand*)command{
+    NSLog(@"error %@.\n", errorMessage);
+    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
+    [self.commandDelegate sendPluginResult: pluginResult callbackId:command.callbackId];
+};
+
 
 
 

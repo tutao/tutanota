@@ -13,7 +13,7 @@ tutao.provide('tutao.tutanota.ctrl.DraftFacade');
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
  * @param {string} conversationType See TutanotaConstants.
  * @param {string} previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
- * @param {?Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>} attachments The files that shall be attached to this mail or null if no files shall be attached.
+ * @param {?Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile>} attachments The files that shall be attached to this mail or null if no files shall be attached.
  * @param {bool} confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
  * @return {Promise.<tutao.entity.tutanota.Mail, tutao.TooManyRequestsError|tutao.AccessBlockedError>} Resolved finished with the draft mail. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
  */
@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.DraftFacade.createDraft = function(subject, bodyText, sender
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} toRecipients The recipients the mail shall be sent to.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} ccRecipients The recipients the mail shall be sent to in cc.
  * @param {Array.<tutao.tutanota.ctrl.RecipientInfo>} bccRecipients The recipients the mail shall be sent to in bcc.
- * @param {?Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile>} attachments The files that shall be attached to this mail or null if the current attachments shall not be changed.
+ * @param {?Array.<tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile>} attachments The files that shall be attached to this mail or null if the current attachments shall not be changed.
  * @param {bool} confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
  * @param {tutao.entity.tutanota.Mail} draft The draft to update.
  * @return {Promise.<tutao.TooManyRequestsError|tutao.AccessBlockedError>} Resolved finished. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
@@ -148,7 +148,7 @@ tutao.tutanota.ctrl.DraftFacade.updateDraft = function(subject, bodyText, sender
 /**
  * Uploads the given data files or sets the file if it is already existing files (e.g. forwarded files)
  * @param {tutao.entity.tutanota.DraftAttachment} attachment The attachment
- * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AndroidFile} dataFile File to upload.
+ * @param {tutao.tutanota.util.DataFile|tutao.entity.tutanota.File|tutao.native.AppFile} dataFile File to upload.
  * @return {Promise.<Object>} Resolves to the session key of the file, rejects if failed.
  */
 tutao.tutanota.ctrl.DraftFacade._createAttachment = function(attachment, dataFile) {
@@ -158,7 +158,7 @@ tutao.tutanota.ctrl.DraftFacade._createAttachment = function(attachment, dataFil
         var fileSessionKey = dataFile.getEntityHelper().getSessionKey();
         attachment.setExistingFile(dataFile.getId());
         return Promise.resolve(fileSessionKey);
-    } else if (dataFile instanceof tutao.tutanota.util.DataFile || dataFile instanceof tutao.native.AndroidFile) {
+    } else if (dataFile instanceof tutao.tutanota.util.DataFile || dataFile instanceof tutao.native.AppFile) {
         // user added attachment
         var fileSessionKey = tutao.locator.aesCrypter.generateRandomKey();
         return tutao.locator.fileFacade.uploadFileData(dataFile, fileSessionKey).then(function (fileDataId) {

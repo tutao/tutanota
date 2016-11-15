@@ -18,12 +18,14 @@ FileUtil.prototype.open = function(file, mimeType) {
 };
 
 /**
- * Opens a file chooser to select a file
+ * Opens a file chooser to select a file. The file chooser opens next to a location specified by srcRect on larger devices (iPad).
+ * The rectangle must be specifed using values for x, y, height and width.
+ * @param {object} srcRect Dictonory containing the location of the button which has been pressed to open the file chooser.
  * @return {Promise.<undefined, Error>}.
  */
-FileUtil.prototype.openFileChooser = function() {
+FileUtil.prototype.openFileChooser = function(srcRect) {
     return new Promise(function (resolve, reject) {
-        exec(resolve,reject,"FileUtil", "openFileChooser",[]);
+        exec(resolve,reject,"FileUtil", "openFileChooser",[srcRect]);
     });
 };
 
@@ -43,7 +45,7 @@ FileUtil.prototype.write = function(file, bytes) {
 /**
  * ONLY FOR TESTING
  * Read a file
- * @param {tutao.native.AndroidFile} file The file to read.
+ * @param {tutao.native.AppFile} file The file to read.
  * @returns {Promise.<Uint8Array>}
  */
 FileUtil.prototype.read = function(file) {
@@ -102,7 +104,7 @@ FileUtil.prototype.getSize = function(file) {
 
 /**
  * Uploads the binary data of a file to tutadb
- * @param {tutao.native.AndroidFile} file
+ * @param {tutao.native.AppFile} file
  * @param {string} targetUrl
  * @param {object} headers
  * @returns {Promise}
@@ -141,6 +143,13 @@ FileUtil.prototype._createConnectionErrorHandler = function(rejectFunction) {
     }
 };
 
+
+FileUtil.prototype.clearFileData = function() {
+    var self = this;
+    return new Promise(function (resolve, reject) {
+        exec(resolve, self._createConnectionErrorHandler(reject),"FileUtil", "clearFileData",[]);
+    });
+};
 
 var fileUtil = FileUtil;
 module.exports = fileUtil;
