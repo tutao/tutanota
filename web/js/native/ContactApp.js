@@ -54,7 +54,7 @@ tutao.native.ContactApp.prototype._addSuggetionsFromContact = function(suggestio
 	for (var a = 0; a < nativeContact.emails.length; a++) {
 		var mailAddress = nativeContact.emails[a].value.trim().toLowerCase();
 		if ((addAllMailAddresses || tutao.util.StringUtils.startsWith(mailAddress, text))
-				&& tutao.tutanota.util.Formatter.isMailAddress(mailAddress)
+				&& tutao.tutanota.util.Formatter.isMailAddress(mailAddress, false)
 				&& !this._containsSuggestionForMailAddress(suggestions, mailAddress)) {
             var suggestionText = formattedName;
             var additionalText = mailAddress;

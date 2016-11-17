@@ -80,41 +80,44 @@ describe("FormatterTest", function () {
 
     it(" isMailAddress", function () {
         // test valid adresses
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a@b.de"));
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a@hello.c"));
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a.b@hello.de"));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a@b.de", true));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a@hello.c", true));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("a.b@hello.de", true));
         // test uppercase
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("A@b.hello.de"));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("A@b.hello.de", true));
         // test missing parts
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("@b.hello.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("batello.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ba@tello"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("@hello.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a@@hello.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a@h@hello.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@."));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("@b.hello.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("batello.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ba@tello", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("@hello.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a@@hello.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a@h@hello.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aa@.", true));
         // test empty adresses
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(""));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(" "));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(" ", true));
         // test space at any place
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(" ab@cd.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a b@cb.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab @cb.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@ cd.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@c b.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd .de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd. de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.d e"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.de "));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(" ab@cd.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("a b@cb.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab @cb.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@ cd.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@c b.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd .de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd. de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.d e", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("ab@cd.de ", true));
 
         // long local part
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress(new Array(64 + 1).join("a") + "@tutanota.de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(new Array(65 + 1).join("a") + "@tutanota.de"));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress(new Array(64 + 1).join("a") + "@tutanota.de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress(new Array(65 + 1).join("a") + "@tutanota.de", true));
         // long mail address
-        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(240 + 1).join("a") + ".de"));
-        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(241 + 1).join("a") + ".de"));
+        assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(240 + 1).join("a") + ".de", true));
+        assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("aaaaaaaaaa@" + new Array(241 + 1).join("a") + ".de", true));
+
+		assert.isFalse(tutao.tutanota.util.Formatter.isMailAddress("abcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyz@cd.de", true));
+		assert.isTrue(tutao.tutanota.util.Formatter.isMailAddress("abcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyzabcefghijklmnopqrstuvwxyz@cd.de", false));
     });
 
     it(" isValidTutanotaLocalPart", function () {

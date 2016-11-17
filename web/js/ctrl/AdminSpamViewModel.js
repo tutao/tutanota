@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype._getInputInvalidMessage = funct
     if (currentValue == "" ) {
         return "emptyString_msg";
     }
-    if (!tutao.tutanota.util.Formatter.isDomainName(currentValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentValue)){
+    if (!tutao.tutanota.util.Formatter.isDomainName(currentValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentValue, false)){
         return "invalidInputFormat_msg";
     }
     if (this._isInvalidRule(currentValue) ) {
@@ -90,7 +90,7 @@ tutao.tutanota.ctrl.AdminSpamViewModel.prototype._isInvalidRule = function(curre
                 || tutao.util.ArrayUtils.contains(tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS, currentDomainOrMailAddress)
                 || tutao.util.ArrayUtils.contains(this._customDomains, currentDomainOrMailAddress);
         }
-        if (tutao.tutanota.util.Formatter.isMailAddress(currentDomainOrMailAddress)) {
+        if (tutao.tutanota.util.Formatter.isMailAddress(currentDomainOrMailAddress, false)) {
             var domain = currentDomainOrMailAddress.split("@")[1];
             return domain == "tutao.de"|| tutao.util.ArrayUtils.contains(this._customDomains, domain);
         }

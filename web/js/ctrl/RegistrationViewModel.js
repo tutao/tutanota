@@ -140,7 +140,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype.getRegistrationType = functi
 };
 
 tutao.tutanota.ctrl.RegistrationViewModel.prototype.isValidMailAddress = function() {
-    return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress());
+    return tutao.tutanota.util.Formatter.isMailAddress(this.getMailAddress(), true);
 };
 
 /**

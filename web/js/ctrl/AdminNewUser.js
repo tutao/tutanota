@@ -34,7 +34,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(cleaned
             self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return
     }
-    if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {
+    if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue, true)) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     }
