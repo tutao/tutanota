@@ -16,6 +16,9 @@
 
 
 - (void)pluginInitialize{
+	//UINavigationBar* defaultNavigationBar = [UINavigationBar appearance];
+	//[defaultNavigationBar setTintColor:[UIColor redColor]];  //iOS7
+
 	_attachmentChooser = [[TutaoFileChooser alloc]initWithPlugin:self];
 	_viewer = [[TutaoFileViewer alloc]initWithPlugin:self];
 	_attachmentsForUpload = [[NSMutableSet alloc]init];

@@ -13,7 +13,7 @@
 #ifndef TutaoDocumentPickerDelegate_h
 #define TutaoDocumentPickerDelegate_h
 
-@interface TutaoFileChooser : NSObject<UIDocumentMenuDelegate, UIDocumentPickerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface TutaoFileChooser : NSObject<UIDocumentMenuDelegate, UIDocumentPickerDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverPresentationControllerDelegate>
 
 - (TutaoFileChooser *) initWithPlugin:(CDVPlugin*) cdvPlugin;
 
