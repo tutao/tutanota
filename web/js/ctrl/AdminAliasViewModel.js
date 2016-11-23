@@ -70,7 +70,7 @@ tutao.tutanota.ctrl.AdminAliasViewModel.prototype._verifyMailAddressFree = funct
         && tutao.entity.tutanota.TutanotaConstants.TUTANOTA_MAIL_ADDRESS_DOMAINS.indexOf(self.domain()) != -1) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
-    } else if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {
+    } else if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue, true)) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     }

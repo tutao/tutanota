@@ -34,7 +34,7 @@ tutao.tutanota.ctrl.AdminNewUser.prototype._verifyMailAddress = function(cleaned
             self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return
     }
-    if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue)) {
+    if (!tutao.tutanota.util.Formatter.isMailAddress(cleanedValue, true)) {
         self.mailAddressStatus({ type: "invalid", text: "mailAddressInvalid_msg"});
         return;
     }
@@ -117,22 +117,20 @@ tutao.tutanota.ctrl.AdminNewUser.prototype.create = function () {
         var salt = tutao.locator.kdfCrypter.generateRandomSalt();
         return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function (userPassphraseKey) {
 
-            var userGroupsListKey = null;
-            return tutao.entity.EntityHelper.getListKey(customer.getUserGroups()).then(function(userGroupsListKey) {
-                return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddress(), userPassphraseKey, adminGroupKey, customerGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
-                    /** @type tutao.entity.sys.UserData */
-                    var userService = new tutao.entity.sys.UserData()
-                        .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
-                        .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
-                        .setUserGroupData(userGroupData)
-                        .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
-                        .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
-                        .setMobilePhoneNumber("")
-                        .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
+            var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey(); // legacy, not used any more
+            return tutao.tutanota.ctrl.GroupData.generateGroupKeys(self.name(), self.mailAddress(), userPassphraseKey, adminGroupKey, customerGroupKey, userGroupsListKey).spread(function (userGroupData, userGroupKey) {
+                /** @type tutao.entity.sys.UserData */
+                var userService = new tutao.entity.sys.UserData()
+                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutao.locator.aesCrypter.generateRandomKey()))
+                    .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
+                    .setUserGroupData(userGroupData)
+                    .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
+                    .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
+                    .setMobilePhoneNumber("")
+                    .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
 
-                    return userService.setup({}, null).then(function(userReturn, exception) {
-                        return tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey);
-                    });
+                return userService.setup({}, null).then(function(userReturn, exception) {
+                    return tutao.tutanota.ctrl.AdminNewUser.initGroup(userReturn.getUserGroup(), userGroupKey);
                 });
             });
         });

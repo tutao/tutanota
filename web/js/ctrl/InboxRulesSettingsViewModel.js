@@ -57,7 +57,7 @@ tutao.tutanota.ctrl.InboxRulesSettingsViewModel.prototype._getInputInvalidMessag
     if (currentCleanedValue == "" ) {
         return "emptyString_msg";
     }
-    if (this._isEmailRuleSelected() && !tutao.tutanota.util.Formatter.isDomainName(currentCleanedValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentCleanedValue)){
+    if (this._isEmailRuleSelected() && !tutao.tutanota.util.Formatter.isDomainName(currentCleanedValue) && !tutao.tutanota.util.Formatter.isMailAddress(currentCleanedValue, false)){
         return "inboxRuleInvalidEmailAddress_msg";
     }
     if (this.isRuleExistingForType(currentCleanedValue, this.type())){
