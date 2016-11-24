@@ -532,7 +532,6 @@ tutao.tutanota.ctrl.lang.sv.keys = {
   "title_placeholder": "Titel",
   "tooBigAttachment_msg": "Följande filer kunde inte bifogas eftersom den totala storleken överstiger 25 MB:",
   "tooManyAttempts_msg": "Antal tillåtna försök har överskridits. Försök igen senare.",
-  "tooManyMails_msg": "Det verkar som om du överskridit antalet tillåtna meddelanden. Försök igen senare eller uppgradera till Premium.",
   "to_label": "Till",
   "trashedMails_alt": "Raderade meddelanden",
   "trashedMail_alt": "Borttagna meddeanden",

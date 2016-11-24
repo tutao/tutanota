@@ -586,7 +586,6 @@ tutao.tutanota.ctrl.lang.it.keys = {
   "title_placeholder": "Titolo",
   "tooBigAttachment_msg": "Non è stato possibile allegare i seguenti file perché la dimensione totale supera i 25 MB:",
   "tooManyAttempts_msg": "È stato raggiunto il numero massimo di tentativi. Riprovare più tardi.",
-  "tooManyMails_msg": "Sembra che tu abbia superato il numero massimo di email consentite. Per favore prova di nuovo più tardi o fai l'upgrade a Premium.",
   "to_label": "A",
   "trashedMails_alt": "Email eliminate",
   "trashedMail_alt": "Email eliminata",

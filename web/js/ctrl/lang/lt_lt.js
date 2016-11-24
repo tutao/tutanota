@@ -558,7 +558,6 @@ tutao.tutanota.ctrl.lang.lt_lt.keys = {
   "title_placeholder": "Pavadinimas",
   "tooBigAttachment_msg": "Šie failai negali būti prisegti, nes bendras dydis viršija 25 MB:",
   "tooManyAttempts_msg": "Viršytas bandymų kiekis. Bandykite vėliau.",
-  "tooManyMails_msg": "Jis atrodo kaip jūs viršijote leidžiamą laiškų skaičių. Prašome pabandyti vėliau arba atsinaujinti iki Premium.",
   "to_label": "Kam",
   "trashedMails_alt": "Pašalinti laiškus",
   "trashedMail_alt": "Pašalinti laiškai",

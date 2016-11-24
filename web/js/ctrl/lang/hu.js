@@ -626,7 +626,6 @@ tutao.tutanota.ctrl.lang.hu.keys = {
   "title_placeholder": "Cím",
   "tooBigAttachment_msg": "Az alábbi fájlok nem csatolhatóak, mivel összesített méretük meghaladja a 25 MB-ot:",
   "tooManyAttempts_msg": "Meghaladta az engedélyezett próbálkozások számát. Kérjük próbálkozzon később.",
-  "tooManyMails_msg": "Úgy tűnik elérte a megengedhető levelek maximális számát.\nPróbálja újra később vagy frissítsen Prémiumra.",
   "to_label": "Címzett",
   "trashedMails_alt": "Törölt levelek",
   "trashedMail_alt": "Törölt levél",

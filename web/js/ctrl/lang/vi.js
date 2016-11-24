@@ -580,7 +580,6 @@ tutao.tutanota.ctrl.lang.vi.keys = {
   "title_placeholder": "Tiêu đề",
   "tooBigAttachment_msg": "Không thể đính kèm những tập tin này vì kích cỡ của chúng vượt quá 25 MB:",
   "tooManyAttempts_msg": "Đã vượt quá số lần cho phép. Xin thử lại sau.",
-  "tooManyMails_msg": "Có vẻ như bạn đã vượt quá số lượng email cho phép. Xin thử lại sau hoặc là nâng cấp lên Premium.",
   "to_label": "Đến",
   "trashedMails_alt": "Email đã xoá",
   "trashedMail_alt": "Email đã xoá",

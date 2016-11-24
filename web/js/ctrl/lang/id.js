@@ -605,7 +605,6 @@ tutao.tutanota.ctrl.lang.id.keys = {
   "title_placeholder": "Judul",
   "tooBigAttachment_msg": "Berkas berikut tidak dapat dilampirkan karena ukuran keseluruhan melebihi batas 25 MB:",
   "tooManyAttempts_msg": "Melebihi jumlah percobaan yang diizinkan. Silahkan coba lagi nanti.",
-  "tooManyMails_msg": "Sepertinya Anda melebihi jumlah surel yang diperbolehkan. Silahkan coba lagi nanti atau tingkatkan ke Premium.",
   "to_label": "Kepada",
   "trashedMails_alt": "Surel yang dihapus",
   "trashedMail_alt": "Surel yang dihapus",

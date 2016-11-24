@@ -515,7 +515,6 @@ tutao.tutanota.ctrl.lang.sr.keys = {
   "title_placeholder": "Naslov",
   "tooBigAttachment_msg": "Sledeće datoteke ne mogu biti priključene jer je ukupna veličina veća od 25 MB:",
   "tooManyAttempts_msg": "Broj dozvoljenih pokušaja je prekoračen. Molimo pokušajte ponovo kasnije.",
-  "tooManyMails_msg": "Dostigli ste broj dozvoljenih poruka. Molimo vas pokušajte kasnije ili nadogradite na Premium.",
   "to_label": "Za",
   "trashedMails_alt": "Obrisana pošta",
   "trashedMail_alt": "Obrisani email",

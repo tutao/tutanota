@@ -562,7 +562,6 @@ tutao.tutanota.ctrl.lang.sk_sk.keys = {
   "title_placeholder": "Oslovenie",
   "tooBigAttachment_msg": "Nasledujúce prílohy nemôžu byť pripojené pretože celková veľkosť presahuje 25MB:",
   "tooManyAttempts_msg": "Počet dovoelných pokusov bol prekročený. Prosím pokús sa neslôr.",
-  "tooManyMails_msg": "Prekročili ste počet povolených emailov. Prosím, vyskúšajte neskôr alebo povýšte svoj účet na Premium.",
   "to_label": "Pre:",
   "trashedMails_alt": "Zmazané emaily",
   "trashedMail_alt": "Zmazaný email",

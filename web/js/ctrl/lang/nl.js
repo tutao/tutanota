@@ -585,7 +585,6 @@ tutao.tutanota.ctrl.lang.nl.keys = {
   "title_placeholder": "Titel",
   "tooBigAttachment_msg": "De volgende bestanden konden niet bijgevoegd worden, omdat ze samen groter zijn dan 25 MB",
   "tooManyAttempts_msg": "Het aantal toegestane pogingen is overschreden. Probeert u het a.u.b. later weer.",
-  "tooManyMails_msg": "Het lijkt er op dat u uw toegestane aantal e-mails heeft overschreden. Graag later opnieuw proberen of naar Premium opwaarderen..",
   "to_label": "Aan",
   "trashedMails_alt": "Verwijderde e-mails",
   "trashedMail_alt": "Verwijderde e-mail",

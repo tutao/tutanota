@@ -642,7 +642,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "title_placeholder": "Titel",
   "tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
   "tooManyAttempts_msg": "Anzahl erlaubter Versuche überschritten. Bitte versuch es es später erneut.",
-  "tooManyMails_msg": "Die maximale Anzahl erlaubter E-Mails wurde überschritten. Bitte versuche es später erneut oder upgrade auf Premium.",
+  "tooManyMails_msg": "Die maximale Anzahl erlaubter E-Mails wurde überschritten. Bitte versuche es später erneut.",
   "to_label": "An",
   "trashedMails_alt": "Gelöschte E-Mails",
   "trashedMail_alt": "Gelöschte E-Mail",

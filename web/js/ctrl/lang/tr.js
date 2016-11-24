@@ -455,7 +455,6 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "title_placeholder": "Başlık",
   "tooBigAttachment_msg": "Bu dosyaların toplam boyutu 25 MB'dan büyük olduğu için eklenemedi:",
   "tooManyAttempts_msg": "İzin verilen girişim sayısı aşıldı. Lütfen daha sonra tekrar deneyin.",
-  "tooManyMails_msg": "Görünen o ki izin verilen e-posta sayısını aştınız. Lütfen daha sonra tekrar deneyiniz veya Premium'a terfi edin.",
   "to_label": "Kime",
   "trashedMails_alt": "Silinen e-postalar",
   "trashedMail_alt": "Silinen e-postalar",

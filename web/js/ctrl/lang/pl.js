@@ -543,7 +543,6 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "title_placeholder": "Tytuł",
   "tooBigAttachment_msg": "Następujące pliki nie mogły zostać dołączone, ponieważ całkowity rozmiar załącznika przekracza 25 MB.",
   "tooManyAttempts_msg": "Liczba prób została wykorzystana. Spróbuj ponownie później.",
-  "tooManyMails_msg": "Wygląda na to, że przekroczyłeś liczbę dozwolonych wiadomości email. Spróbuj ponownie później, lub przejdź na Premium.",
   "to_label": "Do",
   "trashedMails_alt": "Usunięte wiadomości",
   "trashedMail_alt": "Usunięta wiadomość",
