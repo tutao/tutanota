@@ -108,6 +108,8 @@ public class FileUtil extends CordovaPlugin {
 				this.upload(callbackContext, args.getString(0), args.getString(1), args.getJSONObject(2));
 			} else if (action.equals("download")) {
 				this.download(callbackContext, args.getString(0), args.getString(1), args.getJSONObject(2));
+			} else if (action.equals("clearFileData")) {
+                this.clearFileData(callbackContext);
 			} else {
 				callbackContext.sendPluginResult(new PluginResult(
 						PluginResult.Status.ERROR, "unsupported method: " + action));
@@ -350,4 +352,9 @@ public class FileUtil extends CordovaPlugin {
 		}
 	}
 
+
+	private void clearFileData(CallbackContext callbackContext) {
+	   // no cached files to delete.
+	   callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, ""));
+	}
 }
