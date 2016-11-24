@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "Prendre una foto o vídeo per afegir-la com a arxiu adjunt.";
+NSPhotoLibraryUsageDescription = "Afegiu una imatge de la biblioteca com a arxiu adjunt.";
+NSMicrophoneUsageDescription = "S'utilitza quan es grava un vídeo com a arxiu adjunt.";
+NSContactsUsageDescription = "Troba l'adreça de correu electrònic del destinatari en els contactes.";
+NSRemindersUsageDescription = "Mostra una notificació quan arribi un nou correu electrònic.";

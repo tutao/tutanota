@@ -586,7 +586,6 @@ tutao.tutanota.ctrl.lang.sq.keys = {
   "title_placeholder": "Titulli",
   "tooBigAttachment_msg": "Këta fajlla nuk mund të bashkangjiten sepse madhësia e përgjithshme kalon 25 MB:",
   "tooManyAttempts_msg": "E tejkalove numrin e përpjekjeve të lejuara. Të lutem, provo sërish më vonë.",
-  "tooManyMails_msg": "Siç duket e ke kalu numrin e lejuar të postelave. Të lutem, provo më vonë ose kalo në Premium.",
   "to_label": "Merr",
   "trashedMails_alt": "Mesazhe të fshira",
   "trashedMail_alt": "Mesazhe të fshira",

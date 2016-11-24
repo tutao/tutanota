@@ -552,7 +552,6 @@ tutao.tutanota.ctrl.lang.da_dk.keys = {
   "title_placeholder": "Titel",
   "tooBigAttachment_msg": "Følgende filer kunne ikke blive vedhæftet fordi den totale fil størrelse overskrider 25 MB:",
   "tooManyAttempts_msg": "Antal af tilladte forsøg er overskredet. Prøv venligst igen senere.",
-  "tooManyMails_msg": "Det ser ud til at du har overskredet antallet at tilladte e-mail adresser. Prøv venligst igen eller opgrader til premium.",
   "to_label": "Til",
   "trashedMails_alt": "Slettede emails",
   "trashedMail_alt": "Slettet e-mail",

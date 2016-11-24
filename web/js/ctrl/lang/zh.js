@@ -641,7 +641,6 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "title_placeholder": "标题",
   "tooBigAttachment_msg": "因为以下文件总大小超过25MB所以不能加入附件：",
   "tooManyAttempts_msg": "超过允许尝试次数，请稍后再试。",
-  "tooManyMails_msg": "貌似您已超过允许的邮件数量，请重试或升级到付费版。",
   "to_label": "发送至",
   "trashedMails_alt": "已删除邮件",
   "trashedMail_alt": "已删除邮件",

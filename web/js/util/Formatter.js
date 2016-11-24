@@ -131,10 +131,10 @@ tutao.tutanota.util.Formatter.dashStringToDate = function(string) {
 /**
  * Checks if the given string is a valid email address format.
  * @param {string} string The string to check.
- * @param {string} checkUserNameLength If true checks that the part before the @ is not longter than 64 characters.
- * @return {boolean} If the string is an email address.
+ * @param {bool} strictUserName If true checks that the part before the @ is not longter than 64 characters and does not contain special characters.
+ * @return {bool} If the string is an email address.
  */
-tutao.tutanota.util.Formatter.isMailAddress = function(string, checkUserNameLength) {
+tutao.tutanota.util.Formatter.isMailAddress = function(string, strictUserName) {
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
 	// check trailing whitespaces because they are not covered by the following regexp
     // allow uppercase addresses in input check, convert them before sending to server.
@@ -148,11 +148,16 @@ tutao.tutanota.util.Formatter.isMailAddress = function(string, checkUserNameLeng
 	if (string.length > 254) { // 256 minus "<" and ">" of the path
 		return false;
 	}
-	if (checkUserNameLength && string.indexOf("@") > 64) {
-		return false;
+	if (strictUserName) {
+		if(string.indexOf("@") > 64) {
+			return false;
+		}
+		// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
+		return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
+	} else {
+		// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
+		return /^[^\s\@]+\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 	}
-	// see http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-	return /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(string);
 };
 
 /**

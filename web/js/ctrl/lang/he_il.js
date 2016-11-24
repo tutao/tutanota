@@ -243,7 +243,6 @@ tutao.tutanota.ctrl.lang.he_il.keys = {
   "subject_label": "נושא",
   "terms_label": "אשור",
   "title_placeholder": "נושא",
-  "tooManyMails_msg": "נראה כי חרגת מספר האימיילים המותר. אנא נסה שנית מאוחר יותר או שדרג לחשבון פרימיום. ",
   "to_label": "ל",
   "trashedMails_alt": "א-מיילים שנמחקו",
   "trashedMail_alt": "א-מייל שנמחק",

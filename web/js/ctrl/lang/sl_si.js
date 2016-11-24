@@ -235,7 +235,7 @@ tutao.tutanota.ctrl.lang.sl_si.keys = {
   "sent_action": "Poslano",
   "setMobileNumber_msg": "Vnesite številko mobilnega telefona.",
   "settings_label": "Nastavitve",
-  "showAddress_alt": "Pokaži naslov v google maps",
+  "showAddress_alt": "Pokaži ta naslov na google maps",
   "showAttachment_label": "Prikaži priponko",
   "showBlockedContent_action": "Pokaži",
   "showInAddressBook_alt": "Uredi stik",
