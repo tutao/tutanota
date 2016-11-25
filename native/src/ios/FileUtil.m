@@ -1,6 +1,5 @@
 
 #import <Cordova/CDV.h>
-#import <QuickLook/QuickLook.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 #include "TutaoUtils.h"
 #include "TutaoFileViewer.h"
@@ -8,7 +7,6 @@
 #include "TutaoFileChooser.h"
 
 @implementation FileUtil {
-	CDVInvokedUrlCommand *_command;
 	TutaoFileChooser *_attachmentChooser;
 	TutaoFileViewer *_viewer;
 	NSMutableSet<NSString*> *_attachmentsForUpload;
@@ -18,7 +16,6 @@
 - (void)pluginInitialize{
 	//UINavigationBar* defaultNavigationBar = [UINavigationBar appearance];
 	//[defaultNavigationBar setTintColor:[UIColor redColor]];  //iOS7
-
 	_attachmentChooser = [[TutaoFileChooser alloc]initWithPlugin:self];
 	_viewer = [[TutaoFileViewer alloc]initWithPlugin:self];
 	_attachmentsForUpload = [[NSMutableSet alloc]init];
@@ -26,32 +23,34 @@
 
 
 - (void)open:(CDVInvokedUrlCommand*)command{
-	NSString * filePath = [command.arguments objectAtIndex:0];
-	[_viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
-		if (error){
-			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-		} else {
-			[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
-		}
+	[self.commandDelegate runInBackground:^{
+		NSString * filePath = [command.arguments objectAtIndex:0];
+		[_viewer openFileAtPath:filePath completionHandler:^(NSError *error) {
+			if (error){
+				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
+			} else {
+				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
+			}
+		}];
 	}];
 }
 
 - (void)openFileChooser:(CDVInvokedUrlCommand*)command{
-	NSDictionary *srcRect = [command.arguments objectAtIndex:0];
-
-	[_attachmentChooser openAt:srcRect completion:^(NSString *filePath, NSError *error) {
-		if(error){
-			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
-		} else {
-			if (filePath){
-				[_attachmentsForUpload addObject:filePath];
-				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath] callbackId:command.callbackId];
+	//[self.commandDelegate runInBackground:^{ // openAt needs the main thread.
+		NSDictionary *srcRect = [command.arguments objectAtIndex:0];
+		[_attachmentChooser openAt:srcRect completion:^(NSString *filePath, NSError *error) {
+			if(error){
+				[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
 			} else {
-				[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT] callbackId:command.callbackId];
+				if (filePath){
+					[_attachmentsForUpload addObject:filePath];
+					[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath] callbackId:command.callbackId];
+				} else {
+					[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_NO_RESULT] callbackId:command.callbackId];
+				}
 			}
-		}
-	}];
-
+		}];
+	//}];
 }
 
 
@@ -165,7 +164,6 @@
 
 - (void)download:(CDVInvokedUrlCommand*)command{
 	[self.commandDelegate runInBackground:^{
-		
 		if ([command.arguments objectAtIndex:0] != [NSNull null] && [command.arguments objectAtIndex:1] != [NSNull null] && [command.arguments objectAtIndex:2] != [NSNull null] ) {
 			NSURL * url = [NSURL URLWithString:[command.arguments objectAtIndex:0]];
 			NSString * fileName = [command.arguments objectAtIndex:1];

@@ -3,3 +3,5 @@ NSPhotoLibraryUsageDescription = "Es können Bilder aus deiner Bibliothek als An
 NSMicrophoneUsageDescription = "Wird zum Aufnehmen von Videos benötigt.";
 NSContactsUsageDescription = "Suche Empfänger-E-Mail-Adressen in Kontakten.";
 NSRemindersUsageDescription = "Zeige eine Nachricht beim Empfang von E-Mails an.";
+TutaoShowCameraAction = "Kamera";
+TutaoChoosePhotosAction = "Fotos";

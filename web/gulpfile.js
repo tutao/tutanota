@@ -449,6 +449,10 @@ gulp.task('translation', function (cb) {
                         iosTranslations += keys.microphoneUsageDescription_msg ? ("NSMicrophoneUsageDescription = \"" + keys.microphoneUsageDescription_msg + "\";\n") : "";
                         iosTranslations += keys.contactsUsageDescription_msg ? ("NSContactsUsageDescription = \"" + keys.contactsUsageDescription_msg + "\";\n") : "";
                         iosTranslations += keys.remindersUsageDescription_msg ? ("NSRemindersUsageDescription = \"" + keys.remindersUsageDescription_msg + "\";\n") : "";
+						iosTranslations += keys.openCamera_action ? ("TutaoShowCameraAction = \"" + keys.openCamera_action + "\";\n") : "";
+						iosTranslations += keys.choosePhotos_action ? ("TutaoChoosePhotosAction = \"" + keys.choosePhotos_action + "\";\n") : "";
+						
+						
                         fs.writeFileSync(iosLangDir + "/InfoPlist.strings", iosTranslations);
 						console.log(code);
 					    callback();

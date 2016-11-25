@@ -642,6 +642,7 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "title_placeholder": "Título",
   "tooBigAttachment_msg": "Os seguintes ficheiros não podem ser anexados por excederem o tamanho máximo permitido de 25 MB:",
   "tooManyAttempts_msg": "Número permitido de tentativas excedido. Por favor, tente novamente mais tarde.",
+  "tooManyMails_msg": "Parece que excedeu o limite permitido de emails. Por favor, tente novamente mais tarde.",
   "to_label": "Para",
   "trashedMails_alt": "Emails eliminados",
   "trashedMail_alt": "Email eliminado",

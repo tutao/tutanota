@@ -3,3 +3,5 @@ NSPhotoLibraryUsageDescription = "Add a picture from your library as attachment.
 NSMicrophoneUsageDescription = "Used when recording a video as attachment.";
 NSContactsUsageDescription = "Find recipient email address in contacts.";
 NSRemindersUsageDescription = "Shows notification when new email arrives.";
+TutaoShowCameraAction = "Camera";
+TutaoChoosePhotosAction = "Photos";

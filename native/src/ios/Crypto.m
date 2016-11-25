@@ -427,15 +427,6 @@
 	return [[NSData alloc]initWithBytes:buffer length:TUTAO_IV_BYTE_SIZE];
 }
 
-- (void) sendErrorMessage:(NSString*)errorMessage invokedCommand:(CDVInvokedUrlCommand*)command{
-    NSLog(@"error %@.\n", errorMessage);
-    CDVPluginResult * pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
-    [self.commandDelegate sendPluginResult: pluginResult callbackId:command.callbackId];
-};
-
-
-
-
 @end
 
 
