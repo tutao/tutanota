@@ -85,11 +85,7 @@
 			[weakSelf openCamera]; // capture the weak reference to avoid reference cycle
 		}];
 	}
-	
-	// ensure that ui related operations run in main thread
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
-	});
+	[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
 }
 
 

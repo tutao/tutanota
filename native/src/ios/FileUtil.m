@@ -36,7 +36,7 @@
 }
 
 - (void)openFileChooser:(CDVInvokedUrlCommand*)command{
-	[self.commandDelegate runInBackground:^{
+	//[self.commandDelegate runInBackground:^{ // FileChooser has to run in main thread.
 		NSDictionary *srcRect = [command.arguments objectAtIndex:0];
 		[_attachmentChooser openAt:srcRect completion:^(NSString *filePath, NSError *error) {
 			if(error){
@@ -50,7 +50,7 @@
 				}
 			}
 		}];
-	}];
+	//}];
 }
 
 
