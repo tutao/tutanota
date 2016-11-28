@@ -27,4 +27,9 @@
 }
 
 
+
++ (NSString *) translate:(NSString *) key default:(NSString*) defaultValue{
+	return [[NSBundle mainBundle] localizedStringForKey:key value:defaultValue table:@"InfoPlist"];
+}
+
 @end

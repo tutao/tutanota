@@ -22,10 +22,10 @@
 	UIDocumentMenuViewController *_attachmentTypeMenu;
 	UIImagePickerController *_imagePickerController;
 	NSArray *_supportedUTIs;
-	void(^imagePickerCompletionHandler)();
 	void(^resultHandler)(NSString * filePath, NSError* error);
 	UIPopoverPresentationController *_popOverPresentationController;
 	CGRect _currentSrcRect;
+	UIButton *_cameraButton;
 }
 
 - (TutaoFileChooser*) initWithPlugin:(CDVPlugin*) plugin {
@@ -35,30 +35,6 @@
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
 	return self;
-}
-
--(void) showImagePicker{
-	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
-	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
-	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
-	_imagePickerController.allowsEditing = NO;
-	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-		_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
-		UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
-		popOverController.sourceView = _cdvPlugin.webView;
-		popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
-		popOverController.sourceRect = _currentSrcRect;
-		popOverController.delegate = self;
-	}
-	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
-}
--(void) openCamera{
-	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
-	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
-	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
-	_imagePickerController.allowsEditing = NO;
-	_imagePickerController.showsCameraControls = YES;
-	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
 }
 
 
@@ -93,20 +69,44 @@
 			_popOverPresentationController.sourceRect = _currentSrcRect;
 			//_popOverPresentationController.delegate = weakSelf;
 		}
-		[_attachmentTypeMenu addOptionWithTitle:@"Photos" image:nil order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoChoosePhotosAction" default:@"Photos"] image:nil order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
 		}];
 	}
-	
+
 	// add menu item for opening the camera and take a photo or video.
 	// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
 	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]){
-		[_attachmentTypeMenu addOptionWithTitle:@"Camera" image:nil order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoShowCameraAction" default:@"Camera"] image:nil order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf openCamera]; // capture the weak reference to avoid reference cycle
 		}];
 	}
-	
 	[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
+}
+
+
+-(void) showImagePicker{
+	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
+	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeSavedPhotosAlbum];
+	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+	_imagePickerController.allowsEditing = NO;
+	if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+		_imagePickerController.modalPresentationStyle = UIModalPresentationPopover;
+		UIPopoverPresentationController *popOverController = _imagePickerController.popoverPresentationController;
+		popOverController.sourceView = _cdvPlugin.webView;
+		popOverController.permittedArrowDirections = UIPopoverArrowDirectionDown | UIPopoverArrowDirectionUp;
+		popOverController.sourceRect = _currentSrcRect;
+		popOverController.delegate = self;
+	}
+	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
+}
+-(void) openCamera{
+	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
+	_imagePickerController.modalPresentationStyle = UIModalPresentationFullScreen;
+	_imagePickerController.allowsEditing = NO;
+	_imagePickerController.showsCameraControls = YES;
+	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
 }
 
 
@@ -162,11 +162,11 @@
 				}
 				NSString *fileName = [self generateFileName:@"img" withExtension:@"jpg"];
 				NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
-				if ([UIImageJPEGRepresentation(imageToSave, 0.75) writeToFile:filePath atomically:YES]){
+				if ([UIImageJPEGRepresentation(imageToSave, 0.9) writeToFile:filePath atomically:YES]){
 					[self sendResult:filePath];
 				} else {
 					[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"failed to save captured image to path %@", filePath]]];
-				};
+				}
 			} else if ([mediaType isEqualToString:@"public.movie"]) { // Handle a movie capture
 				NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
 				NSString *fileName = [self generateFileName:@"movie" withExtension:@"mp4"];
@@ -211,7 +211,7 @@
 					}
 					[self sendResult:filePath];
 				}];
-			} else if (mediaUrl) {
+			} else if (mediaUrl) { // for videos
 				NSURL *targetUrl = [FileUtil urlFromPath:filePath];
 				NSFileManager *fileManager = [NSFileManager defaultManager];
 				if ([fileManager fileExistsAtPath:filePath]){
@@ -235,8 +235,17 @@
 };
 
 
+
+// from UIImagePickerControllerDelegate protocol
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
+	[_cdvPlugin.viewController dismissViewControllerAnimated: YES completion: ^{
+		[self sendResult:nil];
+	}];
+};
+
+
+
 - (NSString*)generateFileName:(NSString*)prefixString withExtension:(NSString *)extensionString{
-	// Extenstion string is like @".png"
 	NSDate *time = [NSDate date];
 	NSDateFormatter* df = [NSDateFormatter new];
 	[df setDateFormat:@"hhmmss"];
@@ -244,12 +253,6 @@
 	NSString *fileName = [NSString stringWithFormat:@"%@_%@.%@", prefixString, timeString, extensionString];
 	return fileName;
 }
-
-- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
-	[_cdvPlugin.viewController dismissViewControllerAnimated: YES completion: ^{
-		[self sendResult:nil];
-	}];
-};
 
 - (void)sendResult:(NSString* )filePath{
 	resultHandler(filePath, nil);

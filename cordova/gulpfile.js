@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
 
-var androidVersion = "2.12.5";
+var androidVersion = "2.12.6";
 
 gulp.task('default', shell.task([
     // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
@@ -62,20 +62,14 @@ gulp.task('prepareIOSTestDist', ['createWebReleaseTest'], shell.task([
 	'cordova prepare ios'
 ]));
 
+// Used to create the local dev environment without the default gulp task in ../web
+// Ensures that all sources of the development environment are up to date
 gulp.task('prepareIOSLocal', shell.task([
 	'cd ../web; gulp distCordovaLocal',
     'cordova platform remove ios',
 	'cordova platform add ios',
 	'cordova prepare ios'
 ]));
-
-
-gulp.task('preparePluginTests', shell.task([
-	'cordova plugins add http://git-wip-us.apache.org/repos/asf/cordova-plugin-test-framework.git',
-    'cordova plugins add ../native/tests/'
-]));
-
-
 
 
 gulp.task('tagAndroidRelease', ['androidProdDist'], shell.task([

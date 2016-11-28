@@ -36,12 +36,12 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 - (BOOL)encryptStream:(NSInputStream*)plainText result:(NSOutputStream*)output withKey:(NSData*)key withIv:(NSData*)iv error:(NSError**)error{
 	if ([iv length] != TUTAO_IV_BYTE_SIZE){
 		*error = [TutaoErrorFactory createError:@"invalid iv length"];
-		return FALSE;
+		return NO;
 	}
 	//NSLog(@"iv: %@", [TutaoEncodingConverter bytesToHex:iv]);
 	
 	if (![self writeBytes:iv.bytes dataInLength:iv.length to:output error:error]){
-		return FALSE;
+		return NO;
 	};
 	return [self executeCryptOperation:kCCEncrypt onStream:plainText result:output withKey:key iv:iv error:error];
 }
@@ -63,7 +63,6 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 - (BOOL) decryptStream:(NSInputStream*)encryptedData result:(NSOutputStream*)output withKey:(NSData*)key error:(NSError**)error{
 	NSData* iv = [self readIvFromStream:encryptedData];
 	if (!iv){
-		
 		return NO;
 	}
 	return [self executeCryptOperation:kCCDecrypt onStream:encryptedData result:output withKey:key iv:iv error:(NSError**)error];
@@ -71,16 +70,16 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 
 
 - (NSData*) readIvFromStream:(NSInputStream*)stream {
-	uint8_t readBuffer[TUTAO_CRYPT_BUFFER_SIZE];
+	uint8_t readBuffer[TUTAO_IV_BYTE_SIZE];
 	size_t readBytes;
 	
 	NSData *iv = nil;
 	readBytes = [stream read: readBuffer maxLength:TUTAO_IV_BYTE_SIZE];
-	// no iv available.
+	// check if iv available.
 	if (readBytes == TUTAO_IV_BYTE_SIZE) {
 		iv = [[NSData alloc] initWithBytes:&readBuffer length:TUTAO_IV_BYTE_SIZE];
 	};
-	return iv;
+	return iv ;
 }
 
 - (BOOL) executeCryptOperation:(CCOperation) operation onStream:(NSInputStream*)inputStream result:(NSOutputStream*)outputStream withKey:(NSData*)key iv:(NSData*)iv error:(NSError**)error{
@@ -119,6 +118,7 @@ NSInteger const TUTAO_IV_BYTE_SIZE = 16;
 			*error = [TutaoErrorFactory createError:[NSString stringWithFormat:@"CCCryptorUpdate failed: %d", cryptorStatus]];
 			break;
 		}
+		// write to output stream
 		if (writeBufferLength > 0 && ![self writeBytes:&writeBuffer dataInLength:writeBufferLength to:outputStream error:error]) {
 			break;
 		}
