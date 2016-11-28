@@ -244,6 +244,10 @@ tutao.tutanota.ctrl.ComposingMail.prototype._saveDraftNotBusy = function(saveAtt
             self.getComposerRecipients(self.toRecipientsViewModel), self.getComposerRecipients(self.ccRecipientsViewModel), self.getComposerRecipients(self.bccRecipientsViewModel),
             self.conversationType, self.previousMessageId, attachments, self._getDraftConfidentialState()).then(function (draft) {
             self._draft = draft;
+            if (saveAttachments) {
+                // we have to update the attachments with the new File instances
+                self._updateAttachments();
+            }
         });
     }
 };
