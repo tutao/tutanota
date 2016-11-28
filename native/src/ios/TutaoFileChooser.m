@@ -25,7 +25,8 @@
 	void(^resultHandler)(NSString * filePath, NSError* error);
 	UIPopoverPresentationController *_popOverPresentationController;
 	CGRect _currentSrcRect;
-	UIButton *_cameraButton;
+	UIImage *_cameraImage;
+	UIImage *_photoLibImage;
 }
 
 - (TutaoFileChooser*) initWithPlugin:(CDVPlugin*) plugin {
@@ -34,6 +35,9 @@
 	_supportedUTIs = @[@"public.content"];
 	_imagePickerController = [[UIImagePickerController alloc] init];
 	_imagePickerController.delegate = self;
+	
+	_cameraImage = [TutaoUtils createFontImage:@"\ue945" fontName:@"icomoon" size:24];
+	_photoLibImage = [TutaoUtils createFontImage:@"\ue93c" fontName:@"icomoon" size:24];
 	return self;
 }
 
@@ -69,7 +73,7 @@
 			_popOverPresentationController.sourceRect = _currentSrcRect;
 			//_popOverPresentationController.delegate = weakSelf;
 		}
-		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoChoosePhotosAction" default:@"Photos"] image:nil order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoChoosePhotosAction" default:@"Photos"] image:_photoLibImage order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
 		}];
 	}
@@ -77,11 +81,15 @@
 	// add menu item for opening the camera and take a photo or video.
 	// according to developer documentation check if the source type is available first https://developer.apple.com/reference/uikit/uiimagepickercontroller
 	if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]){
-		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoShowCameraAction" default:@"Camera"] image:nil order:UIDocumentMenuOrderFirst handler:^void(){
+		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoShowCameraAction" default:@"Camera"] image:_cameraImage order:UIDocumentMenuOrderFirst handler:^void(){
 			[weakSelf openCamera]; // capture the weak reference to avoid reference cycle
 		}];
 	}
-	[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
+	
+	// ensure that ui related operations run in main thread
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[_cdvPlugin.viewController presentViewController:_attachmentTypeMenu animated:YES completion:nil];
+	});
 }
 
 
@@ -129,8 +137,7 @@
 // from UIDocumentPickerDelegate protocol
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentAtURL:(NSURL *)url{
 	//NSLog(@"picked url: %@", url);
-	NSString *filePath = [FileUtil pathFromUrl:url];
-	[self sendResult:filePath];
+	[self copyFileToLocalFolderAndSendResult:url fileName:[url lastPathComponent]];
 }
 
 // from UIDocumentPickerDelegate protocol
@@ -170,14 +177,7 @@
 			} else if ([mediaType isEqualToString:@"public.movie"]) { // Handle a movie capture
 				NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
 				NSString *fileName = [self generateFileName:@"movie" withExtension:@"mp4"];
-				NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
-				NSURL *targetUrl = [FileUtil urlFromPath:filePath];
-				[[NSFileManager defaultManager] copyItemAtURL:videoURL toURL:targetUrl error:&error];
-				if(error){
-					[self sendError:error];
-				} else {
-					[self sendResult:filePath];
-				}
+				[self copyFileToLocalFolderAndSendResult:videoURL fileName:fileName];
 			} else {
 				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
 			}
@@ -212,27 +212,18 @@
 					[self sendResult:filePath];
 				}];
 			} else if (mediaUrl) { // for videos
-				NSURL *targetUrl = [FileUtil urlFromPath:filePath];
-				NSFileManager *fileManager = [NSFileManager defaultManager];
-				if ([fileManager fileExistsAtPath:filePath]){
-					[fileManager removeItemAtPath:filePath error:&error];
-					if (error){
-						[self sendError:error];
-						return;
-					}
-				}
-				[[NSFileManager defaultManager] copyItemAtURL:mediaUrl toURL:targetUrl error:&error];
-				if(error){
-					[self sendError:error];
-				} else {
-					[self sendResult:filePath];
-				}
+				[self copyFileToLocalFolderAndSendResult:mediaUrl fileName:fileName];
 			} else {
 				[self sendError:[TutaoErrorFactory createError:[NSString stringWithFormat:@"Invalid media type %@", mediaType]]];
 			}
 		}
 	}];
 };
+
+
+
+
+
 
 
 
@@ -244,6 +235,34 @@
 };
 
 
+-(void) copyFileToLocalFolderAndSendResult:(NSURL *) srcUrl fileName:(NSString*)fileName{
+	NSError *error = nil;
+	NSString *targetFolder = [FileUtil getDecryptedFolder:&error];
+	if(error){
+		[self sendError:error];
+		return;
+	}
+	
+	NSString *filePath = [targetFolder stringByAppendingPathComponent:fileName];
+	NSURL *targetUrl = [FileUtil urlFromPath:filePath];
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	
+	// NSFileManager copyItemAtUrl returns an error if the file alredy exists. so delete it first.
+	if ([fileManager fileExistsAtPath:filePath]){
+		[fileManager removeItemAtPath:filePath error:&error];
+		if (error){
+			[self sendError:error];
+			return;
+		}
+	}
+	
+	[[NSFileManager defaultManager] copyItemAtURL:srcUrl toURL:targetUrl error:&error];
+	if(error){
+		[self sendError:error];
+	} else {
+		[self sendResult:filePath];
+	}
+}
 
 - (NSString*)generateFileName:(NSString*)prefixString withExtension:(NSString *)extensionString{
 	NSDate *time = [NSDate date];

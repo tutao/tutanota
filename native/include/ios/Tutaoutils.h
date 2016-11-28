@@ -17,6 +17,7 @@
 + (void) sendErrorMessage:(NSString*)errorMessage invokedCommand:(CDVInvokedUrlCommand*)command delegate:(id<CDVCommandDelegate>) commandDelegate;
 + (void) sendErrorResult:(NSError*)error invokedCommand:(CDVInvokedUrlCommand*)command delegate:(id<CDVCommandDelegate>) commandDelegate;
 + (NSString *) translate:(NSString *) key default:(NSString*) defaultValue;
++ (UIImage *) createFontImage:(NSString*) identifier fontName:(NSString*)fontName size:(CGFloat) fontSize;
 
 @end
 

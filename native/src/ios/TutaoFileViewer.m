@@ -33,7 +33,10 @@
     _previewController.delegate = self;
     _fileUrl = [FileUtil urlFromPath:filePath];
   	if ([QLPreviewController canPreviewItem:_fileUrl]){
-		[_cdvPlugin.viewController presentViewController:_previewController animated:YES completion:nil];
+		// ensure that ui related operations run in main thread
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[_cdvPlugin.viewController presentViewController:_previewController animated:YES completion:nil];
+		});
 	} else {
 		handler([TutaoErrorFactory createError:@"cannot display files"]);
 	}

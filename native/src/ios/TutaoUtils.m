@@ -32,4 +32,17 @@
 	return [[NSBundle mainBundle] localizedStringForKey:key value:defaultValue table:@"InfoPlist"];
 }
 
++ (UIImage *) createFontImage:(NSString*) identifier fontName:(NSString*)fontName size:(CGFloat) fontSize{
+	CGSize size = CGSizeMake(fontSize, fontSize);
+	UIFont *font = [UIFont fontWithName:fontName size:fontSize];
+	NSDictionary *attributes = @{NSFontAttributeName            : font,
+								 NSForegroundColorAttributeName : [UIColor blueColor],
+								 NSBackgroundColorAttributeName : [UIColor clearColor]};
+	UIGraphicsBeginImageContextWithOptions(size, NO, 0);
+	[identifier drawInRect:CGRectMake(0, 0, size.width, size.height) withAttributes:attributes];
+	UIImage * fontImage = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return fontImage;
+}
+
 @end

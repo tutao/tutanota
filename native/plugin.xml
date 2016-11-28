@@ -94,7 +94,7 @@
     </config-file>
 	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
         <string>Find recipient email address in contacts.</string>
-    </config-file>>
+    </config-file>
 	<config-file parent="CFBundleURLTypes" target="*-Info.plist">
 		<array>
 			<dict>
@@ -108,7 +108,13 @@
 				</array>
 			</dict>
 	</array>
-    </config-file>>
+    </config-file>
+	<config-file parent="UIAppFonts" target="*-Info.plist">
+		<array>
+			<string>www/fonts/icomoon.ttf</string>
+			<string>www/fonts/ionicons/ionicons.ttf</string>
+		</array>
+	</config-file>
 	
 	<resource-file src="res/ios/lang/sq.lproj" target="sq.lproj" />
 	<resource-file src="res/ios/lang/hr.lproj" target="hr.lproj" />

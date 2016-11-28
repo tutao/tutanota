@@ -320,7 +320,7 @@
 		NSString *filePath = [command.arguments objectAtIndex:1];
 		 
 		if (![FileUtil fileExistsAtPath:filePath]){
-			[TutaoUtils sendErrorMessage:@"file does not exists" invokedCommand:command delegate:self.commandDelegate];
+			[TutaoUtils sendErrorMessage:[NSString stringWithFormat:@"file to encrypt does not exists:%@", filePath] invokedCommand:command delegate:self.commandDelegate];
 			return;
 		};
 
@@ -385,7 +385,7 @@
 		NSString *filePath = [command.arguments objectAtIndex:1];
 		 
 		if (![FileUtil fileExistsAtPath:filePath]){
-			[TutaoUtils sendErrorMessage:@"file does not exists" invokedCommand:command delegate:self.commandDelegate];
+			[TutaoUtils sendErrorMessage:[NSString stringWithFormat:@"file to decrypt does not exists:%@", filePath] invokedCommand:command delegate:self.commandDelegate];
 			return;
 		};
 
