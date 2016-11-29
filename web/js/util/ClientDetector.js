@@ -126,6 +126,21 @@ tutao.tutanota.util.ClientDetector.getDefaultLanguage = function() {
 };
 
 /**
+ * Provides the current country code from the browser.
+ * @return {string=} The country code.
+ */
+tutao.tutanota.util.ClientDetector.getDefaultCountry = function() {
+	var locale = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
+	if (locale) {
+		var split = locale.replace("-", "_").split("_");
+		if (split.length > 1) {
+			return split[1].toUpperCase();
+		}
+	}
+	return null;
+};
+
+/**
  * Sets the information about the client from a user agent string.
  * @param {string} userAgent The user agent string.
  */

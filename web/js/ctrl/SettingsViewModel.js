@@ -25,6 +25,8 @@ tutao.tutanota.ctrl.SettingsViewModel = function() {
         }
 	}, this);
     this.bookingAvailable = ko.observable(false);
+    var defaultCountry = tutao.tutanota.util.ClientDetector.getDefaultCountry();
+    this.decimalSeparator = ko.observable(tutao.util.CountryList.getDecimalSeparator((defaultCountry) ? defaultCountry : "DE"));
 };
 
 tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_USER_INFO = 0;
@@ -112,16 +114,27 @@ tutao.tutanota.ctrl.SettingsViewModel.prototype.getSettingsTextId = function(set
  * @param {Number} settings One of tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_*.
  */
 tutao.tutanota.ctrl.SettingsViewModel.prototype.show = function(settings) {
+    var self = this;
     this.displayed(settings);
     tutao.locator.settingsView.showChangeSettingsColumn();
     if (!this.bookingAvailable() && tutao.locator.viewManager.isFreeAccount()) {
         // check if this was a premium user before and the payment data settings should be visible
-        var self = this;
         var user = tutao.locator.userController.getLoggedInUser();
         user.loadCustomer().then(function(customer) {
             return customer.loadCustomerInfo().then(function(customerInfo) {
                 return tutao.entity.sys.Booking.loadRange(customerInfo.getBookings().getItems(), tutao.rest.EntityRestInterface.GENERATED_MAX_ID, 1, true).then(function(bookings) {
                     self.bookingAvailable(bookings.length > 0);
+                });
+            });
+        });
+    }
+    if (tutao.locator.userController.isLoggedInUserAdmin()) {
+        tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+            return customer.loadCustomerInfo().then(function (customerInfo) {
+                return customerInfo.loadAccountingInfo().then(function (accountingInfo) {
+                    if (accountingInfo.getInvoiceCountry()) {
+                        self.decimalSeparator(tutao.util.CountryList.getDecimalSeparator(accountingInfo.getInvoiceCountry()));
+                    }
                 });
             });
         });

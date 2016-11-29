@@ -1787,7 +1787,7 @@
 									<div class="mediumSizeColumn light" data-bind="visible:$parent.isPayButtonEnabled($data)">
 										<div class="dataTableButton single" data-bind="lang: 'invoicePay_action', fastClick: $parent.payInvoice"></div>
 									</div>
-									<div class="mediumSizeColumn light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
+									<div class="mediumSizeColumn light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()), false, tutao.locator.settingsViewModel.decimalSeparator())"></div>
 									<div class="smallButtonColumn fontImage download" data-bind="fastClick: function() { $parent.downloadPdf($data); }"></div>
 								</div>
 								<!-- /ko -->
