@@ -699,5 +699,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "loginAnyway_action": "Lasst mich auf eigene Gefahr rein"
 };

@@ -31,7 +31,7 @@ tutao.tutanota.ctrl.Navigator.prototype.updateHash = function(hash) {
  */
 tutao.tutanota.ctrl.Navigator.prototype.verifyClientSupported = function() {
 	if (!this.clientSupported) {
-		tutao.locator.viewManager.select(tutao.locator.notSupportedView);
+		this.notSupported();
 		return false;
 	} else {
 		return true;
@@ -44,7 +44,7 @@ tutao.tutanota.ctrl.Navigator.prototype.verifyClientSupported = function() {
  */
 tutao.tutanota.ctrl.Navigator.prototype.verifyExternalClientSupported = function() {
 	if (!this.externalClientSupported) {
-		tutao.locator.viewManager.select(tutao.locator.notSupportedView);
+		this.notSupported();
 		return false;
 	} else {
 		return true;
@@ -157,12 +157,14 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 		}
 	});
 
-	Path.map("#login").to(function() {
+	Path.map("#login(/:force)").to(function() {
+		var force = this.params["force"];
         tutao.locator.navigator.mailRef = null;
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
 		}
-		if (self.verifyClientSupported()) {
+		// if force is set we must not call verifyClientSupported because otherwise it would set the #notSupported tag befor we reload in loginAnyway()
+		if (force || self.verifyClientSupported()) {
             // even if a connection error is thrown we have to switch to the login view
             tutao.locator.loginViewModel.setup(self._allowAutoLogin);
 		}
@@ -226,4 +228,10 @@ tutao.tutanota.ctrl.Navigator.prototype.getQueryParams = function(query) {
         map[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
     }
     return map;
+};
+
+tutao.tutanota.ctrl.Navigator.prototype.loginAnyway = function() {
+	window.location.href = "#login/force";
+	// we have to reload to avoid the legacy settings which changed the encryption classes
+	location.reload();
 };
