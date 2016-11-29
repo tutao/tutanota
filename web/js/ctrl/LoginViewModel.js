@@ -153,7 +153,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
                     resolve();
                 });
             }).then(function () {
-                return tutao.locator.registrationViewModel.initGroup().then(function() {
+                return self._initGroup().then(function() {
                     // the group was not migrated before, so we have to reload all instances
                     tutao.tutanota.Bootstrap.init();
                     tutao.locator.loginViewModel.setup(false);
@@ -191,6 +191,34 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
                     });
                 });
             });
+        }
+    });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._initGroup = function() {
+    var groupKey = tutao.locator.userController.getUserGroupKey();
+    var s = new tutao.entity.tutanota.InitGroupData();
+
+    s.setGroupId(tutao.locator.userController.getUserGroupId());
+    s.setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(groupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32))));
+
+    var mailBoxSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+    s.setSymEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, mailBoxSessionkey));
+
+    var contactListSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+    s.setSymEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, contactListSessionkey));
+
+    var fileSystemSessionkey = tutao.locator.aesCrypter.generateRandomKey();
+    s.setSymEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(groupKey, fileSystemSessionkey));
+
+    var externalGroupInfoListKey = tutao.locator.aesCrypter.generateRandomKey();
+    s.setSymEncExternalGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(groupKey, externalGroupInfoListKey));
+
+    return s.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+        if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
+            new tutao.entity.tutanota.WelcomeMailData()
+                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
+                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
         }
     });
 };

@@ -405,26 +405,34 @@ tutao.tutanota.ctrl.DraftFacade._getExternalGroupKey = function(recipientInfo, e
                 });
             }).caught(tutao.NotFoundError, function(exception) {
                 // it does not exist, so create it
-                // load the list key of the ExternalRecipients list
-                var mailGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+                var internalMailGroupKey = tutao.locator.mailBoxController.getMailGroupKey();
                 var externalUserGroupKey = tutao.locator.aesCrypter.generateRandomKey();
-                var groupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+                var externalMailGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+                var externalUserGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+                var externalMailGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
                 var clientKey = tutao.locator.aesCrypter.generateRandomKey();
+                var tutanotaPropertiesSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+                var mailboxSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+
+                var userEncEntropy = tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32)));
 
                 var externalRecipientData = new tutao.entity.tutanota.ExternalUserData()
-                    .setGroupEncMailListKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, mailGroupKey))
-                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
                     .setVerifier(verifier)
-                    .setExternalUserEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, groupInfoSessionKey))
-                    .setGroupEncEntropy(tutao.locator.aesCrypter.encryptBytes(externalUserGroupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32))));
+                    .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, clientKey))
+                    .setExternalUserEncUserGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalUserGroupInfoSessionKey))
+                    .setInternalMailEncUserGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(internalMailGroupKey, externalUserGroupInfoSessionKey))
+                    .setExternalUserEncMailGroupKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, externalMailGroupKey))
+                    .setExternalMailEncMailGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(externalMailGroupKey, externalMailGroupInfoSessionKey))
+                    .setInternalMailEncMailGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(internalMailGroupKey, externalMailGroupInfoSessionKey))
+                    .setExternalUserEncEntropy(userEncEntropy)
+                    .setExternalUserEncTutanotaPropertiesSessionKey(tutao.locator.aesCrypter.encryptKey(externalUserGroupKey, tutanotaPropertiesSessionKey))
+                    .setExternalMailEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(externalMailGroupKey, mailboxSessionKey));
                 var userGroupData = new tutao.entity.tutanota.CreateExternalUserGroupData(externalRecipientData)
                     .setMailAddress(cleanedMailAddress)
-                    .setAdminEncGKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
-                    .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(groupInfoSessionKey, recipientInfo.getName()))
-                    .setGroupInfoListEncSessionKey("") // legacy, not used any more
-                    .setSymEncGKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey));
+                    .setExternalPwEncUserGroupKey(tutao.locator.aesCrypter.encryptKey(externalUserPwKey, externalUserGroupKey))
+                    .setInternalUserEncUserGroupKey(tutao.locator.aesCrypter.encryptKey(tutao.locator.userController.getUserGroupKey(), externalUserGroupKey))
                 return externalRecipientData.setUserGroupData(userGroupData).setup([], null).then(function() {
-                    return { externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: mailGroupKey };
+                    return { externalUserGroupKey: externalUserGroupKey, externalMailGroupKey: externalMailGroupKey };
                 });
             });
         });

@@ -88,7 +88,7 @@ tutao.entity.EntityHelper.prototype.loadSessionKey = function() {
     }
     if (!this._entity.getOwnerGroup() && !this._entity.getOwnerEncSessionKey() && this._entity.getListEncSessionKey && this._entity.getListEncSessionKey()) {
         // legacy for GroupInfo and check that it is a list element type and that the list key is set
-		return tutao.entity.EntityHelper.getListKey(this._entity.getId()[0]).then(function(listKey) {
+		return tutao.entity.EntityHelper._getListKey(this._entity.getId()[0], tutao.rest.EntityRestInterface.GENERATED_MIN_ID).then(function(listKey) {
             self.setSessionKey(tutao.locator.aesCrypter.decryptKey(listKey, self._entity.getListEncSessionKey()));
             return self._entity;
 		}).caught(function(e) {
@@ -149,12 +149,9 @@ tutao.entity.EntityHelper.prototype._loadSessionKeyOfSinglePermission = function
 /**
  * Loads the list key from a list permission.
  * @param {string} listId The id of the list.
+ * @param {string} startId This function loads one permission after the other. Start with this id, usually tutao.rest.EntityRestInterface.GENERATED_MIN_ID.
  * @return {Promise.<Object>} Resolves to the listKey or an exception if the loading failed.
  */
-tutao.entity.EntityHelper.getListKey = function(listId) {
-    return this._getListKey(listId, tutao.rest.EntityRestInterface.GENERATED_MIN_ID);
-};
-
 tutao.entity.EntityHelper._getListKey = function(listId, startId) {
     var self = this;
     return tutao.entity.sys.Permission.loadRange(listId, startId, 1, false).then(function(permissions) {
