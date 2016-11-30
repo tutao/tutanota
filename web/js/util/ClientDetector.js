@@ -146,11 +146,7 @@ tutao.tutanota.util.ClientDetector.getDefaultCountry = function() {
  */
 tutao.tutanota.util.ClientDetector._setClientInfo = function(userAgent) {
 	if (location.href.substring(location.href.length - 5) == "force") {
-		if (tutao.env.mode == tutao.Mode.App) {
-			userAgent = "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 5 Build/LMY48B; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/43.0.2357.65 Mobile Safari/537.36";
-		} else {
-			userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:49.0) Gecko/20100101 Firefox/49.0";
-		}
+		userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:49.0) Gecko/20100101 Firefox/49.0";
 	}
 	tutao.tutanota.util.ClientDetector._setBrowserAndVersion(userAgent);
 	tutao.tutanota.util.ClientDetector._setDeviceInfo(userAgent);
