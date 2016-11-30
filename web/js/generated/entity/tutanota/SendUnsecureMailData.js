@@ -70,7 +70,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.updateData = function(data)
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendUnsecureMailData.MODEL_VERSION = '15';
+tutao.entity.tutanota.SendUnsecureMailData.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -355,7 +355,7 @@ tutao.entity.tutanota.SendUnsecureMailData.prototype.setup = function(parameters
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "15";
+  parameters["v"] = "16";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendUnsecureMailData.PATH, this, parameters, headers, tutao.entity.tutanota.SendUnsecureMailReturn);
 };

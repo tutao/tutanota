@@ -12,11 +12,9 @@ tutao.entity.tutanota.CreateExternalUserGroupData = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
-    this._adminEncGKey = null;
-    this._encryptedName = null;
-    this._groupInfoListEncSessionKey = null;
+    this._internalUserEncUserGroupKey = null;
     this._mailAddress = null;
-    this._symEncGKey = null;
+    this._externalPwEncUserGroupKey = null;
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.CreateExternalUserGroupData.prototype;
@@ -29,11 +27,9 @@ tutao.entity.tutanota.CreateExternalUserGroupData = function(parent, data) {
  */
 tutao.entity.tutanota.CreateExternalUserGroupData.prototype.updateData = function(parent, data) {
   this.__id = data._id;
-  this._adminEncGKey = data.adminEncGKey;
-  this._encryptedName = data.encryptedName;
-  this._groupInfoListEncSessionKey = data.groupInfoListEncSessionKey;
+  this._internalUserEncUserGroupKey = data.internalUserEncUserGroupKey;
   this._mailAddress = data.mailAddress;
-  this._symEncGKey = data.symEncGKey;
+  this._externalPwEncUserGroupKey = data.externalPwEncUserGroupKey;
 };
 
 /**
@@ -43,11 +39,9 @@ tutao.entity.tutanota.CreateExternalUserGroupData.prototype.updateData = functio
 tutao.entity.tutanota.CreateExternalUserGroupData.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
-    adminEncGKey: this._adminEncGKey, 
-    encryptedName: this._encryptedName, 
-    groupInfoListEncSessionKey: this._groupInfoListEncSessionKey, 
+    internalUserEncUserGroupKey: this._internalUserEncUserGroupKey, 
     mailAddress: this._mailAddress, 
-    symEncGKey: this._symEncGKey
+    externalPwEncUserGroupKey: this._externalPwEncUserGroupKey
   };
 };
 
@@ -69,54 +63,20 @@ tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getId = function() {
 };
 
 /**
- * Sets the adminEncGKey of this CreateExternalUserGroupData.
- * @param {string} adminEncGKey The adminEncGKey of this CreateExternalUserGroupData.
+ * Sets the internalUserEncUserGroupKey of this CreateExternalUserGroupData.
+ * @param {string} internalUserEncUserGroupKey The internalUserEncUserGroupKey of this CreateExternalUserGroupData.
  */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setAdminEncGKey = function(adminEncGKey) {
-  this._adminEncGKey = adminEncGKey;
+tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setInternalUserEncUserGroupKey = function(internalUserEncUserGroupKey) {
+  this._internalUserEncUserGroupKey = internalUserEncUserGroupKey;
   return this;
 };
 
 /**
- * Provides the adminEncGKey of this CreateExternalUserGroupData.
- * @return {string} The adminEncGKey of this CreateExternalUserGroupData.
+ * Provides the internalUserEncUserGroupKey of this CreateExternalUserGroupData.
+ * @return {string} The internalUserEncUserGroupKey of this CreateExternalUserGroupData.
  */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getAdminEncGKey = function() {
-  return this._adminEncGKey;
-};
-
-/**
- * Sets the encryptedName of this CreateExternalUserGroupData.
- * @param {string} encryptedName The encryptedName of this CreateExternalUserGroupData.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setEncryptedName = function(encryptedName) {
-  this._encryptedName = encryptedName;
-  return this;
-};
-
-/**
- * Provides the encryptedName of this CreateExternalUserGroupData.
- * @return {string} The encryptedName of this CreateExternalUserGroupData.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getEncryptedName = function() {
-  return this._encryptedName;
-};
-
-/**
- * Sets the groupInfoListEncSessionKey of this CreateExternalUserGroupData.
- * @param {string} groupInfoListEncSessionKey The groupInfoListEncSessionKey of this CreateExternalUserGroupData.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setGroupInfoListEncSessionKey = function(groupInfoListEncSessionKey) {
-  this._groupInfoListEncSessionKey = groupInfoListEncSessionKey;
-  return this;
-};
-
-/**
- * Provides the groupInfoListEncSessionKey of this CreateExternalUserGroupData.
- * @return {string} The groupInfoListEncSessionKey of this CreateExternalUserGroupData.
- */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getGroupInfoListEncSessionKey = function() {
-  return this._groupInfoListEncSessionKey;
+tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getInternalUserEncUserGroupKey = function() {
+  return this._internalUserEncUserGroupKey;
 };
 
 /**
@@ -137,20 +97,20 @@ tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getMailAddress = fun
 };
 
 /**
- * Sets the symEncGKey of this CreateExternalUserGroupData.
- * @param {string} symEncGKey The symEncGKey of this CreateExternalUserGroupData.
+ * Sets the externalPwEncUserGroupKey of this CreateExternalUserGroupData.
+ * @param {string} externalPwEncUserGroupKey The externalPwEncUserGroupKey of this CreateExternalUserGroupData.
  */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setSymEncGKey = function(symEncGKey) {
-  this._symEncGKey = symEncGKey;
+tutao.entity.tutanota.CreateExternalUserGroupData.prototype.setExternalPwEncUserGroupKey = function(externalPwEncUserGroupKey) {
+  this._externalPwEncUserGroupKey = externalPwEncUserGroupKey;
   return this;
 };
 
 /**
- * Provides the symEncGKey of this CreateExternalUserGroupData.
- * @return {string} The symEncGKey of this CreateExternalUserGroupData.
+ * Provides the externalPwEncUserGroupKey of this CreateExternalUserGroupData.
+ * @return {string} The externalPwEncUserGroupKey of this CreateExternalUserGroupData.
  */
-tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getSymEncGKey = function() {
-  return this._symEncGKey;
+tutao.entity.tutanota.CreateExternalUserGroupData.prototype.getExternalPwEncUserGroupKey = function() {
+  return this._externalPwEncUserGroupKey;
 };
 /**
  * Provides the entity helper of this entity.
