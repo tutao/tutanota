@@ -376,6 +376,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "loadMore_action": "Weitere laden",
   "loggingOut_msg": "Du wirst abgemeldet...",
   "loginAction_msg": "Nach dem Login können sichere Nachrichten versendet und empfangen werden.",
+  "loginAnyway_action": "Lasst mich auf eigene Gefahr rein",
   "loginFailedOften_msg": "Es sind zu viele Login-Versuche fehlgeschlagen. Du kannst dich spätestens nach einer Stunde wieder einloggen.",
   "loginFailed_msg": "Ungültige E-Mail-Adresse oder Passwort. Bitte versuch es erneut.",
   "loginNameInfoAdmin_msg": "Optional: Der Name des Benutzers.",
@@ -699,6 +700,5 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern",
-  "loginAnyway_action": "Lasst mich auf eigene Gefahr rein"
+  "yesterday_label": "gestern"
 };
