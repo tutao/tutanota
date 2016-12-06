@@ -179,7 +179,6 @@
 <script src="/js/ctrl/FileViewModel.js"></script>
 <script src="/js/ctrl/FolderNameDialogViewModel.js"></script>
 <script src="/js/ctrl/FontViewModel.js"></script>
-<script src="/js/ctrl/GroupData.js"></script>
 <script src="/js/ctrl/InboxRulesSettingsViewModel.js"></script>
 <script src="/js/ctrl/LanguageViewModel.js"></script>
 <script src="/js/ctrl/LegacyDownloadViewModel.js"></script>
@@ -425,6 +424,7 @@
 <script src="/js/generated/entity/tutanota/CreateFolderReturn.js"></script>
 <script src="/js/generated/entity/tutanota/CreateMailFolderData.js"></script>
 <script src="/js/generated/entity/tutanota/CreateMailFolderReturn.js"></script>
+<script src="/js/generated/entity/tutanota/CustomerAccountCreateData.js"></script>
 <script src="/js/generated/entity/tutanota/DataBlock.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteFileData.js"></script>
 <script src="/js/generated/entity/tutanota/DeleteMailData.js"></script>
@@ -452,6 +452,7 @@
 <script src="/js/generated/entity/tutanota/InboxRule.js"></script>
 <script src="/js/generated/entity/tutanota/InboxRuleEditable.js"></script>
 <script src="/js/generated/entity/tutanota/InitGroupData.js"></script>
+<script src="/js/generated/entity/tutanota/InternalGroupData.js"></script>
 <script src="/js/generated/entity/tutanota/InternalRecipientKeyData.js"></script>
 <script src="/js/generated/entity/tutanota/Mail.js"></script>
 <script src="/js/generated/entity/tutanota/MailAddress.js"></script>
@@ -487,6 +488,8 @@
 <script src="/js/generated/entity/tutanota/UnsecureAttachment.js"></script>
 <script src="/js/generated/entity/tutanota/UnsecureRecipient.js"></script>
 <script src="/js/generated/entity/tutanota/UpdateFileData.js"></script>
+<script src="/js/generated/entity/tutanota/UserAccountCreateData.js"></script>
+<script src="/js/generated/entity/tutanota/UserAccountUserData.js"></script>
 <script src="/js/generated/entity/tutanota/WelcomeMailData.js"></script>
 <script src="/js/gui/BubbleInputGui.js"></script>
 <script src="/js/gui/ContactView.js"></script>
@@ -1137,7 +1140,8 @@
 						<li><a target="_blank" rel="noopener noreferrer" href="http://windows.microsoft.com/de-DE/internet-explorer/download-ie">Internet Explorer 10/11 (Desktop)</a></li>
                         <li><a target="_blank" rel="noopener noreferrer" href="http://de.blackberry.com/software/smartphones/blackberry-10-os.html">Blackberry 10</a></li>
 					</ul>
-					<br><div data-bind="lang: 'thanks_msg'"></div><br><div data-bind="lang: 'claim_label'"></div>
+					<br>
+					<button class="single" data-bind="visible: (tutao.locator.navigator.mailRef() == null), fastClick: tutao.locator.navigator.loginAnyway, lang: 'loginAnyway_action'"></button>
 				</div>
 			</div>
 		</div>
@@ -1786,7 +1790,7 @@
 									<div class="mediumSizeColumn light" data-bind="visible:$parent.isPayButtonEnabled($data)">
 										<div class="dataTableButton single" data-bind="lang: 'invoicePay_action', fastClick: $parent.payInvoice"></div>
 									</div>
-									<div class="mediumSizeColumn light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()))"></div>
+									<div class="mediumSizeColumn light price" data-bind="text: tutao.util.BookingUtils.formatPrice(Number(getGrandTotal()), false, tutao.locator.settingsViewModel.decimalSeparator())"></div>
 									<div class="smallButtonColumn fontImage download" data-bind="fastClick: function() { $parent.downloadPdf($data); }"></div>
 								</div>
 								<!-- /ko -->

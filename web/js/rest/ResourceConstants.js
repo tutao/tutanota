@@ -69,56 +69,21 @@ tutao.rest.ResourceConstants.ELEMENT_COUNT_PARAMETER = "count";
  */
 tutao.rest.ResourceConstants.REVERSE_PARAMETER = "reverse";
 
-/**
- * @const
- */
-tutao.rest.ResourceConstants.PERMISSION_PARAMETER = "permission";
-
-// post requests
+// post list request
 /**
  * @const
  */
 tutao.rest.ResourceConstants.GROUP_ID = "group";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.SYM_ENC_SESSION_KEY = "symEncSessionKey";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.SYM_ENC_LIST_KEY = "symEncListKey";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.BUCKET_ENC_LIST_KEY = "bucketEncListKey";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.BUCKET_ENC_SESSION_KEY = "bucketEncSessionKey";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.LIST_ENC_SESSION_KEY = "listEncSessionKey";
-/**
- * @const
- */
-tutao.rest.ResourceConstants.BUCKET_PERMISSION_LIST_ID = "bucketList";
+
 /**
  * @const
  */
 tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY = "updateOwnerEncSessionKey";
 
-// public key service get request
-
 /**
  * @const
  */
 tutao.rest.ResourceConstants.CONTENT_TYPE_APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=UTF-8";
-
-/**
- * @const
- */
-tutao.rest.ResourceConstants.ID_PARAMETER_NAME = "id";
 
 /**
  * @const

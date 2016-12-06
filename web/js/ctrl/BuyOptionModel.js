@@ -8,7 +8,7 @@ tutao.provide('tutao.tutanota.ctrl.BuyOptionModel.js');
 /**
  *
  * @param {tutao.tutanota.ctrl.BuyFeatureViewModel} parentModel
- * @param {string} featureType The booking item feature type.s
+ * @param {string} featureType The booking item feature type.
  * @param {Number} featureAmount
  * @constructor
  */
@@ -45,7 +45,7 @@ tutao.tutanota.ctrl.BuyOptionModel = function(parentModel, featureType, featureA
 
         // format price. if no price is available show zero price.
         var futurePriceNextPeriod = tutao.util.BookingUtils.getPriceFromPriceData(newPrice.getFuturePriceNextPeriod(), self._featureType);
-        self.price(tutao.util.BookingUtils.formatPrice(futurePriceNextPeriod, true));
+        self.price(tutao.util.BookingUtils.formatPrice(futurePriceNextPeriod, true, tutao.locator.settingsViewModel.decimalSeparator()));
 
         var paymentInterval = newPrice.getFuturePriceNextPeriod().getPaymentInterval();
         if (paymentInterval == "12") {

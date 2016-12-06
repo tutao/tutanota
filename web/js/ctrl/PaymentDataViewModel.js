@@ -161,6 +161,7 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype.storeAccountingInfo = functio
 
     this.state.submitting(true);
     return service.update({}, null).then(function (paymentResult) {
+        tutao.locator.settingsViewModel.decimalSeparator(tutao.util.CountryList.getDecimalSeparator(self.accountingInfo().invoiceCountry()));
         return self._handlePaymentDataServiceResult(paymentResult, service);
     }).caught(function () {
         self.state.failure(true);
@@ -366,10 +367,16 @@ tutao.tutanota.ctrl.PaymentDataViewModel.prototype._customerUpdated = function()
 };
 
 tutao.tutanota.ctrl.PaymentDataViewModel.prototype.getPriceText = function() {
-    if (this.accountingInfo().paymentInterval() == "12") {
-        return tutao.util.BookingUtils.formatPrice(this._pricePerYear()) + " " + tutao.lang('perYear_label');
+    var decimalSeparator = null;
+    if (this.accountingInfo().invoiceCountry()) {
+        decimalSeparator = tutao.util.CountryList.getDecimalSeparator(this.accountingInfo().invoiceCountry());
     } else {
-        return tutao.util.BookingUtils.formatPrice(this._pricePerMonth()) + " " + tutao.lang('perMonth_label');
+        decimalSeparator = tutao.locator.settingsViewModel.decimalSeparator();
+    }
+    if (this.accountingInfo().paymentInterval() == "12") {
+        return tutao.util.BookingUtils.formatPrice(this._pricePerYear(), true, decimalSeparator) + " " + tutao.lang('perYear_label');
+    } else {
+        return tutao.util.BookingUtils.formatPrice(this._pricePerMonth(), true, decimalSeparator) + " " + tutao.lang('perMonth_label');
     }
 };
 

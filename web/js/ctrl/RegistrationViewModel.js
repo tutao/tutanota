@@ -322,78 +322,43 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._getAccountGroupKey = functi
 tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 	var self = this;
 	return tutao.entity.sys.SystemKeysReturn.load({}, null).then(function(keyData) {
-		var systemAdminPubKeyBase64 = keyData.getSystemAdminPubKey();
-		var systemAdminPubKeyVersion = keyData.getSystemAdminPubKeyVersion();
+        var systemAdminPubKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(keyData.getSystemAdminPubKey()));
+        var userGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var adminGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var customerGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var userGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var adminGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var customerGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var accountingInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var customerServerPropertiesSessionKey = tutao.locator.aesCrypter.generateRandomKey();
 
-		var salt = tutao.locator.kdfCrypter.generateRandomSalt();
-		return tutao.locator.kdfCrypter.generateKeyFromPassphrase(self.password1(), salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(userPassphraseKey) {
-			tutao.locator.progressDialogModel.progress(5);
-
-            var adminGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-			return tutao.tutanota.ctrl.GroupData.generateGroupKeys("admin", "", null, null, null, adminGroupsListKey).spread(function(adminGroupData, adminGroupKey) {
+        var customerService = new tutao.entity.tutanota.CustomerAccountCreateData();
+        return tutao.tutanota.ctrl.RegistrationViewModel.generateUserAccountUserData(customerService, userGroupKey, userGroupInfoSessionKey, customerGroupKey, self.getMailAddress(), "", self.password1()).then(function(userData) {
+            tutao.locator.progressDialogModel.progress(5);
+			return tutao.tutanota.ctrl.RegistrationViewModel.generateInternalGroupData(customerService, userGroupKey, userGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(function(userGroupData) {
 				tutao.locator.progressDialogModel.progress(35);
-                var userGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-				return tutao.tutanota.ctrl.GroupData.generateGroupKeys("", self.getMailAddress(), userPassphraseKey, adminGroupKey, null, userGroupsListKey).spread(function(userGroupData, userGroupKey) {
+                return tutao.tutanota.ctrl.RegistrationViewModel.generateInternalGroupData(customerService, adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(function(adminGroupData) {
 					tutao.locator.progressDialogModel.progress(65);
-					// encrypt the admin key with the user key, because the user key was not available before
-					adminGroupData.setSymEncGKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey));
-
-                    var customerGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-					return tutao.tutanota.ctrl.GroupData.generateGroupKeys("customer", "", userGroupKey, adminGroupKey, null, customerGroupsListKey).spread(function(customerGroupData, customerGroupKey) {
+                    return tutao.tutanota.ctrl.RegistrationViewModel.generateInternalGroupData(customerService, customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(function(customerGroupData) {
 						tutao.locator.progressDialogModel.progress(95);
-                        var accountingInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
-						var accountingInfoBucketKey = tutao.locator.aesCrypter.generateRandomKey();
-
-						var clientKey = tutao.locator.aesCrypter.generateRandomKey();
-
-						var symEncAccountGroupKey = tutao.locator.aesCrypter.encryptKey(userGroupKey, self._getAccountGroupKey(keyData));
-
-						var systemAdminPubKey = tutao.locator.rsaUtil.hexToPublicKey(tutao.util.EncodingConverter.base64ToHex(systemAdminPubKeyBase64));
-
-                        return tutao.locator.crypto.rsaEncrypt(systemAdminPubKey, new Uint8Array(sjcl.codec.bytes.fromBits(accountingInfoBucketKey))).then(function(systemAdminPubEncCustomerBucketKey) {
+                        return tutao.locator.crypto.rsaEncrypt(systemAdminPubKey, tutao.util.EncodingConverter.keyToUint8Array(accountingInfoSessionKey)).then(function(systemAdminPubEncAccountingInfoSessionKey) {
                             tutao.locator.progressDialogModel.progress(97);
 
-                            var teamGroupsListKey = tutao.locator.aesCrypter.generateRandomKey();
-
-                            var customerService = new tutao.entity.sys.CustomerData();
                             customerService.setAuthToken(self.authToken())
-                                .setCompany(self.companyName())
-                                .setDomain(self.domain())
-                                .setAdminGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, adminGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, adminGroupsListKey))
-                                    .setCreateGroupData(adminGroupData))
-                                .setUserGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, userGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, userGroupsListKey))
-                                    .setCreateGroupData(userGroupData))
-                                .setCustomerGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, customerGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerGroupsListKey))
-                                    .setCreateGroupData(customerGroupData))
-                                .setTeamGroupList(new tutao.entity.sys.CreateGroupListData(customerService)
-                                    .setCustomerEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, teamGroupsListKey))
-                                    .setAdminEncGroupInfoListKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, teamGroupsListKey)))
-
+                                .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE)
+                                .setLang(tutao.locator.languageViewModel.getCurrentLanguage())
+                                .setUserData(userData)
+                                .setUserEncAdminGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, adminGroupKey))
+                                .setUserEncAccountGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, self._getAccountGroupKey(keyData)))
+                                .setUserGroupData(userGroupData)
+                                .setAdminGroupData(adminGroupData)
+                                .setCustomerGroupData(customerGroupData)
                                 .setAdminEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, accountingInfoSessionKey))
-                                .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
-                                .setAccountingInfoBucketEncAccountingInfoSessionKey(tutao.locator.aesCrypter.encryptKey(accountingInfoBucketKey, accountingInfoSessionKey))
-                                .setSystemCustomerPubEncAccountingInfoBucketKey(tutao.util.EncodingConverter.uint8ArrayToBase64(systemAdminPubEncCustomerBucketKey))
-                                .setSystemCustomerPubKeyVersion(systemAdminPubKeyVersion)
-                                .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
-                                .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
-                                .setSymEncAccountGroupKey(symEncAccountGroupKey)
-                                .setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
+                                .setSystemAdminPubEncAccountingInfoSessionKey(tutao.util.EncodingConverter.uint8ArrayToBase64(systemAdminPubEncAccountingInfoSessionKey))
+                                .setAdminEncCustomerServerPropertiesSessionKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, customerServerPropertiesSessionKey));
 
-                            return customerService.setup({}, null).then(function(adminUserData) {
-                                return tutao.locator.userController.loginUser(userGroupData.getMailAddress(), self.password1()).then(function() {
-                                    return self.initGroup().caught(function(error) {
-                                        // the init group service will be run at login again
-                                        console.log(error);
-                                    }).lastly(function() {
-                                        tutao.locator.progressDialogModel.progress(100);
-                                    });
-                                });
+                            return customerService.setup({}, null).then(function() {
+                                tutao.locator.progressDialogModel.progress(100);
                             });
                         });
 					});
@@ -403,13 +368,54 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._generateKeys = function() {
 	});
 };
 
-tutao.tutanota.ctrl.RegistrationViewModel.prototype.initGroup = function() {
-    return tutao.tutanota.ctrl.AdminNewUser.initGroup(tutao.locator.userController.getUserGroupId(), tutao.locator.userController.getUserGroupKey()).then(function() {
-        if (tutao.locator.userController.getLoggedInUser().getAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_FREE) {
-            new tutao.entity.tutanota.WelcomeMailData()
-                .setLanguage(tutao.locator.languageViewModel.getCurrentLanguage())
-                .setup({}, tutao.entity.EntityHelper.createAuthHeaders(), function() {});
-        }
+tutao.tutanota.ctrl.RegistrationViewModel.generateUserAccountUserData = function(parentService, userGroupKey, userGroupInfoSessionKey, customerGroupKey, mailAddress, name, password) {
+    var salt = tutao.locator.kdfCrypter.generateRandomSalt();
+    return tutao.locator.kdfCrypter.generateKeyFromPassphrase(password, salt, tutao.entity.tutanota.TutanotaConstants.KEY_LENGTH_TYPE_128_BIT).then(function(userPassphraseKey) {
+
+        var mailGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var contactGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var fileGroupKey = tutao.locator.aesCrypter.generateRandomKey();
+        var clientKey = tutao.locator.aesCrypter.generateRandomKey();
+        var mailboxSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var contactListSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var fileSystemSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var mailGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var contactGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var fileGroupInfoSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+        var tutanotaPropertiesSessionKey = tutao.locator.aesCrypter.generateRandomKey();
+
+        var userEncEntropy = tutao.locator.aesCrypter.encryptBytes(userGroupKey, tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.locator.randomizer.generateRandomData(32)));
+
+        var userData = new tutao.entity.tutanota.UserAccountUserData(parentService)
+            .setMailAddress(mailAddress)
+            .setEncryptedName(tutao.locator.aesCrypter.encryptUtf8(userGroupInfoSessionKey, name))
+            .setSalt(tutao.util.EncodingConverter.uint8ArrayToBase64(salt))
+            .setVerifier(tutao.crypto.Utils.createAuthVerifier(userPassphraseKey))
+            .setUserEncClientKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, clientKey))
+            .setPwEncUserGroupKey(tutao.locator.aesCrypter.encryptKey(userPassphraseKey, userGroupKey))
+            .setUserEncCustomerGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, customerGroupKey))
+            .setUserEncMailGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, mailGroupKey))
+            .setUserEncContactGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, contactGroupKey))
+            .setUserEncFileGroupKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, fileGroupKey))
+            .setUserEncEntropy(userEncEntropy)
+            .setUserEncTutanotaPropertiesSessionKey(tutao.locator.aesCrypter.encryptKey(userGroupKey, tutanotaPropertiesSessionKey))
+            .setMailEncMailBoxSessionKey(tutao.locator.aesCrypter.encryptKey(mailGroupKey, mailboxSessionKey))
+            .setContactEncContactListSessionKey(tutao.locator.aesCrypter.encryptKey(contactGroupKey, contactListSessionKey))
+            .setFileEncFileSystemSessionKey(tutao.locator.aesCrypter.encryptKey(fileGroupKey, fileSystemSessionKey))
+            .setCustomerEncMailGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, mailGroupInfoSessionKey))
+            .setCustomerEncContactGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, contactGroupInfoSessionKey))
+            .setCustomerEncFileGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, fileGroupInfoSessionKey));
+        return userData;
+    });
+};
+
+tutao.tutanota.ctrl.RegistrationViewModel.generateInternalGroupData = function(parentService, groupKey, groupInfoSessionKey, adminGroupKey, customerGroupKey) {
+    return tutao.locator.crypto.generateRsaKey(tutao.locator.rsaUtil.keyLengthInBits).then(function (keyPair) {
+        return new tutao.entity.tutanota.InternalGroupData(parentService)
+            .setPublicKey(tutao.util.EncodingConverter.hexToBase64(tutao.locator.rsaUtil.publicKeyToHex(keyPair.publicKey)))
+            .setGroupEncPrivateKey(tutao.locator.aesCrypter.encryptPrivateRsaKey(groupKey, tutao.locator.rsaUtil.privateKeyToHex(keyPair.privateKey)))
+            .setAdminEncGroupKey(tutao.locator.aesCrypter.encryptKey(adminGroupKey, groupKey))
+            .setCustomerEncGroupInfoSessionKey(tutao.locator.aesCrypter.encryptKey(customerGroupKey, groupInfoSessionKey));
     });
 };
 

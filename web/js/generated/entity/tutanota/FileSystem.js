@@ -38,7 +38,7 @@ tutao.entity.tutanota.FileSystem.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileSystem.MODEL_VERSION = '15';
+tutao.entity.tutanota.FileSystem.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -178,7 +178,7 @@ tutao.entity.tutanota.FileSystem.prototype.getFiles = function() {
  * @return {Promise.<tutao.entity.tutanota.FileSystem>} Resolves to the FileSystem or an exception if the loading failed.
  */
 tutao.entity.tutanota.FileSystem.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, id, null, {"v" : "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, id, null, {"v" : "16"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -189,7 +189,7 @@ tutao.entity.tutanota.FileSystem.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.FileSystem>>} Resolves to an array of FileSystem or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.FileSystem.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.FileSystem, tutao.entity.tutanota.FileSystem.PATH, ids, {"v": "16"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -201,7 +201,7 @@ tutao.entity.tutanota.FileSystem.loadMultiple = function(ids) {
 tutao.entity.tutanota.FileSystem.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "15";
+  params["v"] = "16";
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileSystem.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -211,7 +211,7 @@ tutao.entity.tutanota.FileSystem.prototype.updateOwnerEncSessionKey = function()
  */
 tutao.entity.tutanota.FileSystem.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileSystem.PATH, this, {"v": "15"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.FileSystem.PATH, this, {"v": "16"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

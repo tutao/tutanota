@@ -11,9 +11,14 @@ tutao.entity.tutanota.ExternalUserData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._externalUserEncGroupInfoSessionKey = null;
-    this._groupEncEntropy = null;
-    this._groupEncMailListKey = null;
+    this._externalMailEncMailBoxSessionKey = null;
+    this._externalMailEncMailGroupInfoSessionKey = null;
+    this._externalUserEncEntropy = null;
+    this._externalUserEncMailGroupKey = null;
+    this._externalUserEncTutanotaPropertiesSessionKey = null;
+    this._externalUserEncUserGroupInfoSessionKey = null;
+    this._internalMailEncMailGroupInfoSessionKey = null;
+    this._internalMailEncUserGroupInfoSessionKey = null;
     this._userEncClientKey = null;
     this._verifier = null;
     this._userGroupData = null;
@@ -28,9 +33,14 @@ tutao.entity.tutanota.ExternalUserData = function(data) {
  */
 tutao.entity.tutanota.ExternalUserData.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._externalUserEncGroupInfoSessionKey = data.externalUserEncGroupInfoSessionKey;
-  this._groupEncEntropy = data.groupEncEntropy;
-  this._groupEncMailListKey = data.groupEncMailListKey;
+  this._externalMailEncMailBoxSessionKey = data.externalMailEncMailBoxSessionKey;
+  this._externalMailEncMailGroupInfoSessionKey = data.externalMailEncMailGroupInfoSessionKey;
+  this._externalUserEncEntropy = data.externalUserEncEntropy;
+  this._externalUserEncMailGroupKey = data.externalUserEncMailGroupKey;
+  this._externalUserEncTutanotaPropertiesSessionKey = data.externalUserEncTutanotaPropertiesSessionKey;
+  this._externalUserEncUserGroupInfoSessionKey = data.externalUserEncUserGroupInfoSessionKey;
+  this._internalMailEncMailGroupInfoSessionKey = data.internalMailEncMailGroupInfoSessionKey;
+  this._internalMailEncUserGroupInfoSessionKey = data.internalMailEncUserGroupInfoSessionKey;
   this._userEncClientKey = data.userEncClientKey;
   this._verifier = data.verifier;
   this._userGroupData = (data.userGroupData) ? new tutao.entity.tutanota.CreateExternalUserGroupData(this, data.userGroupData) : null;
@@ -40,7 +50,7 @@ tutao.entity.tutanota.ExternalUserData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ExternalUserData.MODEL_VERSION = '15';
+tutao.entity.tutanota.ExternalUserData.MODEL_VERSION = '16';
 
 /**
  * The url path to the resource.
@@ -61,9 +71,14 @@ tutao.entity.tutanota.ExternalUserData.prototype.ENCRYPTED = false;
 tutao.entity.tutanota.ExternalUserData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    externalUserEncGroupInfoSessionKey: this._externalUserEncGroupInfoSessionKey, 
-    groupEncEntropy: this._groupEncEntropy, 
-    groupEncMailListKey: this._groupEncMailListKey, 
+    externalMailEncMailBoxSessionKey: this._externalMailEncMailBoxSessionKey, 
+    externalMailEncMailGroupInfoSessionKey: this._externalMailEncMailGroupInfoSessionKey, 
+    externalUserEncEntropy: this._externalUserEncEntropy, 
+    externalUserEncMailGroupKey: this._externalUserEncMailGroupKey, 
+    externalUserEncTutanotaPropertiesSessionKey: this._externalUserEncTutanotaPropertiesSessionKey, 
+    externalUserEncUserGroupInfoSessionKey: this._externalUserEncUserGroupInfoSessionKey, 
+    internalMailEncMailGroupInfoSessionKey: this._internalMailEncMailGroupInfoSessionKey, 
+    internalMailEncUserGroupInfoSessionKey: this._internalMailEncUserGroupInfoSessionKey, 
     userEncClientKey: this._userEncClientKey, 
     verifier: this._verifier, 
     userGroupData: tutao.entity.EntityHelper.aggregatesToJsonData(this._userGroupData)
@@ -88,54 +103,139 @@ tutao.entity.tutanota.ExternalUserData.prototype.getFormat = function() {
 };
 
 /**
- * Sets the externalUserEncGroupInfoSessionKey of this ExternalUserData.
- * @param {string} externalUserEncGroupInfoSessionKey The externalUserEncGroupInfoSessionKey of this ExternalUserData.
+ * Sets the externalMailEncMailBoxSessionKey of this ExternalUserData.
+ * @param {string} externalMailEncMailBoxSessionKey The externalMailEncMailBoxSessionKey of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.setExternalUserEncGroupInfoSessionKey = function(externalUserEncGroupInfoSessionKey) {
-  this._externalUserEncGroupInfoSessionKey = externalUserEncGroupInfoSessionKey;
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalMailEncMailBoxSessionKey = function(externalMailEncMailBoxSessionKey) {
+  this._externalMailEncMailBoxSessionKey = externalMailEncMailBoxSessionKey;
   return this;
 };
 
 /**
- * Provides the externalUserEncGroupInfoSessionKey of this ExternalUserData.
- * @return {string} The externalUserEncGroupInfoSessionKey of this ExternalUserData.
+ * Provides the externalMailEncMailBoxSessionKey of this ExternalUserData.
+ * @return {string} The externalMailEncMailBoxSessionKey of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.getExternalUserEncGroupInfoSessionKey = function() {
-  return this._externalUserEncGroupInfoSessionKey;
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalMailEncMailBoxSessionKey = function() {
+  return this._externalMailEncMailBoxSessionKey;
 };
 
 /**
- * Sets the groupEncEntropy of this ExternalUserData.
- * @param {string} groupEncEntropy The groupEncEntropy of this ExternalUserData.
+ * Sets the externalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ * @param {string} externalMailEncMailGroupInfoSessionKey The externalMailEncMailGroupInfoSessionKey of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.setGroupEncEntropy = function(groupEncEntropy) {
-  this._groupEncEntropy = groupEncEntropy;
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalMailEncMailGroupInfoSessionKey = function(externalMailEncMailGroupInfoSessionKey) {
+  this._externalMailEncMailGroupInfoSessionKey = externalMailEncMailGroupInfoSessionKey;
   return this;
 };
 
 /**
- * Provides the groupEncEntropy of this ExternalUserData.
- * @return {string} The groupEncEntropy of this ExternalUserData.
+ * Provides the externalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ * @return {string} The externalMailEncMailGroupInfoSessionKey of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.getGroupEncEntropy = function() {
-  return this._groupEncEntropy;
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalMailEncMailGroupInfoSessionKey = function() {
+  return this._externalMailEncMailGroupInfoSessionKey;
 };
 
 /**
- * Sets the groupEncMailListKey of this ExternalUserData.
- * @param {string} groupEncMailListKey The groupEncMailListKey of this ExternalUserData.
+ * Sets the externalUserEncEntropy of this ExternalUserData.
+ * @param {string} externalUserEncEntropy The externalUserEncEntropy of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.setGroupEncMailListKey = function(groupEncMailListKey) {
-  this._groupEncMailListKey = groupEncMailListKey;
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalUserEncEntropy = function(externalUserEncEntropy) {
+  this._externalUserEncEntropy = externalUserEncEntropy;
   return this;
 };
 
 /**
- * Provides the groupEncMailListKey of this ExternalUserData.
- * @return {string} The groupEncMailListKey of this ExternalUserData.
+ * Provides the externalUserEncEntropy of this ExternalUserData.
+ * @return {string} The externalUserEncEntropy of this ExternalUserData.
  */
-tutao.entity.tutanota.ExternalUserData.prototype.getGroupEncMailListKey = function() {
-  return this._groupEncMailListKey;
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalUserEncEntropy = function() {
+  return this._externalUserEncEntropy;
+};
+
+/**
+ * Sets the externalUserEncMailGroupKey of this ExternalUserData.
+ * @param {string} externalUserEncMailGroupKey The externalUserEncMailGroupKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalUserEncMailGroupKey = function(externalUserEncMailGroupKey) {
+  this._externalUserEncMailGroupKey = externalUserEncMailGroupKey;
+  return this;
+};
+
+/**
+ * Provides the externalUserEncMailGroupKey of this ExternalUserData.
+ * @return {string} The externalUserEncMailGroupKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalUserEncMailGroupKey = function() {
+  return this._externalUserEncMailGroupKey;
+};
+
+/**
+ * Sets the externalUserEncTutanotaPropertiesSessionKey of this ExternalUserData.
+ * @param {string} externalUserEncTutanotaPropertiesSessionKey The externalUserEncTutanotaPropertiesSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalUserEncTutanotaPropertiesSessionKey = function(externalUserEncTutanotaPropertiesSessionKey) {
+  this._externalUserEncTutanotaPropertiesSessionKey = externalUserEncTutanotaPropertiesSessionKey;
+  return this;
+};
+
+/**
+ * Provides the externalUserEncTutanotaPropertiesSessionKey of this ExternalUserData.
+ * @return {string} The externalUserEncTutanotaPropertiesSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalUserEncTutanotaPropertiesSessionKey = function() {
+  return this._externalUserEncTutanotaPropertiesSessionKey;
+};
+
+/**
+ * Sets the externalUserEncUserGroupInfoSessionKey of this ExternalUserData.
+ * @param {string} externalUserEncUserGroupInfoSessionKey The externalUserEncUserGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.setExternalUserEncUserGroupInfoSessionKey = function(externalUserEncUserGroupInfoSessionKey) {
+  this._externalUserEncUserGroupInfoSessionKey = externalUserEncUserGroupInfoSessionKey;
+  return this;
+};
+
+/**
+ * Provides the externalUserEncUserGroupInfoSessionKey of this ExternalUserData.
+ * @return {string} The externalUserEncUserGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getExternalUserEncUserGroupInfoSessionKey = function() {
+  return this._externalUserEncUserGroupInfoSessionKey;
+};
+
+/**
+ * Sets the internalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ * @param {string} internalMailEncMailGroupInfoSessionKey The internalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.setInternalMailEncMailGroupInfoSessionKey = function(internalMailEncMailGroupInfoSessionKey) {
+  this._internalMailEncMailGroupInfoSessionKey = internalMailEncMailGroupInfoSessionKey;
+  return this;
+};
+
+/**
+ * Provides the internalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ * @return {string} The internalMailEncMailGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getInternalMailEncMailGroupInfoSessionKey = function() {
+  return this._internalMailEncMailGroupInfoSessionKey;
+};
+
+/**
+ * Sets the internalMailEncUserGroupInfoSessionKey of this ExternalUserData.
+ * @param {string} internalMailEncUserGroupInfoSessionKey The internalMailEncUserGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.setInternalMailEncUserGroupInfoSessionKey = function(internalMailEncUserGroupInfoSessionKey) {
+  this._internalMailEncUserGroupInfoSessionKey = internalMailEncUserGroupInfoSessionKey;
+  return this;
+};
+
+/**
+ * Provides the internalMailEncUserGroupInfoSessionKey of this ExternalUserData.
+ * @return {string} The internalMailEncUserGroupInfoSessionKey of this ExternalUserData.
+ */
+tutao.entity.tutanota.ExternalUserData.prototype.getInternalMailEncUserGroupInfoSessionKey = function() {
+  return this._internalMailEncUserGroupInfoSessionKey;
 };
 
 /**
@@ -199,7 +299,7 @@ tutao.entity.tutanota.ExternalUserData.prototype.setup = function(parameters, he
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "15";
+  parameters["v"] = "16";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.ExternalUserData.PATH, this, parameters, headers, null);
 };

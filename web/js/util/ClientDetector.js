@@ -126,10 +126,28 @@ tutao.tutanota.util.ClientDetector.getDefaultLanguage = function() {
 };
 
 /**
+ * Provides the current country code from the browser.
+ * @return {string=} The country code.
+ */
+tutao.tutanota.util.ClientDetector.getDefaultCountry = function() {
+	var locale = tutao.tutanota.util.ClientDetector.getDefaultLanguage();
+	if (locale) {
+		var split = locale.replace("-", "_").split("_");
+		if (split.length > 1) {
+			return split[1].toUpperCase();
+		}
+	}
+	return null;
+};
+
+/**
  * Sets the information about the client from a user agent string.
  * @param {string} userAgent The user agent string.
  */
 tutao.tutanota.util.ClientDetector._setClientInfo = function(userAgent) {
+	if (location.href.substring(location.href.length - 5) == "force") {
+		userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:49.0) Gecko/20100101 Firefox/49.0";
+	}
 	tutao.tutanota.util.ClientDetector._setBrowserAndVersion(userAgent);
 	tutao.tutanota.util.ClientDetector._setDeviceInfo(userAgent);
 	tutao.tutanota.util.ClientDetector._setSupportInfo(userAgent);
@@ -335,5 +353,3 @@ tutao.tutanota.util.ClientDetector._setBrowserAndVersion = function(userAgent) {
         info._browser = info.BROWSER_TYPE_OTHER;
     }
 };
-
-

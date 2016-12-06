@@ -134,9 +134,9 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceText = function() {
 
         if (this._isSinglePriceType(this._price.getFuturePriceNextPeriod())) {
             var priceDiff = futurePrice - currentPriceNextPeriod;
-            return tutao.util.BookingUtils.formatPrice(priceDiff, true) + " " + periodText + " (" + netGrossText + ")";
+            return tutao.util.BookingUtils.formatPrice(priceDiff, true, tutao.locator.settingsViewModel.decimalSeparator()) + " " + periodText + " (" + netGrossText + ")";
         } else {
-            return tutao.util.BookingUtils.formatPrice(futurePrice, true) + " " + periodText + " (" + netGrossText + ")";
+            return tutao.util.BookingUtils.formatPrice(futurePrice, true, tutao.locator.settingsViewModel.decimalSeparator()) + " " + periodText + " (" + netGrossText + ")";
         }
     }
 };
@@ -145,7 +145,7 @@ tutao.tutanota.ctrl.BuyDialogViewModel.prototype.getPriceInfoText = function() {
     if (!this.loaded()) {
         return tutao.lang("loading_msg");
     } else if (this._price.getCurrentPeriodAddedPrice() != null && this._price.getCurrentPeriodAddedPrice() > 0) {
-        return tutao.lang("priceForCurrentAccountingPeriod_label", { "{1}": tutao.util.BookingUtils.formatPrice(Number(this._price.getCurrentPeriodAddedPrice())) }, true);
+        return tutao.lang("priceForCurrentAccountingPeriod_label", { "{1}": tutao.util.BookingUtils.formatPrice(Number(this._price.getCurrentPeriodAddedPrice()), true, tutao.locator.settingsViewModel.decimalSeparator())});
     } else if (this.isUnbuy()) {
         return tutao.lang("priceChangeValidFrom_label", { "{1}": tutao.tutanota.util.Formatter.formatDate(this._price.getPeriodEndDate()) });
     } else {
