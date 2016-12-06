@@ -1141,7 +1141,7 @@
                         <li><a target="_blank" rel="noopener noreferrer" href="http://de.blackberry.com/software/smartphones/blackberry-10-os.html">Blackberry 10</a></li>
 					</ul>
 					<br>
-					<button class="single" data-bind="fastClick: tutao.locator.navigator.loginAnyway, lang: 'loginAnyway_action'"></button>
+					<button class="single" data-bind="visible: (tutao.locator.navigator.mailRef() == null), fastClick: tutao.locator.navigator.loginAnyway, lang: 'loginAnyway_action'"></button>
 				</div>
 			</div>
 		</div>
