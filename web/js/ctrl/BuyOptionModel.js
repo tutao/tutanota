@@ -91,26 +91,39 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
         return;
     }
 
-    tutao.locator.buyDialogViewModel.showDialog(this._featureType, this._featureAmount, this.freeAmount()).then(function(accepted) {
-        if (accepted) {
-            var service = new tutao.entity.sys.BookingServiceData();
-            service.setAmount(self._featureAmount.toString());
-            service.setFeatureType(self._featureType);
-            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
-            return service.setup({}, null).then(function () {
-                self._parent.updateCurrentOption(self);
-            })
-        }
-    }).caught(tutao.PreconditionFailedError, function (error) {
-        if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES){
-            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("emailAliasesTooManyActivatedForBooking_msg"));
-        } else if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
-            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("storageCapacityTooManyUsedForBooking_msg"));
-        } else {
-            throw error;
-        }
-    }).lastly(function(){
-        self.busy(false);
+    tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+        return customer.loadCustomerInfo().then(function (customerInfo) {
+            return customerInfo.loadAccountingInfo().then(function (accountingInfo) {
+                if (!accountingInfo.getInvoiceCountry()) {
+                    return tutao.tutanota.gui.alert(tutao.lang("enterPaymentDataFirst_msg")).then(function() {
+                        self.busy(false);
+                        tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
+                    });
+                } else {
+                    return  tutao.locator.buyDialogViewModel.showDialog(self._featureType, self._featureAmount, self.freeAmount()).then(function(accepted) {
+                        if (accepted) {
+                            var service = new tutao.entity.sys.BookingServiceData();
+                            service.setAmount(self._featureAmount.toString());
+                            service.setFeatureType(self._featureType);
+                            service.setDate(tutao.entity.tutanota.TutanotaConstants.CURRENT_DATE);
+                            return service.setup({}, null).then(function () {
+                                self._parent.updateCurrentOption(self);
+                            })
+                        }
+                    }).caught(tutao.PreconditionFailedError, function (error) {
+                        if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_EMAIL_ALIASES){
+                            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("emailAliasesTooManyActivatedForBooking_msg"));
+                        } else if (self._featureType == tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE){
+                            return tutao.locator.modalDialogViewModel.showAlert(tutao.lang("storageCapacityTooManyUsedForBooking_msg"));
+                        } else {
+                            throw error;
+                        }
+                    }).lastly(function(){
+                        self.busy(false);
+                    });
+                }
+            });
+        });
     });
 };
 

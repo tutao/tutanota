@@ -702,5 +702,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "yearly_label": "Yearly",
   "yesterday_label": "yesterday",
   "helpMenu_label": "Help",
-  "helpMenu_alt": "Send an email to the Tutanota support team"
+  "helpMenu_alt": "Send an email to the Tutanota support team",
+  "enterPaymentDataFirst_msg": "Please first enter your payment data before ordering additional packages."
 };
