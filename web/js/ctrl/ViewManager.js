@@ -64,6 +64,11 @@ tutao.tutanota.ctrl.ViewManager.prototype.isPremiumAccount = function() {
     return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_PREMIUM;
 };
 
+tutao.tutanota.ctrl.ViewManager.prototype.isPremiumAdminAccount = function() {
+    // check the account type first to make sure this function is triggered when changing the observable
+    return this.isPremiumAccount() && tutao.locator.userController.isLoggedInUserAdmin();
+};
+
 tutao.tutanota.ctrl.ViewManager.prototype.isOutlookAccount = function() {
     return this.getLoggedInUserAccountType() == tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_STARTER;
 };
@@ -139,6 +144,15 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
         }, function() {
             return self.isFreeAccount() && !tutao.env.isIOSApp();
         }, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
+
+        new tutao.tutanota.ctrl.Button('helpMenu_label', 26, function() {
+            var recipientInfo = new tutao.tutanota.ctrl.RecipientInfo("premium@tutao.de", "");
+            recipientInfo.resolveType().finally(function () {
+                // we may be offline but we want to open the new email anyway
+                tutao.locator.navigator.newMail(recipientInfo);
+            });
+
+        }, self.isPremiumAdminAccount, false, "menu_help", "help", 'helpMenu_alt'),
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {

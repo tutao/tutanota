@@ -700,5 +700,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "helpMenu_label": "Hilfe",
+  "helpMenu_alt": "Sende eine E-Mail an das Support-Team von Tutanota",
+  "enterPaymentDataFirst_msg": "Bitte gib zuerst deine Zahlungsdaten ein bevor du weitere Pakete buchst."
 };
