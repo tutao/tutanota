@@ -40,7 +40,7 @@
   </platform>
 
   <platform name="ios">
-  	<preference name="deployment-target" value="9.0" />
+  	<preference name="deployment-target" value="8.0" />
 	<preference name="Orientation" value="all" />
 	<preference name="BackupWebStorage" value="none" />
 	
