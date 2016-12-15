@@ -145,14 +145,14 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
             return self.isFreeAccount() && !tutao.env.isIOSApp();
         }, true, "menu_community", "heart", 'community_label'), // Execute this action direct to avoid pop up blockers
 
-        new tutao.tutanota.ctrl.Button('helpMenu_label', 26, function() {
+        new tutao.tutanota.ctrl.Button('supportMenu_label', 26, function() {
             var recipientInfo = new tutao.tutanota.ctrl.RecipientInfo("premium@tutao.de", "");
             recipientInfo.resolveType().finally(function () {
                 // we may be offline but we want to open the new email anyway
                 tutao.locator.navigator.newMail(recipientInfo);
             });
 
-        }, self.isPremiumAdminAccount, false, "menu_help", "help", 'helpMenu_alt'),
+        }, self.isPremiumAdminAccount, false, "menu_support", "support", 'supportMenu_alt'),
 
         // all logged in
         new tutao.tutanota.ctrl.Button('logout_label', 25, function () {

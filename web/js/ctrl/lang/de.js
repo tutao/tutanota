@@ -701,7 +701,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "xing_label": "XING",
   "yearly_label": "Jährlich",
   "yesterday_label": "gestern",
-  "helpMenu_label": "Hilfe",
-  "helpMenu_alt": "Sende eine E-Mail an das Support-Team von Tutanota",
+  "supportMenu_label": "Support",
+  "supportMenu_alt": "Sende eine E-Mail an das Support-Team von Tutanota",
   "enterPaymentDataFirst_msg": "Bitte gib zuerst deine Zahlungsdaten ein bevor du weitere Pakete buchst."
 };
