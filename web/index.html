@@ -1180,7 +1180,7 @@
                             <div class="recordName"></div>
                             <div class="recordData disablePadding">
                                 <button id="submitLogin" class="single wide" type="submit" data-bind="css: { disabled: !loginPossible() }, lang: 'login_action'"></button>
-                                <label id="submitLoginLabel" class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
+                                <label class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
                             </div>
                         </div>
 						<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
@@ -1212,7 +1212,7 @@
 							<div class="recordName"></div>
 							<div class="recordData disablePadding">
 								<button id="loginOtherAccount" class="single wide" data-bind="fastClick: loginOtherAccount, css: { disabled: loginOngoing() }, lang: 'loginOtherAccount_action'"></button>
-								<label class="recordStatus highStatusField"></label>
+								<label class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
 							</div>
 						</div>
 						<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>

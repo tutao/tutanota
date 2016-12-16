@@ -426,6 +426,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._createNewCredentials = function(cl
  * Login the user before trying to delete the credentials.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.deleteCredentials = function(credentials) {
+    if (this.loginOngoing()) {
+        return;
+    }
     var self = this;
     self.loginOngoing(true);
     return this._loadDeviceKey(credentials.userId, credentials.deviceToken).then(function(deviceKey) {
@@ -514,10 +517,16 @@ tutao.tutanota.ctrl.LoginViewModel.showAppInfo = function() {
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.loginOtherAccount = function() {
+    if (this.loginOngoing()) {
+        return;
+    }
     this.storedCredentials([]);
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype.loginWithStoredCredentials = function(credentials) {
+    if (this.loginOngoing()) {
+        return;
+    }
     var self = this;
     this._tryAutoLogin(credentials).then(function(successful) {
         if (!successful) {
