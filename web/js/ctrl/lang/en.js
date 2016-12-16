@@ -703,5 +703,6 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "yesterday_label": "yesterday",
   "supportMenu_label": "Support",
   "supportMenu_alt": "Send an email to the Tutanota support team",
-  "enterPaymentDataFirst_msg": "Please first enter your payment data before ordering additional packages."
+  "enterPaymentDataFirst_msg": "Please first enter your payment data before ordering additional packages.",
+  "loginOtherAccount_action": "Different account"
 };

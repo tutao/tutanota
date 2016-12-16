@@ -44,6 +44,35 @@ div.loginBoxContent {
   }
 }
 
+div.loginButtonLeft {
+  overflow: hidden;
+
+  > button {
+    border: 0px;
+    background-color: @button-background;
+    border-radius: 5px 0px 0px 5px;
+    color: @black;
+    .fadeTextOut;
+  }
+}
+
+div.loginButtonRight {
+  float: right;
+  line-height: 1; // to avoid that the button moves down
+  margin-left: 3px;
+
+  > button {
+    min-width: 40px;
+    background-color: @button-background;
+    border: 0px;
+    border-radius: 0px 5px 5px 0px;
+
+    &:before {
+      left: 8px;
+    }
+  }
+}
+
 div.failContent {
   position: absolute;
   .fill;

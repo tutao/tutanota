@@ -12,13 +12,14 @@ tutao.native.ConfigApp = function(){
 };
 
 /**
- * @return {Promise.<tutao.native.DeviceConfig, Error>} Resolves to the current config.
+ * @param {string=} lastLoggedInMailAddress The email address that was used to login last time.
+ * @return {Promise.<tutao.native.DeviceConfig>} Resolves to the current config.
  */
-tutao.native.ConfigApp.prototype.read = function() {
+tutao.native.ConfigApp.prototype.read = function(lastLoggedInMailAddress) {
     return this.fileUtil.read(this.configFile).then(function (bytes) {
-        return new tutao.native.DeviceConfig(JSON.parse(sjcl.codec.utf8String.fromBits(sjcl.codec.bytes.toBits(bytes))));
+        return new tutao.native.DeviceConfig(JSON.parse(sjcl.codec.utf8String.fromBits(sjcl.codec.bytes.toBits(bytes))), lastLoggedInMailAddress);
     }).caught(function () {
-        return null;
+        return new tutao.native.DeviceConfig();
     });
 };
 

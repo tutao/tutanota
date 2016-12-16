@@ -9,9 +9,10 @@ tutao.provide('tutao.native.ConfigFacade');
 tutao.native.ConfigFacade = function(){};
 
 /**
- * @return {Promise.<tutao.native.DeviceConfig, Error>} Resolves to the current config.
+ * @param {string=} lastLoggedInMailAddress The email address that was used to login last time.
+ * @return {Promise.<tutao.native.DeviceConfig>} Resolves to the current config.
  */
-tutao.native.ConfigFacade.prototype.read = function() {};
+tutao.native.ConfigFacade.prototype.read = function(lastLoggedInMailAddress) {};
 
 /**
  * Updates the stored config

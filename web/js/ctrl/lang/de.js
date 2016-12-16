@@ -703,5 +703,6 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "yesterday_label": "gestern",
   "supportMenu_label": "Support",
   "supportMenu_alt": "Sende eine E-Mail an das Support-Team von Tutanota",
-  "enterPaymentDataFirst_msg": "Bitte gib zuerst deine Zahlungsdaten ein bevor du weitere Pakete buchst."
+  "enterPaymentDataFirst_msg": "Bitte gib zuerst deine Zahlungsdaten ein bevor du weitere Pakete buchst.",
+  "loginOtherAccount_action": "Anderer Account"
 };

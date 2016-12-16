@@ -1150,12 +1150,12 @@
 
 		<div id="loginPage" class="singleColumnView" data-bind="with: tutao.locator.loginViewModel, slideView: tutao.locator.viewManager.getActiveView() == tutao.locator.loginView">
             <div class="singleColumnContent scrollable">
-                <div class="loginBoxContent">
+                <div class="loginBoxContent" data-bind="visible: storedCredentials().length == 0">
                     <form method='post' class="recordContainer wide" data-bind="submit: login, form: true">
                         <div class="record">
                             <div class="recordData">
                                 <div class="recordValue">
-                                    <input class="inputField wide" id="loginMailAddress" type="email" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused, attr:{placeholder: tutao.lang('mailAddress_label')}" />
+                                    <input class="inputField wide" id="loginMailAddress" type="email" autocorrect="off" autocapitalize="none" autocomplete="off" data-bind="enable: !loginOngoing(), value: mailAddress, valueUpdate: 'input', hasfocus: mailAddressFieldFocused, attr:{placeholder: tutao.lang('mailAddress_label')}" />
                                 </div>
                             </div>
                         </div>
@@ -1183,9 +1183,41 @@
                                 <label id="submitLoginLabel" class="recordStatus highStatusField" data-bind="css: loginStatus().type, lang: loginStatus().text"></label>
                             </div>
                         </div>
-                        <div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+						<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
                     </form>
                 </div>
+				<div class="loginBoxContent" data-bind="visible: storedCredentials().length > 0">
+					<div class="recordContainer">
+						<!-- ko foreach: storedCredentials -->
+							<div class="record">
+								<div class="recordData">
+									<div class="recordValue">
+										<div class ="loginButtonRight">
+											<button class="single fontImage cancel" data-bind="fastClick: $parent.deleteCredentials, css: { disabled: $parent.loginOngoing() }"></button>
+										</div>
+										<div class ="loginButtonLeft">
+											<button class="single wide" data-bind="fastClick: $parent.loginWithStoredCredentials, css: { disabled: $parent.loginOngoing() }, text: mailAddress"></button>
+										</div>
+										<!--<div class="bubble storedCredentialsBubble">
+											<div class="bubbleText containsBubbleIcon" data-bind="text: mailAddress, fastClick: $parent.loginWithStoredCredentials"></div>
+											<div class="bubbleIcon" data-bind="fastClick: $parent.deleteCredentials">
+												<div class="fontImage cancel"></div>
+											</div>
+										</div>-->
+									</div>
+								</div>
+							</div>
+						<!-- /ko -->
+						<div class="record">
+							<div class="recordName"></div>
+							<div class="recordData disablePadding">
+								<button id="loginOtherAccount" class="single wide" data-bind="fastClick: loginOtherAccount, css: { disabled: loginOngoing() }, lang: 'loginOtherAccount_action'"></button>
+								<label class="recordStatus highStatusField"></label>
+							</div>
+						</div>
+						<div class="record appInfo" data-bind="template: { name: 'appInfo-template' }, visible: tutao.tutanota.ctrl.LoginViewModel.showAppInfo()"></div>
+					</div>
+				</div>
             </div>
 		</div>
 

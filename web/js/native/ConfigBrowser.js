@@ -9,14 +9,15 @@ tutao.provide('tutao.native.ConfigBrowser');
 tutao.native.ConfigBrowser = function(){};
 
 /**
- * @return {Promise.<tutao.native.DeviceConfig, Error>} Resolves to the current config.
+ * @param {string=} lastLoggedInMailAddress The email address that was used to login last time.
+ * @return {Promise.<tutao.native.DeviceConfig>} Resolves to the current config.
  */
-tutao.native.ConfigBrowser.prototype.read = function() {
+tutao.native.ConfigBrowser.prototype.read = function(lastLoggedInMailAddress) {
     var config = tutao.tutanota.util.LocalStore.load('config');
     try {
-        return Promise.resolve(JSON.parse(config));
+        return Promise.resolve(new tutao.native.DeviceConfig(JSON.parse(config), lastLoggedInMailAddress));
     } catch(e) {
-        return Promise.resolve(null);
+        return Promise.resolve(new tutao.native.DeviceConfig());
     }
 };
 
