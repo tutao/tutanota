@@ -40,7 +40,7 @@ function getIpAddress() {
         for (var i = 0; i < details.length; i++) {
             var detail = details[i];
             if (detail.family == 'IPv4') {
-                if (dev == "eth0" || dev == "wlan0") {
+                if (dev == "eth0" || dev == "wlan0" || dev == "wlp3s0") {
                     return detail.address;
                 }
             }
