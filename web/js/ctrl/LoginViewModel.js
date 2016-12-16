@@ -387,18 +387,15 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
         var promise = null;
         if (!storedCredentials) {
             // register the device and store the encrypted password
-            var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
-            var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
-            deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
-            promise = deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
-                var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
-                self.config.set(cleanMailAddress, tutao.locator.userController.getLoggedInUser().getId(), deviceEncPassword, autoLoginPostReturn.getDeviceToken());
-            });
+            promise = self._createNewCredentials(cleanMailAddress, self.passphrase());
         } else {
             // the device is already registered, so only store the encrypted password
             promise = self._loadDeviceKey(storedCredentials.userId, storedCredentials.deviceToken).then(function(deviceKey) {
                 var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
                 self.config.set(cleanMailAddress, tutao.locator.userController.getLoggedInUser().getId(), deviceEncPassword, storedCredentials.deviceToken);
+            }).caught(tutao.NotFoundError, function(e) {
+                // the user id or device token is not valid, so create new ones and overwrite the old credentials
+                return self._createNewCredentials(cleanMailAddress, self.passphrase());
             });
         }
         return promise.then(function () {
@@ -412,6 +409,17 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
             return Promise.resolve();
         }
     }
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._createNewCredentials = function(cleanMailAddress, passphrase) {
+    var self = this;
+    var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
+    var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
+    deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
+    return deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function (autoLoginPostReturn) {
+        var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, passphrase);
+        self.config.set(cleanMailAddress, tutao.locator.userController.getLoggedInUser().getId(), deviceEncPassword, autoLoginPostReturn.getDeviceToken());
+    });
 };
 
 /**
