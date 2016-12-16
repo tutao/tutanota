@@ -986,12 +986,22 @@ tutao.tutanota.gui.openLink = function(href) {
 
 tutao.tutanota.gui.measureNavBarEntry = function(button) {
     // keep in sync with common.less and header.less
-    if (window.innerWidth >= 720) {
+    if (tutao.tutanota.gui.isDesktopLayout()) {
         return 80;
     } else {
         return 45;
     }
 };
+
+tutao.tutanota.gui.isDesktopLayout = function() {
+    // keep in sync with common.less and header.less
+    if (window.innerWidth >= 720) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
 
 /**
  * Measures the width of a button.

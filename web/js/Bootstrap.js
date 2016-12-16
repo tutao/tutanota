@@ -107,27 +107,69 @@ tutao.tutanota.Bootstrap.init = function () {
 			
 			
 			if (cordova.platformId == "ios") {
-				// Workaround for making the cursor position always visible when writing emails.
-				// Disable html navigation bar to save space.
-				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+				// Workaround for making the cursor position always visible for text editing.
+				// Ensure that the html navigation bar is always enabled. otherwise it is not clear how to close the keyboard.
+				cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
 				
 				// To be able to set an absolute body height
 				cordova.plugins.Keyboard.disableScroll(true);
 				
+				var keyBoardOpenEvent = false;
+				var keyBoardOpenBodyHeight = 0;
+				var buttonBars = null;
+				var disabledButtonBarHeight = 0; 
+				
 				// Set an absolute body height to make the body end at the keyboard top.
-				window.addEventListener('native.keyboardshow', function (e){
+				window.addEventListener('native.keyboardshow', function (event){
+					keyBoardOpenEvent = true;
 					var element = $("body");
-					var windowHeight = $(window).height();
-					var targetHeight = windowHeight - e.keyboardHeight;
-					if ( element.height() != targetHeight){
-						element.velocity({height: targetHeight + "px"}, { duration: 100 });
-					}
+					var windowHeight = $(window).height();				
+					if (!buttonBars){
+						var visibleButtonBars = $(".buttonBar:visible");
+						// on mobile devices add the size of the button bar to the body size. this hides the button bar under the html navigation bar to save space.
+						// if it is not a mobile device the button bar is not at the bottom so there is no need to hide it.
+						if (visibleButtonBars.length > 0 && !tutao.tutanota.gui.isDesktopLayout()){
+							buttonBars = visibleButtonBars;			
+							disabledButtonBarHeight = buttonBars.outerHeight(); // outer height includes 1px border
+							buttonBars.hide();
+						} else {
+							disabledButtonBarHeight = 0;
+						}				
+					}	
+					
+					// By default the new body size is window height - keyboad height.
+					keyBoardOpenBodyHeight = windowHeight - event.keyboardHeight + disabledButtonBarHeight;
+								
+					setTimeout(function(){
+						if ( element.height() != keyBoardOpenBodyHeight){
+							//element.velocity({height: keyBoardOpenBodyHeight + "px"}, { duration: 0 });
+							element.css({height: keyBoardOpenBodyHeight + "px"});
+						}	
+					}, 200);
+					
 				});
 			
-				window.addEventListener('native.keyboardhide', function (){
+				window.addEventListener('native.keyboardhide', function (event){
 					var element = $("body");
-					element.velocity({height: "100%"}, { duration: 100 });
+					keyBoardOpenEvent = false;
+					// avoid clipping of the button bar when switching between input fields. restore the original height first.
+					//element.velocity({height: "100%"}, { duration: 0 });
+					element.css({height: "100%"});
+					// when switching between input fields the keyboard does not hide, but the event native.keyboardehide fires.
+					// check this case in a setTimeout call and restore the keyBoardOpenBodyHeight.
+					setTimeout(function(){
+						if (keyBoardOpenEvent){
+							//element.velocity({height: keyBoardOpenBodyHeight + "px"}, { duration: 0 });
+							element.css({height: keyBoardOpenBodyHeight + "px"});
+					    } else {
+					    	if (buttonBars != null){					    	
+					 			buttonBars.show();
+					 			buttonBars = null;
+					    	}
+					    }
+					}, 200);
 				});
+				
 				
 				StatusBar.styleDefault();
 				StatusBar.backgroundColorByHexString('#f8f8f8');				
