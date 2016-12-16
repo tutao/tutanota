@@ -383,7 +383,7 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
     var self = this;
     var cleanMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(self.mailAddress());
     var storedCredentials = self.config.get(cleanMailAddress);
-    if (self.geditstorePassword()) {
+    if (self.storePassword()) {
         var promise = null;
         if (!storedCredentials) {
             // register the device and store the encrypted password
