@@ -96,7 +96,6 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
             return customerInfo.loadAccountingInfo().then(function (accountingInfo) {
                 if (!accountingInfo.getInvoiceCountry()) {
                     return tutao.tutanota.gui.alert(tutao.lang("enterPaymentDataFirst_msg")).then(function() {
-                        self.busy(false);
                         tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_PAYMENT);
                     });
                 } else {
@@ -118,12 +117,12 @@ tutao.tutanota.ctrl.BuyOptionModel.prototype.buy = function () {
                         } else {
                             throw error;
                         }
-                    }).lastly(function(){
-                        self.busy(false);
                     });
                 }
             });
         });
+    }).lastly(function(){
+        self.busy(false);
     });
 };
 

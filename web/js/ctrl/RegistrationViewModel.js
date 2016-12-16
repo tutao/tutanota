@@ -289,6 +289,7 @@ tutao.tutanota.ctrl.RegistrationViewModel.prototype._checkEntropyAndGenerateKeys
             setTimeout(function() {
                 tutao.locator.loginViewModel.setMailAddress(self.getMailAddress());
                 tutao.locator.loginViewModel.setWelcomeTextId("afterRegistration_msg");
+                tutao.locator.loginViewModel.storedCredentials([]);
             }, 0);
         }).caught(tutao.AccessDeactivatedError, tutao.AccessExpiredError, function(e) {
             self._reset();

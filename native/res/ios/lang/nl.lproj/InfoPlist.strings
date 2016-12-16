@@ -1,0 +1,6 @@
+NSCameraUsageDescription = "Maak een foto of video om toe te voegen als bijlage.";
+NSPhotoLibraryUsageDescription = "Voeg een foto uit uw bibliotheek toe als bijlage.";
+NSMicrophoneUsageDescription = "Gebruikt bij het opnemen van video als bijlage.";
+NSContactsUsageDescription = "Zoek emailadres van de ontvanger in contacten.";
+TutaoShowCameraAction = "Camera";
+TutaoChoosePhotosAction = "Foto's";

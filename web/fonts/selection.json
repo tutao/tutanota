@@ -21,7 +21,7 @@
         "ligatures": ""
       },
       "setIdx": 0,
-      "setId": 5,
+      "setId": 9,
       "iconIdx": 0
     },
     {
@@ -48,7 +48,7 @@
         "name": "arrow-down"
       },
       "setIdx": 1,
-      "setId": 4,
+      "setId": 8,
       "iconIdx": 0
     },
     {
@@ -75,7 +75,7 @@
         "name": "arrow-up"
       },
       "setIdx": 1,
-      "setId": 4,
+      "setId": 8,
       "iconIdx": 1
     },
     {
@@ -103,7 +103,7 @@
         "ligatures": ""
       },
       "setIdx": 1,
-      "setId": 4,
+      "setId": 8,
       "iconIdx": 2
     },
     {
@@ -131,7 +131,7 @@
         "ligatures": ""
       },
       "setIdx": 1,
-      "setId": 4,
+      "setId": 8,
       "iconIdx": 3
     },
     {
@@ -160,7 +160,7 @@
         "name": "folder-minus"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 0
     },
     {
@@ -195,7 +195,7 @@
         "name": "user-minus"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 1
     },
     {
@@ -224,7 +224,7 @@
         "name": "folder-plus"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 2
     },
     {
@@ -259,7 +259,7 @@
         "name": "user-plus"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 3
     },
     {
@@ -291,7 +291,7 @@
         "name": "font-size"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 4
     },
     {
@@ -327,7 +327,7 @@
         "name": "file-play"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 5
     },
     {
@@ -364,7 +364,7 @@
         "name": "file-spreadsheet"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 6
     },
     {
@@ -400,7 +400,7 @@
         "name": "file-word"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 7
     },
     {
@@ -435,7 +435,7 @@
         "name": "file-excel"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 8
     },
     {
@@ -473,7 +473,7 @@
         "name": "file-presentation"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 9
     },
     {
@@ -507,7 +507,7 @@
         "name": "file-pdf"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 10
     },
     {
@@ -547,7 +547,7 @@
         "name": "file-css"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 11
     },
     {
@@ -587,7 +587,7 @@
         "name": "file-xml"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 12
     },
     {
@@ -625,7 +625,7 @@
         "name": "file-video"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 13
     },
     {
@@ -661,7 +661,7 @@
         "name": "file-music"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 14
     },
     {
@@ -697,7 +697,7 @@
         "name": "file-empty"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 15
     },
     {
@@ -735,7 +735,7 @@
         "name": "file-picture"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 16
     },
     {
@@ -778,7 +778,7 @@
         "name": "file-text"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 17
     },
     {
@@ -839,7 +839,7 @@
         "code": 58897
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 18
     },
     {
@@ -872,7 +872,7 @@
         "code": 58898
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 19
     },
     {
@@ -907,7 +907,7 @@
         "name": "download"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 20
     },
     {
@@ -935,7 +935,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 21
     },
     {
@@ -967,7 +967,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 22
     },
     {
@@ -998,7 +998,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 23
     },
     {
@@ -1029,7 +1029,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 24
     },
     {
@@ -1059,7 +1059,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 25
     },
     {
@@ -1091,7 +1091,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 26
     },
     {
@@ -1123,7 +1123,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 27
     },
     {
@@ -1153,7 +1153,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 28
     },
     {
@@ -1185,7 +1185,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 29
     },
     {
@@ -1215,7 +1215,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 30
     },
     {
@@ -1243,7 +1243,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 31
     },
     {
@@ -1276,7 +1276,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 32
     },
     {
@@ -1308,7 +1308,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 33
     },
     {
@@ -1339,7 +1339,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 34
     },
     {
@@ -1367,7 +1367,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 35
     },
     {
@@ -1397,7 +1397,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 36
     },
     {
@@ -1427,7 +1427,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 37
     },
     {
@@ -1455,7 +1455,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 38
     },
     {
@@ -1486,7 +1486,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 39
     },
     {
@@ -1515,7 +1515,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 40
     },
     {
@@ -1544,7 +1544,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 41
     },
     {
@@ -1574,7 +1574,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 42
     },
     {
@@ -1603,7 +1603,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 43
     },
     {
@@ -1632,7 +1632,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 44
     },
     {
@@ -1661,7 +1661,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 45
     },
     {
@@ -1690,7 +1690,7 @@
         "ligatures": ""
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 46
     },
     {
@@ -1720,7 +1720,7 @@
         "name": "folder"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 47
     },
     {
@@ -1749,7 +1749,7 @@
         "name": "folder-download"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 48
     },
     {
@@ -1778,7 +1778,7 @@
         "name": "arrow-right11"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 49
     },
     {
@@ -1809,7 +1809,7 @@
         "code": 59392
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 50
     },
     {
@@ -1840,7 +1840,7 @@
         "name": "file-text2"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 51
     },
     {
@@ -1871,7 +1871,7 @@
         "name": "shield-notice"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 52
     },
     {
@@ -1902,7 +1902,7 @@
         "name": "pointer"
       },
       "setIdx": 2,
-      "setId": 3,
+      "setId": 7,
       "iconIdx": 53
     },
     {
@@ -1930,12 +1930,12 @@
         "prevSize": 32,
         "ligatures": "image2, picture2",
         "name": "image2",
-        "id": 60,
+        "id": 54,
         "code": 59708
       },
-      "setIdx": 3,
-      "setId": 2,
-      "iconIdx": 60
+      "setIdx": 2,
+      "setId": 7,
+      "iconIdx": 54
     },
     {
       "icon": {
@@ -1963,12 +1963,43 @@
         "prevSize": 32,
         "ligatures": "camera2, photo2",
         "name": "camera2",
-        "id": 69,
+        "id": 55,
         "code": 59717
       },
-      "setIdx": 3,
+      "setIdx": 2,
+      "setId": 7,
+      "iconIdx": 55
+    },
+    {
+      "icon": {
+        "paths": [
+          "M896 256h-192v-128c0-35.2-28.8-64-64-64h-256c-35.202 0-64 28.8-64 64v128h-192c-70.4 0-128 57.6-128 128v512c0 70.4 57.6 128 128 128h768c70.398 0 128-57.6 128-128v-512c0-70.4-57.602-128-128-128zM384 128h256v128h-256v-128zM960 896c0 35.29-28.71 64-64 64h-768c-35.29 0-64-28.71-64-64v-512c0-35.29 28.71-64 64-64h768c35.29 0 64 28.71 64 64v512z",
+          "M768 704h-192v192h-128v-192h-192v-128h192v-192h128v192h192z"
+        ],
+        "attrs": [],
+        "isMulticolor": false,
+        "isMulticolor2": false,
+        "tags": [
+          "aid-kit",
+          "health",
+          "medicine",
+          "medical"
+        ],
+        "defaultCode": 60274,
+        "grid": 16
+      },
+      "attrs": [],
+      "properties": {
+        "order": 77,
+        "prevSize": 32,
+        "ligatures": "aid-kit2, health4",
+        "name": "aid-kit2",
+        "id": 626,
+        "code": 60274
+      },
+      "setIdx": 7,
       "setId": 2,
-      "iconIdx": 69
+      "iconIdx": 626
     }
   ],
   "height": 1024,

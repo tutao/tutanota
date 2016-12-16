@@ -60,9 +60,6 @@ tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_EXTERNAL = "5";
 
 tutao.entity.tutanota.TutanotaConstants.ACCOUNT_TYPE_NAMES = ["System", "Free", "Outlook", "Premium", "Stream", "External"];
 
-tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_REGISTRATION_ALLOWED = "0";
-tutao.entity.tutanota.TutanotaConstants.REGISTRATION_STATE_CODE_CHALLENGED = "1";
-
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVED = "0";
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_REGISTRATION_APPROVAL_NEEDED = "1";
 tutao.entity.tutanota.TutanotaConstants.APPROVAL_STATUS_SEND_MAILS_APPROVED = "2";

@@ -15,10 +15,6 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	}, this, {deferEvaluation: true});
 
 	this.mailAddress = ko.observable("");
-	var address = tutao.tutanota.util.LocalStore.load('userMailAddress');
-	if (address) {
-		this.mailAddress(address);
-	}
 	this.mailAddressFieldFocused = ko.observable(false);
 	this.passphrase = ko.observable("");
 	this.passphraseFieldFocused = ko.observable(false);
@@ -36,7 +32,8 @@ tutao.tutanota.ctrl.LoginViewModel = function() {
 	}, this);
 
     this.config = new tutao.native.DeviceConfig();
-    this.autoLoginActive = false;
+    this.storedCredentials = ko.observableArray(); // all credentials from the config that shall be displayed to the user. if this array is empty the normal login form is shown
+
     this.loginFinished = ko.observable(false);
 
 };
@@ -82,18 +79,30 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
     var self = this;
-    return tutao.locator.configFacade.read().then(function (config) {
-        if (config) {
-            self.config = config;
-            if (allowAutoLogin && self.config.encryptedPassword) {
-                return self._tryAutoLogin();
-            }
+    // load the userMailAddress for taking over the last login credentials in the new config version
+    var lastLoggedInMailAddress = tutao.tutanota.util.LocalStore.load('userMailAddress');
+    if (lastLoggedInMailAddress) {
+        lastLoggedInMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(lastLoggedInMailAddress);
+    }
+    return tutao.locator.configFacade.read(lastLoggedInMailAddress).then(function (config) {
+        if (lastLoggedInMailAddress) {
+            // clean up and store new config
+            tutao.tutanota.util.LocalStore.remove('userMailAddress');
+            tutao.locator.configFacade.write(config);
         }
-        tutao.locator.viewManager.select(tutao.locator.loginView);
-        return Promise.resolve();
-    }).caught(function(e) {
-        tutao.locator.viewManager.select(tutao.locator.loginView);
-        throw e;
+        self.config = config;
+        var autoLoginPromise = null;
+        if (allowAutoLogin && self.config.getAll().length == 1) {
+            autoLoginPromise = self._tryAutoLogin(self.config.getAll()[0]);
+        } else {
+            autoLoginPromise = Promise.resolve(false);
+        }
+        return autoLoginPromise.then(function(autoLoginSuccessful) {
+            if (!autoLoginSuccessful) {
+                self.storedCredentials(self.config.getAll());
+                tutao.locator.viewManager.select(tutao.locator.loginView);
+            }
+        });
     });
 };
 
@@ -107,21 +116,29 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
  * @return {Promise.<bool>} Resolves when finished, rejected in case of exception. Returns true if the login was successful, false otherwise.
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype.login = function() {
-	var self = this;
+    var self = this;
 	if (!this.loginPossible()) {
         // should not happen login is ongoing, may happen if the login button has been clicked twice.
 		return Promise.resolve(false);
-	}
-	this.loginOngoing(true);
+    }
+    this.passphraseFieldFocused(false);
+    return this._login(self.mailAddress(), self.passphrase()).then(function(successful) {
+        if (successful) {
+            return self._storePassword().then(function () {
+                self.mailAddress("");
+                self.passphrase("");
+            });
+        }
+    });
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._login = function(mailAddress, password) {
+    var self = this;
+    this.loginOngoing(true);
     this.loginStatus({ type: "neutral", text: "login_msg" });
-	// in private browsing mode in mobile safari local storage is not available and throws an exception
-	this.passphraseFieldFocused(false);
-	tutao.tutanota.util.LocalStore.store('userMailAddress', this.mailAddress());
-	return tutao.locator.userController.loginUser(self.mailAddress(), self.passphrase()).then(function () {
-        return self._storePassword();
-    }).then(function() {
+    // in private browsing mode in mobile safari local storage is not available and throws an exception
+    return tutao.locator.userController.loginUser(mailAddress, password).then(function () {
         return self.postLoginActions().then(function() {
-            self.passphrase("");
             return true;
         });
     }).caught(tutao.AccessBlockedError, function() {
@@ -364,44 +381,78 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.createAccount = function() {
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
     var self = this;
-    // if auto login is active, the password is already stored and valid
-    if (self.storePassword()) {
+    var cleanMailAddress = tutao.tutanota.util.Formatter.getCleanedMailAddress(self.mailAddress());
+    var storedCredentials = self.config.get(cleanMailAddress);
+    if (self.geditstorePassword()) {
         var promise = null;
-        if (!self.config.deviceToken || tutao.locator.userController.getUserId() != self.config.userId) {
+        if (!storedCredentials) {
             // register the device and store the encrypted password
             var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
             var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
             deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
             promise = deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
-                self.config.deviceToken = autoLoginPostReturn.getDeviceToken();
                 var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
-                self.config.encryptedPassword = deviceEncPassword;
+                self.config.set(cleanMailAddress, tutao.locator.userController.getLoggedInUser().getId(), deviceEncPassword, autoLoginPostReturn.getDeviceToken());
             });
         } else {
             // the device is already registered, so only store the encrypted password
-            promise = self._loadDeviceKey().then(function(deviceKey) {
+            promise = self._loadDeviceKey(storedCredentials.userId, storedCredentials.deviceToken).then(function(deviceKey) {
                 var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, self.passphrase());
-                self.config.encryptedPassword = deviceEncPassword;
+                self.config.set(cleanMailAddress, tutao.locator.userController.getLoggedInUser().getId(), deviceEncPassword, storedCredentials.deviceToken);
             });
         }
         return promise.then(function () {
-            self.config.userId = tutao.locator.userController.getUserId();
             tutao.locator.configFacade.write(self.config);
         });
-    } else if (!self.autoLoginActive && !self.storePassword()) {
+    } else {
         // delete any stored password
-        if (self.config.deviceToken || self.config.encryptedPassword) {
-            new tutao.entity.sys.AutoLoginDataDelete()
-                .setDeviceToken(self.config.deviceToken).erase({}).caught(function(){
-                    // Ignore errors
-                }).lastly(function(){
-                    self.config.deviceToken = null;
-                    self.config.encryptedPassword = null;
-                    self.config.userId = null;
-                    tutao.locator.configFacade.write(self.config);
-                });
+        if (storedCredentials) {
+            return this._deleteCredentials(storedCredentials);
+        } else {
+            return Promise.resolve();
         }
-        return Promise.resolve();
+    }
+};
+
+/**
+ * Login the user before trying to delete the credentials.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype.deleteCredentials = function(credentials) {
+    var self = this;
+    self.loginOngoing(true);
+    return this._loadDeviceKey(credentials.userId, credentials.deviceToken).then(function(deviceKey) {
+        var password = null;
+        try {
+            password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, credentials.encryptedPassword);
+        } catch (e) { //tutao.tutadb.crypto.CryptoException
+            return Promise.reject(e);
+        }
+        return tutao.locator.userController.loginUser(credentials.mailAddress, password);
+    }).caught(function() {
+        // delete the local credentials even if loading the device key or login fails
+    }).lastly(function () {
+        return self._deleteCredentials(credentials).then(function () {
+            tutao.locator.userController.reset();
+            self.loginOngoing(false);
+            self.storedCredentials.remove(credentials);
+        })
+    });
+};
+
+/**
+ *
+ * @returns {bool} True if the credentials could be deleted, false otherwise.
+ */
+tutao.tutanota.ctrl.LoginViewModel.prototype._deleteCredentials = function(credentials) {
+    var self = this;
+    if (self.config.get(credentials.mailAddress)) {
+        return new tutao.entity.sys.AutoLoginDataDelete()
+            .setDeviceToken(credentials.deviceToken).erase({}).caught(function() {
+            // Ignore errors
+        }).lastly(function() {
+            self.config.delete(credentials.mailAddress);
+            tutao.locator.configFacade.write(self.config);
+        });
     } else {
         return Promise.resolve();
     }
@@ -409,34 +460,28 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._storePassword = function() {
 
 /**
  * Tries to login the user automatically.
- * @return {Promise.<>} Resolved when finished, rejected if auto login failed.
+ * @return {Promise.<bool>} True when logged in, false otherwise.
  */
-tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
+tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function(credentials) {
     var self = this;
-    if (this.config.deviceToken == null || this.config.encryptedPassword == null) {
-        return Promise.reject(new Error("no device token or password available"));
+    if (!credentials.mailAddress || !credentials.userId || !credentials.deviceToken || !credentials.encryptedPassword) {
+        console.log("invalid credentials");
+        return Promise.resolve(false);
     }
     self.loginOngoing(true);
-    return this._loadDeviceKey().then(function(deviceKey) {
+    return this._loadDeviceKey(credentials.userId, credentials.deviceToken).then(function(deviceKey) {
         var password = null;
         try {
-            password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, self.config.encryptedPassword);
+            password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, credentials.encryptedPassword);
         } catch (e) { //tutao.tutadb.crypto.CryptoException
-            return Promise.reject(e);
+            console.log("invalid credentials", e);
+            return false;
         }
-        self.loginOngoing(false); // disable shortly to allow login to start
-        self.passphrase(password);
-        self.autoLoginActive = true;
-        return self.login().then(function (successful) {
-            self.autoLoginActive = false;
-            if (!successful) {
-                tutao.locator.viewManager.select(tutao.locator.loginView);
-            }
-        });
+        return self._login(credentials.mailAddress, password);
     }).caught(tutao.NotFoundError, function (e) {
         self.loginOngoing(false);
         console.log("configured user does not exist: ", e);
-        tutao.locator.viewManager.select(tutao.locator.loginView);
+        return false;
         // suppress login error, if the user does not exist (should only occur during testing)
     });
 };
@@ -446,17 +491,35 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._tryAutoLogin = function() {
  * Loads the device key.
  * @return {Promise.<Object>} Resolves to the device key, rejected if loading the device key failed.
  */
-tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function() {
+tutao.tutanota.ctrl.LoginViewModel.prototype._loadDeviceKey = function(userId, deviceToken) {
     var params = {};
     // use the userId of the currently logged in user, if a user is logged in. If not, use the one from our config.
-    var userId = tutao.locator.userController.getUserId() ? tutao.locator.userController.getUserId() : this.config.userId;
     return tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
         .setUserId(userId)
-        .setDeviceToken(this.config.deviceToken), params, null).then(function(autoLoginDataReturn) {
+        .setDeviceToken(deviceToken), params, null).then(function(autoLoginDataReturn) {
         return tutao.util.EncodingConverter.base64ToKey(autoLoginDataReturn.getDeviceKey());
     });
 };
 
 tutao.tutanota.ctrl.LoginViewModel.showAppInfo = function() {
     return (tutao.env.mode != tutao.Mode.App) && (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_DESKTOP || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_ANDROID || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPAD || tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_IPHONE);
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype.loginOtherAccount = function() {
+    this.storedCredentials([]);
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype.loginWithStoredCredentials = function(credentials) {
+    var self = this;
+    this._tryAutoLogin(credentials).then(function(successful) {
+        if (!successful) {
+            // show the normal login view with the error message. set the login status again after it was changed when setting mail address and password
+            var loginStatus = self.loginStatus();
+            self.mailAddress(credentials.mailAddress);
+            self.passphrase("");
+            self.storePassword(true);
+            self.loginStatus(loginStatus);
+            self.storedCredentials([]);
+        }
+    });
 };

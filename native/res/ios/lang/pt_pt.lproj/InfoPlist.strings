@@ -3,3 +3,5 @@ NSPhotoLibraryUsageDescription = "Adicione uma imagem da sua biblioteca como ane
 NSMicrophoneUsageDescription = "Usado quando se grava um vídeo como anexo.";
 NSContactsUsageDescription = "Procurar endereço de email do destinatário nos contactos.";
 NSRemindersUsageDescription = "Exibe notificação quando chega um novo email.";
+TutaoShowCameraAction = "Câmara";
+TutaoChoosePhotosAction = "Fotos";
