@@ -119,8 +119,17 @@ tutao.tutanota.Bootstrap.init = function () {
 				var buttonBars = null;
 				var disabledButtonBarHeight = 0; 
 				
-				// Set an absolute body height to make the body end at the keyboard top.
-				window.addEventListener('native.keyboardshow', function (event){
+				
+				// remove the keyboard handlers before adding them again. otherwise the handlers are registered twice during log out.
+				if (tutao.tutanota.Bootstrap.keyboardShowHandler){
+					window.removeEventListener('native.keyboardshow', tutao.tutanota.Bootstrap.keyboardShowHandler);
+				}
+				
+				if (tutao.tutanota.Bootstrap.keyboardHideHandler){
+					window.removeEventListener('native.keyboardhide', tutao.tutanota.Bootstrap.keyboardHideHandler);
+				}
+				
+				tutao.tutanota.Bootstrap.keyboardShowHandler = function (event){
 					keyBoardOpenEvent = true;
 					var element = $("body");
 					var windowHeight = $(window).height();				
@@ -139,7 +148,7 @@ tutao.tutanota.Bootstrap.init = function () {
 					
 					// By default the new body size is window height - keyboad height.
 					keyBoardOpenBodyHeight = windowHeight - event.keyboardHeight + disabledButtonBarHeight;
-								
+					// Set an absolute body height to make the body end at the keyboard top.								
 					setTimeout(function(){
 						if ( element.height() != keyBoardOpenBodyHeight){
 							//element.velocity({height: keyBoardOpenBodyHeight + "px"}, { duration: 0 });
@@ -147,9 +156,9 @@ tutao.tutanota.Bootstrap.init = function () {
 						}	
 					}, 200);
 					
-				});
-			
-				window.addEventListener('native.keyboardhide', function (event){
+				};
+
+				tutao.tutanota.Bootstrap.keyboardHideHandler  = function (event){
 					var element = $("body");
 					keyBoardOpenEvent = false;
 					// avoid clipping of the button bar when switching between input fields. restore the original height first.
@@ -168,7 +177,10 @@ tutao.tutanota.Bootstrap.init = function () {
 					    	}
 					    }
 					}, 200);
-				});
+				}
+		
+				window.addEventListener('native.keyboardshow', tutao.tutanota.Bootstrap.keyboardShowHandler);				
+				window.addEventListener('native.keyboardhide', tutao.tutanota.Bootstrap.keyboardHideHandler);
 				
 				
 				StatusBar.styleDefault();
