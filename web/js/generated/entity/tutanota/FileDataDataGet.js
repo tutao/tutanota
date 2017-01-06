@@ -32,7 +32,7 @@ tutao.entity.tutanota.FileDataDataGet.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.FileDataDataGet.MODEL_VERSION = '16';
+tutao.entity.tutanota.FileDataDataGet.MODEL_VERSION = '17';
 
 /**
  * The encrypted flag.
