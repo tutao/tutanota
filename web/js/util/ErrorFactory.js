@@ -17,6 +17,7 @@ tutao.provide('tutao.ResourceError');
 tutao.provide('tutao.TechnicalError');
 tutao.provide('tutao.TooManyRequestsError');
 tutao.provide('tutao.ConnectionError');
+tutao.provide('tutao.InsufficientStorageError');
 
 tutao.util.ErrorFactory = function () {
 };
@@ -60,6 +61,8 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
             return new tutao.InternalServerError();
         case 502:
             return new tutao.BadGatewayError();
+        case 507:
+            return new tutao.InsufficientStorageError();
         default:
             return new tutao.ResourceError(errorCode + ":" + (typeof message == "string" ? message : ""));
     }
@@ -111,6 +114,7 @@ tutao.util.ErrorFactory.prototype.handleRestError = function (errorCode, message
     tutao.NotAuthorizedError = createCustomError(403, "NotAuthorizedError");
     tutao.NotFoundError = createCustomError(404, "NotFoundError");
     tutao.TooManyRequestsError = createCustomError(429, "TooManyRequestsError");
+    tutao.InsufficientStorageError = createCustomError(507, "InsufficientStorageError");
     tutao.ResourceError = createCustomError("", "ResourceError");
     tutao.ConnectionError = createCustomError("", "ConnectionError");
     tutao.InternalServerError = createCustomError("", "InternalServerError");

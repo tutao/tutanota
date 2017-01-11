@@ -366,6 +366,9 @@ tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_INTERNAL = "UsedMemo
 tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_EXTERNAL = "UsedMemoryExternalNew";
 tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY = "UsedMemoryNew";
 
+tutao.entity.tutanota.TutanotaConstants.MEMORY_GB = 1000000000;
+tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR = 0.9;
+
 tutao.entity.tutanota.TutanotaConstants.CURRENCY_SYMBOL_EUR = "€";
 
 

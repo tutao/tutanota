@@ -30,13 +30,13 @@ tutao.entity.monitor.ReadCounterReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.monitor.ReadCounterReturn.MODEL_VERSION = '3';
+tutao.entity.monitor.ReadCounterReturn.MODEL_VERSION = '4';
 
 /**
  * The url path to the resource.
  * @const
  */
-tutao.entity.monitor.ReadCounterReturn.PATH = '/rest/monitor/readcounterservice';
+tutao.entity.monitor.ReadCounterReturn.PATH = '/rest/monitor/counterservice';
 
 /**
  * The encrypted flag.
@@ -100,7 +100,7 @@ tutao.entity.monitor.ReadCounterReturn.load = function(entity, parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "3";
+  parameters["v"] = "4";
   return tutao.locator.entityRestClient.getService(tutao.entity.monitor.ReadCounterReturn, tutao.entity.monitor.ReadCounterReturn.PATH, entity, parameters, headers);
 };
 /**

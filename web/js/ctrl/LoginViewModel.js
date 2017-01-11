@@ -204,6 +204,8 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.postLoginActions = function () {
                     self._showApprovalRequestInfo().then(function() {
                         return self._showUpgradeReminder();
                     }).then(function() {
+                        return self._checkStorageLimit();
+                    }).then(function() {
                         self._getInfoMails();
                     });
                 });
@@ -298,6 +300,58 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._showUpgradeReminder = function () 
     } else {
         return Promise.resolve();
     }
+};
+
+
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._checkStorageLimit = function() {
+
+    if (tutao.locator.viewManager.isOutlookAccount()) {
+        return Promise.resolve();
+    }
+    var self = this;
+    if (tutao.locator.userController.isLoggedInUserAdmin() ) {
+        return tutao.locator.userController.getLoggedInUser().loadCustomer().then(function(customer) {
+            // load used memory
+            var usedMemory = 0;
+            return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_INTERNAL, customer.getId()).then(function(usedMemoryInternal){
+                return tutao.locator.settingsViewModel.readCounterValue(tutao.entity.tutanota.TutanotaConstants.COUNTER_USED_MEMORY_EXTERNAL, customer.getId()).then(function (usedMemoryExternal) {
+                    usedMemory = (Number(usedMemoryInternal) + Number(usedMemoryExternal));
+                })
+            }).then(function(){
+                return customer.loadCustomerInfo().then(function(customerInfo) {
+                    var includedStorage = Number(customerInfo.getIncludedStorageCapacity());
+                    var promotionStorage = Number(customerInfo.getPromotionStorageCapacity());
+                    var availableStorage = Math.max(includedStorage, promotionStorage)
+                    var bookedStorage = 0;
+                    if ( usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR) ) {
+                        if (tutao.locator.viewManager.isPremiumAccount()) {
+                            // load booked storage capacity
+                            return tutao.util.BookingUtils.getCurrentPrice().then(function (price) {
+                                var currentStorageItem = tutao.util.BookingUtils.getPriceItem(price.getCurrentPriceNextPeriod(), tutao.entity.tutanota.TutanotaConstants.BOOKING_ITEM_FEATURE_TYPE_STORAGE);
+                                if (currentStorageItem != null){
+                                    bookedStorage = Number(currentStorageItem.getCount());
+                                }
+                                availableStorage = Math.max(bookedStorage, availableStorage);
+                                if (usedMemory > (availableStorage * tutao.entity.tutanota.TutanotaConstants.MEMORY_GB * tutao.entity.tutanota.TutanotaConstants.MEMORY_WARNING_FACTOR)) {
+                                    return self._showStorageWarning();
+                                }
+                            })
+                        } else {
+                            return self._showStorageWarning();
+                        }
+                    }
+                });
+            })
+        });
+    }
+};
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._showStorageWarning = function() {
+    return tutao.tutanota.gui.alert(tutao.lang("insufficientStorageWarning_msg")).then(function(){
+        tutao.locator.navigator.settings();
+        tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE);
+    });
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype._showApprovalRequestInfo = function () {

@@ -47,6 +47,16 @@ tutao.tutanota.Bootstrap.init = function () {
                 checkForMaintenance();
             } else if (e instanceof  tutao.InvalidSoftwareVersionError) {
                 tutao.tutanota.gui.alert(tutao.lang("outdatedClient_msg"));
+            } else if (e instanceof  tutao.InsufficientStorageError) {
+                if (tutao.locator.userController.isLoggedInUserAdmin()) {
+                    tutao.tutanota.gui.alert(tutao.lang("insufficientStorageAdmin_msg")).then(function(){
+                        tutao.locator.navigator.settings();
+                        tutao.locator.settingsViewModel.show(tutao.tutanota.ctrl.SettingsViewModel.DISPLAY_ADMIN_STORAGE);
+
+                    });
+                } else {
+                    tutao.tutanota.gui.alert(tutao.lang("insufficientStorageUser_msg"));
+                }
             } else {
                 if (tutao.locator.viewManager.feedbackSupported()) {
                     // only logged in users can report errors

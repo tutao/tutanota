@@ -704,5 +704,8 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern"
+  "yesterday_label": "gestern",
+  "insufficientStorageAdmin_msg" : "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entferne Inhalte aus deinem Postfach um Speicherplatz frei zu geben oder buche ein größeres Speicherpaket.",
+  "insufficientStorageWarning_msg" : "Die der verfügbare Speicher deines Postfaches ist fast verbraucht. Entferne Inhalte aus deinem Postfach um Speicherplatz frei zu geben oder buche ein größeres Speicherpaket.",
+  "insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden.  Bitte wenden Sie sich an Ihren Administrator."
 };

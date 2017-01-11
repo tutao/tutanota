@@ -704,5 +704,8 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday"
+  "yesterday_label": "yesterday",
+  "insufficientStorageAdmin_msg" : "Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a higher storage package.",
+  "insufficientStorageWarning_msg" : "Your mailbox is reaching the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a higher storage package.",
+  "insufficientStorageUser_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please contact your administrator."
 };
