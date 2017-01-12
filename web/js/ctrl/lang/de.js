@@ -2,7 +2,7 @@ tutao.provide('tutao.tutanota.ctrl.lang.de');
 tutao.tutanota.ctrl.lang.de.writing_direction = "ltr";
 tutao.tutanota.ctrl.lang.de.id = "de";
 tutao.tutanota.ctrl.lang.de.keys = {
-  "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wenden Sie sich an Ihren Administrator.",
+  "accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
   "accountSettings_label": "Account",
   "accountSwitchAdditionalPackagesActive_msg": "Bitte deaktiviere das gebuchte Speicher- oder Alias-Paket und deaktiviere alle E-Mail-Aliasse, dann kann der Account-Typ gewechselt werden.",
   "accountSwitchTooManyActiveUsers_msg": "Bitte deaktiviere alle zusätzlichen Benutzer, dann kann der Account-Typ gewechselt werden.",
@@ -279,6 +279,9 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "inboxRuleValue_label": "Wert",
   "included_label": "Inklusive",
   "info_label": "Info",
+  "insufficientStorageAdmin_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entferne Inhalte aus deinem Postfach um Speicherplatz freizugeben oder buche ein größeres Speicherpaket.",
+  "insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Bitte wende dich an deinen Administrator.",
+  "insufficientStorageWarning_msg": "Der verfügbare Speicher deines Postfaches ist fast verbraucht. Entferne Inhalte aus deinem Postfach um Speicherplatz freizugeben oder buche ein größeres Speicherpaket.",
   "invalidAttachment_msg": "Diese E-Mail kann leider nicht mit Tutanota gesendet werden, da sie einen nicht unterstützten Anhang enthält.",
   "invalidInputFormat_msg": "Ungültiges Format.",
   "invalidLink_msg": "Leider ist dieser Link ungültig.",
@@ -639,12 +642,12 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "takeoverAccountInvalid_msg": "Die E-Mail-Adresse für die Übernahme gehört nicht einem Premium-Admin.",
   "takeoverMailAddressInfo_msg": "Optional: Gib hier die E-Mail-Adresse des Premium-Account-Admins an, der deine E-Mail-Adressen übernehmen darf.",
   "takeoverMailAddress_label": "E-Mail-Adresse für Übernahme",
-  "technicalError_msg": "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an deinen Administrator, falls der Fehler erneut auftreten sollte.",
+  "technicalError_msg": "Es ist ein technischer Fehler aufgetreten. Bitte versuchen Sie es später noch einmal. Wenden Sie sich an Ihren Administrator, falls der Fehler erneut auftreten sollte.",
   "termsAcceptedNeutral_msg": "Bitte akzeptiere die AGB.",
   "termsAndConditionsLink_label": "Allgemeine Geschäftsbedingungen",
   "termsAndConditions_label": "Ich habe die folgenden Dokumente gelesen und erkenne diese an:",
   "terms_label": "Bestätigung",
-  "testPhaseExpired_msg": "Die kostenfreie Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden. Bitte wenden Sie sich ich an Ihren Administrator.",
+  "testPhaseExpired_msg": "Die kostenfreie Testphase ist abgelaufen, daher ist das Senden von vertraulichen E-Mails deaktiviert worden. Bitte wenden Sie sich an Ihren Administrator.",
   "thanks_msg": "Vielen Dank für dein Verständnis.\nDein Team von Tutanota",
   "title_placeholder": "Titel",
   "tooBigAttachment_msg": "Die folgenden Dateien konnten nicht angehängt werden, da die Gesamtgröße 25 MB übersteigt: ",
@@ -704,8 +707,5 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "work_label": "Arbeit",
   "xing_label": "XING",
   "yearly_label": "Jährlich",
-  "yesterday_label": "gestern",
-  "insufficientStorageAdmin_msg" : "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden. Entferne Inhalte aus deinem Postfach um Speicherplatz frei zu geben oder buche ein größeres Speicherpaket.",
-  "insufficientStorageWarning_msg" : "Die der verfügbare Speicher deines Postfaches ist fast verbraucht. Entferne Inhalte aus deinem Postfach um Speicherplatz frei zu geben oder buche ein größeres Speicherpaket.",
-  "insufficientStorageUser_msg": "Der verfügbare Speicherplatz wurde verbraucht, dadurch können keine weiteren E-Mails empfangen oder gesendet werden.  Bitte wenden Sie sich an Ihren Administrator."
+  "yesterday_label": "gestern"
 };

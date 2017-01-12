@@ -344,7 +344,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._checkStorageLimit = function() {
                 });
             })
         });
-    }
+    } else {
+		return Promise.resolve();	
+	}
 };
 
 tutao.tutanota.ctrl.LoginViewModel.prototype._showStorageWarning = function() {

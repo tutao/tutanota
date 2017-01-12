@@ -149,7 +149,7 @@ tutao.tutanota.ctrl.lang.ja.keys = {
   "loading_msg": "読み込み中",
   "loginNameInfoAdmin_msg": "任意: ユーザー名",
   "login_action": "ログイン",
-  "login_msg": "ログインする。",
+  "login_msg": "ログインしています…",
   "logout_alt": "ログアウト",
   "logout_label": "ログアウト",
   "logs_label": "ログ",

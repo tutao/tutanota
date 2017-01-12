@@ -279,6 +279,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "inboxRuleValue_label": "Value",
   "included_label": "Included",
   "info_label": "Info",
+  "insufficientStorageAdmin_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
+  "insufficientStorageUser_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please contact your administrator.",
+  "insufficientStorageWarning_msg": "Your mailbox has nearly reached the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a larger storage package.",
   "invalidAttachment_msg": "This email can not be sent via Tutanota because it contains an unsupported attachment.",
   "invalidInputFormat_msg": "Invalid format.",
   "invalidLink_msg": "Sorry, this link is not valid.",
@@ -704,8 +707,5 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "work_label": "Work",
   "xing_label": "XING",
   "yearly_label": "Yearly",
-  "yesterday_label": "yesterday",
-  "insufficientStorageAdmin_msg" : "Your storage limit has been exceeded. You can no longer receive or send emails. Please free some memory by deleting content of your mailbox or upgrade to a higher storage package.",
-  "insufficientStorageWarning_msg" : "Your mailbox is reaching the storage limit. Please free some memory by deleting content of your mailbox or upgrade to a higher storage package.",
-  "insufficientStorageUser_msg": "Your storage limit has been exceeded. You can no longer receive or send emails. Please contact your administrator."
+  "yesterday_label": "yesterday"
 };
