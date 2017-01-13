@@ -676,6 +676,7 @@ tutao.tutanota.ctrl.lang.en.keys = {
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Later",
   "upgradeReminderTitle_msg": "Upgrade to Premium!",
+  "upgradeSystemWebView_msg": "Could not reach server. Either you are offline or you are running into an error in an older version of the Android System WebView. Please upgrade the Android System WebView to the latest version:",
   "upgradeToPremiumHeading_label": "Upgrade to Tutanota Premium",
   "upgradeToPremium_action": "Upgrade to Premium",
   "userColumn_label": "User",

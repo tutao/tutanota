@@ -676,6 +676,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Später",
   "upgradeReminderTitle_msg": "Wechsel zu Premium!",
+  "upgradeSystemWebView_msg": "Es konnte keine Verbindung zu Tutanota aufgebaut werden. Entweder bist du offline oder von einem Fehler in einer alten Version des Android System WebView betroffen. Bitte akutalisiere den Android System WebView auf die aktuelle Version:",
   "upgradeToPremiumHeading_label": "Auf Tutanota Premium erweitern",
   "upgradeToPremium_action": "Premium-Upgrade",
   "userColumn_label": "Benutzer",

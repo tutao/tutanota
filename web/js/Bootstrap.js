@@ -40,7 +40,11 @@ tutao.tutanota.Bootstrap.init = function () {
                         tutao.tutanota.gui.alert(tutao.lang("serverDownForMaintenance_msg"));
                     };
                     img.onerror = function() {
-                        tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+                        if (tutao.env.isAndroidApp()) {
+                            tutao.locator.modalDialogViewModel.showDialog([tutao.lang("upgradeSystemWebView_msg")], ["ok_action"] , null, "https://play.google.com/store/apps/details?id=com.google.android.webview", null);
+                        } else {
+                            tutao.tutanota.gui.alert(tutao.lang("serverNotReachable_msg"));
+                        }
                     };
                     img.src = "https://tutanota.com/images/maintenancecheck.png";
                 };

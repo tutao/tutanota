@@ -59,6 +59,10 @@ tutao.Environment.prototype.isIOSApp = function () {
     return this.mode == tutao.Mode.App && cordova.platformId == "ios";
 };
 
+tutao.Environment.prototype.isAndroidApp = function () {
+    return this.mode == tutao.Mode.App && cordova.platformId == "android";
+};
+
 
 
 
