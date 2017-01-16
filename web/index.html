@@ -584,8 +584,8 @@
 			</div>
 			<div id="searchAndMailListColumn" class="viewColumn" data-bind="with: tutao.locator.mailListViewModel">
                 <div class="actions" data-bind="template: { name: 'buttonBar-template',  data: buttonBarViewModel }"></div>
-				<div id="searchAndMailList" data-bind="swipe: handleSwipeOnElement">
-					<section id="mailList" class="list scrollable">
+				<div id="searchAndMailList">
+					<section id="mailList" class="list scrollable" data-bind="swipe: handleSwipeOnElement">
 						<div id="innerMailList" data-bind="visible: !showSpinner(), foreach: getMails(), style: { borderTopWidth: (!tutao.locator.dao.isSupported() && getMails().length > 0) ? '7px' : '0px', borderBottomWidth: (tutao.locator.dao.isSupported() || getMails().length > 0) ? '7px' : '0px' }">
 							<div class="listElement" >
 								<div class="listElementContent">

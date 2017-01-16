@@ -472,7 +472,7 @@ tutao.tutanota.gui.initKnockout = function() {
 			// store the function that shall be called when swipe done
 			bindingContext.swipeAction = ko.utils.unwrapObservable(valueAccessor());
 			if (typeof Hammer !== 'undefined') {
-				var hammertime = new Hammer($("#searchAndMailListColumn")[0]);
+				var hammertime = new Hammer(element);
 				hammertime.on("hammer.input", function(ev) {
 					var swipeLeft = ev.deltaX < 0;
 					if (ev.eventType == Hammer.INPUT_START) {
