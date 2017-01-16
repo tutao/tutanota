@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
 
-var androidVersion = "2.14.0";
+var appVersion = "2.14.0";
 
 gulp.task('default', shell.task([
     // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
@@ -73,11 +73,17 @@ gulp.task('prepareIOSLocal', shell.task([
 
 
 gulp.task('tagAndroidRelease', ['androidProdDist'], shell.task([
-        "git tag -a tutanota-android-release-" + androidVersion + " -m ''",
-        "git push origin tutanota-android-release-" + androidVersion
+        "git tag -a tutanota-android-release-" + appVersion + " -m ''",
+        "git push origin tutanota-android-release-" + appVersion
 ]));
+
+gulp.task('tagIOSRelease', shell.task([
+        "git tag -a tutanota-ios-release-" + appVersion + " -m ''",
+        "git push origin tutanota-ios-release-" + appVersion
+]));
+
 
 gulp.task('releaseAndroid', ['tagAndroidRelease'], function (cb) {
     return gulp.src('platforms/android/ant-build/Tutanota-release.apk')
-        .pipe(gulp.dest('/opt/releases/tutanota-android-' + androidVersion));
+        .pipe(gulp.dest('/opt/releases/tutanota-android-' + appVersion));
 });
