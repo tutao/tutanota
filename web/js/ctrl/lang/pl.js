@@ -513,7 +513,7 @@ tutao.tutanota.ctrl.lang.pl.keys = {
   "showAddress_alt": "Pokaż ten adres w Google Maps",
   "showAttachment_label": "Wyświetl załącznik",
   "showBlockedContent_action": "Pokaż",
-  "showContact_action": "Pokarz kontakt",
+  "showContact_action": "Pokaż kontakt",
   "showInAddressBook_alt": "Edytuj kontakt",
   "showMail_action": "Pokaż skrzynkę odbiorczą",
   "showPasswordChannelColumn_title": "Wprowadź hasło dla zewnętrznych odbiorców.",

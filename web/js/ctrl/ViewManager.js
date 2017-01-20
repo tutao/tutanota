@@ -115,7 +115,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
                     var username = tutao.locator.userController.getUserGroupInfo().getName();
                     tutao.locator.mailView.clearComposingBody(); // clear composing body to avoid signature in invitation email
                     // here we need to block external content because the content comes from the translations
-                    tutao.locator.mailView.setComposingBody(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{registrationLink}': "https://app.tutanota.de/#register", '{username}' : username, '{githubLink}':"https://github.com/tutao/tutanota"}), true);
+                    tutao.locator.mailView.setComposingBody(tutao.locator.languageViewModel.get("invitationMailBody_msg", {'{registrationLink}': "https://app.tutanota.com/#register", '{username}' : username, '{githubLink}':"https://github.com/tutao/tutanota"}), true);
                 }
             });
 
@@ -132,7 +132,7 @@ tutao.tutanota.ctrl.ViewManager.prototype._createButtons = function(external) {
                 tutao.locator.navigator.register();
             } else {
                 // open new tab
-                tutao.tutanota.gui.openLink("https://app.tutanota.de/#register");
+                tutao.tutanota.gui.openLink("https://app.tutanota.com/#register");
             }
         }, function() {
             return (external && self._externalUserLoggedIn()) || (self.getActiveView() == tutao.locator.loginView);

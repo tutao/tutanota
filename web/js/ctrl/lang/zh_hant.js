@@ -294,7 +294,7 @@ tutao.tutanota.ctrl.lang.zh_hant.keys = {
   "noSubject_msg": "送出無標題的郵件？",
   "notePassword_msg": "請小心記下密碼並提供給使用者",
   "notFound404_msg": "很抱歉，無法找到您要求的頁面。請檢查URL或點擊瀏覽器的重新整理按鈕。",
-  "notificationMailSignatureMessage_msg": "<p style=\"font-family:'Calibri',sans-serif\">您好：</p><p style=\"font-family:'Calibri',sans-serif\">我寄了一封加密郵件給您。我正在使用 <a href='https://tutanota.de/#!info'>Tutanota</a> ，在德國獲得認證的電子郵件加密服務。您可以閱讀這封郵件（以及所有已經傳送的信件），只須要點選這個連結：</p><p style=\"font-family:'Calibri',sans-serif\"><a href='{1}'>顯示郵件</a></p><p style=\"font-family:'Calibri',sans-serif\">本電子郵件乃為寄送本連結自動產生，連結會在您收到我本人下一封加密郵件之前有效。</p><p style=\"font-family:'Calibri',sans-serif\">順頌時祺<br/>{2}</p>",
+  "notificationMailSignatureMessage_msg": "<p style=\"font-family:'Calibri',sans-serif\">您好：</p><p style=\"font-family:'Calibri',sans-serif\">我寄了一封加密郵件給您。我正在使用 <a href='https://tutanota.com'>Tutanota</a> ，在德國獲得認證的電子郵件加密服務。您可以閱讀這封郵件（以及所有已經傳送的信件），只須要點選這個連結：</p><p style=\"font-family:'Calibri',sans-serif\"><a href='{1}'>顯示郵件</a></p><p style=\"font-family:'Calibri',sans-serif\">本電子郵件乃為寄送本連結自動產生，連結會在您收到我本人下一封加密郵件之前有效。</p><p style=\"font-family:'Calibri',sans-serif\">順頌時祺<br/>{2}</p>",
   "notificationMailSignatureNone_msg": "<無>",
   "notificationMailSignatureSubject_msg": "加密郵件來自 {1}",
   "notificationMailSignature_label": "簽名",

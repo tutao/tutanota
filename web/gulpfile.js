@@ -55,14 +55,18 @@ var local_compiled = "if (typeof importScripts !== 'function') {\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
-
-var prod = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.de', null, 'https://pay.tutanota.de', '" + package.version + "');\n\
+var prodGeneric = "if (typeof importScripts !== 'function') {\n\
+    tutao.env = new tutao.Environment(tutao.Env.PROD, true, location.hostname, null, 'https://' + location.hostname.replace('app', 'pay'), '" + package.version + "');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
-var test = "if (typeof importScripts !== 'function') {\n\
-    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.de', null, 'https://pay.test.tutanota.de', '" + package.version + "');\n\
+var prodCom = "if (typeof importScripts !== 'function') {\n\
+    tutao.env = new tutao.Environment(tutao.Env.PROD, true, 'app.tutanota.com', null, 'https://pay.tutanota.com', '" + package.version + "');\n\
+    tutao.tutanota.Bootstrap.init();\n\
+}\n";
+
+var testCom = "if (typeof importScripts !== 'function') {\n\
+    tutao.env = new tutao.Environment(tutao.Env.TEST, true, 'test.tutanota.com', null, 'https://pay.test.tutanota.com', '" + package.version + "');\n\
     tutao.tutanota.Bootstrap.init();\n\
 }\n";
 
@@ -353,14 +357,14 @@ gulp.task('gzip', function () {
 
 gulp.task('distCordova', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
-    env = prod;
+    env = prodCom;
     fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'concat', 'concatWorker', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
 });
 
 gulp.task('distCordovaTest', ['clean'], function (cb) {
     // does not minify and is therefore faster, used for app builds
-    env = test;
+    env = testCom;
     fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'concat', 'concatWorker', 'processHtmlCordova'], 'manifest', cb); // 'gzip'
 });
@@ -378,8 +382,16 @@ gulp.task('distLocal', ['clean'], function (cb) {
     return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'copyTerms', 'manifest', 'gzip', cb);
 });
 
+// used for building local release running against production system
 gulp.task('dist', ['clean'], function (cb) {
-    env = prod;
+    env = prodCom;
+    fs.writeFileSync("build/init.js", env);
+    return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'copyTerms', 'manifest', 'gzip', cb);
+});
+
+// used for building the release running in the browser
+gulp.task('distBrowser', ['clean'], function (cb) {
+    env = prodGeneric;
     fs.writeFileSync("build/init.js", env);
     return runSequence(['copy', 'less', 'minify', 'minifyWorker', 'processHtml', 'distPayment'], 'copyTerms', 'manifest', 'gzip', cb);
 });
@@ -389,7 +401,7 @@ gulp.task('copyRelease', function() {
         .pipe(gulp.dest('/opt/releases/' + package.name + '-' + package.version));
 });
 
-gulp.task('release', ['dist'], function (cb) {
+gulp.task('release', ['distBrowser'], function (cb) {
     return runSequence('tagRelease', 'copyRelease', cb);
 });
 

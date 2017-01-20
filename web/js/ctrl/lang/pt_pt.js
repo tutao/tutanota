@@ -676,6 +676,7 @@ tutao.tutanota.ctrl.lang.pt_pt.keys = {
   "upgradePremium_label": "Premium",
   "upgradeReminderCancel_action": "Mais tarde",
   "upgradeReminderTitle_msg": "Atualize para Premium!",
+  "upgradeSystemWebView_msg": "Não foi possível contactar o servidor. Ou está offline ou a executar uma versão antiga do Vista Web do Sistema Android. Por favor atualize o Vista Web do Sistema Android para a última versão:",
   "upgradeToPremiumHeading_label": "Atualizar para Tutanota Premium",
   "upgradeToPremium_action": "Atualizar para Premium",
   "userColumn_label": "Utilizador",

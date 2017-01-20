@@ -461,7 +461,7 @@ tutao.tutanota.ctrl.lang.zh.keys = {
   "notePassword_msg": "请谨慎记下密码并提供给使用者。",
   "notFound404_msg": "抱歉，页面未找到，请检查链接并刷新浏览器。",
   "notificationMailSendFailureBody_msg": "抱歉通知您，以下通知邮件无法投递。",
-  "notificationMailSignatureMessage_msg": "<p style=\"font-family:'Calibri',sans-serif\">你好，</p><p style=\"font-family:'Calibri',sans-serif\">我给你发送了一封机密邮件。 我使用的是 <a href='https://tutanota.de/#!info'>Tutanota</a>，它是来自德国的被认证和审查的加密邮件服务。 您可通过点击下面的链接阅读这封邮件和所有来往邮件：</p><p style=\"font-family:'Calibri',sans-serif\"><a href='{1}'>显示邮件</a></p><p style=\"font-family:'Calibri',sans-serif\">或者粘贴此链接到您的浏览器：<br>{1}<br></p><p style=\"font-family:'Calibri',sans-serif\">此邮件由系统自动生成，专为发送链接。在我给您发送新的机密邮件之前，该链接一直有效。</p><p style=\"font-family:'Calibri',sans-serif\">祝好<br/>{2}</p>",
+  "notificationMailSignatureMessage_msg": "<p style=\"font-family:'Calibri',sans-serif\">你好，</p><p style=\"font-family:'Calibri',sans-serif\">我给你发送了一封机密邮件。 我使用的是 <a href='https://tutanota.com'>Tutanota</a>，它是来自德国的被认证和审查的加密邮件服务。 您可通过点击下面的链接阅读这封邮件和所有来往邮件：</p><p style=\"font-family:'Calibri',sans-serif\"><a href='{1}'>显示邮件</a></p><p style=\"font-family:'Calibri',sans-serif\">或者粘贴此链接到您的浏览器：<br>{1}<br></p><p style=\"font-family:'Calibri',sans-serif\">此邮件由系统自动生成，专为发送链接。在我给您发送新的机密邮件之前，该链接一直有效。</p><p style=\"font-family:'Calibri',sans-serif\">祝好<br/>{2}</p>",
   "notificationMailSignatureNone_msg": "<无>",
   "notificationMailSignatureSubject_msg": "来自 {1} 的机密邮件",
   "notificationMailSignature_label": "签名",

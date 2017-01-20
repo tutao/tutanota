@@ -221,7 +221,7 @@ tutao.tutanota.ctrl.lang.ja.keys = {
   "password1Neutral_msg": "新しいパスワードを入力して下さい。",
   "passwordChannelColumnInfoMixed_msg": "",
   "passwordEnterNeutral_msg": "確認のため、あなたのパスワードを入力して下さい。",
-  "passwordImportance_msg": "安全な場所にパスワードを保存してください。すべてのデータはend-toencryptで暗号化されているためパスワードの復元及びアカウントのリセットができません",
+  "passwordImportance_msg": "安全な場所にパスワードを保存してください。すべてのデータはend-to-end encryptで暗号化されているためパスワードの復元及びアカウントのリセットができません",
   "passwords_label": "パスワード",
   "passwordTransmission_label": "パスワードの設定",
   "passwordValid_msg": "正しいパスワードです。",

@@ -166,7 +166,7 @@ tutao.tutanota.ctrl.lang.tr.keys = {
   "failedLoginsInfo_msg": "Son başarılı girişinizden bu yana başarısız giriş denemelerinin sayısı.",
   "failedLogins_label": "Başarısız giriş denemeleri",
   "fax_label": "Faks",
-  "feedbackErrorInfo_msg": "Bu mesaj, hata detayları ve tarayıcınızın tanımlama bilgileri şifrelenmiş olarak support@tutanota.de 'ye gönderildi.",
+  "feedbackErrorInfo_msg": "Bu mesaj, hata detayları ve tarayıcınızın tanımlama bilgileri şifrelenmiş olarak support@tutao.de 'ye gönderildi.",
   "feedbackLanguageInfo_msg": "Lütfen hata bildirisini, İngilizce veya Almanca olarak girin.",
   "finalDelete_action": "Sil",
   "finished_msg": "Tamamlandı.",
