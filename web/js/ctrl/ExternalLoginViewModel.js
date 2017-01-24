@@ -47,8 +47,6 @@ tutao.tutanota.ctrl.ExternalLoginViewModel = function() {
 		self.muchSpace(tutao.tutanota.gui.getWindowWidth() >= 640);
 	});
 
-	// the device token is removed locally if it is not stored on the server (any more), see setup()
-	this.deviceToken = null;
 	this.storePassword = ko.observable(false);
 	this.autoLoginActive = false;
 	
@@ -86,9 +84,10 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.resetPasswordStatus = funct
  * Initializes the view model with a set of provided parameters and retrieves the phone numbers from the server.
  * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
  * @param {String} authInfo The id of the external user and the salt as base64Url concatenated.
+ * @param {string} takeoverCredentials From app.tutanota.de to be take over by app.tutanota.com
  * @return {Promise.<>} Resolved when finished, rejected if failed.
  */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoLogin, authInfo) {
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoLogin, authInfo, takeoverCredentials) {
 	var self = this;
 	// split mailRef to get user id and salt
 	try {
@@ -104,54 +103,123 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype.setup = function(allowAutoL
 
 	// TODO (timely) show a spinner until now, switch to the view just after the data has been retrieved.
 	// call PassworChannelService to get the user id and password channels
-	return tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders()).then(function(passwordChannelReturn) {
-		if (allowAutoLogin) {
-			self.autoLoginActive = true;
-			return self._tryAutoLogin().caught(function(e) {
-                self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-                if (self.phoneNumbers().length == 1) {
-                    self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
-                } else {
-                    self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
-                }
-                tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-            }).lastly(function() {
-                self.autoLoginActive = false;
-            });
-		} else {
-			self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
-			if (self.phoneNumbers().length == 1) {
-				self.sendPasswordStatus({ type: "neutral", text: "clickNumber_msg" });
-			} else {
-				self.sendPasswordStatus({ type: "neutral", text: "chooseNumber_msg" });
-			}
-            tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-            return Promise.resolve();
-		}
-	}).caught(tutao.AccessExpiredError, function(e) {
-        self.errorMessageId("expiredLink_msg");
-        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-    }).caught(tutao.NotAuthenticatedError, function(e) {
-        self.errorMessageId("invalidLink_msg");
-        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-    }).caught(tutao.BadRequestError, function(e) {
-        self.errorMessageId("invalidLink_msg");
-        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-    }).caught(function(e) {
-        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
-        throw e;
+    return tutao.locator.configFacade.read().then(function (config) {
+        self.config = config;
+
+        if (tutao.env.isComDomain()) {
+            return self._takeOverCredentials(takeoverCredentials).then(function(loginDone){
+            	if (loginDone) {
+            		return Promise.resolve();
+				}
+                return tutao.entity.tutanota.PasswordChannelReturn.load({}, self._getAuthHeaders()).then(function (passwordChannelReturn) {
+                    if (allowAutoLogin) {
+                        self.autoLoginActive = true;
+                        return self._tryAutoLogin().caught(function (e) {
+                            self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+                            if (self.phoneNumbers().length == 1) {
+                                self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
+                            } else {
+                                self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
+                            }
+                            tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                        }).lastly(function () {
+                            self.autoLoginActive = false;
+                        });
+                    } else {
+                        self.phoneNumbers(passwordChannelReturn.getPhoneNumberChannels());
+                        if (self.phoneNumbers().length == 1) {
+                            self.sendPasswordStatus({type: "neutral", text: "clickNumber_msg"});
+                        } else {
+                            self.sendPasswordStatus({type: "neutral", text: "chooseNumber_msg"});
+                        }
+                        tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                        return Promise.resolve();
+                    }
+                }).caught(tutao.AccessExpiredError, function (e) {
+                    self.errorMessageId("expiredLink_msg");
+                    tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                }).caught(tutao.NotAuthenticatedError, function (e) {
+                    self.errorMessageId("invalidLink_msg");
+                    tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                }).caught(tutao.BadRequestError, function (e) {
+                    self.errorMessageId("invalidLink_msg");
+                    tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                }).caught(function (e) {
+                    tutao.locator.viewManager.select(tutao.locator.externalLoginView);
+                    throw e;
+                });
+			});
+        } else {
+            var deviceToken = tutao.tutanota.util.LocalStore.load('deviceToken_' + self.userId);
+            var deviceEncPassword = tutao.tutanota.util.LocalStore.load('deviceEncPassword_' + self.userId);
+            // delete old config data
+            localStorage.clear();
+            if (deviceToken && deviceEncPassword) {
+                var newConfig = new tutao.native.DeviceConfig();
+                newConfig.set(self.userId, self.userId, deviceEncPassword, deviceToken); // set user Id as mail address for external users
+                var localCredentials = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(JSON.stringify(newConfig))));
+                location.replace(tutao.env.getComHttpOrigin() + "/#mail/" + tutao.locator.navigator.mailRef() + "/" + localCredentials);
+            } else {
+                location.replace(tutao.env.getComHttpOrigin() + "/#mail/" + tutao.locator.navigator.mailRef());
+            }
+            return Promise.reject(new Error("forwarding request"));
+        }
     });
+};
+
+/**
+ * Login the user before trying to delete the credentials.
+ */
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._takeOverCredentials = function(takeoverCredentials) {
+    var self = this;
+    if (self.config.getAll().length == 0 && takeoverCredentials) {
+        try {
+            var takeoverConfig = new tutao.native.DeviceConfig(JSON.parse(tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.base64UrlToBase64(takeoverCredentials)))));
+            var credentials = takeoverConfig.get(self.userId);
+            var password = null;
+            return this._loadDeviceKey(credentials.deviceToken).then(function (deviceKey) {
+                try {
+                    password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, credentials.encryptedPassword);
+                } catch (e) { //tutao.tutadb.crypto.CryptoException
+                    return Promise.reject(e);
+                }
+                return tutao.locator.userController.loginExternalUser(credentials.userId, password, self._salt);
+            }).caught(function () {
+                // delete the local credentials even if loading the device key or login fails
+            }).lastly(function () {
+                return new tutao.entity.sys.AutoLoginDataDelete()
+                    .setDeviceToken(credentials.deviceToken).erase({}).caught(function () {
+                        // Ignore errors
+                    });
+            }).then(function(){
+                tutao.locator.userController.reset();
+                if (password){
+                	self.storePassword(true);
+                	return self._tryLogin(password).then(function(){
+                        return true;
+					});
+				} else {
+                	return false;
+				}
+			});
+        } catch (e){
+        	// ignore
+            return Promise.resolve(false);
+		}
+	} else {
+		return Promise.resolve(false);
+	}
 };
 
 /**
  * Loads the device key.
  * @return {Promise.<Object>} Resolves to the device key, rejected if loading the device key failed.
  */
-tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function() {
+tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function(deviceToken) {
 	var params = {};
 	return tutao.entity.sys.AutoLoginDataReturn.load(new tutao.entity.sys.AutoLoginDataGet()
         .setUserId(this.userId)
-        .setDeviceToken(this.deviceToken), params, null).then(function(autoLoginDataReturn) {
+        .setDeviceToken(deviceToken), params, null).then(function(autoLoginDataReturn) {
             return tutao.util.EncodingConverter.base64ToKey(autoLoginDataReturn.getDeviceKey());
 	});
 };
@@ -162,15 +230,14 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._loadDeviceKey = function()
  */
 tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryAutoLogin = function() {
 	var self = this;
-	this.deviceToken = tutao.tutanota.util.LocalStore.load('deviceToken_' + this.userId);
-	var deviceEncPassword = tutao.tutanota.util.LocalStore.load('deviceEncPassword_' + this.userId);
-	if (this.deviceToken == null || deviceEncPassword == null) {
-		return Promise.reject(new Error("no device token or password available"));
+	var credentials = self.config.get(self.userId);
+	if (!credentials) {
+		return Promise.reject(new Error("no stored credentials available"));
 	}
-	return this._loadDeviceKey().then(function(deviceKey) {
+	return self._loadDeviceKey(credentials.deviceToken).then(function (deviceKey) {
 		var password = null;
 		try {
-			password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, deviceEncPassword);
+			password = tutao.locator.aesCrypter.decryptUtf8(deviceKey, credentials.encryptedPassword);
 		} catch (e) { //tutao.tutadb.crypto.CryptoException
 			return Promise.reject(e);
 		}
@@ -326,11 +393,9 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._tryLogin = function(passwo
         self.errorMessageId("expiredLink_msg");
         tutao.locator.viewManager.select(tutao.locator.externalLoginView);
     }).caught(tutao.NotAuthenticatedError, function(e) {
-        if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)){
-            // device is not authenticated by server, so delete the device token locally
-            tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
-			tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
-            self.deviceToken = null;
+    	if (self.config.get(self.userId)) {
+            self.config.delete(self.userId);
+            tutao.locator.configFacade.write(self.config);
         }
         self.state.event("passwordInvalid");
         self.passwordStatus({ type: "invalid", text: "invalidPassword_msg" });
@@ -348,16 +413,15 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 	var self = this;
 	// if auto login is active, the password is already stored and valid
 	if (!self.autoLoginActive && self.storePassword()) {
-		if (!self.deviceToken) {
+		if (!self.config.get(self.userId)) {
 			// register the device and store the encrypted password
 			var deviceService = new tutao.entity.sys.AutoLoginDataReturn();
 			var deviceKey = tutao.locator.aesCrypter.generateRandomKey();
 			deviceService.setDeviceKey(tutao.util.EncodingConverter.keyToBase64(deviceKey));
 			return deviceService.setup({}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(autoLoginPostReturn) {
-				if (tutao.tutanota.util.LocalStore.store('deviceToken_' + self.userId, autoLoginPostReturn.getDeviceToken())) {
-					var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
-					tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
-				}
+                var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
+				self.config.set(self.userId, self.userId, deviceEncPassword, autoLoginPostReturn.getDeviceToken());
+                tutao.locator.configFacade.write(self.config);
 			}).caught(function (e) {
                 // do nothing
             });
@@ -365,21 +429,21 @@ tutao.tutanota.ctrl.ExternalLoginViewModel.prototype._storePasswordIfPossible = 
 			// the device is already registered, so only store the encrypted password
 			return self._loadDeviceKey().then(function(deviceKey) {
 				var deviceEncPassword = tutao.locator.aesCrypter.encryptUtf8(deviceKey, password);
-				tutao.tutanota.util.LocalStore.store('deviceEncPassword_' + self.userId, deviceEncPassword);
+                self.config.set(self.userId, self.userId, deviceEncPassword, self.config.get(self.userId).deviceToken);
+                tutao.locator.configFacade.write(self.config);
 			}).caught(function (e) {
                 // do nothing
             });
 		}
 	} else if (!self.autoLoginActive && !self.storePassword()) {
         // delete any stored password
-        if (tutao.tutanota.util.LocalStore.contains('deviceToken_' + self.userId)) {
-            var token = tutao.tutanota.util.LocalStore.load('deviceToken_' + self.userId);
+        if (self.config.get(self.userId)) {
             new tutao.entity.sys.AutoLoginDataDelete()
-                .setDeviceToken(token).erase({}).caught(function(){
+                .setDeviceToken(self.config.get(self.userId).deviceToken).erase({}).caught(function(){
                     // Ignore errors
                 });
-            tutao.tutanota.util.LocalStore.remove('deviceToken_' + self.userId);
-            tutao.tutanota.util.LocalStore.remove('deviceEncPassword_' + self.userId);
+            self.config.delete(self.userId);
+            tutao.locator.configFacade.write(self.config);
         }
 		return Promise.resolve();
 	} else {

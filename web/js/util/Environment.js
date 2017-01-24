@@ -63,6 +63,22 @@ tutao.Environment.prototype.isAndroidApp = function () {
     return this.mode == tutao.Mode.App && cordova.platformId == "android";
 };
 
+tutao.Environment.prototype.isComDomain = function () {
+    if (this.type == tutao.Env.LOCAL) {
+        return (this.server.match(/host$/) != null);
+    } else {
+        return (this.server.match(/tutanota.com$/) != null);
+    }
+};
 
-
-
+tutao.Environment.prototype.getComHttpOrigin = function () {
+    if (this.type == tutao.Env.LOCAL) {
+        return "http://localhost:9000";
+    } else {
+        if (this.isComDomain()) {
+            return this.getHttpOrigin();
+        } else {
+            return this.getHttpOrigin().replace("de", "com");
+        }
+    }
+};

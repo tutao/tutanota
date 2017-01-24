@@ -11,6 +11,7 @@ tutao.tutanota.ctrl.Navigator = function() {
 	this._allowAutoLogin = true; // indicates if auto login allowed. needs to be disabled if logout is clicked
     this.hash = ko.observable();
     this._viewSwitchFinishedCallback = null;
+    this._takeoverCredentials = null;
 };
 
 tutao.tutanota.ctrl.Navigator.prototype.viewSwitchFinished = function() {
@@ -157,32 +158,45 @@ tutao.tutanota.ctrl.Navigator.prototype.setup = function() {
 		}
 	});
 
-	Path.map("#login(/:force)").to(function() {
-		var force = this.params["force"];
+	Path.map("#login(/:param)").to(function() {
+		var param = this.params["param"];
         tutao.locator.navigator.mailRef(null);
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
 		}
-		// if force is set we must not call verifyClientSupported because otherwise it would set the #notSupported tag befor we reload in loginAnyway()
-		if (force || self.verifyClientSupported()) {
-            // even if a connection error is thrown we have to switch to the login view
-            tutao.locator.loginViewModel.setup(self._allowAutoLogin);
-		}
+		if (param && param != "force") {
+			self._takeoverCredentials = param;
+            // remove the credentials from the url
+            location.replace("#login");
+		} else {
+            // if force is set we must not call verifyClientSupported because otherwise it would set the #notSupported tag befor we reload in loginAnyway()
+            if (param == "force" || self.verifyClientSupported()) {
+                // even if a connection error is thrown we have to switch to the login view
+                tutao.locator.loginViewModel.setup(self._allowAutoLogin, self._takeoverCredentials);
+            }
+        }
 	});
 
 	Path.map("#notSupported").to(function() {
 		tutao.locator.viewManager.select(tutao.locator.notSupportedView);
 	});
 
-	Path.map("#mail/:mailRef").to(function() {
+	Path.map("#mail/:mailRef(/:credentials)").to(function() {
+        var credentials = this.params["credentials"];
 		if (tutao.locator.userController.isInternalUserLoggedIn() || tutao.locator.userController.isExternalUserLoggedIn()) {
 			tutao.tutanota.Bootstrap.init();
 		}
-		// the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
-		// we have to set mailRef here before calling verifyExternalClientSupported() to make sure the notSupported view knows if this is an external user
-		tutao.locator.navigator.mailRef(this.params["mailRef"]);
-		if (self.verifyExternalClientSupported()) {
-			tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, tutao.locator.navigator.mailRef());
+        if (credentials) {
+            self._takeoverCredentials = credentials;
+            // remove the credentials from the url
+            location.replace("#mail/" + this.params["mailRef"]);
+        } else {
+            // the mail reference must not be set on self, but on tutao.locator.navigator because it was replaced in Bootstrap
+            // we have to set mailRef here before calling verifyExternalClientSupported() to make sure the notSupported view knows if this is an external user
+            tutao.locator.navigator.mailRef(this.params["mailRef"]);
+            if (self.verifyExternalClientSupported()) {
+                tutao.locator.externalLoginViewModel.setup(self._allowAutoLogin, tutao.locator.navigator.mailRef(), self._takeoverCredentials);
+            }
 		}
 	});
 	

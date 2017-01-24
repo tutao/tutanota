@@ -75,9 +75,10 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setWelcomeTextId = function(id) {
 /**
  * Logs the user in, if allowAutoLogin is true and the user has stored a password. Shows the appropriate view (login or mail view if auto logged in).
  * @param {bool} allowAutoLogin Indicates if auto login is allowed (not allowed if logout was clicked)
+ * @param {string} takeoverCredentials From app.tutanota.de to be take over by app.tutanota.com
  * @return {Promise} Resolved when finished, rejected if setup fails.
  */
-tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
+tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin, takeoverCredentials) {
     var self = this;
     // load the userMailAddress for taking over the last login credentials in the new config version
     var lastLoggedInMailAddress = tutao.tutanota.util.LocalStore.load('userMailAddress');
@@ -90,20 +91,64 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.setup = function(allowAutoLogin) {
             tutao.tutanota.util.LocalStore.remove('userMailAddress');
             tutao.locator.configFacade.write(config);
         }
-        self.config = config;
-        var autoLoginPromise = null;
-        if (allowAutoLogin && self.config.getAll().length == 1) {
-            autoLoginPromise = self._tryAutoLogin(self.config.getAll()[0]);
-        } else {
-            autoLoginPromise = Promise.resolve(false);
-        }
-        return autoLoginPromise.then(function(autoLoginSuccessful) {
-            if (!autoLoginSuccessful) {
-                self.storedCredentials(self.config.getAll());
-                tutao.locator.viewManager.select(tutao.locator.loginView);
+
+        if (!tutao.env.isComDomain()) {
+            if (config.getAll().length == 0) {
+                location.replace(tutao.env.getComHttpOrigin() + "/#login");
+            } else {
+                var localCredentials = tutao.util.EncodingConverter.base64ToBase64Url(tutao.util.EncodingConverter.uint8ArrayToBase64(tutao.util.EncodingConverter.stringToUtf8Uint8Array(JSON.stringify(config))));
+                // delete old config data
+                localStorage.clear();
+                location.replace(tutao.env.getComHttpOrigin() + "/#login/" + localCredentials);
             }
-        });
+        } else {
+            self.config = config;
+            return self._takeoverCredentials(takeoverCredentials).then(function() {
+                var autoLoginPromise = null;
+                if (allowAutoLogin && self.config.getAll().length == 1) {
+                    autoLoginPromise = self._tryAutoLogin(self.config.getAll()[0]);
+                } else {
+                    autoLoginPromise = Promise.resolve(false);
+                }
+                return autoLoginPromise.then(function (autoLoginSuccessful) {
+                    if (!autoLoginSuccessful) {
+                        self.storedCredentials(self.config.getAll());
+                        tutao.locator.viewManager.select(tutao.locator.loginView);
+                    }
+                });
+            });
+        }
     });
+};
+
+
+tutao.tutanota.ctrl.LoginViewModel.prototype._takeoverCredentials = function(takeoverCredentials) {
+    var self = this;
+    if (self.config.getAll().length == 0 && takeoverCredentials) {
+        try {
+            var takeoverConfig = new tutao.native.DeviceConfig(JSON.parse(tutao.util.EncodingConverter.utf8Uint8ArrayToString(tutao.util.EncodingConverter.base64ToUint8Array(tutao.util.EncodingConverter.base64UrlToBase64(takeoverCredentials)))));
+            // create new device key for all stored credentials after switching to tutanota.com domain
+            return Promise.each(takeoverConfig.getAll(), function (c) {
+                var mailAddress = c.mailAddress;
+                return self.deleteCredentials(c).then(function(password){
+                    if(password) {
+                        return tutao.locator.userController.loginUser(mailAddress, password).then(function () {
+                            return self._createNewCredentials(mailAddress, password);
+                        }).then(function () {
+                            tutao.locator.userController.reset();
+                        });
+                    }
+                }).catch(function(e){
+                    // ignore
+                });
+            }).then(function () {
+                return tutao.locator.configFacade.write(self.config);
+            });
+        } catch (e) {
+            // ignore
+        }
+    }
+    return Promise.resolve();
 };
 
 /**
@@ -494,7 +539,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.deleteCredentials = function(creden
         } catch (e) { //tutao.tutadb.crypto.CryptoException
             return Promise.reject(e);
         }
-        return tutao.locator.userController.loginUser(credentials.mailAddress, password);
+        return tutao.locator.userController.loginUser(credentials.mailAddress, password).then(function() {
+            return password;
+        });
     }).caught(function() {
         // delete the local credentials even if loading the device key or login fails
     }).lastly(function () {
@@ -512,17 +559,13 @@ tutao.tutanota.ctrl.LoginViewModel.prototype.deleteCredentials = function(creden
  */
 tutao.tutanota.ctrl.LoginViewModel.prototype._deleteCredentials = function(credentials) {
     var self = this;
-    if (self.config.get(credentials.mailAddress)) {
-        return new tutao.entity.sys.AutoLoginDataDelete()
-            .setDeviceToken(credentials.deviceToken).erase({}).caught(function() {
-            // Ignore errors
-        }).lastly(function() {
-            self.config.delete(credentials.mailAddress);
-            tutao.locator.configFacade.write(self.config);
-        });
-    } else {
-        return Promise.resolve();
-    }
+    return new tutao.entity.sys.AutoLoginDataDelete()
+        .setDeviceToken(credentials.deviceToken).erase({}).caught(function() {
+        // Ignore errors
+    }).lastly(function() {
+        self.config.delete(credentials.mailAddress);
+        tutao.locator.configFacade.write(self.config);
+    });
 };
 
 /**
