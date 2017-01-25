@@ -133,7 +133,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._takeoverCredentials = function(tak
                 return self.deleteCredentials(c).then(function(password){
                     if(password) {
                         return tutao.locator.userController.loginUser(mailAddress, password).then(function () {
-                            return self._createNewCredentials(mailAddress, password);
+                            return self.loadEntropy().then(function() {
+                                return self._createNewCredentials(mailAddress, password);
+                            });
                         }).then(function () {
                             tutao.locator.userController.reset();
                         });
