@@ -24,6 +24,8 @@ tutao.entity.tutanota.TutanotaProperties = function(data) {
     this._noAutomaticContacts = null;
     this._noAutomaticContacts_ = null;
     this._notificationMailLanguage = null;
+    this._sendPlaintextOnly = null;
+    this._sendPlaintextOnly_ = null;
     this._imapSyncConfig = [];
     this._inboxRules = [];
     this._lastPushedMail = null;
@@ -51,6 +53,8 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
   this._noAutomaticContacts = data.noAutomaticContacts;
   this._noAutomaticContacts_ = null;
   this._notificationMailLanguage = data.notificationMailLanguage;
+  this._sendPlaintextOnly = data.sendPlaintextOnly;
+  this._sendPlaintextOnly_ = null;
   this._imapSyncConfig = [];
   for (var i=0; i < data.imapSyncConfig.length; i++) {
     this._imapSyncConfig.push(new tutao.entity.tutanota.ImapSyncConfiguration(this, data.imapSyncConfig[i]));
@@ -66,7 +70,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '17';
+tutao.entity.tutanota.TutanotaProperties.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -110,6 +114,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.toJsonData = function() {
     groupEncEntropy: this._groupEncEntropy, 
     noAutomaticContacts: this._noAutomaticContacts, 
     notificationMailLanguage: this._notificationMailLanguage, 
+    sendPlaintextOnly: this._sendPlaintextOnly, 
     imapSyncConfig: tutao.entity.EntityHelper.aggregatesToJsonData(this._imapSyncConfig), 
     inboxRules: tutao.entity.EntityHelper.aggregatesToJsonData(this._inboxRules), 
     lastPushedMail: this._lastPushedMail
@@ -350,6 +355,42 @@ tutao.entity.tutanota.TutanotaProperties.prototype.getNotificationMailLanguage =
 };
 
 /**
+ * Sets the sendPlaintextOnly of this TutanotaProperties.
+ * @param {boolean} sendPlaintextOnly The sendPlaintextOnly of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.setSendPlaintextOnly = function(sendPlaintextOnly) {
+  var dataToEncrypt = (sendPlaintextOnly) ? '1' : '0';
+  this._sendPlaintextOnly = tutao.locator.aesCrypter.encryptUtf8(this._entityHelper.getSessionKey(), dataToEncrypt);
+  this._sendPlaintextOnly_ = sendPlaintextOnly;
+  return this;
+};
+
+/**
+ * Provides the sendPlaintextOnly of this TutanotaProperties.
+ * @return {boolean} The sendPlaintextOnly of this TutanotaProperties.
+ */
+tutao.entity.tutanota.TutanotaProperties.prototype.getSendPlaintextOnly = function() {
+  if (this._sendPlaintextOnly_ != null) {
+    return this._sendPlaintextOnly_;
+  }
+  if (this._sendPlaintextOnly == "" || !this._entityHelper.getSessionKey()) {
+    return false;
+  }
+  try {
+    var value = tutao.locator.aesCrypter.decryptUtf8(this._entityHelper.getSessionKey(), this._sendPlaintextOnly);
+    this._sendPlaintextOnly_ = (value != '0');
+    return this._sendPlaintextOnly_;
+  } catch (e) {
+    if (e instanceof tutao.crypto.CryptoError) {
+      this.getEntityHelper().invalidateSessionKey();
+      return false;
+    } else {
+      throw e;
+    }
+  }
+};
+
+/**
  * Provides the imapSyncConfig of this TutanotaProperties.
  * @return {Array.<tutao.entity.tutanota.ImapSyncConfiguration>} The imapSyncConfig of this TutanotaProperties.
  */
@@ -396,7 +437,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.loadLastPushedMail = function
  * @return {Promise.<tutao.entity.tutanota.TutanotaProperties>} Resolves to the TutanotaProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, id, null, {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -407,7 +448,7 @@ tutao.entity.tutanota.TutanotaProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.TutanotaProperties>>} Resolves to an array of TutanotaProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.TutanotaProperties, tutao.entity.tutanota.TutanotaProperties.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -419,7 +460,7 @@ tutao.entity.tutanota.TutanotaProperties.loadMultiple = function(ids) {
 tutao.entity.tutanota.TutanotaProperties.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "17";
+  params["v"] = "18";
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -429,7 +470,7 @@ tutao.entity.tutanota.TutanotaProperties.prototype.updateOwnerEncSessionKey = fu
  */
 tutao.entity.tutanota.TutanotaProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.TutanotaProperties.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

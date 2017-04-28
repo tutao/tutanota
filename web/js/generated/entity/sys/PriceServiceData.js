@@ -32,7 +32,7 @@ tutao.entity.sys.PriceServiceData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PriceServiceData.MODEL_VERSION = '20';
+tutao.entity.sys.PriceServiceData.MODEL_VERSION = '21';
 
 /**
  * The encrypted flag.

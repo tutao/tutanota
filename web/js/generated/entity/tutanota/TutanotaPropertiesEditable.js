@@ -17,6 +17,7 @@ tutao.entity.tutanota.TutanotaPropertiesEditable = function(tutanotaproperties) 
 	this.groupEncEntropy = ko.observable(tutanotaproperties.getGroupEncEntropy());
 	this.noAutomaticContacts = ko.observable(tutanotaproperties.getNoAutomaticContacts());
 	this.notificationMailLanguage = ko.observable(tutanotaproperties.getNotificationMailLanguage());
+	this.sendPlaintextOnly = ko.observable(tutanotaproperties.getSendPlaintextOnly());
 	this.imapSyncConfig = ko.observableArray();
 	for (var i = 0; i < tutanotaproperties.getImapSyncConfig().length; i++) {
 		this.imapSyncConfig.push(new tutao.entity.tutanota.ImapSyncConfigurationEditable(tutanotaproperties.getImapSyncConfig()[i]));
@@ -52,6 +53,7 @@ tutao.entity.tutanota.TutanotaPropertiesEditable.prototype.update = function() {
 	this._entity.setGroupEncEntropy(this.groupEncEntropy());
 	this._entity.setNoAutomaticContacts(this.noAutomaticContacts());
 	this._entity.setNotificationMailLanguage(this.notificationMailLanguage());
+	this._entity.setSendPlaintextOnly(this.sendPlaintextOnly());
 	this._entity.getImapSyncConfig().length = 0;
 	for (var i = 0; i < this.imapSyncConfig().length; i++) {
 		this.imapSyncConfig()[i].update();

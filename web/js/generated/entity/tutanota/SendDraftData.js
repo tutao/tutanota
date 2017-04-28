@@ -14,6 +14,7 @@ tutao.entity.tutanota.SendDraftData = function(data) {
     this._bucketEncMailSessionKey = null;
     this._language = null;
     this._mailSessionKey = null;
+    this._plaintext = null;
     this._senderNameUnencrypted = null;
     this._attachmentKeyData = [];
     this._internalRecipientKeyData = [];
@@ -33,6 +34,7 @@ tutao.entity.tutanota.SendDraftData.prototype.updateData = function(data) {
   this._bucketEncMailSessionKey = data.bucketEncMailSessionKey;
   this._language = data.language;
   this._mailSessionKey = data.mailSessionKey;
+  this._plaintext = data.plaintext;
   this._senderNameUnencrypted = data.senderNameUnencrypted;
   this._attachmentKeyData = [];
   for (var i=0; i < data.attachmentKeyData.length; i++) {
@@ -53,7 +55,7 @@ tutao.entity.tutanota.SendDraftData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendDraftData.MODEL_VERSION = '17';
+tutao.entity.tutanota.SendDraftData.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -77,6 +79,7 @@ tutao.entity.tutanota.SendDraftData.prototype.toJsonData = function() {
     bucketEncMailSessionKey: this._bucketEncMailSessionKey, 
     language: this._language, 
     mailSessionKey: this._mailSessionKey, 
+    plaintext: this._plaintext, 
     senderNameUnencrypted: this._senderNameUnencrypted, 
     attachmentKeyData: tutao.entity.EntityHelper.aggregatesToJsonData(this._attachmentKeyData), 
     internalRecipientKeyData: tutao.entity.EntityHelper.aggregatesToJsonData(this._internalRecipientKeyData), 
@@ -151,6 +154,23 @@ tutao.entity.tutanota.SendDraftData.prototype.setMailSessionKey = function(mailS
  */
 tutao.entity.tutanota.SendDraftData.prototype.getMailSessionKey = function() {
   return this._mailSessionKey;
+};
+
+/**
+ * Sets the plaintext of this SendDraftData.
+ * @param {boolean} plaintext The plaintext of this SendDraftData.
+ */
+tutao.entity.tutanota.SendDraftData.prototype.setPlaintext = function(plaintext) {
+  this._plaintext = plaintext ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the plaintext of this SendDraftData.
+ * @return {boolean} The plaintext of this SendDraftData.
+ */
+tutao.entity.tutanota.SendDraftData.prototype.getPlaintext = function() {
+  return this._plaintext != '0';
 };
 
 /**
@@ -229,7 +249,7 @@ tutao.entity.tutanota.SendDraftData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "17";
+  parameters["v"] = "18";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.SendDraftData.PATH, this, parameters, headers, tutao.entity.tutanota.SendDraftReturn);
 };

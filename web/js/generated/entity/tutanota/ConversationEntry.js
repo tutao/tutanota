@@ -42,7 +42,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ConversationEntry.MODEL_VERSION = '17';
+tutao.entity.tutanota.ConversationEntry.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -234,7 +234,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.loadPrevious = function() {
  * @return {Promise.<tutao.entity.tutanota.ConversationEntry>} Resolves to the ConversationEntry or an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, id[1], id[0], {"v" : "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, id[1], id[0], {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -245,7 +245,7 @@ tutao.entity.tutanota.ConversationEntry.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.ConversationEntry>>} Resolves to an array of ConversationEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -256,7 +256,7 @@ tutao.entity.tutanota.ConversationEntry.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.ConversationEntry.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ConversationEntry.PATH, this, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.ConversationEntry.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -270,7 +270,7 @@ tutao.entity.tutanota.ConversationEntry.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.ConversationEntry>>} Resolves to an array of ConversationEntry or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.ConversationEntry.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, listId, start, count, reverse, {"v": "17"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.ConversationEntry, tutao.entity.tutanota.ConversationEntry.PATH, listId, start, count, reverse, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

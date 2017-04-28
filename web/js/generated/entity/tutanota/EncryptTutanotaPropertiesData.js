@@ -32,7 +32,7 @@ tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.updateData = funct
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.EncryptTutanotaPropertiesData.MODEL_VERSION = '17';
+tutao.entity.tutanota.EncryptTutanotaPropertiesData.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -127,7 +127,7 @@ tutao.entity.tutanota.EncryptTutanotaPropertiesData.prototype.setup = function(p
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "17";
+  parameters["v"] = "18";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.EncryptTutanotaPropertiesData.PATH, this, parameters, headers, null);
 };

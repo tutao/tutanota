@@ -14,6 +14,11 @@ tutao.entity.sys.CustomerServerPropertiesEditable = function(customerserverprope
 	for (var i = 0; i < customerserverproperties.getEmailSenderList().length; i++) {
 		this.emailSenderList.push(new tutao.entity.sys.EmailSenderListElementEditable(customerserverproperties.getEmailSenderList()[i]));
 	}
+	if (customerserverproperties.getWhitelistedDomains()) {
+		this.whitelistedDomains = ko.observable(new tutao.entity.sys.DomainsRefEditable(customerserverproperties.getWhitelistedDomains()));
+	} else {
+	    this.whitelistedDomains = ko.observable(null);
+	}
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -39,5 +44,11 @@ tutao.entity.sys.CustomerServerPropertiesEditable.prototype.update = function() 
 		this.emailSenderList()[i].update();
 		this._entity.getEmailSenderList().push(this.emailSenderList()[i].getEmailSenderListElement());
 	}
+		if (this.whitelistedDomains()) {
+			this.whitelistedDomains().update();
+			this._entity.setWhitelistedDomains(this.whitelistedDomains().getDomainsRef());
+		} else {
+			this._entity.setWhitelistedDomains(null);
+		}
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

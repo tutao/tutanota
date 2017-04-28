@@ -40,7 +40,7 @@ tutao.entity.tutanota.InitGroupData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.InitGroupData.MODEL_VERSION = '17';
+tutao.entity.tutanota.InitGroupData.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -199,7 +199,7 @@ tutao.entity.tutanota.InitGroupData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "17";
+  parameters["v"] = "18";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.InitGroupData.PATH, this, parameters, headers, null);
 };

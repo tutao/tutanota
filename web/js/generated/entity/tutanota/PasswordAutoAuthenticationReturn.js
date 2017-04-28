@@ -28,7 +28,7 @@ tutao.entity.tutanota.PasswordAutoAuthenticationReturn.prototype.updateData = fu
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.PasswordAutoAuthenticationReturn.MODEL_VERSION = '17';
+tutao.entity.tutanota.PasswordAutoAuthenticationReturn.MODEL_VERSION = '18';
 
 /**
  * The url path to the resource.
@@ -79,7 +79,7 @@ tutao.entity.tutanota.PasswordAutoAuthenticationReturn.load = function(parameter
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "17";
+  parameters["v"] = "18";
   return tutao.locator.entityRestClient.getService(tutao.entity.tutanota.PasswordAutoAuthenticationReturn, tutao.entity.tutanota.PasswordAutoAuthenticationReturn.PATH, null, parameters, headers);
 };
 /**
