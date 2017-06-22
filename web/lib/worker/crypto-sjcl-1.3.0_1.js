@@ -506,7 +506,10 @@ sjcl.codec.utf8String = {
       if ((i&3) === 0) {
         tmp = arr[i/4];
       }
-      out += String.fromCharCode(tmp >>> 24);
+      // TUTAO: workaround for AOSP WebView on LineageOS Devices
+      var charCode = tmp >>> 24
+      out += String.fromCharCode(Number(String(charCode)));
+      //console.log("charCode", charCode.toString(2), (charCode >>> 0).toString(2), charCode == 108, "tmp", "typeOf", typeof charCode, tmp, "out", out)
       tmp <<= 8;
     }
     return decodeURIComponent(escape(out));
