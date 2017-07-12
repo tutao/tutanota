@@ -10,6 +10,7 @@ tutao.provide('tutao.entity.sys.CustomerServerPropertiesEditable');
 tutao.entity.sys.CustomerServerPropertiesEditable = function(customerserverproperties) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = customerserverproperties;
+	this.requirePasswordUpdateAfterReset = ko.observable(customerserverproperties.getRequirePasswordUpdateAfterReset());
 	this.emailSenderList = ko.observableArray();
 	for (var i = 0; i < customerserverproperties.getEmailSenderList().length; i++) {
 		this.emailSenderList.push(new tutao.entity.sys.EmailSenderListElementEditable(customerserverproperties.getEmailSenderList()[i]));
@@ -39,6 +40,7 @@ tutao.entity.sys.CustomerServerPropertiesEditable.prototype.getCustomerServerPro
  * Updates the underlying CustomerServerProperties with the modified attributes.
  */
 tutao.entity.sys.CustomerServerPropertiesEditable.prototype.update = function() {
+	this._entity.setRequirePasswordUpdateAfterReset(this.requirePasswordUpdateAfterReset());
 	this._entity.getEmailSenderList().length = 0;
 	for (var i = 0; i < this.emailSenderList().length; i++) {
 		this.emailSenderList()[i].update();

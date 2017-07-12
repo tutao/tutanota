@@ -38,7 +38,7 @@ tutao.entity.sys.ExternalUserReference.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ExternalUserReference.MODEL_VERSION = '21';
+tutao.entity.sys.ExternalUserReference.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -202,7 +202,7 @@ tutao.entity.sys.ExternalUserReference.prototype.loadUserGroup = function() {
  * @return {Promise.<tutao.entity.sys.ExternalUserReference>} Resolves to the ExternalUserReference or an exception if the loading failed.
  */
 tutao.entity.sys.ExternalUserReference.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, id[1], id[0], {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, id[1], id[0], {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -213,7 +213,7 @@ tutao.entity.sys.ExternalUserReference.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.ExternalUserReference>>} Resolves to an array of ExternalUserReference or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.ExternalUserReference.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -224,7 +224,7 @@ tutao.entity.sys.ExternalUserReference.loadMultiple = function(ids) {
  */
 tutao.entity.sys.ExternalUserReference.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.ExternalUserReference.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.ExternalUserReference.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -238,7 +238,7 @@ tutao.entity.sys.ExternalUserReference.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.ExternalUserReference>>} Resolves to an array of ExternalUserReference or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.ExternalUserReference.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, listId, start, count, reverse, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.ExternalUserReference, tutao.entity.sys.ExternalUserReference.PATH, listId, start, count, reverse, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

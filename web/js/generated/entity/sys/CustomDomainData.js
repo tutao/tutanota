@@ -12,7 +12,7 @@ tutao.entity.sys.CustomDomainData = function(data) {
   } else {
     this.__format = "0";
     this._domain = null;
-    this._catchAllUserGroup = null;
+    this._catchAllMailGroup = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.CustomDomainData.prototype;
@@ -25,14 +25,14 @@ tutao.entity.sys.CustomDomainData = function(data) {
 tutao.entity.sys.CustomDomainData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._domain = data.domain;
-  this._catchAllUserGroup = data.catchAllUserGroup;
+  this._catchAllMailGroup = data.catchAllMailGroup;
 };
 
 /**
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomDomainData.MODEL_VERSION = '21';
+tutao.entity.sys.CustomDomainData.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -54,7 +54,7 @@ tutao.entity.sys.CustomDomainData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     domain: this._domain, 
-    catchAllUserGroup: this._catchAllUserGroup
+    catchAllMailGroup: this._catchAllMailGroup
   };
 };
 
@@ -93,28 +93,28 @@ tutao.entity.sys.CustomDomainData.prototype.getDomain = function() {
 };
 
 /**
- * Sets the catchAllUserGroup of this CustomDomainData.
- * @param {string} catchAllUserGroup The catchAllUserGroup of this CustomDomainData.
+ * Sets the catchAllMailGroup of this CustomDomainData.
+ * @param {string} catchAllMailGroup The catchAllMailGroup of this CustomDomainData.
  */
-tutao.entity.sys.CustomDomainData.prototype.setCatchAllUserGroup = function(catchAllUserGroup) {
-  this._catchAllUserGroup = catchAllUserGroup;
+tutao.entity.sys.CustomDomainData.prototype.setCatchAllMailGroup = function(catchAllMailGroup) {
+  this._catchAllMailGroup = catchAllMailGroup;
   return this;
 };
 
 /**
- * Provides the catchAllUserGroup of this CustomDomainData.
- * @return {string} The catchAllUserGroup of this CustomDomainData.
+ * Provides the catchAllMailGroup of this CustomDomainData.
+ * @return {string} The catchAllMailGroup of this CustomDomainData.
  */
-tutao.entity.sys.CustomDomainData.prototype.getCatchAllUserGroup = function() {
-  return this._catchAllUserGroup;
+tutao.entity.sys.CustomDomainData.prototype.getCatchAllMailGroup = function() {
+  return this._catchAllMailGroup;
 };
 
 /**
- * Loads the catchAllUserGroup of this CustomDomainData.
- * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded catchAllUserGroup of this CustomDomainData or an exception if the loading failed.
+ * Loads the catchAllMailGroup of this CustomDomainData.
+ * @return {Promise.<tutao.entity.sys.Group>} Resolves to the loaded catchAllMailGroup of this CustomDomainData or an exception if the loading failed.
  */
-tutao.entity.sys.CustomDomainData.prototype.loadCatchAllUserGroup = function() {
-  return tutao.entity.sys.Group.load(this._catchAllUserGroup);
+tutao.entity.sys.CustomDomainData.prototype.loadCatchAllMailGroup = function() {
+  return tutao.entity.sys.Group.load(this._catchAllMailGroup);
 };
 
 /**
@@ -127,7 +127,7 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "21";
+  parameters["v"] = "22";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
 };
@@ -142,7 +142,7 @@ tutao.entity.sys.CustomDomainData.prototype.update = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "21";
+  parameters["v"] = "22";
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };
 
@@ -156,7 +156,7 @@ tutao.entity.sys.CustomDomainData.prototype.erase = function(parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "21";
+  parameters["v"] = "22";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };

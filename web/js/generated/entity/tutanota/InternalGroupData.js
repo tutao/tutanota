@@ -13,7 +13,7 @@ tutao.entity.tutanota.InternalGroupData = function(parent, data) {
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
     this._adminEncGroupKey = null;
-    this._customerEncGroupInfoSessionKey = null;
+    this._ownerEncGroupInfoSessionKey = null;
     this._groupEncPrivateKey = null;
     this._publicKey = null;
   }
@@ -29,7 +29,7 @@ tutao.entity.tutanota.InternalGroupData = function(parent, data) {
 tutao.entity.tutanota.InternalGroupData.prototype.updateData = function(parent, data) {
   this.__id = data._id;
   this._adminEncGroupKey = data.adminEncGroupKey;
-  this._customerEncGroupInfoSessionKey = data.customerEncGroupInfoSessionKey;
+  this._ownerEncGroupInfoSessionKey = data.ownerEncGroupInfoSessionKey;
   this._groupEncPrivateKey = data.groupEncPrivateKey;
   this._publicKey = data.publicKey;
 };
@@ -42,7 +42,7 @@ tutao.entity.tutanota.InternalGroupData.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
     adminEncGroupKey: this._adminEncGroupKey, 
-    customerEncGroupInfoSessionKey: this._customerEncGroupInfoSessionKey, 
+    ownerEncGroupInfoSessionKey: this._ownerEncGroupInfoSessionKey, 
     groupEncPrivateKey: this._groupEncPrivateKey, 
     publicKey: this._publicKey
   };
@@ -83,20 +83,20 @@ tutao.entity.tutanota.InternalGroupData.prototype.getAdminEncGroupKey = function
 };
 
 /**
- * Sets the customerEncGroupInfoSessionKey of this InternalGroupData.
- * @param {string} customerEncGroupInfoSessionKey The customerEncGroupInfoSessionKey of this InternalGroupData.
+ * Sets the ownerEncGroupInfoSessionKey of this InternalGroupData.
+ * @param {string} ownerEncGroupInfoSessionKey The ownerEncGroupInfoSessionKey of this InternalGroupData.
  */
-tutao.entity.tutanota.InternalGroupData.prototype.setCustomerEncGroupInfoSessionKey = function(customerEncGroupInfoSessionKey) {
-  this._customerEncGroupInfoSessionKey = customerEncGroupInfoSessionKey;
+tutao.entity.tutanota.InternalGroupData.prototype.setOwnerEncGroupInfoSessionKey = function(ownerEncGroupInfoSessionKey) {
+  this._ownerEncGroupInfoSessionKey = ownerEncGroupInfoSessionKey;
   return this;
 };
 
 /**
- * Provides the customerEncGroupInfoSessionKey of this InternalGroupData.
- * @return {string} The customerEncGroupInfoSessionKey of this InternalGroupData.
+ * Provides the ownerEncGroupInfoSessionKey of this InternalGroupData.
+ * @return {string} The ownerEncGroupInfoSessionKey of this InternalGroupData.
  */
-tutao.entity.tutanota.InternalGroupData.prototype.getCustomerEncGroupInfoSessionKey = function() {
-  return this._customerEncGroupInfoSessionKey;
+tutao.entity.tutanota.InternalGroupData.prototype.getOwnerEncGroupInfoSessionKey = function() {
+  return this._ownerEncGroupInfoSessionKey;
 };
 
 /**

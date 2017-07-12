@@ -15,6 +15,7 @@ tutao.entity.sys.CustomerServerProperties = function(data) {
     this.__ownerEncSessionKey = null;
     this.__ownerGroup = null;
     this.__permissions = null;
+    this._requirePasswordUpdateAfterReset = null;
     this._emailSenderList = [];
     this._whitelistedDomains = null;
   }
@@ -32,6 +33,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateData = function(data) 
   this.__ownerEncSessionKey = data._ownerEncSessionKey;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
+  this._requirePasswordUpdateAfterReset = data.requirePasswordUpdateAfterReset;
   this._emailSenderList = [];
   for (var i=0; i < data.emailSenderList.length; i++) {
     this._emailSenderList.push(new tutao.entity.sys.EmailSenderListElement(this, data.emailSenderList[i]));
@@ -43,7 +45,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateData = function(data) 
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '21';
+tutao.entity.sys.CustomerServerProperties.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -80,6 +82,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.toJsonData = function() {
     _ownerEncSessionKey: this.__ownerEncSessionKey, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
+    requirePasswordUpdateAfterReset: this._requirePasswordUpdateAfterReset, 
     emailSenderList: tutao.entity.EntityHelper.aggregatesToJsonData(this._emailSenderList), 
     whitelistedDomains: tutao.entity.EntityHelper.aggregatesToJsonData(this._whitelistedDomains)
   };
@@ -162,6 +165,23 @@ tutao.entity.sys.CustomerServerProperties.prototype.getPermissions = function() 
 };
 
 /**
+ * Sets the requirePasswordUpdateAfterReset of this CustomerServerProperties.
+ * @param {boolean} requirePasswordUpdateAfterReset The requirePasswordUpdateAfterReset of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.setRequirePasswordUpdateAfterReset = function(requirePasswordUpdateAfterReset) {
+  this._requirePasswordUpdateAfterReset = requirePasswordUpdateAfterReset ? '1' : '0';
+  return this;
+};
+
+/**
+ * Provides the requirePasswordUpdateAfterReset of this CustomerServerProperties.
+ * @return {boolean} The requirePasswordUpdateAfterReset of this CustomerServerProperties.
+ */
+tutao.entity.sys.CustomerServerProperties.prototype.getRequirePasswordUpdateAfterReset = function() {
+  return this._requirePasswordUpdateAfterReset != '0';
+};
+
+/**
  * Provides the emailSenderList of this CustomerServerProperties.
  * @return {Array.<tutao.entity.sys.EmailSenderListElement>} The emailSenderList of this CustomerServerProperties.
  */
@@ -192,7 +212,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.getWhitelistedDomains = func
  * @return {Promise.<tutao.entity.sys.CustomerServerProperties>} Resolves to the CustomerServerProperties or an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, id, null, {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -203,7 +223,7 @@ tutao.entity.sys.CustomerServerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.CustomerServerProperties>>} Resolves to an array of CustomerServerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.CustomerServerProperties, tutao.entity.sys.CustomerServerProperties.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -215,7 +235,7 @@ tutao.entity.sys.CustomerServerProperties.loadMultiple = function(ids) {
 tutao.entity.sys.CustomerServerProperties.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "21";
+  params["v"] = "22";
   return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -225,7 +245,7 @@ tutao.entity.sys.CustomerServerProperties.prototype.updateOwnerEncSessionKey = f
  */
 tutao.entity.sys.CustomerServerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.CustomerServerProperties.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

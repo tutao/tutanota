@@ -19,6 +19,9 @@ tutao.entity.sys.Customer = function(data) {
     this._type = null;
     this._adminGroup = null;
     this._adminGroups = null;
+    this._auditLog = null;
+    this._contactFormUserAreaGroups = null;
+    this._contactFormUserGroups = null;
     this._customerGroup = null;
     this._customerGroups = null;
     this._customerInfo = null;
@@ -46,6 +49,9 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
   this._type = data.type;
   this._adminGroup = data.adminGroup;
   this._adminGroups = data.adminGroups;
+  this._auditLog = (data.auditLog) ? new tutao.entity.sys.AuditLogRef(this, data.auditLog) : null;
+  this._contactFormUserAreaGroups = (data.contactFormUserAreaGroups) ? new tutao.entity.sys.UserAreaGroups(this, data.contactFormUserAreaGroups) : null;
+  this._contactFormUserGroups = (data.contactFormUserGroups) ? new tutao.entity.sys.UserAreaGroups(this, data.contactFormUserGroups) : null;
   this._customerGroup = data.customerGroup;
   this._customerGroups = data.customerGroups;
   this._customerInfo = data.customerInfo;
@@ -60,7 +66,7 @@ tutao.entity.sys.Customer.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Customer.MODEL_VERSION = '21';
+tutao.entity.sys.Customer.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -101,6 +107,9 @@ tutao.entity.sys.Customer.prototype.toJsonData = function() {
     type: this._type, 
     adminGroup: this._adminGroup, 
     adminGroups: this._adminGroups, 
+    auditLog: tutao.entity.EntityHelper.aggregatesToJsonData(this._auditLog), 
+    contactFormUserAreaGroups: tutao.entity.EntityHelper.aggregatesToJsonData(this._contactFormUserAreaGroups), 
+    contactFormUserGroups: tutao.entity.EntityHelper.aggregatesToJsonData(this._contactFormUserGroups), 
     customerGroup: this._customerGroup, 
     customerGroups: this._customerGroups, 
     customerInfo: this._customerInfo, 
@@ -262,6 +271,57 @@ tutao.entity.sys.Customer.prototype.setAdminGroups = function(adminGroups) {
  */
 tutao.entity.sys.Customer.prototype.getAdminGroups = function() {
   return this._adminGroups;
+};
+
+/**
+ * Sets the auditLog of this Customer.
+ * @param {tutao.entity.sys.AuditLogRef} auditLog The auditLog of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setAuditLog = function(auditLog) {
+  this._auditLog = auditLog;
+  return this;
+};
+
+/**
+ * Provides the auditLog of this Customer.
+ * @return {tutao.entity.sys.AuditLogRef} The auditLog of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getAuditLog = function() {
+  return this._auditLog;
+};
+
+/**
+ * Sets the contactFormUserAreaGroups of this Customer.
+ * @param {tutao.entity.sys.UserAreaGroups} contactFormUserAreaGroups The contactFormUserAreaGroups of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setContactFormUserAreaGroups = function(contactFormUserAreaGroups) {
+  this._contactFormUserAreaGroups = contactFormUserAreaGroups;
+  return this;
+};
+
+/**
+ * Provides the contactFormUserAreaGroups of this Customer.
+ * @return {tutao.entity.sys.UserAreaGroups} The contactFormUserAreaGroups of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getContactFormUserAreaGroups = function() {
+  return this._contactFormUserAreaGroups;
+};
+
+/**
+ * Sets the contactFormUserGroups of this Customer.
+ * @param {tutao.entity.sys.UserAreaGroups} contactFormUserGroups The contactFormUserGroups of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.setContactFormUserGroups = function(contactFormUserGroups) {
+  this._contactFormUserGroups = contactFormUserGroups;
+  return this;
+};
+
+/**
+ * Provides the contactFormUserGroups of this Customer.
+ * @return {tutao.entity.sys.UserAreaGroups} The contactFormUserGroups of this Customer.
+ */
+tutao.entity.sys.Customer.prototype.getContactFormUserGroups = function() {
+  return this._contactFormUserGroups;
 };
 
 /**
@@ -438,7 +498,7 @@ tutao.entity.sys.Customer.prototype.getUserGroups = function() {
  * @return {Promise.<tutao.entity.sys.Customer>} Resolves to the Customer or an exception if the loading failed.
  */
 tutao.entity.sys.Customer.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, id, null, {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -449,7 +509,7 @@ tutao.entity.sys.Customer.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Customer>>} Resolves to an array of Customer or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Customer.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Customer, tutao.entity.sys.Customer.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -460,7 +520,7 @@ tutao.entity.sys.Customer.loadMultiple = function(ids) {
  */
 tutao.entity.sys.Customer.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Customer.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

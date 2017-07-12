@@ -40,7 +40,7 @@ tutao.entity.sys.GroupRoot.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.GroupRoot.MODEL_VERSION = '21';
+tutao.entity.sys.GroupRoot.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -198,7 +198,7 @@ tutao.entity.sys.GroupRoot.prototype.getExternalUserReferences = function() {
  * @return {Promise.<tutao.entity.sys.GroupRoot>} Resolves to the GroupRoot or an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, id, null, {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -209,7 +209,7 @@ tutao.entity.sys.GroupRoot.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.GroupRoot>>} Resolves to an array of GroupRoot or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.GroupRoot.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.GroupRoot, tutao.entity.sys.GroupRoot.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -220,7 +220,7 @@ tutao.entity.sys.GroupRoot.loadMultiple = function(ids) {
  */
 tutao.entity.sys.GroupRoot.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupRoot.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.GroupRoot.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

@@ -11,9 +11,12 @@ tutao.entity.sys.DomainInfoEditable = function(domaininfo) {
 	tutao.util.FunctionUtils.bindPrototypeMethodsToThis(this);
 	this._entity = domaininfo;
 	this._id = ko.observable(domaininfo.getId());
+	this.certificateExpiryDate = ko.observable(domaininfo.getCertificateExpiryDate());
 	this.domain = ko.observable(domaininfo.getDomain());
 	this.validatedMxRecord = ko.observable(domaininfo.getValidatedMxRecord());
-	this.catchAllUserGroup = ko.observable(domaininfo.getCatchAllUserGroup());
+	this.catchAllMailGroup = ko.observable(domaininfo.getCatchAllMailGroup());
+	this.certificate = ko.observable(domaininfo.getCertificate());
+	this.theme = ko.observable(domaininfo.getTheme());
 
 	this.lastUpdatedTimestamp = ko.observable(null);
 
@@ -35,8 +38,11 @@ tutao.entity.sys.DomainInfoEditable.prototype.getDomainInfo = function() {
  */
 tutao.entity.sys.DomainInfoEditable.prototype.update = function() {
 	this._entity.setId(this._id());
+	this._entity.setCertificateExpiryDate(this.certificateExpiryDate());
 	this._entity.setDomain(this.domain());
 	this._entity.setValidatedMxRecord(this.validatedMxRecord());
-	this._entity.setCatchAllUserGroup(this.catchAllUserGroup());
+	this._entity.setCatchAllMailGroup(this.catchAllMailGroup());
+	this._entity.setCertificate(this.certificate());
+	this._entity.setTheme(this.theme());
 	this.lastUpdatedTimestamp(new Date().getTime());
 };

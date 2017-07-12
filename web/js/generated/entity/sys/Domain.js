@@ -34,7 +34,7 @@ tutao.entity.sys.Domain.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.Domain.MODEL_VERSION = '21';
+tutao.entity.sys.Domain.MODEL_VERSION = '22';
 
 /**
  * The url path to the resource.
@@ -146,7 +146,7 @@ tutao.entity.sys.Domain.prototype.getPermissions = function() {
  * @return {Promise.<tutao.entity.sys.Domain>} Resolves to the Domain or an exception if the loading failed.
  */
 tutao.entity.sys.Domain.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, id[1], id[0], {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, id[1], id[0], {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -157,7 +157,7 @@ tutao.entity.sys.Domain.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.Domain>>} Resolves to an array of Domain or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Domain.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -168,7 +168,7 @@ tutao.entity.sys.Domain.loadMultiple = function(ids) {
  */
 tutao.entity.sys.Domain.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Domain.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.Domain.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -182,7 +182,7 @@ tutao.entity.sys.Domain.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.Domain>>} Resolves to an array of Domain or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.Domain.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, listId, start, count, reverse, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.Domain, tutao.entity.sys.Domain.PATH, listId, start, count, reverse, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

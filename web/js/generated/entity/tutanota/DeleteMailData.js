@@ -11,6 +11,7 @@ tutao.entity.tutanota.DeleteMailData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
+    this._folder = null;
     this._mails = [];
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -23,6 +24,7 @@ tutao.entity.tutanota.DeleteMailData = function(data) {
  */
 tutao.entity.tutanota.DeleteMailData.prototype.updateData = function(data) {
   this.__format = data._format;
+  this._folder = data.folder;
   this._mails = data.mails;
 };
 
@@ -30,7 +32,7 @@ tutao.entity.tutanota.DeleteMailData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.DeleteMailData.MODEL_VERSION = '18';
+tutao.entity.tutanota.DeleteMailData.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -51,6 +53,7 @@ tutao.entity.tutanota.DeleteMailData.prototype.ENCRYPTED = false;
 tutao.entity.tutanota.DeleteMailData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
+    folder: this._folder, 
     mails: this._mails
   };
 };
@@ -73,6 +76,31 @@ tutao.entity.tutanota.DeleteMailData.prototype.getFormat = function() {
 };
 
 /**
+ * Sets the folder of this DeleteMailData.
+ * @param {Array.<string>} folder The folder of this DeleteMailData.
+ */
+tutao.entity.tutanota.DeleteMailData.prototype.setFolder = function(folder) {
+  this._folder = folder;
+  return this;
+};
+
+/**
+ * Provides the folder of this DeleteMailData.
+ * @return {Array.<string>} The folder of this DeleteMailData.
+ */
+tutao.entity.tutanota.DeleteMailData.prototype.getFolder = function() {
+  return this._folder;
+};
+
+/**
+ * Loads the folder of this DeleteMailData.
+ * @return {Promise.<tutao.entity.tutanota.MailFolder>} Resolves to the loaded folder of this DeleteMailData or an exception if the loading failed.
+ */
+tutao.entity.tutanota.DeleteMailData.prototype.loadFolder = function() {
+  return tutao.entity.tutanota.MailFolder.load(this._folder);
+};
+
+/**
  * Provides the mails of this DeleteMailData.
  * @return {Array.<Array.<string>>} The mails of this DeleteMailData.
  */
@@ -90,7 +118,7 @@ tutao.entity.tutanota.DeleteMailData.prototype.erase = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "18";
+  parameters["v"] = "20";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.tutanota.DeleteMailData.PATH, this, parameters, headers, null);
 };

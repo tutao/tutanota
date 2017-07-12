@@ -37,6 +37,7 @@ tutao.entity.tutanota.Mail = function(data) {
     this._conversationEntry = null;
     this._headers = null;
     this._replyTos = [];
+    this._restrictions = null;
     this._sender = null;
     this._toRecipients = [];
   }
@@ -85,6 +86,7 @@ tutao.entity.tutanota.Mail.prototype.updateData = function(data) {
   for (var i=0; i < data.replyTos.length; i++) {
     this._replyTos.push(new tutao.entity.tutanota.EncryptedMailAddress(this, data.replyTos[i]));
   }
+  this._restrictions = (data.restrictions) ? new tutao.entity.tutanota.MailRestriction(this, data.restrictions) : null;
   this._sender = (data.sender) ? new tutao.entity.tutanota.MailAddress(this, data.sender) : null;
   this._toRecipients = [];
   for (var i=0; i < data.toRecipients.length; i++) {
@@ -96,7 +98,7 @@ tutao.entity.tutanota.Mail.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.Mail.MODEL_VERSION = '18';
+tutao.entity.tutanota.Mail.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -151,6 +153,7 @@ tutao.entity.tutanota.Mail.prototype.toJsonData = function() {
     conversationEntry: this._conversationEntry, 
     headers: this._headers, 
     replyTos: tutao.entity.EntityHelper.aggregatesToJsonData(this._replyTos), 
+    restrictions: tutao.entity.EntityHelper.aggregatesToJsonData(this._restrictions), 
     sender: tutao.entity.EntityHelper.aggregatesToJsonData(this._sender), 
     toRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._toRecipients)
   };
@@ -614,6 +617,23 @@ tutao.entity.tutanota.Mail.prototype.getReplyTos = function() {
 };
 
 /**
+ * Sets the restrictions of this Mail.
+ * @param {tutao.entity.tutanota.MailRestriction} restrictions The restrictions of this Mail.
+ */
+tutao.entity.tutanota.Mail.prototype.setRestrictions = function(restrictions) {
+  this._restrictions = restrictions;
+  return this;
+};
+
+/**
+ * Provides the restrictions of this Mail.
+ * @return {tutao.entity.tutanota.MailRestriction} The restrictions of this Mail.
+ */
+tutao.entity.tutanota.Mail.prototype.getRestrictions = function() {
+  return this._restrictions;
+};
+
+/**
  * Sets the sender of this Mail.
  * @param {tutao.entity.tutanota.MailAddress} sender The sender of this Mail.
  */
@@ -644,7 +664,7 @@ tutao.entity.tutanota.Mail.prototype.getToRecipients = function() {
  * @return {Promise.<tutao.entity.tutanota.Mail>} Resolves to the Mail or an exception if the loading failed.
  */
 tutao.entity.tutanota.Mail.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, id[1], id[0], {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, id[1], id[0], {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity._entityHelper.loadSessionKey();
   });
 };
@@ -655,7 +675,7 @@ tutao.entity.tutanota.Mail.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.Mail>>} Resolves to an array of Mail or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.Mail.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };
@@ -667,7 +687,7 @@ tutao.entity.tutanota.Mail.loadMultiple = function(ids) {
 tutao.entity.tutanota.Mail.prototype.updateOwnerEncSessionKey = function() {
   var params = {};
   params[tutao.rest.ResourceConstants.UPDATE_OWNER_ENC_SESSION_KEY] = "true";
-  params["v"] = "18";
+  params["v"] = "20";
   return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, this, params, tutao.entity.EntityHelper.createAuthHeaders());
 };
 
@@ -677,7 +697,7 @@ tutao.entity.tutanota.Mail.prototype.updateOwnerEncSessionKey = function() {
  */
 tutao.entity.tutanota.Mail.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.Mail.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -691,7 +711,7 @@ tutao.entity.tutanota.Mail.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.Mail>>} Resolves to an array of Mail or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.Mail.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, listId, start, count, reverse, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.Mail, tutao.entity.tutanota.Mail.PATH, listId, start, count, reverse, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return tutao.entity.EntityHelper.loadSessionKeys(entities);
   });
 };

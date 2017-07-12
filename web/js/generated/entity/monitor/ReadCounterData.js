@@ -32,7 +32,7 @@ tutao.entity.monitor.ReadCounterData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.monitor.ReadCounterData.MODEL_VERSION = '4';
+tutao.entity.monitor.ReadCounterData.MODEL_VERSION = '5';
 
 /**
  * The encrypted flag.

@@ -14,8 +14,10 @@ tutao.entity.tutanota.MailboxGroupRoot = function(data) {
     this.__id = null;
     this.__ownerGroup = null;
     this.__permissions = null;
+    this._contactFormUserContactForm = null;
     this._mailbox = null;
     this._serverProperties = null;
+    this._targetMailGroupContactForm = null;
     this._whitelistRequests = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -31,8 +33,10 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.updateData = function(data) {
   this.__id = data._id;
   this.__ownerGroup = data._ownerGroup;
   this.__permissions = data._permissions;
+  this._contactFormUserContactForm = data.contactFormUserContactForm;
   this._mailbox = data.mailbox;
   this._serverProperties = data.serverProperties;
+  this._targetMailGroupContactForm = data.targetMailGroupContactForm;
   this._whitelistRequests = data.whitelistRequests;
 };
 
@@ -40,7 +44,7 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailboxGroupRoot.MODEL_VERSION = '18';
+tutao.entity.tutanota.MailboxGroupRoot.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -76,8 +80,10 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.toJsonData = function() {
     _id: this.__id, 
     _ownerGroup: this.__ownerGroup, 
     _permissions: this.__permissions, 
+    contactFormUserContactForm: this._contactFormUserContactForm, 
     mailbox: this._mailbox, 
     serverProperties: this._serverProperties, 
+    targetMailGroupContactForm: this._targetMailGroupContactForm, 
     whitelistRequests: this._whitelistRequests
   };
 };
@@ -142,6 +148,31 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.getPermissions = function() {
 };
 
 /**
+ * Sets the contactFormUserContactForm of this MailboxGroupRoot.
+ * @param {Array.<string>} contactFormUserContactForm The contactFormUserContactForm of this MailboxGroupRoot.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.setContactFormUserContactForm = function(contactFormUserContactForm) {
+  this._contactFormUserContactForm = contactFormUserContactForm;
+  return this;
+};
+
+/**
+ * Provides the contactFormUserContactForm of this MailboxGroupRoot.
+ * @return {Array.<string>} The contactFormUserContactForm of this MailboxGroupRoot.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.getContactFormUserContactForm = function() {
+  return this._contactFormUserContactForm;
+};
+
+/**
+ * Loads the contactFormUserContactForm of this MailboxGroupRoot.
+ * @return {Promise.<tutao.entity.tutanota.ContactForm>} Resolves to the loaded contactFormUserContactForm of this MailboxGroupRoot or an exception if the loading failed.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.loadContactFormUserContactForm = function() {
+  return tutao.entity.tutanota.ContactForm.load(this._contactFormUserContactForm);
+};
+
+/**
  * Sets the mailbox of this MailboxGroupRoot.
  * @param {string} mailbox The mailbox of this MailboxGroupRoot.
  */
@@ -192,6 +223,31 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.loadServerProperties = function
 };
 
 /**
+ * Sets the targetMailGroupContactForm of this MailboxGroupRoot.
+ * @param {Array.<string>} targetMailGroupContactForm The targetMailGroupContactForm of this MailboxGroupRoot.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.setTargetMailGroupContactForm = function(targetMailGroupContactForm) {
+  this._targetMailGroupContactForm = targetMailGroupContactForm;
+  return this;
+};
+
+/**
+ * Provides the targetMailGroupContactForm of this MailboxGroupRoot.
+ * @return {Array.<string>} The targetMailGroupContactForm of this MailboxGroupRoot.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.getTargetMailGroupContactForm = function() {
+  return this._targetMailGroupContactForm;
+};
+
+/**
+ * Loads the targetMailGroupContactForm of this MailboxGroupRoot.
+ * @return {Promise.<tutao.entity.tutanota.ContactForm>} Resolves to the loaded targetMailGroupContactForm of this MailboxGroupRoot or an exception if the loading failed.
+ */
+tutao.entity.tutanota.MailboxGroupRoot.prototype.loadTargetMailGroupContactForm = function() {
+  return tutao.entity.tutanota.ContactForm.load(this._targetMailGroupContactForm);
+};
+
+/**
  * Sets the whitelistRequests of this MailboxGroupRoot.
  * @param {string} whitelistRequests The whitelistRequests of this MailboxGroupRoot.
  */
@@ -214,7 +270,7 @@ tutao.entity.tutanota.MailboxGroupRoot.prototype.getWhitelistRequests = function
  * @return {Promise.<tutao.entity.tutanota.MailboxGroupRoot>} Resolves to the MailboxGroupRoot or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailboxGroupRoot.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailboxGroupRoot, tutao.entity.tutanota.MailboxGroupRoot.PATH, id, null, {"v" : "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailboxGroupRoot, tutao.entity.tutanota.MailboxGroupRoot.PATH, id, null, {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -225,7 +281,7 @@ tutao.entity.tutanota.MailboxGroupRoot.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailboxGroupRoot>>} Resolves to an array of MailboxGroupRoot or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailboxGroupRoot.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailboxGroupRoot, tutao.entity.tutanota.MailboxGroupRoot.PATH, ids, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailboxGroupRoot, tutao.entity.tutanota.MailboxGroupRoot.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -236,7 +292,7 @@ tutao.entity.tutanota.MailboxGroupRoot.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.MailboxGroupRoot.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailboxGroupRoot.PATH, this, {"v": "18"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailboxGroupRoot.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

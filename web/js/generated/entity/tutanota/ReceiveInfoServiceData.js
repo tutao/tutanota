@@ -28,7 +28,7 @@ tutao.entity.tutanota.ReceiveInfoServiceData.prototype.updateData = function(dat
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ReceiveInfoServiceData.MODEL_VERSION = '18';
+tutao.entity.tutanota.ReceiveInfoServiceData.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -79,7 +79,7 @@ tutao.entity.tutanota.ReceiveInfoServiceData.prototype.setup = function(paramete
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "18";
+  parameters["v"] = "20";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.ReceiveInfoServiceData.PATH, this, parameters, headers, null);
 };
