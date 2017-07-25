@@ -59,13 +59,13 @@ Server templates contains working installation instructions. Allows to create a 
 
 Distribution  | Status
 ------------- | -------------
-[Debian Wheezy] (https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70) | [![Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/build/1/image)](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/builds)
-[Debian Jessie] (https://manageacloud.com/configuration/tutanota_debian_jessie) | [![Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie/build/7/image)](https://manageacloud.com/configuration/tutanota_debian_jessie/builds)
-[Ubuntu 14.04] (https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404)  | [![Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/build/2/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/builds)
-[Ubuntu 14.10] (https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410) | [![Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/build/6/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/builds)
-[Ubuntu 15.04] (https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04) | [![Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/build/8/image)](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/builds)
-[CentOS 6.5] (https://manageacloud.com/configuration/tutanota_email_client) | [![CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client/build/3/image)](https://manageacloud.com/configuration/tutanota_email_client/builds)
-[CentOS 7] (https://manageacloud.com/configuration/tutanota_email_client_centos_7) | [![CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7/build/5/image)](https://manageacloud.com/configuration/tutanota_email_client_centos_7/builds)
+[Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70) | [![Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/build/1/image)](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/builds)
+[Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie) | [![Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie/build/7/image)](https://manageacloud.com/configuration/tutanota_debian_jessie/builds)
+[Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404)  | [![Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/build/2/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/builds)
+[Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410) | [![Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/build/6/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/builds)
+[Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04) | [![Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/build/8/image)](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/builds)
+[CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client) | [![CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client/build/3/image)](https://manageacloud.com/configuration/tutanota_email_client/builds)
+[CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7) | [![CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7/build/5/image)](https://manageacloud.com/configuration/tutanota_email_client_centos_7/builds)
 
 
 
