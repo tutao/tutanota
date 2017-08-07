@@ -30,7 +30,7 @@ tutao.entity.tutanota.SendMailFromExternalReturn.prototype.updateData = function
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.SendMailFromExternalReturn.MODEL_VERSION = '20';
+tutao.entity.tutanota.SendMailFromExternalReturn.MODEL_VERSION = '21';
 
 /**
  * The encrypted flag.

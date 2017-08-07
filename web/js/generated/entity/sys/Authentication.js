@@ -12,6 +12,7 @@ tutao.entity.sys.Authentication = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
+    this._accessToken = null;
     this._authVerifier = null;
     this._externalAuthToken = null;
     this._userId = null;
@@ -27,6 +28,7 @@ tutao.entity.sys.Authentication = function(parent, data) {
  */
 tutao.entity.sys.Authentication.prototype.updateData = function(parent, data) {
   this.__id = data._id;
+  this._accessToken = data.accessToken;
   this._authVerifier = data.authVerifier;
   this._externalAuthToken = data.externalAuthToken;
   this._userId = data.userId;
@@ -39,6 +41,7 @@ tutao.entity.sys.Authentication.prototype.updateData = function(parent, data) {
 tutao.entity.sys.Authentication.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
+    accessToken: this._accessToken, 
     authVerifier: this._authVerifier, 
     externalAuthToken: this._externalAuthToken, 
     userId: this._userId
@@ -60,6 +63,23 @@ tutao.entity.sys.Authentication.prototype.setId = function(id) {
  */
 tutao.entity.sys.Authentication.prototype.getId = function() {
   return this.__id;
+};
+
+/**
+ * Sets the accessToken of this Authentication.
+ * @param {string} accessToken The accessToken of this Authentication.
+ */
+tutao.entity.sys.Authentication.prototype.setAccessToken = function(accessToken) {
+  this._accessToken = accessToken;
+  return this;
+};
+
+/**
+ * Provides the accessToken of this Authentication.
+ * @return {string} The accessToken of this Authentication.
+ */
+tutao.entity.sys.Authentication.prototype.getAccessToken = function() {
+  return this._accessToken;
 };
 
 /**

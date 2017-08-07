@@ -32,7 +32,7 @@ tutao.entity.sys.CustomDomainData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.CustomDomainData.MODEL_VERSION = '22';
+tutao.entity.sys.CustomDomainData.MODEL_VERSION = '23';
 
 /**
  * The url path to the resource.
@@ -127,7 +127,7 @@ tutao.entity.sys.CustomDomainData.prototype.setup = function(parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, tutao.entity.sys.CustomDomainReturn);
 };
@@ -142,7 +142,7 @@ tutao.entity.sys.CustomDomainData.prototype.update = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };
 
@@ -156,7 +156,7 @@ tutao.entity.sys.CustomDomainData.prototype.erase = function(parameters, headers
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.CustomDomainData.PATH, this, parameters, headers, null);
 };

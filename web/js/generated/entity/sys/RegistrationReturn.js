@@ -30,7 +30,7 @@ tutao.entity.sys.RegistrationReturn.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.RegistrationReturn.MODEL_VERSION = '22';
+tutao.entity.sys.RegistrationReturn.MODEL_VERSION = '23';
 
 /**
  * The encrypted flag.

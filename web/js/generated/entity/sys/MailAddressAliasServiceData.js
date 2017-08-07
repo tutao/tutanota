@@ -32,7 +32,7 @@ tutao.entity.sys.MailAddressAliasServiceData.prototype.updateData = function(dat
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MailAddressAliasServiceData.MODEL_VERSION = '22';
+tutao.entity.sys.MailAddressAliasServiceData.MODEL_VERSION = '23';
 
 /**
  * The url path to the resource.
@@ -127,7 +127,7 @@ tutao.entity.sys.MailAddressAliasServiceData.prototype.setup = function(paramete
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.MailAddressAliasServiceData.PATH, this, parameters, headers, null);
 };

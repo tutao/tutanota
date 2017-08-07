@@ -39,7 +39,7 @@ tutao.entity.sys.EntityEventBatch.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.EntityEventBatch.MODEL_VERSION = '22';
+tutao.entity.sys.EntityEventBatch.MODEL_VERSION = '23';
 
 /**
  * The url path to the resource.
@@ -152,7 +152,7 @@ tutao.entity.sys.EntityEventBatch.prototype.getEvents = function() {
  * @return {Promise.<tutao.entity.sys.EntityEventBatch>} Resolves to the EntityEventBatch or an exception if the loading failed.
  */
 tutao.entity.sys.EntityEventBatch.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, id[1], id[0], {"v" : "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, id[1], id[0], {"v" : "23"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -163,7 +163,7 @@ tutao.entity.sys.EntityEventBatch.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.EntityEventBatch>>} Resolves to an array of EntityEventBatch or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.EntityEventBatch.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, ids, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, ids, {"v": "23"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -174,7 +174,7 @@ tutao.entity.sys.EntityEventBatch.loadMultiple = function(ids) {
  */
 tutao.entity.sys.EntityEventBatch.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.EntityEventBatch.PATH, this, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.EntityEventBatch.PATH, this, {"v": "23"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -188,7 +188,7 @@ tutao.entity.sys.EntityEventBatch.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.EntityEventBatch>>} Resolves to an array of EntityEventBatch or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.EntityEventBatch.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, listId, start, count, reverse, {"v": "22"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.EntityEventBatch, tutao.entity.sys.EntityEventBatch.PATH, listId, start, count, reverse, {"v": "23"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

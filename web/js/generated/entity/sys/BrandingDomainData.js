@@ -36,7 +36,7 @@ tutao.entity.sys.BrandingDomainData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.BrandingDomainData.MODEL_VERSION = '22';
+tutao.entity.sys.BrandingDomainData.MODEL_VERSION = '23';
 
 /**
  * The url path to the resource.
@@ -159,7 +159,7 @@ tutao.entity.sys.BrandingDomainData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.BrandingDomainData.PATH, this, parameters, headers, null);
 };
@@ -174,7 +174,7 @@ tutao.entity.sys.BrandingDomainData.prototype.update = function(parameters, head
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   return tutao.locator.entityRestClient.putService(tutao.entity.sys.BrandingDomainData.PATH, this, parameters, headers, null);
 };
 /**

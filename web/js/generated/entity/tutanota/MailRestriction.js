@@ -12,8 +12,8 @@ tutao.entity.tutanota.MailRestriction = function(parent, data) {
     this.updateData(parent, data);
   } else {
     this.__id = tutao.entity.EntityHelper.generateAggregateId();
-    this._replyToSenderOnly = null;
-    this._delegationGroups = [];
+    this._delegationGroups_removed = [];
+    this._participantGroupInfos = [];
   }
   this._parent = parent;
   this.prototype = tutao.entity.tutanota.MailRestriction.prototype;
@@ -26,8 +26,8 @@ tutao.entity.tutanota.MailRestriction = function(parent, data) {
  */
 tutao.entity.tutanota.MailRestriction.prototype.updateData = function(parent, data) {
   this.__id = data._id;
-  this._replyToSenderOnly = data.replyToSenderOnly;
-  this._delegationGroups = data.delegationGroups;
+  this._delegationGroups_removed = data.delegationGroups_removed;
+  this._participantGroupInfos = data.participantGroupInfos;
 };
 
 /**
@@ -37,8 +37,8 @@ tutao.entity.tutanota.MailRestriction.prototype.updateData = function(parent, da
 tutao.entity.tutanota.MailRestriction.prototype.toJsonData = function() {
   return {
     _id: this.__id, 
-    replyToSenderOnly: this._replyToSenderOnly, 
-    delegationGroups: this._delegationGroups
+    delegationGroups_removed: this._delegationGroups_removed, 
+    participantGroupInfos: this._participantGroupInfos
   };
 };
 
@@ -60,28 +60,19 @@ tutao.entity.tutanota.MailRestriction.prototype.getId = function() {
 };
 
 /**
- * Sets the replyToSenderOnly of this MailRestriction.
- * @param {boolean} replyToSenderOnly The replyToSenderOnly of this MailRestriction.
+ * Provides the delegationGroups_removed of this MailRestriction.
+ * @return {Array.<string>} The delegationGroups_removed of this MailRestriction.
  */
-tutao.entity.tutanota.MailRestriction.prototype.setReplyToSenderOnly = function(replyToSenderOnly) {
-  this._replyToSenderOnly = replyToSenderOnly ? '1' : '0';
-  return this;
+tutao.entity.tutanota.MailRestriction.prototype.getDelegationGroups_removed = function() {
+  return this._delegationGroups_removed;
 };
 
 /**
- * Provides the replyToSenderOnly of this MailRestriction.
- * @return {boolean} The replyToSenderOnly of this MailRestriction.
+ * Provides the participantGroupInfos of this MailRestriction.
+ * @return {Array.<Array.<string>>} The participantGroupInfos of this MailRestriction.
  */
-tutao.entity.tutanota.MailRestriction.prototype.getReplyToSenderOnly = function() {
-  return this._replyToSenderOnly != '0';
-};
-
-/**
- * Provides the delegationGroups of this MailRestriction.
- * @return {Array.<string>} The delegationGroups of this MailRestriction.
- */
-tutao.entity.tutanota.MailRestriction.prototype.getDelegationGroups = function() {
-  return this._delegationGroups;
+tutao.entity.tutanota.MailRestriction.prototype.getParticipantGroupInfos = function() {
+  return this._participantGroupInfos;
 };
 /**
  * Provides the entity helper of this entity.

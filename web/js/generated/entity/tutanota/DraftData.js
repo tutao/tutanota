@@ -25,6 +25,7 @@ tutao.entity.tutanota.DraftData = function(parent, data) {
     this._bccRecipients = [];
     this._ccRecipients = [];
     this._removedAttachments = [];
+    this._replyTos = [];
     this._toRecipients = [];
   }
   this._parent = parent;
@@ -60,6 +61,10 @@ tutao.entity.tutanota.DraftData.prototype.updateData = function(parent, data) {
     this._ccRecipients.push(new tutao.entity.tutanota.DraftRecipient(parent, data.ccRecipients[i]));
   }
   this._removedAttachments = data.removedAttachments;
+  this._replyTos = [];
+  for (var i=0; i < data.replyTos.length; i++) {
+    this._replyTos.push(new tutao.entity.tutanota.EncryptedMailAddress(parent, data.replyTos[i]));
+  }
   this._toRecipients = [];
   for (var i=0; i < data.toRecipients.length; i++) {
     this._toRecipients.push(new tutao.entity.tutanota.DraftRecipient(parent, data.toRecipients[i]));
@@ -82,6 +87,7 @@ tutao.entity.tutanota.DraftData.prototype.toJsonData = function() {
     bccRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._bccRecipients), 
     ccRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._ccRecipients), 
     removedAttachments: this._removedAttachments, 
+    replyTos: tutao.entity.EntityHelper.aggregatesToJsonData(this._replyTos), 
     toRecipients: tutao.entity.EntityHelper.aggregatesToJsonData(this._toRecipients)
   };
 };
@@ -294,6 +300,14 @@ tutao.entity.tutanota.DraftData.prototype.getCcRecipients = function() {
  */
 tutao.entity.tutanota.DraftData.prototype.getRemovedAttachments = function() {
   return this._removedAttachments;
+};
+
+/**
+ * Provides the replyTos of this DraftData.
+ * @return {Array.<tutao.entity.tutanota.EncryptedMailAddress>} The replyTos of this DraftData.
+ */
+tutao.entity.tutanota.DraftData.prototype.getReplyTos = function() {
+  return this._replyTos;
 };
 
 /**

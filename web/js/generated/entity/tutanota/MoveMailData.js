@@ -32,7 +32,7 @@ tutao.entity.tutanota.MoveMailData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MoveMailData.MODEL_VERSION = '20';
+tutao.entity.tutanota.MoveMailData.MODEL_VERSION = '21';
 
 /**
  * The url path to the resource.
@@ -118,7 +118,7 @@ tutao.entity.tutanota.MoveMailData.prototype.setup = function(parameters, header
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "20";
+  parameters["v"] = "21";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.tutanota.MoveMailData.PATH, this, parameters, headers, null);
 };

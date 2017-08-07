@@ -36,7 +36,7 @@ tutao.entity.tutanota.MailboxServerProperties.prototype.updateData = function(da
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.MailboxServerProperties.MODEL_VERSION = '20';
+tutao.entity.tutanota.MailboxServerProperties.MODEL_VERSION = '21';
 
 /**
  * The url path to the resource.
@@ -158,7 +158,7 @@ tutao.entity.tutanota.MailboxServerProperties.prototype.getWhitelistProtectionEn
  * @return {Promise.<tutao.entity.tutanota.MailboxServerProperties>} Resolves to the MailboxServerProperties or an exception if the loading failed.
  */
 tutao.entity.tutanota.MailboxServerProperties.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailboxServerProperties, tutao.entity.tutanota.MailboxServerProperties.PATH, id, null, {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.MailboxServerProperties, tutao.entity.tutanota.MailboxServerProperties.PATH, id, null, {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -169,7 +169,7 @@ tutao.entity.tutanota.MailboxServerProperties.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.MailboxServerProperties>>} Resolves to an array of MailboxServerProperties or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.MailboxServerProperties.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailboxServerProperties, tutao.entity.tutanota.MailboxServerProperties.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.MailboxServerProperties, tutao.entity.tutanota.MailboxServerProperties.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -180,7 +180,7 @@ tutao.entity.tutanota.MailboxServerProperties.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.MailboxServerProperties.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailboxServerProperties.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.MailboxServerProperties.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

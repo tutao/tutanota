@@ -38,7 +38,7 @@ tutao.entity.tutanota.CustomerContactFormGroupRoot.prototype.updateData = functi
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.CustomerContactFormGroupRoot.MODEL_VERSION = '20';
+tutao.entity.tutanota.CustomerContactFormGroupRoot.MODEL_VERSION = '21';
 
 /**
  * The url path to the resource.
@@ -178,7 +178,7 @@ tutao.entity.tutanota.CustomerContactFormGroupRoot.prototype.getStatisticsLog = 
  * @return {Promise.<tutao.entity.tutanota.CustomerContactFormGroupRoot>} Resolves to the CustomerContactFormGroupRoot or an exception if the loading failed.
  */
 tutao.entity.tutanota.CustomerContactFormGroupRoot.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.CustomerContactFormGroupRoot, tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, id, null, {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.CustomerContactFormGroupRoot, tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, id, null, {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -189,7 +189,7 @@ tutao.entity.tutanota.CustomerContactFormGroupRoot.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.CustomerContactFormGroupRoot>>} Resolves to an array of CustomerContactFormGroupRoot or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.CustomerContactFormGroupRoot.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.CustomerContactFormGroupRoot, tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.CustomerContactFormGroupRoot, tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -200,7 +200,7 @@ tutao.entity.tutanota.CustomerContactFormGroupRoot.loadMultiple = function(ids) 
  */
 tutao.entity.tutanota.CustomerContactFormGroupRoot.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.CustomerContactFormGroupRoot.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };

@@ -32,7 +32,7 @@ tutao.entity.tutanota.ContactFormAccountReturn.prototype.updateData = function(d
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.ContactFormAccountReturn.MODEL_VERSION = '20';
+tutao.entity.tutanota.ContactFormAccountReturn.MODEL_VERSION = '21';
 
 /**
  * The encrypted flag.

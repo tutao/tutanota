@@ -12,6 +12,7 @@ tutao.entity.sys.ChangePasswordData = function(data) {
   } else {
     this.__format = "0";
     this._code = null;
+    this._oldVerifier = null;
     this._pwEncUserGroupKey = null;
     this._salt = null;
     this._verifier = null;
@@ -27,6 +28,7 @@ tutao.entity.sys.ChangePasswordData = function(data) {
 tutao.entity.sys.ChangePasswordData.prototype.updateData = function(data) {
   this.__format = data._format;
   this._code = data.code;
+  this._oldVerifier = data.oldVerifier;
   this._pwEncUserGroupKey = data.pwEncUserGroupKey;
   this._salt = data.salt;
   this._verifier = data.verifier;
@@ -36,7 +38,7 @@ tutao.entity.sys.ChangePasswordData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.ChangePasswordData.MODEL_VERSION = '22';
+tutao.entity.sys.ChangePasswordData.MODEL_VERSION = '23';
 
 /**
  * The url path to the resource.
@@ -58,6 +60,7 @@ tutao.entity.sys.ChangePasswordData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     code: this._code, 
+    oldVerifier: this._oldVerifier, 
     pwEncUserGroupKey: this._pwEncUserGroupKey, 
     salt: this._salt, 
     verifier: this._verifier
@@ -96,6 +99,23 @@ tutao.entity.sys.ChangePasswordData.prototype.setCode = function(code) {
  */
 tutao.entity.sys.ChangePasswordData.prototype.getCode = function() {
   return this._code;
+};
+
+/**
+ * Sets the oldVerifier of this ChangePasswordData.
+ * @param {string} oldVerifier The oldVerifier of this ChangePasswordData.
+ */
+tutao.entity.sys.ChangePasswordData.prototype.setOldVerifier = function(oldVerifier) {
+  this._oldVerifier = oldVerifier;
+  return this;
+};
+
+/**
+ * Provides the oldVerifier of this ChangePasswordData.
+ * @return {string} The oldVerifier of this ChangePasswordData.
+ */
+tutao.entity.sys.ChangePasswordData.prototype.getOldVerifier = function() {
+  return this._oldVerifier;
 };
 
 /**
@@ -159,7 +179,7 @@ tutao.entity.sys.ChangePasswordData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "22";
+  parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.ChangePasswordData.PATH, this, parameters, headers, null);
 };

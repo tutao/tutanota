@@ -40,7 +40,7 @@ tutao.entity.tutanota.WhitelistRequest.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.tutanota.WhitelistRequest.MODEL_VERSION = '20';
+tutao.entity.tutanota.WhitelistRequest.MODEL_VERSION = '21';
 
 /**
  * The url path to the resource.
@@ -222,7 +222,7 @@ tutao.entity.tutanota.WhitelistRequest.prototype.loadMail = function() {
  * @return {Promise.<tutao.entity.tutanota.WhitelistRequest>} Resolves to the WhitelistRequest or an exception if the loading failed.
  */
 tutao.entity.tutanota.WhitelistRequest.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, id[1], id[0], {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, id[1], id[0], {"v" : "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -233,7 +233,7 @@ tutao.entity.tutanota.WhitelistRequest.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.tutanota.WhitelistRequest>>} Resolves to an array of WhitelistRequest or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.WhitelistRequest.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, ids, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -244,7 +244,7 @@ tutao.entity.tutanota.WhitelistRequest.loadMultiple = function(ids) {
  */
 tutao.entity.tutanota.WhitelistRequest.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.WhitelistRequest.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.tutanota.WhitelistRequest.PATH, this, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -258,7 +258,7 @@ tutao.entity.tutanota.WhitelistRequest.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.tutanota.WhitelistRequest>>} Resolves to an array of WhitelistRequest or rejects with an exception if the loading failed.
  */
 tutao.entity.tutanota.WhitelistRequest.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, listId, start, count, reverse, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.tutanota.WhitelistRequest, tutao.entity.tutanota.WhitelistRequest.PATH, listId, start, count, reverse, {"v": "21"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };
