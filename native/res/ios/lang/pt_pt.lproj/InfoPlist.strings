@@ -1,7 +1,0 @@
-NSCameraUsageDescription = "Tire uma fotografia um faça um filme para adicionar como anexo.";
-NSPhotoLibraryUsageDescription = "Adicione uma imagem da sua biblioteca como anexo.";
-NSMicrophoneUsageDescription = "Usado quando se grava um vídeo como anexo.";
-NSContactsUsageDescription = "Procurar endereço de email do destinatário nos contactos.";
-NSRemindersUsageDescription = "Exibe notificação quando chega um novo email.";
-TutaoShowCameraAction = "Câmara";
-TutaoChoosePhotosAction = "Fotos";
