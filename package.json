@@ -1,5 +1,5 @@
 {
-  "name": "tutanota-next",
+  "name": "tutanota",
   "version": "3.21.0",
   "scripts": {
     "flow": "flow; test $? -eq 0 -o $? -eq 2"
