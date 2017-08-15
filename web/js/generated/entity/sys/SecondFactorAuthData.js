@@ -11,8 +11,9 @@ tutao.entity.sys.SecondFactorAuthData = function(data) {
     this.updateData(data);
   } else {
     this.__format = "0";
-    this._language = null;
-    this._service = null;
+    this._type = null;
+    this._session = null;
+    this._u2f = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
   this.prototype = tutao.entity.sys.SecondFactorAuthData.prototype;
@@ -24,8 +25,9 @@ tutao.entity.sys.SecondFactorAuthData = function(data) {
  */
 tutao.entity.sys.SecondFactorAuthData.prototype.updateData = function(data) {
   this.__format = data._format;
-  this._language = data.language;
-  this._service = data.service;
+  this._type = data.type;
+  this._session = data.session;
+  this._u2f = (data.u2f) ? new tutao.entity.sys.U2fResponseData(this, data.u2f) : null;
 };
 
 /**
@@ -53,8 +55,9 @@ tutao.entity.sys.SecondFactorAuthData.prototype.ENCRYPTED = false;
 tutao.entity.sys.SecondFactorAuthData.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
-    language: this._language, 
-    service: this._service
+    type: this._type, 
+    session: this._session, 
+    u2f: tutao.entity.EntityHelper.aggregatesToJsonData(this._u2f)
   };
 };
 
@@ -76,37 +79,62 @@ tutao.entity.sys.SecondFactorAuthData.prototype.getFormat = function() {
 };
 
 /**
- * Sets the language of this SecondFactorAuthData.
- * @param {string} language The language of this SecondFactorAuthData.
+ * Sets the type of this SecondFactorAuthData.
+ * @param {string} type The type of this SecondFactorAuthData.
  */
-tutao.entity.sys.SecondFactorAuthData.prototype.setLanguage = function(language) {
-  this._language = language;
+tutao.entity.sys.SecondFactorAuthData.prototype.setType = function(type) {
+  this._type = type;
   return this;
 };
 
 /**
- * Provides the language of this SecondFactorAuthData.
- * @return {string} The language of this SecondFactorAuthData.
+ * Provides the type of this SecondFactorAuthData.
+ * @return {string} The type of this SecondFactorAuthData.
  */
-tutao.entity.sys.SecondFactorAuthData.prototype.getLanguage = function() {
-  return this._language;
+tutao.entity.sys.SecondFactorAuthData.prototype.getType = function() {
+  return this._type;
 };
 
 /**
- * Sets the service of this SecondFactorAuthData.
- * @param {string} service The service of this SecondFactorAuthData.
+ * Sets the session of this SecondFactorAuthData.
+ * @param {Array.<string>} session The session of this SecondFactorAuthData.
  */
-tutao.entity.sys.SecondFactorAuthData.prototype.setService = function(service) {
-  this._service = service;
+tutao.entity.sys.SecondFactorAuthData.prototype.setSession = function(session) {
+  this._session = session;
   return this;
 };
 
 /**
- * Provides the service of this SecondFactorAuthData.
- * @return {string} The service of this SecondFactorAuthData.
+ * Provides the session of this SecondFactorAuthData.
+ * @return {Array.<string>} The session of this SecondFactorAuthData.
  */
-tutao.entity.sys.SecondFactorAuthData.prototype.getService = function() {
-  return this._service;
+tutao.entity.sys.SecondFactorAuthData.prototype.getSession = function() {
+  return this._session;
+};
+
+/**
+ * Loads the session of this SecondFactorAuthData.
+ * @return {Promise.<tutao.entity.sys.Session>} Resolves to the loaded session of this SecondFactorAuthData or an exception if the loading failed.
+ */
+tutao.entity.sys.SecondFactorAuthData.prototype.loadSession = function() {
+  return tutao.entity.sys.Session.load(this._session);
+};
+
+/**
+ * Sets the u2f of this SecondFactorAuthData.
+ * @param {tutao.entity.sys.U2fResponseData} u2f The u2f of this SecondFactorAuthData.
+ */
+tutao.entity.sys.SecondFactorAuthData.prototype.setU2f = function(u2f) {
+  this._u2f = u2f;
+  return this;
+};
+
+/**
+ * Provides the u2f of this SecondFactorAuthData.
+ * @return {tutao.entity.sys.U2fResponseData} The u2f of this SecondFactorAuthData.
+ */
+tutao.entity.sys.SecondFactorAuthData.prototype.getU2f = function() {
+  return this._u2f;
 };
 
 /**

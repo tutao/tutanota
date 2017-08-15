@@ -201,7 +201,7 @@ tutao.entity.sys.CreateSessionData.prototype.loadUser = function() {
  * Posts to a service.
  * @param {Object.<string, string>} parameters The parameters to send to the service.
  * @param {?Object.<string, string>} headers The headers to send to the service. If null, the default authentication data is used.
- * @return {Promise.<null>} Resolves to the string result of the server or rejects with an exception if the post failed.
+ * @return {Promise.<tutao.entity.sys.CreateSessionReturn>} Resolves to the string result of the server or rejects with an exception if the post failed.
  */
 tutao.entity.sys.CreateSessionData.prototype.setup = function(parameters, headers) {
   if (!headers) {
@@ -209,7 +209,7 @@ tutao.entity.sys.CreateSessionData.prototype.setup = function(parameters, header
   }
   parameters["v"] = "23";
   this._entityHelper.notifyObservers(false);
-  return tutao.locator.entityRestClient.postService(tutao.entity.sys.CreateSessionData.PATH, this, parameters, headers, null);
+  return tutao.locator.entityRestClient.postService(tutao.entity.sys.CreateSessionData.PATH, this, parameters, headers, tutao.entity.sys.CreateSessionReturn);
 };
 /**
  * Provides the entity helper of this entity.

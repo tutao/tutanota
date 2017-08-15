@@ -20,6 +20,7 @@ tutao.entity.sys.User = function(data) {
     this._salt = null;
     this._userEncClientKey = null;
     this._verifier = null;
+    this._auth = null;
     this._authenticatedDevices = [];
     this._customer = null;
     this._externalAuthInfo = null;
@@ -28,7 +29,6 @@ tutao.entity.sys.User = function(data) {
     this._phoneNumbers = [];
     this._pushIdentifierList = null;
     this._secondFactorAuthentications = null;
-    this._sessions = null;
     this._successfulLogins = null;
     this._userGroup = null;
   }
@@ -51,6 +51,7 @@ tutao.entity.sys.User.prototype.updateData = function(data) {
   this._salt = data.salt;
   this._userEncClientKey = data.userEncClientKey;
   this._verifier = data.verifier;
+  this._auth = (data.auth) ? new tutao.entity.sys.UserAuthentication(this, data.auth) : null;
   this._authenticatedDevices = [];
   for (var i=0; i < data.authenticatedDevices.length; i++) {
     this._authenticatedDevices.push(new tutao.entity.sys.AuthenticatedDevice(this, data.authenticatedDevices[i]));
@@ -68,7 +69,6 @@ tutao.entity.sys.User.prototype.updateData = function(data) {
   }
   this._pushIdentifierList = (data.pushIdentifierList) ? new tutao.entity.sys.PushIdentifierList(this, data.pushIdentifierList) : null;
   this._secondFactorAuthentications = data.secondFactorAuthentications;
-  this._sessions = (data.sessions) ? new tutao.entity.sys.UserSessions(this, data.sessions) : null;
   this._successfulLogins = data.successfulLogins;
   this._userGroup = (data.userGroup) ? new tutao.entity.sys.GroupMembership(this, data.userGroup) : null;
 };
@@ -119,6 +119,7 @@ tutao.entity.sys.User.prototype.toJsonData = function() {
     salt: this._salt, 
     userEncClientKey: this._userEncClientKey, 
     verifier: this._verifier, 
+    auth: tutao.entity.EntityHelper.aggregatesToJsonData(this._auth), 
     authenticatedDevices: tutao.entity.EntityHelper.aggregatesToJsonData(this._authenticatedDevices), 
     customer: this._customer, 
     externalAuthInfo: tutao.entity.EntityHelper.aggregatesToJsonData(this._externalAuthInfo), 
@@ -127,7 +128,6 @@ tutao.entity.sys.User.prototype.toJsonData = function() {
     phoneNumbers: tutao.entity.EntityHelper.aggregatesToJsonData(this._phoneNumbers), 
     pushIdentifierList: tutao.entity.EntityHelper.aggregatesToJsonData(this._pushIdentifierList), 
     secondFactorAuthentications: this._secondFactorAuthentications, 
-    sessions: tutao.entity.EntityHelper.aggregatesToJsonData(this._sessions), 
     successfulLogins: this._successfulLogins, 
     userGroup: tutao.entity.EntityHelper.aggregatesToJsonData(this._userGroup)
   };
@@ -295,6 +295,23 @@ tutao.entity.sys.User.prototype.getVerifier = function() {
 };
 
 /**
+ * Sets the auth of this User.
+ * @param {tutao.entity.sys.UserAuthentication} auth The auth of this User.
+ */
+tutao.entity.sys.User.prototype.setAuth = function(auth) {
+  this._auth = auth;
+  return this;
+};
+
+/**
+ * Provides the auth of this User.
+ * @return {tutao.entity.sys.UserAuthentication} The auth of this User.
+ */
+tutao.entity.sys.User.prototype.getAuth = function() {
+  return this._auth;
+};
+
+/**
  * Provides the authenticatedDevices of this User.
  * @return {Array.<tutao.entity.sys.AuthenticatedDevice>} The authenticatedDevices of this User.
  */
@@ -409,23 +426,6 @@ tutao.entity.sys.User.prototype.setSecondFactorAuthentications = function(second
  */
 tutao.entity.sys.User.prototype.getSecondFactorAuthentications = function() {
   return this._secondFactorAuthentications;
-};
-
-/**
- * Sets the sessions of this User.
- * @param {tutao.entity.sys.UserSessions} sessions The sessions of this User.
- */
-tutao.entity.sys.User.prototype.setSessions = function(sessions) {
-  this._sessions = sessions;
-  return this;
-};
-
-/**
- * Provides the sessions of this User.
- * @return {tutao.entity.sys.UserSessions} The sessions of this User.
- */
-tutao.entity.sys.User.prototype.getSessions = function() {
-  return this._sessions;
 };
 
 /**

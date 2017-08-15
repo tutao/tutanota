@@ -12,6 +12,7 @@ tutao.entity.sys.CreateSessionReturn = function(data) {
   } else {
     this.__format = "0";
     this._accessToken = null;
+    this._challenges = [];
     this._user = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -25,6 +26,10 @@ tutao.entity.sys.CreateSessionReturn = function(data) {
 tutao.entity.sys.CreateSessionReturn.prototype.updateData = function(data) {
   this.__format = data._format;
   this._accessToken = data.accessToken;
+  this._challenges = [];
+  for (var i=0; i < data.challenges.length; i++) {
+    this._challenges.push(new tutao.entity.sys.Challenge(this, data.challenges[i]));
+  }
   this._user = data.user;
 };
 
@@ -48,6 +53,7 @@ tutao.entity.sys.CreateSessionReturn.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     accessToken: this._accessToken, 
+    challenges: tutao.entity.EntityHelper.aggregatesToJsonData(this._challenges), 
     user: this._user
   };
 };
@@ -84,6 +90,14 @@ tutao.entity.sys.CreateSessionReturn.prototype.setAccessToken = function(accessT
  */
 tutao.entity.sys.CreateSessionReturn.prototype.getAccessToken = function() {
   return this._accessToken;
+};
+
+/**
+ * Provides the challenges of this CreateSessionReturn.
+ * @return {Array.<tutao.entity.sys.Challenge>} The challenges of this CreateSessionReturn.
+ */
+tutao.entity.sys.CreateSessionReturn.prototype.getChallenges = function() {
+  return this._challenges;
 };
 
 /**

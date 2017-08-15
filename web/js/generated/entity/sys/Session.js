@@ -24,6 +24,7 @@ tutao.entity.sys.Session = function(data) {
     this._loginTime = null;
     this._loginTime_ = null;
     this._state = null;
+    this._challenges = [];
     this._user = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -49,6 +50,10 @@ tutao.entity.sys.Session.prototype.updateData = function(data) {
   this._loginTime = data.loginTime;
   this._loginTime_ = null;
   this._state = data.state;
+  this._challenges = [];
+  for (var i=0; i < data.challenges.length; i++) {
+    this._challenges.push(new tutao.entity.sys.Challenge(this, data.challenges[i]));
+  }
   this._user = data.user;
 };
 
@@ -68,7 +73,7 @@ tutao.entity.sys.Session.PATH = '/rest/sys/session';
  * The id of the root instance reference.
  * @const
  */
-tutao.entity.sys.Session.ROOT_INSTANCE_ID = 'A3N5cwAEig';
+tutao.entity.sys.Session.ROOT_INSTANCE_ID = 'A3N5cwAEpQ';
 
 /**
  * The generated id type flag.
@@ -99,6 +104,7 @@ tutao.entity.sys.Session.prototype.toJsonData = function() {
     loginIpAddress: this._loginIpAddress, 
     loginTime: this._loginTime, 
     state: this._state, 
+    challenges: tutao.entity.EntityHelper.aggregatesToJsonData(this._challenges), 
     user: this._user
   };
 };
@@ -351,6 +357,14 @@ tutao.entity.sys.Session.prototype.setState = function(state) {
  */
 tutao.entity.sys.Session.prototype.getState = function() {
   return this._state;
+};
+
+/**
+ * Provides the challenges of this Session.
+ * @return {Array.<tutao.entity.sys.Challenge>} The challenges of this Session.
+ */
+tutao.entity.sys.Session.prototype.getChallenges = function() {
+  return this._challenges;
 };
 
 /**
