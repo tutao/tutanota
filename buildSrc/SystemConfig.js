@@ -67,7 +67,6 @@ function devTestConfig() {
 			"velocity-animate": "../node_modules/velocity-animate/velocity.js",
 			"prismjs": "../node_modules/prismjs",
 			"faker": "../node_modules/faker/build/build/faker.min.js",
-			"src": "client/src"
 		})
 	})
 }

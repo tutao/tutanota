@@ -1,8 +1,7 @@
 import o from "ospec/ospec.js"
 import {EntropyCollector} from "../../../src/api/main/EntropyCollector"
 import {EntropySrc as EntropyType} from "../../../src/api/common/TutanotaConstants"
-import {worker} from "../../../src/api/main/WorkerClient"
-import {mockFunction, unmockFunction, mockAttribute, unmockAttribute} from "../../api/TestUtils"
+import {mockFunction, unmockFunction} from "../../api/TestUtils"
 
 o.spec("EntropyCollector", function () {
 
@@ -34,24 +33,10 @@ o.spec("EntropyCollector", function () {
 		o(collector._entropyCache.length).equals(0)
 	}))
 
-	o("start", browser(() => {
-		// check that the initial entropy is sent
-		let initializedMock = mockAttribute(worker, worker.initialized, {
-			isFulfilled: function () {
-				return true
-			}
-		})
-		let entropyMock = mockAttribute(worker, worker.entropy, (entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
-			o(entropyCache.length > 2).equals(true)
-		})
-		collector.start()
-		o(worker.entropy.callCount).equals(1)
-		unmockAttribute(initializedMock)
-		unmockAttribute(entropyMock)
-	}))
-
 	o("Mouseclick", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("click")
 		evt.clientX = 889
@@ -61,7 +46,9 @@ o.spec("EntropyCollector", function () {
 	}))
 
 	o("Mousemove", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("mousemove")
 		evt.clientX = 123
@@ -71,7 +58,9 @@ o.spec("EntropyCollector", function () {
 	}))
 
 	o("Keydown", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("keydown")
 		evt.keyCode = 48
@@ -80,7 +69,9 @@ o.spec("EntropyCollector", function () {
 	}))
 
 	o("Touchstart", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("touchstart")
 		evt.touches = [{clientX: 3, clientY: 4}]
@@ -89,7 +80,9 @@ o.spec("EntropyCollector", function () {
 	}))
 
 	o("Touchmove", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("touchmove")
 		evt.touches = [{clientX: 3, clientY: 5}]
@@ -98,7 +91,9 @@ o.spec("EntropyCollector", function () {
 	}))
 
 	o("Devicemotion", browser(() => {
-		collector.start()
+		collector.start({
+			entropy: () => null
+		})
 		let len = collector._entropyCache.length
 		let evt = new Event("devicemotion")
 		evt.accelerationIncludingGravity = {x: 3, y: 4, z: 5}
@@ -109,22 +104,21 @@ o.spec("EntropyCollector", function () {
 
 	o("Send", browser((done, timeout) => {
 		timeout(2000)
-		let initializedMock = mockAttribute(worker, worker.initialized, {
-			isFulfilled: function () {
-				return true
-			}
-		})
-		let entropyMock = mockAttribute(worker, worker.entropy, (entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
-			o(entropyCache.length > 0).equals(true)
-		})
+		const worker = {
+			initialized: {
+				isFulfilled: () => true
+			},
+			entropy: o.spy((entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) => {
+				o(entropyCache.length > 0).equals(true)
+			})
+		}
+
 		collector.SEND_INTERVAL = 1000
-		collector.start()
+		collector.start(worker)
 		collector._addEntropy(5, 1, EntropyType.mouse)
 		setTimeout(() => {
-			o(worker.entropy.callCount).equals(2)
+			o(worker.entropy.callCount).equals(1)
 			collector.SEND_INTERVAL = 5000
-			unmockAttribute(initializedMock)
-			unmockAttribute(entropyMock)
 			done()
 		}, 1500)
 	}))
