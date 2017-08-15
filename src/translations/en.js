@@ -872,15 +872,19 @@ module.exports = {
 		"sessionsInfo_msg": "Client and IP address are only stored encrypted.",
 		"secondFactorAuthentication_label": "Second factor authentication",
 		"state_label": "State",
-		"addSecondFactor_label": "Add second factor",
-		"registerU2fDevice_msg": "Connect your security key device and press its button to register it with your account.",
-		"registeredU2fDevice_msg": "Your security key device has been recognized. You can save it now.",
+		"addSecondFactor_action": "Add second factor",
+		"registerU2fDevice_msg": "Connect your security key and press its button to register it with your account.",
+		"registeredU2fDevice_msg": "Your security key has been recognized. You can save it now.",
 		"unrecognizedU2fDevice_msg": "Your security key has not been recognized.",
 		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"u2fAuthUnregisteredDevice_msg": "This security key has not been registered with your account. Please use a valid one.",
 		"u2fUnexpectedError_msg": "An unexpected error occured with your security key.",
-		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?"
+		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?",
+		"secondFactorInfo_msg": "Supported second factors: Security keys (U2F), e.g. Yubikey. U2F is currently supported in the Tutanota apps, Firefox with the U2F extension and Chrome. When logging in you may also accept that session from another logged in client instead of authenticating with your second factor. Second factors can only be removed by admins.",
+		"secondFactorInfoOldClient_msg": "Attention: By enabling second factor authentication login in the old Tutanota client (browser/apps) is not possible any more.",
+		"u2fSecurityKey_label": "Security Key (U2F)",
+		"secondFactorNameInfo_msg": "Optional: Name for identification."
 	}
 }

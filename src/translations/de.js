@@ -872,15 +872,19 @@ module.exports = {
 		"sessionsInfo_msg": "Client und IP-Addresse werden nur verschlüsselt gespeichert.",
 		"secondFactorAuthentication_label": "Zwei-Faktor-Authentifizierung",
 		"state_label": "Zustand",
-		"addSecondFactor_label": "Zweiten Faktor hinzufügen",
-		"registerU2fDevice_msg": "Verbinde deinen Security Key und betätige seinen Knopf, um ihn für deinen Account zu registrieren.",
-		"registeredU2fDevice_msg": "Dein Security Key wurde erkannt. Du kannst ihn nun speichern.",
-		"unrecognizedU2fDevice_msg": "Dein Security Key wurde nicht erkannt.",
+		"addSecondFactor_action": "Zweiten Faktor hinzufügen",
+		"registerU2fDevice_msg": "Verbinde deinen Sicherheitsschlüssel und betätige seinen Knopf, um ihn für deinen Account zu registrieren.",
+		"registeredU2fDevice_msg": "Dein Sicherheitsschlüssel wurde erkannt. Du kannst ihn nun speichern.",
+		"unrecognizedU2fDevice_msg": "Dein Sicherheitsschlüssel wurde nicht erkannt.",
 		"secondFactorPending_msg": "Bitte authentifiziere dich mit deinem zweiten Faktor oder bestätige diese Anmeldung von einem anderen Client.",
 		"secondFactorConfirmLogin_msg": "Möchtest du die Anmeldung von dem Client \"{clientIdentifier}\" mit der IP-Adresse {ipAddress} erlauben?",
 		"secondFactorConfirmLogin_label": "Anmeldung bestätigen",
-		"u2fAuthUnregisteredDevice_msg": "Dieser Security Key ist nicht für deinen Account gültig. Bitte verwende einen gültigen Security Key.",
-		"u2fUnexpectedError_msg": "Ein unerwarteter Fehler ist bei deinem Security Key aufgetreten.",
-		"confirmDeleteSecondFactor_msg": "Möchtest du diesen zweiten Faktor wirklich löschen?"
+		"u2fAuthUnregisteredDevice_msg": "Dieser Sicherheitsschlüssel ist nicht für deinen Account gültig. Bitte verwende einen gültigen.",
+		"u2fUnexpectedError_msg": "Ein unerwarteter Fehler ist bei deinem Sicherheitsschlüssel aufgetreten.",
+		"confirmDeleteSecondFactor_msg": "Möchtest du diesen zweiten Faktor wirklich löschen?",
+		"secondFactorInfo_msg": "Unterstützte zweite Faktoren: Sicherheitsschlüssel (U2F), z.B. Yubikey. U2F wird aktuell in den Tutanota-Apps, Firefox mit U2F-Erweiterung und Chrome unterstützt. Beim Login kannst du die Session auch von einem anderen eingeloggten Client bestätigen anstatt dich mit deinem zweiten Faktor zu authentifizieren. Zweite Faktoren können nur von Administratoren gelöscht werden.",
+		"secondFactorInfoOldClient_msg": "Achtung: Beim Aktivieren der Zwei-Faktor-Authentifizierung ist der Login im alten Tutanota-Client (Browser/Apps) nicht mehr möglich.",
+		"u2fSecurityKey_label": "Sicherheitsschlüssel (U2F)",
+		"secondFactorNameInfo_msg": "Optional: Name zur Identifizierung."
 	}
 }

@@ -28,12 +28,13 @@ export class EditSecondFactorsForm {
 
 	constructor(user: LazyLoaded<User>) {
 		this._user = user
-		let add2FAButton = new Button("addSecondFactor_label", () => this._showAddSecondFactorDialog(), () => Icons.Add)
-		this._2FATable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, add2FAButton)
+		let add2FAButton = new Button("addSecondFactor_action", () => this._showAddSecondFactorDialog(), () => Icons.Add)
+		this._2FATable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, add2FAButton)
 		this.view = () => {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
-				m(this._2FATable)
+				m(this._2FATable),
+				m(".small", lang.get("secondFactorInfo_msg"))
 			]
 		}
 		this._updateSecondFactors()
@@ -50,7 +51,7 @@ export class EditSecondFactorsForm {
 						}
 					})
 				}, () => Icons.Cancel)
-				return new TableLine([sf.name, SecondFactorTypeToName[sf.type]], logins.isAdminUserLoggedIn() ? removeButton : null)
+				return new TableLine([sf.name, lang.get(SecondFactorTypeToNameTextId[sf.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
 			}).then(tableLines => this._2FATable.updateEntries(tableLines))
 		})
 	}
@@ -58,20 +59,21 @@ export class EditSecondFactorsForm {
 
 	_showAddSecondFactorDialog() {
 		this._user.getAsync().then(user => {
-			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToName).map(key => {
-				return {name: SecondFactorTypeToName[key], value: key}
-			}), SecondFactorType.u2f, 250)
-			let name = new TextField("name_label")
+			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).map(key => {
+				return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
+			}), SecondFactorType.u2f, 300)
+			let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
 			let u2fRegistrationData = stream(null)
 			let u2fInfoMessage = u2fRegistrationData.map(registrationData => registrationData ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg"))
 			u2fInfoMessage.map(() => m.redraw())
 			let u2f = new U2fClient()
 
-			let dialog = Dialog.smallActionDialog(lang.get("addSecondFactor_label"), {
+			let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
 				view: () => m("", [
 					m(type),
 					m(name),
-					m("p", u2fInfoMessage())
+					m("p", u2fInfoMessage()),
+					m(".small", lang.get("secondFactorInfoOldClient_msg"))
 				])
 			}, () => {
 				if (u2fRegistrationData() == null) {
@@ -114,6 +116,6 @@ export class EditSecondFactorsForm {
 
 }
 
-const SecondFactorTypeToName = {
-	[SecondFactorType.u2f]: "Fido U2F"
+const SecondFactorTypeToNameTextId = {
+	[SecondFactorType.u2f]: "u2fSecurityKey_label"
 }
