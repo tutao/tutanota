@@ -1,0 +1,58 @@
+// @flow
+import {create, TypeRef} from "../../common/EntityFunctions"
+
+export const CreateSessionReturnTypeRef: TypeRef<CreateSessionReturn> = new TypeRef("sys", "CreateSessionReturn")
+export const _TypeModel: TypeModel = {
+	"name": "CreateSessionReturn",
+	"since": 23,
+	"type": "DATA_TRANSFER_TYPE",
+	"id": 1217,
+	"rootId": "A3N5cwAEwQ",
+	"versioned": false,
+	"encrypted": false,
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 1218,
+			"since": 23,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"accessToken": {
+			"name": "accessToken",
+			"id": 1219,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
+	},
+	"associations": {
+		"challenges": {
+			"name": "challenges",
+			"since": 23,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "Challenge",
+			"final": true
+		},
+		"user": {
+			"name": "user",
+			"since": 23,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "User",
+			"final": true,
+			"external": false
+		}
+	},
+	"app": "sys",
+	"version": "23"
+}
+
+export function createCreateSessionReturn(): CreateSessionReturn {
+	return create(_TypeModel)
+}

@@ -1,0 +1,40 @@
+// @flow
+import {create, TypeRef} from "../../common/EntityFunctions"
+
+export const SecondFactorAuthGetReturnTypeRef: TypeRef<SecondFactorAuthGetReturn> = new TypeRef("sys", "SecondFactorAuthGetReturn")
+export const _TypeModel: TypeModel = {
+	"name": "SecondFactorAuthGetReturn",
+	"since": 23,
+	"type": "DATA_TRANSFER_TYPE",
+	"id": 1234,
+	"rootId": "A3N5cwAE0g",
+	"versioned": false,
+	"encrypted": false,
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 1235,
+			"since": 23,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"secondFactorPending": {
+			"name": "secondFactorPending",
+			"id": 1236,
+			"since": 23,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		}
+	},
+	"associations": {},
+	"app": "sys",
+	"version": "23"
+}
+
+export function createSecondFactorAuthGetReturn(): SecondFactorAuthGetReturn {
+	return create(_TypeModel)
+}

@@ -1,0 +1,50 @@
+// @flow
+import {create, TypeRef} from "../../common/EntityFunctions"
+
+export const CustomerReturnTypeRef: TypeRef<CustomerReturn> = new TypeRef("sys", "CustomerReturn")
+export const _TypeModel: TypeModel = {
+	"name": "CustomerReturn",
+	"since": 1,
+	"type": "DATA_TRANSFER_TYPE",
+	"id": 370,
+	"rootId": "A3N5cwABcg",
+	"versioned": false,
+	"encrypted": false,
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 371,
+			"since": 1,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
+	},
+	"associations": {
+		"adminUser": {
+			"name": "adminUser",
+			"since": 1,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "User",
+			"final": false,
+			"external": false
+		},
+		"adminUserGroup": {
+			"name": "adminUserGroup",
+			"since": 1,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "Group",
+			"final": false,
+			"external": false
+		}
+	},
+	"app": "sys",
+	"version": "23"
+}
+
+export function createCustomerReturn(): CustomerReturn {
+	return create(_TypeModel)
+}

@@ -1,0 +1,595 @@
+//@flow
+import {styles} from "./styles"
+import {size, px} from "./size"
+import {client} from "../misc/ClientDetector"
+import {position_absolute, positionValue, flex, noselect} from "./mixins"
+import {assertMainOrNode} from "../api/Env"
+import {theme} from "./theme.js"
+import {colors} from "./AlternateColors"
+
+assertMainOrNode()
+
+function importLatoFont(file, style, weight) {
+	return {
+		'font-family': 'Lato',
+		src: `url("resources/fonts/lato-2.015/Lato/fonts/${file}.woff2") format("woff2")`, // we only use woff2 for desktops and native fonts for mobiles
+		'font-style': style,
+		'font-weight': weight,
+		'text-rendering': 'optimizeLegibility'
+	}
+}
+
+styles.registerStyle('main', () => {
+	return {
+		/*
+		 Box Sizing
+		 */
+		[`html, body, div, article, section, main, footer, header, form, fieldset, legend,
+            pre, code, p, a, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd, textarea,
+            input[type="email"], input[type="number"], input[type="password"],
+            input[type="tel"], input[type="text"], input[type="url"], .border-box`]: {'box-sizing': 'border-box'},
+
+
+		'@font-face': client.isDesktopDevice() ? [
+				importLatoFont('Lato-Light', 'normal', 300),
+				importLatoFont('Lato-Regular', 'normal', 400),
+				importLatoFont('Lato-Italic', 'italic', 400),
+				importLatoFont('Lato-Bold', 'normal', 700),
+			] : '',
+
+
+		'a': {color: 'inherit'},
+
+		'html, body': {height: '100%', margin: 0},
+		'html': {'-webkit-font-smoothing': 'subpixel-antialiased'}, // define font-smoothing for css animation in safari
+
+		'button, textarea': {padding: 0},
+
+		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
+			overflow: 'hidden',
+			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
+			//'font-family': client.isMobileDevice() ? `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"` : "Lato, sans-serif",
+			'font-family': `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+			'font-size': px(size.font_size_base),
+			'line-height': 1.428571429, // 20/14
+
+			color: theme.content_fg,
+			'background-color': theme.content_bg,
+
+		},
+
+		' small, .small': {
+			'font-size': px(size.font_size_small),
+		},
+
+		'.b': {
+			'font-weight': 'bold',
+		},
+		'.i': {'font-style': 'italic'},
+		'.click': {
+			cursor: 'pointer',
+		},
+		'.text': {
+			cursor: 'text'
+		},
+		'.overflow-hidden': {
+			overflow: 'hidden'
+		},
+		'.overflow-x-hidden': {
+			'overflow-x': 'hidden'
+		},
+
+
+		'h1, h2, h3, h4, h5, h6': {margin: 0},
+		'h1, .h1': {'font-size': px(size.font_size_base * 2)},
+		'h2, .h2': {'font-size': px(size.font_size_base * 1.8)},
+		'h3, .h3': {'font-size': px(size.font_size_base * 1.6)},
+		'h4, .h4': {'font-size': px(size.font_size_base * 1.4)},
+		'h5, .h5': {'font-size': px(size.font_size_base * 1.2)},
+		'h6, .h6': {'font-size': px(size.font_size_base * 1.1)},
+		"h1, h2, h3, h4, h5, h6": {'font-weight': 'normal'},
+		'input, button, select, textarea': {
+			'font-family': 'inherit',
+			'font-size': 'inherit',
+			'line-height': 'inherit'
+		},
+
+		".hr": {margin: 0, border: 'none', height: '1px', 'background-color': theme.content_border},
+
+		".white-space-pre": {'white-space': "pre"},
+
+		//view: position_absolute(0, 0, 0, 0),
+
+		// margins
+		'.mt': {'margin-top': px(size.vpad)},
+		'.mt-xs': {'margin-top': px(size.vpad_xs)},
+		'.mt-s': {'margin-top': px(size.vpad_small)},
+		'.mt-l': {'margin-top': px(size.vpad_large)},
+		'.mt-xl': {'margin-top': px(size.vpad_xl)},
+		'.mt-form': {'margin-top': px(size.hpad_medium)},
+		'.mb-0': {'margin-bottom': 0},
+		'.mb': {'margin-bottom': px(size.vpad)},
+		'.mb-s': {'margin-bottom': px(size.vpad_small)},
+		'.mb-l': {'margin-bottom': px(size.vpad_large)},
+		'.mb-xl': {'margin-bottom': px(size.vpad_xl)},
+		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
+		'.mr-s': {'margin-right': px(size.vpad_small)},
+
+		// paddings
+		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
+		'.pt': {'padding-top': px(size.vpad)},
+		'.pt-s': {'padding-top': px(size.vpad_small)},
+		'.pt-l': {'padding-top': px(size.vpad_large)},
+		'.pt-xl': {'padding-top': px(size.vpad_xl)},
+		'.pb-0': {'padding-bottom': 0},
+		'.pb': {'padding-bottom': px(size.vpad)},
+		'.pb-s': {'padding-bottom': px(size.vpad_small)},
+		'.pb-l': {'padding-bottom': px(size.vpad_large)},
+		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
+		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
+		'.pl': {'padding-left': px(size.hpad)},
+		'.pl-s': {'padding-left': px(size.hpad_small)},
+		'.pl-m': {'padding-left': px(size.hpad)},
+		'.pr': {'padding-right': px(size.hpad)},
+		'.pr-s': {'padding-right': px(size.hpad_small)},
+
+		// p-l will be overwritten in media query mobile
+		'.plr-l': {'padding-left': px(size.hpad_large), 'padding-right': px(size.hpad_large)},
+		'.pl-l': {'padding-left': px(size.hpad_large)},
+		'.pr-l': {'padding-right': px(size.hpad_large)},
+
+		'.plr-button': {'padding-left': px(size.hpad_button), 'padding-right': px(size.hpad_button)},
+
+		'.plr-nav-button': {'padding-left': px(size.hpad_nav_button), 'padding-right': px(size.hpad_nav_button)},
+		'.pl-button': {'padding-left': px(size.hpad_button)},
+
+
+		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
+		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
+		'.ml-negative-xs': {'margin-left': px(-3)},
+		'.ml-negative-bubble': {'margin-left': px(-7)},
+		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
+		".fixed-bottom-right": {position: "fixed", bottom: px(size.hpad_large), right: px(size.hpad_large)},
+
+		// common setting
+		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
+		'.text-break': {overflow: 'hidden', 'word-wrap': 'break-word'},
+		'.text-linebreaks': {'white-space': 'pre'},
+		'.pointer': {cursor: 'pointer'},
+		'.z1': {'z-index': '1'},
+		'.z2': {'z-index': '2'},
+		'.z3': {'z-index': '3'},
+		'.noselect': noselect,
+
+		// borders
+		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
+
+		// colors
+		'.bg-transparent': {'background-color': 'transparent'},
+
+		'.content-fg': {color: theme.content_fg},
+		'.content-accent-fg': {color: theme.content_accent},
+		'.svg-content-fg path': {fill: theme.content_fg},
+		'.content-bg': {'background-color': theme.content_bg,},
+		'.content-hover:hover': {
+			color: theme.content_accent,
+		},
+		'.content-message-bg': {'background-color': theme.content_message_bg},
+
+		'.list-bg': {'background-color': theme.list_bg},
+		'.list-accent-fg': {color: theme.list_accent_fg},
+		'.svg-list-accent-fg path': {fill: theme.list_accent_fg},
+		'.list-message-bg': {'background-color': theme.list_message_bg},
+
+		'.password-indicator-bg': {'background-color': theme.content_button},
+
+		'.alt-1-bg': {'background-color': colors.alt_1},
+		'.alt-5-bg': {'background-color': colors.alt_5},
+
+		'.hover-ul:hover': {'text-decoration': 'underline'},
+
+
+		// positioning
+		'.fill-absolute': {position: 'absolute', top: 0, bottom: 0, left: 0, right: 0},
+		'.abs': {position: 'absolute'},
+		'.rel': {position: 'relative'},
+		'.max-width-s': {'max-width': px(360)},
+		'.max-width-m': {'max-width': px(450)},
+		'.max-width-l': {'max-width': px(800)},
+
+		'.scroll': {
+			'overflow-y': client.overflowAuto,
+			'-webkit-overflow-scrolling': 'touch',
+			'-ms-overflow-style': '-ms-autohiding-scrollbar'
+		},
+		'.center': {'text-align': 'center'},
+		'.right': {'text-align': 'right'},
+		'.statusTextColor': {color: theme.content_accent},
+		'.button-height': {height: px(size.button_height)},
+		'.button-min-height': {'min-height': px(size.button_height)},
+		'.button-width-fixed': {width: px(size.button_height)},
+		'.large-button-height': {height: px(size.button_floating_size)},
+		'.large-button-width': {width: px(size.button_floating_size)},
+		'.full-height': {height: '100%'},
+		'.full-width': {width: '100%'},
+		'.block': {display: 'block'},
+		'.no-text-decoration': {'text-decoration': 'none'},
+
+		// flex box
+		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
+		'.flex-no-shrink': {flex: "0 0 auto"},
+		'.flex-center': {display: 'flex', 'justify-content': 'center'},
+		'.flex-end': {display: 'flex', 'justify-content': 'flex-end'},
+		'.flex-start': {display: 'flex', 'justify-content': 'flex-start'},
+		'.flex-v-center': {display: 'flex', 'flex-direction': "column", 'justify-content': 'center'},
+		'.flex-direction-change': {display: 'flex', 'justify-content': 'center'},
+		'.flex-column': {'flex-direction': "column"},
+		'.flex': {display: 'flex'},
+		'.flex-third': {flex: '1 0 auto', 'min-width': "100px"}, // splits a flex layout into three same width columns
+		'.flex-third-middle': {flex: '2 1 auto'},
+		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
+		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
+		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
+		'.items-center': {'align-items': 'center'},
+		'.items-end': {'align-items': 'flex-end'},
+		'.items-base': {'align-items': 'baseline'},
+		'.items-strech': {'align-items': 'strech'},
+		'.align-self-center': {'align-self': 'center'},
+		'.justify-center': {'justify-content': 'center'},
+		'.justify-between': {'justify-content': 'space-between'},
+		'.justify-end': {'justify-content': 'flex-end'},
+		'.justify-start': {'justify-content': 'flex-start'},
+		'.child-grow > *': {flex: "1 1 auto"},
+		'.last-child-fixed > *:last-child': {flex: "1 0 100px"},
+		'.limit-width': {'max-width': '100%'},
+
+		'.border-radius': {'border-radius': px(size.border_radius)},
+		'.editor-border': {
+			'border': `1px solid ${theme.content_border}`,
+			'padding-top': px(size.vpad_small),
+			'padding-bottom': px(size.vpad_small),
+			'padding-left': px(size.hpad),
+			'padding-right': px(size.hpad),
+		},
+		'.editor-border-active': {
+			'border': `2px solid ${theme.content_accent}`,
+			'padding-top': px(size.vpad_small - 1),
+			'padding-bottom': px(size.vpad_small - 1),
+			'padding-left': px(size.hpad - 1),
+			'padding-right': px(size.hpad - 1),
+		},
+
+		// icon
+		'.icon': {
+			height: px(size.icon_size_medium),
+			width: px(size.icon_size_medium),
+		},
+		'.icon > svg': {
+			height: px(size.icon_size_medium),
+			width: px(size.icon_size_medium),
+		},
+		'.icon-large': {
+			height: px(size.icon_size_large),
+			width: px(size.icon_size_large)
+		},
+		'.icon-large > svg': {
+			height: px(size.icon_size_large),
+			width: px(size.icon_size_large)
+		},
+		'.icon-progress > svg': {
+			'animation-name': 'rotate-icon',
+			'animation-duration': '2s',
+			'animation-iteration-count': 'infinite',
+			'animation-timing-function': 'calculatePosition',
+			'transform-origin': '50% 50%',
+			display: 'inline-block'
+		},
+		'@keyframes rotate-icon': {
+			'0%': {
+				transform: 'rotate(0deg)',
+			},
+			'100%': {
+				transform: 'rotate(360deg)',
+			}
+		},
+
+		// custom styling for views
+
+		// the main view
+		'.main-view': {position: 'absolute', top: px(size.navbar_height), right: px(0), bottom: px(0), left: px(0)},
+
+		// view slider
+
+		'.backface_fix': { // TODO check if this can be removed
+			'-webkit-backface-visibility': 'hidden',
+			'backface-visibility': 'hidden'
+		},
+
+		'.view-columns': {'overflow-x': 'hidden'},
+
+		// header
+		'.header-nav': {
+			position: 'absolute', top: 0, left: 0, right: 0,
+			height: px(size.navbar_height),
+			'background-color': theme.header_bg,
+			'box-shadow': `0 2px 4px 0 ${theme.header_box_shadow_bg}`,
+			'z-index': 1, // box_shadow will be overruled by the views background, otherwise
+		},
+
+
+		'.logo-circle': {
+			width: px(size.button_icon_bg_size),
+			height: px(size.button_icon_bg_size),
+			'border-radius': "50%",
+			overflow: "hidden"
+		},
+		'.logo': {height: px(size.header_logo_height)},
+		'.logo-text': {height: px(size.header_logo_height), width: px(128)},
+		'.logo-height': {height: px(size.header_logo_height)},
+		'.logo-height > svg, .logo-height > img': {height: px(size.header_logo_height)},
+
+		'.custom-logo': {width: px(200), 'background-repeat': "no-repeat", 'background-size': "auto 100%"},
+
+		// fix for IE11: use position absolute to fill header parts and center child elements using flex box
+		'.header-left': {position: 'absolute', left: '0', top: 0, bottom: 0, width: '280px'},
+		'.header-middle': {display: 'none'},
+		'.header-right': {position: 'absolute', left: '280px', right: '0', top: 0, bottom: 0},
+		'.header-right > .nav-bar': {width: '100%'},
+
+
+		// dialogs
+		'.dialog': {'min-width': px(200), width: '95%'},
+		'.dialog-width-l': {'max-width': px(800)},
+		'.dialog-width-m': {'max-width': px(500)},
+		'.dialog-width-s': {'max-width': px(400)},
+		'.dialog-width-alert': {'max-width': px(350)},
+		'.dialog-align-top': {position: 'relative', 'margin-top': '60px'},
+		'.dialog-header': {
+			'border-bottom': `1px solid ${theme.content_border}`,
+			height: px(size.button_height + 1)
+		},
+		'.dialog-progress': {'text-align': 'center', padding: px(size.hpad_large)},
+		'.dialog-container': position_absolute(size.button_height + 1, 0, 0, 0),
+		'.dialog-contentButtonsBottom': {padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`},
+		'.dialog-img': {width: px(150), height: "auto"},
+		'.dialog-buttons': {'border-top': `1px solid ${theme.content_border}`},
+		'.dialog-buttons > button': {
+			'flex': '1',
+		},
+		'.dialog-buttons > button:not(:first-child)': {
+			'border-left': `1px solid ${theme.content_border}`,
+			'margin-left': '0'
+		},
+
+		// mail folder view column
+		' .folder-column': {
+			'background-color': theme.navigation_bg,
+			height: '100%',
+			'border-right': `1px solid ${theme.navigation_border}`
+		},
+		'.list-border-right': {
+			'border-right': `1px solid ${theme.list_border}`
+		},
+		'.folders': {'margin-bottom': px(12)},
+		'.folder-row': {
+			'border-left': px(size.border_selection) + ' solid transparent',
+			'margin-bottom': px(4),
+			'margin-right': px(-size.hpad_button)
+			//'padding-left': px(size.hpad_large - size.hpad_button - size.border_selection),
+			//'padding-right': px(size.hpad_large - size.hpad_button)
+		},
+		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
+		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},
+
+		'.pr-expander': {'padding-right': px(3)},
+		'.expander': {height: px(size.button_height), 'min-width': px(size.button_height)},
+
+
+		// mail view editor
+		'.mail-viewer-firstLine': {'pading-top': px(10)},
+		'.hide-outline': {outline: 'none'},
+		'.nofocus:focus': {
+			outline: 'none'
+		},
+
+		'blockquote.tutanota_quote': {
+			'border-left': `1px solid ${theme.content_accent}`,
+			'padding-left': px(size.hpad),
+			'margin-left': px(0)
+		},
+
+		'.MsoNormal': {margin: 0},
+
+		// list
+		'.list': {'background-repeat': 'repeat-y', overflow: 'hidden', 'list-style': 'none', margin: 0},
+		'.list-row': {
+			position: 'absolute', left: 0, right: 0,
+			'background-color': theme.list_bg,
+			height: px(size.list_row_height), 'border-left': px(size.border_selection) + " solid transparent"
+		},
+		'.list-row > div': {'margin-left': px(-size.border_selection)},
+		'.odd-row': {
+			'background-color': theme.list_alternate_bg,
+		},
+		'.list-loading': {bottom: 0},
+
+
+		// action bar
+		'.action-bar': {width: 'initial', 'margin-left': 'auto'},
+
+		// dropdown
+		'.dropdown-panel': {
+			position: 'absolute',
+			width: 0,
+			height: 0,
+			'background-color': theme.content_bg,
+			overflow: 'hidden' // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
+		},
+		'.dropdown-content:first-child': {'padding-top': px(size.vpad_small)},
+		'.dropdown-content:last-child': {'padding-bottom': px(size.vpad_small)},
+		'.dropdown-content > *': {width: '100%'},
+
+		'button, .nav-button': {
+			position: 'relative',
+			border: 0,
+			cursor: 'pointer',
+			outline: 'none',
+			overflow: 'hidden',
+			'white-space': 'nowrap',
+			margin: 0, // for safari
+			'flex-shrink': 0,
+		},
+
+		'.nav-button:hover': {
+			'text-decoration': 'underline',
+			opacity: 0.7,
+		},
+		'.nav-button:focus': {
+			'text-decoration': 'underline',
+			opacity: 0.7,
+		},
+		'button:focus, button:hover': {
+			opacity: 0.7,
+		},
+
+
+		'.button-icon': {
+			width: px(size.button_icon_bg_size),
+			height: px(size.button_icon_bg_size),
+			'border-radius': px(size.button_icon_bg_size),
+			'min-width': px(size.button_icon_bg_size),
+		},
+		'.button-icon.floating': {
+			height: px(size.button_floating_size),
+			width: px(size.button_floating_size),
+			'min-width': px(size.button_floating_size),
+			'border-radius': px(size.button_icon_bg_size),
+		},
+
+		'.login': {
+			width: "100%",
+			'border-radius': px(size.border_radius),
+
+		},
+		'.button-content': {
+			height: px(size.button_height),
+			'min-width': px(size.button_height)
+		},
+		'.primary': {color: theme.content_accent, 'font-weight': 'bold'},
+		'.secondary': {color: theme.content_accent},
+		'.textBubble': {color: theme.content_accent, 'padding-top': px(size.text_bubble_tpad)},
+		'.bubble': {
+			'max-width': "300px",
+			// make the visible button smaller by 7px without changing the actual click area
+			'border-radius': px(size.border_radius + ((size.button_height - size.button_height_bubble) / 2)),
+			border: `${px(((size.button_height - size.button_height_bubble) / 2))} solid ${theme.content_bg}`,
+			'background-color': theme.button_bubble_bg,
+			color: theme.button_bubble_fg,
+		},
+
+		// contact
+		'.wrapping-row': {display: 'flex', 'flex-flow': 'row wrap', 'margin-right': px(-size.hpad_large)},
+		'.wrapping-row > *': {
+			flex: '1 0 40%',
+			'margin-right': px(size.hpad_large),
+			'min-width': px(200), // makes sure the row is wrapped with too large content
+		},
+
+		// text input field
+		'.inputWrapper': {
+			flex: "1 1 auto",
+			background: 'transparent',
+			overflow: 'hidden',
+		},
+
+		// textarea
+		'.input, .input-area': {
+			display: 'block',
+			resize: 'none',
+			border: 0,
+			margin: 0, // for safari browser
+			background: 'transparent',
+			outline: 'none',
+			width: '100%',
+			overflow: 'hidden',
+			height: px(0),
+			'min-height': px(size.font_size_base + 6),
+			color: theme.content_fg,
+		},
+
+		'.input-area': {
+			height: px(0),
+			'min-height': px(size.font_size_base + 6),
+			'margin-top': px(size.font_size_small + size.hpad_small),
+		},
+
+		// table
+
+		'.table': {
+			'border-collapse': 'collapse',
+			'table-layout': 'fixed',
+			width: '100%'
+		},
+
+		'.table > tr:first-child': {
+			'border-bottom': `1px solid ${theme.content_border}`
+		},
+
+		'.table > td': {
+			'vertical-align': 'middle'
+		},
+
+		'.column-width-small': {
+			width: px(size.column_width_s_desktop)
+		},
+
+		'.column-width-largest': {},
+
+		// media query for small devices where elements should be arranged in one column
+		// also adaptions for table column widths
+		"@media (max-width: 400px)": { // currently used for the reminder dialog
+			'.flex-direction-change': {
+				display: 'flex',
+				'flex-direction': "column-reverse",
+				'justify-content': 'center'
+			},
+			'.column-width-small': {width: px(size.column_width_s_mobile)}
+		},
+
+		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
+		"@media (max-width: 719px)": {
+			'.main-view': {top: positionValue(size.navbar_height_mobile)},
+			'.header-nav': {height: px(size.navbar_height_mobile)},
+			'.logo-height': {height: px(size.header_logo_height_mobile)},
+			'.logo-height > svg': {height: px(size.header_logo_height_mobile)},
+			// adjust padding for mobile devices
+			//'.plr-l': {'padding-left': px(size.hpad_large_mobile), 'padding-right': px(size.hpad_large_mobile)},
+			//'.pl-l': {'padding-left': px(size.hpad_large_mobile)},
+			//'.pr-l': {'padding-right': px(size.hpad_large_mobile)},
+
+			//".fixed-bottom-right": {bottom: px(size.hpad_large_mobile), right: px(size.hpad_large_mobile)},
+			'.pt-responsive': {'padding-top': px(size.hpad_large)},
+			'.header-logo': {
+				height: px(size.header_logo_height_mobile),
+			},
+			'.header-logo > svg': {height: px(size.header_logo_height_mobile)},
+
+			'.header-left': {
+				width: `${px(size.navbar_edge_width_mobile)}`
+			},
+			'.header-middle': {
+				position: 'absolute',
+				right: px(size.navbar_edge_width_mobile),
+				left: px(size.navbar_edge_width_mobile),
+				top: 0,
+				bottom: 0,
+			},
+			'.header-right': {
+				left: 'auto',
+				width: `${px(size.navbar_edge_width_mobile)}`
+			},
+
+			'.custom-logo': {width: px(40)}
+		}
+	}
+})

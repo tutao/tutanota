@@ -8,53 +8,29 @@ Bluebird - https://github.com/petkaantonov/bluebird
 License: MIT
 Reference: https://github.com/petkaantonov/bluebird/blob/master/LICENSE
 
-Google FastButton - https://github.com/alexblack/google-fastbutton
-License: MIT
-Reference: https://github.com/alex-tan/google-fastbutton/blob/master/LICENSE
-
-Html-Css-Sanitizer - https://code.google.com/p/google-caja
+DOMPurify - https://github.com/cure53/DOMPurify
 License: Apache 2
-Reference: https://code.google.com/p/google-caja
-
-jQuery - http://http://jquery.com
-License: MIT
-Reference: https://jquery.org/license
-
-jQuery Transit - https://github.com/rstacruz/jquery.transit
-License: MIT
-Reference: https://jquery.org/license
+Reference: https://github.com/cure53/DOMPurify/blob/master/LICENSE
 
 JSBN - http://www-cs-students.stanford.edu/~tjw/jsbn
 License: BSD
 Reference: http://www-cs-students.stanford.edu/~tjw/jsbn/LICENSE
 
-Knockout - http://knockoutjs.com
+MithrilJS - https://mithril.js.org/
 License: MIT
-Reference: https://github.com/knockout/knockout/blob/master/LICENSE
+Reference: https://github.com/MithrilJS/mithril.js/blob/next/LICENSE
 
-LESS - http://lesscss.org
-License: Apache 2
-Reference: http://lesscss.org/#license-faqs
-
-PathJS - https://github.com/mtrpcic/pathjs
+systemjs - https://github.com/systemjs
 License: MIT
-Reference: https://github.com/mtrpcic/pathjs
+Reference: https://github.com/systemjs/systemjs/blob/master/LICENSE
+
+Squire - http://neilj.github.io/Squire/
+License: MIT
+Reference: https://github.com/neilj/Squire/blob/master/LICENSE
 
 Stanford Javascript Crypto Library (SJCL) - https://github.com/bitwiseshiftleft/sjcl
 License: BSD
 Reference: http://bitwiseshiftleft.github.io/sjcl
-
-SWFObject - https://code.google.com/p/swfobject
-License: MIT
-Reference: https://code.google.com/p/swfobject
-
-Operative - http://github.com/padolsey/operative
-License: MIT
-Reference: http://github.com/padolsey/operative
-
-base64shim - https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
-License: "This library is free.  You can redistribute it and/or modify it."
-https://code.google.com/p/gflot/source/browse/trunk/flot/base64.js
 
 Ionicons - https://github.com/driftyco/ionicons
 License: MIT
@@ -67,14 +43,6 @@ Reference: https://icomoon.io/#icons-icomoon/license
 Source Sans Pro Font - https://www.google.com/fonts/specimen/Source+Sans+Pro
 License: OFL
 Reference: http://http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=OFL
-
-Way through the dunes image - http://www.istockphoto.com/photo/way-through-the-dunes-11742529
-License: Custom
-Reference: http://www.istockphoto.com/license.php
-
-busy.gif - http://www.ajaxload.info
-License: WTFPL
-Reference: http://www.wtfpl.net
 
 Apache Cordova - http://cordova.apache.org
 License: Apache 2

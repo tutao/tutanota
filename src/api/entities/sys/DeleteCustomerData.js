@@ -1,0 +1,68 @@
+// @flow
+import {create, TypeRef} from "../../common/EntityFunctions"
+
+export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", "DeleteCustomerData")
+export const _TypeModel: TypeModel = {
+	"name": "DeleteCustomerData",
+	"since": 5,
+	"type": "DATA_TRANSFER_TYPE",
+	"id": 641,
+	"rootId": "A3N5cwACgQ",
+	"versioned": false,
+	"encrypted": false,
+	"values": {
+		"_format": {
+			"name": "_format",
+			"id": 642,
+			"since": 5,
+			"type": "Number",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"reason": {
+			"name": "reason",
+			"id": 644,
+			"since": 5,
+			"type": "String",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		},
+		"takeoverMailAddress": {
+			"name": "takeoverMailAddress",
+			"id": 1077,
+			"since": 19,
+			"type": "String",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
+		"undelete": {
+			"name": "undelete",
+			"id": 643,
+			"since": 5,
+			"type": "Boolean",
+			"cardinality": "One",
+			"final": false,
+			"encrypted": false
+		}
+	},
+	"associations": {
+		"customer": {
+			"name": "customer",
+			"since": 5,
+			"type": "ELEMENT_ASSOCIATION",
+			"cardinality": "One",
+			"refType": "Customer",
+			"final": false,
+			"external": false
+		}
+	},
+	"app": "sys",
+	"version": "23"
+}
+
+export function createDeleteCustomerData(): DeleteCustomerData {
+	return create(_TypeModel)
+}

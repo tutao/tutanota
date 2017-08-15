@@ -1,0 +1,78 @@
+@charset "utf-8";
+body {
+	font-family: "LatoLatinWeb";
+	font-size: 9pt;
+	font-style: normal;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+}
+
+#menu {
+	position: fixed;
+	top: 0.50em;
+    left: 0;
+	
+}
+#nav {
+	font-family: "LatoLatinWeb";
+	background-color: none;
+	width:150px;
+	text-align:left;
+	font-size:1em;
+	list-style: none;
+	margin: 0 0 0 0;
+	padding: 0 20 30 20;
+	float:left;
+}
+
+#nav li {
+	float:none;
+}
+
+#nav li a:link {
+	display:block;
+	padding: 4px 5px;
+	text-decoration: none;
+	background-color: #eee;
+	color:#222;
+	
+}
+
+.large {
+	font-size: 2.2em;
+}
+#main {
+	font-family: "LatoLatinWeb";
+	font-style: normal;
+	font-size: 1.5em;
+	color: #black;
+	background-color: white;
+	width: 840px;
+	padding: 0 40px 0 40px;
+	margin-left: 180px;
+	margin-top: auto;
+	margin-right: 0;
+}
+.waterfall {
+	font-size: 10px;
+	width:100%;
+	overflow: hidden;
+	text-shadow: 0px 0px 0px black;
+	color: #000;
+}
+
+.size10{ font-size: 10px; }
+.size11{ font-size: 11px; }
+.size12{ font-size: 12px; }
+.size13{ font-size: 13px; }
+.size14{ font-size: 14px; }
+.size16{ font-size: 16px; }
+.size18{ font-size: 18px; }
+.size20{ font-size: 20px; }
+.size24{ font-size: 24px; }
+.size30{ font-size: 30px; }
+.size36{ font-size: 36px; }
+.size48{ font-size: 48px; }
+.size60{ font-size: 60px; }
+.size72{ font-size: 72px; }
+.size90{ font-size: 90px; }

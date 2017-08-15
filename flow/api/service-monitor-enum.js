@@ -1,0 +1,1 @@
+type MonitorServiceEnum =  "counterservice" | "sensorservice"

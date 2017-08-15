@@ -1,0 +1,61 @@
+// @flow
+
+export const Mode = {
+	Browser: "Browser",
+	App: "App",
+	Test: "Test",
+}
+
+export function getWebsocketOrigin(): string {
+	// replace "http" by "ws"
+	return "ws" + getHttpOrigin().substring(4)
+}
+
+export function getHttpOrigin(): string {
+	if (env.staticUrl) {
+		return env.staticUrl
+	} else {
+		return location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
+	}
+}
+
+export function isTutanotaDomain(): boolean {
+	// *.tutanota.com or without dots (e.g. localhost). otherwise it is a custom domain
+	return location.hostname.endsWith("tutanota.com") || location.hostname.indexOf(".") == -1
+}
+
+export function isIOSApp(): boolean {
+	return env.mode == Mode.App && env.platformId == "ios"
+}
+
+
+let worker = (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+let node = (typeof process === 'object' && typeof process.versions === 'object' && typeof process.versions.node !== 'undefined')
+
+export function isMain(): boolean {
+	return !worker && !node
+}
+
+export function isMainOrNode(): boolean {
+	return !worker || node || env.mode === Mode.Test
+}
+
+export function isWorkerOrNode(): boolean {
+	return worker || node || env.mode === Mode.Test
+}
+
+export function isWorker(): boolean {
+	return worker
+}
+
+export function assertMainOrNode() {
+	if (!isMainOrNode()) {
+		throw new Error("this code must not run in the worker thread")
+	}
+}
+
+export function assertWorkerOrNode() {
+	if (!isWorkerOrNode()) {
+		throw new Error("this code must not run in the gui thread")
+	}
+}

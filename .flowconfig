@@ -1,0 +1,12 @@
+[ignore]
+# see https://github.com/facebook/flow/issues/869#issuecomment-256643823
+.*/node_modules/.*
+.*/build/.*
+.*/resources/.*
+.*/buildSrc/.*
+
+[libs]
+flow
+
+[options]
+module.ignore_non_literal_requires=true

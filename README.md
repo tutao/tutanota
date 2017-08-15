@@ -5,11 +5,6 @@ Tutanota is the end-to-end encrypted email client that enables you to communicat
 * Official website: https://tutanota.com
 * Issue and feature tracker: https://tutanota.uservoice.com/forums/237921-general
 
-## WebStorm
-Tutanota is built with [WebStorm](https://www.jetbrains.com/webstorm/) from [JetBrains](https://www.jetbrains.com/)
-
-[![WebStorm Logo](logo_WebStorm.png)](https://www.jetbrains.com/webstorm/)
-
 ## Building and running your own Tutanota web client
 
 You can build your own Tutanota client and run it locally. Remember that you have to update your Tutanota client on your own. If you prefer the auto-update feature, you can use https://app.tutanota.de directly and upon every update your browser will notify you that the updated app is being installed locally in your browser cache.
@@ -53,25 +48,3 @@ Build steps:
 11. Align the app: `<path_to_android_sdk_>/build-tools/22.0.1/zipalign -v 4 platforms/android/build/outputs/apk/android-release-unsigned.apk platforms/android/build/outputs/apk/Tutanota-release.apk`
 12. Install the app on your device: `adb install platforms/android/build/outputs/apk/Tutanota-release.apk`
 
-## Server templates
-
-Server templates contains working installation instructions. Allows to create a temporary server to test, deploy production servers and fork configurations for customization.
-
-Distribution  | Status
-------------- | -------------
-[Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70) | [![Debian Wheezy](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/build/1/image)](https://manageacloud.com/configuration/tutanota_email_client_debian_wheezy_70/builds)
-[Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie) | [![Debian Jessie](https://manageacloud.com/configuration/tutanota_debian_jessie/build/7/image)](https://manageacloud.com/configuration/tutanota_debian_jessie/builds)
-[Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404)  | [![Ubuntu 14.04](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/build/2/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_trusty_tahr_1404/builds)
-[Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410) | [![Ubuntu 14.10](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/build/6/image)](https://manageacloud.com/configuration/tutanota_email_client_ubuntu_utopic_unicorn_1410/builds)
-[Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04) | [![Ubuntu 15.04](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/build/8/image)](https://manageacloud.com/configuration/tutanota_ubuntu_vivid_15_04/builds)
-[CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client) | [![CentOS 6.5](https://manageacloud.com/configuration/tutanota_email_client/build/3/image)](https://manageacloud.com/configuration/tutanota_email_client/builds)
-[CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7) | [![CentOS 7](https://manageacloud.com/configuration/tutanota_email_client_centos_7/build/5/image)](https://manageacloud.com/configuration/tutanota_email_client_centos_7/builds)
-
-
-
-## Tests
-
-We use the following tools for testing:
-* Test runner: [Karma](http://karma-runner.github.io/)
-* Test framework: [Mocha doc](http://mochajs.org/)
-* Assertion framework: [chai.js API doc](http://chaijs.com/api/assert/)

@@ -1,0 +1,32 @@
+// @flow
+
+export const TutanotaService = {
+	ExternalUserService: "externaluserservice",
+	MailService: "mailservice",
+	PasswordMessagingService: "passwordmessagingservice",
+	PasswordAutoAuthenticationService: "passwordautoauthenticationservice",
+	PasswordRetrievalService: "passwordretrievalservice",
+	PasswordChannelResource: "passwordchannelresource",
+	FileDataService: "filedataservice",
+	CreateFileService: "createfileservice",
+	CreateFolderService: "createfolderservice",
+	UpdateFileService: "updatefileservice",
+	DeleteFileService: "deletefileservice",
+	TestDeleteMailboxService: "testdeletemailboxservice",
+	MoveMailService: "movemailservice",
+	MailFolderService: "mailfolderservice",
+	EncryptTutanotaPropertiesService: "encrypttutanotapropertiesservice",
+	DraftService: "draftservice",
+	SendDraftService: "senddraftservice",
+	MigrateToV11Service: "migratetov11service",
+	ReceiveInfoService: "receiveinfoservice",
+	MigrateToAreaKeysService: "migratetoareakeysservice",
+	DatabaseWalkerService: "databasewalkerservice",
+	CurrentMigrationService: "currentmigrationservice",
+	CustomerAccountService: "customeraccountservice",
+	UserAccountService: "useraccountservice",
+	MailGroupService: "mailgroupservice",
+	TeamGroupService: "teamgroupservice",
+	ContactFormAccountService: "contactformaccountservice",
+	DeleteNotAccessibleMailsService: "deletenotaccessiblemailsservice"
+}

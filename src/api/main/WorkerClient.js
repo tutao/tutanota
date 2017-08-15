@@ -1,0 +1,340 @@
+// @flow
+import {CryptoError} from "../common/error/CryptoError"
+import {Request, Queue, objToError} from "../common/WorkerProtocol"
+import {UserController} from "../main/UserController"
+import {EntityEventController} from "./EntityEventController"
+import {TypeRef} from "../common/EntityFunctions"
+import {assertMainOrNode, isMain} from "../Env"
+import {ContactController} from "./ContactController"
+import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
+import {loadRoot} from "./Entity"
+import {nativeApp} from "../../native/NativeWrapper"
+import {logins} from "./LoginController"
+import {EntropyCollector} from "./EntropyCollector"
+
+assertMainOrNode()
+
+
+function requireNodeOnly(path: string) {
+	return require(path)
+}
+
+export class WorkerClient {
+	initialized: Promise<void>;
+
+	_queue: Queue;
+	_contactController: ContactController;
+	_entityEventController: EntityEventController;
+	_progressUpdater: ?progressUpdater;
+	_entropyCollector: EntropyCollector;
+
+	constructor(entityEventController: EntityEventController) {
+		this._entityEventController = entityEventController;
+		this._contactController = new ContactController()
+		this._entropyCollector = new EntropyCollector()
+		this._initWorker()
+		this.initialized.then(() => {
+			this._initServices()
+		})
+		this._queue.setCommands({
+			execNative: (message: any) => nativeApp.invokeNative(new Request(message.args[0], message.args[1])),
+			entityEvent: (message: any) => {
+				this._entityEventController.notificationReceived(message.args[0])
+				return Promise.resolve()
+			},
+			error: (message: any) => {
+				throw objToError((message:any).args[0])
+			},
+			progress: (message: any) => {
+				if (this._progressUpdater) {
+					this._progressUpdater(message.args[0])
+				}
+				return Promise.resolve()
+			}
+		})
+		entityEventController.addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
+	}
+
+	_initWorker() {
+		if (typeof Worker !== 'undefined') {
+			let worker = null
+			if (env.dist) {
+				worker = new Worker(System.getConfig().baseURL + "WorkerBootstrap.js")
+			} else {
+				let url = System.normalizeSync(typeof module != "undefined" ? module.id : __moduleName)
+				let workerUrl = url.substring(0, url.lastIndexOf('/')) + '/../worker/WorkerBootstrap.js'
+				worker = new Worker(workerUrl)
+			}
+			this._queue = new Queue(worker)
+
+			window.env.systemConfig.baseURL = System.getConfig().baseURL
+			window.env.systemConfig.map = System.getConfig().map // update the system config (the current config includes resolved paths; relative paths currently do not work in a worker scope)
+			let start = new Date().getTime()
+			this.initialized = this._queue.postMessage(new Request('setup', [window.env, this._entropyCollector.getInitialEntropy()]))
+				.then(() => console.log("worker init time (ms):", new Date().getTime() - start))
+
+			worker.onerror = (e: any) => {
+				throw new CryptoError("could not setup worker", e)
+			}
+
+		} else {
+			// node: we do not use workers but connect the client and the worker queues directly with each other
+			// attention: do not load directly with require() here because in the browser SystemJS would load the WorkerImpl in the client although this code is not executed
+			const workerImpl = requireNodeOnly('./../worker/WorkerImpl.js').workerImpl
+
+			workerImpl._queue._transport = {postMessage: msg => this._queue._handleMessage(msg)}
+			this._queue = new Queue(({
+				postMessage: function (msg) {
+					workerImpl._queue._handleMessage(msg)
+
+				}
+			}:any))
+			this.initialized = Promise.resolve()
+		}
+	}
+
+	_initServices() {
+		if (isMain()) {
+			this._entropyCollector.start(this)
+		}
+		nativeApp.init()
+	}
+
+	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
+		if (logins.isUserLoggedIn()) {
+			logins.getUserController().entityEventReceived(typeRef, listId, elementId, operation)
+		}
+		this._contactController.entityEventReceived(typeRef, listId, elementId, operation)
+	}
+
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string) {
+		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
+	}
+
+	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: ContactFormStatisticField[]): Promise<ContactFormAccountReturn> {
+		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
+	}
+
+	createWorkerSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id, credentials: ?Credentials}> {
+		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
+	}
+
+	createSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
+		return this.createWorkerSession(username, password, clientIdentifier, returnCredentials).then(loginData => {
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+		})
+	}
+
+	_initUserController(user: User, userGroupInfo: GroupInfo, sessionElementId: Id) {
+		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
+			logins.setUserController(new UserController(user, userGroupInfo, sessionElementId, props))
+		})
+	}
+
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
+		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments)).then(loginData => {
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+		}))
+	}
+
+	logout(): Promise<void> {
+		return this._postRequest(new Request('logout', arguments))
+			.finally(() => {
+				logins.setUserController(null)
+			})
+	}
+
+	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
+		return this._postRequest(new Request('resumeSession', arguments)).then(loginData => {
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId)
+		})
+	}
+
+	deleteSession(accessToken: Base64Url): Promise<void> {
+		return this._postRequest(new Request('deleteSession', arguments))
+	}
+
+	changePassword(oldPassword: string, newPassword: string): Promise<void> {
+		return this._postRequest(new Request('changePassword', arguments))
+	}
+
+	createMailFolder(name: string, parent: IdTuple, ownerGroupId: Id): Promise<void> {
+		return this._postRequest(new Request('createMailFolder', arguments))
+	}
+
+	createMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], conversationType: ConversationTypeEnum, previousMessageId: ?Id, attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, replyTos: RecipientInfo[]): Promise<Mail> {
+		return this._postRequest(new Request('createMailDraft', arguments))
+	}
+
+	updateMailDraft(subject: string, body: string, senderAddress: string, senderName: string, toRecipients: RecipientInfo[], ccRecipients: RecipientInfo[], bccRecipients: RecipientInfo[], attachments: ?Array<TutanotaFile|DataFile|FileReference>, confidential: boolean, draft: Mail): Promise<Mail> {
+		return this._postRequest(new Request('updateMailDraft', arguments))
+	}
+
+	sendMailDraft(draft: Mail, recipientInfos: RecipientInfo[], language: string): Promise<void> {
+		return this._postRequest(new Request('sendMailDraft', arguments))
+	}
+
+	downloadFileContent(file: TutanotaFile): Promise<DataFile|FileReference> {
+		return this._postRequest(new Request('downloadFileContent', arguments))
+	}
+
+	changeUserPassword(user: User, newPassword: string): Promise<void> {
+		return this._postRequest(new Request('changeUserPassword', arguments))
+	}
+
+	changeAdminFlag(user: User, admin: boolean): Promise<void> {
+		return this._postRequest(new Request('changeAdminFlag', arguments))
+	}
+
+	readUsedUserStorage(user: User): Promise<number> {
+		return this._postRequest(new Request('readUsedUserStorage', arguments))
+	}
+
+	readUsedGroupStorage(groupId: Id): Promise<number> {
+		return this._postRequest(new Request('readUsedGroupStorage', arguments))
+	}
+
+	deleteUser(user: User, restore: boolean): Promise<void> {
+		return this._postRequest(new Request('deleteUser', arguments))
+	}
+
+	createMailGroup(name: string, mailAddress: string): Promise<void> {
+		return this._postRequest(new Request('createMailGroup', arguments))
+	}
+
+	createTeamGroup(name: string): Promise<void> {
+		return this._postRequest(new Request('createTeamGroup', arguments))
+	}
+
+	getPrice(type: NumberString, count: number, paymentInterval: ?number, accountType: ?NumberString, business: ?boolean): Promise<PriceServiceReturn> {
+		return this._postRequest(new Request('getPrice', arguments))
+	}
+
+	tryReconnectEventBus() {
+		return this._postRequest(new Request('tryReconnectEventBus', arguments))
+	}
+
+	/**
+	 * Reads the used storage of a customer in bytes.
+	 * @return The amount of used storage in byte.
+	 */
+	readUsedCustomerStorage(): Promise<NumberString> {
+		return this._postRequest(new Request('readUsedCustomerStorage', [logins.getUserController().user.customer]))
+	}
+
+	/**
+	 * Reads the available storage capacity of a customer in bytes.
+	 * @return The amount of available storage capacity in byte.
+	 */
+	readAvailableCustomerStorage(): Promise<NumberString> {
+		return this._postRequest(new Request('readAvailableCustomerStorage', [logins.getUserController().user.customer]))
+	}
+
+	addMailAlias(groupId: Id, alias: string): Promise<void> {
+		return this._postRequest(new Request('addMailAlias', arguments))
+	}
+
+	setMailAliasStatus(groupId: Id, alias: string, restore: boolean): Promise<void> {
+		return this._postRequest(new Request('setMailAliasStatus', arguments))
+	}
+
+	isMailAddressAvailable(mailAddress: string): Promise<boolean> {
+		return this._postRequest(new Request('isMailAddressAvailable', arguments))
+	}
+
+	getAliasCounters(): Promise<MailAddressAliasServiceReturn> {
+		return this._postRequest(new Request('getAliasCounters', arguments))
+	}
+
+	loadCustomerServerProperties(): Promise<CustomerServerProperties> {
+		return this._postRequest(new Request('loadCustomerServerProperties', arguments))
+	}
+
+	addSpamRule(): Promise<void> {
+		return this._postRequest(new Request('addSpamRule', arguments))
+	}
+
+	createUser(name: string, mailAddress: string, password: string, userIndex: number, overallNbrOfUsersToCreate: number): Promise<void> {
+		return this._postRequest(new Request('createUser', arguments))
+	}
+
+	addUserToGroup(user: User, groupId: Id): Promise<void> {
+		return this._postRequest(new Request('addUserToGroup', arguments))
+	}
+
+	removeUserFromGroup(userId: Id, groupId: Id): Promise<void> {
+		return this._postRequest(new Request('removeUserFromGroup', arguments))
+	}
+
+	deactivateGroup(group: Group, restore: boolean): Promise<void> {
+		return this._postRequest(new Request('deactivateGroup', arguments))
+	}
+
+	loadContactFormByPath(formId: string): Promise<ContactForm> {
+		return this._postRequest(new Request('loadContactFormByPath', arguments))
+	}
+
+	restRequest<T>(path: string, method: HttpMethodEnum, queryParams: Params, headers: Params, body: ?string|?Uint8Array, responseType: ?MediaTypeEnum, progressListener: ?ProgressListener): Promise<any> {
+		return this._postRequest(new Request('restRequest', Array.from(arguments)))
+	}
+
+	addDomain(domainName: string): Promise<CustomDomainReturn> {
+		return this._postRequest(new Request('addDomain', arguments))
+	}
+
+	removeDomain(domainName: string): Promise<void> {
+		return this._postRequest(new Request('removeDomain', arguments))
+	}
+
+	setCatchAllGroup(domainName: string, mailGroupId: ?Id): Promise<void> {
+		return this._postRequest(new Request('setCatchAllGroup', arguments))
+	}
+
+	uploadCertificate(domainName: string, pemCertificateChain: string, pemPrivateKey: string): Promise<void> {
+		return this._postRequest(new Request('uploadCertificate', arguments))
+	}
+
+	deleteCertificate(domainName: string): Promise<void> {
+		return this._postRequest(new Request('deleteCertificate', arguments))
+	}
+
+	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
+		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
+	}
+
+	serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParameter: ?Params, sk: ?Aes128Key): Promise<any> {
+		return this._postRequest(new Request('serviceRequest', Array.from(arguments)))
+	}
+
+	entropy(entropyCache: {source: EntropySrcEnum, entropy: number, data: number}[]) {
+		return this._postRequest(new Request('entropy', Array.from(arguments)))
+	}
+
+	_postRequest(msg: Request) {
+		if (!this.initialized.isFulfilled()) {
+			throw new Error("worker has not been initialized, request: " + JSON.stringify(msg))
+		}
+		return this._queue.postMessage(msg)
+	}
+
+	getEntityEventController() {
+		return this._entityEventController
+	}
+
+	getContactController(): ContactController {
+		return this._contactController
+	}
+
+	registerProgressUpdater(updater: ?progressUpdater) {
+		this._progressUpdater = updater
+	}
+
+	unregisterProgressUpdater(updater: ?progressUpdater) {
+		// another one might have been registered in the mean time
+		if (this._progressUpdater == updater) {
+			this._progressUpdater = null
+		}
+	}
+}
+
+export const worker = new WorkerClient(new EntityEventController())
