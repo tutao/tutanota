@@ -108,7 +108,7 @@ export function loadRoot<T>(typeRef: TypeRef<T>, groupId: Id): Promise<T> {
 	})
 }
 
-export function serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: ?TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
+export function serviceRequest<T>(service: SysServiceEnum|TutanotaServiceEnum|MonitorServiceEnum, method: HttpMethodEnum, requestEntity: ?any, responseTypeRef: TypeRef<T>, queryParams: ?Params, sk: ?Aes128Key): Promise<T> {
 	return worker.serviceRequest(service, method, requestEntity, responseTypeRef, queryParams, sk)
 }
 

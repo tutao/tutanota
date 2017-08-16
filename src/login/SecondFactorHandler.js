@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {SessionTypeRef} from "../api/entities/sys/Session"
-import {load, serviceRequest} from "../api/main/Entity"
+import {load, serviceRequestVoid} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
@@ -55,7 +55,7 @@ export class SecondFactorHandler {
 									let serviceData = createSecondFactorAuthData()
 									serviceData.session = session._id
 									serviceData.type = null
-									worker.serviceRequest(SysService.SecondFactorAuthService, HttpMethod.POST, serviceData)
+									worker.serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, serviceData)
 									if (this._otherLoginDialog) {
 										this._otherLoginDialog.close()
 										this._otherLoginSessionId = null

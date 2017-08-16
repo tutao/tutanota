@@ -51,7 +51,6 @@ export class LoginViewController {
 			this.view.helpText = lang.get('login_msg')
 			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), this.view.savePassword.checked())
 				.then(newCredentials => {
-					this.view.password.value("")
 					let storedCredentials = deviceConfig.get(mailAddress)
 					if (newCredentials) {
 						deviceConfig.set(newCredentials)
@@ -76,6 +75,7 @@ export class LoginViewController {
 			.then(() => {
 				m.route.set(this.view._requestedPath)
 				this.view.helpText = lang.get('emptyString_msg')
+				this.view.password.value("")
 			})
 			.catch(AccessBlockedError, e => {
 				this.view.helpText = lang.get('loginFailedOften_msg')
