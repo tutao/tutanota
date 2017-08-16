@@ -23,7 +23,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4`
+3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4+`
 4. Install gulp globally: `npm install -g gulp`
 5. Install dependencies: `npm install`
 6. Build Tutanota: `gulp dist`
@@ -36,20 +36,20 @@ Pre-requisites:
 * An up-to-date version of git is installed
 * An up-to-date version of node js is installed
 
+If you have gulp globally installed you may use `build.sh` to build a electron application.
+
 Build steps:
 
-1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
-2. Switch into the tutanota directory: `cd tutanota/`
-3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4`
-4. Run `./build.sh`
-5. Switch into the build directory: `cd web/build`
-6. You can build for different OS using the following commands:
+1. Build Tutanota web client using the instructions above.
+2. Copy the 2 files under electron folder into the build directory.
+3. Change directory to the build directory.
+4. Install dependencies: `npm install`
+5. Use the following commands to run or build the application:
 
-npm run build_linux
-npm run build_mac
-npm run build_win
-
-7. You can find the build under `release-builds` folder
+`npm run start`
+`npm run build_linux`
+`npm run build_mac`
+`npm run build_win`
 
 ## Building and running your own Tutanota Android app
 

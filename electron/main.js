@@ -18,7 +18,7 @@ function CreateWindow () {
     slashes: true
   }));
 
-  main_window.toggleDevTools();
+  //main_window.toggleDevTools();
 
   main_window.setTitle("Tutanota");
 
