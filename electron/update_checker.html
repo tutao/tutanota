@@ -1,0 +1,48 @@
+<html>
+<head>
+    <title>Tutanota Update Checcker</title>
+    <style>
+        .message_log{
+            display: table;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+        }
+        .message_log span{
+            display: table-cell;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="message_log">
+        <span>Checking for Updates...</span>
+    </div>
+
+    <!-- FIX for electron -->
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- SCRIPT -->
+    <script>
+        $.ajax({
+            dataType: "json",
+            url: "https://raw.githubusercontent.com/tutao/tutanota/tutanota-release-2.14.4%2B/package.json",
+            data: "",
+            success: function(data){
+                console.log(data['version']);
+                if (data['version'] != "2.14.5")
+                {
+                    $(".message_log").html("<span>Please update tutanota application.</span>");
+                }
+                else
+                {
+                    window.location.href = "index.html";
+                }
+            }
+        });
+    </script>
+    <!-- FIX for electron -->
+	<script>if (window.module) module = window.module;</script>	
+</body>
+</html>

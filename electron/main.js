@@ -13,7 +13,7 @@ function CreateWindow () {
   });
 
   main_window.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+    pathname: path.join(__dirname, 'update_checker.html'),
     protocol: 'file:',
     slashes: true
   }));

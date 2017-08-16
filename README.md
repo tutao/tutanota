@@ -41,8 +41,8 @@ If you have gulp globally installed you may use `build.sh` to build a electron a
 Build steps:
 
 1. Build Tutanota web client using the instructions above.
-2. Copy the 2 files under electron folder into the build directory.
-3. Change directory to the build directory.
+2. Copy all files under electron folder into the build directory.
+3. Change into the build directory.
 4. Install dependencies: `npm install`
 5. Use the following commands to run or build the application:
 
