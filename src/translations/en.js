@@ -877,6 +877,7 @@ module.exports = {
 		"registeredU2fDevice_msg": "Your security key has been recognized. You can save it now.",
 		"unrecognizedU2fDevice_msg": "Your security key has not been recognized.",
 		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
+		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another client.",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"u2fAuthUnregisteredDevice_msg": "This security key has not been registered with your account. Please use a valid one.",

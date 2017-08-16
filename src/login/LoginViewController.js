@@ -9,7 +9,7 @@ import {
 	ConnectionError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
-import {Mode} from "../api/Env"
+import {Mode, assertMainOrNode} from "../api/Env"
 import {Const} from "../api/common/TutanotaConstants"
 import {CustomerPropertiesTypeRef} from "../api/entities/sys/CustomerProperties"
 import {neverNull} from "../api/common/utils/Utils"
@@ -24,6 +24,8 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
+
+assertMainOrNode()
 
 export class LoginViewController {
 	view: LoginView;

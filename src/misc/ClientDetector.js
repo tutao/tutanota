@@ -6,6 +6,7 @@ export const BrowserType = {
 	CHROME: "Chrome",
 	FIREFOX: "Firefox",
 	IE: "Internet Explorer",
+	EDGE: "Edge",
 	SAFARI: "Safari",
 	ANDROID: "Android",
 	OPERA: "Opera",
@@ -173,6 +174,7 @@ class ClientDetector {
 		var chromeIndex = this.userAgent.indexOf("Chrome/")
 		var safariIndex = this.userAgent.indexOf("Safari/")
 		var ieIndex = this.userAgent.indexOf("MSIE")
+		var edgeIndex = this.userAgent.indexOf("Edge")
 		var ie11Index = this.userAgent.indexOf("Trident/7.0")
 		var androidIndex = this.userAgent.indexOf("Android")
 		var blackBerryIndex = this.userAgent.indexOf("BB10")
@@ -181,7 +183,10 @@ class ClientDetector {
 		var ubuntuIndex = this.userAgent.indexOf("Ubuntu")
 
 		var versionIndex = -1
-		if (operaIndex1 != -1) {
+		if (edgeIndex != -1) {
+			this.browser = BrowserType.EDGE
+			versionIndex = edgeIndex + 5
+		} else if (operaIndex1 != -1) {
 			this.browser = BrowserType.OPERA
 			versionIndex = this.userAgent.indexOf("Version/")
 			if (versionIndex != -1) {

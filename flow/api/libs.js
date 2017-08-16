@@ -66,6 +66,8 @@ declare class Promise<+R> {
 
 	return<T>(returnValue: T): Promise<T>;
 
+	reduce<T>(mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
+
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: Promise<T>>(Promises: Array<Elem>): Promise<Array<T>>;
@@ -81,4 +83,5 @@ declare class Promise<+R> {
 	static reduce<T>(array: Promise<Array<T>> | Array<T>, mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
 	static filter<T>(array: Promise<Array<T>> | Array<T>, iterator: (item: T, index: number, arrayLength: number) => Promise<boolean> | boolean): Promise<T[]>;
 	static delay<T>(millis: number, value: ?T|Promise<T>): Promise<T>;
+	static any<T>(array: Array<Promise<T>>):Promise<T>;
 }

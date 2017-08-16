@@ -1,7 +1,7 @@
 //@flow
 import m from "mithril"
 import {SessionTypeRef} from "../api/entities/sys/Session"
-import {load} from "../api/main/Entity"
+import {load, serviceRequest} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
@@ -12,6 +12,9 @@ import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
+import {assertMainOrNode} from "../api/Env"
+
+assertMainOrNode()
 
 /**
  * Handles showing and hiding of the following dialogs:
@@ -84,26 +87,41 @@ export class SecondFactorHandler {
 
 	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
 		if (!this._waitingForSecondFactorDialog) {
-			this._waitingForSecondFactorDialog = Dialog.pending("secondFactorPending_msg", SecondFactorImage)
-			challenges.forEach(challenge => {
+			// each challenge returns true if this client supports it, false otherwise
+			Promise.map(challenges, challenge => {
 				if (challenge.type == SecondFactorType.u2f) {
 					let u2fClient = new U2fClient()
+					return u2fClient.isSupported().then(supported => {
+						if (supported) {
+							let registerResumeOnError = () => {
+								u2fClient.sign(sessionId, neverNull(challenge.u2f)).then(u2fSignatureResponse => {
+									let auth = createSecondFactorAuthData()
+									auth.type = SecondFactorType.u2f
+									auth.session = sessionId
+									auth.u2f = u2fSignatureResponse
+									return serviceRequest(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+								}).catch(e => {
+									if (e instanceof U2fWrongDeviceError) {
+										Dialog.error("u2fAuthUnregisteredDevice_msg")
+									} else if (e instanceof U2fError) {
+										Dialog.error("u2fUnexpectedError_msg")
+									}
+									if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
+								})
+							}
 
-
-					let registerResumeOnError = () => {
-						u2fClient.sign(sessionId, neverNull(challenge.u2f))
-							.catch(e => {
-								if (e instanceof U2fWrongDeviceError) {
-									Dialog.error("u2fAuthUnregisteredDevice_msg")
-								} else if (e instanceof U2fError) {
-									Dialog.error("u2fUnexpectedError_msg")
-								}
-								if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
-							})
-					}
-
-					registerResumeOnError()
+							registerResumeOnError()
+						}
+						return supported
+					})
+				} else {
+					return false
 				}
+			}).reduce((overallResult, currentSupported) => {
+				// if any challenge is supported we return true
+				return overallResult || currentSupported
+			}, false).then(supported => {
+				this._waitingForSecondFactorDialog = Dialog.pending((supported) ? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg", SecondFactorImage)
 			})
 		}
 	}

@@ -379,7 +379,7 @@ export class Dialog {
 		})
 	}
 
-	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true): Dialog {
+	static smallActionDialog(title: stream<string>|string, child: Component, okAction: action, allowCancel: boolean = true, okActionTextId: string = "ok_action"): Dialog {
 		let actionBar = new DialogHeaderBar()
 
 		if (allowCancel) {
@@ -387,7 +387,7 @@ export class Dialog {
 				dialog.close()
 			}).setType(ButtonType.Secondary))
 		}
-		actionBar.addRight(new Button("ok_action", okAction).setType(ButtonType.Primary))
+		actionBar.addRight(new Button(okActionTextId, okAction).setType(ButtonType.Primary))
 
 		let dialog = new Dialog(DialogType.EditSmall, {
 			view: () => m("", [

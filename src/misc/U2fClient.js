@@ -6,16 +6,14 @@ import {
 	base64UrlToBase64,
 	base64ToUint8Array
 } from "../api/common/utils/Encoding"
-import {getHttpOrigin} from "../api/Env"
+import {getHttpOrigin, assertMainOrNode} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
-import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
-import {SecondFactorType} from "../api/common/TutanotaConstants"
-import {serviceRequest} from "../api/main/Entity"
-import {HttpMethod} from "../api/common/EntityFunctions"
-import {SysService} from "../api/entities/sys/Services"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
 import {asyncImport} from "../api/common/utils/Utils"
+import {client, BrowserType} from "./ClientDetector"
+
+assertMainOrNode()
 
 const TIMEOUT = 20
 
@@ -48,9 +46,50 @@ export class U2fClient {
 		}
 	}
 
+	/**
+	 * Returns true if U2F is supported in this client. Attention: this call may take up to 1.5 seconds.
+	 * Triggers a dummy U2F registration request to check if the U2F interface is available.
+	 */
+	isSupported(): Promise<boolean> {
+		if (window.u2f) {
+			// Firefox plugin is loaded
+			return Promise.resolve(true)
+		} else if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE) {
+			// we do not use the actual check below in IE and Edge because they would ask how to open the chrome extension
+			return Promise.resolve(false)
+		} else {
+			let random = new Uint8Array(32)
+			let c = typeof crypto != 'undefined' ? crypto : msCrypto
+			c.getRandomValues(random)
+			let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
+			return this._getU2fInstance().then(u2f => {
+				let u2fResponsePromise = Promise.fromCallback(cb => {					
+					u2f.register(getHttpOrigin(), [
+						{
+							version: "U2F_V2",
+							challenge: challenge,
+						}
+					], [], (r) => this._handleError(r, cb), 1);
+				}).then(rawRegisterResponse => {
+					return true
+				}).catch(U2fTimeoutError, e => {
+					return true
+				}).catch(e => {
+					return false
+				})
+
+				let timeoutPromise = Promise.delay(1500).then(() => {
+					return false
+				})
+				return Promise.any([u2fResponsePromise, timeoutPromise])
+			})
+		}
+	}
+
 	register(): Promise<U2fRegisteredDevice> {
 		let random = new Uint8Array(32)
-		crypto.getRandomValues(random)
+		let c = typeof crypto != 'undefined' ? crypto : msCrypto
+		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 		return this._getU2fInstance().then(u2f => {
 			return Promise.fromCallback(cb => {
@@ -84,7 +123,7 @@ export class U2fClient {
 		}
 	}
 
-	sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<{keyHandle: string, signatureData : string, clientData: string}> {
+	sign(sessionId: IdTuple, challenge: U2fChallenge): Promise<U2fResponseData> {
 		let registeredKeys = challenge.keys.map(key => {
 			return {
 				version: "U2F_V2",
@@ -97,16 +136,12 @@ export class U2fClient {
 			return Promise.fromCallback(cb => {
 				u2f.sign(getHttpOrigin(), challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
 			}).then(rawAuthenticationResponse => {
-				let u2fData = createU2fResponseData()
+				let u2fSignatureResponse = createU2fResponseData()
 				// the firefox addin provides invalid base64url data, i.e. '=' is appended, so we remove it here
-				u2fData.keyHandle = rawAuthenticationResponse.keyHandle.replace(/=/g, "")
-				u2fData.clientData = rawAuthenticationResponse.clientData.replace(/=/g, "")
-				u2fData.signatureData = rawAuthenticationResponse.signatureData.replace(/=/g, "")
-				let auth = createSecondFactorAuthData()
-				auth.type = SecondFactorType.u2f
-				auth.session = sessionId
-				auth.u2f = u2fData
-				return serviceRequest(SysService.SecondFactorAuthService, HttpMethod.POST, auth).then(() => (rawAuthenticationResponse:any))
+				u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle.replace(/=/g, "")
+				u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData.replace(/=/g, "")
+				u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData.replace(/=/g, "")
+				return u2fSignatureResponse
 			})
 		})
 	}

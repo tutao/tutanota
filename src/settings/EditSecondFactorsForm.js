@@ -18,6 +18,8 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {neverNull} from "../api/common/utils/Utils"
+import {progressIcon, Icon} from "../gui/base/Icon"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
@@ -72,7 +74,11 @@ export class EditSecondFactorsForm {
 				view: () => m("", [
 					m(type),
 					m(name),
-					m("p", u2fInfoMessage()),
+					m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
+							icon: Icons.Checkmark,
+							large: true,
+							style: {fill: theme.content_accent}
+						}) : progressIcon()), m("", u2fInfoMessage())]),
 					m(".small", lang.get("secondFactorInfoOldClient_msg"))
 				])
 			}, () => {
@@ -86,7 +92,7 @@ export class EditSecondFactorsForm {
 					sf.u2f = u2fRegistrationData()
 					Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
 				}
-			})
+			}, true, "save_action")
 
 			function registerResumeOnTimeout() {
 				u2f.register()
