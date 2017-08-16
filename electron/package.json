@@ -1,0 +1,18 @@
+{
+  "name": "tutanota",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build_linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=graphics/linux_icon.png --prune=true --out=release-builds",
+    "build_win": "electron-packager . --overwrite --platform=win32 --arch=ia32 --icon=graphics/win_icon.ico --prune=true --out=release-builds",
+    "build_mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=graphics/mac_icon.hqx --prune=true --out=release-builds"
+  },
+  "author": "Zeeshan Abid",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^1.7.5",
+    "electron-packager": "^8.7.2"
+  }
+}

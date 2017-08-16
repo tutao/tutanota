@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html>
+<!-- FIX for electron -->
+<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 <!--<script src="/lib/jquery-1.9.1.js"></script>-->
 <script src="https://js.braintreegateway.com/js/beta/braintree-hosted-fields-beta.17.js"></script>
 <head>
@@ -187,6 +189,7 @@
 		</div>
 	</div><!-- end of viewContainer -->
 </div>
-
+<!-- FIX for electron -->
+<script>if (window.module) module = window.module;</script>	
 </body>
 </html>

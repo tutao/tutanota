@@ -5,6 +5,8 @@
 <!--[if !IE]><!--> <html> <!--<![endif]-->
 <!-- IE 10 can not only be recognized by js, so it is done in the following lines -->
 <head>
+	<!-- FIX for electron -->
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 	<script>
 	if(Function('/*@cc_on return document.documentMode===10@*/')()) {
 	    document.getElementsByTagName("html")[0].className = "ie ie10 lte10"
@@ -165,5 +167,7 @@
 		var msg = "$$$messageId$$$"; // replaced by the rendering servlet (e.g. PasswordAutoAuthenticationService)
 		document.getElementById('fastMessageContainer').getElementsByClassName('message')[0].innerHTML = languageViewModel.get(msg)
 	</script>
+	<!-- FIX for electron -->
+	<script>if (window.module) module = window.module;</script>	
 </body>
 </html>
