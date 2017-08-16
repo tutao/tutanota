@@ -9,7 +9,7 @@ function CreateWindow () {
   main_window = new BrowserWindow({
     width: 1024,
     height: 768,
-    icon: path.join(__dirname, 'graphics/1024x1024.png')
+    icon: path.join(__dirname, 'graphics/linux.png')
   });
 
   main_window.loadURL(url.format({
