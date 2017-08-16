@@ -55,7 +55,7 @@ export class SecondFactorHandler {
 									let serviceData = createSecondFactorAuthData()
 									serviceData.session = session._id
 									serviceData.type = null
-									worker.serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, serviceData)
+									serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, serviceData)
 									if (this._otherLoginDialog) {
 										this._otherLoginDialog.close()
 										this._otherLoginSessionId = null
@@ -99,7 +99,7 @@ export class SecondFactorHandler {
 									auth.type = SecondFactorType.u2f
 									auth.session = sessionId
 									auth.u2f = u2fSignatureResponse
-									return serviceRequest(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+									serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 								}).catch(e => {
 									if (e instanceof U2fWrongDeviceError) {
 										Dialog.error("u2fAuthUnregisteredDevice_msg")
