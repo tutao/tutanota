@@ -89,6 +89,10 @@ clean()
 	.then(deb)
 	.then(release)
 	.then(() => console.log(`\nBuild time: ${(Date.now() - start) / 1000}s`))
+	.catch(e => {
+		console.log("\nBuild error:", e)
+		process.exit(1)
+	})
 
 
 function clean() {
@@ -110,8 +114,7 @@ function bundle(src, targetFile, bundles) {
 		console.log(`  > bundled ${targetFile}`);
 		return bundles
 	}).catch(function (err) {
-		console.log('Build error');
-		console.log(err);
+		console.log('Build error in bundle ' + targetFile);
 		throw err
 	})
 }
