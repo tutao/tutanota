@@ -5,7 +5,7 @@ import {themeId} from "../gui/theme"
 assertMainOrNode()
 
 const ConfigVersion = 2
-const LocalStorageKey = 'config'
+const LocalStorageKey = 'tutanotaConfig'
 
 /**
  * Device config for internal user auto login. Only one config per device is stored.
@@ -28,9 +28,7 @@ class DeviceConfig {
 		let loadedConfigString = localStorage.getItem(LocalStorageKey)
 		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
-		if (loadedConfig && loadedConfig._version < ConfigVersion) {
-			this._store() // delete old saved passwords
-		} else if (loadedConfig && loadedConfig._version === ConfigVersion) {
+		if (loadedConfig && loadedConfig._version === ConfigVersion) {
 			this._credentials = loadedConfig._credentials
 		}
 	}
