@@ -750,4 +750,4 @@ u2f.getApiVersion = function (callback, opt_timeoutSeconds) {
 	});
 };
 
-module.exports = {u2f}
+module.exports = {u2f: u2f}
