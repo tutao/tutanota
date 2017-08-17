@@ -114,7 +114,10 @@ export class LoginView {
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
-		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+		this.onbeforeremove = () => {
+			this.password.value("")
+			keyManager.unregisterShortcuts(shortcuts)
+		}
 	}
 
 	login() {

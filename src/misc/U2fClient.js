@@ -10,8 +10,8 @@ import {getHttpOrigin, assertMainOrNode} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
-import {asyncImport} from "../api/common/utils/Utils"
 import {client, BrowserType} from "./ClientDetector"
+import {u2f} from "./u2f-api"
 
 assertMainOrNode()
 
@@ -38,11 +38,11 @@ export class U2fClient {
 	 * The Firefox u2f extension provides the api window.u2f, so we just load it if it is not available. It is not possible to do the loading at startup because
 	 * in Firefox the extension seems not to be loaded immediately, so window.u2f is not existing yet and it would also not be overwritten by the plugin
 	 */
-	_getU2fInstance(): Promise<any> {
+	_getU2fInstance(): any {
 		if (window.u2f) {
-			return Promise.resolve(window.u2f)
+			return window.u2f
 		} else {
-			return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/misc/u2f-api.js`).then(module => module.u2f)
+			return u2f
 		}
 	}
 
@@ -62,27 +62,25 @@ export class U2fClient {
 			let c = typeof crypto != 'undefined' ? crypto : msCrypto
 			c.getRandomValues(random)
 			let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-			return this._getU2fInstance().then(u2f => {
-				let u2fResponsePromise = Promise.fromCallback(cb => {					
-					u2f.register(getHttpOrigin(), [
-						{
-							version: "U2F_V2",
-							challenge: challenge,
-						}
-					], [], (r) => this._handleError(r, cb), 1);
-				}).then(rawRegisterResponse => {
-					return true
-				}).catch(U2fTimeoutError, e => {
-					return true
-				}).catch(e => {
-					return false
-				})
-
-				let timeoutPromise = Promise.delay(1500).then(() => {
-					return false
-				})
-				return Promise.any([u2fResponsePromise, timeoutPromise])
+			let u2fResponsePromise = Promise.fromCallback(cb => {
+				this._getU2fInstance().register(getHttpOrigin(), [
+					{
+						version: "U2F_V2",
+						challenge: challenge,
+					}
+				], [], (r) => this._handleError(r, cb), 1);
+			}).then(rawRegisterResponse => {
+				return true
+			}).catch(U2fTimeoutError, e => {
+				return true
+			}).catch(e => {
+				return false
 			})
+
+			let timeoutPromise = Promise.delay(1500).then(() => {
+				return false
+			})
+			return Promise.any([u2fResponsePromise, timeoutPromise])
 		}
 	}
 
@@ -91,24 +89,22 @@ export class U2fClient {
 		let c = typeof crypto != 'undefined' ? crypto : msCrypto
 		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
-		return this._getU2fInstance().then(u2f => {
-			return Promise.fromCallback(cb => {
-				u2f.register(getHttpOrigin(), [
-					{
-						version: "U2F_V2",
-						challenge: challenge,
-					}
-				], [], (r) => this._handleError(r, cb), TIMEOUT);
-			}).then(rawRegisterResponse => this._decodeRegisterResponse(rawRegisterResponse))
-				.then(registerResponse => {
-					let u2fDevice = createU2fRegisteredDevice()
-					u2fDevice.keyHandle = registerResponse.keyHandle
-					u2fDevice.publicKey = registerResponse.userPublicKey
-					u2fDevice.compromised = false
-					u2fDevice.counter = "-1"
-					return u2fDevice
-				})
-		})
+		return Promise.fromCallback(cb => {
+			this._getU2fInstance().register(getHttpOrigin(), [
+				{
+					version: "U2F_V2",
+					challenge: challenge,
+				}
+			], [], (r) => this._handleError(r, cb), TIMEOUT);
+		}).then(rawRegisterResponse => this._decodeRegisterResponse(rawRegisterResponse))
+			.then(registerResponse => {
+				let u2fDevice = createU2fRegisteredDevice()
+				u2fDevice.keyHandle = registerResponse.keyHandle
+				u2fDevice.publicKey = registerResponse.userPublicKey
+				u2fDevice.compromised = false
+				u2fDevice.counter = "-1"
+				return u2fDevice
+			})
 	}
 
 	_handleError(rawResponse: Object, cb: Callback) {
@@ -132,17 +128,15 @@ export class U2fClient {
 			}
 		})
 		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
-		return this._getU2fInstance().then(u2f => {
-			return Promise.fromCallback(cb => {
-				u2f.sign(getHttpOrigin(), challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
-			}).then(rawAuthenticationResponse => {
-				let u2fSignatureResponse = createU2fResponseData()
-				// the firefox addin provides invalid base64url data, i.e. '=' is appended, so we remove it here
-				u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle.replace(/=/g, "")
-				u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData.replace(/=/g, "")
-				u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData.replace(/=/g, "")
-				return u2fSignatureResponse
-			})
+		return Promise.fromCallback(cb => {
+			this._getU2fInstance().sign(getHttpOrigin(), challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
+		}).then(rawAuthenticationResponse => {
+			let u2fSignatureResponse = createU2fResponseData()
+			// the firefox addin provides invalid base64url data, i.e. '=' is appended, so we remove it here
+			u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle.replace(/=/g, "")
+			u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData.replace(/=/g, "")
+			u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData.replace(/=/g, "")
+			return u2fSignatureResponse
 		})
 	}
 

@@ -60,56 +60,62 @@ export class EditSecondFactorsForm {
 
 
 	_showAddSecondFactorDialog() {
-		this._user.getAsync().then(user => {
-			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).map(key => {
-				return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
-			}), SecondFactorType.u2f, 300)
-			let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
-			let u2fRegistrationData = stream(null)
-			let u2fInfoMessage = u2fRegistrationData.map(registrationData => registrationData ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg"))
-			u2fInfoMessage.map(() => m.redraw())
-			let u2f = new U2fClient()
-
-			let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
-				view: () => m("", [
-					m(type),
-					m(name),
-					m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
-							icon: Icons.Checkmark,
-							large: true,
-							style: {fill: theme.content_accent}
-						}) : progressIcon()), m("", u2fInfoMessage())]),
-					m(".small", lang.get("secondFactorInfoOldClient_msg"))
-				])
-			}, () => {
-				if (u2fRegistrationData() == null) {
-					Dialog.error("unrecognizedU2fDevice_msg")
-				} else {
-					let sf = createSecondFactor()
-					sf._ownerGroup = user._ownerGroup
-					sf.name = name.value()
-					sf.type = type.selectedValue()
-					sf.u2f = u2fRegistrationData()
-					Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
-				}
-			}, true, "save_action")
-
-			function registerResumeOnTimeout() {
-				u2f.register()
-					.catch((e) => {
-						if (e instanceof U2fError) {
-							console.log(e)
-							Dialog.error("u2fUnexpectedError_msg").then(() => {
-								if (dialog.visible) {
-									dialog.close()
-								}
-							})
-						}
-					})
-					.then(registrationData => u2fRegistrationData(registrationData))
+		let u2f = new U2fClient()
+		u2f.isSupported().then(supported => {
+			if (!supported) {
+				Dialog.error("u2fNotSupported_msg")
+				return
 			}
+			this._user.getAsync().then(user => {
+				let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).map(key => {
+					return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
+				}), SecondFactorType.u2f, 300)
+				let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
+				let u2fRegistrationData = stream(null)
+				let u2fInfoMessage = u2fRegistrationData.map(registrationData => registrationData ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg"))
+				u2fInfoMessage.map(() => m.redraw())
 
-			registerResumeOnTimeout()
+				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
+					view: () => m("", [
+						m(type),
+						m(name),
+						m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
+								icon: Icons.Checkmark,
+								large: true,
+								style: {fill: theme.content_accent}
+							}) : progressIcon()), m("", u2fInfoMessage())]),
+						m(".small", lang.get("secondFactorInfoOldClient_msg"))
+					])
+				}, () => {
+					if (u2fRegistrationData() == null) {
+						Dialog.error("unrecognizedU2fDevice_msg")
+					} else {
+						let sf = createSecondFactor()
+						sf._ownerGroup = user._ownerGroup
+						sf.name = name.value()
+						sf.type = type.selectedValue()
+						sf.u2f = u2fRegistrationData()
+						Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
+					}
+				}, true, "save_action")
+
+				function registerResumeOnTimeout() {
+					u2f.register()
+						.catch((e) => {
+							if (e instanceof U2fError) {
+								console.log(e)
+								Dialog.error("u2fUnexpectedError_msg").then(() => {
+									if (dialog.visible) {
+										dialog.close()
+									}
+								})
+							}
+						})
+						.then(registrationData => u2fRegistrationData(registrationData))
+				}
+
+				registerResumeOnTimeout()
+			})
 		})
 	}
 

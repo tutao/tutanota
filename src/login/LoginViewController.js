@@ -75,7 +75,6 @@ export class LoginViewController {
 			.then(() => {
 				m.route.set(this.view._requestedPath)
 				this.view.helpText = lang.get('emptyString_msg')
-				this.view.password.value("")
 			})
 			.catch(AccessBlockedError, e => {
 				this.view.helpText = lang.get('loginFailedOften_msg')
