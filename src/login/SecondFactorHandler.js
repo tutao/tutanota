@@ -13,6 +13,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
+import {NotAuthenticatedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -99,12 +100,14 @@ export class SecondFactorHandler {
 									auth.type = SecondFactorType.u2f
 									auth.session = sessionId
 									auth.u2f = u2fSignatureResponse
-									serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+									return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 								}).catch(e => {
 									if (e instanceof U2fWrongDeviceError) {
 										Dialog.error("u2fAuthUnregisteredDevice_msg")
 									} else if (e instanceof U2fError) {
 										Dialog.error("u2fUnexpectedError_msg")
+									} else if (e instanceof NotAuthenticatedError) {
+										Dialog.error("loginFailed_msg")
 									}
 									if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
 								})
