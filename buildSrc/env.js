@@ -14,10 +14,9 @@
 // prod app release      | app.tutanota.com  | app.html   | node dist prod
 
 // Attention: The contents of this file is evaluated at compile time and not at runtime
-function create(systemConfig, stagingLevel, staticUrl, version, mode, dist) {
+function create(systemConfig, staticUrl, version, mode, dist) {
 	return {
 		systemConfig,
-		"stagingLevel": stagingLevel,
 		"staticUrl": staticUrl,
 		"mode": mode != null ? mode : "Browser",
 		"versionNumber": version,

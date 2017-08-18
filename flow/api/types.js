@@ -159,7 +159,6 @@ type ModelAssociation = {
 }
 
 type EnvType = {
-	stagingLevel: StagingLevelEnum,
 	staticUrl : ?string, // if null the url from the browser is used
 	mode : "Browser" | "App" | "Test" | "Playground",
 	platformId: ?"ios" | ?"android",

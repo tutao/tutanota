@@ -60,7 +60,7 @@ function runTest() {
 }
 
 function createUnitTestHtml() {
-	let localEnv = env.create(SystemConfig.devTestConfig(), "Local", null, "unit-test", "Test")
+	let localEnv = env.create(SystemConfig.devTestConfig(), null, "unit-test", "Test")
 	return Promise.all([
 		_writeFile(`../build/test-${project}.js`, [
 			`window.env = ${JSON.stringify(localEnv, null, 2)}`,

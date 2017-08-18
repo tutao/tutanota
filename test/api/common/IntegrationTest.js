@@ -29,7 +29,7 @@ o.spec("integration test", function () {
 
 	let mailbox = null
 
-	o("login, read mails, update contact", function (done, timeout) {
+	o.only("login, read mails, update contact", function (done, timeout) {
 		timeout(2000)
 		env.staticUrl = 'http://localhost:9000'
 		loginFacade.createSession("map-free@tutanota.de", "map", "Linux node", false)

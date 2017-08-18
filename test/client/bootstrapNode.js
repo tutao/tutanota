@@ -1,4 +1,4 @@
-global.env = require('../../buildSrc/env.js').create(null, "Local", "http://localhost:9000", require('../../../package.json').version)
+global.env = require('../../buildSrc/env.js').create(null, "http://localhost:9000", require('../../../package.json').version)
 
 global.isBrowser = false
 

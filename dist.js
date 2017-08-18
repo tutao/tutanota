@@ -70,18 +70,18 @@ clean()
 	.then(() => {
 		if (process.argv.indexOf("test") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Test", "https://test.tutanota.com", version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Test", "https://test.tutanota.com", version, "App", true), bundles)
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "Browser", true), bundles),
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://test.tutanota.com", version, "App", true), bundles)
 			])
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Prod", "https://app.tutanota.com", version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Prod", "https://app.tutanota.com", version, "App", true), bundles)
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://app.tutanota.com", version, "Browser", true), bundles),
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://app.tutanota.com", version, "App", true), bundles)
 			])
 		} else {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Local", null, version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "Local", "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), null, version, "Browser", true), bundles),
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "http://" + os.hostname().split(".")[0] + ":9000", version, "App", true), bundles)
 			])
 		}
 	})

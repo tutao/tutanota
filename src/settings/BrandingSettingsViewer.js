@@ -52,7 +52,7 @@ export class BrandingSettingsViewer {
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", (this._brandingDomainField) ? [
 						m(".h4.mt-l", lang.get('brandingSettings_label')),
-						m("small", lang.get("brandingDomainLinkInfo_msg")),
+						m("small", lang.get("brandingDomainLinkInfo_msg") + " "),
 						m("small", [m(`a[href=${this._getBrandingLink()}][target=_blank]`, this._getBrandingLink())]),
 						m(this._brandingDomainField),
 						m(this._customLogoField),
