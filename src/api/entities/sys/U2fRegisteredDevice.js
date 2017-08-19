@@ -20,9 +20,18 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
+		"appId": {
+			"name": "appId",
+			"id": 1165,
+			"since": 23,
+			"type": "String",
+			"cardinality": "One",
+			"final": true,
+			"encrypted": false
+		},
 		"compromised": {
 			"name": "compromised",
-			"id": 1167,
+			"id": 1168,
 			"since": 23,
 			"type": "Boolean",
 			"cardinality": "One",
@@ -31,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"counter": {
 			"name": "counter",
-			"id": 1166,
+			"id": 1167,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
@@ -49,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"publicKey": {
 			"name": "publicKey",
-			"id": 1165,
+			"id": 1166,
 			"since": 23,
 			"type": "Bytes",
 			"cardinality": "One",

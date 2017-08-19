@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateSessionData",
 	"since": 23,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1209,
-	"rootId": "A3N5cwAEuQ",
+	"id": 1211,
+	"rootId": "A3N5cwAEuw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1210,
+			"id": 1212,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"accessKey": {
 			"name": "accessKey",
-			"id": 1214,
+			"id": 1216,
 			"since": 23,
 			"type": "Bytes",
 			"cardinality": "ZeroOrOne",
@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"authToken": {
 			"name": "authToken",
-			"id": 1215,
+			"id": 1217,
 			"since": 23,
 			"type": "String",
 			"cardinality": "ZeroOrOne",
@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"authVerifier": {
 			"name": "authVerifier",
-			"id": 1212,
+			"id": 1214,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",
@@ -49,7 +49,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"clientIdentifier": {
 			"name": "clientIdentifier",
-			"id": 1213,
+			"id": 1215,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",
@@ -58,7 +58,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"mailAddress": {
 			"name": "mailAddress",
-			"id": 1211,
+			"id": 1213,
 			"since": 23,
 			"type": "String",
 			"cardinality": "ZeroOrOne",

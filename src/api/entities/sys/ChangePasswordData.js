@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"oldVerifier": {
 			"name": "oldVerifier",
-			"id": 1238,
+			"id": 1240,
 			"since": 23,
 			"type": "Bytes",
 			"cardinality": "One",

@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "UserAuthentication",
 	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 1204,
-	"rootId": "A3N5cwAEtA",
+	"id": 1206,
+	"rootId": "A3N5cwAEtg",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1205,
+			"id": 1207,
 			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",

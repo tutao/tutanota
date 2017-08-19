@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "U2fResponseData",
 	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 1223,
-	"rootId": "A3N5cwAExw",
+	"id": 1225,
+	"rootId": "A3N5cwAEyQ",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1224,
+			"id": 1226,
 			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"clientData": {
 			"name": "clientData",
-			"id": 1226,
+			"id": 1228,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",
@@ -31,7 +31,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"keyHandle": {
 			"name": "keyHandle",
-			"id": 1225,
+			"id": 1227,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",
@@ -40,7 +40,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"signatureData": {
 			"name": "signatureData",
-			"id": 1227,
+			"id": 1229,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",

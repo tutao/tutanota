@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "CreateSessionReturn",
 	"since": 23,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1217,
-	"rootId": "A3N5cwAEwQ",
+	"id": 1219,
+	"rootId": "A3N5cwAEww",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1218,
+			"id": 1220,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"accessToken": {
 			"name": "accessToken",
-			"id": 1219,
+			"id": 1221,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",

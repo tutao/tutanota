@@ -10,10 +10,10 @@ import {OperationType, SessionState, SecondFactorType} from "../api/common/Tutan
 import {worker} from "../api/main/WorkerClient"
 import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
-import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
+import {SecondFactorImage} from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -88,44 +88,48 @@ export class SecondFactorHandler {
 
 	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
 		if (!this._waitingForSecondFactorDialog) {
-			// each challenge returns true if this client supports it, false otherwise
-			Promise.map(challenges, challenge => {
-				if (challenge.type == SecondFactorType.u2f) {
-					let u2fClient = new U2fClient()
-					return u2fClient.isSupported().then(supported => {
-						if (supported) {
-							let registerResumeOnError = () => {
-								u2fClient.sign(sessionId, neverNull(challenge.u2f)).then(u2fSignatureResponse => {
-									let auth = createSecondFactorAuthData()
-									auth.type = SecondFactorType.u2f
-									auth.session = sessionId
-									auth.u2f = u2fSignatureResponse
-									return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
-								}).catch(e => {
-									if (e instanceof U2fWrongDeviceError) {
-										Dialog.error("u2fAuthUnregisteredDevice_msg")
-									} else if (e instanceof U2fError) {
-										Dialog.error("u2fUnexpectedError_msg")
-									} else if (e instanceof NotAuthenticatedError) {
-										Dialog.error("loginFailed_msg")
-									}
-									if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
-								})
-							}
+			let u2fChallenge = challenges.find(challenge => challenge.type == SecondFactorType.u2f)
+			let u2fClient = new U2fClient()
+			const keys = neverNull(neverNull(u2fChallenge).u2f).keys
 
-							registerResumeOnError()
+			let otherDomains = keys.filter(key => key.appId != u2fClient._appId).map(key => key.appId.split("/")[2]).filter((el, i, a) => (i == a.indexOf(el) ? true : false))
+			let confirmation = Promise.resolve()
+			if (otherDomains.length > 0) {
+				confirmation = Dialog.confirm(() => lang.get("u2fAuthOtherDomain_msg", {"{domain}": otherDomains[0]}))
+					.then(ok => {
+						if (ok) {
+							location.href = "https://" + (otherDomains[0] != "tutanota.com" ? otherDomains[0] : "app.tutanota.com")
 						}
-						return supported
 					})
-				} else {
-					return false
+			}
+			return confirmation.then(() => u2fClient.isSupported().then(supported => {
+				let validKeys = keys.filter(key => key.appId == u2fClient._appId).length > 0
+				this._waitingForSecondFactorDialog = Dialog.pending((supported && validKeys) ? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg", SecondFactorImage)
+				if (supported && validKeys) {
+					let registerResumeOnError = () => {
+						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {
+							let auth = createSecondFactorAuthData()
+							auth.type = SecondFactorType.u2f
+							auth.session = sessionId
+							auth.u2f = u2fSignatureResponse
+							return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+						}).catch(e => {
+							if (e instanceof U2fError) {
+								Dialog.error("u2fUnexpectedError_msg")
+							} else {
+								if (e instanceof U2fWrongDeviceError) {
+									Dialog.error("u2fAuthUnregisteredDevice_msg")
+								} else if (e instanceof NotAuthenticatedError) {
+									Dialog.error("loginFailed_msg")
+								}
+								if (this._waitingForSecondFactorDialog && this._waitingForSecondFactorDialog.visible) registerResumeOnError()
+							}
+						})
+					}
+					registerResumeOnError()
 				}
-			}).reduce((overallResult, currentSupported) => {
-				// if any challenge is supported we return true
-				return overallResult || currentSupported
-			}, false).then(supported => {
-				this._waitingForSecondFactorDialog = Dialog.pending((supported) ? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg", SecondFactorImage)
-			})
+			}))
+
 		}
 	}
 }

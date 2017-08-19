@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "SecondFactorAuthGetData",
 	"since": 23,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1231,
-	"rootId": "A3N5cwAEzw",
+	"id": 1233,
+	"rootId": "A3N5cwAE0Q",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1232,
+			"id": 1234,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"accessToken": {
 			"name": "accessToken",
-			"id": 1233,
+			"id": 1235,
 			"since": 23,
 			"type": "String",
 			"cardinality": "One",

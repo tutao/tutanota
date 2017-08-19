@@ -6,7 +6,7 @@ import {
 	base64UrlToBase64,
 	base64ToUint8Array
 } from "../api/common/utils/Encoding"
-import {getHttpOrigin, assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, getHttpOrigin} from "../api/Env"
 import {BadRequestError} from "../api/common/error/RestError"
 import {createU2fRegisteredDevice} from "../api/entities/sys/U2fRegisteredDevice"
 import {createU2fResponseData} from "../api/entities/sys/U2fResponseData"
@@ -33,16 +33,13 @@ const TIMEOUT = 20
  * compile 'com.yubico:u2flib-server-core:0.16.0'
  */
 export class U2fClient {
+	_appId: string;
 
-	/**
-	 * The Firefox u2f extension provides the api window.u2f, so we just load it if it is not available. It is not possible to do the loading at startup because
-	 * in Firefox the extension seems not to be loaded immediately, so window.u2f is not existing yet and it would also not be overwritten by the plugin
-	 */
-	_getU2fInstance(): any {
-		if (window.u2f) {
-			return window.u2f
+	constructor() {
+		if (location.hostname.endsWith("tutanota.com")) {
+			this._appId = "https://tutanota.com/u2f-appid.json"
 		} else {
-			return u2f
+			this._appId = getHttpOrigin() + "/u2f-appid.json"
 		}
 	}
 
@@ -51,10 +48,7 @@ export class U2fClient {
 	 * Triggers a dummy U2F registration request to check if the U2F interface is available.
 	 */
 	isSupported(): Promise<boolean> {
-		if (window.u2f) {
-			// Firefox plugin is loaded
-			return Promise.resolve(true)
-		} else if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE) {
+		if (client.browser == BrowserType.IE || client.browser == BrowserType.EDGE) {
 			// we do not use the actual check below in IE and Edge because they would ask how to open the chrome extension
 			return Promise.resolve(false)
 		} else {
@@ -63,7 +57,7 @@ export class U2fClient {
 			c.getRandomValues(random)
 			let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 			let u2fResponsePromise = Promise.fromCallback(cb => {
-				this._getU2fInstance().register(getHttpOrigin(), [
+				u2f.register(this._appId, [
 					{
 						version: "U2F_V2",
 						challenge: challenge,
@@ -90,7 +84,7 @@ export class U2fClient {
 		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 		return Promise.fromCallback(cb => {
-			this._getU2fInstance().register(getHttpOrigin(), [
+			u2f.register(this._appId, [
 				{
 					version: "U2F_V2",
 					challenge: challenge,
@@ -100,6 +94,7 @@ export class U2fClient {
 			.then(registerResponse => {
 				let u2fDevice = createU2fRegisteredDevice()
 				u2fDevice.keyHandle = registerResponse.keyHandle
+				u2fDevice.appId = this._appId
 				u2fDevice.publicKey = registerResponse.userPublicKey
 				u2fDevice.compromised = false
 				u2fDevice.counter = "-1"
@@ -124,18 +119,17 @@ export class U2fClient {
 			return {
 				version: "U2F_V2",
 				keyHandle: base64ToBase64Url(uint8ArrayToBase64(key.keyHandle)),
-				appId: getHttpOrigin()
+				appId: this._appId
 			}
 		})
 		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
 		return Promise.fromCallback(cb => {
-			this._getU2fInstance().sign(getHttpOrigin(), challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
+			u2f.sign(this._appId, challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
 		}).then(rawAuthenticationResponse => {
 			let u2fSignatureResponse = createU2fResponseData()
-			// the firefox addin provides invalid base64url data, i.e. '=' is appended, so we remove it here
-			u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle.replace(/=/g, "")
-			u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData.replace(/=/g, "")
-			u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData.replace(/=/g, "")
+			u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle
+			u2fSignatureResponse.clientData = rawAuthenticationResponse.clientData
+			u2fSignatureResponse.signatureData = rawAuthenticationResponse.signatureData
 			return u2fSignatureResponse
 		})
 	}

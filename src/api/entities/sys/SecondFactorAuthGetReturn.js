@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "SecondFactorAuthGetReturn",
 	"since": 23,
 	"type": "DATA_TRANSFER_TYPE",
-	"id": 1234,
-	"rootId": "A3N5cwAE0g",
+	"id": 1236,
+	"rootId": "A3N5cwAE1A",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_format": {
 			"name": "_format",
-			"id": 1235,
+			"id": 1237,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"secondFactorPending": {
 			"name": "secondFactorPending",
-			"id": 1236,
+			"id": 1238,
 			"since": 23,
 			"type": "Boolean",
 			"cardinality": "One",

@@ -839,6 +839,7 @@ module.exports = {
 		"twoMonthsForFreeYearly_msg": "You get two months for free when paying yearly.",
 		"type_label": "Type",
 		"u2fAuthUnregisteredDevice_msg": "This security key has not been registered with your account. Please use a valid one.",
+		"u2fAuthOtherDomain_msg": "You have registered at least one security key for another domain. Please log in using this domain: {domain}",
 		"u2fNotSupported_msg": "Your browser does not support security keys (U2F).",
 		"u2fSecurityKey_label": "Security Key (U2F)",
 		"u2fUnexpectedError_msg": "An unexpected error occurred with your security key.",

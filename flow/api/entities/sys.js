@@ -1223,6 +1223,7 @@ type BrandingDomainDeleteData = {
 type U2fRegisteredDevice = {
 	_type: TypeRef<U2fRegisteredDevice>;
 	_id:Id;
+	appId:string;
 	compromised:boolean;
 	counter:NumberString;
 	keyHandle:Uint8Array;
@@ -1245,6 +1246,7 @@ type SecondFactor = {
 type U2fKey = {
 	_type: TypeRef<U2fKey>;
 	_id:Id;
+	appId:string;
 	keyHandle:Uint8Array;
 
 	secondFactor:IdTuple;

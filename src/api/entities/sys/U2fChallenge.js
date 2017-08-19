@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "U2fChallenge",
 	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 1181,
-	"rootId": "A3N5cwAEnQ",
+	"id": 1183,
+	"rootId": "A3N5cwAEnw",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1182,
+			"id": 1184,
 			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"challenge": {
 			"name": "challenge",
-			"id": 1183,
+			"id": 1185,
 			"since": 23,
 			"type": "Bytes",
 			"cardinality": "One",

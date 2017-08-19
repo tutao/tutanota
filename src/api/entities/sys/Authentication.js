@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"accessToken": {
 			"name": "accessToken",
-			"id": 1237,
+			"id": 1239,
 			"since": 23,
 			"type": "String",
 			"cardinality": "ZeroOrOne",

@@ -6,14 +6,14 @@ export const _TypeModel: TypeModel = {
 	"name": "Challenge",
 	"since": 23,
 	"type": "AGGREGATED_TYPE",
-	"id": 1185,
-	"rootId": "A3N5cwAEoQ",
+	"id": 1187,
+	"rootId": "A3N5cwAEow",
 	"versioned": false,
 	"encrypted": false,
 	"values": {
 		"_id": {
 			"name": "_id",
-			"id": 1186,
+			"id": 1188,
 			"since": 23,
 			"type": "CustomId",
 			"cardinality": "One",
@@ -22,7 +22,7 @@ export const _TypeModel: TypeModel = {
 		},
 		"type": {
 			"name": "type",
-			"id": 1187,
+			"id": 1189,
 			"since": 23,
 			"type": "Number",
 			"cardinality": "One",
