@@ -36,10 +36,15 @@ export class EditSecondFactorsForm {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 				m(this._2FATable),
-				m(".small", lang.get("secondFactorInfo_msg"))
+				m("span.small", lang.get("moreInfo_msg") + " "),
+				m("span.small", [m(`a[href=${this._get2FAInfoLink()}][target=_blank]`, this._get2FAInfoLink())]),
 			]
 		}
 		this._updateSecondFactors()
+	}
+
+	_get2FAInfoLink(): string {
+		return lang.code == "de" ? "https://tutanota.uservoice.com/knowledgebase/articles/1201945" : "https://tutanota.uservoice.com/knowledgebase/articles/1201942"
 	}
 
 	_updateSecondFactors(): void {
