@@ -21,6 +21,7 @@ import {neverNull} from "../api/common/utils/Utils"
 import {progressIcon, Icon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../login/SecondFactorHandler"
+import {contains} from "../api/common/utils/ArrayUtils"
 
 assertMainOrNode()
 
@@ -28,13 +29,11 @@ export class EditSecondFactorsForm {
 	view: Function;
 	_2FATable: Table;
 	_user: LazyLoaded<User>;
-	_secondFactors: SecondFactor[];
 
 	constructor(user: LazyLoaded<User>) {
 		this._user = user
 		let add2FAButton = new Button("addSecondFactor_action", () => this._showAddSecondFactorDialog(), () => Icons.Add)
 		this._2FATable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, add2FAButton)
-		this._secondFactors = []
 		this.view = () => {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
@@ -52,16 +51,26 @@ export class EditSecondFactorsForm {
 
 	_updateSecondFactors(): void {
 		this._user.getAsync().then(user => {
-			const factors = loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors).then(secondFactors => this._secondFactors = secondFactors).map(sf => {
-				let removeButton = new Button("remove_action", () => {
-					Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
-						if (confirmed) {
-							Dialog.progress("pleaseWait_msg", erase(sf))
-						}
-					})
-				}, () => Icons.Cancel)
-				return new TableLine([sf.name, lang.get(SecondFactorTypeToNameTextId[sf.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
-			}).then(tableLines => this._2FATable.updateEntries(tableLines))
+			loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors).then(factors => {
+				let differentDomainAppIds = factors.reduce((result, f) => {
+					if (!contains(result, neverNull(f.u2f).appId)) {
+						result.push(neverNull(f.u2f).appId)
+					}
+					return result
+				}, [])
+				let tableLines = factors.map(sf => {
+					let removeButton = new Button("remove_action", () => {
+						Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
+							if (confirmed) {
+								Dialog.progress("pleaseWait_msg", erase(sf))
+							}
+						})
+					}, () => Icons.Cancel)
+					let domainInfo = (differentDomainAppIds.length > 1) ? ((sf.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(sf.u2f).appId) : ""
+					return new TableLine([sf.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[sf.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
+				})
+				this._2FATable.updateEntries(tableLines)
+			})
 		})
 	}
 
@@ -97,11 +106,6 @@ export class EditSecondFactorsForm {
 					if (u2fRegistrationData() == null) {
 						Dialog.error("unrecognizedU2fDevice_msg")
 					} else {
-						let secondFactor = this._secondFactors.find(f => neverNull(f.u2f).appId != u2f.appId)
-						if (secondFactor) {
-							Dialog.error(() => lang.get("u2fIllegalDomain_msg", {domain: appIdToLoginDomain(neverNull(neverNull(secondFactor).u2f).appId)}))
-							return
-						}
 						let sf = createSecondFactor()
 						sf._ownerGroup = user._ownerGroup
 						sf.name = name.value()

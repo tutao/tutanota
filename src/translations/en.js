@@ -889,6 +889,6 @@ module.exports = {
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
-		"loginDomain_msg": "Your login domain is {domain}."
+		"differentSecurityKeyDomain_msg": "Your security key is not configured for this domain. Please login at {domain}.",
 	}
 }

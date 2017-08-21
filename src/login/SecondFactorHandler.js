@@ -92,19 +92,19 @@ export class SecondFactorHandler {
 			let u2fClient = new U2fClient()
 			const keys = neverNull(neverNull(u2fChallenge).u2f).keys
 
-			let otherAppIds = keys.filter(key => key.appId != u2fClient.appId).map(key => key.appId)
 			return u2fClient.isSupported().then(supported => {
-				let validKeys = keys.filter(key => key.appId == u2fClient.appId).length > 0
-				let loginDomain = otherAppIds.length > 0 ? appIdToLoginDomain(otherAppIds[0]) : null
+				let keyForThisDomainExisting = keys.filter(key => key.appId == u2fClient.appId).length > 0
+				let otherDomainAppIds = keys.filter(key => key.appId != u2fClient.appId).map(key => key.appId)
+				let otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
 				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
 					view: () => m("", [
 						m(".flex-center", m("img[src=" + SecondFactorImage + "]")),
-						m("p", (supported && validKeys) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
-						(loginDomain) ? m("a", {href: "https://" + loginDomain}, lang.get("loginDomain_msg", {"{domain}": loginDomain})) : null
+						m("p", (supported && keyForThisDomainExisting) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
+						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain + "/beta"}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain + "/beta"})) : null
 					])
 				})
 				this._waitingForSecondFactorDialog.show()
-				if (supported && validKeys) {
+				if (supported && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {
 							let auth = createSecondFactorAuthData()
@@ -138,5 +138,5 @@ export const secondFactorHandler: SecondFactorHandler = new SecondFactorHandler(
 
 export function appIdToLoginDomain(appId: string): string {
 	let domain = appId.split("/")[2]
-	return (appId != "tutanota.com" ? appId : "app.tutanota.com")
+	return (domain != "tutanota.com" ? domain : "app.tutanota.com")
 }
