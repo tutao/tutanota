@@ -155,21 +155,26 @@ export class ExternalLoginView {
 			.then(() => {
 				m.route.set(`/mail${location.hash}`)
 				this.helpText = lang.get('emptyString_msg')
+				m.redraw()
 			})
 			.catch(AccessBlockedError, e => {
 				this.helpText = lang.get('loginFailedOften_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(NotAuthenticatedError, e => {
 				this.helpText = lang.get('invalidPassword_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(AccessDeactivatedError, e => {
 				this.helpText = lang.get('loginFailed_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(ConnectionError, e => {
 				this.helpText = lang.get('emptyString_msg')
+				m.redraw()
 				throw e;
 			})
 	}

@@ -122,7 +122,7 @@ export function statisticsFieldTypeToString(field: Object): string {
 }
 
 export function getContactFormUrl(domain: string, path: string): string {
-	let pathPrefix = ""
+	let pathPrefix = "/beta"
 	if (location.pathname.indexOf("beta/client/build") != -1) {
 		// local
 		pathPrefix = ":9000/beta/client/build/index"
