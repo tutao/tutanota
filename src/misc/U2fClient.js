@@ -33,13 +33,13 @@ const TIMEOUT = 20
  * compile 'com.yubico:u2flib-server-core:0.16.0'
  */
 export class U2fClient {
-	_appId: string;
+	appId: string;
 
 	constructor() {
 		if (location.hostname.endsWith("tutanota.com")) {
-			this._appId = "https://tutanota.com/u2f-appid.json"
+			this.appId = "https://tutanota.com/u2f-appid.json"
 		} else {
-			this._appId = getHttpOrigin() + "/u2f-appid.json"
+			this.appId = getHttpOrigin() + "/u2f-appid.json"
 		}
 	}
 
@@ -57,7 +57,7 @@ export class U2fClient {
 			c.getRandomValues(random)
 			let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 			let u2fResponsePromise = Promise.fromCallback(cb => {
-				u2f.register(this._appId, [
+				u2f.register(this.appId, [
 					{
 						version: "U2F_V2",
 						challenge: challenge,
@@ -84,7 +84,7 @@ export class U2fClient {
 		c.getRandomValues(random)
 		let challenge = base64ToBase64Url(uint8ArrayToBase64(random))
 		return Promise.fromCallback(cb => {
-			u2f.register(this._appId, [
+			u2f.register(this.appId, [
 				{
 					version: "U2F_V2",
 					challenge: challenge,
@@ -94,7 +94,7 @@ export class U2fClient {
 			.then(registerResponse => {
 				let u2fDevice = createU2fRegisteredDevice()
 				u2fDevice.keyHandle = registerResponse.keyHandle
-				u2fDevice.appId = this._appId
+				u2fDevice.appId = this.appId
 				u2fDevice.publicKey = registerResponse.userPublicKey
 				u2fDevice.compromised = false
 				u2fDevice.counter = "-1"
@@ -119,12 +119,12 @@ export class U2fClient {
 			return {
 				version: "U2F_V2",
 				keyHandle: base64ToBase64Url(uint8ArrayToBase64(key.keyHandle)),
-				appId: this._appId
+				appId: this.appId
 			}
 		})
 		let challengeData = base64ToBase64Url(uint8ArrayToBase64(challenge.challenge))
 		return Promise.fromCallback(cb => {
-			u2f.sign(this._appId, challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
+			u2f.sign(this.appId, challengeData, registeredKeys, (r) => this._handleError(r, cb), TIMEOUT)
 		}).then(rawAuthenticationResponse => {
 			let u2fSignatureResponse = createU2fResponseData()
 			u2fSignatureResponse.keyHandle = rawAuthenticationResponse.keyHandle

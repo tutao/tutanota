@@ -2,7 +2,7 @@
 import m from "mithril"
 import {SessionTypeRef} from "../api/entities/sys/Session"
 import {load, serviceRequestVoid} from "../api/main/Entity"
-import {Dialog} from "../gui/base/Dialog"
+import {Dialog, DialogType} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
@@ -92,19 +92,18 @@ export class SecondFactorHandler {
 			let u2fClient = new U2fClient()
 			const keys = neverNull(neverNull(u2fChallenge).u2f).keys
 
-			let otherDomains = keys.filter(key => key.appId != u2fClient._appId).map(key => key.appId.split("/")[2]).filter((el, i, a) => (i == a.indexOf(el) ? true : false))
-			let confirmation = Promise.resolve()
-			if (otherDomains.length > 0) {
-				confirmation = Dialog.confirm(() => lang.get("u2fAuthOtherDomain_msg", {"{domain}": otherDomains[0]}))
-					.then(ok => {
-						if (ok) {
-							location.href = "https://" + (otherDomains[0] != "tutanota.com" ? otherDomains[0] : "app.tutanota.com")
-						}
-					})
-			}
-			return confirmation.then(() => u2fClient.isSupported().then(supported => {
-				let validKeys = keys.filter(key => key.appId == u2fClient._appId).length > 0
-				this._waitingForSecondFactorDialog = Dialog.pending((supported && validKeys) ? "secondFactorPending_msg" : "secondFactorPendingOtherClientOnly_msg", SecondFactorImage)
+			let otherAppIds = keys.filter(key => key.appId != u2fClient.appId).map(key => key.appId)
+			return u2fClient.isSupported().then(supported => {
+				let validKeys = keys.filter(key => key.appId == u2fClient.appId).length > 0
+				let loginDomain = otherAppIds.length > 0 ? appIdToLoginDomain(otherAppIds[0]) : null
+				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
+					view: () => m("", [
+						m(".flex-center", m("img[src=" + SecondFactorImage + "]")),
+						m("p", (supported && validKeys) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
+						(loginDomain) ? m("a", {href: "https://" + loginDomain}, lang.get("loginDomain_msg", {"{domain}": loginDomain})) : null
+					])
+				})
+				this._waitingForSecondFactorDialog.show()
 				if (supported && validKeys) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {
@@ -128,10 +127,16 @@ export class SecondFactorHandler {
 					}
 					registerResumeOnError()
 				}
-			}))
+			})
 
 		}
 	}
+
 }
 
 export const secondFactorHandler: SecondFactorHandler = new SecondFactorHandler()
+
+export function appIdToLoginDomain(appId: string): string {
+	let domain = appId.split("/")[2]
+	return (appId != "tutanota.com" ? appId : "app.tutanota.com")
+}

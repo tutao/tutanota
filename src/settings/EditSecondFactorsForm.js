@@ -20,6 +20,7 @@ import {logins} from "../api/main/LoginController"
 import {neverNull} from "../api/common/utils/Utils"
 import {progressIcon, Icon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
+import {appIdToLoginDomain} from "../login/SecondFactorHandler"
 
 assertMainOrNode()
 
@@ -27,11 +28,13 @@ export class EditSecondFactorsForm {
 	view: Function;
 	_2FATable: Table;
 	_user: LazyLoaded<User>;
+	_secondFactors: SecondFactor[];
 
 	constructor(user: LazyLoaded<User>) {
 		this._user = user
 		let add2FAButton = new Button("addSecondFactor_action", () => this._showAddSecondFactorDialog(), () => Icons.Add)
 		this._2FATable = new Table(["name_label", "type_label"], [ColumnWidth.Largest, ColumnWidth.Largest], true, add2FAButton)
+		this._secondFactors = []
 		this.view = () => {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
@@ -49,8 +52,7 @@ export class EditSecondFactorsForm {
 
 	_updateSecondFactors(): void {
 		this._user.getAsync().then(user => {
-			const factors = loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors)
-			factors.map(sf => {
+			const factors = loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors).then(secondFactors => this._secondFactors = secondFactors).map(sf => {
 				let removeButton = new Button("remove_action", () => {
 					Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
 						if (confirmed) {
@@ -95,6 +97,11 @@ export class EditSecondFactorsForm {
 					if (u2fRegistrationData() == null) {
 						Dialog.error("unrecognizedU2fDevice_msg")
 					} else {
+						let secondFactor = this._secondFactors.find(f => neverNull(f.u2f).appId != u2f.appId)
+						if (secondFactor) {
+							Dialog.error(() => lang.get("u2fIllegalDomain_msg", {domain: appIdToLoginDomain(neverNull(neverNull(secondFactor).u2f).appId)}))
+							return
+						}
 						let sf = createSecondFactor()
 						sf._ownerGroup = user._ownerGroup
 						sf.name = name.value()
