@@ -75,21 +75,26 @@ export class LoginViewController {
 			.then(() => {
 				m.route.set(this.view._requestedPath)
 				this.view.helpText = lang.get('emptyString_msg')
+				m.redraw()
 			})
 			.catch(AccessBlockedError, e => {
 				this.view.helpText = lang.get('loginFailedOften_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(NotAuthenticatedError, e => {
 				this.view.helpText = lang.get('loginFailed_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(AccessDeactivatedError, e => {
 				this.view.helpText = lang.get('loginFailed_msg')
+				m.redraw()
 				return errorAction()
 			})
 			.catch(ConnectionError, e => {
 				this.view.helpText = lang.get('emptyString_msg')
+				m.redraw()
 				throw e;
 			})
 	}
