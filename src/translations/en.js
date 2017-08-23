@@ -890,5 +890,6 @@ module.exports = {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"differentSecurityKeyDomain_msg": "Your security key is not configured for this domain. Please login at {domain}.",
+		"contactFormReport_label": "Contact form report"
 	}
 }

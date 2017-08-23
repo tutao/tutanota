@@ -3,7 +3,7 @@ import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import {lang} from "../misc/LanguageViewModel"
 import {Table, ColumnWidth} from "../gui/base/Table"
-import {update, loadRange, load} from "../api/main/Entity"
+import {update, loadRange, load, loadAll} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
 import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
@@ -30,6 +30,8 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
+import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
+import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
 
 assertMainOrNode()
 
@@ -76,6 +78,8 @@ export class GlobalSettingsViewer {
 		this._auditLogTable = new Table(["action_label", "modified_label", "time_label"], [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small], true)
 		let auditLogExpander = new ExpanderButton("show_action", new ExpanderPanel(this._auditLogTable), false)
 
+		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(), () => Icons.Download)
+
 		this.view = () => {
 			return [
 				m("#global-settings.fill-absolute.scroll.plr-l", [
@@ -105,6 +109,12 @@ export class GlobalSettingsViewer {
 									m(auditLogExpander.panel),
 									m("small", lang.get("auditLogInfo_msg")),
 								]) : null,
+							m(".mt-l", [
+								m(".flex-space-between.items-center.mb-s", [
+									m(".h4", lang.get("contactFormReport_label")),
+									m(contactFormReportButton)
+								]),
+							]),
 						]) : null,
 				]),
 			]
@@ -257,6 +267,15 @@ export class GlobalSettingsViewer {
 			this._customerInfo.reset()
 			this._updateDomains()
 		}
+	}
+
+	_contactFormReport() {
+		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
+			.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog))
+			.map(logEntry => {
+				console.log(logEntry)
+			})
 	}
 }
 
