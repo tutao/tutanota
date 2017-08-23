@@ -20,20 +20,20 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"encrypted": false
 		},
-		"name": {
-			"name": "name",
-			"id": 767,
-			"since": 19,
-			"type": "String",
+		"encryptedName": {
+			"name": "encryptedName",
+			"id": 823,
+			"since": 22,
+			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
 		},
-		"value": {
-			"name": "value",
-			"id": 768,
-			"since": 19,
-			"type": "String",
+		"encryptedValue": {
+			"name": "encryptedValue",
+			"id": 824,
+			"since": 22,
+			"type": "Bytes",
 			"cardinality": "One",
 			"final": true,
 			"encrypted": false
@@ -41,7 +41,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "tutanota",
-	"version": "21"
+	"version": "22"
 }
 
 export function createContactFormStatisticField(): ContactFormStatisticField {

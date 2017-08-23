@@ -22,7 +22,6 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {progressIcon} from "../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../mail/MailUtils"
 import {deviceConfig} from "../misc/DeviceConfig"
-import {createContactFormStatisticField} from "../api/entities/tutanota/ContactFormStatisticField"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
@@ -245,10 +244,10 @@ export class ContactFormRequestDialog {
 				let password = this._passwordField.value()
 				let statisticsFields = mapAndFilterNull(this._statisticFields, (field => {
 					if (field.value()) {
-						let f = createContactFormStatisticField()
-						f.name = field.name
-						f.value = field.value()
-						return f
+						return {
+							name: field.name,
+							value: field.value()
+						}
 					} else {
 						return null
 					}

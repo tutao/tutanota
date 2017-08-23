@@ -33,6 +33,9 @@ import {CustomDomainReturnTypeRef} from "../../entities/sys/CustomDomainReturn"
 import {ContactFormAccountReturnTypeRef} from "../../entities/tutanota/ContactFormAccountReturn"
 import {createBrandingDomainDeleteData} from "../../entities/sys/BrandingDomainDeleteData"
 import {createBrandingDomainData} from "../../entities/sys/BrandingDomainData"
+import {createContactFormStatisticEntry} from "../../entities/tutanota/ContactFormStatisticEntry"
+import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
+import {createContactFormStatisticField} from "../../entities/tutanota/ContactFormStatisticField"
 
 assertWorkerOrNode()
 
@@ -206,7 +209,7 @@ export class CustomerFacade {
 		})
 	}
 
-	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: ContactFormStatisticField[]): Promise<ContactFormAccountReturn> {
+	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
@@ -216,10 +219,31 @@ export class CustomerFacade {
 				let data = createContactFormAccountData()
 				data.userData = userManagementFacade.generateContactFormUserAccountData(userGroupKey, password)
 				return workerImpl.sendProgress(95).then(() => {
-					data.userGroupData = userGroupData
-					data.contactForm = contactFormId
-					data.statisticFields = statisticFields
-					return serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+					return serviceRequest(SysService.CustomerPublicKeyService, HttpMethod.GET, null, PublicKeyReturnTypeRef).then(publicKeyData => {
+						let publicKey = hexToPublicKey(uint8ArrayToHex(publicKeyData.pubKey))
+
+						let sessionKey = aes128RandomKey()
+						let bucketKey = aes128RandomKey()
+						return rsaEncrypt(publicKey, bitArrayToUint8Array(bucketKey)).then(customerPubEncBucketKey => {
+							let stats = createContactFormStatisticEntry()
+							stats.customerPubEncBucketKey = customerPubEncBucketKey
+							stats.bucketEncSessionKey = encryptKey(bucketKey, sessionKey)
+							stats.customerPubKeyVersion = publicKeyData.pubKeyVersion
+
+							stats.statisticFields = statisticFields.map(sf => {
+								let esf = createContactFormStatisticField()
+								esf.encryptedName = encryptString(sessionKey, sf.name)
+								esf.encryptedValue = encryptString(sessionKey, sf.value)
+								return esf
+							})
+
+							data.userGroupData = userGroupData
+							data.contactForm = contactFormId
+							data.statistics = stats
+							return serviceRequest(TutanotaService.ContactFormAccountService, HttpMethod.POST, data, ContactFormAccountReturnTypeRef)
+						})
+
+					})
 				})
 			})
 		})

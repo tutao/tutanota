@@ -77,7 +77,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "23"
+	"version": "24"
 }
 
 export function createGroupRoot(): GroupRoot {

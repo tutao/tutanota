@@ -880,8 +880,8 @@ type ContactFormUserData = {
 type ContactFormStatisticField = {
 	_type: TypeRef<ContactFormStatisticField>;
 	_id:Id;
-	name:string;
-	value:string;
+	encryptedName:Uint8Array;
+	encryptedValue:Uint8Array;
 
 }
 
@@ -891,6 +891,20 @@ type ContactFormEncryptedStatisticsField = {
 	name:string;
 	value:string;
 
+}
+
+type StatisticLogEntry = {
+	_type: TypeRef<StatisticLogEntry>;
+	_errors: Object;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerEncSessionKey:?Uint8Array;
+	_ownerGroup:?Id;
+	_permissions:Id;
+	date:Date;
+
+	values:ContactFormEncryptedStatisticsField[];
+	contactForm:IdTuple;
 }
 
 type CustomerContactFormGroupRoot = {
@@ -909,7 +923,18 @@ type ContactFormAccountData = {
 	_format:NumberString;
 
 	statisticFields:ContactFormStatisticField[];
+	statistics:?ContactFormStatisticEntry;
 	userData:ContactFormUserData;
 	userGroupData:InternalGroupData;
 	contactForm:IdTuple;
+}
+
+type ContactFormStatisticEntry = {
+	_type: TypeRef<ContactFormStatisticEntry>;
+	_id:Id;
+	bucketEncSessionKey:Uint8Array;
+	customerPubEncBucketKey:Uint8Array;
+	customerPubKeyVersion:NumberString;
+
+	statisticFields:ContactFormStatisticField[];
 }

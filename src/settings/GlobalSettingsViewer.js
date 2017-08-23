@@ -273,8 +273,8 @@ export class GlobalSettingsViewer {
 		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 			.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
 			.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog))
-			.map(logEntry => {
-				console.log(logEntry)
+			.then(logEntries => {
+				console.log(logEntries)
 			})
 	}
 }

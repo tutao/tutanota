@@ -41,7 +41,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "23"
+	"version": "24"
 }
 
 export function createU2fChallenge(): U2fChallenge {

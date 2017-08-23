@@ -111,7 +111,7 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
-	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: ContactFormStatisticField[]): Promise<ContactFormAccountReturn> {
+	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 

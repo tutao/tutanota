@@ -41,5 +41,6 @@ export const SysService = {
 	MigrateToV18Service: "migratetov18service",
 	UpdateCountersService: "updatecountersservice",
 	BrandingDomainService: "brandingdomainservice",
-	SessionService: "sessionservice"
+	SessionService: "sessionservice",
+	CustomerPublicKeyService: "customerpublickeyservice"
 }

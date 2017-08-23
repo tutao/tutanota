@@ -30,6 +30,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "ContactFormStatisticField",
 			"final": false
 		},
+		"statistics": {
+			"name": "statistics",
+			"since": 22,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "ContactFormStatisticEntry",
+			"final": true
+		},
 		"userData": {
 			"name": "userData",
 			"since": 19,
@@ -57,7 +65,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "21"
+	"version": "22"
 }
 
 export function createContactFormAccountData(): ContactFormAccountData {

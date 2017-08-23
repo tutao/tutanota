@@ -77,7 +77,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "tutanota",
-	"version": "21"
+	"version": "22"
 }
 
 export function createFileData(): FileData {
