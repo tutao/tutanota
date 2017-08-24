@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-08-16T12:49:32Z",
+	"updated_at": "2017-08-24T12:28:03Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -156,6 +156,8 @@ module.exports = {
 		"contactFormMailAddressInfo_msg": "Sobald wir Ihre Anfrage beantwortet haben erhalten Sie eine Benachrichtigung per E-Mail. Diese Angabe ist freiwillig.",
 		"contactFormPasswordNotSecure_msg": "Das angegeben Passwort ist nicht sicher genug. Wollen sie die Anfrage trotzdem absenden?",
 		"contactFormPlaceholder_label": "Ihre Nachricht ...",
+		"contactFormReportInfo_msg": "Exportiert ein CSV-Log von allen Kontaktanfragen und den statistischen Daten, die von den Users eingegeben wurden.",
+		"contactFormReport_label": "Kontaktformular Auswertung",
 		"contactFormStatisticFieldsInfo_msg": "Die folgenden Angaben dienen statistischen Zwecken und sind freiwillig.",
 		"contactFormSubmitConfirm_msg": "Ihre Anfrage wurde erfolgreich übermittelt. Bitte notieren Sie sich die folgenden Zugangsdaten, um später unsere Antwort lesen zu können. Wählen Sie \"Speichern\", um die Zugangsdaten in diesem Browser zu speichern und automatisch eingeloggt zu werden.",
 		"contactFormSubmitError_msg": "Leider konnte Ihre Anfrage nicht zugestellt werden. Bitte versuchen Sie es später erneut.",
@@ -223,6 +225,9 @@ module.exports = {
 		"customLogo_label": "Eigenes Logo",
 		"custom_label": "Eigenes",
 		"dataExpired_msg": "Deine geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte logge dich aus und wieder ein, um deine Daten zu aktualisieren.",
+		"dateFrom_label": "Von",
+		"dateInvalidRange_msg": "Bitte geben Sie einen gültigen Datumsbereich ein.",
+		"dateTo_label": "Bis",
 		"date_label": "Datum",
 		"db_label": "db",
 		"deactivateAlias_msg": "Der E-Mail-Alias '{1}' wird jetzt deaktiviert. Die Adresse kann später erneut aktiviert oder für einen anderen Benutzer verwendet werden.",
@@ -253,6 +258,7 @@ module.exports = {
 		"delete_action": "Löschen",
 		"desiredAddress_label": "Gewünschte E-Mail-Adresse",
 		"dev_label": "Developer",
+		"differentSecurityKeyDomain_msg": "Dein Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melde dich unter {domain} an.",
 		"discardChanges_action": "Änderungen verwerfen",
 		"discardContactChangesFor_msg": "Änderungen an Kontakt \"{1}\" verwerfen?",
 		"discardContactChanges_msg": "Änderungen an Kontakt verwerfen?",
@@ -734,7 +740,6 @@ module.exports = {
 		"secondFactorConfirmLogin_label": "Anmeldung bestätigen",
 		"secondFactorConfirmLogin_msg": "Möchtest du die Anmeldung von dem Client \"{clientIdentifier}\" mit der IP-Adresse {ipAddress} erlauben?",
 		"secondFactorInfoOldClient_msg": "Achtung: Beim Aktivieren der Zwei-Faktor-Authentifizierung ist der Login im alten Tutanota-Client (Browser/Apps) nicht mehr möglich.",
-		"secondFactorInfo_msg": "Unterstützte zweite Faktoren: Sicherheitsschlüssel (U2F), z.B. Yubikey. U2F wird aktuell in Firefox mit U2F-Erweiterung und Chrome unterstützt. Beim Login kannst du die Session auch von einem anderen eingeloggten Client bestätigen anstatt dich mit deinem zweiten Faktor zu authentifizieren. Zweite Faktoren können nur von Administratoren gelöscht werden.",
 		"secondFactorNameInfo_msg": "Optional: Name zur Identifizierung.",
 		"secondFactorPendingOtherClientOnly_msg": "Bitte bestätige diese Anmeldung von einem anderen Client aus.",
 		"secondFactorPending_msg": "Bitte authentifiziere dich mit deinem zweiten Faktor oder bestätige diese Anmeldung von einem anderen Client aus.",
@@ -839,8 +844,8 @@ module.exports = {
 		"twoMonthsForFreeYearly_msg": "Bei jährlicher Zahlung gibt es zwei Monate kostenlos.",
 		"type_label": "Typ",
 		"u2fAuthUnregisteredDevice_msg": "Dieser Sicherheitsschlüssel ist nicht für deinen Account gültig. Bitte verwende einen gültigen.",
-		"u2fSecurityKey_label": "Sicherheitsschlüssel (U2F)",
 		"u2fNotSupported_msg": "Dein Browser unterstützt keine Sicherheitsschlüssel (U2F).",
+		"u2fSecurityKey_label": "Sicherheitsschlüssel (U2F)",
 		"u2fUnexpectedError_msg": "Ein unerwarteter Fehler ist bei deinem Sicherheitsschlüssel aufgetreten.",
 		"unknownError_msg": "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuche es später erneut.",
 		"unrecognizedU2fDevice_msg": "Dein Sicherheitsschlüssel wurde nicht erkannt.",
@@ -887,7 +892,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"differentSecurityKeyDomain_msg": "Dein Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melde dich unter {domain} an."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

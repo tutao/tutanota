@@ -34,11 +34,14 @@ import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/Cust
 import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {createDataFile} from "../api/common/DataFile"
-import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/utils/Encoding"
 import {createFile} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
+import {DatePicker} from "../gui/base/DatePicker"
 
 assertMainOrNode()
+
+const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
 export class GlobalSettingsViewer {
 	view: Function;
@@ -83,7 +86,11 @@ export class GlobalSettingsViewer {
 		this._auditLogTable = new Table(["action_label", "modified_label", "time_label"], [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small], true)
 		let auditLogExpander = new ExpanderButton("show_action", new ExpanderPanel(this._auditLogTable), false)
 
-		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(), () => Icons.Download)
+		let contactFormReportFrom = new DatePicker("dateFrom_label")
+		let contactFormReportTo = new DatePicker("dateTo_label")
+		contactFormReportFrom.setDate(new Date())
+		contactFormReportTo.setDate(new Date())
+		let contactFormReportButton = new Button("export_action", () => this._contactFormReport(contactFormReportFrom._date, contactFormReportTo._date), () => Icons.Download)
 
 		this.view = () => {
 			return [
@@ -115,8 +122,11 @@ export class GlobalSettingsViewer {
 									m("small", lang.get("auditLogInfo_msg")),
 								]) : null,
 							m(".mt-l", [
+								m(".h4", lang.get("contactFormReport_label")),
+								m(".small", lang.get("contactFormReportInfo_msg")),
 								m(".flex-space-between.items-center.mb-s", [
-									m(".h4", lang.get("contactFormReport_label")),
+									m(contactFormReportFrom),
+									m(contactFormReportTo),
 									m(contactFormReportButton)
 								]),
 							]),
@@ -274,31 +284,35 @@ export class GlobalSettingsViewer {
 		}
 	}
 
-	_contactFormReport() {
-		load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
-			.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
-			.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog))
-			.then(logEntries => {
-				let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b))))
-				let titleRow = `contact form,path,timestamp,${columns.join(",")}`
-				Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
-					let row = [escape(contactForm.pageTitle), contactForm.path, formatSortableDate(entry.date)]
-					row.length = 3 + columns.length
-					for (let v of entry.values) {
-						row[3 + columns.indexOf(v.name)] = escape(v.value)
-					}
-					return row.join(",")
-				}))).then(rows => {
-					let csv = [titleRow].concat(rows).join("\n")
+	_contactFormReport(from: ?Date, to: ?Date) {
+		if ((from == null || to == null) || from.getTime() > to.getTime()) {
+			Dialog.error("dateInvalidRange_msg")
+		} else {
+			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
+				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
+				.then(logEntries => {
+					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b))))
+					let titleRow = `contact form,path,date,${columns.join(",")}`
+					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
+						let row = [escape(contactForm.pageTitle), contactForm.path, formatSortableDate(entry.date)]
+						row.length = 3 + columns.length
+						for (let v of entry.values) {
+							row[3 + columns.indexOf(v.name)] = escape(v.value)
+						}
+						return row.join(",")
+					}))).then(rows => {
+						let csv = [titleRow].concat(rows).join("\n")
 
-					let data = stringToUtf8Uint8Array(csv)
-					let tmpFile = createFile()
-					tmpFile.name = "report.csv"
-					tmpFile.mimeType = "text/csv"
-					tmpFile.size = String(data.byteLength)
-					return fileController.open(createDataFile(tmpFile, data))
+						let data = stringToUtf8Uint8Array(csv)
+						let tmpFile = createFile()
+						tmpFile.name = "report.csv"
+						tmpFile.mimeType = "text/csv"
+						tmpFile.size = String(data.byteLength)
+						return fileController.open(createDataFile(tmpFile, data))
+					})
 				})
-			})
+		}
 	}
 }
 

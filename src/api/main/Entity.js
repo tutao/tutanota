@@ -54,23 +54,26 @@ export function loadRange<T>(typeRef: TypeRef<T>, listId: Id, start: Id, count: 
 }
 
 
-export function loadAll<T>(typeRef: TypeRef<T>, listId: Id): Promise<T[]> {
+export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id): Promise<T[]> {
 	return resolveTypeReference(typeRef).then(typeModel => {
-		let minId = (typeModel.values["_id"].type == ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
-		return _loadAll(typeRef, listId, minId)
+		if (!start) {
+			start = (typeModel.values["_id"].type == ValueType.GeneratedId) ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+		}
+		return _loadAll(typeRef, listId, start, end)
 	})
 }
 
 const RANGE_ITEM_LIMIT = 1000
-function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
+function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
-		if (elements.length === RANGE_ITEM_LIMIT) {
-			let lastElementId = getLetId(elements[elements.length - 1])[1]
-			return _loadAll(typeRef, listId, lastElementId).then(nextElements => {
+		if (elements.length == 0) return Promise.resolve(elements)
+		let lastElementId = getLetId(elements[elements.length - 1])[1]
+		if (elements.length === RANGE_ITEM_LIMIT && (end == null || end > lastElementId[1])) {
+			return _loadAll(typeRef, listId, lastElementId, end).then(nextElements => {
 				return elements.concat(nextElements)
 			})
 		} else {
-			return Promise.resolve(elements)
+			return Promise.resolve(elements.filter(e => end == null ? true : getLetId(e)[1] < end))
 		}
 	})
 }

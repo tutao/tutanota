@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-08-16T12:49:20Z",
+	"updated_at": "2017-08-24T12:26:13Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -156,6 +156,8 @@ module.exports = {
 		"contactFormMailAddressInfo_msg": "As soon as we have answered your request you will get a notification email. This is voluntary.",
 		"contactFormPasswordNotSecure_msg": "The password is not secure enough. Send the request anyway?",
 		"contactFormPlaceholder_label": "Your message ...",
+		"contactFormReportInfo_msg": "Export a CSV log of all contact form requests including user provided statistic data.",
+		"contactFormReport_label": "Contact form report",
 		"contactFormStatisticFieldsInfo_msg": "The following details are used for statistical purposes only and are voluntary.",
 		"contactFormSubmitConfirm_msg": "Your request has been successfully submitted. Please note down the following credentials to read the answer to your request. Click \"Save\" to store the credentials in this browser and automatically login later.",
 		"contactFormSubmitError_msg": "Sorry, your request could not be completed. Please try again later.",
@@ -223,6 +225,9 @@ module.exports = {
 		"customLogo_label": "Custom logo",
 		"custom_label": "Custom",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tutanota servers. Please logout and login again to refresh your data.",
+		"dateFrom_label": "From",
+		"dateInvalidRange_msg": "Please define a valid date range.",
+		"dateTo_label": "To",
 		"date_label": "Date",
 		"db_label": "db",
 		"deactivateAlias_msg": "The email alias '{1}' will be deactivated now. The address can be activated again or re-used for another user.",
@@ -253,6 +258,7 @@ module.exports = {
 		"delete_action": "Delete",
 		"desiredAddress_label": "Desired email address",
 		"dev_label": "Developer",
+		"differentSecurityKeyDomain_msg": "Your security key is not registered for this domain. Please login at {domain}.",
 		"discardChanges_action": "Discard changes",
 		"discardContactChangesFor_msg": "Discard contact modifications for {1}?",
 		"discardContactChanges_msg": "Discard contact modifications?",
@@ -734,7 +740,6 @@ module.exports = {
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
 		"secondFactorInfoOldClient_msg": "Attention: By enabling second factor authentication login in the old Tutanota client (browser/apps) is not possible any more.",
-		"secondFactorInfo_msg": "Supported second factors: Security keys (U2F), e.g. Yubikey. U2F is currently supported in Firefox with the U2F extension and Chrome. When logging in you may also accept that session from another logged in client instead of authenticating with your second factor. Second factors can only be removed by admins.",
 		"secondFactorNameInfo_msg": "Optional: Name for identification.",
 		"secondFactorPendingOtherClientOnly_msg": "Please accept this login from another client.",
 		"secondFactorPending_msg": "Please authenticate with your second factor or accept this login from another client.",
@@ -839,7 +844,6 @@ module.exports = {
 		"twoMonthsForFreeYearly_msg": "You get two months for free when paying yearly.",
 		"type_label": "Type",
 		"u2fAuthUnregisteredDevice_msg": "This security key has not been registered with your account. Please use a valid one.",
-		"u2fAuthOtherDomain_msg": "You have registered at least one security key for another domain. Please log in using this domain: {domain}",
 		"u2fNotSupported_msg": "Your browser does not support security keys (U2F).",
 		"u2fSecurityKey_label": "Security Key (U2F)",
 		"u2fUnexpectedError_msg": "An unexpected error occurred with your security key.",
@@ -888,8 +892,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"differentSecurityKeyDomain_msg": "Your security key is not configured for this domain. Please login at {domain}.",
-		"contactFormReport_label": "Contact form report"
+		"yourMessage_label": "Your message"
 	}
 }

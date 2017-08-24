@@ -4,7 +4,7 @@ import m from "mithril"
 import {Icons} from "./icons/Icons"
 import {Button} from "./Button"
 import {client} from "../../misc/ClientDetector"
-import {parseDate, formatDate} from "../../misc/Formatter"
+import {parseDate, formatDate, formatDateWithMonth} from "../../misc/Formatter"
 import {lang} from "../../misc/LanguageViewModel"
 
 /**
@@ -32,7 +32,7 @@ export class DatePicker {
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
 			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
-			//else if (this._date != null) return formatDateWithMonth(this._date)
+			else if (this._date != null) return formatDateWithMonth(this._date)
 		})
 		this._date = null
 		this.input._injectionsRight = () => {
@@ -56,9 +56,7 @@ export class DatePicker {
 					this._date = null
 				}
 				this.invalidDate = false
-				console.log("input valid", this._date)
 			} catch (e) {
-				console.log("input not valid")
 				this.invalidDate = true
 			}
 		})
@@ -81,7 +79,7 @@ export class DatePicker {
 
 	setDate(date: Date) {
 		this._date = date
-		if (this.input.isEmpty()) this.input.animate(true)
+		if (this.input.isEmpty() && this.input._domInput) this.input.animate(true)
 		this.input.value(date != null ? formatDate(date) : "")
 	}
 
