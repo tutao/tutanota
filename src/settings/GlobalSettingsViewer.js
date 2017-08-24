@@ -288,7 +288,7 @@ export class GlobalSettingsViewer {
 		if ((from == null || to == null) || from.getTime() > to.getTime()) {
 			Dialog.error("dateInvalidRange_msg")
 		} else {
-			load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			Dialog.progress("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
 				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
 				.then(logEntries => {
@@ -311,7 +311,7 @@ export class GlobalSettingsViewer {
 						tmpFile.size = String(data.byteLength)
 						return fileController.open(createDataFile(tmpFile, data))
 					})
-				})
+				}))
 		}
 	}
 }
