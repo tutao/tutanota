@@ -40,17 +40,17 @@ export function getColors(buttonColors: ButtonColorEnum) {
 	switch (buttonColors) {
 		case ButtonColors.Header:
 			return {
-				button: theme.navigation_button,
-				button_selected: theme.navigation_button_selected,
-				icon: theme.navigation_button_icon,
-				icon_selected: theme.navigation_button_icon_selected,
-			}
-		case ButtonColors.Nav:
-			return {
 				button: theme.header_button,
 				button_selected: theme.header_button_selected,
 				icon: theme.header_button_icon,
 				icon_selected: theme.header_button_icon_selected,
+			}
+		case ButtonColors.Nav:
+			return {
+				button: theme.navigation_button,
+				button_selected: theme.navigation_button_selected,
+				icon: theme.navigation_button_icon,
+				icon_selected: theme.navigation_button_icon_selected,
 			}
 		default:
 			return {

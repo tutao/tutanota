@@ -91,7 +91,6 @@ export class NavBar {
 		if (priority > MAX_PRIO) {
 			throw new Error("prio > " + MAX_PRIO);
 		}
-		button.setColors(ButtonColors.Header)
 		let wrapper = {
 			id: this.buttonId++,
 			priority,
@@ -143,7 +142,7 @@ export class NavBar {
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
 		buttons.hidden.forEach(b => b.button.setColors(ButtonColors.Content))
-		buttons.visible.forEach(b => b.button.setColors(ButtonColors.Nav))
+		buttons.visible.forEach(b => b.button.setColors(ButtonColors.Header))
 		return buttons
 	}
 
