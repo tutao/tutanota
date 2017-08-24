@@ -17,7 +17,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
 import {logins} from "../api/main/LoginController"
 import {AuditLogEntryTypeRef} from "../api/entities/sys/AuditLogEntry"
-import {formatDateTimeFromYesterdayOn, formatDateTime} from "../misc/Formatter"
+import {formatDateTimeFromYesterdayOn, formatDateTime, formatSortableDate} from "../misc/Formatter"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {Dialog} from "../gui/base/Dialog"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -32,6 +32,11 @@ import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 import {Icons} from "../gui/base/icons/Icons"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 import {StatisticLogEntryTypeRef} from "../api/entities/tutanota/StatisticLogEntry"
+import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
+import {createDataFile} from "../api/common/DataFile"
+import {stringToUtf8Uint8Array} from "../api/common/utils/Encoding"
+import {createFile} from "../api/entities/tutanota/File"
+import {fileController} from "../file/FileController"
 
 assertMainOrNode()
 
@@ -274,7 +279,25 @@ export class GlobalSettingsViewer {
 			.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
 			.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog))
 			.then(logEntries => {
-				console.log(logEntries)
+				let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b))))
+				let titleRow = `contact form,path,timestamp,${columns.join(",")}`
+				Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
+					let row = [escape(contactForm.pageTitle), contactForm.path, formatSortableDate(entry.date)]
+					row.length = 3 + columns.length
+					for (let v of entry.values) {
+						row[3 + columns.indexOf(v.name)] = escape(v.value)
+					}
+					return row.join(",")
+				}))).then(rows => {
+					let csv = [titleRow].concat(rows).join("\n")
+
+					let data = stringToUtf8Uint8Array(csv)
+					let tmpFile = createFile()
+					tmpFile.name = "report.csv"
+					tmpFile.mimeType = "text/csv"
+					tmpFile.size = String(data.byteLength)
+					return fileController.open(createDataFile(tmpFile, data))
+				})
 			})
 	}
 }
@@ -285,4 +308,12 @@ export function getSpamRuleTypeNameMapping(): {value:string, name: string}[] {
 		{value: SpamRuleType.BLACKLIST, name: lang.get("emailSenderBlacklist_action")},
 		{value: SpamRuleType.DISCARD, name: lang.get("emailSenderDiscardlist_action")}
 	]
+}
+
+function escape(s: string) {
+	if (s.indexOf('"') !== -1 || s.indexOf(',') !== -1) {
+		return '"' + s.replace(new RegExp('"', 'g'), `\\"`) + '"'
+	} else {
+		return s
+	}
 }
