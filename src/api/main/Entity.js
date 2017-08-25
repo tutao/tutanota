@@ -15,7 +15,8 @@ import {
 	getLetId,
 	getEtId,
 	HttpMethod,
-	CUSTOM_MIN_ID
+	CUSTOM_MIN_ID,
+	firstBiggerThanSecond
 } from "../common/EntityFunctions"
 import {createVersionData} from "../entities/sys/VersionData"
 import {RootInstanceTypeRef} from "../entities/sys/RootInstance"
@@ -68,12 +69,18 @@ function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Prom
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length == 0) return Promise.resolve(elements)
 		let lastElementId = getLetId(elements[elements.length - 1])[1]
-		if (elements.length === RANGE_ITEM_LIMIT && (end == null || end > lastElementId[1])) {
+		if (elements.length === RANGE_ITEM_LIMIT && (end == null || firstBiggerThanSecond(end, lastElementId[1]))) {
 			return _loadAll(typeRef, listId, lastElementId, end).then(nextElements => {
 				return elements.concat(nextElements)
 			})
 		} else {
-			return Promise.resolve(elements.filter(e => end == null ? true : getLetId(e)[1] < end))
+			return Promise.resolve(elements.filter(e => {
+				if (end == null) {
+					return true // no end element specified return full list
+				} else {
+					return firstBiggerThanSecond(end, getLetId(e)[1]) || end == getLetId(e)[1]
+				}
+			}))
 		}
 	})
 }
