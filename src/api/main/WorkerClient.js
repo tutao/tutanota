@@ -298,6 +298,14 @@ export class WorkerClient {
 		return this._postRequest(new Request('deleteCertificate', arguments))
 	}
 
+	generateTotpSecret(): Promise<{key: Uint8Array, readableKey: Base32}> {
+		return this._postRequest(new Request('generateTotpSecret', arguments))
+	}
+
+	generateTotpCode(time: number, key: Uint8Array): Promise<number> {
+		return this._postRequest(new Request('generateTotpCode', arguments))
+	}
+
 	entityRequest<T>(typeRef: TypeRef<T>, method: HttpMethodEnum, listId: ?Id, id: ?Id, entity: ?T, queryParameter: ?Params): Promise<any> {
 		return this._postRequest(new Request('entityRequest', Array.from(arguments)))
 	}

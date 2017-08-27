@@ -22,6 +22,7 @@ import {progressIcon, Icon} from "../gui/base/Icon"
 import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../login/SecondFactorHandler"
 import {contains} from "../api/common/utils/ArrayUtils"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
@@ -53,21 +54,23 @@ export class EditSecondFactorsForm {
 		this._user.getAsync().then(user => {
 			loadAll(SecondFactorTypeRef, neverNull(user.auth).secondFactors).then(factors => {
 				let differentDomainAppIds = factors.reduce((result, f) => {
-					if (!contains(result, neverNull(f.u2f).appId)) {
+					let u2f = f.type === SecondFactorType.u2f
+					if (u2f && !contains(result, neverNull(f.u2f).appId)) {
 						result.push(neverNull(f.u2f).appId)
 					}
 					return result
 				}, [])
-				let tableLines = factors.map(sf => {
+				let tableLines = factors.map(f => {
+					let u2f = f.type === SecondFactorType.u2f
 					let removeButton = new Button("remove_action", () => {
 						Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
 							if (confirmed) {
-								Dialog.progress("pleaseWait_msg", erase(sf))
+								Dialog.progress("pleaseWait_msg", erase(f))
 							}
 						})
 					}, () => Icons.Cancel)
-					let domainInfo = (differentDomainAppIds.length > 1) ? ((sf.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(sf.u2f).appId) : ""
-					return new TableLine([sf.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[sf.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
+					let domainInfo = (differentDomainAppIds.length > 1) ? ( u2f && (f.name.length > 0) ? " - " : "") + appIdToLoginDomain(neverNull(f.u2f).appId) : ""
+					return new TableLine([f.name + domainInfo, lang.get(SecondFactorTypeToNameTextId[f.type])], logins.isAdminUserLoggedIn() ? removeButton : null)
 				})
 				this._2FATable.updateEntries(tableLines)
 			})
@@ -77,60 +80,89 @@ export class EditSecondFactorsForm {
 
 	_showAddSecondFactorDialog() {
 		let u2f = new U2fClient()
-		u2f.isSupported().then(supported => {
-			if (!supported) {
-				Dialog.error("u2fNotSupported_msg")
-				return
-			}
+		let totpKeys = stream()
+		worker.generateTotpSecret().then(keys => totpKeys(keys))
+		u2f.isSupported().then(u2fSupport => {
 			this._user.getAsync().then(user => {
-				let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).map(key => {
+				let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).filter(k => (k == SecondFactorType.u2f && !u2fSupport) ? false : true).map(key => {
 					return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
-				}), SecondFactorType.u2f, 300)
+				}), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
 				let name = new TextField("name_label", () => lang.get("secondFactorNameInfo_msg"))
 				let u2fRegistrationData = stream(null)
 				let u2fInfoMessage = u2fRegistrationData.map(registrationData => registrationData ? lang.get("registeredU2fDevice_msg") : lang.get("registerU2fDevice_msg"))
 				u2fInfoMessage.map(() => m.redraw())
 
+				let totpCode = stream();
+				let totpSecret = new TextField("totpSecret_label", totpCode).setDisabled()
+				totpKeys.map(keys => totpSecret.value(keys.readableKey))
+
 				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
 					view: () => m("", [
 						m(type),
 						m(name),
-						m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
-								icon: Icons.Checkmark,
-								large: true,
-								style: {fill: theme.content_accent}
-							}) : progressIcon()), m("", u2fInfoMessage())]),
+						type.selectedValue() === SecondFactorType.u2f ? m("p.flex.items-center", [m(".mr-s", u2fRegistrationData() ? m(Icon, {
+									icon: Icons.Checkmark,
+									large: true,
+									style: {fill: theme.content_accent}
+								}) : progressIcon()), m("", u2fInfoMessage())]) : null,
+						type.selectedValue() === SecondFactorType.totp ? m(".mb", [
+								m(totpSecret),
+							]) : null,
 						m(".small", lang.get("secondFactorInfoOldClient_msg"))
 					])
 				}, () => {
-					if (u2fRegistrationData() == null) {
-						Dialog.error("unrecognizedU2fDevice_msg")
-					} else {
-						let sf = createSecondFactor()
-						sf._ownerGroup = user._ownerGroup
-						sf.name = name.value()
-						sf.type = type.selectedValue()
-						sf.u2f = u2fRegistrationData()
-						Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
+					let sf = createSecondFactor()
+					sf._ownerGroup = user._ownerGroup
+					sf.name = name.value()
+					sf.type = type.selectedValue()
+					if (type.selectedValue() === SecondFactorType.u2f) {
+						if (u2fRegistrationData() == null) {
+							Dialog.error("unrecognizedU2fDevice_msg")
+							return
+						} else {
+							sf.u2f = u2fRegistrationData()
+							Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
+						}
+					} else if (type.selectedValue() === SecondFactorType.totp) {
+						sf.otpSecret = totpKeys().key
 					}
+					Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
+
 				}, true, "save_action")
+
+				function updateTotpCode() {
+					if (totpKeys() != null) {
+						worker.generateTotpCode(Math.floor(new Date().getTime() / 1000 / 30), totpKeys().key).then(number => {
+							totpCode(lang.get("totpCurrentCode_label", {"{code}": number}))
+							m.redraw()
+						})
+					}
+					setTimeout(() => {
+						if (dialog.visible) {
+							updateTotpCode()
+						}
+					}, 1000)
+				}
+
+				updateTotpCode()
 
 				function registerResumeOnTimeout() {
 					u2f.register()
 						.catch((e) => {
 							if (e instanceof U2fError) {
-								console.log(e)
 								Dialog.error("u2fUnexpectedError_msg").then(() => {
 									if (dialog.visible) {
 										dialog.close()
 									}
 								})
+							} else {
+								registerResumeOnTimeout()
 							}
 						})
 						.then(registrationData => u2fRegistrationData(registrationData))
 				}
 
-				registerResumeOnTimeout()
+				if (u2fSupport) registerResumeOnTimeout()
 			})
 		})
 	}
@@ -145,5 +177,6 @@ export class EditSecondFactorsForm {
 }
 
 const SecondFactorTypeToNameTextId = {
-	[SecondFactorType.u2f]: "u2fSecurityKey_label"
+	[SecondFactorType.u2f]: "u2fSecurityKey_label",
+	[SecondFactorType.totp]: "totpAuthenticator_label"
 }

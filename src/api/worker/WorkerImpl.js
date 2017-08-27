@@ -18,6 +18,7 @@ import {assertWorkerOrNode} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import {contactFormFacade} from "./facades/ContactFormFacade"
 import {restClient} from "./rest/RestClient"
+import {asyncImport} from "../common/utils/Utils"
 
 assertWorkerOrNode()
 
@@ -170,12 +171,24 @@ export class WorkerImpl {
 			deleteCertificate: (message: Request) => {
 				return customerFacade.deleteCertificate.apply(customerFacade, message.args)
 			},
+			generateTotpSecret: (message: Request) => {
+				return this.getTotpVerifier().then(totp => totp.generateSecret.apply(totp, message.args))
+			},
+			generateTotpCode: (message: Request) => {
+				return this.getTotpVerifier().then(totp => totp.generateTotp.apply(totp, message.args))
+			},
 			entropy(message: Request) {
 				return random.addEntropy.apply(random, message.args)
 			},
 			tryReconnectEventBus(message: Request) {
 				return loginFacade.tryReconnectEventBus()
 			}
+		})
+	}
+
+	getTotpVerifier() {
+		return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/worker/crypto/TotpVerifier.js`).then(module => {
+			return new module.TotpVerifier()
 		})
 	}
 

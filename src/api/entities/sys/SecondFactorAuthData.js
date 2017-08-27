@@ -20,6 +20,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"otpCode": {
+			"name": "otpCode",
+			"id": 1243,
+			"since": 24,
+			"type": "Number",
+			"cardinality": "ZeroOrOne",
+			"final": true,
+			"encrypted": false
+		},
 		"type": {
 			"name": "type",
 			"id": 1230,

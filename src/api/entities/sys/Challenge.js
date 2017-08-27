@@ -31,6 +31,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"otp": {
+			"name": "otp",
+			"since": 24,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "OtpChallenge",
+			"final": true
+		},
 		"u2f": {
 			"name": "u2f",
 			"since": 23,

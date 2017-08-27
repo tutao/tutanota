@@ -204,6 +204,7 @@ styles.registerStyle('main', () => {
 		},
 		'.center': {'text-align': 'center'},
 		'.right': {'text-align': 'right'},
+		'.left': {'text-align': 'left'},
 		'.statusTextColor': {color: theme.content_accent},
 		'.button-height': {height: px(size.button_height)},
 		'.button-min-height': {'min-height': px(size.button_height)},

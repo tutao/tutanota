@@ -914,6 +914,7 @@ type CustomerContactFormGroupRoot = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 
+	contactFormConversations:?DeleteContactFormConversationIndex;
 	contactForms:Id;
 	statisticsLog:Id;
 }
@@ -937,4 +938,20 @@ type ContactFormStatisticEntry = {
 	customerPubKeyVersion:NumberString;
 
 	statisticFields:ContactFormStatisticField[];
+}
+
+type DeleteContactFormConversationIndexEntry = {
+	_type: TypeRef<DeleteContactFormConversationIndexEntry>;
+	_format:NumberString;
+	_id:IdTuple;
+	_ownerGroup:?Id;
+	_permissions:Id;
+
+}
+
+type DeleteContactFormConversationIndex = {
+	_type: TypeRef<DeleteContactFormConversationIndex>;
+	_id:Id;
+
+	items:Id;
 }

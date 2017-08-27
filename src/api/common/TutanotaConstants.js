@@ -196,7 +196,8 @@ export const EntropySrc = {
 }
 
 export const SecondFactorType = {
-	u2f: "0"
+	u2f: "0",
+	totp: "1"
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25

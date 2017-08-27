@@ -14,6 +14,9 @@ import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
 import {NotAuthenticatedError} from "../api/common/error/RestError"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
+import {TextField} from "../gui/base/TextField"
+import {BootIcons} from "../gui/base/icons/BootIcons"
+import {Button} from "../gui/base/Button"
 
 assertMainOrNode()
 
@@ -89,8 +92,18 @@ export class SecondFactorHandler {
 	showWaitingForSecondFactorDialog(sessionId: IdTuple, challenges: Challenge[]) {
 		if (!this._waitingForSecondFactorDialog) {
 			let u2fChallenge = challenges.find(challenge => challenge.type == SecondFactorType.u2f)
+			let otpChallenge = challenges.find(challenge => challenge.type == SecondFactorType.totp)
 			let u2fClient = new U2fClient()
-			const keys = neverNull(neverNull(u2fChallenge).u2f).keys
+			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
+			const otpCode = new TextField("totpEnterCode_label")
+			let otpLoginButton = new Button("login_label", () => {
+				let auth = createSecondFactorAuthData()
+				auth.type = SecondFactorType.totp
+				auth.session = sessionId
+				auth.otpCode = otpCode.value()
+				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth).catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
+			}, () => BootIcons.Login)
+			otpCode._injectionsRight = () => m(otpLoginButton)
 
 			return u2fClient.isSupported().then(supported => {
 				let keyForThisDomainExisting = keys.filter(key => key.appId == u2fClient.appId).length > 0
@@ -98,8 +111,9 @@ export class SecondFactorHandler {
 				let otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
 				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
 					view: () => m("", [
-						m(".flex-center", m("img[src=" + SecondFactorImage + "]")),
-						m("p", (supported && keyForThisDomainExisting) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
+						(supported && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage + "]")) : null,
+						m("p", ((supported && keyForThisDomainExisting) || otpChallenge != null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
+						m(".left", m(otpCode)),
 						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain + "/beta"}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain + "/beta"})) : null
 					])
 				})

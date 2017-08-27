@@ -49,6 +49,14 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"associations": {
+		"contactFormConversations": {
+			"name": "contactFormConversations",
+			"since": 22,
+			"type": "AGGREGATION",
+			"cardinality": "ZeroOrOne",
+			"refType": "DeleteContactFormConversationIndex",
+			"final": true
+		},
 		"contactForms": {
 			"name": "contactForms",
 			"since": 19,

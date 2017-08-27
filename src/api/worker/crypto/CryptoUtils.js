@@ -9,7 +9,7 @@ import {concat} from "../../common/utils/ArrayUtils"
 import {hash} from "./Sha256"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
-import sjcl from "../../worker/crypto/lib/crypto-sjcl-1.3.0_1"
+import sjcl from "../../worker/crypto/lib/crypto-sjcl-1.0.7"
 
 assertWorkerOrNode()
 

@@ -8,6 +8,7 @@ type Aes128Key = BitArray
 type Aes256Key = BitArray
 type SignedBytes = number[]
 
+type Base32 = string
 type Base64 = string
 type Base64Ext = string
 type Base64Url = string
@@ -91,6 +92,8 @@ type WorkerRequestType = 'setup'
 	| 'uploadCertificate'
 	| 'deleteCertificate'
 	| 'createContactFormUser'
+	| 'generateTotpCode'
+	| 'generateTotpSecret'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'

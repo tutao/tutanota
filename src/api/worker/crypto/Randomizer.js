@@ -1,5 +1,5 @@
 // @flow
-import sjcl from "./lib/crypto-sjcl-1.3.0_1"
+import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
 import {EntropySrc} from "../../common/TutanotaConstants"

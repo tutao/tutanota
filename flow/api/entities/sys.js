@@ -691,6 +691,7 @@ type ChangePasswordData = {
 type SecondFactorAuthData = {
 	_type: TypeRef<SecondFactorAuthData>;
 	_format:NumberString;
+	otpCode:?NumberString;
 	type:?NumberString;
 
 	u2f:?U2fResponseData;
@@ -1238,6 +1239,7 @@ type SecondFactor = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	name:string;
+	otpSecret:Uint8Array;
 	type:NumberString;
 
 	u2f:?U2fRegisteredDevice;
@@ -1265,6 +1267,7 @@ type Challenge = {
 	_id:Id;
 	type:NumberString;
 
+	otp:?OtpChallenge;
 	u2f:?U2fChallenge;
 }
 
@@ -1337,4 +1340,11 @@ type SecondFactorAuthGetReturn = {
 	_format:NumberString;
 	secondFactorPending:boolean;
 
+}
+
+type OtpChallenge = {
+	_type: TypeRef<OtpChallenge>;
+	_id:Id;
+
+	secondFactors:IdTuple[];
 }

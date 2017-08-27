@@ -1,5 +1,5 @@
 // @flow
-import sjcl from "./lib/crypto-sjcl-1.3.0_1"
+import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {random} from "./Randomizer"
 import {pad, unpad, uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
 import {concat} from "../../common/utils/ArrayUtils"

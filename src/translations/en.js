@@ -892,6 +892,10 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"totpAuthenticator_label": "Authenticator (TOTP)",
+		"totpSecret_label": "Secret",
+		"totpCurrentCode_label": "Current code: {code}",
+		"totpEnterCode_label": "Enter Authenticator code"
 	}
 }

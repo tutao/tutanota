@@ -4,7 +4,7 @@ import {assertWorkerOrNode} from "../../Env"
 
 assertWorkerOrNode()
 
-const sha256 = new sjcl.hash.sha256()
+const sha1 = new sjcl.hash.sha1()
 
 export const HASH_LENGTH = 32
 
@@ -13,11 +13,11 @@ export const HASH_LENGTH = 32
  * @param uint8Array The bytes.
  * @return The hash.
  */
-export function hash(uint8Array: Uint8Array): Uint8Array {
+export function sha1hash(uint8Array: Uint8Array): Uint8Array {
 	try {
-		sha256.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
-		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha256.finalize(), false))
+		sha1.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer))
+		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha1.finalize(), false))
 	} finally {
-		sha256.reset()
+		sha1.reset()
 	}
 }
