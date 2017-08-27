@@ -12,7 +12,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
-import {NotAuthenticatedError} from "../api/common/error/RestError"
+import {NotAuthenticatedError, BadRequestError} from "../api/common/error/RestError"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -101,7 +101,9 @@ export class SecondFactorHandler {
 				auth.type = SecondFactorType.totp
 				auth.session = sessionId
 				auth.otpCode = otpCode.value()
-				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth).catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
+				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
+					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
+					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
 			}, () => BootIcons.Login)
 			otpCode._injectionsRight = () => m(otpLoginButton)
 
