@@ -18,7 +18,7 @@ import {assertWorkerOrNode} from "../Env"
 import {nativeApp} from "../../native/NativeWrapper"
 import {contactFormFacade} from "./facades/ContactFormFacade"
 import {restClient} from "./rest/RestClient"
-import {asyncImport} from "../common/utils/Utils"
+import {TotpVerifier} from "./crypto/TotpVerifier"
 
 assertWorkerOrNode()
 
@@ -186,10 +186,8 @@ export class WorkerImpl {
 		})
 	}
 
-	getTotpVerifier() {
-		return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/worker/crypto/TotpVerifier.js`).then(module => {
-			return new module.TotpVerifier()
-		})
+	getTotpVerifier(): Promise<TotpVerifier> {
+		return Promise.resolve(new TotpVerifier())
 	}
 
 	addEntropy(entropy: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {

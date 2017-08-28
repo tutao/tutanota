@@ -121,7 +121,6 @@ export class EditSecondFactorsForm {
 							return
 						} else {
 							sf.u2f = u2fRegistrationData()
-							Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
 						}
 					} else if (type.selectedValue() === SecondFactorType.totp) {
 						sf.otpSecret = totpKeys().key

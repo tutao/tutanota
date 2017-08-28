@@ -113,6 +113,7 @@ styles.registerStyle('main', () => {
 		'.mb-l': {'margin-bottom': px(size.vpad_large)},
 		'.mb-xl': {'margin-bottom': px(size.vpad_xl)},
 		'.mlr': {'margin-left': px(size.hpad), 'margin-right': px(size.hpad)},
+		'.mlr-l': {'margin-left': px(size.hpad_large), 'margin-right': px(size.hpad_large)},
 		'.mr-s': {'margin-right': px(size.vpad_small)},
 
 		// paddings

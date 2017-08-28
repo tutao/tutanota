@@ -1,7 +1,7 @@
 import o from "ospec/ospec.js"
 import {random} from "../../../src/api/worker/crypto/Randomizer"
 import {CryptoError} from "../../../src/api/common/error/CryptoError"
-import sjcl from "../../../src/api/worker/crypto/lib/crypto-sjcl-1.3.0_1"
+import sjcl from "../../../src/api/worker/crypto/lib/crypto-sjcl-1.0.7"
 import {EntropySrc} from "../../../src/api/common/TutanotaConstants"
 
 o.spec("Randomizer", function () {

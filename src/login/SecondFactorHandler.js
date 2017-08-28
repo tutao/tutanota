@@ -12,7 +12,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
-import {NotAuthenticatedError, BadRequestError} from "../api/common/error/RestError"
+import {NotAuthenticatedError, BadRequestError, AccessBlockedError} from "../api/common/error/RestError"
 import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -95,7 +95,7 @@ export class SecondFactorHandler {
 			let otpChallenge = challenges.find(challenge => challenge.type == SecondFactorType.totp)
 			let u2fClient = new U2fClient()
 			const keys = u2fChallenge ? neverNull(u2fChallenge.u2f).keys : []
-			const otpCode = new TextField("totpEnterCode_label")
+			const otpCode = new TextField("totpCode_label")
 			let otpLoginButton = new Button("login_label", () => {
 				let auth = createSecondFactorAuthData()
 				auth.type = SecondFactorType.totp
@@ -104,23 +104,26 @@ export class SecondFactorHandler {
 				return serviceRequestVoid(SysService.SecondFactorAuthService, HttpMethod.POST, auth)
 					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
+					.catch(AccessBlockedError, e => Dialog.error("loginFailedOften_msg"))
 			}, () => BootIcons.Login)
 			otpCode._injectionsRight = () => m(otpLoginButton)
 
-			return u2fClient.isSupported().then(supported => {
+			return u2fClient.isSupported().then(u2fSupport => {
 				let keyForThisDomainExisting = keys.filter(key => key.appId == u2fClient.appId).length > 0
 				let otherDomainAppIds = keys.filter(key => key.appId != u2fClient.appId).map(key => key.appId)
 				let otherLoginDomain = otherDomainAppIds.length > 0 ? appIdToLoginDomain(otherDomainAppIds[0]) : null
 				this._waitingForSecondFactorDialog = new Dialog(DialogType.Progress, {
 					view: () => m("", [
-						(supported && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage + "]")) : null,
-						m("p", ((supported && keyForThisDomainExisting) || otpChallenge != null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg")),
-						m(".left", m(otpCode)),
+						(u2fSupport && keyForThisDomainExisting) ? m(".flex-center", m("img[src=" + SecondFactorImage + "]")) : null,
+						m("p", [
+							((u2fSupport && keyForThisDomainExisting) || otpChallenge != null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg"),
+							otpChallenge != null ? m(".left.mlr-l", m(otpCode)) : null,
+						]),
 						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain + "/beta"}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain + "/beta"})) : null
 					])
 				})
 				this._waitingForSecondFactorDialog.show()
-				if (supported && keyForThisDomainExisting) {
+				if (u2fSupport && keyForThisDomainExisting) {
 					let registerResumeOnError = () => {
 						u2fClient.sign(sessionId, neverNull(neverNull(u2fChallenge).u2f)).then(u2fSignatureResponse => {
 							let auth = createSecondFactorAuthData()
@@ -131,6 +134,8 @@ export class SecondFactorHandler {
 						}).catch(e => {
 							if (e instanceof U2fError) {
 								Dialog.error("u2fUnexpectedError_msg")
+							} else if (e instanceof AccessBlockedError) {
+								Dialog.error("loginFailedOften_msg")
 							} else {
 								if (e instanceof U2fWrongDeviceError) {
 									Dialog.error("u2fAuthUnregisteredDevice_msg")

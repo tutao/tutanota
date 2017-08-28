@@ -896,6 +896,6 @@ module.exports = {
 		"totpAuthenticator_label": "Authenticator (TOTP)",
 		"totpSecret_label": "Secret",
 		"totpCurrentCode_label": "Current code: {code}",
-		"totpEnterCode_label": "Enter Authenticator code"
+		"totpCode_label": "Authenticator code"
 	}
 }

@@ -8,6 +8,11 @@
  * @author Dan Boneh
  */
 
+
+// CHANGED (tutao.arm)
+// - added option to not use padding in encrypt/decrypt in cbc mode
+// Configured with: ./configure --with-codecArrayBuffer --with-cbc --with-sha1 --with-codecBytes --without-ccm --without-ocb2 --without-pbkdf2 --without-convenience --compress=none
+
 "use strict";
 /*jslint indent: 2, bitwise: false, nomen: false, plusplus: false, white: false, regexp: false */
 /*global document, window, escape, unescape, module, require, Uint32Array */
@@ -1831,12 +1836,13 @@ sjcl.prng.prototype = {
 		this._poolStrength += estimatedEntropy;
 
 		/* fire off events */
-		if (oldReady === this._NOT_READY) {
-			if (this.isReady() !== this._NOT_READY) {
-				this._fireEvent("seeded", Math.max(this._strength, this._poolStrength));
-			}
-			this._fireEvent("progress", this.getProgress());
-		}
+		/* TUTAO.arm: removed bad implementation: _fireEvent calls static randomizer instance
+		 if (oldReady === this._NOT_READY) {
+		 if (this.isReady() !== this._NOT_READY) {
+		 this._fireEvent("seeded", Math.max(this._strength, this._poolStrength));
+		 }
+		 this._fireEvent("progress", this.getProgress());
+		 }*/
 	},
 
 	/** Is the generator ready? */
@@ -2115,6 +2121,7 @@ sjcl.prng.prototype = {
 /** an instance for the prng.
  * @see sjcl.prng
  */
+/* TUTAO.arm: removed static randomizer instance because we have our own
 sjcl.random = new sjcl.prng(6);
 
 (function () {
@@ -2160,7 +2167,7 @@ sjcl.random = new sjcl.prng(6);
 			//we do not want the library to fail due to randomness not being maintained.
 		}
 	}
-}());
+ }());*/
 /** @fileOverview Bit array codec implementations.
  *
  * @author Marco Munizaga

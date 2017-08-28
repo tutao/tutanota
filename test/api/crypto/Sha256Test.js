@@ -1,5 +1,5 @@
 import o from "ospec/ospec.js"
-import sjcl from "../../../src/api/worker/crypto/lib/crypto-sjcl-1.3.0_1"
+import sjcl from "../../../src/api/worker/crypto/lib/crypto-sjcl-1.0.7"
 import {hash} from "../../../src/api/worker/crypto/Sha256"
 import {hexToUint8Array, stringToUtf8Uint8Array} from "../../../src/api/common/utils/Encoding"
 
