@@ -52,7 +52,7 @@ export class ContactFormView {
 		this._moreInformationButton = new Button('moreInformation_action', () => this._moreInformationDialog.show()).setType(ButtonType.Secondary)
 
 		this.view = (): VirtualElement => {
-			return m(".main-view.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-m.third.pb.plr-l", this._getContactFormContent()))
+			return m(".main-view.flex-center.scroll", m(".flex-grow-shrink-auto.max-width-l.third.pb.plr-l", this._getContactFormContent()))
 		}
 	}
 
@@ -65,10 +65,15 @@ export class ContactFormView {
 			return m("", {
 				oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false))
 			}, [
-				m(".pt-l", m.trust(neverNull(this._contactForm).headerHtml)), // header
-				m(".pt-l", m(this._createRequestButton)),
-				m(".pt-l", m(this._readResponseButton)),
-				m(".pt-l.flex-center", m(this._moreInformationButton)),
+				(this._contactForm && this._contactForm.pageTitle) ? m("h1.center", neverNull(this._contactForm).pageTitle) : null,
+				neverNull(this._contactForm).headerHtml ? m("", m.trust(neverNull(this._contactForm).headerHtml)) : null, // header
+				m(".flex.justify-center", [
+					m(".max-width-m.flex-grow-shrink-auto", [
+						m(".pt-l", m(this._createRequestButton)),
+						m(".pt-l", m(this._readResponseButton)),
+						m(".pt-l.flex-center", m(this._moreInformationButton)),
+					])
+				]),
 				m(".pt-l", m.trust(neverNull(this._contactForm).footerHtml)), // footer
 				m(".pb")
 			])
