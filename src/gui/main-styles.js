@@ -333,9 +333,9 @@ styles.registerStyle('main', () => {
 		'.custom-logo': {width: px(200), 'background-repeat': "no-repeat", 'background-size': "auto 100%"},
 
 		// fix for IE11: use position absolute to fill header parts and center child elements using flex box
-		'.header-left': {position: 'absolute', left: '0', top: 0, bottom: 0, width: '280px'},
+		'.header-left': {position: 'absolute', left: '0', top: 0, bottom: 0, width: '310px'},
 		'.header-middle': {display: 'none'},
-		'.header-right': {position: 'absolute', left: '280px', right: '0', top: 0, bottom: 0},
+		'.header-right': {position: 'absolute', left: '310px', right: '0', top: 0, bottom: 0},
 		'.header-right > .nav-bar': {width: '100%'},
 
 
