@@ -12,7 +12,7 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {OperationType, GroupType, MailFolderType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
 import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
@@ -235,7 +235,7 @@ export class MailView {
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
 			])).concat(
-				[m(".folder-row.flex-space-between.plr-l", [m("small.b.pt-s.align-self-center.ml-negative-xs", {style: {color: theme.navigation_light_fg}}, lang.get("yourFolders_action").toLocaleUpperCase()), m(neverNull(mailBoxController.folderAddButton))])]
+				logins.isInternalUserLoggedIn() ? [m(".folder-row.flex-space-between.plr-l", [m("small.b.pt-s.align-self-center.ml-negative-xs", {style: {color: theme.navigation_light_fg}}, lang.get("yourFolders_action").toLocaleUpperCase()), m(neverNull(mailBoxController.folderAddButton))])] : []
 			).concat(mailBoxController.customFolderButtons.map(fb => m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb),
 				fb.isSelected() ? m(folderMoreButton, {
@@ -330,7 +330,7 @@ export class MailView {
 	}
 
 	createFolderButtons(folders: MailFolderViewModel[]) {
-		return folders.map(vm => {
+		return folders.filter(f => logins.isInternalUserLoggedIn() || f.folder.folderType != MailFolderType.SPAM).map(vm => {
 			let button = new NavButton(() => vm.getDisplayName(), vm.getDisplayIcon(), () => vm.url, "/mail/" + vm.folder.mails)
 				.setColors(ButtonColors.Nav)
 			button.setClickHandler((event) => {
