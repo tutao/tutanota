@@ -201,3 +201,7 @@ export const SecondFactorType = {
 }
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
+
+export const Feature = {
+	Contacts: "contacts"
+}

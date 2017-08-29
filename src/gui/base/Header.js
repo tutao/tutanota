@@ -9,8 +9,9 @@ import {Button, ButtonType, ButtonColors} from "./Button"
 import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
-import {theme} from "../theme"
+import {theme, isEnabled} from "../theme"
 import {Icons} from "./icons/Icons"
+import {Feature} from "../../api/common/TutanotaConstants"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -37,7 +38,7 @@ class Header {
 			.addButton(new NavButton('emails_label', () => Icons.Mail, () => this.mailsUrl, this.mailsUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()))
 			.addButton(new NavButton('contacts_label', () => Icons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && isEnabled(Feature.Contacts)))
 			.addButton(new NavButton('upgradePremium_label', () => Icons.Premium, () => premiumUrl, premiumUrl)
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()))
 			.addButton(new NavButton('invite_alt', () => Icons.Share, () => m.route.get())

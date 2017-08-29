@@ -1202,6 +1202,7 @@ type BrandingTheme = {
 	_permissions:Id;
 	jsonTheme:string;
 
+	disabledFeatures:DisabledFeature[];
 }
 
 type BrandingDomainData = {
@@ -1239,7 +1240,7 @@ type SecondFactor = {
 	_ownerGroup:?Id;
 	_permissions:Id;
 	name:string;
-	otpSecret:Uint8Array;
+	otpSecret:?Uint8Array;
 	type:NumberString;
 
 	u2f:?U2fRegisteredDevice;
@@ -1347,4 +1348,11 @@ type OtpChallenge = {
 	_id:Id;
 
 	secondFactors:IdTuple[];
+}
+
+type DisabledFeature = {
+	_type: TypeRef<DisabledFeature>;
+	_id:Id;
+	feature:string;
+
 }

@@ -57,7 +57,16 @@ export const _TypeModel: TypeModel = {
 			"encrypted": false
 		}
 	},
-	"associations": {},
+	"associations": {
+		"disabledFeatures": {
+			"name": "disabledFeatures",
+			"since": 24,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "DisabledFeature",
+			"final": true
+		}
+	},
 	"app": "sys",
 	"version": "24"
 }

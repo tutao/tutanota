@@ -61,7 +61,7 @@ export const _TypeModel: TypeModel = {
 			"id": 1242,
 			"since": 24,
 			"type": "Bytes",
-			"cardinality": "One",
+			"cardinality": "ZeroOrOne",
 			"final": true,
 			"encrypted": false
 		},

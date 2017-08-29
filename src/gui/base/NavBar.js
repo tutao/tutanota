@@ -69,7 +69,10 @@ export class NavBar {
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
 			}, buttons.visible.map((wrapper: ButtonWrapper) => m(".plr-nav-button", {
-				oncreate: vnode => wrapper.width = vnode.dom.getBoundingClientRect().width,
+				key: wrapper.id,
+				oncreate: vnode => {
+					wrapper.width = vnode.dom.getBoundingClientRect().width
+				},
 				style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
 			}, m(wrapper.button))))
 		}
