@@ -64,7 +64,7 @@ export const _TypeModel: TypeModel = {
 			"type": "AGGREGATION",
 			"cardinality": "Any",
 			"refType": "DisabledFeature",
-			"final": true
+			"final": false
 		}
 	},
 	"app": "sys",
