@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-08-30T08:09:05Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",

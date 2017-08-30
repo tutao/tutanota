@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2017-08-12T11:47:08Z",
+	"updated_at": "2017-08-30T08:09:05Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sajnáljuk, de a Tutanota fiókja letiltásra került. Lépjen kapcsolatba a rendszergazdájával.",

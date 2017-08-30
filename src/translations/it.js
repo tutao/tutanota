@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2017-08-23T20:35:07Z",
+	"updated_at": "2017-08-30T08:09:05Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Purtroppo il tuo account Tutanota è stato disattivato. Ti chiediamo di contattare il tuo amministratore.",
