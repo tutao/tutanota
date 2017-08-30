@@ -5,8 +5,8 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {formatStorageSize} from "../misc/Formatter"
-import {MAX_ATTACHMENT_SIZE, InputFieldType, ConversationType} from "../api/common/TutanotaConstants"
+import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
+import {MAX_ATTACHMENT_SIZE, InputFieldType, ConversationType, PushServiceType} from "../api/common/TutanotaConstants"
 import {animations, height} from "../gui/animation/Animations"
 import {Editor} from "../gui/base/Editor"
 import {assertMainOrNode} from "../api/Env"
@@ -25,6 +25,9 @@ import {deviceConfig} from "../misc/DeviceConfig"
 import {AccessDeactivatedError} from "../api/common/error/RestError"
 import {neverNull} from "../api/common/utils/Utils"
 import {client} from "../misc/ClientDetector"
+import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
+import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
+import {logins} from "../api/main/LoginController"
 
 assertMainOrNode()
 
@@ -241,6 +244,11 @@ export class ContactFormRequestDialog {
 		}
 		passwordCheck.then(ok => {
 			if (ok) {
+
+				let cleanedNotificationMailAddress = getCleanedMailAddress(this._notificationEmailAddress.value());
+				if (this._notificationEmailAddress.value().trim() != "" && !cleanedNotificationMailAddress) {
+					return Dialog.error("mailAddressInvalid_msg")
+				}
 				let password = this._passwordField.value()
 				let statisticsFields = mapAndFilterNull(this._statisticFields, (field => {
 					if (field.value()) {
@@ -255,15 +263,27 @@ export class ContactFormRequestDialog {
 				let sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields).then(contactFormResult => {
 					let userEmailAddress = contactFormResult.responseMailAddress
 					return worker.createSession(userEmailAddress, password, client.getIdentifier(), false).then(() => {
+						let p = Promise.resolve()
+						if (cleanedNotificationMailAddress) {
+							let pushIdentifier = createPushIdentifier()
+							pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
+							pushIdentifier.language = lang.languageTag;
+							pushIdentifier.pushServiceType = PushServiceType.EMAIL
+							pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
+							pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
+							pushIdentifier._area = "0" // legacy
+							p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
+						}
+
 						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "")
-						return resolveRecipientInfo(recipientInfo).then(r => {
+						return p.then(() => resolveRecipientInfo(recipientInfo).then(r => {
 							let recipientInfos = [r]
 							return worker.createMailDraft(this._subject.value(), this._editor.squire.getHTML(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {
 								return worker.sendMailDraft(draft, recipientInfos, lang.code)
 							})
 						}).finally(e => {
 							worker.logout()
-						})
+						}))
 					}).then(() => {
 						return {userEmailAddress, password}
 					})

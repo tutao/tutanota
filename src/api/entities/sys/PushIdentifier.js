@@ -83,6 +83,15 @@ export const _TypeModel: TypeModel = {
 			"final": false,
 			"encrypted": false
 		},
+		"lastNotificationDate": {
+			"name": "lastNotificationDate",
+			"id": 1248,
+			"since": 24,
+			"type": "Date",
+			"cardinality": "ZeroOrOne",
+			"final": false,
+			"encrypted": false
+		},
 		"pushServiceType": {
 			"name": "pushServiceType",
 			"id": 632,

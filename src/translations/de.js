@@ -682,7 +682,7 @@ module.exports = {
 		"promotionCode_label": "Freischaltcode",
 		"pushIdentifierCurrentDevice_label": "Dieses Gerät",
 		"pushIdentifierDeviceType_label": "Typ",
-		"pushIdentifierInfoMessage_msg": "Auflistung aller Geräte, die für diesen Tutanota-Benutzer Push-Benachrichtigungen erhalten. Ein Eintrag kann entfernt werden, falls keine Benachrichtigungen zu diesem Benutzer erwünscht sind.",
+		"pushIdentifierInfoMessage_msg": "Auflistung aller Empfänger, die für diesen Tutanota-Benutzer Benachrichtigungen erhalten. Ein Eintrag kann entfernt werden, falls keine Benachrichtigungen zu diesem Benutzer erwünscht sind.",
 		"pushIdentifierNumber_label": "Identifikationsnummer",
 		"pushNewMail_msg": "Neue E-Mail eingegangen.",
 		"pwChangeButtonChangePw_action": "Passwort ändern",
@@ -892,6 +892,10 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"emailPushNotification_action": "Benachrichtigungs-E-Mail-Adresse hinzufügen",
+		"emailPushNotification_msg": "Es wird eine Benachrichtigungs-E-Mail an diese Adresse gesendet sobald eine neue E-Mail in diesem Postfach eintrifft.",
+		"pushNewMailReceivedBody_msg": "Es ist eine neue Nachricht in Ihrem Postfach {emailAddress} auf {domainName} eingetroffen.",
+		"pushRecipient_label": "Empfänger"
 	}
 }

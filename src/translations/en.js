@@ -682,7 +682,7 @@ module.exports = {
 		"promotionCode_label": "Promotion code",
 		"pushIdentifierCurrentDevice_label": "This device",
 		"pushIdentifierDeviceType_label": "Type",
-		"pushIdentifierInfoMessage_msg": "List of all devices receiving push notifications for the current Tutanota user. You can delete an entry if you do not wish to receive notifications on that device any more.",
+		"pushIdentifierInfoMessage_msg": "List of all recipients receiving notifications for the current Tutanota user. You can delete an entry if you do not wish to receive notifications on that device any more.",
 		"pushIdentifierNumber_label": "Identifier",
 		"pushNewMail_msg": "New email received.",
 		"pwChangeButtonChangePw_action": "Change password",
@@ -896,6 +896,11 @@ module.exports = {
 		"totpAuthenticator_label": "Authenticator (TOTP)",
 		"totpSecret_label": "Secret",
 		"totpCurrentCode_label": "Current code: {code}",
-		"totpCode_label": "Authenticator code"
+		"totpCode_label": "Authenticator code",
+		"emailPushNotification_action": "Add notification email address",
+		"emailPushNotification_msg": "We will send a notification email to this address if you receive a new email.",
+		"newMailsReceivedSubject_msg": "New email received.",
+		"pushNewMailReceivedBody_msg": "You have received a new email for your mailbox {emailAddress} at {domainName}.",
+		"pushRecipient_label": "Recipient"
 	}
 }

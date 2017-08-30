@@ -4,9 +4,9 @@ import {assertMainOrNode, Mode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {lang} from "../misc/LanguageViewModel"
 import {Table, ColumnWidth} from "../gui/base/Table"
-import {isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
+import {isSameTypeRef, isSameId, HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
-import {OperationType, InboxRuleType} from "../api/common/TutanotaConstants"
+import {OperationType, InboxRuleType, PushServiceType} from "../api/common/TutanotaConstants"
 import {load, update, loadAll, erase} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
 import {MailBoxController} from "../mail/MailBoxController"
@@ -15,7 +15,7 @@ import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
 import {getInboxRuleTypeName} from "../mail/InboxRuleHandler"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
+import {PushIdentifierTypeRef, createPushIdentifier} from "../api/entities/sys/PushIdentifier"
 import {Button} from "../gui/base/Button"
 import * as EditSignatureDialog from "./EditSignatureDialog"
 import {EditAliasesForm} from "./EditAliasesForm"
@@ -28,6 +28,9 @@ import {logins} from "../api/main/LoginController"
 import {getDefaultSenderFromUser} from "../mail/MailUtils"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
+import {getCleanedMailAddress} from "../misc/Formatter"
+import {worker} from "../api/main/WorkerClient"
+import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
 
 assertMainOrNode()
 
@@ -97,8 +100,10 @@ export class MailSettingsViewer {
 		this._inboxRulesTable = new Table(["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"], [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small], true, addInboxRuleButton)
 		let inboxRulesExpander = new ExpanderButton("showInboxRules_action", new ExpanderPanel(this._inboxRulesTable), false)
 
-		this._pushIdentifiersTable = new Table(["pushIdentifierDeviceType_label", "pushIdentifierNumber_label"], [ColumnWidth.Small, ColumnWidth.Largest], true)
-		let pushIdentifiersExpander = new ExpanderButton("showDevices_action", new ExpanderPanel(this._pushIdentifiersTable), false)
+
+		let addPushIdentifierButton = new Button("emailPushNotification_action", () => this._showAddNotificationEmailAddressDialog(), () => Icons.Add)
+		this._pushIdentifiersTable = new Table(["pushIdentifierDeviceType_label", "pushRecipient_label"], [ColumnWidth.Small, ColumnWidth.Largest], true, addPushIdentifierButton)
+		let pushIdentifiersExpander = new ExpanderButton("show_action", new ExpanderPanel(this._pushIdentifiersTable), false)
 
 		this.view = () => {
 			return [
@@ -174,7 +179,8 @@ export class MailSettingsViewer {
 		if (list) {
 			loadAll(PushIdentifierTypeRef, neverNull(list).list).then(identifiers => {
 				this._pushIdentifiersTable.updateEntries(identifiers.map(identifier => {
-					let typeName = ["Android", "iOS"][Number(identifier.pushServiceType)]
+					let emailTypeName = lang.get("adminEmailSettings_action")
+					let typeName = ["Android", "iOS", emailTypeName][Number(identifier.pushServiceType)]
 					let isCurrentPushIdentifier = env.mode == Mode.App && identifier.identifier == pushServiceApp.currentPushIdentifier;
 					let identifierText = (isCurrentPushIdentifier) ? lang.get("pushIdentifierCurrentDevice_label") + " - " + identifier.identifier : identifier.identifier
 					let actionButton = new Button("delete_action", () => erase(identifier), () => Icons.Cancel)
@@ -185,6 +191,37 @@ export class MailSettingsViewer {
 			this._pushIdentifiersTable.updateEntries([])
 		}
 	}
+
+
+	_showAddNotificationEmailAddressDialog() {
+		if (logins.getUserController().isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+		} else {
+
+			let emailAddressInputField = new TextField("mailAddress_label")
+			return Dialog.smallDialog(lang.get("notificationSettings_action"), {
+				view: () => [
+					m(emailAddressInputField),
+					m(".small.mt-s", lang.get("emailPushNotification_msg"))
+				]
+			}, () => {
+				return getCleanedMailAddress(emailAddressInputField.value()) == null ? "mailAddressInvalid_msg" : null // TODO check if it is a Tutanota mail address
+			}).then(ok => {
+				if (ok) {
+					let pushIdentifier = createPushIdentifier()
+					pushIdentifier.identifier = neverNull(getCleanedMailAddress(emailAddressInputField.value()))
+					pushIdentifier.language = lang.languageTag;
+					pushIdentifier.pushServiceType = PushServiceType.EMAIL
+					pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
+					pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
+					pushIdentifier._area = "0" // legacy
+					let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
+					Dialog.progress("pleaseWait_msg", p)
+				}
+			})
+		}
+	}
+
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {
 		if (isSameTypeRef(typeRef, TutanotaPropertiesTypeRef) && operation == OperationType.UPDATE) {

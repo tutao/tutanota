@@ -176,7 +176,8 @@ export const SessionState = {
 
 export const PushServiceType = {
 	ANDROID: "0",
-	IOS: "1"
+	IOS: "1",
+	EMAIL: "2"
 }
 
 export const InputFieldType = {

@@ -754,6 +754,7 @@ type PushIdentifier = {
 	_permissions:Id;
 	identifier:string;
 	language:string;
+	lastNotificationDate:?Date;
 	pushServiceType:NumberString;
 
 }
