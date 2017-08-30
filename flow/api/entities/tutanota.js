@@ -780,6 +780,7 @@ type MailboxGroupRoot = {
 
 	contactFormUserContactForm:?IdTuple;
 	mailbox:Id;
+	participatingContactForms:IdTuple[];
 	serverProperties:Id;
 	targetMailGroupContactForm:?IdTuple;
 	whitelistRequests:Id;

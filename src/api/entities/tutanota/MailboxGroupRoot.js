@@ -67,6 +67,15 @@ export const _TypeModel: TypeModel = {
 			"final": true,
 			"external": false
 		},
+		"participatingContactForms": {
+			"name": "participatingContactForms",
+			"since": 22,
+			"type": "LIST_ELEMENT_ASSOCIATION",
+			"cardinality": "Any",
+			"refType": "ContactForm",
+			"final": false,
+			"external": false
+		},
 		"serverProperties": {
 			"name": "serverProperties",
 			"since": 18,

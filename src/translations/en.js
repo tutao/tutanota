@@ -901,6 +901,6 @@ module.exports = {
 		"emailPushNotification_msg": "We will send a notification email to this address if you receive a new email.",
 		"newMailsReceivedSubject_msg": "New email received.",
 		"pushNewMailReceivedBody_msg": "You have received a new email for your mailbox {emailAddress} at {domainName}.",
-		"pushRecipient_label": "Recipient"
+		"pushRecipient_label": "Recipient",
 	}
 }

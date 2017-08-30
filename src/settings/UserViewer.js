@@ -4,12 +4,12 @@ import {assertMainOrNode} from "../api/Env"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
 import {Dialog} from "../gui/base/Dialog"
-import {update, load, loadAll} from "../api/main/Entity"
+import {update, load, loadAll, loadMultiple, loadRange} from "../api/main/Entity"
 import {formatDateWithMonth, formatStorageSize} from "../misc/Formatter"
 import {EditAliasesForm} from "./EditAliasesForm"
 import {lang} from "../misc/LanguageViewModel"
 import {PasswordForm} from "./PasswordForm"
-import {isSameId, isSameTypeRef} from "../api/common/EntityFunctions"
+import {isSameId, isSameTypeRef, CUSTOM_MIN_ID} from "../api/common/EntityFunctions"
 import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {UserTypeRef} from "../api/entities/sys/User"
@@ -30,6 +30,9 @@ import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
+import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
+import {remove} from "../api/common/utils/ArrayUtils"
+import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
 
 assertMainOrNode()
 
@@ -41,6 +44,7 @@ export class UserViewer {
 	_teamGroupInfos: LazyLoaded<GroupInfo[]>;
 	_senderName: TextField;
 	_groupsTable: ?Table;
+	_contactFormsTable: ?Table;
 	_aliases: EditAliasesForm;
 	_usedStorage: TextField;
 	_admin: DropDownSelector<boolean>;
@@ -57,7 +61,6 @@ export class UserViewer {
 		})
 		this._customer = new LazyLoaded(() => load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)))
 		this._teamGroupInfos = new LazyLoaded(() => this._customer.getAsync().then(customer => loadAll(GroupInfoTypeRef, customer.teamGroups)))
-
 		this._senderName = new TextField("mailName_label").setValue(userGroupInfo.name).setDisabled()
 		let editSenderNameButton = new Button("edit_action", () => {
 			Dialog.showTextInputDialog("edit_action", "mailName_label", null, this._senderName.value()).then(newName => {
@@ -110,6 +113,19 @@ export class UserViewer {
 			}
 		})
 
+
+		this._customer.getAsync().then(customer => {
+			return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
+				loadRange(ContactFormTypeRef, contactFormGroupRoot.contactForms, CUSTOM_MIN_ID, 1, false).then(cf => {
+					if (cf.length > 0) {
+						let contactFormsAddButton = new Button("addParticipant_label", () => this._showAddUserToContactFormDialog(), () => Icons.Add)
+						this._contactFormsTable = new Table(["contactForms_label"], [ColumnWidth.Largest, ColumnWidth.Small], true, contactFormsAddButton)
+						this._updateContactForms()
+					}
+				})
+			})
+		})
+
 		this.view = () => {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l", [
@@ -130,6 +146,8 @@ export class UserViewer {
 					(logins.getUserController().isPremiumAccount() || logins.getUserController().isFreeAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
 					(this._groupsTable) ? m(this._groupsTable) : null,
+					(this._contactFormsTable) ? m(".h4.mt-l.mb-s", lang.get('contactForms_label')) : null,
+					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(this._aliases),
 					logins.getUserController().isPremiumAccount() ? m(".h4.mt-l", lang.get('mailSettings_label')) : null,
 					logins.getUserController().isPremiumAccount() && !logins.isProdDisabled() ? m(".wrapping-row", [
@@ -207,6 +225,34 @@ export class UserViewer {
 		}
 	}
 
+	_updateContactForms(): void {
+		if (this._contactFormsTable) {
+			this._user.getAsync().then(user => {
+				let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
+				return load(MailboxGroupRootTypeRef, userMailGroupMembership.group).then(mailboxGroupRoot => {
+					if (mailboxGroupRoot.participatingContactForms.length > 0) {
+						return loadMultiple(ContactFormTypeRef, mailboxGroupRoot.participatingContactForms[0][0], mailboxGroupRoot.participatingContactForms.map(idTuple => idTuple[1]))
+					}
+					return []
+				}).map((cf: ContactForm) => {
+					let removeButton = new Button("remove_action", () => {
+						let match = cf.participantGroupInfos.find(id => isSameId(id, userMailGroupMembership.groupInfo))
+						if (match) {
+							remove(cf.participantGroupInfos, match)
+						}
+						Dialog.progress("pleaseWait_msg", update(cf))
+					}, () => Icons.Cancel)
+					return new TableLine([cf.path], removeButton)
+				}).then(tableLines => {
+					if (this._contactFormsTable) {
+						this._contactFormsTable.updateEntries(tableLines)
+					}
+				})
+			})
+		}
+	}
+
+
 	_showAddUserToGroupDialog() {
 		this._user.getAsync().then(user => {
 			// remove all groups the user is already member of
@@ -223,6 +269,33 @@ export class UserViewer {
 					}
 				})
 			}
+		})
+	}
+
+
+	_showAddUserToContactFormDialog() {
+		this._user.getAsync().then(user => {
+			let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
+			this._customer.getAsync().then(customer => {
+				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
+					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
+						let d = new DropDownSelector("contactForms_label", null, contactForms.map(cf => {
+							return {name: cf.path, value: cf}
+						}), contactForms[0], 250)
+						return Dialog.smallDialog(lang.get("addParticipant_label"), {
+							view: () => m(d)
+						}, null).then(ok => {
+							if (ok) {
+								let cf = (d.selectedValue():ContactForm)
+								if (cf.participantGroupInfos.indexOf(userMailGroupMembership.groupInfo)) {
+									cf.participantGroupInfos.push(userMailGroupMembership.groupInfo)
+								}
+								Dialog.progress("pleaseWait_msg", update(cf))
+							}
+						})
+					})
+				})
+			})
 		})
 	}
 
@@ -282,6 +355,8 @@ export class UserViewer {
 			this._updateGroups()
 		} else if (isSameTypeRef(typeRef, MailboxServerPropertiesTypeRef)) {
 			this._createOrUpdateWhitelistProtectionField()
+		} else if (isSameTypeRef(typeRef, MailboxGroupRootTypeRef)) {
+			this._updateContactForms()
 		}
 		this._secondFactorsForm.entityEventReceived(typeRef, listId, elementId, operation)
 		this._aliases.entityEventReceived(typeRef, listId, elementId, operation)
