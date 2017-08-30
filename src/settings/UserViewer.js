@@ -236,7 +236,7 @@ export class UserViewer {
 					return []
 				}).map((cf: ContactForm) => {
 					let removeButton = new Button("remove_action", () => {
-						let match = cf.participantGroupInfos.find(id => isSameId(id, userMailGroupMembership.groupInfo))
+						let match = cf.participantGroupInfos.find(id => isSameId(id, user.userGroup.groupInfo))
 						if (match) {
 							remove(cf.participantGroupInfos, match)
 						}
@@ -275,7 +275,6 @@ export class UserViewer {
 
 	_showAddUserToContactFormDialog() {
 		this._user.getAsync().then(user => {
-			let userMailGroupMembership = neverNull(user.memberships.find(m => m.groupType === GroupType.Mail))
 			this._customer.getAsync().then(customer => {
 				return load(CustomerContactFormGroupRootTypeRef, customer.customerGroup).then(contactFormGroupRoot => {
 					loadAll(ContactFormTypeRef, contactFormGroupRoot.contactForms).then(contactForms => {
@@ -287,8 +286,8 @@ export class UserViewer {
 						}, null).then(ok => {
 							if (ok) {
 								let cf = (d.selectedValue():ContactForm)
-								if (cf.participantGroupInfos.indexOf(userMailGroupMembership.groupInfo)) {
-									cf.participantGroupInfos.push(userMailGroupMembership.groupInfo)
+								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
+									cf.participantGroupInfos.push(user.userGroup.groupInfo)
 								}
 								Dialog.progress("pleaseWait_msg", update(cf))
 							}

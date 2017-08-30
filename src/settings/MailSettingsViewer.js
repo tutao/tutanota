@@ -210,7 +210,7 @@ export class MailSettingsViewer {
 				if (ok) {
 					let pushIdentifier = createPushIdentifier()
 					pushIdentifier.identifier = neverNull(getCleanedMailAddress(emailAddressInputField.value()))
-					pushIdentifier.language = lang.languageTag;
+					pushIdentifier.language = lang.code
 					pushIdentifier.pushServiceType = PushServiceType.EMAIL
 					pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
 					pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy

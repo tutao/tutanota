@@ -226,6 +226,10 @@ export class EventBusClient {
 				}
 			})
 		}).then(() => {
+			return Promise.each(events, event => {
+				return this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event))
+			})
+		}).then(() => {
 			this._lastEntityEventIds[groupId] = batchId
 		})
 	}
@@ -254,9 +258,7 @@ export class EventBusClient {
 	_notifyEntityEventReceived(data: EntityUpdate): Promise<void> {
 		return this._executeIfNotTerminated(() => getEntityRestCache().entityEventReceived(data)).then(() => {
 			return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(data)).then(() => {
-				return this._executeIfNotTerminated(() => mailFacade.entityEventReceived(data)).then(() => {
-					return this._executeIfNotTerminated(() => workerImpl.entityEventReceived(data))
-				})
+				return this._executeIfNotTerminated(() => mailFacade.entityEventReceived(data))
 			})
 		})
 	}

@@ -603,7 +603,7 @@ type EntityUpdate = {
 	instanceId:string;
 	instanceListId:string;
 	operation:NumberString;
-	type:string;
+	type:string
 
 }
 

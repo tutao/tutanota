@@ -23,7 +23,7 @@ assertMainOrNode()
 export class MailBoxController {
 	_mailbox: ?MailBox;
 	_mailGroup: ?Group;
-	_mailGroupInfo: ?GroupInfo;
+	mailGroupInfo: ?GroupInfo;
 	displayName: string;
 	_folders: MailFolderViewModel[];
 	mailGroupMembership: GroupMembership;
@@ -35,7 +35,7 @@ export class MailBoxController {
 
 	constructor(mailGroupMembership: GroupMembership) {
 		this._mailbox = null
-		this._mailGroupInfo = null
+		this.mailGroupInfo = null
 		this._mailGroup = null
 		this.mailboxExpander = null;
 		this.displayName = ""
@@ -50,7 +50,7 @@ export class MailBoxController {
 			this._mailbox = mbox
 			return this._loadFolders(neverNull(mbox.systemFolders).folders)
 		})))
-		promises.push(load(GroupInfoTypeRef, this.mailGroupMembership.groupInfo).then(mailGroupInfo => this._mailGroupInfo = mailGroupInfo))
+		promises.push(load(GroupInfoTypeRef, this.mailGroupMembership.groupInfo).then(mailGroupInfo => this.mailGroupInfo = mailGroupInfo))
 		promises.push(load(GroupTypeRef, this.mailGroupMembership.group).then(mailGroup => this._mailGroup = mailGroup))
 		return Promise.all(promises).then(() => {
 			if (!logins.isInternalUserLoggedIn()) {
@@ -58,7 +58,7 @@ export class MailBoxController {
 			} else if (this.isUserMailbox()) {
 				this.displayName = getGroupInfoDisplayName(logins.getUserController().userGroupInfo)
 			} else {
-				this.displayName = getGroupInfoDisplayName(neverNull(this._mailGroupInfo))
+				this.displayName = getGroupInfoDisplayName(neverNull(this.mailGroupInfo))
 			}
 			return this
 		})
@@ -174,7 +174,7 @@ export class MailBoxController {
 			})
 		} else if (!this.isUserMailbox() && isSameId(this.mailGroupMembership.groupInfo, groupInfoId)) {
 			return load(GroupInfoTypeRef, groupInfoId).then(groupInfo => {
-				this._mailGroupInfo = groupInfo
+				this.mailGroupInfo = groupInfo
 				this.displayName = getGroupInfoDisplayName(groupInfo)
 				return true
 			})
@@ -187,7 +187,7 @@ export class MailBoxController {
 		if (this.isUserMailbox()) {
 			return getEnabledMailAddressesForGroupInfo(logins.getUserController().userGroupInfo)
 		} else {
-			return this._mailGroup != null ? getEnabledMailAddressesForGroupInfo(neverNull(this._mailGroupInfo)) : []
+			return this._mailGroup != null ? getEnabledMailAddressesForGroupInfo(neverNull(this.mailGroupInfo)) : []
 		}
 	}
 
@@ -210,7 +210,7 @@ export class MailBoxController {
 			let props = logins.getUserController().props
 			return (props.defaultSender && contains(this.getEnabledMailAddresses(), props.defaultSender)) ? props.defaultSender : neverNull(logins.getUserController().userGroupInfo.mailAddress)
 		} else {
-			return neverNull(neverNull(this._mailGroupInfo).mailAddress)
+			return neverNull(neverNull(this.mailGroupInfo).mailAddress)
 		}
 	}
 
@@ -220,7 +220,7 @@ export class MailBoxController {
 			// external users do not have access to the user group info
 			return logins.getUserController().userGroupInfo.name
 		} else {
-			return this._mailGroupInfo ? this._mailGroupInfo.name : ""
+			return this.mailGroupInfo ? this.mailGroupInfo.name : ""
 		}
 	}
 

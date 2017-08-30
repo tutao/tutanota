@@ -267,7 +267,7 @@ export class ContactFormRequestDialog {
 						if (cleanedNotificationMailAddress) {
 							let pushIdentifier = createPushIdentifier()
 							pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
-							pushIdentifier.language = lang.languageTag;
+							pushIdentifier.language = lang.code
 							pushIdentifier.pushServiceType = PushServiceType.EMAIL
 							pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
 							pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy

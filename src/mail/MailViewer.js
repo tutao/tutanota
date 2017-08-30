@@ -125,11 +125,18 @@ export class MailViewer {
 			if (logins.getUserController().isInternalUser() && !restrictedParticipants) {
 				actions.add(new Button('forward_action', () => this._forward(), () => Icons.Forward))
 			} else if (logins.getUserController().isInternalUser() && restrictedParticipants) {
-				const mailRecipients = this._getAssignableMailRecipients().map(userGroupInfo => {
-					return new Button(() => getDisplayText(userGroupInfo.name, neverNull(userGroupInfo.mailAddress), true), () => this._assignMail(userGroupInfo), () => Icons.Contacts)
+				const mailRecipients = this._getAssignableMailRecipients().filter(userOrMailGroupInfo => {
+					let mailbox = neverNull(this.mailView.selectedMailbox)
+					if (mailbox.isUserMailbox()) {
+						return userOrMailGroupInfo.group != logins.getUserController().userGroupInfo.group
+					} else {
+						return userOrMailGroupInfo.group != neverNull(mailbox.mailGroupInfo).group
+					}
+				}).map(userOrMailGroupInfo => {
+					return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => Icons.Contacts)
 						.setType(ButtonType.Dropdown)
 				})
-				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients))
+				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
 			}
 			actions.add(createDropDownButton('move_action', () => Icons.Folder, () => {
 				return neverNull(this.mailView.selectedMailbox).getAllFolders().filter(vm => vm.folder !== this.mailView.selectedFolder).map(targetVm => {
