@@ -216,22 +216,26 @@ export class EventBusClient {
 	}
 
 	_processEntityEvents(events: EntityUpdate[], groupId: Id, batchId: Id): Promise<void> {
-		return Promise.each(events, event => {
-			return this._notifyEntityEventReceived(event).catch(e => {
-				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
-					// skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
-				} else {
-					workerImpl.sendError(e)
-					throw e // do not continue processing the other events
-				}
+		return Promise.map(events, event => {
+			return this._executeIfNotTerminated(() => getEntityRestCache().entityEventReceived(event))
+				.then(() => event)
+				.catch(e => {
+					if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
+						// skip this event. NotFoundError may occur if an entity is removed in parallel. NotAuthorizedError may occur if the user was removed from the owner group
+						return null
+					} else {
+						workerImpl.sendError(e)
+						throw e // do not continue processing the other events
+					}
+				})
+		}).filter(event => event != null)
+			.each(event => {
+				return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(event))
+					.then(() => this._executeIfNotTerminated(() => mailFacade.entityEventReceived(event)))
+					.then(() => this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event)))
+			}).then(() => {
+				this._lastEntityEventIds[groupId] = batchId
 			})
-		}).then(() => {
-			return Promise.each(events, event => {
-				return this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event))
-			})
-		}).then(() => {
-			this._lastEntityEventIds[groupId] = batchId
-		})
 	}
 
 	/**
@@ -253,14 +257,6 @@ export class EventBusClient {
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
 		return (this._lastEntityEventIds[groupId]) ? this._lastEntityEventIds[groupId] : GENERATED_MIN_ID
-	}
-
-	_notifyEntityEventReceived(data: EntityUpdate): Promise<void> {
-		return this._executeIfNotTerminated(() => getEntityRestCache().entityEventReceived(data)).then(() => {
-			return this._executeIfNotTerminated(() => loginFacade.entityEventReceived(data)).then(() => {
-				return this._executeIfNotTerminated(() => mailFacade.entityEventReceived(data))
-			})
-		})
 	}
 
 	_executeIfNotTerminated(call: Function): Promise<void> {
