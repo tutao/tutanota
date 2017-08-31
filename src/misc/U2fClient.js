@@ -36,7 +36,7 @@ export class U2fClient {
 	appId: string;
 
 	constructor() {
-		if (location.hostname.endsWith("tutanota.com")) {
+		if (window.location.hostname.endsWith("tutanota.com")) {
 			this.appId = "https://tutanota.com/u2f-appid.json"
 		} else {
 			this.appId = getHttpOrigin() + "/u2f-appid.json"

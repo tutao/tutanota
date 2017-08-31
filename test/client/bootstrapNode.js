@@ -15,6 +15,7 @@ Promise.longStackTraces()
 global.window = require("mithril/test-utils/browserMock")()
 global.window.getElementsByTagName = function () {
 } // for styles.js
+global.window.location = {hostname: "https://tutanota.com"}
 global.document = global.window.document
 global.navigator = global.window.navigator
 let local = {}

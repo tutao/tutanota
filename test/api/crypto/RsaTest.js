@@ -159,7 +159,7 @@ o.spec("rsa", function () {
 
 		var input = hexToUint8Array("b25371601025fcc214c4a6ac877d8db9");
 		let signature = sign(privateKey, input)
-		o(signature.length).equals(256) // bytes = 2048 bit
+		o(signature.length >= 255).equals(true) // bytes = 2048 bit
 
 		verifySignature(publicKey, input, signature)
 	})
