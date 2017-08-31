@@ -46,6 +46,7 @@ import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -164,9 +165,10 @@ export class MailViewer {
 			this._htmlBody = urlify(sanitizeResult.text)
 			this._contentBlocked = sanitizeResult.externalContent.length > 0;
 			m.redraw()
-		})
+		}).catch(NotFoundError, e => console.log("could load mail body as it has been moved/deleted already", e))
 		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 		load(ConversationEntryTypeRef, mail.conversationEntry)
+			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
 
 		if (mail.attachments.length == 0) {
 			this._loadingAttachments = false
@@ -184,7 +186,7 @@ export class MailViewer {
 				}
 				this._loadingAttachments = false
 				m.redraw()
-			})
+			}).catch(NotFoundError, e => console.log("could load attachments as they have been moved/deleted already", e))
 		}
 
 		let errorMessageBox = new MessageBox("corrupted_msg")

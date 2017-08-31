@@ -37,6 +37,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -426,7 +427,7 @@ export class MailView {
 			this._setUrl(url)
 			if (mails[0].unread && !mails[0]._errors) {
 				mails[0].unread = false
-				update(mails[0])
+				update(mails[0]).catch(NotFoundError, e => console.log("could not set read flag as mail has been moved/deleted already", e))
 			}
 			m.redraw()
 		} else if (selectionChanged && (mails.length == 0 || multiSelectOperation) && this.mailViewer) {
