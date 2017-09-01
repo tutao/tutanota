@@ -107,6 +107,14 @@ export class SecondFactorHandler {
 					.catch(AccessBlockedError, e => Dialog.error("loginFailedOften_msg"))
 			}, () => BootIcons.Login)
 			otpCode._injectionsRight = () => m(otpLoginButton)
+			otpCode._keyHandler = key => {
+				switch (key.keyCode) {
+					case 13: // return
+						otpLoginButton.clickHandler()
+						return false
+				}
+				return true
+			}
 
 			return u2fClient.isSupported().then(u2fSupport => {
 				let keyForThisDomainExisting = keys.filter(key => key.appId == u2fClient.appId).length > 0
