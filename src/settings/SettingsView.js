@@ -80,7 +80,7 @@ export class SettingsView {
 
 		this._settingsDetailsColumn = new ViewColumn({
 			view: () => (this.detailsViewer) ? m(this.detailsViewer) : m("")
-		}, ColumnType.Foreground, 600, 2400, () => lang.get("settings_label"))
+		}, ColumnType.Background, 600, 2400, () => lang.get("settings_label"))
 
 		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], "SettingsView")
 
