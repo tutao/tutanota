@@ -146,7 +146,7 @@ export class ContactFormRequestDialog {
 			if (field.type === InputFieldType.ENUM) {
 				let f = new DropDownSelector(() => field.name, null, field.enumValues.map(t => {
 					return {name: t.name, value: t.name}
-				}), field.enumValues[0].name, 250)
+				}), null, 250)
 				return {component: f, name: field.name, value: f.selectedValue}
 			} else {
 				let f = new TextField(() => field.name)

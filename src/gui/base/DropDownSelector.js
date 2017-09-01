@@ -11,17 +11,17 @@ assertMainOrNode()
 
 export class DropDownSelector<T> {
 	view: Function;
-	selectedValue: stream<T>;
+	selectedValue: stream<?T>;
 	_changeHandler: handler<T>;
 	_field: TextField;
 	_items: {name: string, value: T}[];
 
-	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<T>|T, dropdownWidth: ?number) {
+	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>, items: {name: string, value: T}[], selectedValue: stream<?T>|?T, dropdownWidth: ?number) {
 		this.selectedValue = selectedValue instanceof Function ? selectedValue : stream(selectedValue)
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
 			.setDisabled()
-		this._field.value = this.selectedValue.map(value => neverNull(items.find(item => item.value == this.selectedValue())).name)
+		this._field.value = this.selectedValue.map(value => value != null ? neverNull(items.find(item => item.value == this.selectedValue())).name : null)
 		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => BootIcons.Edit, () => {
 				return items.map(item => new Button(() => item.name, () => {
 					if (this.selectedValue() != item.value) {
