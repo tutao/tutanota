@@ -74,13 +74,13 @@ class Header {
 			},
 			{
 				key: Keys.C,
-				enabled: () => logins.isUserLoggedIn(),
+				enabled: () => logins.isInternalUserLoggedIn() && isEnabled(Feature.Contacts),
 				exec: key => m.route.set(this.contactsUrl),
 				help: "contactView_action"
 			},
 			{
 				key: Keys.S,
-				enabled: () => logins.isUserLoggedIn(),
+				enabled: () => logins.isInternalUserLoggedIn(),
 				exec: key => m.route.set(this.settingsUrl),
 				help: "settingsView_action"
 			},

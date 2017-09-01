@@ -133,7 +133,15 @@ export class MailBoxController {
 	}
 
 	getSystemFolders(): MailFolderViewModel[] {
-		return this._folders.filter(f => f.folder.folderType != MailFolderType.CUSTOM).sort((folder1, folder2) => {
+		return this._folders.filter(f => {
+			if (f.folder.folderType == MailFolderType.CUSTOM) {
+				return false
+			} else if (f.folder.folderType == MailFolderType.SPAM && !logins.isInternalUserLoggedIn()) {
+				return false
+			} else {
+				return true
+			}
+		}).sort((folder1, folder2) => {
 			// insert the draft folder after inbox (use type number 1.5 which is after inbox)
 			if (folder1.folder.folderType == MailFolderType.DRAFT) {
 				return 1.5 - Number(folder2.folder.folderType);
@@ -141,7 +149,7 @@ export class MailBoxController {
 				return Number(folder1.folder.folderType) - 1.5;
 			}
 			return Number(folder1.folder.folderType) - Number(folder2.folder.folderType);
-		});
+		})
 	}
 
 	getTrashFolder(): MailFolderViewModel {

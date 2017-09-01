@@ -12,7 +12,7 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {OperationType, GroupType, MailFolderType} from "../api/common/TutanotaConstants"
+import {OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
 import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
@@ -153,6 +153,7 @@ export class MailView {
 			{
 				key: Keys.N,
 				exec: () => (this._newMail():any),
+				enabled: () => logins.isInternalUserLoggedIn(),
 				help: "newMail_action"
 			},
 			{
@@ -209,6 +210,7 @@ export class MailView {
 			{
 				key: Keys.SIX,
 				exec: () => this.selectedMailbox ? m.route.set(this.selectedMailbox.systemFolderButtons[5]._getUrl()) : null,
+				enabled: () => logins.isInternalUserLoggedIn(),
 				help: "switchSpam_action"
 			},
 		]
@@ -331,7 +333,7 @@ export class MailView {
 	}
 
 	createFolderButtons(folders: MailFolderViewModel[]) {
-		return folders.filter(f => logins.isInternalUserLoggedIn() || f.folder.folderType != MailFolderType.SPAM).map(vm => {
+		return folders.map(vm => {
 			let button = new NavButton(() => vm.getDisplayName(), vm.getDisplayIcon(), () => vm.url, "/mail/" + vm.folder.mails)
 				.setColors(ButtonColors.Nav)
 			button.setClickHandler((event) => {
