@@ -6,7 +6,8 @@ import {
 	NotAuthenticatedError,
 	AccessBlockedError,
 	AccessDeactivatedError,
-	ConnectionError
+	ConnectionError,
+	TooManyRequestsError
 } from "../api/common/error/RestError"
 import {load, update} from "../api/main/Entity"
 import {Mode, assertMainOrNode} from "../api/Env"
@@ -89,6 +90,11 @@ export class LoginViewController {
 			})
 			.catch(AccessDeactivatedError, e => {
 				this.view.helpText = lang.get('loginFailed_msg')
+				m.redraw()
+				return errorAction()
+			})
+			.catch(TooManyRequestsError, e => {
+				this.view.helpText = lang.get('tooManyAttempts_msg')
 				m.redraw()
 				return errorAction()
 			})
