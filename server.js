@@ -3,7 +3,7 @@ const httpServer = require('http-server')
 
 
 const server = httpServer.createServer({
-	root: '..',
+	root: 'build',
 	cache: -1,
 	robots: true,
 	headers: {
