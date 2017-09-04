@@ -93,7 +93,7 @@ let initialized = lang.init(en).then(() => {
 	let contactFormViewResolver = createViewResolver(() => _asyncImport("src/login/ContactFormView.js").then(module => new module.ContactFormView()), false)
 
 	let start = "/"
-	if (!state.prefix) {
+	if (state.prefix == null) {
 		state.prefix = location.pathname[location.pathname.length - 1] !== '/' ? location.pathname : location.pathname.substring(0, location.pathname.length - 1)
 
 		let query = m.parseQueryString(location.search)

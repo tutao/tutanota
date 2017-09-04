@@ -3,7 +3,7 @@
 // http2 server
 
 const nodeStatic = require('node-static')
-const file = new nodeStatic.Server('.', {cache: false, gzip: true});
+const file = new nodeStatic.Server('build', {cache: false, gzip: true});
 const http = require('spdy')
 
 var fs = require('fs');
@@ -71,6 +71,6 @@ const server = http.createServer(options, function (request, response) {
 })
 
 
-require('chokidar-socket-emitter')({app: server, path: ['build'], relativeTo: 'build'})
+require('chokidar-socket-emitter')({app: server, path: 'build', relativeTo: 'build'})
 
 server.listen(9082)
