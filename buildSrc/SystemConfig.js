@@ -17,6 +17,7 @@ const dependencyMap = {
 	"squire-rte": "./libs/squire.js",
 	"dompurify": "./libs/purify.js",
 	"autolinker": "./libs/Autolinker.js",
+	"qrcode": "./libs/qrcode-svg.min.js",
 	"@hot": "@empty" // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
 }
 

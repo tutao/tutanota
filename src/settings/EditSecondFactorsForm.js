@@ -1,13 +1,13 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNode, isTutanotaDomain} from "../api/Env"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {Button} from "../gui/base/Button"
 import {SecondFactorTypeRef, createSecondFactor} from "../api/entities/sys/SecondFactor"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {Icons} from "../gui/base/icons/Icons"
-import {loadAll, erase, setup} from "../api/main/Entity"
+import {loadAll, erase, setup, load} from "../api/main/Entity"
 import {Dialog} from "../gui/base/Dialog"
 import TableLine from "../gui/base/TableLine"
 import {lang} from "../misc/LanguageViewModel"
@@ -23,6 +23,8 @@ import {theme} from "../gui/theme"
 import {appIdToLoginDomain} from "../login/SecondFactorHandler"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {worker} from "../api/main/WorkerClient"
+import QRCode from "qrcode"
+import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 
 assertMainOrNode()
 
@@ -78,6 +80,19 @@ export class EditSecondFactorsForm {
 	}
 
 
+	/** see https://github.com/google/google-authenticator/wiki/Key-Uri-Format */
+	_getOtpAuthUrl(secret: string): Promise<string> {
+		return this._user.getAsync().then(user => {
+			return load(GroupInfoTypeRef, user.userGroup.groupInfo).then(userGroupInfo => {
+				let otpAuthUrlPrefix = "otpauth://totp/"
+				let issuer = isTutanotaDomain() ? "Tutanota" : location.hostname
+				let account = encodeURI(issuer + ":" + neverNull(userGroupInfo.mailAddress))
+				let cleanSecret = secret.replace(/ /g, "")
+				return otpAuthUrlPrefix + account + "?secret=" + cleanSecret + "&issuer=" + issuer + "&algorithm=SHA1&digits=6&period=30"
+			})
+		})
+	}
+
 	_showAddSecondFactorDialog() {
 		let u2f = new U2fClient()
 		let totpKeys = stream()
@@ -96,6 +111,17 @@ export class EditSecondFactorsForm {
 				let totpSecret = new TextField("totpSecret_label", totpCode).setDisabled()
 				totpKeys.map(keys => totpSecret.value(keys.readableKey))
 
+				let totpSvg
+				this._getOtpAuthUrl(totpKeys().readableKey).then(optAuthUrl => {
+					console.log(optAuthUrl)
+					let grcodeGenerator = new QRCode({
+						height: 150,
+						width: 150,
+						content: optAuthUrl
+					})
+					totpSvg = grcodeGenerator.svg()
+				})
+
 				let dialog = Dialog.smallActionDialog(lang.get("add_action"), {
 					view: () => m("", [
 						m(type),
@@ -107,6 +133,7 @@ export class EditSecondFactorsForm {
 								}) : progressIcon()), m("", u2fInfoMessage())]) : null,
 						type.selectedValue() === SecondFactorType.totp ? m(".mb", [
 								m(totpSecret),
+								m(".flex-center", m.trust(totpSvg))
 							]) : null,
 						m(".small", lang.get("secondFactorInfoOldClient_msg"))
 					])

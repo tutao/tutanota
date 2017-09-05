@@ -1,5 +1,9 @@
 This document contains a list of all third party libraries, fonts and images used by Tutanota, including their licences.
 
+QRCode-svg - https://github.com/papnkukn/qrcode-svg
+License: MIT
+Reference: https://github.com/papnkukn/qrcode-svg/blob/master/LICENSE
+
 Autolinker - https://github.com/gregjacobs/Autolinker.js
 License: MIT
 Reference: https://github.com/gregjacobs/Autolinker.js/blob/master/LICENSE

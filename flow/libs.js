@@ -22,6 +22,9 @@ declare module '@hot' { // hmr, access to previously loaded module
 declare module 'autolinker' {
 	declare var exports: any;
 }
+declare module 'qrcode' {
+	declare var exports: any;
+}
 
 declare type Squire = any
 
