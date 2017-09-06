@@ -10,12 +10,10 @@ import {MAX_ATTACHMENT_SIZE, InputFieldType, ConversationType, PushServiceType} 
 import {animations, height} from "../gui/animation/Animations"
 import {Editor} from "../gui/base/Editor"
 import {assertMainOrNode} from "../api/Env"
-import {getPasswordStrength} from "../misc/PasswordUtils"
 import {fileController} from "../file/FileController"
 import {remove, mapAndFilterNull} from "../api/common/utils/ArrayUtils"
 import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
-import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {worker} from "../api/main/WorkerClient"
 import {BootIcons} from "../gui/base/icons/BootIcons"
@@ -28,12 +26,13 @@ import {client} from "../misc/ClientDetector"
 import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/PushIdentifier"
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
+import {PasswordForm} from "../settings/PasswordForm"
 
 assertMainOrNode()
 
 export class ContactFormRequestDialog {
 	_dialog: Dialog;
-	_passwordField: TextField;
+	//_passwordField: TextField;
 	_subject: TextField;
 	_editor: Editor;
 	view: Function;
@@ -45,6 +44,7 @@ export class ContactFormRequestDialog {
 	_domElement: HTMLElement;
 	_statisticFields: Array<{component: Component, name: string, value: lazy<string>}>;
 	_notificationEmailAddress: TextField;
+	_passwordForm: PasswordForm;
 
 	/**
 	 * Creates a new draft message. Invoke initAsResponse or initFromDraft if this message should be a response
@@ -64,10 +64,7 @@ export class ContactFormRequestDialog {
 
 		this._statisticFields = this._createStatisticFields(contactForm)
 		this._notificationEmailAddress = new TextField("mailAddress_label", () => lang.get("contactFormMailAddressInfo_msg")).setType(Type.Area);
-
-		let passwordIndicator = new PasswordIndicator(() => this.getPasswordStrength())
-		this._passwordField = new TextField("password_label", () => lang.get("contactFormEnterPasswordInfo_msg")).setType(Type.ExternalPassword)
-		this._passwordField._injectionsRight = () => m(".mb-s.mlr", [m(passwordIndicator)])
+		this._passwordForm = new PasswordForm(false, false, true, "contactFormEnterPasswordInfo_msg")
 
 		let closeButton = new Button('cancel_action', () => this._close()).setType(ButtonType.Secondary)
 		let sendButton = new Button('send_action', () => this.send()).setType(ButtonType.Primary)
@@ -116,7 +113,7 @@ export class ContactFormRequestDialog {
 				m(".row", m(this._subject)),
 				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtons.length > 0 ? ".pt" : ""), (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
 				this._attachmentButtons.length > 0 ? m("hr") : null,
-				m(this._passwordField),
+				m(this._passwordForm),
 				m(".pt-l.text", {onclick: () => this._editor.squire.focus()}, m(this._editor)),
 				m(this._notificationEmailAddress),
 				this._statisticFields.length > 0 ? m(statisticFieldHeader) : null,
@@ -165,10 +162,6 @@ export class ContactFormRequestDialog {
 			.then(() => {
 				domElement.style.height = ''
 			})
-	}
-
-	getPasswordStrength() {
-		return Math.min(100, (getPasswordStrength(this._passwordField.value(), []) / 0.8 * 1))
 	}
 
 	show() {
@@ -234,12 +227,12 @@ export class ContactFormRequestDialog {
 	}
 
 	send() {
-		if (this._passwordField.value().trim() == "") {
-			Dialog.error("contactFormEnterPasswordInfo_msg")
+		if (this._passwordForm.getErrorMessageId()) {
+			Dialog.error(this._passwordForm.getErrorMessageId())
 			return
 		}
 		let passwordCheck = Promise.resolve(true)
-		if (this.getPasswordStrength() < 80) {
+		if (this._passwordForm._getPasswordStrength() < 80) {
 			passwordCheck = Dialog.confirm("contactFormPasswordNotSecure_msg")
 		}
 		passwordCheck.then(ok => {
@@ -249,7 +242,7 @@ export class ContactFormRequestDialog {
 				if (this._notificationEmailAddress.value().trim() != "" && !cleanedNotificationMailAddress) {
 					return Dialog.error("mailAddressInvalid_msg")
 				}
-				let password = this._passwordField.value()
+				let password = this._passwordForm.getNewPassword()
 				let statisticsFields = mapAndFilterNull(this._statisticFields, (field => {
 					if (field.value()) {
 						return {
@@ -291,7 +284,6 @@ export class ContactFormRequestDialog {
 
 				return Dialog.progress("sending_msg", sendRequest).then(result => {
 					let requestId = new TextField("mailAddress_label").setValue(result.userEmailAddress).setDisabled()
-					let password = new TextField("password_label").setValue(result.password).setDisabled()
 					return Dialog.save(() => lang.get("loginCredentials_label"), () => {
 						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {
 							deviceConfig.set(neverNull(credentials))
@@ -300,7 +292,7 @@ export class ContactFormRequestDialog {
 						})
 					}, {
 						view: () => {
-							return [m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId), m(password)]
+							return [m(".pt", lang.get("contactFormSubmitConfirm_msg")), m(requestId)]
 						}
 					})
 				}).then(() => this._close()).catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))

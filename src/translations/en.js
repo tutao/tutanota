@@ -159,7 +159,7 @@ module.exports = {
 		"contactFormReportInfo_msg": "Export a CSV log of all contact form requests including user provided statistic data.",
 		"contactFormReport_label": "Contact form report",
 		"contactFormStatisticFieldsInfo_msg": "The following details are used for statistical purposes only and are voluntary.",
-		"contactFormSubmitConfirm_msg": "Your request has been successfully submitted. Please note down the following credentials to read the answer to your request. Click \"Save\" to store the credentials in this browser and automatically login later.",
+
 		"contactFormSubmitError_msg": "Sorry, your request could not be completed. Please try again later.",
 		"contactForms_label": "Contact forms",
 		"contactForm_label": "Contact form",
@@ -901,6 +901,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"contactFormSubmitConfirm_msg": "Your request has been successfully submitted. Please note down the following email address to read the answer to your request. Click \"Save\" to store the email address and your password in this browser and automatically login later.",
 	}
 }

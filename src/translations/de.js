@@ -159,7 +159,7 @@ module.exports = {
 		"contactFormReportInfo_msg": "Exportiert ein CSV-Log von allen Kontaktanfragen und den statistischen Daten, die von den Users eingegeben wurden.",
 		"contactFormReport_label": "Kontaktformular Auswertung",
 		"contactFormStatisticFieldsInfo_msg": "Die folgenden Angaben dienen statistischen Zwecken und sind freiwillig.",
-		"contactFormSubmitConfirm_msg": "Ihre Anfrage wurde erfolgreich übermittelt. Bitte notieren Sie sich die folgenden Zugangsdaten, um später unsere Antwort lesen zu können. Wählen Sie \"Speichern\", um die Zugangsdaten in diesem Browser zu speichern und automatisch eingeloggt zu werden.",
+
 		"contactFormSubmitError_msg": "Leider konnte Ihre Anfrage nicht zugestellt werden. Bitte versuchen Sie es später erneut.",
 		"contactForms_label": "Kontaktformulare",
 		"contactForm_label": "Kontaktformular",
@@ -901,6 +901,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"contactFormSubmitConfirm_msg": "Ihre Anfrage wurde erfolgreich übermittelt. Bitte notieren Sie sich die folgende E-Mail-Adresse, um später unsere Antwort lesen zu können. Wählen Sie \"Speichern\", um die E-Mail-Addresse zusammen mit Ihrem Passwort in diesem Browser zu speichern und automatisch eingeloggt zu werden.",
 	}
 }
