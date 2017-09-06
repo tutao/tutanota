@@ -60,7 +60,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "24"
+	"version": "25"
 }
 
 export function createAuthentication(): Authentication {

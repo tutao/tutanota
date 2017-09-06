@@ -41,7 +41,7 @@ export const _TypeModel: TypeModel = {
 	},
 	"associations": {},
 	"app": "sys",
-	"version": "24"
+	"version": "25"
 }
 
 export function createPublicKeyReturn(): PublicKeyReturn {

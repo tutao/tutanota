@@ -100,6 +100,14 @@ export const _TypeModel: TypeModel = {
 			"refType": "UserAreaGroups",
 			"final": true
 		},
+		"customizations": {
+			"name": "customizations",
+			"since": 25,
+			"type": "AGGREGATION",
+			"cardinality": "Any",
+			"refType": "Feature",
+			"final": false
+		},
 		"userAreaGroups": {
 			"name": "userAreaGroups",
 			"since": 17,
@@ -191,7 +199,7 @@ export const _TypeModel: TypeModel = {
 		}
 	},
 	"app": "sys",
-	"version": "24"
+	"version": "25"
 }
 
 export function createCustomer(): Customer {

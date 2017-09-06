@@ -70,6 +70,7 @@ type Customer = {
 	auditLog:?AuditLogRef;
 	contactFormUserAreaGroups:?UserAreaGroups;
 	contactFormUserGroups:?UserAreaGroups;
+	customizations:Feature[];
 	userAreaGroups:?UserAreaGroups;
 	adminGroup:Id;
 	adminGroups:Id;
@@ -603,7 +604,7 @@ type EntityUpdate = {
 	instanceId:string;
 	instanceListId:string;
 	operation:NumberString;
-	type:string
+	type:string;
 
 }
 
@@ -1355,5 +1356,12 @@ type DisabledFeature = {
 	_type: TypeRef<DisabledFeature>;
 	_id:Id;
 	feature:string;
+
+}
+
+type Feature = {
+	_type: TypeRef<Feature>;
+	_id:Id;
+	feature:NumberString;
 
 }
