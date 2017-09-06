@@ -15,7 +15,7 @@ import {
 } from "../misc/Formatter"
 import {ActionBar} from "../gui/base/ActionBar"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
-import {MailState, ConversationType, InboxRuleType} from "../api/common/TutanotaConstants"
+import {MailState, ConversationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
 import {FileTypeRef} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
@@ -154,7 +154,7 @@ export class MailViewer {
 					moreButtons.push(new Button("markUnread_action", () => this._markUnread(), () => Icons.NoEye).setType(ButtonType.Dropdown))
 				}
 				moreButtons.push(new Button("export_action", () => exportAsEml(this.mail, this._htmlBody), () => Icons.Download).setType(ButtonType.Dropdown)
-					.setIsVisibleHandler(() => env.mode != Mode.App))
+					.setIsVisibleHandler(() => env.mode != Mode.App && !logins.isEnabled(FeatureType.DisableMailExport)))
 				return moreButtons
 			}))
 		}
@@ -232,7 +232,6 @@ export class MailViewer {
 
 		this._setupShortcuts()
 	}
-
 
 	_setupShortcuts() {
 		let shortcuts = [

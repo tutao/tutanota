@@ -557,7 +557,6 @@ export class MailView {
 		}
 	}
 
-
 	_showHeaders() {
 		if (this.mailViewer != null && !this.mailHeaderDialog.visible) {
 			if (this.mailViewer.mail.headers) {

@@ -9,4 +9,4 @@ type MediaTypeBinary = 'application/octet-stream'
 type MediaTypeEnum = MediaTypeJson | MediaTypeBinary
 
 type GroupTypeEnum = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
-type FeatureEnum = "contacts"
+type FeatureEnum = "0" | "1" | "2" | "3" | "4"

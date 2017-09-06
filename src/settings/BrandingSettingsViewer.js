@@ -10,7 +10,7 @@ import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
-import {OperationType, Feature} from "../api/common/TutanotaConstants"
+import {OperationType} from "../api/common/TutanotaConstants"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {TextField} from "../gui/base/TextField"
 import {Button} from "../gui/base/Button"
@@ -19,15 +19,13 @@ import {worker} from "../api/main/WorkerClient"
 import {fileController} from "../file/FileController"
 import {BrandingThemeTypeRef} from "../api/entities/sys/BrandingTheme"
 import type {Theme} from "../gui/theme"
-import {updateCustomTheme, isEnabled, disabledFeatures} from "../gui/theme"
+import {updateCustomTheme} from "../gui/theme"
 import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
-import {createDisabledFeature} from "../api/entities/sys/DisabledFeature"
-import {DropDownSelector} from "../gui/base/DropDownSelector"
 
 assertMainOrNode()
 
@@ -40,7 +38,6 @@ export class BrandingSettingsViewer {
 	_brandingDomainField: TextField;
 	_customLogoField: TextField;
 	_customColorsField: TextField;
-	_contactsField: TextField;
 
 	_customerInfo: LazyLoaded<CustomerInfo>;
 
@@ -60,7 +57,6 @@ export class BrandingSettingsViewer {
 						m(this._brandingDomainField),
 						m(this._customLogoField),
 						m(this._customColorsField),
-						m(this._contactsField),
 					] : [
 						m(".flex-center.items-center.button-height.mt-l", progressIcon())
 					])
@@ -175,30 +171,6 @@ export class BrandingSettingsViewer {
 					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => BootIcons.Edit)
 
 					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
-				}
-
-				this._contactsField = new DropDownSelector("contacts_label", null, [
-					{name: lang.get("activated_label"), value: true},
-					{name: lang.get("deactivated_label"), value: false}
-				], disabledFeatures.map(v => isEnabled(Feature.Contacts)), 250).setSelectionChangedHandler(v => {
-					if (!v && isEnabled(Feature.Contacts)) {
-						disabledFeatures(disabledFeatures().concat(Feature.Contacts))
-					} else {
-						let features = disabledFeatures()
-						features.splice(features.indexOf(Feature.Contacts), 1)
-						disabledFeatures(features)
-					}
-
-					neverNull(brandingTheme).disabledFeatures = disabledFeatures().map(f => {
-						let df = createDisabledFeature()
-						df.feature = f
-						return df
-					})
-					update(brandingTheme)
-					updateCustomTheme(customJsonTheme)
-				})
-				if (!customJsonTheme) {
-					this._contactsField._field._injectionsRight = () => []
 				}
 
 				m.redraw()

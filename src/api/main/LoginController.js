@@ -31,6 +31,10 @@ class LoginController {
 		// we enable certain features only for certain customers in prod
 		return getHttpOrigin().startsWith("https://app.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0'
 	}
+
+	isEnabled(feature: FeatureEnum): boolean {
+		return (this._userController != null && this._userController.customizations != null) ? this._userController.customizations.indexOf(feature) !== -1 : true
+	}
 }
 
 export const logins = new LoginController()

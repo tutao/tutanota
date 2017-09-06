@@ -9,9 +9,9 @@ import {Button, ButtonType, ButtonColors} from "./Button"
 import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
-import {theme, isEnabled} from "../theme"
+import {theme} from "../theme"
 import {Icons} from "./icons/Icons"
-import {Feature} from "../../api/common/TutanotaConstants"
+import {FeatureType} from "../../api/common/TutanotaConstants"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -36,9 +36,9 @@ class Header {
 
 		this.defaultButtonBar = new NavBar()
 			.addButton(new NavButton('emails_label', () => Icons.Mail, () => this.mailsUrl, this.mailsUrl)
-				.setIsVisibleHandler(() => logins.isUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
 			.addButton(new NavButton('contacts_label', () => Icons.Contacts, () => this.contactsUrl, this.contactsUrl)
-				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && isEnabled(Feature.Contacts)))
+				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => Icons.Premium, () => premiumUrl, premiumUrl)
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()))
 			.addButton(new NavButton('invite_alt', () => Icons.Share, () => m.route.get())
@@ -74,7 +74,7 @@ class Header {
 			},
 			{
 				key: Keys.C,
-				enabled: () => logins.isInternalUserLoggedIn() && isEnabled(Feature.Contacts),
+				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts),
 				exec: key => m.route.set(this.contactsUrl),
 				help: "contactView_action"
 			},

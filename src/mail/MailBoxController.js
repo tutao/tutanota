@@ -4,7 +4,7 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {isSameId} from "../api/common/EntityFunctions"
 import {MailBoxTypeRef} from "../api/entities/tutanota/MailBox"
 import {MailFolderTypeRef} from "../api/entities/tutanota/MailFolder"
-import {MailFolderType, EmailSignatureType as TutanotaConstants} from "../api/common/TutanotaConstants"
+import {MailFolderType, EmailSignatureType as TutanotaConstants, FeatureType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
@@ -137,6 +137,8 @@ export class MailBoxController {
 			if (f.folder.folderType == MailFolderType.CUSTOM) {
 				return false
 			} else if (f.folder.folderType == MailFolderType.SPAM && !logins.isInternalUserLoggedIn()) {
+				return false
+			} else if (logins.isEnabled(FeatureType.InternalCommunication) && f.folder.folderType === MailFolderType.SPAM) {
 				return false
 			} else {
 				return true

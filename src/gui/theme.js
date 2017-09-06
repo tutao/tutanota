@@ -3,12 +3,6 @@ import {Logo} from "./base/icons/Logo"
 import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
 
-let customDisabledFeatures = "is replaced at runtime with a custom feature list"
-export const disabledFeatures: stream<FeatureEnum[]> = stream(customDisabledFeatures instanceof Array ? customDisabledFeatures : [])
-export function isEnabled(feature: FeatureEnum): boolean {
-	return disabledFeatures().indexOf(feature) === -1
-}
-
 export type Theme = {
 	logo: string,
 

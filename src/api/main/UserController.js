@@ -16,6 +16,7 @@ export class UserController {
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
 	sessionElementId: Id;
+	customizations: ?NumberString[]; // loaded during login
 
 	constructor(user: User, userGroupInfo: GroupInfo, sessionElementId: Id, props: TutanotaProperties) {
 		this.user = user
@@ -61,11 +62,12 @@ export class UserController {
 		return this.user.accountType !== AccountType.EXTERNAL
 	}
 
-
 	loadCustomer(): Promise<Customer> {
-		return load(CustomerTypeRef, neverNull(this.user.customer))
+		return load(CustomerTypeRef, neverNull(this.user.customer)).then(customer => {
+			this.customizations = customer.customizations.map(f => f.feature)
+			return customer
+		})
 	}
-
 
 	getMailGroupMemberships(): GroupMembership[] {
 		return this.user.memberships.filter(membership => membership.groupType == GroupType.Mail)
@@ -91,4 +93,3 @@ export class UserController {
 		}
 	}
 }
-

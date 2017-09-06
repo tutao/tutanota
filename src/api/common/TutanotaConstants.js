@@ -203,6 +203,9 @@ export const SecondFactorType = {
 
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 
-export const Feature = {
-	Contacts: "contacts"
+export const FeatureType = {
+	DisableContacts: "0",
+	DisableMailExport: "1",
+	InternalCommunication: "2",
+	// 3 and 4 are not used on clients
 }
