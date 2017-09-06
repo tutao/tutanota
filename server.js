@@ -13,7 +13,7 @@ const server = http.createServer(function (req, res) {
 		if (err && err.status === 404) {
 			console.log(req.url + " not found -> reset to root url")
 			res.statusCode = 302;
-			res.setHeader('Location', `http://localhost:${port}/?r=${req.url}`);
+			res.setHeader('Location', `http://localhost:${port}/?r=${req.url.replace(/\?/g, "&")}`);
 			res.end();
 		}
 	});
