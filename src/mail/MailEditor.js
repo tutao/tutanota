@@ -143,7 +143,7 @@ export class MailEditor {
 			.setMiddle(() => lang.get(this._conversationTypeToTitleTextId()))
 			.addRight(new Button('send_action', () => this.send()).setType(ButtonType.Primary))
 
-		this.editor = new Editor(false)
+		this.editor = new Editor(200)
 
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)

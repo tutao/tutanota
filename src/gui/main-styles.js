@@ -514,15 +514,7 @@ styles.registerStyle('main', () => {
 			outline: 'none',
 			width: '100%',
 			overflow: 'hidden',
-			height: px(0),
-			'min-height': px(size.font_size_base + 6),
 			color: theme.content_fg,
-		},
-
-		'.input-area': {
-			height: px(0),
-			'min-height': px(size.font_size_base + 6),
-			'margin-top': px(size.font_size_small + size.hpad_small),
 		},
 
 		// table

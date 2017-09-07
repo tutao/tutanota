@@ -97,9 +97,9 @@ export class ContactFormEditor {
 		this._participantGroupInfosTable = new Table(["participants_label"], [ColumnWidth.Largest], true, addParticipantMailGroupButton)
 		this._updateParticipantGroupInfosTable()
 
-		this._headerField = new HtmlEditor("header_label").setValue(this._contactForm.headerHtml)
-		this._footerField = new HtmlEditor("footer_label").setValue(this._contactForm.footerHtml)
-		this._helpField = new HtmlEditor("helpPage_label").setValue(this._contactForm.helpHtml)
+		this._headerField = new HtmlEditor().setModeSwitcher("header_label").setMinHeight(200).showBorders().setValue(this._contactForm.headerHtml)
+		this._footerField = new HtmlEditor().setModeSwitcher("footer_label").setMinHeight(200).showBorders().setValue(this._contactForm.footerHtml)
+		this._helpField = new HtmlEditor().setModeSwitcher("helpPage_label").setMinHeight(200).showBorders().setValue(this._contactForm.helpHtml)
 
 		this._statisticsFields = this._contactForm.statisticsFields.slice()
 		let addStatisticsFieldButton = new Button("addStatisticsField_action", () => AddStatisticsFieldDialog.show().then(inputField => {
@@ -200,9 +200,9 @@ export class ContactFormEditor {
 											this._contactForm.participantGroupInfos = this._participantGroupInfoList.map(groupInfo => groupInfo._id)
 											this._contactForm.path = this._pathField.value()
 											this._contactForm.pageTitle = this._pageTitleField.value()
-											this._contactForm.headerHtml = this._headerField.value()
-											this._contactForm.footerHtml = this._footerField.value()
-											this._contactForm.helpHtml = this._helpField.value()
+											this._contactForm.headerHtml = this._headerField.getValue()
+											this._contactForm.footerHtml = this._footerField.getValue()
+											this._contactForm.helpHtml = this._helpField.getValue()
 											this._contactForm.statisticsFields = this._statisticsFields
 											this._contactForm.targetMailGroup_removed = GENERATED_MIN_ID; // legacy, should be removed in future
 

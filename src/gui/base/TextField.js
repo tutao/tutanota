@@ -138,6 +138,10 @@ export class TextField {
 					}
 					this.value(this._domInput.value) // update the input on each change
 				},
+				style: {
+					height: px(0),
+					minHeight: px(size.font_size_base + 6),
+				}
 			})
 		}
 	}
@@ -165,6 +169,11 @@ export class TextField {
 					this._domInput.style.height = (this._domInput.scrollHeight) + 'px';
 					this.value(this._domInput.value) // update the input on each change
 				},
+				style: {
+					marginTop: px(size.font_size_small + size.hpad_small),
+					height: px(0),
+					minHeight: px(size.font_size_base + 6),
+				}
 			})
 		}
 	}

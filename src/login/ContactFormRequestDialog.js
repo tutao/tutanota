@@ -8,7 +8,6 @@ import {lang} from "../misc/LanguageViewModel"
 import {formatStorageSize, getCleanedMailAddress} from "../misc/Formatter"
 import {MAX_ATTACHMENT_SIZE, InputFieldType, ConversationType, PushServiceType} from "../api/common/TutanotaConstants"
 import {animations, height} from "../gui/animation/Animations"
-import {Editor} from "../gui/base/Editor"
 import {assertMainOrNode} from "../api/Env"
 import {fileController} from "../file/FileController"
 import {remove, mapAndFilterNull} from "../api/common/utils/ArrayUtils"
@@ -27,14 +26,14 @@ import {createPushIdentifier, PushIdentifierTypeRef} from "../api/entities/sys/P
 import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm} from "../settings/PasswordForm"
+import {HtmlEditor} from "../gui/base/HtmlEditor"
 
 assertMainOrNode()
 
 export class ContactFormRequestDialog {
 	_dialog: Dialog;
-	//_passwordField: TextField;
 	_subject: TextField;
-	_editor: Editor;
+	_editor: HtmlEditor;
 	view: Function;
 	_attachments: Array<TutanotaFile|DataFile|FileReference>; // contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	_attachmentButtons: Button[]; // these map 1:1 to the _attachments
@@ -73,10 +72,7 @@ export class ContactFormRequestDialog {
 			.setMiddle(() => lang.get("createContactRequest_action"))
 			.addRight(sendButton)
 
-		this._editor = new Editor(true, 200, "contactFormPlaceholder_label")
-		this._editor.initialized.promise.then(() => {
-			this._editor.squire.setHTML("<br><br>")
-		})
+		this._editor = new HtmlEditor().showBorders().setPlaceholderId("contactFormPlaceholder_label").setMinHeight(200)
 
 		let statisticFieldHeader = new TextField(() => "", () => lang.get("contactFormStatisticFieldsInfo_msg"))
 			.setDisabled()
@@ -85,11 +81,6 @@ export class ContactFormRequestDialog {
 		this.view = () => {
 			return m("#mail-editor.text.pb", {
 				oncreate: vnode => this._domElement = vnode.dom,
-				onclick: (e) => {
-					if (e.target === this._domElement) {
-						this._editor.squire.focus()
-					}
-				},
 				ondragover: (ev) => {
 					// do not check the datatransfer here because it is not always filled, e.g. in Safari
 					ev.stopPropagation()
@@ -114,7 +105,7 @@ export class ContactFormRequestDialog {
 				m(".flex-start.flex-wrap.ml-negative-bubble" + (this._attachmentButtons.length > 0 ? ".pt" : ""), (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
 				this._attachmentButtons.length > 0 ? m("hr") : null,
 				m(this._passwordForm),
-				m(".pt-l.text", {onclick: () => this._editor.squire.focus()}, m(this._editor)),
+				m(".pt-l.text", m(this._editor)),
 				m(this._notificationEmailAddress),
 				this._statisticFields.length > 0 ? m(statisticFieldHeader) : null,
 				this._statisticFields.map(field => m(field.component)),
@@ -271,7 +262,7 @@ export class ContactFormRequestDialog {
 						let recipientInfo = createRecipientInfo(contactFormResult.requestMailAddress, "")
 						return p.then(() => resolveRecipientInfo(recipientInfo).then(r => {
 							let recipientInfos = [r]
-							return worker.createMailDraft(this._subject.value(), this._editor.squire.getHTML(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {
+							return worker.createMailDraft(this._subject.value(), this._editor.getValue(), userEmailAddress, "", recipientInfos, [], [], ConversationType.NEW, null, this._attachments, true, []).then(draft => {
 								return worker.sendMailDraft(draft, recipientInfos, lang.code)
 							})
 						}).finally(e => {
