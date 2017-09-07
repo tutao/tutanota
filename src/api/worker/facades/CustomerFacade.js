@@ -40,6 +40,7 @@ import {createContactFormStatisticField} from "../../entities/tutanota/ContactFo
 assertWorkerOrNode()
 
 export class CustomerFacade {
+	contactFormUserGroupData: Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 
 	constructor() {
 	}
@@ -209,12 +210,22 @@ export class CustomerFacade {
 		})
 	}
 
-	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
+	createContactFormUserGroupData() {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
+		this.contactFormUserGroupData = groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
+			return {userGroupKey, userGroupData}
+		})
+		return Promise.resolve()
+	}
+
+	/**
+	 * @pre CustomerFacade#createContactFormUserGroupData has been invoked before
+	 */
+	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-		// TODO how to ensure that customer has acces to userGroupINfoSessionKey? we can't load the customer group key here. write public permission instead?
-		return groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {
+		return this.contactFormUserGroupData.then(contactFormUserGroupData => {
+			let {userGroupKey, userGroupData} = contactFormUserGroupData
 			return workerImpl.sendProgress(35).then(() => {
 				let data = createContactFormAccountData()
 				data.userData = userManagementFacade.generateContactFormUserAccountData(userGroupKey, password)

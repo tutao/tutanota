@@ -45,6 +45,9 @@ export class WorkerImpl {
 			signup: (message: Request) => {
 				return customerFacade.signup.apply(customerFacade, message.args)
 			},
+			createContactFormUserGroupData: (message: Request) => {
+				return customerFacade.createContactFormUserGroupData.apply(customerFacade, message.args)
+			},
 			createContactFormUser: (message: Request): Promise<ContactFormAccountReturn> => {
 				return customerFacade.createContactFormUser.apply(customerFacade, message.args)
 			},

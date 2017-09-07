@@ -78,6 +78,8 @@ export class ContactFormRequestDialog {
 			.setDisabled()
 			.setValue(lang.get("optionalValues_label"))
 
+		worker.createContactFormUserGroupData()
+
 		this.view = () => {
 			return m("#mail-editor.text.pb", {
 				oncreate: vnode => this._domElement = vnode.dom,
