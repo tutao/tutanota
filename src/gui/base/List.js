@@ -11,7 +11,6 @@ import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUti
 import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import MessageBox from "./MessageBox"
-import {keyManager} from "../../misc/KeyManager"
 import {progressIcon} from "./Icon"
 
 assertMainOrNode()
@@ -190,7 +189,7 @@ export class List<T, R:VirtualRow<T>> {
 
 	_initRow(virtualRow: VirtualElement, domElement: HTMLElement) {
 		virtualRow.domElement = domElement
-		domElement.onclick = () => this._elementClicked(virtualRow.entity)
+		domElement.onclick = (e) => this._elementClicked(virtualRow.entity, e)
 	}
 
 	_dragstart(ev: DragEvent, virtualRow: VirtualRow<T>) {
@@ -209,12 +208,12 @@ export class List<T, R:VirtualRow<T>> {
 	 * If shift is pressed, all items beginning from the nearest selected item to the clicked item are additionally selected.
 	 * If neither ctrl nor shift are pressed only the clicked item is selected.
 	 */
-	_elementClicked(clickedEntity: T) {
+	_elementClicked(clickedEntity: T, event: MouseEvent) {
 		let mobileMultiSelectionActive = false //TODO set when mobile multi selection is implemented
 
 		let selectionChanged = false
 		let multiSelect = false
-		if (this._config.multiSelectionAllowed && (mobileMultiSelectionActive || (client.isMacOS ? keyManager.isMetaPressed() : keyManager.isCtrlPressed()))) {
+		if (this._config.multiSelectionAllowed && (mobileMultiSelectionActive || (client.isMacOS ? event.metaKey : event.ctrlKey))) {
 			selectionChanged = true
 			multiSelect = true
 			if (this._selectedEntities.indexOf(clickedEntity) != -1) {
@@ -222,7 +221,7 @@ export class List<T, R:VirtualRow<T>> {
 			} else {
 				this._selectedEntities.push(clickedEntity)
 			}
-		} else if (this._config.multiSelectionAllowed && keyManager.isShiftPressed()) {
+		} else if (this._config.multiSelectionAllowed && event.shiftKey) {
 			multiSelect = true
 			if (this._selectedEntities.length == 0) {
 				// no item is selected, so treat it as if shift was not pressed

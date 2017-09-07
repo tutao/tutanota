@@ -40,9 +40,6 @@ export const Keys = {
 }
 
 class KeyManager {
-	_ctrlDown: boolean;
-	_shiftDown: boolean;
-	_metaDown: boolean;
 	_shortcuts: Shortcut[];
 	_keyToShortcut: {[id:string]:Shortcut};
 	_modalShortcuts: Shortcut[]; // override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
@@ -50,9 +47,6 @@ class KeyManager {
 	_helpDialog: ?any;
 
 	constructor() {
-		this._ctrlDown = false
-		this._shiftDown = false
-		this._metaDown = false
 		let helpShortcut = {
 			key: Keys.F1,
 			exec: () => {
@@ -97,50 +91,20 @@ class KeyManager {
 
 		window.document.addEventListener("keydown", e => {
 			let keyCode = e.which
-			if (keyCode == Keys.SHIFT.code) {
-				this._shiftDown = true
-			}
-			if (keyCode == Keys.CTRL.code) {
-				this._ctrlDown = true
-			}
-			if (keyCode == Keys.META.code) {
-				this._metaDown = true
-			}
 			let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut
-			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, this._ctrlDown, this._shiftDown, this._metaDown)]
+			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, e.ctrlKey, e.shiftKey, e.metaKey)]
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec({
 						keyCode,
-						ctrl: this._ctrlDown,
-						shift: this._shiftDown,
-						meta: this._metaDown
+						ctrl: e.ctrlKey,
+						shift: e.shiftKey,
+						meta: e.metaKey
 					}) !== true) {
 					e.preventDefault()
 				}
 			}
 		}, false);
 
-		window.document.addEventListener("keyup", (e) => {
-			// e.shiftKey and e.ctrlKey do not work correctly in Firefox, so we check the key code
-			let keyCode = e.which
-			if (keyCode == Keys.SHIFT.code) {
-				this._shiftDown = false
-			}
-			if (keyCode == Keys.CTRL.code) {
-				this._ctrlDown = false
-			}
-			if (keyCode == Keys.META.code) {
-				this._metaDown = false
-			}
-
-		}, false);
-
-		// reset the down key status if the focus is lost, e.g. click in address bar or tab change
-		window.addEventListener("blur", () => {
-			this._ctrlDown = false
-			this._shiftDown = false
-			this._metaDown = false
-		}, false)
 	}
 
 	_getShortcutName(shortcut: Shortcut): string {
@@ -184,17 +148,6 @@ class KeyManager {
 		}
 	}
 
-	isCtrlPressed(): boolean {
-		return this._ctrlDown
-	}
-
-	isShiftPressed(): boolean {
-		return this._shiftDown
-	}
-
-	isMetaPressed(): boolean {
-		return this._metaDown
-	}
 }
 
 export const keyManager: KeyManager = new KeyManager()
