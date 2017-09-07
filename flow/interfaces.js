@@ -59,7 +59,6 @@ interface IUserController {
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
 	sessionElementId: Id;
-	customizations: ?NumberString[];
 	isAdmin():boolean;
 	isFreeAccount(): boolean;
 	isPremiumAccount(): boolean;

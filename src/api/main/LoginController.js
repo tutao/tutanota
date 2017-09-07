@@ -4,6 +4,7 @@ import {getHttpOrigin} from "../Env"
 
 class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
+	customizations: ?NumberString[];
 
 	isUserLoggedIn() {
 		return this._userController != null
@@ -33,7 +34,17 @@ class LoginController {
 	}
 
 	isEnabled(feature: FeatureEnum): boolean {
-		return (this._userController != null && this._userController.customizations != null) ? this._userController.customizations.indexOf(feature) !== -1 : true
+		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
+	}
+
+	loadCustomizations(): Promise<void> {
+		if (this.isInternalUserLoggedIn()) {
+			return this.getUserController().loadCustomer().then(customer => {
+				this.customizations = customer.customizations.map(f => f.feature)
+			})
+		} else {
+			return Promise.resolve()
+		}
 	}
 }
 

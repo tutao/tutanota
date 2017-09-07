@@ -72,7 +72,7 @@ export class LoginViewController {
 
 	_handleSession(login: Promise<void>, errorAction: handler<void>): Promise<void> {
 		return login.then(() => this._enforcePasswordChange())
-			.then(() => logins.getUserController().loadCustomer())
+			.then(() => logins.loadCustomizations())
 			.then(() => this._postLoginActions())
 			.then(() => {
 				m.route.set(this.view._requestedPath)
