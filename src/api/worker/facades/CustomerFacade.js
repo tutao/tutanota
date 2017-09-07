@@ -182,7 +182,7 @@ export class CustomerFacade {
 						return workerImpl.sendProgress(35).then(() => {
 							return groupManagementFacade.generateInternalGroupData(adminGroupKey, adminGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(adminGroupData => {
 								return workerImpl.sendProgress(65).then(() => {
-									groupManagementFacade.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
+									return groupManagementFacade.generateInternalGroupData(customerGroupKey, customerGroupInfoSessionKey, adminGroupKey, customerGroupKey).then(customerGroupData => {
 										return workerImpl.sendProgress(95).then(() => {
 											let data = createCustomerAccountCreateData()
 											data.authToken = authToken
