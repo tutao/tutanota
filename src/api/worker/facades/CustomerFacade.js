@@ -257,7 +257,7 @@ export class CustomerFacade {
 					})
 				})
 			})
-		})
+		}).then(() => this.contactFormUserGroupData = null)
 	}
 
 	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountTypeEnum): Aes128Key {
