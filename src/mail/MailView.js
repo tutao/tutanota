@@ -12,7 +12,7 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
-import {OperationType, GroupType} from "../api/common/TutanotaConstants"
+import {OperationType, GroupType, FeatureType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
 import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/EntityFunctions"
 import {createDeleteMailFolderData} from "../api/entities/tutanota/DeleteMailFolderData"
@@ -210,7 +210,7 @@ export class MailView {
 			{
 				key: Keys.SIX,
 				exec: () => this.selectedMailbox ? m.route.set(this.selectedMailbox.systemFolderButtons[5]._getUrl()) : null,
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action"
 			},
 		]
