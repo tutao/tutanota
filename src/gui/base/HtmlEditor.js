@@ -112,7 +112,7 @@ export class HtmlEditor {
 							'font-family': 'monospace',
 							"min-height": this._minHeight ? px(this._minHeight) : 'initial'
 						},
-						disabled: this._editor._enabled
+						disabled: !this._editor._enabled
 					}))])
 			])
 		}
