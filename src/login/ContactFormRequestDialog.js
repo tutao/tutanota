@@ -225,7 +225,7 @@ export class ContactFormRequestDialog {
 			return
 		}
 		let passwordCheck = Promise.resolve(true)
-		if (this._passwordForm._getPasswordStrength() < 80) {
+		if (this._passwordForm.isPasswordUnsecure()) {
 			passwordCheck = Dialog.confirm("contactFormPasswordNotSecure_msg")
 		}
 		passwordCheck.then(ok => {

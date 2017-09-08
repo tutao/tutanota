@@ -47,8 +47,12 @@ export class PasswordForm {
 				return {type: "neutral", text: "password1Neutral_msg"}
 			} else if (validateOldPassword && this._oldPasswordField.value() == this._newPasswordField.value()) {
 				return {type: "invalid", text: "password1InvalidSame_msg"}
-			} else if (enforcePasswordStrength && this._getPasswordStrength() < 100) {
-				return {type: "invalid", text: "password1InvalidUnsecure_msg"}
+			} else if (this.isPasswordUnsecure()) {
+				if (enforcePasswordStrength) {
+					return {type: "invalid", text: "password1InvalidUnsecure_msg"}
+				} else {
+					return {type: "valid", text: "password1InvalidUnsecure_msg"}
+				}
 			} else {
 				return {type: "valid", text: "passwordValid_msg"}
 			}
@@ -93,6 +97,10 @@ export class PasswordForm {
 
 	getNewPassword(): string {
 		return this._newPasswordField.value()
+	}
+
+	isPasswordUnsecure(): boolean {
+		return this._getPasswordStrength() < 100
 	}
 
 	/**
