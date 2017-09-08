@@ -40,7 +40,7 @@ import {createContactFormStatisticField} from "../../entities/tutanota/ContactFo
 assertWorkerOrNode()
 
 export class CustomerFacade {
-	contactFormUserGroupData: Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
+	contactFormUserGroupData: ?Promise<{userGroupKey: Aes128Key, userGroupData: InternalGroupData}>;
 
 	constructor() {
 	}
@@ -224,7 +224,7 @@ export class CustomerFacade {
 	 */
 	createContactFormUser(password: string, contactFormId: IdTuple, statisticFields: {name: string, value: string}[]): Promise<ContactFormAccountReturn> {
 		// we can not join all the following promises because they are running sync and therefore would not allow the worker sending the progress
-		return this.contactFormUserGroupData.then(contactFormUserGroupData => {
+		return neverNull(this.contactFormUserGroupData).then(contactFormUserGroupData => {
 			let {userGroupKey, userGroupData} = contactFormUserGroupData
 			return workerImpl.sendProgress(35).then(() => {
 				let data = createContactFormAccountData()
@@ -257,7 +257,10 @@ export class CustomerFacade {
 					})
 				})
 			})
-		}).then(() => this.contactFormUserGroupData = null)
+		}).then((result) => {
+			this.contactFormUserGroupData = null
+			return result
+		})
 	}
 
 	_getAccountGroupKey(keyData: SystemKeysReturn, accountType: AccountTypeEnum): Aes128Key {
