@@ -5,8 +5,7 @@ import {TextField} from "./TextField"
 import {Button} from "./Button"
 import {animations, height} from "./../animation/Animations"
 import {assertMainOrNode} from "../../api/Env"
-import {Icon, progressIcon} from "./Icon"
-import {BootIcons} from "./icons/BootIcons"
+import {progressIcon} from "./Icon"
 
 assertMainOrNode()
 
@@ -61,7 +60,6 @@ export class BubbleTextField<T> {
 					oncreate: vnode => this._domSuggestions = vnode.dom,
 					onmousedown: e => this.textField.skipNextBlur = true,
 				}, this.suggestions.map(s => m(s, {
-					onbeforeremove: e => this.suggestionAnimation,
 					clickHandler: e => {
 						this.selectedSuggestion = s
 						this.createBubbles()
@@ -86,7 +84,12 @@ export class BubbleTextField<T> {
 				if (query === this.textField.value().trim()) {
 					this.animateSuggestionsHeight(this.suggestions.length, newSuggestions.length)
 					this.suggestions = newSuggestions
-					this.selectedSuggestion = null
+					if (this.suggestions.length > 0) {
+						this.selectedSuggestion = this.suggestions[0]
+						this.selectedSuggestion.selected = true
+					} else {
+						this.selectedSuggestion = null
+					}
 					this.previousQuery = query
 					if (this.textField.value() !== this.textField._domInput.value) {
 						// 1.) update before redraw to workaround missing updates
