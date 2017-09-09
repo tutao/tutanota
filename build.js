@@ -19,6 +19,7 @@ let watch = process.argv.indexOf("watch") === -1 ? undefined : () => {
 	}
 
 promise
+	.then(() => fs.copyAsync(path.join(__dirname, '/resources/favicon'), path.join(__dirname, '/build/images')))
 	.then(() => fs.copyAsync(path.join(__dirname, '/libs'), path.join(__dirname, '/build/libs')))
 	.then(() => {
 		const version = require('./package.json').version
