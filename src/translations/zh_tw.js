@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2017-03-23T10:20:18Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:21:37Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "抱歉，你的Tutanota帳戶已被停用。請與管理員聯繫。",
@@ -171,7 +171,7 @@ module.exports = {
 		"deactivated_label": "已停用",
 		"deactivatePremiumWithCustomDomainError_msg": "使用自訂域名的用戶登入時無法切換到Tutanota免費帳戶。",
 		"deactivate_action": "停用",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\n透過Tutanota安全的寄出，從今天開始保衛你的郵箱。\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\n透過Tutanota安全的寄出，從今天開始保衛你的郵箱。\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "預設寄出郵件至外部收件人的設定：加密或不加密",
 		"defaultExternalDelivery_label": "默認傳送",
 		"defaultSenderMailAddressInfo_msg": "新郵件的預設寄件人地址。",

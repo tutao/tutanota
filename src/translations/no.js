@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:15:43Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Din Tutanota konto er dessverre deaktivert. Vennligst kontakt administrator.",
@@ -174,7 +174,7 @@ module.exports = {
 		"deactivated_label": "Deaktivert",
 		"deactivatePremiumWithCustomDomainError_msg": "Kan ikke bytte til Tutanota Free når innlogget med eget domene.",
 		"deactivate_action": "Deaktiver",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nSikkert sent med Tutanota. Krev din kryptert postkassen i dag!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSikkert sent med Tutanota. Krev din kryptert postkassen i dag!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Standardinnstillingen for å sende en ny e-post til en ekstern mottaker: konfidensiell (ende-til-ende-kryptert) eller ikke-konfidensiell (ikke ende-til-ende-kryptert).",
 		"defaultExternalDelivery_label": "Standard levering",
 		"defaultSenderMailAddressInfo_msg": "Standard avsender-adresse for ny e-post.",

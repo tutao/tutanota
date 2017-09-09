@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-09-09T17:14:17Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Diemžēl, jūsu Tutanota konts tika deaktivizēts. Lūdzu sazinieties ar savu administratoru.",
@@ -115,7 +115,7 @@ module.exports = {
 		"db_label": "db",
 		"deactivated_label": "Deaktivizēts",
 		"deactivate_action": "Deaktivizēt",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nDroši nosūtīts ar Tutanota. Pieprasi savu šifrēto e-pasta kastīti šodien!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nDroši nosūtīts ar Tutanota. Pieprasi savu šifrēto e-pasta kastīti šodien!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Noklusējuma iestatījumi sūtot jaunu e-vēstuli ārējam saņēmējam: konfidenciāla (no viena gala līdz otram šifrēta) vai neprivāta (nešifrēta no viena gala līdz otram).",
 		"defaultSenderMailAddress_label": "Noklusējuma sūtītājs",
 		"deleteAccountDeleted_msg": "Jūsu konts tiek dzēsts.",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-02-06T09:56:56Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:18:12Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është shkallmu. Të lutem, kontaktoje përgjegjësin.",
@@ -174,7 +174,7 @@ module.exports = {
 		"deactivated_label": "Shkallmu",
 		"deactivatePremiumWithCustomDomainError_msg": "Nuk mund të kalosh në llogari falas të Tutanotës kur ke hy si përdorës i një domeni vetanak.",
 		"deactivate_action": "Shkallmoje",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nDërgu me shërbimin e sigurtë Tutanota. Hap edhe ti tani llogari të kriptuar!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nDërgu me shërbimin e sigurtë Tutanota. Hap edhe ti tani llogari të kriptuar!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Ujdisja e parazgjedhur për me i dërgu mesazhe të reja marrësve të jashtëm: nbesë (fundekrye kriptu) ose jonbesë (pa kriptu fundekrye).",
 		"defaultExternalDelivery_label": "Dorëzimi i parazgjedhur ",
 		"defaultSenderMailAddressInfo_msg": "Adresa e parazgjedhur e dërguesit për mesazhe të reja.",

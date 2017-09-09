@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:20:54Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ne yazık ki Tutanota hesabınız devre dışı bırakıldı. Lütfen yöneticinize başvurunuz.",
@@ -225,7 +225,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Özel alan adı kullanıcısı olarak giriş yapıldığında Tutanota ücretsiz hesabına geçiş  yapılamaz.",
 		"deactivate_action": "Etkisizleştir",
 		"defaultColor_label": "Varsayılan renk: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nTutanota ile güvenli bir şekilde gönderildi. Şifrelenmiş posta kutunuza bugün sahip olun!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nTutanota ile güvenli bir şekilde gönderildi. Şifrelenmiş posta kutunuza bugün sahip olun!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Dış alıcıya gönderilen yeni eposta için varsayılan ayarlar: gizli (uçtan-uca şifreli) yada gizli değil (uçtan-uca şifresiz).",
 		"defaultExternalDelivery_label": "Varsayılan teslim",
 		"defaultSenderMailAddressInfo_msg": "Yeni epostalar için varsayılan posta gönderen adresi.",

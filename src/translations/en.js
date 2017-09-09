@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-08-30T14:36:11Z",
+	"updated_at": "2017-09-09T17:08:19Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -159,7 +159,7 @@ module.exports = {
 		"contactFormReportInfo_msg": "Export a CSV log of all contact form requests including user provided statistic data.",
 		"contactFormReport_label": "Contact form report",
 		"contactFormStatisticFieldsInfo_msg": "The following details are used for statistical purposes only and are voluntary.",
-
+		"contactFormSubmitConfirm_msg": "Your request has been successfully submitted. Please note down the following email address to read the answer to your request. Click \\\"Save\\\" to store the email address and your password in this browser and automatically login later.",
 		"contactFormSubmitError_msg": "Sorry, your request could not be completed. Please try again later.",
 		"contactForms_label": "Contact forms",
 		"contactForm_label": "Contact form",
@@ -236,7 +236,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Cannot switch to a Tutanota Free account when logged in with a custom domain user.",
 		"deactivate_action": "Deactivate",
 		"defaultColor_label": "Default color: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nSecurely sent with Tutanota. Claim your encrypted mailbox today!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSecurely sent with Tutanota. Claim your encrypted mailbox today!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "The default setting for sending a new email to an external recipient: confidential (end-to-end encrypted) or not confidential (not end-to-end encrypted).",
 		"defaultExternalDelivery_label": "Default delivery",
 		"defaultSenderMailAddressInfo_msg": "The default sender mail address for new emails.",
@@ -901,7 +901,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"contactFormSubmitConfirm_msg": "Your request has been successfully submitted. Please note down the following email address to read the answer to your request. Click \"Save\" to store the email address and your password in this browser and automatically login later.",
+		"yourMessage_label": "Your message"
 	}
 }

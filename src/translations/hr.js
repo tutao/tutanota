@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-09-09T17:12:38Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Na žalost vaš Tutanota račun je deaktiviran. Molimo kontaktirajte vašeg administratora.",
@@ -150,7 +150,7 @@ module.exports = {
 		"deactivated_label": "Deaktivirana",
 		"deactivatePremiumWithCustomDomainError_msg": "Nije moguće prebaciti se na Tutanota besplatni račun kada ste prijavljeni kao korisnik s vlastitom domenom.",
 		"deactivate_action": "Deaktiviraj",
-		"defaultEmailSignature_msg": "<br>⏎ \n--⏎ \n<br>⏎ \nSigurno poslano s Tutanotom. Uzmite i vi svoj šifrirani e-mail pretinac! ⏎ \n<br>⏎ \n{1}",
+		"defaultEmailSignature_msg": "--⏎ \n<br>⏎ \nSigurno poslano s Tutanotom. Uzmite i vi svoj šifrirani e-mail pretinac! ⏎ \n<br>⏎ \n{1}",
 		"defaultExternalDeliveryInfo_msg": "Uobičajena postavka za slanje novog emaila za vanjske primatelje: povjerljivo (od izvora do odredišta šifrirano) ili nepovjerljivih (nisu šifrirani od izvora do odredišta).",
 		"defaultExternalDelivery_label": "Uobičajeno",
 		"defaultSenderMailAddressInfo_msg": "Uobičajeni email za slanje novih poruka.",

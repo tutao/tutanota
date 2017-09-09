@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:16:59Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Infelizmente, a sua conta do Tutanota foi desativada. Por favor, contacte o seu administrador.",
@@ -213,7 +213,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Não pode mudar para uma conta Tutanota Free quando está conectado com um utilizador de um domínio personalizado.",
 		"deactivate_action": "Desativar",
 		"defaultColor_label": "Cor por omissão: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nEnviado de forma segura com Tutanota. Obtenha já a sua caixa de correio encriptada! \n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nEnviado de forma segura com Tutanota. Obtenha já a sua caixa de correio encriptada! \n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Definição padrão para o envio de novos emails para destinatários externos: confidencial (encriptado ponta a ponta) ou não-confidencial (não encriptado ponta a ponta).",
 		"defaultExternalDelivery_label": "Entrega padrão",
 		"defaultSenderMailAddressInfo_msg": "Endereço de correio padrão para novos emails.",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2017-02-03T07:15:04Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:17:36Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "අවාසනාවකට මෙන්, ඔබේ Tutanota ගිණුම නිශ්ක්රීය කරන ලදී. ඔබගේ පරිපාලක අමතන්න.",
@@ -75,7 +75,7 @@ module.exports = {
 		"customers_label": "පාරිභෝගිකයන්",
 		"custom_label": "වෙනත් විදිහකින්",
 		"date_label": "දිනය",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nආරක්ෂිතව Tutanota මගින් යැවීය. අදම ඔබගේ සුරක්ෂිත ඊ තැපැල් පෙට්ටිය ලබාගන්න !\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nආරක්ෂිතව Tutanota මගින් යැවීය. අදම ඔබගේ සුරක්ෂිත ඊ තැපැල් පෙට්ටිය ලබාගන්න !\n<br>\n{1}",
 		"defaultSenderMailAddressInfo_msg": "නව විද්‍යුත් ලිපි සඳහා පෙරනිමි යවන්නාගේ තැපැල් ලිපිනය.",
 		"defaultSenderMailAddress_label": "පෙරනිමි යවන්නා",
 		"deleteAccountDeleted_msg": "ඔබගේ ගිණුම දැන් මකා දමමින් පවතී.",

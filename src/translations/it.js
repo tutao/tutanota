@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:14:10Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:13:14Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Purtroppo il tuo account Tutanota è stato disattivato. Ti chiediamo di contattare il tuo amministratore.",
@@ -172,7 +172,7 @@ module.exports = {
 		"deactivated_label": "Disattivato",
 		"deactivatePremiumWithCustomDomainError_msg": "Non è possibile ritornare all'account Tutanota Free quando l'accesso viene eseguito con un dominio personalizzato.",
 		"deactivate_action": "Disattiva",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nInviato in modo sicuro con Tutanota. Ottieni oggi stesso la tua mailbox crittografata!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nInviato in modo sicuro con Tutanota. Ottieni oggi stesso la tua mailbox crittografata!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Le impostazioni predefinite per inviare una nuova email ad un ricevente esterno: confidenziale (crittografia end-to-end) o non confidenziale (senza crittografia).",
 		"defaultExternalDelivery_label": "Consegna di default",
 		"defaultSenderMailAddressInfo_msg": "Indirizzo mittente predefinito per le nuove emails.",

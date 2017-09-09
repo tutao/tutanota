@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2017-08-30T08:33:34Z",
+	"updated_at": "2017-09-09T17:17:26Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "很不幸，您的Tutanota帐户已停用，请联系管理员。",
@@ -235,7 +235,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "用自有域名登陆的用户无法转换成 Tutanota 免费用户。",
 		"deactivate_action": "停用",
 		"defaultColor_label": "默认颜色：{1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\n用 Tutanota 确保发送安全，今天，宣示您的加密邮箱！\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\n用 Tutanota 确保发送安全，今天，宣示您的加密邮箱！\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "默认外发邮件设置：加密（端到端加密）或者不加密（非端到端加密）。",
 		"defaultExternalDelivery_label": "默认投递",
 		"defaultSenderMailAddressInfo_msg": "新邮件默认发送方。",

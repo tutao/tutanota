@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2017-07-24T10:55:40Z",
+	"updated_at": "2017-09-09T17:13:00Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sayangnya, akun Tutanota Anda telah dinonaktifkan. Mohon hubungi administrator Anda.",
@@ -164,7 +164,7 @@ module.exports = {
 		"deactivated_label": "Dinonaktifkan",
 		"deactivatePremiumWithCustomDomainError_msg": "Tidak beralih beralih ke akun Tutanota gratis saat masuk menggunakan pengguna domain khusus.",
 		"deactivate_action": "Nonaktifkan",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nDengan aman dikirim menggunakan Tutanota. Klaim kotak surat terenkripsi Anda sekarang!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nDengan aman dikirim menggunakan Tutanota. Klaim kotak surat terenkripsi Anda sekarang!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Pengaturan baku untuk mengirim surel baru ke penerima eksternal: rahasia (terenkripsi ujung-ke-ujung) atau bukan rahasia (tidak terenkripsi ujung-ke-ujung).",
 		"defaultExternalDelivery_label": "Pengiriman baku",
 		"defaultSenderMailAddressInfo_msg": "Alamat surel pengirim baku untuk surel baru.",

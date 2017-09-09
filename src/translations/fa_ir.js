@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:16:06Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "متاسفانه، حساب Tutanota غیر فعال شده است. لطفا با سرپرست خود تماس بگیرید.",
@@ -144,7 +144,7 @@ module.exports = {
 		"date_label": "تاریخ",
 		"db_label": "پایگاه داده",
 		"deactivate_action": "غیر فعال کردن",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nارسال ایمن با Tutanota. صندوق ایمیل رمزگذاری شده خود را امروز مطالبه کنید!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nارسال ایمن با Tutanota. صندوق ایمیل رمزگذاری شده خود را امروز مطالبه کنید!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "تنظیم پیش فرض برای ایمیل های جدید به گیرندگان خارجی: محرمانه (رمزگذاری دوطرفه) و یا غیرمحرمانه (رمزگذاری دوطرفه نیست).",
 		"defaultExternalDelivery_label": "تحویل پیش فرض",
 		"defaultSenderMailAddressInfo_msg": "آدرس فرستنده به طور پیش فرض برای ایمیل جدید.",

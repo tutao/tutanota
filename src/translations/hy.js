@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2017-03-13T12:51:20Z",
-	"updated_at": "2017-07-24T10:55:41Z",
+	"updated_at": "2017-09-09T17:10:04Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Ցավոք, ձեր հաշիվը Tutanota ֊ում ապակտիվացել է։ Խնդրում ենք կապնվել ձեր ադմինի հետ։",
@@ -115,7 +115,7 @@ module.exports = {
 		"date_label": "Ամսաթիվ",
 		"db_label": "db",
 		"deactivateAlias_msg": "Հիմա մենք կապակտիվացնեք այլընտրանքային հասցե {1}։ Դուք կարող եք գրանցել իրեն որպես նոր փոստ կամ կրկին օգտագործել որպես այլընտրանքային։",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nՈւղարկվել է գաղտնի Tutanota ֊ի հետ։ Պահանջեք այսօր Ձեր ծածկագրված փոստարկղը։\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nՈւղարկվել է գաղտնի Tutanota ֊ի հետ։ Պահանջեք այսօր Ձեր ծածկագրված փոստարկղը։\n<br>\n{1}",
 		"defaultExternalDelivery_label": "Առաքում լռելյայն",
 		"defaultSenderMailAddressInfo_msg": "Ուղարկողի հասցեն լռելյայն նոր փոստով հաղորդագրությունների համար։",
 		"defaultSenderMailAddress_label": "Լռելյայն Ուղարկող",

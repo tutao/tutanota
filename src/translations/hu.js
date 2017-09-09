@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:12:49Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sajnáljuk, de a Tutanota fiókja letiltásra került. Lépjen kapcsolatba a rendszergazdájával.",
@@ -225,7 +225,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Egyéni domain felhasználó esetén nem lehet visszaváltani az ingyenes Tutanota fiókra.",
 		"deactivate_action": "Kikapcsolás",
 		"defaultColor_label": "Alapértelmezett szín: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nBiztonságosan elküldve a Tutanota levelezőrendszerrel. Igényelje titkosított postafiókját még ma!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nBiztonságosan elküldve a Tutanota levelezőrendszerrel. Igényelje titkosított postafiókját még ma!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Külső címzettnek történő küldés esetén az alapértelmezett beállítás: bizalmas (végponti titkosítással) vagy nem bizalmas (végponti titkosítás nélkül).",
 		"defaultExternalDelivery_label": "Alapértelmezett kézbesítés",
 		"defaultSenderMailAddressInfo_msg": "Az alapértelmezett küldési cím új levelek esetében.",

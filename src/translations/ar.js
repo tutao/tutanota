@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:09:44Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "للأسف، تم إلغاء تفعيل حسابك على توتانوتا. يرجى الاتصال بالمسؤول.",
@@ -224,7 +224,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "لا يمكن التبديل إلى حساب Tutanota مجاني عند تسجيل الدخول مع مستخدم ذي خادم مخصص.",
 		"deactivate_action": "تعطيل",
 		"defaultColor_label": "اللون الافتراضي: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nمُرسل بأمان باستخدام توتانوتا. احصل لنفسك على بريد مشفر اليوم!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nمُرسل بأمان باستخدام توتانوتا. احصل لنفسك على بريد مشفر اليوم!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "الإعداد الافتراضي لإرسال رسالة بريد إلكتروني جديدة إلى مستلم خارجي: سرية (نهاية - إلى - نهاية مشفرة) أو غير سرية (ليست مشفرة نهاية - إلى - نهاية).",
 		"defaultExternalDelivery_label": "التسليم الافتراضي",
 		"defaultSenderMailAddressInfo_msg": "عنوان البريد المرسل الافتراضي لرسائل البريد الإلكتروني الجديدة.",

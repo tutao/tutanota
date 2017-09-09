@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-08-30T14:41:20Z",
+	"updated_at": "2017-09-09T17:10:53Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -159,7 +159,7 @@ module.exports = {
 		"contactFormReportInfo_msg": "Exportiert ein CSV-Log von allen Kontaktanfragen und den statistischen Daten, die von den Users eingegeben wurden.",
 		"contactFormReport_label": "Kontaktformular Auswertung",
 		"contactFormStatisticFieldsInfo_msg": "Die folgenden Angaben dienen statistischen Zwecken und sind freiwillig.",
-
+		"contactFormSubmitConfirm_msg": "Ihre Anfrage wurde erfolgreich übermittelt. Bitte notieren Sie sich die folgende E-Mail-Adresse, um später unsere Antwort lesen zu können. Wählen Sie \\\"Speichern\\\", um die E-Mail-Addresse zusammen mit Ihrem Passwort in diesem Browser zu speichern und automatisch eingeloggt zu werden.",
 		"contactFormSubmitError_msg": "Leider konnte Ihre Anfrage nicht zugestellt werden. Bitte versuchen Sie es später erneut.",
 		"contactForms_label": "Kontaktformulare",
 		"contactForm_label": "Kontaktformular",
@@ -236,7 +236,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "Es ist nicht möglich mit einer eigenen Domain auf einen Tutanota-Free-Account zu wechseln.",
 		"deactivate_action": "Deaktivieren",
 		"defaultColor_label": "Standardfarbe: {1}",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nSicher gesendet mit Tutanota. Hol dir jetzt deine verschlüsselte Mailbox!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nSicher gesendet mit Tutanota. Hol dir jetzt deine verschlüsselte Mailbox!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Die Voreinstellung für neue E-Mails an externe Empfänger: Vertraulich (Ende-zu-Ende verschlüsselt) oder nicht vertraulich (nicht Ende-zu-Ende verschlüsselt).",
 		"defaultExternalDelivery_label": "Standard-Übertragung",
 		"defaultSenderMailAddressInfo_msg": "Die voreingestellte Absender-Adresse für neue E-Mails.",
@@ -901,7 +901,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"contactFormSubmitConfirm_msg": "Ihre Anfrage wurde erfolgreich übermittelt. Bitte notieren Sie sich die folgende E-Mail-Adresse, um später unsere Antwort lesen zu können. Wählen Sie \"Speichern\", um die E-Mail-Addresse zusammen mit Ihrem Passwort in diesem Browser zu speichern und automatisch eingeloggt zu werden.",
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

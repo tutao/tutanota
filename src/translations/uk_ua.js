@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:21:09Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "На жаль ваш обліковий запис Tutanota було відключено. Будь ласка зв'яжіться із своїм адміністратором.",
@@ -161,7 +161,7 @@ module.exports = {
 		"deactivated_label": "Деактивовано",
 		"deactivatePremiumWithCustomDomainError_msg": "Неможливо перемкнути на безкоштовний обліковий запис Tutanota в статусі залогіненого  користувача настроюваного домену.",
 		"deactivate_action": "Деактивувати",
-		"defaultEmailSignature_msg": "<br>\n--\n<br>\nБезпечно надіслано через сервіс Tutanota. Вимагайте свого шифрованого поштового ящика вже сьогодні!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nБезпечно надіслано через сервіс Tutanota. Вимагайте свого шифрованого поштового ящика вже сьогодні!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Типове налаштування для надсилання нового ел. повідомлення до зовнішнього отримувача: конфіденційне ( наскрізне зашифроване) або не конфіденційне (не наскрізне зашифроване).",
 		"defaultExternalDelivery_label": "Типова доставка",
 		"defaultSenderMailAddressInfo_msg": "Типова ел. адреса відправника для нових повідомлень.",

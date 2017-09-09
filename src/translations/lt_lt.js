@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "other"],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-09-09T17:14:04Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Deja, jūsų Tutanota paskyra išjungta. Kreipkitės į jūsų administratorių.",
@@ -159,7 +159,7 @@ module.exports = {
 		"deactivated_label": "Deaktyvuota",
 		"deactivatePremiumWithCustomDomainError_msg": "Negalima pereiti prie Tutanota Nemokama sąskaitos, kai esate prisijungęs kaip užsakymo domeno vartotojas.",
 		"deactivate_action": "Išjungti",
-		"defaultEmailSignature_msg": "<br>⏎ \n--⏎ \n<br>⏎ \nSaugiai atsiųsta su Tutanota. Užsisakykite savo saugų paštą jau šiandien!⏎ \n<br>⏎ \n {1}",
+		"defaultEmailSignature_msg": "--⏎ \n<br>⏎ \nSaugiai atsiųsta su Tutanota. Užsisakykite savo saugų paštą jau šiandien!⏎ \n<br>⏎ \n {1}",
 		"defaultExternalDeliveryInfo_msg": "Naujų laiškų išoriniams gavėjams numatytasis siuntimo būdas: konfidencialiai (šifruotas nuo galo-iki-galo) arba nekonfidencialios (neužšifruotas).",
 		"defaultExternalDelivery_label": "Įprastinis pristatymas",
 		"defaultSenderMailAddressInfo_msg": "Numatytasis siuntėjo pašto adresas naujiems laiškams.",

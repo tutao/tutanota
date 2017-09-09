@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2017-08-30T08:09:05Z",
+	"updated_at": "2017-09-09T17:19:53Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kwa bahati mbaya, akaunti yako ya Tutanota kimezimwa. Tafadhali wasiliana na msimamizi wako.",
@@ -197,7 +197,7 @@ module.exports = {
 		"deactivateOwnAccountInfo_msg": "Huwezi kufuta akaunti msimamizi. Tafadhali ondoa msimamizi bendera ya kwanza.",
 		"deactivatePremiumWithCustomDomainError_msg": "Huwezi kubadilisha akaunti ya bure Tutanota wakati umeingia mtumiaji kikoa maalum.",
 		"deactivate_action": "Zima",
-		"defaultEmailSignature_msg": "<br>\n&#13;&#10;-\n&#13;&#10; <br>\n&#13;&#10; Imetumwa kwa usalama na Tutanota. Dai kikashabarua uliofichamishwa leo!\n&#13;&#10; <br>\n&#13;&#10;{1}",
+		"defaultEmailSignature_msg": "--\n<br>\nImetumwa kwa usalama na Tutanota. Dai kikashabarua uliofichamishwa leo!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "Mpangilio chaguo-msingi kwa ajili ya kutuma barua pepe mpya kwa mpokeaji nje: siri (ya mwisho hadi mwisho uliosimbwa) au sio siri (mwisho hadi mwisho kwa njia fiche).",
 		"defaultExternalDelivery_label": "Utoaji wa chaguo-msingi",
 		"defaultSenderMailAddressInfo_msg": "Chaguo-msingi mtumaji barua anwani barua pepe mpya.",
