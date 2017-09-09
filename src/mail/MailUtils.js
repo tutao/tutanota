@@ -102,5 +102,5 @@ export function getDefaultSenderFromUser(): string {
 }
 
 export function getDefaultSignature() {
-	return htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
+	return "<br><br>" + htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
 }

@@ -148,7 +148,7 @@ export class MailEditor {
 		if (logins.isInternalUserLoggedIn()) {
 			this.toRecipients.textField._injectionsRight = () => m(detailsExpander)
 			this.editor.initialized.promise.then(() => {
-				this.editor.squire.setHTML("<br><br>" + this._mailboxController.getEmailSignature())
+				this.editor.squire.setHTML(this._mailboxController.getEmailSignature())
 			})
 		} else {
 			this.toRecipients.textField.setDisabled()
@@ -294,10 +294,10 @@ export class MailEditor {
 	initAsResponse(previousMail: Mail, conversationType: ConversationTypeEnum, senderMailAddress: string, toRecipients: MailAddress[], ccRecipients: MailAddress[], bccRecipients: MailAddress[], attachments: TutanotaFile[], subject: string, bodyText: string, replyTos: EncryptedMailAddress[], addSignature: boolean): Promise<void> {
 		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		if (addSignature) {
-			bodyText = "<br><br><br><br>" + bodyText
+			bodyText = "<br><br><br>" + bodyText
 			let signature = this._mailboxController.getEmailSignature()
 			if (logins.getUserController().isInternalUser() && signature) {
-				bodyText = "<br>" + signature + bodyText
+				bodyText = signature + bodyText
 			}
 		}
 		let previousMessageId: ?string = null
