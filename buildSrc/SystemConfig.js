@@ -15,7 +15,7 @@ const dependencyMap = {
 	"mithril": "./libs/mithril.min.js",
 	"mithril/stream/stream.js": "./libs/stream.js",
 	"squire-rte": "./libs/squire.js",
-	"dompurify": "./libs/purify.js",
+	"dompurify": "./libs/purify.min.js",
 	"autolinker": "./libs/Autolinker.js",
 	"qrcode": "./libs/qrcode-svg.min.js",
 	"@hot": "@empty" // see https://github.com/alexisvincent/systemjs-hot-reloader#usage
