@@ -202,7 +202,7 @@ export class MailViewer {
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
 								m(".left", [
 									m(".subject", this.mail.subject),
-									m(".flex.items-center.content-accent-fg.svg-content-accent-fg", [
+									m(".flex.items-center.content-accent-fg.svg-content-accent-fg" + (this.mail.confidential ? ".ml-negative-xs" : ""), [
 										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
 										m("small.date.mt-xs", formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate))
 									]),
