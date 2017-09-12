@@ -327,7 +327,7 @@ export class Dialog {
 							m(".pb", message),
 							m("img[src=/graphics/hab.png].dialog-img.pb")
 						]),
-						m("a[href=" + link + "]", link)
+						m("a[href=" + link + "][target=_blank]", link)
 					]),
 					m(".flex-center.dialog-buttons", buttons.map(b => m(b)))
 				])
