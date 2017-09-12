@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2017-09-09T17:10:26Z",
+	"updated_at": "2017-09-11T17:25:40Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",
@@ -236,7 +236,7 @@ module.exports = {
 		"deactivatePremiumWithCustomDomainError_msg": "No es pot canviar a un compte gratuït Tutanota quan s'hagi identificat amb un usuari de domini personalitzat.",
 		"deactivate_action": "Desactiva",
 		"defaultColor_label": "El color per defecte: {1}",
-		"defaultEmailSignature_msg": "- -\n<br>\nEnviat segur amb Tutanota. \nDemana la teva bústia de correu xifrat avui!\n<br>\n{1}",
+		"defaultEmailSignature_msg": "- -\n<br>\nEnviat de forma segura amb Tutanota. \nDemana la teva bústia de correu xifrat avui!\n<br>\n{1}",
 		"defaultExternalDeliveryInfo_msg": "L'opció per defecte per a l'enviament d'un nou correu electrònic a un destinatari extern: confidencial (d'extrem a extrem xifrat)  o no confidencial (no d'extrem a extrem xifrat).",
 		"defaultExternalDelivery_label": "Entrega estàndard",
 		"defaultSenderMailAddressInfo_msg": "El remitent per defecte per als nous missatges de correu electrònic.",

@@ -566,7 +566,7 @@ export class MailEditor {
 								})
 						})
 
-					return Dialog.progress("sending_msg", send)
+					return Dialog.progress(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
 			})
 

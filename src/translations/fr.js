@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2017-09-09T17:12:08Z",
+	"updated_at": "2017-09-10T17:23:54Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Malheureusement, votre compte Tutanota a été désactivé. Veuillez contacter votre administrateur.",
@@ -159,7 +159,7 @@ module.exports = {
 		"contactFormReportInfo_msg": "Exporter un fichier CSV avec l'ensemble des demandes de fiches de contacts, y compris les données statistiques de l'utilisateur",
 		"contactFormReport_label": "Rapport de fiche de contact",
 		"contactFormStatisticFieldsInfo_msg": "Les détails suivant sont utilisés pour des raisons statistiques et sans profit.",
-		"contactFormSubmitConfirm_msg": "Votre requête a été envoyée avec succès. Veuillez noter les identifiants ci-dessous pour lire la réponse à votre requête. Cliquer sur \"Enregistrer\" pour stocker les identifiants dans ce navigateur et vous connecter automatiquement.",
+		"contactFormSubmitConfirm_msg": "Votre requête a été envoyée avec succès. Veuillez noter l'adresse email suivante pour lire la réponse à votre requête. Cliquer sur \"Enregistrer\" pour stocker l'adresse email et votre mot de passe dans ce navigateur et vous connecter automatiquement plus tard.",
 		"contactFormSubmitError_msg": "Désolé, votre requête ne peut pas être complétée. Veuillez essayer plus tard.",
 		"contactForms_label": "Formulaire de contact",
 		"contactForm_label": "Page de contact",

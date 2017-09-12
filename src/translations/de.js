@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-09-09T17:10:53Z",
+	"updated_at": "2017-09-12T14:25:55Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -759,6 +759,7 @@ module.exports = {
 		"sender_label": "Absender",
 		"sendingFailed_msg": "Die Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es später noch einmal.",
 		"sendingSms_msg": "SMS wird gesendet ...",
+		"sendingUnencrypted_msg": "Ihre Nachricht wird gesendet.",
 		"sending_msg": "Ihre Nachricht wird verschlüsselt und gesendet.",
 		"sendLogFile_action": "Log-Datei per E-Mail senden",
 		"sendMail_alt": "E-Mail an diese Adresse senden",
