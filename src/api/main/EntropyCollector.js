@@ -57,7 +57,9 @@ export class EntropyCollector {
 	 * @param source The source of the number. One of RandomizerInterface.ENTROPY_SRC_*.
 	 */
 	_addEntropy(data: number, entropy: number, source: EntropySrcEnum) {
-		this._entropyCache.push({source: source, entropy: entropy, data: data})
+		if (data) {
+			this._entropyCache.push({source: source, entropy: entropy, data: data})
+		}
 		if (typeof window !== 'undefined' && window.performance && typeof window.performance.now === "function") {
 			this._entropyCache.push({source: EntropySrc.time, entropy: 2, data: window.performance.now()})
 		} else {
