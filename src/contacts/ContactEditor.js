@@ -174,6 +174,7 @@ export class ContactEditor {
 					]),
 					m(".spacer")
 				]) : null,
+			m(".pb")
 		])
 
 		this.dialog = Dialog.largeDialog(headerBar, this)

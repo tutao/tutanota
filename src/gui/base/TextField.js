@@ -141,6 +141,7 @@ export class TextField {
 				style: {
 					height: px(0),
 					minHeight: px(size.font_size_base + 6),
+					minWidth: px(20) // fix for edge browser. buttons are cut off in small windows otherwise
 				}
 			})
 		}
@@ -150,10 +151,13 @@ export class TextField {
 		if (this.disabled) {
 			return m(".text-linebreaks", this.value())
 		} else {
+			let textAreaPaddingTop = 3
+			let textAreaLineHeight = size.font_size_base + 8 // fix for multiline editing
 			return m("textarea.input-area", {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
+					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * textAreaLineHeight + textAreaPaddingTop) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(e),
 				onblur: e => this.blur(e),
@@ -165,14 +169,16 @@ export class TextField {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
 						this.animate(true) // animate in case of browser autocompletion
 					}
-					this._domInput.style.height = '0px';
-					this._domInput.style.height = (this._domInput.scrollHeight) + 'px';
+					this._domInput.style.height = '0px'
+					this._domInput.style.height = px(this._domInput.scrollHeight)
 					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
 					marginTop: px(size.font_size_small + size.hpad_small),
-					height: px(0),
-					minHeight: px(size.font_size_base + 6),
+					minHeight: px(textAreaLineHeight + textAreaPaddingTop),
+					lineHeight: px(textAreaLineHeight),
+					paddingTop: px(textAreaPaddingTop),
+					minWidth: px(20) // fix for edge browser. buttons are cut off in small windows otherwise
 				}
 			})
 		}
