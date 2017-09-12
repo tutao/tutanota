@@ -106,7 +106,7 @@ export class List<T, R:VirtualRow<T>> {
 		this.onremove = reset
 
 		this._emptyMessageBox = new MessageBox(() => this._config.emptyMessage, "list-message-bg")
-		this._emptyMessageBox.setVisible(false)
+			.setVisible(false)
 
 		this.view = (vnode): VirtualElement => {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus", {

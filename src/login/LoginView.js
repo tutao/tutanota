@@ -91,7 +91,9 @@ export class LoginView {
 
 		this.view = (): VirtualElement => {
 			return m(".main-view.flex-center.scroll.pt-responsive", [
-				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", [
+				m(".flex-grow-shrink-auto.max-width-s.pt.pb.plr-l", {
+					style: {width: client.isDesktopDevice() ? "360px" : null} // workaround for IE11 which does not center the area, otherwise
+				}, [
 					this._visibleCredentials.length > 0 ? this.credentialsSelector() : this.loginForm(),
 					m(".flex-center.pt-l", [
 						m(optionsExpander),
