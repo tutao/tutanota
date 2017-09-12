@@ -367,7 +367,9 @@ export class MailEditor {
 
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
-			this.editor.squire.setHTML(this._tempBody)
+			if (this.editor.squire.getHTML() != body) {
+				this.editor.squire.setHTML(this._tempBody)
+			}
 			this._tempBody = null
 		})
 
