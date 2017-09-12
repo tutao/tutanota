@@ -25,7 +25,7 @@ module.exports.renderHtml = function (scripts, env) {
 			m("html", [
 				m("head", [
 					m("meta[charset=utf-8]"),
-					env.dist && env.mode === "App" ? m(`meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: ; style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`) : null,
+					env.dist && env.mode === "App" ? m(`meta[http-equiv=Content-Security-Policy][content=default-src 'self'; img-src http: data: *; style-src 'unsafe-inline'; connect-src 'self' ${getUrls(env)};]`) : null,
 					m("title", "Tutanota"),
 					m("meta[name=description][content=Secure email for everyone: Get your encrypted mailbox for free. Now you can show the online spies that you won&#39;t make it easy for them.]"),
 					m("link [rel=shortcut icon][type=image/x-icon][href=/images/logo-favicon-152.png]"),
