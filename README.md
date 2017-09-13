@@ -36,15 +36,14 @@ Pre-requisites:
 * An up-to-date version of git is installed
 * An up-to-date version of node js is installed
 
-If you have gulp globally installed you may use `build.sh` to build a electron application.
-
 Build steps:
 
-1. Build Tutanota web client using the instructions above.
-2. Copy all files under electron folder into the build directory.
-3. Change into the build directory.
-4. Install dependencies: `npm install`
-5. Use the following commands to run or build the application:
+1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
+2. Switch into the web directory: `cd tutanota/`
+3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4+`
+4. Switch into the web directory: `cd tutanota/electron`
+5. Install dependencies: `npm install`
+6. Use the following commands to run or build the application:
 
 `npm run start`
 `npm run build_linux`
