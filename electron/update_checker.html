@@ -64,9 +64,7 @@
         function CompareFiles()
         {
             for (var i = 0; i < new_files_list.length; i++)
-            {
-                $(".message_log").html("<span>Updating: " + i + "/" + new_files_list.length + "</span>");
-                
+            {                
                 var frequired = true;
                 for (var j = 0; j < old_files_list.length; j++)
                 {
@@ -120,8 +118,9 @@
                             files_updated++;
                         }); 
                     });
+                    $(".message_log").html("<span>Updating: " + files_updated + "/" + new_files_list.length + "</span>");
                     files_updated++;
-                    if ((files_updated + 1) == old_files_list.length)
+                    if ((files_updated + 1) == new_files_list.length)
                     {
                         //Open Application
                         window.location.href = "index.html";
