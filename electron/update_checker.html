@@ -61,6 +61,8 @@
         {
             for (var i = 0; i < new_files_list.length; i++)
             {
+                $(".message_log").html("<span>Updating: " + i + "/" + new_files_list.length + "</span>");
+                
                 var frequired = true;
                 for (var j = 0; j < old_files_list.length; j++)
                 {
@@ -84,7 +86,6 @@
 
         function DownloadFile(file_path)
         {
-            $(".message_log").html("<span>Updating: " + i + "/" + new_files_list.length + "</span>");
             //Create Dir if does not exist
             var file_dir = file_path.substring(0, file_path.lastIndexOf("/") + 1);
             if (file_dir != "" && !fs.existsSync(file_dir))
