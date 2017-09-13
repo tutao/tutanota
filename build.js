@@ -30,8 +30,8 @@ promise
 			])
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.devConfig(), "https://app.tutanota.com", version, "Browser")),
-				createHtml(env.create(SystemConfig.devConfig(), "https://app.tutanota.com", version, "App"))
+				createHtml(env.create(SystemConfig.devConfig(), "https://mail.tutanota.com", version, "Browser")),
+				createHtml(env.create(SystemConfig.devConfig(), "https://mail.tutanota.com", version, "App"))
 			])
 		} else {
 			return Promise.all([

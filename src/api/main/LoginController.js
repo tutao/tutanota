@@ -30,7 +30,7 @@ class LoginController {
 
 	isProdDisabled() {
 		// we enable certain features only for certain customers in prod
-		return getHttpOrigin().startsWith("https://app.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0'
+		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0'
 	}
 
 	isEnabled(feature: FeatureEnum): boolean {

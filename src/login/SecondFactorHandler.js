@@ -127,7 +127,7 @@ export class SecondFactorHandler {
 							((u2fSupport && keyForThisDomainExisting) || otpChallenge != null) ? lang.get("secondFactorPending_msg") : lang.get("secondFactorPendingOtherClientOnly_msg"),
 							otpChallenge != null ? m(".left.mlr-l", m(otpCode)) : null,
 						]),
-						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain + "/beta"}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain + "/beta"})) : null
+						(otherLoginDomain && !keyForThisDomainExisting) ? m("a", {href: "https://" + otherLoginDomain}, lang.get("differentSecurityKeyDomain_msg", {"{domain}": "https://" + otherLoginDomain})) : null
 					])
 				})
 				this._waitingForSecondFactorDialog.show()
@@ -167,5 +167,5 @@ export const secondFactorHandler: SecondFactorHandler = new SecondFactorHandler(
 
 export function appIdToLoginDomain(appId: string): string {
 	let domain = appId.split("/")[2]
-	return (domain != "tutanota.com" ? domain : "app.tutanota.com")
+	return (domain != "tutanota.com" ? domain : "mail.tutanota.com")
 }

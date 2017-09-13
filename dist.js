@@ -76,8 +76,8 @@ clean()
 			])
 		} else if (process.argv.indexOf("prod") !== -1) {
 			return Promise.all([
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://app.tutanota.com", version, "Browser", true), bundles),
-				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://app.tutanota.com", version, "App", true), bundles)
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "Browser", true), bundles),
+				createHtml(env.create(SystemConfig.distRuntimeConfig(bundles), "https://mail.tutanota.com", version, "App", true), bundles)
 			])
 		} else {
 			return Promise.all([

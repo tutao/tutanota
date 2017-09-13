@@ -68,7 +68,7 @@ public class MainActivity extends Activity {
     private String getUrl() {
         switch (BuildConfig.BUILD_TYPE) {
             case "debug":
-                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/beta/client/build/local-app";
+                return "http://" + BuildConfig.hostname.split("\\.")[0] + ":9000/client/build/local-app";
             case "debugDist":
                 return "file:///android_asset/tutanota/local-app.html";
             default:
