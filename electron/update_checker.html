@@ -77,7 +77,7 @@
 
                 if (frequired)
                 {
-                    DownloadFile(new_files_list[i].file)
+                    DownloadFile(path.join(__dirname, new_files_list[i].file));
                 }
             }
             //Open Application
