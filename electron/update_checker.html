@@ -31,9 +31,9 @@
             data: "",
             success: function(data){
                 console.log(data['version']);
-                if (data['version'] != "2.14.5")
+                if (data['version'] != "2.14.6")
                 {
-                    $(".message_log").html("<span>Please update tutanota application.</span>");
+                    $(".message_log").html("<span>Please update tutanota application.<br /><a href='https://github.com/zeeshan595/tutanota/releases'>https://github.com/zeeshan595/tutanota/releases</a></span>");
                 }
                 else
                 {
