@@ -7,7 +7,7 @@ import {formatDateWithMonth} from "../misc/Formatter"
 import {ContactEditor} from "./ContactEditor"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
-import {TextField} from "../gui/base/TextField"
+import {TextField, Type} from "../gui/base/TextField"
 import {erase} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
@@ -62,6 +62,7 @@ export class ContactViewer {
 		})
 		this.addresses = this.contact.addresses.map(element => {
 			return new TextField(() => getContactAddressTypeLabel((element.type:any), element.customTypeName))
+				.setType(Type.Area)
 				.setValue(element.address)
 				.setDisabled()
 		})
@@ -86,7 +87,7 @@ export class ContactViewer {
 					], m("span", " | ")),
 					m("hr.hr.mt-l"),
 
-					this.mailAddresses.length > 0 || this.phones.length > 0 ? m(".flex.contact-row", [
+					this.mailAddresses.length > 0 || this.phones.length > 0 ? m(".wrapping-row", [
 							m(".mail.mt-l", this.mailAddresses.length > 0 ? [
 									m(".h4", lang.get('email_label')),
 									m(".aggregateEditors", [
@@ -101,7 +102,7 @@ export class ContactViewer {
 								] : null),
 						]) : null,
 
-					this.addresses.length > 0 || this.socials.length > 0 ? m(".flex.contact-row", [
+					this.addresses.length > 0 || this.socials.length > 0 ? m(".wrapping-row", [
 							m(".address.mt-l", this.addresses.length > 0 ? [
 									m(".h4", lang.get('address_label')),
 									m(".aggregateEditors", [

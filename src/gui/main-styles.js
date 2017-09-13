@@ -509,6 +509,7 @@ styles.registerStyle('main', () => {
 			display: 'block',
 			resize: 'none',
 			border: 0,
+			padding: 0,
 			margin: 0, // for safari browser
 			background: 'transparent',
 			outline: 'none',

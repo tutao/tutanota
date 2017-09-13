@@ -23,6 +23,9 @@ export const Type = {
 	ExternalPassword: "externalpassword",
 }
 
+const inputLineHeight = size.font_size_base + 8
+const inputMarginTop = size.font_size_small + size.hpad_small + 3
+
 /**
  * A text input field.
  */
@@ -114,7 +117,12 @@ export class TextField {
 
 	_getInputField(): VirtualElement {
 		if (this.disabled) {
-			return m(this._alignRight ? ".right" : "", this.value())
+			return m(this._alignRight ? ".right" : "", {
+				style: {
+					marginTop: px(inputMarginTop),
+					lineHeight: px(inputLineHeight),
+				}
+			}, this.value())
 		} else {
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
@@ -127,11 +135,6 @@ export class TextField {
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
 					return this._keyHandler != null ? this._keyHandler(key) : true
 				},
-				onremove: e => {
-					// workaround for chrome error on login with return shortcut "Error: Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-					// TODO test if still needed with mithril 1.1.1
-					this._domInput.onblur = null
-				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
 						this.animate(true) // animate in case of browser autocompletion
@@ -139,25 +142,28 @@ export class TextField {
 					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
-					height: px(0),
-					minHeight: px(size.font_size_base + 6),
-					minWidth: px(20) // fix for edge browser. buttons are cut off in small windows otherwise
+					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+					lineHeight: px(inputLineHeight),
 				}
 			})
 		}
 	}
 
 	_getTextArea(): VirtualElement {
+
 		if (this.disabled) {
-			return m(".text-linebreaks", this.value())
+			return m(".text-linebreaks", {
+				style: {
+					marginTop: px(inputMarginTop),
+					lineHeight: px(inputLineHeight),
+				}
+			}, this.value())
 		} else {
-			let textAreaPaddingTop = 3
-			let textAreaLineHeight = size.font_size_base + 8 // fix for multiline editing
 			return m("textarea.input-area", {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
-					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * textAreaLineHeight + textAreaPaddingTop) // display all lines on creation of text area
+					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(e),
 				onblur: e => this.blur(e),
@@ -174,10 +180,8 @@ export class TextField {
 					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
-					marginTop: px(size.font_size_small + size.hpad_small),
-					minHeight: px(textAreaLineHeight + textAreaPaddingTop),
-					lineHeight: px(textAreaLineHeight),
-					paddingTop: px(textAreaPaddingTop),
+					marginTop: px(inputMarginTop),
+					lineHeight: px(inputLineHeight),
 					minWidth: px(20) // fix for edge browser. buttons are cut off in small windows otherwise
 				}
 			})
