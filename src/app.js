@@ -161,6 +161,8 @@ let initialized = lang.init(en).then(() => {
 		.then(module => module.worker)
 
 	setupExceptionHandling()
+
+	disableBodyTouchScrolling()
 })
 
 function forceLogin(args: string[], requestedPath: string) {
@@ -189,4 +191,28 @@ function setupExceptionHandling() {
 			evt.preventDefault()
 		}
 	})
+}
+
+
+function disableBodyTouchScrolling() {
+	document.addEventListener('touchmove', event => event.preventDefault())
+	document.body.addEventListener('touchmove', event => {
+		let scrollable = event.target.closest(".scroll")
+		if (scrollable && scrollable.scrollHeight > scrollable.offsetHeight) {
+			event.stopPropagation();
+		}
+	})
+
+	document.body.addEventListener('touchstart', event => {
+		let scrollable = event.target.closest(".scroll")
+		if (scrollable && scrollable.scrollHeight > scrollable.offsetHeight) {
+			if (scrollable.scrollTop === 0) {
+				scrollable.scrollTop = 1;
+			} else if (scrollable.scrollHeight === scrollable.scrollTop + scrollable.offsetHeight) {
+				scrollable.scrollTop -= 1;
+			}
+		}
+	})
+
+
 }

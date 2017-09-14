@@ -109,8 +109,8 @@ export class List<T, R:VirtualRow<T>> {
 			.setVisible(false)
 
 		this.view = (vnode): VirtualElement => {
-			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus", {
-				oncreate: (vnode) => this._init(vnode.dom),
+			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
+				oncreate: (vnode) => this._init(vnode.dom)
 			}, [
 				m(".swipe-spacer.left.flex.items-center.pl.alt-1-bg", {
 					oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,

@@ -163,6 +163,10 @@ styles.registerStyle('main', () => {
 		'.z3': {'z-index': '3'},
 		'.noselect': noselect,
 
+
+		'.view-columns': {'overflow-x': 'hidden'},
+		'.overflow-x-hidden': {'overflow-x': 'hidden'},
+
 		// borders
 		'.password-indicator-border': {'border': `1px solid ${theme.content_button}`},
 
