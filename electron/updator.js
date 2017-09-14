@@ -5,6 +5,12 @@ var new_files_list = [];
 var old_files_list = [];
 var files_updated = 0;
 
+function LoadTutanota()
+{
+    //Open Application
+    window.location.href = "index.html";
+}
+
 //Saves the content downloaded to a file
 function SaveFile(data, full_path)
 {
@@ -24,10 +30,9 @@ function SaveFile(data, full_path)
             console.log('Downloaded:' + full_path ); 
             $(".message_log").html("<span>Updating: " + files_updated + "/" + new_files_list.length + "</span>");
             files_updated++;
-            if (files_updated == new_files_list.length)
+            if (files_updated + 1 == new_files_list.length)
             {
-                //Open Application
-                window.location.href = path.join(__dirname, "index.html");
+                LoadTutanota();
             }
         });  
     });
@@ -74,6 +79,7 @@ function DownloadFile(file_path)
 //Compares the 2 lists
 function CompareFiles()
 {
+    var update_required = false;
     for (var i = 0; i < new_files_list.length; i++)
     {                
         var frequired = true;
@@ -90,9 +96,12 @@ function CompareFiles()
 
         if (frequired)
         {
+            update_required = true;
             DownloadFile(new_files_list[i].file);
         }
     }
+    if (!update_required)
+        LoadTutanota();
 }
 
 //Gets server file list and current client file list
