@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>Tutanota Update Checcker</title>
+    <style>
+        .message_log{
+            display: table;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+        }
+        .message_log span{
+            display: table-cell;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="message_log">
+        <span>If you see this message, something is wrong.</span>
+    </div>
+
+    <!-- FIX for electron -->
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- SCRIPTS -->
+    <script src="updator.js"></script>
+    <!-- FIX for electron -->
+	<script>if (window.module) module = window.module;</script>	
+</body>
+</html>

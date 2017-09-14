@@ -16,7 +16,7 @@ app.on('ready', () => {
 
   //Load main window url
   main_window.loadURL(url.format({
-    pathname: path.join(__dirname, 'update_checker.html'),
+    pathname: path.join(__dirname, 'updator.html'),
     protocol: 'file:',
     slashes: true
   }));

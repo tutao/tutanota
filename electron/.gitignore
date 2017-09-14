@@ -1,0 +1,11 @@
+.gradle
+.classpath
+.project
+build/
+bin/
+node_modules/
+*/.idea/
+.idea/
+.DS_Store
+
+cordova/platforms/**
