@@ -127,13 +127,13 @@ export class MailSettingsViewer {
 						m(inboxRulesExpander)
 					]),
 					m(inboxRulesExpander.panel),
-					m(".small", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
+					m(".small.text-break", lang.get("nbrOfInboxRules_msg", {"{1}": logins.getUserController().props.inboxRules.length})),
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('notificationSettings_action')),
 						m(pushIdentifiersExpander)
 					]),
 					m(pushIdentifiersExpander.panel),
-					m(".small", lang.get("pushIdentifierInfoMessage_msg"))
+					m(".small.text-break", lang.get("pushIdentifierInfoMessage_msg"))
 				])
 			]
 		}

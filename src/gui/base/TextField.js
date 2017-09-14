@@ -117,7 +117,7 @@ export class TextField {
 
 	_getInputField(): VirtualElement {
 		if (this.disabled) {
-			return m(this._alignRight ? ".right" : "", {
+			return m(".text-break" + (this._alignRight ? ".right" : ""), {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
@@ -152,18 +152,17 @@ export class TextField {
 	_getTextArea(): VirtualElement {
 
 		if (this.disabled) {
-			return m(".text-linebreaks", {
+			return m(".text-prewrap.text-break", {
 				style: {
 					marginTop: px(inputMarginTop),
 					lineHeight: px(inputLineHeight),
 				}
 			}, this.value())
 		} else {
-			return m("textarea.input-area", {
+			return m("textarea.input-area.text-pre", {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
-					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(e),
 				onblur: e => this.blur(e),

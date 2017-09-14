@@ -41,8 +41,8 @@ export class EditSecondFactorsForm {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 				m(this._2FATable),
-				m("span.small", lang.get("moreInfo_msg") + " "),
-				m("span.small", [m(`a[href=${this._get2FAInfoLink()}][target=_blank]`, this._get2FAInfoLink())]),
+				m("span.small.text-break", lang.get("moreInfo_msg") + " "),
+				m("span.small.text-break", [m(`a[href=${this._get2FAInfoLink()}][target=_blank]`, this._get2FAInfoLink())]),
 			]
 		}
 		this._updateSecondFactors()

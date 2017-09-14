@@ -119,7 +119,7 @@ export class ContactViewer {
 
 					this.contact.comment && this.contact.comment.trim().length > 0 ? [
 							m("hr.hr.mt-l"),
-							m("p.mt-l.text-linebreaks", this.contact.comment),
+							m("p.mt-l.text-prewrap.text-break", this.contact.comment),
 						] : null,
 
 				]),

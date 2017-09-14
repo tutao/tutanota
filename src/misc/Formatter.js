@@ -23,9 +23,9 @@ export function formatDateWithWeekday(date: Date): string {
 }
 
 export function formatDateTimeFromYesterdayOn(date: Date): string {
-	var dateString = null
-	var startOfToday = new Date().setHours(0, 0, 0, 0)
-	var startOfYesterday = startOfToday - 1000 * 60 * 60 * 24
+	let dateString = null
+	let startOfToday = new Date().setHours(0, 0, 0, 0)
+	let startOfYesterday = startOfToday - 1000 * 60 * 60 * 24
 	if (date.getTime() >= startOfToday) {
 		dateString = ""
 	} else if (startOfToday > date.getTime() && date.getTime() >= startOfYesterday) {
@@ -171,12 +171,12 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
  */
 export function isDomainName(domainName: string): boolean {
 	if (domainName == null || domainName != domainName.trim()) {
-		return false;
+		return false
 	}
 	if (startsWith(domainName, "-")) {
-		return false;
+		return false
 	}
-	return /^[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(domainName);
+	return /^[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/.test(domainName)
 }
 
 
@@ -191,7 +191,7 @@ export function isRegularExpression(value: string) {
  * @return Returns an object with the attributes "firstName" and "lastName".
  */
 export function fullNameToFirstAndLastName(fullName: string): {firstName:string, lastName:string} {
-	fullName = fullName.trim();
+	fullName = fullName.trim()
 	if (fullName == "") {
 		return {firstName: "", lastName: ""}
 	}

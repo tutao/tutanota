@@ -52,9 +52,9 @@ styles.registerStyle('main', () => {
 			'font-family': `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
 			'line-height': 1.428571429, // 20/14
-
 			color: theme.content_fg,
 			'background-color': theme.content_bg,
+			'-webkit-text-size-adjust': 'none'
 
 		},
 
@@ -155,7 +155,8 @@ styles.registerStyle('main', () => {
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
 		'.text-break': {overflow: 'hidden', 'word-wrap': 'break-word'},
-		'.text-linebreaks': {'white-space': 'pre'},
+		'.text-prewrap': {'white-space': 'pre-wrap'},
+		'.text-pre': {'white-space': 'pre'},
 		'.pointer': {cursor: 'pointer'},
 		'.z1': {'z-index': '1'},
 		'.z2': {'z-index': '2'},
@@ -298,7 +299,14 @@ styles.registerStyle('main', () => {
 		// custom styling for views
 
 		// the main view
-		'.main-view': {position: 'absolute', top: px(size.navbar_height), right: px(0), bottom: px(0), left: px(0)},
+		'.main-view': {
+			position: 'absolute',
+			top: px(size.navbar_height),
+			right: px(0),
+			bottom: px(0),
+			left: px(0),
+			'overflow-x': 'hidden'
+		},
 
 		// view slider
 
@@ -306,8 +314,6 @@ styles.registerStyle('main', () => {
 			'-webkit-backface-visibility': 'hidden',
 			'backface-visibility': 'hidden'
 		},
-
-		'.view-columns': {'overflow-x': 'hidden'},
 
 		// header
 		'.header-nav': {

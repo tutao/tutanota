@@ -101,14 +101,14 @@ export class GlobalSettingsViewer {
 					]),
 					m(spamRulesExpander.panel),
 					m("small", lang.get("adminSpamRuleInfo_msg")),
-					m("small", [m(`a[href=${this._getSpamRulesInfoLink()}][target=_blank]`, this._getSpamRulesInfoLink())]),
+					m("small.text-break", [m(`a[href=${this._getSpamRulesInfoLink()}][target=_blank]`, this._getSpamRulesInfoLink())]),
 					m(".flex-space-between.items-center.mb-s.mt-l", [
 						m(".h4", lang.get('customDomains_label')),
 						m(domainsExpander)
 					]),
 					m(domainsExpander.panel),
 					m("small", lang.get("moreInfo_msg") + " "),
-					m("small", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
+					m("small.text-break", [m(`a[href=${AddDomainDialog.getDomainInfoLink()}][target=_blank]`, AddDomainDialog.getDomainInfoLink())]),
 					logins.getUserController().isAdmin() && logins.getUserController().isPremiumAccount() ? m(".mt-l", [
 							m(".h4", lang.get('security_title')),
 							m(requirePasswordUpdateAfterResetDropdown),

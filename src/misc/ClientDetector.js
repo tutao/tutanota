@@ -56,7 +56,8 @@ class ClientDetector {
 		return this.flexbox() &&
 			this.websockets() &&
 			this.xhr2() &&
-			this.randomNumbers()
+			this.randomNumbers() &&
+			this.dateFormat()
 	}
 
 	/**
@@ -105,6 +106,10 @@ class ClientDetector {
 		} else {
 			return false
 		}
+	}
+
+	dateFormat(): boolean {
+		return typeof Intl != "undefined"
 	}
 
 	/**

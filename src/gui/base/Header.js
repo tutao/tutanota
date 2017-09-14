@@ -56,7 +56,7 @@ class Header {
 		this._setupShortcuts()
 
 		this.view = (): VirtualElement => {
-			return m(".header-nav", [
+			return m(".header-nav.overflow-hidden", [
 				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", this._getLeftElements()),
 				styles.isDesktopLayout() ? null : m(".header-middle.flex-center.items-center.text-ellipsis", {style: {color: theme.header_button}}, this._getColumnTitle()),
 				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", m(this.buttonBar))

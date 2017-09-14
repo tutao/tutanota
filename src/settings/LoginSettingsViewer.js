@@ -51,13 +51,13 @@ export class LoginSettingsViewer {
 					(logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount()) ? m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(this._activeSessionTable),
-					m(".small", lang.get("sessionsInfo_msg")),
+					m(".small.text-break", lang.get("sessionsInfo_msg")),
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('closedSessions_label')),
 						m(closedSessionExpander)
 					]),
 					m(closedSessionExpander.panel),
-					m(".small", lang.get("sessionsInfo_msg"))
+					m(".small.text-break", lang.get("sessionsInfo_msg"))
 				])
 			]
 		}

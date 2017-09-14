@@ -48,6 +48,18 @@ export const state = (deletedModule && deletedModule.module) ? deletedModule.mod
 
 
 let initialized = lang.init(en).then(() => {
+	if (!client.isSupported()) {
+		m.render(document.body, m(root, m(new InfoView(() => "404", () => [
+			m("p", lang.get("unsupportedBrowser_msg")),
+			m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
+			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
+			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
+			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
+			m("p", m("a[target=_blank][href=http://windows.microsoft.com/de-DE/internet-explorer/download-ie]", "Microsoft Edge (Desktop)")),
+		]))))
+		return;
+	}
+
 	function createViewResolver(getView: lazy<Component>, requireLogin: boolean = true) {
 		let cache = {view: null}
 		return {
