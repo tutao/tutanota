@@ -39,9 +39,9 @@ Pre-requisites:
 Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
-2. Switch into the web directory: `cd tutanota/`
+2. Switch into the tutanota directory: `cd tutanota/`
 3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4+`
-4. Switch into the web directory: `cd tutanota/electron`
+4. Switch into the electron directory: `cd tutanota/electron`
 5. Install dependencies: `npm install`
 6. Use the following commands to run or build the application:
 
