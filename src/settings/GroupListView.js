@@ -68,14 +68,12 @@ export class GroupListView {
 			createVirtualRow: () => new GroupRow(),
 			showStatus: false,
 			className: className,
-			swipe: {
+			swipe: ({
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: () => {
-				},
-				swipeRight: () => {
-				},
-			},
+				swipeLeft: (listElement) => Promise.resolve(),
+				swipeRight: (listElement) => Promise.resolve(),
+			}:any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")

@@ -193,7 +193,10 @@ function setupExceptionHandling() {
 	})
 }
 
-
+/**
+ * Prevents the complete window from scrolling vertically on touch for ios devices.
+ * See http://stackoverflow.com/questions/10238084/ios-safari-how-to-disable-overscroll-but-allow-scrollable-divs-to-scroll-norma
+ */
 function disableBodyTouchScrolling() {
 	document.addEventListener('touchmove', event => event.preventDefault())
 	document.body.addEventListener('touchmove', event => {

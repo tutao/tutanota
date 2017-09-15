@@ -189,8 +189,20 @@ styles.registerStyle('main', () => {
 
 		'.password-indicator-bg': {'background-color': theme.content_button},
 
-		'.alt-1-bg': {'background-color': colors.alt_1},
-		'.alt-5-bg': {'background-color': colors.alt_5},
+		'.accent-bg': {'background-color': theme.content_accent},
+		'.accent-fg': {color: theme.content_button_icon},
+		'.accent-fg path': {fill: theme.content_button_icon},
+
+		'.red': {
+			'background-color': '#840010',
+		},
+		'.swipe-spacer': {
+			color: '#ffffff',
+		},
+		'.swipe-spacer path': {
+			fill: '#ffffff',
+		},
+		'.blue': {'background-color': colors.alt_5},
 
 		'.hover-ul:hover': {'text-decoration': 'underline'},
 

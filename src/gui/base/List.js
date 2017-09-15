@@ -3,8 +3,6 @@ import m from "mithril"
 import {log, timer, Cat} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
-import {animations, transform} from "./../animation/Animations"
-import {ease} from "../animation/Easing"
 import {GENERATED_MAX_ID, firstBiggerThanSecond, getLetId} from "../../api/common/EntityFunctions"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUtils"
@@ -12,6 +10,9 @@ import {neverNull} from "../../api/common/utils/Utils"
 import {assertMainOrNode} from "../../api/Env"
 import MessageBox from "./MessageBox"
 import {progressIcon} from "./Icon"
+import {animations, transform} from "./../animation/Animations"
+import {ease} from "../animation/Easing"
+import {DefaultAnimationTime, opacity} from "../animation/Animations"
 
 assertMainOrNode()
 
@@ -112,24 +113,24 @@ export class List<T, R:VirtualRow<T>> {
 			let list = m(".list-container[tabindex=-1].fill-absolute.scroll.list-border-right.list-bg.nofocus.overflow-x-hidden", {
 				oncreate: (vnode) => this._init(vnode.dom)
 			}, [
-				m(".swipe-spacer.left.flex.items-center.pl.alt-1-bg", {
+				m(".swipe-spacer.flex.items-center.justify-end.pr-l.blue", {
 					oncreate: (vnode) => this._domSwipeSpacerLeft = vnode.dom,
 					style: {
 						height: px(this._config.rowHeight),
 						transform: `translateY(-${this._config.rowHeight}px)`,
 						position: 'absolute',
 						'z-index': 1,
-						width: px(ActionDistance),
+						width: px(this._width),
 					}
 				}, this._config.swipe.renderLeftSpacer()),
-				m(".swipe-spacer.right.flex.items-center.pr.alt-5-bg", {
+				m(".swipe-spacer.flex.items-center.pl-l.red", {
 					oncreate: (vnode) => this._domSwipeSpacerRight = vnode.dom,
 					style: {
 						height: px(this._config.rowHeight),
 						transform: `translateY(-${this._config.rowHeight}px)`,
 						position: 'absolute',
 						'z-index': 1,
-						width: px(ActionDistance),
+						width: px(this._width),
 					}
 				}, this._config.swipe.renderRightSpacer()),
 				m("ul.list.fill-absolute.pointer", {
@@ -815,7 +816,7 @@ class SwipeHandler {
 		this.touchArea = touchArea
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), eventListenerArgs)
+		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e)) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
@@ -828,45 +829,81 @@ class SwipeHandler {
 	move(e: TouchEvent) {
 		let delta = this.getDelta(e)
 		if (Math.abs(delta.y) > 40) {
-			this.reset()
+			window.requestAnimationFrame(() => this.reset())
 		} else if (Math.abs(delta.x) > 10 && Math.abs(delta.x) > Math.abs(delta.y)) {
-			// Do not animate the swipe gesture more than necessary
-			this.xoffset = delta.x < 0 ? Math.max(delta.x, -ActionDistance) : Math.min(delta.x, ActionDistance)
-
-			let ve = this.getVirtualElement()
+			e.preventDefault() // stop list scrolling when we are swiping
 			window.requestAnimationFrame(() => {
-				if (ve && ve.domElement) {
+				// Do not animate the swipe gesture more than necessary
+				this.xoffset = delta.x < 0 ? Math.max(delta.x, -ActionDistance) : Math.min(delta.x, ActionDistance)
+
+				let ve = this.getVirtualElement()
+				if (ve && ve.domElement && ve.entity) {
 					ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
-					this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - ActionDistance) + 'px) translateY(' + ve.top + 'px)'
+					this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width) + 'px) translateY(' + ve.top + 'px)'
 					this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width) + 'px) translateY(' + ve.top + 'px)'
 				}
 			})
-
 		}
 	}
 
 	end(e: TouchEvent) {
 		let delta = this.getDelta(e)
-		if (Math.abs(delta.x) > ActionDistance) {
+		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance && Math.abs(delta.y) < neverNull(this.virtualElement).domElement.offsetHeight) {
+			let swipePromise
 			if (delta.x < 0) {
-				this.list._config.swipe.swipeLeft()
+				swipePromise = this.list._config.swipe.swipeLeft(neverNull(this.virtualElement).entity)
 			} else {
-				this.list._config.swipe.swipeRight()
+				swipePromise = this.list._config.swipe.swipeRight(neverNull(this.virtualElement).entity)
 			}
-			// remove from list
-			this.reset()
+			this.finish()
+			swipePromise.catch(() => this.list.redraw())
 		} else {
 			this.reset()
 		}
 	}
 
+	finish() {
+		if (this.xoffset !== 0) {
+			let ve = neverNull(this.virtualElement)
+			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
+			Promise.all([
+				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, listTargetPosition).chain(transform.type.translateY, ve.top, ve.top), {
+					easing: ease.inOut,
+					duration: DefaultAnimationTime * 2
+				}),
+				animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset - this.list._width), listTargetPosition - this.list._width).chain(transform.type.translateY, ve.top, ve.top), {
+					easing: ease.inOut,
+					duration: DefaultAnimationTime * 2
+				}),
+				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), listTargetPosition + this.list._width).chain(transform.type.translateY, ve.top, ve.top), {
+					easing: ease.inOut,
+					duration: DefaultAnimationTime * 2
+				})
+			]).then(() => {
+				this.xoffset = 0
+				ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
+				return Promise.all([
+					animations.add(this.list._domSwipeSpacerLeft, opacity(1, 0, true)),
+					animations.add(this.list._domSwipeSpacerRight, opacity(1, 0, true))
+				])
+			}).then(() => {
+				this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width) + 'px) translateY(' + ve.top + 'px)'
+				this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width) + 'px) translateY(' + ve.top + 'px)'
+				this.list._domSwipeSpacerRight.style.opacity = ''
+				this.list._domSwipeSpacerLeft.style.opacity = ''
+			})
+		}
+		this.virtualElement = null
+	}
+
+
 	reset() {
 		if (this.xoffset !== 0) {
 			let ve = this.virtualElement
-			if (ve && ve.domElement) {
-				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, 0, ease.inOut, {translateY: ve.top}))
-				animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset - ActionDistance), -ActionDistance, ease.inOut, {translateY: ve.top}))
-				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), this.list._width, ease.inOut, {translateY: ve.top}))
+			if (ve && ve.domElement && ve.entity) {
+				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, 0).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
+				animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset - this.list._width), -this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
+				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
 			}
 			this.xoffset = 0
 		}

@@ -10,7 +10,8 @@ export const DefaultAnimationTime = 200 // ms
 const InitializedOptions = {
 	stagger: 0,
 	delay: 0,
-	easing: ease.linear
+	easing: ease.linear,
+	duration: DefaultAnimationTime
 }
 
 class Animations {
@@ -44,7 +45,7 @@ class Animations {
 	/**
 	 * Adds an animation that should be executed immediately. Returns a promise that resolves after the animation is complete.
 	 */
-	add(targets: HTMLElement|HTMLElement[]|HTMLCollection<HTMLElement>, mutations: DomMutation|DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): Promise<void> {
+	add(targets: HTMLElement|HTMLElement[]|HTMLCollection<HTMLElement>, mutations: DomMutation|DomMutation[], options: ?{stagger?: number, delay?: number, easing?: EasingFunction, duration?:number}): Promise<void> {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
@@ -63,7 +64,7 @@ class Animations {
 				if (verifiedOptions.stagger) {
 					delay += verifiedOptions.stagger * i
 				}
-				this.activeAnimations.push(new Animation(target[i], mutation, i == target.length - 1 ? resolve : null, delay, verifiedOptions.easing))
+				this.activeAnimations.push(new Animation(target[i], mutation, i == target.length - 1 ? resolve : null, delay, verifiedOptions.easing, verifiedOptions.duration))
 			}
 			if (start) {
 				window.requestAnimationFrame(this._animate)
@@ -71,7 +72,7 @@ class Animations {
 		})
 	}
 
-	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction} {
+	static verifiyOptions(options: ?{stagger?: number, delay?: number, easing?: EasingFunction}): {stagger: number, delay: number, easing: EasingFunction, duration:number} {
 		return Object.assign({}, InitializedOptions, options)
 	}
 
@@ -87,12 +88,12 @@ export class Animation {
 	runTime: ?number;
 	easing: EasingFunction;
 
-	constructor(target: HTMLElement, mutations: DomMutation[], resolve: ?Function, delay: number, easing: EasingFunction) {
+	constructor(target: HTMLElement, mutations: DomMutation[], resolve: ?Function, delay: number, easing: EasingFunction, duration: number) {
 		this.target = target
 		this.mutations = mutations
 		this.resolve = resolve
 		this.delay = delay
-		this.duration = DefaultAnimationTime
+		this.duration = duration
 		this.animationStart = null
 		this.runTime = null
 		this.easing = easing
@@ -100,7 +101,7 @@ export class Animation {
 
 	animateFrame(now: number) {
 		if (this.animationStart == null) this.animationStart = now
-		this.runTime = Math.min(now - this.animationStart - this.delay, DefaultAnimationTime)
+		this.runTime = Math.min(now - this.animationStart - this.delay, this.duration)
 		if (this.runTime >= 0) {
 			for (let m of this.mutations) {
 				m.updateDom(this.target, this.runTime / this.duration, this.easing)
@@ -109,7 +110,7 @@ export class Animation {
 	}
 
 	isFinished() {
-		return this.runTime != null && this.runTime >= DefaultAnimationTime
+		return this.runTime != null && this.runTime >= this.duration
 	}
 }
 
@@ -209,7 +210,7 @@ export function opacity(begin: number, end: number, keepValue: boolean): DomMuta
 			}
 			let opacity = calculateValue(percent, begin, end, easing)
 			if (percent == 1 && !keepValue) {
-				// on somee elements the value hast to be set to the initial value because hover using opacity won't work otherwise.
+				// on some elements the value hast to be set to the initial value because hover using opacity won't work otherwise.
 				target.style.opacity = initialOpacity
 			} else {
 				target.style.opacity = opacity + ''

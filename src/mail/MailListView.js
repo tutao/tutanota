@@ -62,12 +62,18 @@ export class MailListView {
 			createVirtualRow: () => new MailRow(this),
 			showStatus: false,
 			className: className,
-			swipe: {
-				renderLeftSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".labelId", lang.get('archive_action'))],
-				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".labelId", lang.get('trash_action'))], // TODO finalDelete_action if the mail is deleted from trash
-				swipeLeft: () => console.log("left"),
-				swipeRight: () => console.log("right"),
-			},
+			swipe: ({
+				renderLeftSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
+				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
+				swipeLeft: (listElement: Mail) => this.mailView.deleteMails([listElement]),
+				swipeRight: (listElement: Mail) => {
+					if (this.targetInbox()) {
+						return this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getInboxFolder(), [listElement])
+					} else {
+						return this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getArchiveFolder(), [listElement])
+					}
+				},
+			}:any),
 			elementsDraggable: true,
 			multiSelectionAllowed: true,
 			emptyMessage: lang.get("noMails_msg")
@@ -76,6 +82,10 @@ export class MailListView {
 		this.view = (): VirtualElement => {
 			return m(this.list)
 		}
+	}
+
+	targetInbox() {
+		return this.mailView.selectedFolder == neverNull(this.mailView.selectedMailbox).getArchiveFolder() || this.mailView.selectedFolder == neverNull(this.mailView.selectedMailbox).getTrashFolder()
 	}
 
 

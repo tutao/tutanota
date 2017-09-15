@@ -83,7 +83,7 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 	createVirtualRow():R;
 	showStatus:boolean;
 	className:string;
-	swipe:SwipeConfiguration;
+	swipe:SwipeConfiguration<T>;
 
 	elementsDraggable:boolean;
 	/**
@@ -94,11 +94,11 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 	emptyMessage:string;
 }
 
-type SwipeConfiguration = {
+declare interface SwipeConfiguration<T> {
 	renderLeftSpacer(): VirtualElement[];
 	renderRightSpacer(): VirtualElement[];
-	swipeLeft():void;
-	swipeRight():void;
+	swipeLeft(listElement: T):Promise<void>;
+	swipeRight(listElement: T):Promise<void>;
 }
 
 /**

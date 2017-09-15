@@ -179,7 +179,10 @@ export class MailView {
 			},
 			{
 				key: Keys.DELETE,
-				exec: () => this.deleteSelected(),
+				exec: () => {
+					this.deleteSelected()
+					return
+				},
 				help: "deleteEmails_action"
 			},
 			{
@@ -450,17 +453,22 @@ export class MailView {
 		}
 	}
 
-	deleteSelected(): void {
-		let mails = this.mailList.list.getSelectedEntities();
+	deleteSelected(): Promise<void> {
+		return this.deleteMails(this.mailList.list.getSelectedEntities())
+	}
+
+	deleteMails(mails: Mail[]): Promise<void> {
+
 		if (mails.length > 0) {
 			if (this.selectedFolder.isFinallyDeleteAllowed()) {
 				let deleteMailData = createDeleteMailData()
 				deleteMailData.mails.push(...mails.map(m => m._id))
-				serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+				return serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
 			} else {
-				this.moveMails(neverNull(this.selectedMailbox).getTrashFolder(), this.mailList.list.getSelectedEntities())
+				return this.moveMails(neverNull(this.selectedMailbox).getTrashFolder(), mails)
 			}
 		}
+		return Promise.resolve()
 	}
 
 	deleteAll() {
@@ -469,7 +477,7 @@ export class MailView {
 		return Dialog.progress("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
 	}
 
-	moveMails(target: MailFolderViewModel, mails: Mail[]) {
+	moveMails(target: MailFolderViewModel, mails: Mail[]): Promise<void> {
 		if (mails.length > 0) {
 			if (this.selectedFolder == target || !isSameId(neverNull(target.folder._ownerGroup), neverNull(mails[0]._ownerGroup))) { // prevent moving mails between mail boxes.
 				return Promise.resolve()
@@ -477,8 +485,9 @@ export class MailView {
 			let moveMailData = createMoveMailData()
 			moveMailData.targetFolder = target.folder._id
 			moveMailData.mails.push(...mails.map(m => m._id))
-			serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
 		}
+		return Promise.resolve()
 	}
 
 	moveAll(target: MailFolderViewModel) {

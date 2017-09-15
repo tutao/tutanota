@@ -77,14 +77,12 @@ export class UserListView {
 			createVirtualRow: () => new UserRow(this),
 			showStatus: false,
 			className: className,
-			swipe: {
+			swipe: ({
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: () => {
-				},
-				swipeRight: () => {
-				},
-			},
+				swipeLeft: (listElement) => Promise.resolve(),
+				swipeRight: (listElement) => Promise.resolve(),
+			}:any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("emptyString_msg") // is never shown because there is always at least one user

@@ -76,14 +76,16 @@ export class ContactFormListView {
 			createVirtualRow: () => new ContactFormRow(this._customerInfo),
 			showStatus: false,
 			className: className,
-			swipe: {
+			swipe: ({
 				renderLeftSpacer: () => [],
 				renderRightSpacer: () => [],
-				swipeLeft: () => {
+				swipeLeft: (listElement) => {
+					return Promise.resolve()
 				},
-				swipeRight: () => {
+				swipeRight: (listElement) => {
+					return Promise.resolve()
 				},
-			},
+			}:any),
 			elementsDraggable: false,
 			multiSelectionAllowed: false,
 			emptyMessage: lang.get("noEntries_msg")
