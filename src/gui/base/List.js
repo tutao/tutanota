@@ -13,6 +13,7 @@ import {progressIcon} from "./Icon"
 import {animations, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
+import {windowFacade} from "../../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -48,6 +49,7 @@ export class List<T, R:VirtualRow<T>> {
 	_visibleElementsHeight: number;
 	bufferHeight: number;
 
+	_swipeHandler: ?SwipeHandler;
 	_domSwipeSpacerLeft: HTMLElement;
 	_domSwipeSpacerRight: HTMLElement;
 	_domLoadingRow: HTMLElement;
@@ -75,14 +77,27 @@ export class List<T, R:VirtualRow<T>> {
 			return wrapper
 		}
 
+		const updateWidth = () => {
+			window.requestAnimationFrame(() => {
+				this._width = this._domListContainer.clientWidth
+				if (this._swipeHandler) {
+					this._swipeHandler.updateWidth()
+				}
+			})
+		}
+
 		let reset = () => {
 			this._domInitialized = createPromise()
 
 			this.ready = false
 			this._virtualList = []
+
+			windowFacade.removeResizeListener(updateWidth)
 		}
 
 		reset()
+
+		windowFacade.addResizeListener(updateWidth)
 
 		this._virtualList = []
 		this._width = 0
@@ -447,7 +462,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._reposition()
 				this.ready = true
 				if (client.isMobileDevice()) {
-					new SwipeHandler(this._domListContainer, this)
+					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
 					this.initBackground()
 				}
 			})
@@ -729,7 +744,8 @@ export class List<T, R:VirtualRow<T>> {
 				})
 			})
 		} else if (operation == OperationType.DELETE) {
-			return this._deleteLoadedEntity(elementId);
+			let swipeAnimation = this._swipeHandler ? this._swipeHandler.animating : Promise.resolve()
+			return swipeAnimation.then(() => this._deleteLoadedEntity(elementId))
 		} else {
 			return Promise.resolve()
 		}
@@ -738,7 +754,6 @@ export class List<T, R:VirtualRow<T>> {
 	_addToLoadedEntities(entity: T) {
 		for (let i = 0; i < this._loadedEntities.length; i++) {
 			if (getLetId(entity)[1] === getLetId(this._loadedEntities[i])[1]) {
-				console.log("entity already in list", entity);
 				return;
 			}
 		}
@@ -807,6 +822,7 @@ class SwipeHandler {
 	list: List<*, *>;
 	xoffset: number;
 	touchArea: HTMLElement;
+	animating: Promise<any>;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
 		if (!this.isSupported()) return
@@ -814,9 +830,10 @@ class SwipeHandler {
 		this.list = list
 		this.xoffset = 0
 		this.touchArea = touchArea
+		this.animating = Promise.resolve()
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e)) // does invoke prevent default
+		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), false) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
@@ -828,16 +845,20 @@ class SwipeHandler {
 
 	move(e: TouchEvent) {
 		let delta = this.getDelta(e)
-		if (Math.abs(delta.y) > 40) {
-			window.requestAnimationFrame(() => this.reset())
-		} else if (Math.abs(delta.x) > 10 && Math.abs(delta.x) > Math.abs(delta.y)) {
+		if (this.animating.isFulfilled() && Math.abs(delta.y) > 40) {
+			window.requestAnimationFrame(() => {
+				if (this.animating.isFulfilled()) {
+					this.reset()
+				}
+			})
+		} else if (this.animating.isFulfilled() && Math.abs(delta.x) > 10 && Math.abs(delta.x) > Math.abs(delta.y)) {
 			e.preventDefault() // stop list scrolling when we are swiping
+			let ve = this.getVirtualElement()
 			window.requestAnimationFrame(() => {
 				// Do not animate the swipe gesture more than necessary
 				this.xoffset = delta.x < 0 ? Math.max(delta.x, -ActionDistance) : Math.min(delta.x, ActionDistance)
 
-				let ve = this.getVirtualElement()
-				if (ve && ve.domElement && ve.entity) {
+				if (this.animating.isFulfilled() && ve && ve.domElement && ve.entity) {
 					ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
 					this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width) + 'px) translateY(' + ve.top + 'px)'
 					this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width) + 'px) translateY(' + ve.top + 'px)'
@@ -848,25 +869,29 @@ class SwipeHandler {
 
 	end(e: TouchEvent) {
 		let delta = this.getDelta(e)
-		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance && Math.abs(delta.y) < neverNull(this.virtualElement).domElement.offsetHeight) {
+		if (this.animating.isFulfilled() && this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ActionDistance && Math.abs(delta.y) < neverNull(this.virtualElement).domElement.offsetHeight) {
+			let entity = this.virtualElement.entity
 			let swipePromise
 			if (delta.x < 0) {
-				swipePromise = this.list._config.swipe.swipeLeft(neverNull(this.virtualElement).entity)
+				swipePromise = this.list._config.swipe.swipeLeft(entity)
 			} else {
-				swipePromise = this.list._config.swipe.swipeRight(neverNull(this.virtualElement).entity)
+				swipePromise = this.list._config.swipe.swipeRight(entity)
 			}
-			this.finish()
-			swipePromise.catch(() => this.list.redraw())
-		} else {
-			this.reset()
+			this.animating = this.finish(entity._id, swipePromise)
+		} else if (this.animating.isFulfilled()) {
+			this.animating = this.reset()
 		}
 	}
 
-	finish() {
+	finish(id: Id, swipeActionPromise: Promise<any>) {
 		if (this.xoffset !== 0) {
 			let ve = neverNull(this.virtualElement)
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
-			Promise.all([
+			swipeActionPromise = swipeActionPromise.then(() => true).catch(e => {
+				return false
+			})
+			return Promise.all([
+				// animate swipe action to full width
 				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, listTargetPosition).chain(transform.type.translateY, ve.top, ve.top), {
 					easing: ease.inOut,
 					duration: DefaultAnimationTime * 2
@@ -878,36 +903,54 @@ class SwipeHandler {
 				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), listTargetPosition + this.list._width).chain(transform.type.translateY, ve.top, ve.top), {
 					easing: ease.inOut,
 					duration: DefaultAnimationTime * 2
+				}),
+			]).then(() => this.xoffset = listTargetPosition)
+				.then(() => swipeActionPromise).then((success) => {
+					if (success) {
+						return this.list._deleteLoadedEntity(id).then(() => {
+							// fade out element
+							this.xoffset = 0
+							ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
+							return Promise.all([
+								animations.add(this.list._domSwipeSpacerLeft, opacity(1, 0, true)),
+								animations.add(this.list._domSwipeSpacerRight, opacity(1, 0, true))
+							])
+						}).then(() => {
+							// set swipe element to initial configuration
+							this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width) + 'px) translateY(' + ve.top + 'px)'
+							this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width) + 'px) translateY(' + ve.top + 'px)'
+							this.list._domSwipeSpacerRight.style.opacity = ''
+							this.list._domSwipeSpacerLeft.style.opacity = ''
+						})
+					} else {
+						return this.reset()
+					}
+				}).finally(() => {
+					this.virtualElement = null
 				})
-			]).then(() => {
-				this.xoffset = 0
-				ve.domElement.style.transform = 'translateX(' + this.xoffset + 'px) translateY(' + ve.top + 'px)'
-				return Promise.all([
-					animations.add(this.list._domSwipeSpacerLeft, opacity(1, 0, true)),
-					animations.add(this.list._domSwipeSpacerRight, opacity(1, 0, true))
-				])
-			}).then(() => {
-				this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (this.xoffset - this.list._width) + 'px) translateY(' + ve.top + 'px)'
-				this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.xoffset + this.list._width) + 'px) translateY(' + ve.top + 'px)'
-				this.list._domSwipeSpacerRight.style.opacity = ''
-				this.list._domSwipeSpacerLeft.style.opacity = ''
-			})
+		} else {
+			return Promise.resolve()
 		}
-		this.virtualElement = null
 	}
 
 
 	reset() {
-		if (this.xoffset !== 0) {
-			let ve = this.virtualElement
-			if (ve && ve.domElement && ve.entity) {
-				animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, 0).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
-				animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset - this.list._width), -this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
-				animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
+		try {
+			if (this.xoffset !== 0) {
+				let ve = this.virtualElement
+				if (ve && ve.domElement && ve.entity) {
+					return Promise.all([
+						animations.add(ve.domElement, transform(transform.type.translateX, this.xoffset, 0).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut}),
+						animations.add(this.list._domSwipeSpacerLeft, transform(transform.type.translateX, (this.xoffset - this.list._width), -this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut}),
+						animations.add(this.list._domSwipeSpacerRight, transform(transform.type.translateX, (this.xoffset + this.list._width), this.list._width).chain(transform.type.translateY, ve.top, ve.top), {easing: ease.inOut})
+					])
+				}
+				this.xoffset = 0
 			}
-			this.xoffset = 0
+			return Promise.resolve()
+		} finally {
+			this.virtualElement = null
 		}
-		this.virtualElement = null
 	}
 
 	getVirtualElement(): VirtualElement {
@@ -933,6 +976,14 @@ class SwipeHandler {
 
 	isSupported() {
 		return 'ontouchstart' in window
+	}
+
+	updateWidth() {
+		console.log("update", this.list._width)
+		this.list._domSwipeSpacerLeft.style.width = px(this.list._width)
+		this.list._domSwipeSpacerRight.style.width = px(this.list._width)
+		this.list._domSwipeSpacerLeft.style.transform = 'translateX(' + (-this.list._width) + 'px) translateY(0px)'
+		this.list._domSwipeSpacerRight.style.transform = 'translateX(' + (this.list._width) + 'px) translateY(0px)'
 	}
 }
 
