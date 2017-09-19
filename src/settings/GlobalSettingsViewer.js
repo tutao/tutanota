@@ -121,15 +121,15 @@ export class GlobalSettingsViewer {
 									m(auditLogExpander.panel),
 									m("small", lang.get("auditLogInfo_msg")),
 								]) : null,
-							m(".mt-l", [
-								m(".h4", lang.get("contactFormReport_label")),
-								m(".small", lang.get("contactFormReportInfo_msg")),
-								m(".flex-space-between.items-center.mb-s", [
-									m(contactFormReportFrom),
-									m(contactFormReportTo),
-									m(contactFormReportButton)
-								]),
-							]),
+							!logins.isProdDisabled() ? m(".mt-l", [
+									m(".h4", lang.get("contactFormReport_label")),
+									m(".small", lang.get("contactFormReportInfo_msg")),
+									m(".flex-space-between.items-center.mb-s", [
+										m(contactFormReportFrom),
+										m(contactFormReportTo),
+										m(contactFormReportButton)
+									]),
+								]) : null,
 						]) : null,
 				]),
 			]
@@ -292,7 +292,7 @@ export class GlobalSettingsViewer {
 				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
 				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
 				.then(logEntries => {
-					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b))))
+					let columns = Array.from(new Set(logEntries.map(e => e.values.map(v => v.name)).reduce((a, b) => a.concat(b), [])))
 					let titleRow = `contact form,path,date,${columns.join(",")}`
 					Promise.all(logEntries.map(entry => load(ContactFormTypeRef, entry.contactForm).then(contactForm => {
 						let row = [escape(contactForm.pageTitle), contactForm.path, formatSortableDate(entry.date)]
