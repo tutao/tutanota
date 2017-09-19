@@ -85,7 +85,12 @@ export class MailListView {
 	}
 
 	targetInbox() {
-		return this.mailView.selectedFolder == neverNull(this.mailView.selectedMailbox).getArchiveFolder() || this.mailView.selectedFolder == neverNull(this.mailView.selectedMailbox).getTrashFolder()
+		const mailbox = this.mailView.selectedMailbox
+		if (mailbox) {
+			return this.mailView.selectedFolder == mailbox.getArchiveFolder() || this.mailView.selectedFolder == mailbox.getTrashFolder()
+		} else {
+			return false
+		}
 	}
 
 
