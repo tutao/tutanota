@@ -248,6 +248,7 @@ styles.registerStyle('main', () => {
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
+		'.flex-fixed': {flex: "0 0"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},
