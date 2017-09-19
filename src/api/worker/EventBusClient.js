@@ -14,19 +14,22 @@ import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {getEntityRestCache} from "./rest/EntityRestCache"
 import {loadAll, load, loadRange} from "./EntityWorker"
 import {GENERATED_MIN_ID, getLetId, GENERATED_MAX_ID, firstBiggerThanSecond} from "../common/EntityFunctions"
-import {NotFoundError, NotAuthorizedError} from "../common/error/RestError"
+import {NotFoundError, NotAuthorizedError, ConnectionError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
+import {contains} from "../common/utils/ArrayUtils"
 
 assertWorkerOrNode()
 
 export class EventBusClient {
 
+	_MAX_EVENT_IDS_QUEUE_LENGTH: number;
+
 	_socket: ?WebSocket;
 	_terminated: boolean; // if terminated, never reconnects
 	_immediateReconnect: boolean; // if true tries to reconnect immediately after the websocket is closed
-	_lastEntityEventIds: {[key: Id]: Id}; // maps group id to last event id. we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
+	_lastEntityEventIds: {[key: Id]: Id[]}; // maps group id to last event ids (max. 1000). we do not have to update these event ids if the groups of the user change because we always take the current users groups from the LoginFacade.
 	_queueWebsocketEvents: boolean
 
 	_websocketWrapperQueue: WebsocketWrapper[]; // in this array all arriving WebsocketWrappers are stored as long as we are loading or processing EntityEventBatches
@@ -38,6 +41,11 @@ export class EventBusClient {
 		this._lastEntityEventIds = {}
 		this._queueWebsocketEvents = false
 		this._websocketWrapperQueue = []
+
+		// we store the last 1000 event ids per group, so we know if an event was already processed.
+		// it is not sufficient to check the last event id because a smaller event id may arrive later
+		// than a bigger one if the requests are processed in parallel on the server
+		this._MAX_EVENT_IDS_QUEUE_LENGTH = 1000
 	}
 
 	/**
@@ -87,9 +95,11 @@ export class EventBusClient {
 	/**
 	 * Sends a close event to the server and finally closes the connection. Makes sure that there will be no reconnect.
 	 */
-	close() {
-		console.log("ws close: ", new Date());
-		this._terminated = true;
+	close(reconnect: boolean = false) {
+		console.log("ws close: ", new Date(), "reconnect: ", reconnect);
+		if (!reconnect) {
+			this._terminated = true;
+		}
 		if (this._socket && this._socket.close) { // close is undefined in node tests
 			this._socket.close();
 		}
@@ -165,10 +175,13 @@ export class EventBusClient {
 		this._queueWebsocketEvents = true
 		return Promise.each(loginFacade.getAllGroupIds(), groupId => {
 			return loadRange(EntityEventBatchTypeRef, groupId, GENERATED_MAX_ID, 1, true).then(batches => {
-				this._lastEntityEventIds[groupId] = (batches.length == 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID
+				this._lastEntityEventIds[groupId] = [(batches.length == 1) ? getLetId(batches[0])[1] : GENERATED_MIN_ID]
 			})
 		}).then(() => {
 			return this._processQueuedEvents()
+		}).catch(ConnectionError, e => {
+			console.log("not connected in _setLatestEntityEventIds, close websocket", e)
+			this.close(true)
 		}).finally(() => {
 			this._queueWebsocketEvents = false
 		})
@@ -189,6 +202,9 @@ export class EventBusClient {
 						return this._processQueuedEvents()
 					})
 				}
+			}).catch(ConnectionError, e => {
+				console.log("not connected in _loadMissedEntityEvents, close websocket", e)
+				this.close(true)
 			}).finally(() => {
 				this._queueWebsocketEvents = false
 			})
@@ -206,7 +222,7 @@ export class EventBusClient {
 			let groupId = neverNull(wrapper.eventBatchOwner)
 			let eventId = neverNull(wrapper.eventBatchId)
 			let p = Promise.resolve()
-			if (firstBiggerThanSecond(eventId, this._getLastEventBatchIdOrMinIdForGroup(groupId))) {
+			if (!this._isAlreadyProcessed(groupId, eventId)) {
 				p = this._processEntityEvents(wrapper.eventBatch, groupId, eventId);
 			}
 			return p.then(() => {
@@ -234,7 +250,13 @@ export class EventBusClient {
 					.then(() => this._executeIfNotTerminated(() => mailFacade.entityEventReceived(event)))
 					.then(() => this._executeIfNotTerminated(() => workerImpl.entityEventReceived(event)))
 			}).then(() => {
-				this._lastEntityEventIds[groupId] = batchId
+				if (!this._lastEntityEventIds[groupId]) {
+					this._lastEntityEventIds[groupId] = []
+				}
+				this._lastEntityEventIds[groupId].push(batchId)
+				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
+					this._lastEntityEventIds[groupId].shift()
+				}
 			})
 	}
 
@@ -256,7 +278,15 @@ export class EventBusClient {
 	}
 
 	_getLastEventBatchIdOrMinIdForGroup(groupId: Id): Id {
-		return (this._lastEntityEventIds[groupId]) ? this._lastEntityEventIds[groupId] : GENERATED_MIN_ID
+		return (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) ? this._lastEntityEventIds[groupId][this._lastEntityEventIds[groupId].length - 1] : GENERATED_MIN_ID
+	}
+
+	_isAlreadyProcessed(groupId: Id, eventId: Id): boolean {
+		if (this._lastEntityEventIds[groupId] && this._lastEntityEventIds[groupId].length > 0) {
+			return firstBiggerThanSecond(this._lastEntityEventIds[groupId][0], eventId) || contains(this._lastEntityEventIds[groupId], eventId)
+		} else {
+			return false
+		}
 	}
 
 	_executeIfNotTerminated(call: Function): Promise<void> {
