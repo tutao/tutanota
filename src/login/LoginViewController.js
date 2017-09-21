@@ -75,6 +75,7 @@ export class LoginViewController {
 			.then(() => logins.loadCustomizations())
 			.then(() => this._postLoginActions())
 			.then(() => {
+				if (document.activeElement) document.activeElement.blur() // fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
 				m.route.set(this.view._requestedPath)
 				this.view.helpText = lang.get('emptyString_msg')
 				m.redraw()
