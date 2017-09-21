@@ -49,7 +49,7 @@ styles.registerStyle('main', () => {
 			overflow: 'hidden',
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
 			//'font-family': client.isMobileDevice() ? `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"` : "Lato, sans-serif",
-			'font-family': `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
 			'line-height': 1.428571429, // 20/14
 			color: theme.content_fg,
