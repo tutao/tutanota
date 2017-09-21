@@ -833,7 +833,7 @@ class SwipeHandler {
 		this.animating = Promise.resolve()
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), false) // does invoke prevent default
+		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), client.passive() ? {passive: false} : false) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
