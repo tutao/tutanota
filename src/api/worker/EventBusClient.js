@@ -14,7 +14,7 @@ import {_TypeModel as MailTypeModel} from "../entities/tutanota/Mail"
 import {getEntityRestCache} from "./rest/EntityRestCache"
 import {loadAll, load, loadRange} from "./EntityWorker"
 import {GENERATED_MIN_ID, getLetId, GENERATED_MAX_ID, firstBiggerThanSecond} from "../common/EntityFunctions"
-import {NotFoundError, NotAuthorizedError, ConnectionError} from "../common/error/RestError"
+import {NotFoundError, NotAuthorizedError, ConnectionError, handleRestError} from "../common/error/RestError"
 import {EntityEventBatchTypeRef} from "../entities/sys/EntityEventBatch"
 import {neverNull} from "../common/utils/Utils"
 import {OutOfSyncError} from "../common/error/OutOfSyncError"
@@ -135,6 +135,13 @@ export class EventBusClient {
 
 	_close(event: CloseEvent) {
 		console.log("ws _close: ", event, new Date());
+		// Avoid running into penalties when trying to authenticate with an invalid session
+		// NotAuthenticatedException 401, AccessDeactivatedException 470, AccessBlocked 472
+		// do not catch session expired here because websocket will be reused when we authenticate again
+		if (event.code == 4401 || event.code == 4470 || event.code == 4472) {
+			this._terminated = true
+			workerImpl.sendError(handleRestError(event.code - 4000, "web socket error"))
+		}
 
 		if (!this._terminated && loginFacade.isLoggedIn()) {
 			if (this._immediateReconnect || isIOSApp()) {
