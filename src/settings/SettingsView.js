@@ -115,7 +115,7 @@ export class SettingsView {
 			view: () => m(".folders", buttons.map(fb => m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb)
 			])))
-		}), false, {}, theme.navigation_light_fg)
+		}), false, {}, theme.navigation_button)
 		expander.toggle()
 		return expander
 	}

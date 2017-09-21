@@ -11,7 +11,6 @@ export type Theme = {
 
 	content_bg: string,
 	content_fg: string,
-	content_light_fg: string,
 	content_button: string,
 	content_button_selected: string,
 	content_button_icon: string,
@@ -35,7 +34,6 @@ export type Theme = {
 
 	modal_bg: string,
 
-	navigation_light_fg: string,
 	navigation_bg: string,
 	navigation_border: string,
 	navigation_button: string,
@@ -103,7 +101,6 @@ function getLightTheme() {
 		button_bubble_fg: grey_darkest,
 
 		content_fg: grey_darkest,
-		content_light_fg: grey,
 		content_button: grey_darker,
 		content_button_selected: red,
 		content_button_icon: light,
@@ -128,7 +125,6 @@ function getLightTheme() {
 
 		modal_bg: grey_darkest,
 
-		navigation_light_fg: grey,
 		navigation_bg: grey_lighter,
 		navigation_border: grey_dark,
 		navigation_button: grey_darker,
@@ -160,7 +156,6 @@ function getDarkTheme(): Theme {
 		button_bubble_fg: lighter,
 
 		content_fg: lighter,
-		content_light_fg: grey,
 		content_button: light,
 		content_button_selected: cyan,
 		content_button_icon: dark_lighter,
@@ -186,7 +181,6 @@ function getDarkTheme(): Theme {
 
 		modal_bg: lighter,
 
-		navigation_light_fg: grey,
 		navigation_bg: dark_lightest,
 		navigation_border: dark,
 		navigation_button: light,
