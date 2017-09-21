@@ -1,5 +1,5 @@
 // @flow
-import {px} from "../gui/size"
+import {px, size} from "../gui/size"
 import m from "mithril"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {load, update, loadMultiple} from "../api/main/Entity"
@@ -13,6 +13,7 @@ import {
 	urlEncodeHtmlTags,
 	getDomainWithoutSubdomains
 } from "../misc/Formatter"
+import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {MailState, ConversationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
@@ -62,7 +63,9 @@ export class MailViewer {
 	_loadingAttachments: boolean;
 	_attachments: TutanotaFile[];
 	_attachmentButtons: Button[];
-	_contentBlocked: boolean
+	_contentBlocked: boolean;
+	_domBody: HTMLElement;
+	_bodyLineHeight: string;
 	oncreate: Function;
 	onbeforeremove: Function;
 
@@ -73,6 +76,10 @@ export class MailViewer {
 		this.mailView = mailView
 		this._htmlBody = ""
 		this._contentBlocked = false
+		this._bodyLineHeight = size.line_height
+
+		const resizeListener = () => this._updateLineHeight()
+		windowFacade.addResizeListener(resizeListener)
 
 		let senderBubble = createDropDownButton(() => getDisplayText(this.mail.sender.name, this.mail.sender.address, false), null, () => this._createBubbleContextButtons(this.mail.sender, InboxRuleType.FROM_EQUALS), 250).setType(ButtonType.Bubble)
 		let differentSenderBubble = (this._isEnvelopeSenderVisible()) ? new Button(() => getDisplayText("", neverNull(this.mail.differentEnvelopeSender), false), () => Dialog.error("envelopeSenderInfo_msg"), () => Icons.Warning).setType(ButtonType.Bubble) : null
@@ -215,7 +222,12 @@ export class MailViewer {
 						]),
 
 						m(".body", {
-							onsubmit: (event: Event) => this._confirmSubmit(event)
+							oncreate: vnode => {
+								this._domBody = vnode.dom
+								this._updateLineHeight()
+							},
+							onsubmit: (event: Event) => this._confirmSubmit(event),
+							style: {'line-height': this._bodyLineHeight}
 						}, this._mailBody == null ? m(".progress-panel.flex-v-center.items-center", {
 								style: {
 									height: '200px'
@@ -228,6 +240,8 @@ export class MailViewer {
 				)
 			]
 		}
+
+		this.onbeforeremove = () => windowFacade.removeResizeListener(resizeListener)
 
 
 		this._setupShortcuts()
@@ -247,6 +261,18 @@ export class MailViewer {
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
+	}
+
+	_updateLineHeight() {
+		const width = this._domBody.offsetWidth
+		if (width > 900) {
+			this._bodyLineHeight = size.line_height_l
+		} else if (width > 600) {
+			this._bodyLineHeight = size.line_height_m
+
+		} else {
+			this._bodyLineHeight = size.line_height
+		}
 	}
 
 	_confirmSubmit(event: Event) {

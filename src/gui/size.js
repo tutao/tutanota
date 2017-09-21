@@ -49,6 +49,9 @@ export const size = {
 
 	column_width_s_desktop: 135,
 	column_width_s_mobile: 70,
+	line_height: 1.428571429, // 20/14,
+	line_height_m: 1.6,
+	line_height_l: 1.8,
 }
 
 
