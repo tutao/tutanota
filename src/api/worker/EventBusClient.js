@@ -80,7 +80,7 @@ export class EventBusClient {
 			wrapper.authentication = authenticationData
 			encryptAndMapToLiteral(WebsocketWrapperTypeModel, wrapper, null).then(entityForSending => {
 				const sendInitialMsg = () => {
-					if (this._socket.readyState === 1) {
+					if ((this._socket:any).readyState === 1) {
 						(this._socket:any).send(JSON.stringify(entityForSending));
 					} else {
 						setTimeout(sendInitialMsg, 5)
