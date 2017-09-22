@@ -127,6 +127,7 @@ styles.registerStyle('main', () => {
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
+		'.pb-floating': {'padding-bottom': px(size.button_floating_size + size.hpad_large)}, // allow scrolling across the floating button
 		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 		'.pl': {'padding-left': px(size.hpad)},
 		'.pl-s': {'padding-left': px(size.hpad_small)},

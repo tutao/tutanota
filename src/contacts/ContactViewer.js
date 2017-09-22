@@ -75,7 +75,7 @@ export class ContactViewer {
 
 		this.view = () => {
 			return [
-				m("#contact-viewer.fill-absolute.scroll.plr-l", [
+				m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".flex-space-between.pt", [
 						m(".h2", this.contact.firstName + " " + contact.lastName),
 						m(actions),

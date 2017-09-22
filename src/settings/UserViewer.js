@@ -129,7 +129,7 @@ export class UserViewer {
 
 		this.view = () => {
 			return [
-				m("#user-viewer.fill-absolute.scroll.plr-l", [
+				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".h4.mt-l", lang.get('userSettings_label')),
 					m(".wrapping-row", [
 						m("", [

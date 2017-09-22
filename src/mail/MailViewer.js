@@ -199,7 +199,7 @@ export class MailViewer {
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
 			return [
-				m("#mail-viewer.fill-absolute.scroll.plr-l", [
+				m("#mail-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 						m(".header", [
 							m(".sender-details.flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m("small.flex.items-end.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
