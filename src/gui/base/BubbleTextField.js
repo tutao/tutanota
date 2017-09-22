@@ -56,7 +56,7 @@ export class BubbleTextField<T> {
 		this.view = () => {
 			return m('.bubble-text-field', [
 				m(this.textField),
-				m(".suggestions.text-ellipsis", {
+				m(".suggestions.text-ellipsis.ml-negative-l", {
 					oncreate: vnode => this._domSuggestions = vnode.dom,
 					onmousedown: e => this.textField.skipNextBlur = true,
 				}, this.suggestions.map(s => m(s, {

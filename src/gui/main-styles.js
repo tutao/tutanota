@@ -51,7 +51,7 @@ styles.registerStyle('main', () => {
 			//'font-family': client.isMobileDevice() ? `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"` : "Lato, sans-serif",
 			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
-			'line-height': 1.428571429, // 20/14
+			'line-height': size.line_height,
 			color: theme.content_fg,
 			'background-color': theme.content_bg,
 			'-webkit-text-size-adjust': 'none'
@@ -147,6 +147,7 @@ styles.registerStyle('main', () => {
 
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
 		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
+		'.ml-negative-l': {'margin-left': px(-size.hpad_large)},
 		'.ml-negative-xs': {'margin-left': px(-3)},
 		'.ml-negative-bubble': {'margin-left': px(-7)},
 		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
@@ -409,7 +410,6 @@ styles.registerStyle('main', () => {
 		'.pr-expander': {'padding-right': px(3)},
 		'.expander': {height: px(size.button_height), 'min-width': px(size.button_height)},
 
-
 		// mail view editor
 		'.mail-viewer-firstLine': {'pading-top': px(10)},
 		'.hide-outline': {outline: 'none'},
@@ -430,7 +430,8 @@ styles.registerStyle('main', () => {
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
 			'background-color': theme.list_bg,
-			height: px(size.list_row_height), 'border-left': px(size.border_selection) + " solid transparent"
+			height: px(size.list_row_height),
+			'border-left': px(size.border_selection) + " solid transparent"
 		},
 		'.list-row > div': {'margin-left': px(-size.border_selection)},
 		'.odd-row': {

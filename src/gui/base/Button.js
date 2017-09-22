@@ -159,7 +159,6 @@ export class Button {
 
 	getButtonClasses() {
 		let buttonClasses = ["bg-transparent"]
-
 		if (this._type == ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
@@ -211,8 +210,8 @@ export class Button {
 			color = theme.content_accent
 		} else if (this._type === ButtonType.Login) {
 			color = theme.content_button_icon
-		} else if (this._type === ButtonType.Bubble) {
-			color = theme.button_bubble_fg
+		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
+			color = theme.content_fg
 		} else {
 			color = this.isSelected() ? getColors(this._colors).button_selected : getColors(this._colors).button
 		}
