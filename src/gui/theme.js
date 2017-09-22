@@ -165,8 +165,8 @@ function getDarkTheme(): Theme {
 		content_message_bg: dark_lightest,
 
 
-		header_bg: dark_darkest,
-		header_box_shadow_bg: dark,
+		header_bg: dark,
+		header_box_shadow_bg: dark_darkest,
 		header_button: light,
 		header_button_icon: dark_lighter,
 		header_button_selected: cyan,
