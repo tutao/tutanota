@@ -25,12 +25,14 @@ export const ButtonType = {
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
 }
+export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
 export const ButtonColors = {
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
 }
+export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
@@ -187,7 +189,7 @@ export class Button {
 		return wrapperClasses
 	}
 
-	_getLabelElement(): ?VirtualElement {
+	_getLabelElement() {
 		let classes = ["text-ellipsis"]
 		if (this._type == ButtonType.Dropdown) {
 			classes.push("pl-m")

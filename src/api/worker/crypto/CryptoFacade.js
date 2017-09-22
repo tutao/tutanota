@@ -43,7 +43,7 @@ assertWorkerOrNode()
 export function valueToDefault(type: ValueTypeEnum) {
 	if (type === ValueType.String) return ""
 	else if (type === ValueType.Number) return "0"
-	else if (type === ValueType.Bytes) return new Uint8Array()
+	else if (type === ValueType.Bytes) return new Uint8Array(0)
 	else if (type === ValueType.Date) return new Date()
 	else if (type === ValueType.Boolean) return false
 	else throw new ProgrammingError(`${type} is not a valid value type`)
@@ -238,11 +238,11 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {
 	if (!entity._ownerGroup) {
-		throw new Error("no owner group set", entity)
+		throw new Error(`no owner group set  ${JSON.stringify(entity)}`)
 	}
 	if (model.encrypted) {
 		if (entity._ownerEncSessionKey) {
-			throw new Error("ownerEncSessionKey already set", entity)
+			throw new Error(`ownerEncSessionKey already set ${JSON.stringify(entity)}`)
 		}
 		let sessionKey = aes128RandomKey()
 		entity._ownerEncSessionKey = encryptKey(loginFacade.getGroupKey(entity._ownerGroup), sessionKey)

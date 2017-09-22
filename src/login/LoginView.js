@@ -123,7 +123,7 @@ export class LoginView {
 	}
 
 	login() {
-		this._viewController.then((viewController: ILoginViewController) => viewController._formLogin(this.mailAddress.value(), this.password.value()))
+		this._viewController.then((viewController: ILoginViewController) => viewController._formLogin())
 	}
 
 	loginForm() {

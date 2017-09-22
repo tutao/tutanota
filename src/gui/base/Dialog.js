@@ -28,6 +28,7 @@ export const DialogType = {
 	EditMedium: "EditMedium",
 	EditLarge: "EditLarge"
 }
+export type DialogTypeEnum = $Values<typeof DialogType>;
 
 export class Dialog {
 	buttons: Button[];
@@ -157,7 +158,10 @@ export class Dialog {
 		let bgcolor = theme.content_bg
 		return Promise.all([
 			animations.add(this._domDialog.children, opacity(1, 0, true)),
-			animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0, ease.linear), {delay: DefaultAnimationTime / 2})
+			animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0), {
+				delay: DefaultAnimationTime / 2,
+				easing: ease.linear
+			})
 		]).then(() => {
 		})
 	}

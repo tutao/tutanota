@@ -26,6 +26,7 @@ import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

@@ -7,7 +7,7 @@ import {
 	base64ToUint8Array,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
-	hexToUint8Array,
+	hexToUint8Array
 } from "../../../src/api/common/utils/Encoding"
 import {
 	encryptKey,
@@ -429,7 +429,7 @@ o.spec("crypto facade", function () {
 
 	o("resolve session key: unencrypted instance", function (done) {
 		let userIdLiteral = {"_format": "0", "userId": "KOBqO7a----0"}
-		resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral, ({}:any), ({}:any)).then(sessionKey => {
+		resolveSessionKey(UserIdReturn._TypeModel, userIdLiteral, ({}:any)).then(sessionKey => {
 			o(sessionKey).equals(null)
 			done()
 		})
@@ -450,7 +450,7 @@ o.spec("crypto facade", function () {
 
 		let mail = createMailLiteral(gk, sk, subject, confidential, senderName, recipientName)
 
-		resolveSessionKey(Mail._TypeModel, mail, null, ({}:any)).then(sessionKey => {
+		resolveSessionKey(Mail._TypeModel, mail, null).then(sessionKey => {
 			o(sessionKey).deepEquals(sk)
 		}).then(done)
 	})

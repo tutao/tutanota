@@ -2,6 +2,7 @@
 import {restClient, MediaType} from "./RestClient"
 import {loginFacade} from "../facades/LoginFacade"
 import {decryptAndMapToInstance, encryptAndMapToLiteral} from "../crypto/CryptoFacade"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {resolveTypeReference, TypeRef} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 

@@ -1,5 +1,6 @@
 // @flow
 import {typeRefToPath, EntityRestClient} from "./EntityRestClient"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {
 	TypeRef,
 	firstBiggerThanSecond,

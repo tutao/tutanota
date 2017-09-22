@@ -1,6 +1,7 @@
 import {Bubble} from "../src/gui/base/BubbleTextField"
 import {ViewColumn as _ViewColumn} from "../src/gui/base/ViewColumn"
 import {TypeRef} from "../src/api/common/EntityFunctions"
+import type {OperationTypeEnum} from "../src/api/common/TutanotaConstants"
 
 /**
  * The BubbleInputField delegates certain tasks like retrieving suggestions and creating bubbles

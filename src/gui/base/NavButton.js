@@ -7,11 +7,12 @@ import {flash} from "./Ripple"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
 import {ButtonColors, getColors} from "./Button"
+import type {ButtonColorEnum} from "./Button"
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
 export class NavButton {
-	icon: lazy<Vnode<IconAttrs>>;
+	icon: lazy<SVG>;
 	href: string|lazy<string>;
 	clickHandler: ?clickHandler;
 

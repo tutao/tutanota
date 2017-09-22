@@ -484,7 +484,7 @@ function _clear(array: ?Uint8Array) {
 export function mgf1(seed: Uint8Array, length: number): Uint8Array {
 	let C = null
 	let counter = 0
-	let T = new Uint8Array()
+	let T = new Uint8Array(0)
 
 	do {
 		C = i2osp(counter)

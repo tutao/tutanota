@@ -1,6 +1,7 @@
 // @flow
 import {getHttpOrigin, assertWorkerOrNode} from "../../Env"
 import {handleRestError, ConnectionError} from "../../common/error/RestError"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {HttpMethod} from "../../common/EntityFunctions"
 import {uint8ArrayToArrayBuffer} from "../../common/utils/Encoding"
 
@@ -10,6 +11,7 @@ export const MediaType = {
 	Json: 'application/json',
 	Binary: 'application/octet-stream',
 }
+export type MediaTypeEnum = $Values<typeof MediaType>;
 
 export class RestClient {
 	url: string;
@@ -26,7 +28,7 @@ export class RestClient {
 				}
 				queryParams['_body'] = encodeURIComponent(body) // get requests are not allowed to send a body. Therefore, we convert our body to a paramater
 			}
-			let url = addParamsToUrl(this.url + path, queryParams, method)
+			let url = addParamsToUrl(this.url + path, queryParams)
 			var xhr = new XMLHttpRequest()
 			xhr.open(method, url)
 			this._setHeaders(xhr, headers, body, responseType);
@@ -76,7 +78,7 @@ export class RestClient {
 
 			xhr.onabort = function () {
 				clearTimeout(timeout)
-				reject(new ConnectionError(`Reached timeout of ${env.timeout}ms`, `${xhr.statusText} | ${method} ${path}`))
+				reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 			}
 			if (body instanceof Uint8Array) {
 				xhr.send(uint8ArrayToArrayBuffer(body))

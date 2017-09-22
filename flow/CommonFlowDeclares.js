@@ -95,8 +95,8 @@ declare interface ListConfig<T, R: VirtualRow<T>> {
 }
 
 declare interface SwipeConfiguration<T> {
-	renderLeftSpacer(): VirtualElement[];
-	renderRightSpacer(): VirtualElement[];
+	renderLeftSpacer(): Children;
+	renderRightSpacer(): Children;
 	swipeLeft(listElement: T):Promise<void>;
 	swipeRight(listElement: T):Promise<void>;
 }
@@ -133,20 +133,6 @@ declare interface ModalComponent {
 type LogCategory = {[key: string] : string}
 
 // Enums
-type BrowserTypeEnum = 'Chrome' | 'Firefox' | 'Internet Explorer' | 'Safari' | 'Android' | 'Opera' | 'BlackBerry' | 'Ubuntu' | 'Other'
-type DeviceTypeEnum = 'iPhone' | 'iPad' | 'Android' | 'Windows Phone' | 'BlackBerry' | 'Desktop' | 'Other mobile'
-type ButtonTypeEnum = 'action' | 'primary' | 'secondary' | 'dropdown' | 'login' | 'floating' | 'bubble' | 'textBubble'
-type ButtonColorEnum = 'header' | 'nav' | 'content'
-type TextFieldTypeEnum = 'text' | 'email' | 'password' | 'area' | 'externalpassword'
-type HtmlEditorModeEnum = 'html' | 'what you see is what you get'
-type ContactAddressTypeEnum = '0' | '1' | '2' | '3'
-type ContactPhoneNumberTypeEnum = '0' | '1' | '2' | '3' | '4' | '5'
-type ContactSocialTypeEnum = '0' | '1' | '2' | '3' | '4' | '5'
-type AccountTypeEnum = '0' | '1' | '2' | '3' | '5'
-type OperationTypeEnum = '0' | '1' | '2'
-type DialogTypeEnum = 'Progress' | 'Alert' | 'Reminder' | 'EditSmall' | 'EditMedium' |'EditLarge'
-type ColumnWidthEnum = 'column-width-small' | 'column-width-largest'
-
 type ThemeId = 'light' | 'dark' | 'custom'
 
 declare function EasingFunction(percent: number): number;

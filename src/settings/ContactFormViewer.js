@@ -17,6 +17,7 @@ import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
 import {getGroupInfoDisplayName, neverNull} from "../api/common/utils/Utils"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

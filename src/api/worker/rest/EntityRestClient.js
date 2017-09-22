@@ -8,6 +8,7 @@ import {
 	resolveSessionKey,
 	setNewOwnerEncSessionKey
 } from "../crypto/CryptoFacade"
+import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {resolveTypeReference, TypeRef, HttpMethod} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
 

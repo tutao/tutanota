@@ -33,6 +33,7 @@ import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

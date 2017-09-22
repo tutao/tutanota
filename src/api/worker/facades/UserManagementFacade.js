@@ -1,5 +1,6 @@
 // @flow
 import {assertWorkerOrNode} from "../../Env"
+import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {Const, GroupType, AccountType} from "../../common/TutanotaConstants"
 import {customerFacade} from "./CustomerFacade"
 import {loginFacade} from "./LoginFacade"

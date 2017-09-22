@@ -18,6 +18,7 @@ export const HttpMethod = {
 	PUT: 'PUT',
 	DELETE: 'DELETE'
 }
+export type HttpMethodEnum = $Values<typeof HttpMethod>;
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -93,7 +94,7 @@ function _getDefaultValue(value: ModelValue): any {
 	} else {
 		switch (value.type) {
 			case ValueType.Bytes:
-				return new Uint8Array()
+				return new Uint8Array(0)
 			case ValueType.Date:
 				return new Date()
 			case ValueType.Number:
@@ -107,7 +108,7 @@ function _getDefaultValue(value: ModelValue): any {
 				return null // we have to use null although the value must be set to something different
 		}
 	}
-	throw new Error("no default value for", value)
+	throw new Error(`no default value for ${JSON.stringify(value)}`)
 }
 
 export function _setupEntity<T>(listId: ?Id, instance: T, target: EntityRestInterface): Promise<Id> {

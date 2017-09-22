@@ -1,5 +1,6 @@
 // @flow
 import {getEntityRestCache} from "./rest/EntityRestCache"
+import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_setupEntity,
 	_updateEntity,

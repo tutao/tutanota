@@ -3,6 +3,7 @@ import {CryptoError} from "../common/error/CryptoError"
 import {Request, Queue, objToError} from "../common/WorkerProtocol"
 import {UserController} from "../main/UserController"
 import {EntityEventController} from "./EntityEventController"
+import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {TypeRef} from "../common/EntityFunctions"
 import {assertMainOrNode, isMain} from "../Env"
 import {ContactController} from "./ContactController"
@@ -11,6 +12,13 @@ import {loadRoot} from "./Entity"
 import {nativeApp} from "../../native/NativeWrapper"
 import {logins} from "./LoginController"
 import {EntropyCollector} from "./EntropyCollector"
+import type {
+	OperationTypeEnum,
+	EntropySrcEnum,
+	ConversationTypeEnum,
+	AccountTypeEnum
+} from "../common/TutanotaConstants"
+import type {MediaTypeEnum} from "../worker/rest/RestClient"
 
 assertMainOrNode()
 
@@ -107,7 +115,7 @@ export class WorkerClient {
 		this._contactController.entityEventReceived(typeRef, listId, elementId, operation)
 	}
 
-	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string) {
+	signup(accountType: AccountTypeEnum, authToken: string, mailAddress: string, password: string, currentLanguage: string): Promise<void> {
 		return this.initialized.then(() => this._postRequest(new Request('signup', arguments)))
 	}
 
@@ -254,7 +262,7 @@ export class WorkerClient {
 		return this._postRequest(new Request('loadCustomerServerProperties', arguments))
 	}
 
-	addSpamRule(): Promise<void> {
+	addSpamRule(type: NumberString, value: string): Promise<void> {
 		return this._postRequest(new Request('addSpamRule', arguments))
 	}
 

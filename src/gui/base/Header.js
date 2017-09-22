@@ -125,7 +125,8 @@ class Header {
 		}
 	}
 
-	_getLeftElements(): VirtualElement[] {
+	
+	_getLeftElements() {
 		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
 			let viewSlider = neverNull(this._viewSlider)
 			if (styles.isDesktopLayout()) {

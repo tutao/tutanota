@@ -31,6 +31,7 @@ import {Icons} from "../gui/base/icons/Icons"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

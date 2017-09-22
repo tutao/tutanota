@@ -25,6 +25,7 @@ import {ContactFormListView} from "./ContactFormListView"
 import {BrandingSettingsViewer} from "./BrandingSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

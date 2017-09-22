@@ -10,6 +10,7 @@ export const Mode = {
 	HTML: "html",
 	WYSIWYG: "what you see is what you get",
 }
+export type HtmlEditorModeEnum = $Values<typeof Mode>;
 
 export class HtmlEditor {
 	_editor: Editor;
@@ -72,11 +73,11 @@ export class HtmlEditor {
 
 		this._editor.initialized.promise.then(() => {
 			this._editor.squire.setHTML(this._value())
-			this._editor._domElement.onfocus = (e) => focus(e)
-			this._editor._domElement.onblur = (e) => blur(e)
+			this._editor._domElement.onfocus = (e) => focus()
+			this._editor._domElement.onblur = (e) => blur()
 		})
 
-		let getPlaceholder = (): ?VirtualElement => {
+		let getPlaceholder = () => {
 			return (!this._active && this.isEmpty()) ? m(".abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 						oncreate: vnode => this._placeholderDomElement = vnode.dom,
 						onclick: () => this._mode() == Mode.WYSIWYG ? this._editor._domElement.focus() : this._domTextArea.focus()
@@ -102,8 +103,8 @@ export class HtmlEditor {
 						}
 					}, m("textarea.input-area", {
 						oncreate: vnode => this._domTextArea = vnode.dom,
-						onfocus: e => focus(e),
-						onblur: e => blur(e),
+						onfocus: e => focus(),
+						onblur: e => blur(),
 						oninput: e => {
 							this._domTextArea.style.height = '0px';
 							this._domTextArea.style.height = (this._domTextArea.scrollHeight) + 'px';

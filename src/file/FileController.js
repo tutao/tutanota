@@ -4,6 +4,7 @@ import {worker} from "../api/main/WorkerClient"
 import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode} from "../api/Env"
 import {fileApp} from "../native/FileApp"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -36,22 +37,23 @@ export class FileController {
 		// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 		// remove the last file input
 
-		let fileInput = document.getElementById("hiddenFileChooser");
+		const fileInput = document.getElementById("hiddenFileChooser");
+		const body = neverNull(document.body)
 		if (fileInput) {
 			// remove the old one because it may contain a file already
-			document.body.removeChild(fileInput)
+			body.removeChild(fileInput)
 		}
 
-		fileInput = document.createElement("input")
-		fileInput.setAttribute("type", "file")
+		const newFileInput = document.createElement("input")
+		newFileInput.setAttribute("type", "file")
 		if (multiple) {
-			fileInput.setAttribute("multiple", "multiple")
+			newFileInput.setAttribute("multiple", "multiple")
 		}
-		fileInput.setAttribute("id", "hiddenFileChooser")
-		fileInput.style.display = "none"
+		newFileInput.setAttribute("id", "hiddenFileChooser")
+		newFileInput.style.display = "none"
 
 		let promise = Promise.fromCallback(cb => {
-			fileInput.addEventListener("change", e => {
+			newFileInput.addEventListener("change", e => {
 				this.readLocalFiles((e.target:any).files).then(dataFiles => {
 					cb(null, dataFiles)
 				}).catch(e => {
@@ -64,8 +66,8 @@ export class FileController {
 		})
 
 		// the file input must be put into the dom, otherwise it does not work in IE
-		document.body.appendChild(fileInput)
-		fileInput.click()
+		body.appendChild(newFileInput)
+		newFileInput.click()
 
 		return promise
 	}
@@ -97,7 +99,7 @@ export class FileController {
 			return fileApp.open(fileReference)
 		} else {
 			let dataFile = ((file:any):DataFile)
-			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs || (navigator:any).saveBlob || navigator.msSaveOrOpenBlob || navigator.msSaveBlob || navigator.mozSaveBlob || (navigator:any).webkitSaveBlob
+			let saveFunction: Function = window.saveAs || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs || (navigator:any).saveBlob || (navigator:any).msSaveOrOpenBlob || (navigator:any).msSaveBlob || (navigator:any).mozSaveBlob || (navigator:any).webkitSaveBlob
 			if (saveFunction) {
 				let blob = new Blob([dataFile.data], {"type": dataFile.mimeType})
 				try {
@@ -124,9 +126,10 @@ export class FileController {
 						a.href = url
 						a.download = dataFile.name
 						a.style.display = "none"
-						document.body.appendChild(a)
+						const body = neverNull(document.body)
+						body.appendChild(a)
 						a.click()
-						document.body.removeChild(a)
+						body.removeChild(a)
 						window.URL.revokeObjectURL(url)
 					} else {
 						// if the download attribute is not supported try to open the link in a new tab.

@@ -38,6 +38,7 @@ import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/util
 import {createFile} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {DatePicker} from "../gui/base/DatePicker"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

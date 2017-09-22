@@ -1,4 +1,5 @@
 // @flow
+import type {OperationTypeEnum} from "../common/TutanotaConstants"
 import {AccountType, OperationType, GroupType} from "../common/TutanotaConstants"
 import {load, loadRoot} from "./Entity"
 import {neverNull} from "../common/utils/Utils"

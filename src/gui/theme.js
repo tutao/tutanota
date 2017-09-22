@@ -40,7 +40,6 @@ export type Theme = {
 	navigation_button_selected: string,
 	navigation_button_icon: string,
 	navigation_button_icon_selected: string,
-
 }
 
 let customTheme: Theme|string = "is replaced at runtime with a custom theme" // see RootHandler.java

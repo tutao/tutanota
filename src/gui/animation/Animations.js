@@ -49,7 +49,7 @@ class Animations {
 		let target: any = targets // opt out of type checking as this Union Type is hard to differentiate with flow
 		let targetArrayOrCollection = target['length'] != null
 		if (!target || targetArrayOrCollection && target.length === 0) {
-			throw new Error('tried to animate a non existing element')
+			return Promise.reject(new Error('tried to animate a non existing element'))
 		}
 		let mutation: any = mutations
 		if (!(mutations instanceof Array)) {
@@ -88,7 +88,7 @@ export class Animation {
 	runTime: ?number;
 	easing: EasingFunction;
 
-	constructor(target: HTMLElement, mutations: DomMutation[], resolve: ?Function, delay: number, easing: EasingFunction, duration: number) {
+	constructor(target: HTMLElement, mutations: DomMutation[], resolve: ?Function, delay: number, easing: EasingFunction, duration: number = DefaultAnimationTime) {
 		this.target = target
 		this.mutations = mutations
 		this.resolve = resolve

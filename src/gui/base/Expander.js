@@ -30,7 +30,7 @@ export class ExpanderButton {
 					if (this._domElement) {
 						flash(this._domElement)
 					}
-					this.toggle(event)
+					this.toggle()
 					event.stopPropagation()
 				},
 				oncreate: vnode => {

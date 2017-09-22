@@ -25,6 +25,7 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -84,7 +85,7 @@ export class EditAliasesForm {
 				})
 			}
 		} else {
-			return this._getAvailableDomains().then(domains => {
+			this._getAvailableDomains().then(domains => {
 				let form = new SelectMailAddressForm(domains)
 				return Dialog.smallDialog(lang.get("addEmailAlias_label"), {
 					view: () => [

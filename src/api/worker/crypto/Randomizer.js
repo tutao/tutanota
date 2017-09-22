@@ -2,6 +2,7 @@
 import sjcl from "./lib/crypto-sjcl-1.0.7"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
+import type {EntropySrcEnum} from "../../common/TutanotaConstants"
 import {EntropySrc} from "../../common/TutanotaConstants"
 
 assertWorkerOrNode()

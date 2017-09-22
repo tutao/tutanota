@@ -24,6 +24,7 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

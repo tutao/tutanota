@@ -1,6 +1,5 @@
 // @flow
 import {size, px} from "../size"
-import {backface_fix, noselect} from "../mixins"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
@@ -22,6 +21,7 @@ export const Type = {
 	Area: "area",
 	ExternalPassword: "externalpassword",
 }
+export type TextFieldTypeEnum = $Values<typeof Type>;
 
 const inputLineHeight = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
@@ -72,7 +72,7 @@ export class TextField {
 		this.view = (): VirtualElement => {
 			return m(".text-field.rel.overflow-hidden.text.pt", {
 				oncreate: (vnode) => this._domWrapper = vnode.dom,
-				onclick: (e) => this.focus(e)
+				onclick: (e) => this.focus()
 			}, [
 				m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					class: this.active ? "content-accent-fg" : "",
@@ -128,7 +128,7 @@ export class TextField {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
 				value: this.value(),
 				oncreate: (vnode) => this._domInput = vnode.dom,
-				onfocus: (e) => this.focus(e),
+				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
@@ -164,7 +164,7 @@ export class TextField {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
 				},
-				onfocus: (e) => this.focus(e),
+				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}

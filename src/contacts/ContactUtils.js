@@ -1,11 +1,16 @@
 // @flow
 import {lang} from "../misc/LanguageViewModel.js"
+import type {
+	ContactAddressTypeEnum,
+	ContactPhoneNumberTypeEnum,
+	ContactSocialTypeEnum
+} from "../api/common/TutanotaConstants"
 import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
 
 assertMainOrNode()
 
-export const ContactMailAddressTypeToLabel = {
+export const ContactMailAddressTypeToLabel: {[key: ContactAddressTypeEnum]:string} = {
 	[ContactAddressType.PRIVATE]: "private_label",
 	[ContactAddressType.WORK]: "work_label",
 	[ContactAddressType.OTHER]: "other_label",
@@ -20,7 +25,7 @@ export function getContactAddressTypeLabel(type: ContactAddressTypeEnum, custom:
 	}
 }
 
-export const ContactPhoneNumberTypeToLabel = {
+export const ContactPhoneNumberTypeToLabel: {[key: ContactPhoneNumberTypeEnum]:string} = {
 	[ContactPhoneNumberType.PRIVATE]: "private_label",
 	[ContactPhoneNumberType.WORK]: "work_label",
 	[ContactPhoneNumberType.MOBILE]: "mobile_label",
@@ -37,7 +42,7 @@ export function getContactPhoneNumberTypeLabel(type: ContactPhoneNumberTypeEnum,
 	}
 }
 
-export const ContactSocialTypeToLabel = {
+export const ContactSocialTypeToLabel: {[key: ContactSocialTypeEnum]:string} = {
 	[ContactSocialType.TWITTER]: "twitter_label",
 	[ContactSocialType.FACEBOOK]: "facebook_label",
 	[ContactSocialType.XING]: "xing_label",
@@ -46,7 +51,7 @@ export const ContactSocialTypeToLabel = {
 	[ContactSocialType.CUSTOM]: "custom_label"
 }
 
-export function getContactSocialTypeLabel(type: ContactPhoneNumberTypeEnum, custom: string) {
+export function getContactSocialTypeLabel(type: ContactSocialTypeEnum, custom: string) {
 	if (type == ContactSocialType.CUSTOM) {
 		return custom
 	} else {

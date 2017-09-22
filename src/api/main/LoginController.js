@@ -1,6 +1,7 @@
 //@flow
 import {neverNull} from "../common/utils/Utils"
 import {getHttpOrigin} from "../Env"
+import type {FeatureTypeEnum} from "../common/TutanotaConstants"
 
 class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle
@@ -33,7 +34,7 @@ class LoginController {
 		return getHttpOrigin().startsWith("https://mail.tutanota") && logins._userController != null && logins._userController.user.customer != 'Kq3X5tF--7-0'
 	}
 
-	isEnabled(feature: FeatureEnum): boolean {
+	isEnabled(feature: FeatureTypeEnum): boolean {
 		return this.customizations != null ? this.customizations.indexOf(feature) !== -1 : false
 	}
 

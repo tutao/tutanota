@@ -432,7 +432,7 @@ export class MailViewer {
 			newReplyTos[0].name = this.mail.sender.name
 		}
 
-		return this._createForwardingMailEditor([recipient], newReplyTos, false).then(editor => {
+		this._createForwardingMailEditor([recipient], newReplyTos, false).then(editor => {
 			return editor.send()
 		}).then(() => {
 			this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getArchiveFolder(), [this.mail])

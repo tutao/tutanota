@@ -19,6 +19,7 @@ import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

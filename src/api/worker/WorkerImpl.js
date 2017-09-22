@@ -19,6 +19,7 @@ import {nativeApp} from "../../native/NativeWrapper"
 import {contactFormFacade} from "./facades/ContactFormFacade"
 import {restClient} from "./rest/RestClient"
 import {TotpVerifier} from "./crypto/TotpVerifier"
+import type {EntropySrcEnum} from "../common/TutanotaConstants"
 
 assertWorkerOrNode()
 
@@ -89,9 +90,7 @@ export class WorkerImpl {
 			},
 			restRequest: (message: Request) => {
 				message.args[3] = Object.assign(loginFacade.createAuthHeaders(), message.args[3])
-				return restClient.request.apply(restClient, message.args).then(r => {
-					console.log(">>>> impl", r, message.args)
-				})
+				return restClient.request.apply(restClient, message.args)
 			},
 			entityRequest: (message: Request) => {
 				return getEntityRestCache().entityRequest.apply(getEntityRestCache(), message.args)
@@ -197,7 +196,6 @@ export class WorkerImpl {
 		return random.addEntropy(entropy)
 	}
 
-
 	entityEventReceived(data: EntityUpdate): Promise<void> {
 		return this._queue.postMessage(new Request("entityEvent", [data]))
 	}
@@ -219,4 +217,3 @@ export class WorkerImpl {
 }
 
 export const workerImpl: WorkerImpl = new WorkerImpl(typeof self !== 'undefined' ? self : null)
-

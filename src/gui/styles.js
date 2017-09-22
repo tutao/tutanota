@@ -4,6 +4,7 @@ import {size} from "./size"
 import {assertMainOrNode} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeId} from "./theme"
+import {neverNull} from "../api/common/utils/Utils"
 
 assertMainOrNode()
 
@@ -18,7 +19,7 @@ class Styles {
 	constructor() {
 		this.initialized = false
 		this.styles = new Map()
-		this.bodyWidth = document.body.offsetWidth
+		this.bodyWidth = neverNull(document.body).offsetWidth
 		windowFacade.addResizeListener((width: number, height: number) => this.bodyWidth = width)
 		themeId.map(() => {
 			this._updateDomStyles()

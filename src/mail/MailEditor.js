@@ -6,6 +6,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {stringToNameAndMailAddress, formatStorageSize} from "../misc/Formatter"
+import type {ConversationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	ApprovalState,
@@ -49,6 +50,7 @@ import {progressIcon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 
 assertMainOrNode()

@@ -13,6 +13,7 @@ export const ColumnWidth = {
 	Small: 'column-width-small', // the column has a fixed small width
 	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
 }
+export type ColumnWidthEnum = $Values<typeof ColumnWidth>;
 
 /**
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.

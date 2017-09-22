@@ -204,7 +204,7 @@ export class ViewSlider {
 	 * Executes a slide animation for the background buttons.
 	 */
 	_slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
-		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset, {}), {
+		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset), {
 			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {
@@ -213,7 +213,6 @@ export class ViewSlider {
 			//console.log("slide end")
 		})
 	}
-
 
 	/**
 	 * Executes a slide animation for the foreground button.
@@ -225,7 +224,7 @@ export class ViewSlider {
 		this._isModalBackgroundVisible = toForeground
 		m.redraw() // to animate the modal background in parallel to the sliding animation
 		//console.log("fade in start")
-		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset, {}), {
+		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
 			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {

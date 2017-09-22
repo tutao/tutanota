@@ -17,6 +17,7 @@ import {SecondFactorImage} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Button} from "../gui/base/Button"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
