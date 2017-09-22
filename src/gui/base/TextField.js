@@ -135,6 +135,11 @@ export class TextField {
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
 					return this._keyHandler != null ? this._keyHandler(key) : true
 				},
+				onremove: e => {
+					// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
+					// TODO test if still needed with newer mithril releases
+					this._domInput.onblur = null
+				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
 						this.animate(true) // animate in case of browser autocompletion
@@ -163,6 +168,7 @@ export class TextField {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
+					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
 				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
