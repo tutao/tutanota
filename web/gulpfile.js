@@ -153,7 +153,7 @@ gulp.task('concat', function () {
 
 
 // Keep in sync with tutanota-admin gulpfile.
-var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js", "js/crypto/AesInterface.js", "js/crypto/SjclAes128CbcAsync.js", "js/crypto/SjclAes256GcmAsync.js"];
+var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js", "js/crypto/AesInterface.js", "js/crypto/SjclAes128CbcAsync.js", "js/crypto/SjclAes256GcmAsync.js", "js/crypto/SjclSha256.js"];
 
 gulp.task('minifyWorker', function () {
 	gulp.src(WORKER_LIBS)
@@ -254,7 +254,6 @@ gulp.task('minifyPayment', function () {
 gulp.task('distPayment', function (cb) {
 	return runSequence(['copyPayment', 'minifyPayment', 'processPaymentHtml'], cb)
 });
-
 
 
 gulp.task('test.html', function () {
