@@ -9,16 +9,6 @@ import {colors} from "./AlternateColors"
 
 assertMainOrNode()
 
-function importLatoFont(file, style, weight) {
-	return {
-		'font-family': 'Lato',
-		src: `url("resources/fonts/lato-2.015/Lato/fonts/${file}.woff2") format("woff2")`, // we only use woff2 for desktops and native fonts for mobiles
-		'font-style': style,
-		'font-weight': weight,
-		'text-rendering': 'optimizeLegibility'
-	}
-}
-
 styles.registerStyle('main', () => {
 	return {
 		/*
@@ -28,14 +18,6 @@ styles.registerStyle('main', () => {
             pre, code, p, a, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd, textarea,
             input[type="email"], input[type="number"], input[type="password"],
             input[type="tel"], input[type="text"], input[type="url"], .border-box`]: {'box-sizing': 'border-box'},
-
-
-		'@font-face': client.isDesktopDevice() ? [
-				importLatoFont('Lato-Light', 'normal', 300),
-				importLatoFont('Lato-Regular', 'normal', 400),
-				importLatoFont('Lato-Italic', 'italic', 400),
-				importLatoFont('Lato-Bold', 'normal', 700),
-			] : '',
 
 
 		'a': {color: 'inherit'},
@@ -48,7 +30,6 @@ styles.registerStyle('main', () => {
 		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
 			overflow: 'hidden',
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
-			//'font-family': client.isMobileDevice() ? `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"` : "Lato, sans-serif",
 			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
 			'line-height': size.line_height,
