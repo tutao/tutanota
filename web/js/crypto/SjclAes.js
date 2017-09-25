@@ -6,7 +6,7 @@ tutao.provide('tutao.crypto.SjclAes');
  * @constructor
  * @implements {tutao.crypto.AesInterface}
  */
-tutao.crypto.SjclAes = function() {
+tutao.crypto.SjclAes = function () {
 	// arbitrary fixed iv
 	this.fixedIv = sjcl.codec.hex.toBits('88888888888888888888888888888888');
 	this.keyLength = 128;
@@ -15,14 +15,14 @@ tutao.crypto.SjclAes = function() {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.generateRandomKey = function() {
+tutao.crypto.SjclAes.prototype.generateRandomKey = function () {
 	return sjcl.codec.arrayBuffer.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8).buffer);
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8) {
+tutao.crypto.SjclAes.prototype.encryptUtf8 = function (key, utf8) {
 	try {
 		return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), true, true);
 	} catch (e) {
@@ -33,7 +33,7 @@ tutao.crypto.SjclAes.prototype.encryptUtf8 = function(key, utf8) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64) {
+tutao.crypto.SjclAes.prototype.decryptUtf8 = function (key, base64) {
 	try {
 		return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
@@ -44,36 +44,36 @@ tutao.crypto.SjclAes.prototype.decryptUtf8 = function(key, base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptUtf8Index = function(key, utf8) {
-    try {
-        return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), false, true);
-    } catch (e) {
-        throw new tutao.crypto.CryptoError("aes utf8 encryption index failed", e);
-    }
+tutao.crypto.SjclAes.prototype.encryptUtf8Index = function (key, utf8) {
+	try {
+		return this._encrypt(key, sjcl.codec.utf8String.toBits(utf8), false, true);
+	} catch (e) {
+		throw new tutao.crypto.CryptoError("aes utf8 encryption index failed", e);
+	}
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptUtf8Index = function(key, base64) {
-    try {
-        return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, false, true));
-    } catch (e) {
-        throw new tutao.crypto.CryptoError("aes utf8 decryption index failed", e);
-    }
+tutao.crypto.SjclAes.prototype.decryptUtf8Index = function (key, base64) {
+	try {
+		return sjcl.codec.utf8String.fromBits(this._decrypt(key, base64, false, true));
+	} catch (e) {
+		throw new tutao.crypto.CryptoError("aes utf8 decryption index failed", e);
+	}
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptBytes = function(key, base64) {
+tutao.crypto.SjclAes.prototype.encryptBytes = function (key, base64) {
 	return this._encrypt(key, sjcl.codec.base64.toBits(base64), true, true);
 };
 
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64) {
+tutao.crypto.SjclAes.prototype.decryptBytes = function (key, base64) {
 	try {
 		return sjcl.codec.base64.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
@@ -84,7 +84,7 @@ tutao.crypto.SjclAes.prototype.decryptBytes = function(key, base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptKey = function(key, keyToEncrypt) {
+tutao.crypto.SjclAes.prototype.encryptKey = function (key, keyToEncrypt) {
 	try {
 		return this._encrypt(key, keyToEncrypt, false, false);
 	} catch (e) {
@@ -95,7 +95,7 @@ tutao.crypto.SjclAes.prototype.encryptKey = function(key, keyToEncrypt) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptKey = function(key, base64) {
+tutao.crypto.SjclAes.prototype.decryptKey = function (key, base64) {
 	try {
 		return this._decrypt(key, base64, false, false);
 	} catch (e) {
@@ -106,7 +106,7 @@ tutao.crypto.SjclAes.prototype.decryptKey = function(key, base64) {
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.encryptPrivateRsaKey = function(key, hexKeyToEncrypt) {
+tutao.crypto.SjclAes.prototype.encryptPrivateRsaKey = function (key, hexKeyToEncrypt) {
 	try {
 		return this._encrypt(key, sjcl.codec.hex.toBits(hexKeyToEncrypt), true, true);
 	} catch (e) {
@@ -117,7 +117,7 @@ tutao.crypto.SjclAes.prototype.encryptPrivateRsaKey = function(key, hexKeyToEncr
 /**
  * @inheritDoc
  */
-tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function(key, base64) {
+tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function (key, base64) {
 	try {
 		return sjcl.codec.hex.fromBits(this._decrypt(key, base64, true, true));
 	} catch (e) {
@@ -134,7 +134,7 @@ tutao.crypto.SjclAes.prototype.decryptPrivateRsaKey = function(key, base64) {
  * @param {boolean} usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return {string} The encrypted text, base64 coded.
  */
-tutao.crypto.SjclAes.prototype._encrypt = function(key, words, randomIv, usePadding) {
+tutao.crypto.SjclAes.prototype._encrypt = function (key, words, randomIv, usePadding) {
 	var iv;
 	if (randomIv) {
 		iv = sjcl.codec.arrayBuffer.toBits(tutao.locator.randomizer.generateRandomData(this.keyLength / 8).buffer);
@@ -159,10 +159,15 @@ tutao.crypto.SjclAes.prototype._encrypt = function(key, words, randomIv, usePadd
  * @param {boolean} usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
  * @return {bitArray} The decrypted words (CryptoJS internal structure).
  */
-tutao.crypto.SjclAes.prototype._decrypt = function(key, base64, randomIv, usePadding) {
+tutao.crypto.SjclAes.prototype._decrypt = function (key, base64, randomIv, usePadding) {
 	var iv;
 	var ciphertext;
 	var encrypted = sjcl.codec.base64.toBits(base64);
+	if (sjcl.bitArray.bitLength(encrypted) % 16 != 0) {
+		var hashedKey = tutao.locator.shaCrypter.hash(tutao.util.EncodingConverter.keyToUint8Array(key));
+		key = tutao.util.EncodingConverter.uint8ArrayToKey(hashedKey.slice(0, 16))
+		encrypted = sjcl.bitArray.bitSlice(encrypted, 8, (sjcl.bitArray.bitLength(encrypted) - (32 * 8)))
+	}
 	if (randomIv) {
 		// take the iv from the front of the encrypted data
 		iv = sjcl.bitArray.bitSlice(encrypted, 0, this.keyLength);
