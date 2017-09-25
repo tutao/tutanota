@@ -6,6 +6,7 @@ import {Button, createDropDownButton, ButtonColors} from "./Button"
 import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {size} from "../size"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -44,7 +45,7 @@ export class NavBar {
 		this.more = {
 			id: Number.MAX_VALUE,
 			priority: MAX_PRIO,
-			button: createDropDownButton("more_label", () => Icons.MoreVertical, () => {
+			button: createDropDownButton("more_label", () => styles.isDesktopLayout() ? Icons.MoreVertical : Icons.MoreVerticalMobile, () => {
 				let buttons = this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
 				return buttons
 			}),

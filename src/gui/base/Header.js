@@ -12,6 +12,7 @@ import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
 import {Icons} from "./icons/Icons"
 import {FeatureType} from "../../api/common/TutanotaConstants"
+import {px} from "../size"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -57,9 +58,13 @@ class Header {
 
 		this.view = (): VirtualElement => {
 			return m(".header-nav.overflow-hidden", [
-				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", this._getLeftElements()),
-				styles.isDesktopLayout() ? null : m(".header-middle.flex-center.items-center.text-ellipsis", {style: {color: theme.header_button}}, this._getColumnTitle()),
-				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", m(this.buttonBar))
+				m(".header-left.pl-l.ml-negative-s.flex-start.items-center.overflow-hidden", {
+					style: styles.isDesktopLayout() ? null : {'margin-left': px(-15)}  // manual margin to align the hamburger icon on mobile devices
+				}, this._getLeftElements()),
+				styles.isDesktopLayout() ? null : m(".flex-center.header-middle.items-center.text-ellipsis.b", this._getColumnTitle()),
+				m(".header-right.pr-l.mr-negative-m.flex-end.items-center", {
+					style: styles.isDesktopLayout() ? null : {'margin-right': px(-18)} // manual margin to align the hamburger icon on mobile devices
+				}, m(this.buttonBar))
 			])
 		}
 	}
@@ -125,7 +130,7 @@ class Header {
 		}
 	}
 
-	
+
 	_getLeftElements() {
 		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
 			let viewSlider = neverNull(this._viewSlider)

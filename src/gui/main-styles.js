@@ -279,6 +279,14 @@ styles.registerStyle('main', () => {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large)
 		},
+		'.icon-xl': {
+			height: px(size.icon_size_xl),
+			width: px(size.icon_size_xl)
+		},
+		'.icon-xl > svg': {
+			height: px(size.icon_size_xl),
+			width: px(size.icon_size_xl)
+		},
 		'.icon-progress > svg': {
 			'animation-name': 'rotate-icon',
 			'animation-duration': '2s',
@@ -340,18 +348,16 @@ styles.registerStyle('main', () => {
 
 		// fix for IE11: use position absolute to fill header parts and center child elements using flex box
 		'.header-left': {position: 'absolute', left: '0', top: 0, bottom: 0, width: '310px'},
-		'.header-middle': {display: 'none'},
 		'.header-right': {position: 'absolute', left: '310px', right: '0', top: 0, bottom: 0},
 		'.header-right > .nav-bar': {width: '100%'},
 
 
 		// dialogs
-		'.dialog': {'min-width': px(200), width: '95%'},
+		'.dialog': {'min-width': px(200), width: '100%'},
 		'.dialog-width-l': {'max-width': px(800)},
 		'.dialog-width-m': {'max-width': px(500)},
 		'.dialog-width-s': {'max-width': px(400)},
 		'.dialog-width-alert': {'max-width': px(350)},
-		'.dialog-align-top': {position: 'relative', 'margin-top': '60px'},
 		'.dialog-header': {
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.button_height + 1)
@@ -408,7 +414,13 @@ styles.registerStyle('main', () => {
 		'.MsoNormal': {margin: 0},
 
 		// list
-		'.list': {'background-repeat': 'repeat-y', overflow: 'hidden', 'list-style': 'none', margin: 0},
+		'.list': {
+			'background-repeat': 'repeat-y',
+			overflow: 'hidden',
+			'list-style': 'none',
+			margin: 0,
+			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
+		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
 			'background-color': theme.list_bg,
@@ -446,6 +458,7 @@ styles.registerStyle('main', () => {
 			'white-space': 'nowrap',
 			margin: 0, // for safari
 			'flex-shrink': 0,
+			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 
 		'.nav-button:hover': {
@@ -558,7 +571,7 @@ styles.registerStyle('main', () => {
 		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
-		"@media (max-width: 719px)": {
+		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},

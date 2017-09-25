@@ -52,7 +52,7 @@ export class NavButton {
 			return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(), [
 				this.icon() ? m(Icon, {
 						icon: this.icon(),
-						class: 'flex-center items-center button-icon ' + (this.isSelected() ? "selected" : ""),
+						class: 'flex-center items-center button-icon' + (this.isSelected() ? " selected" : ""),
 						style: {
 							fill: (this.isSelected() || this._draggedOver) ? getColors(this._colors).icon_selected : getColors(this._colors).icon,
 							'background-color': (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button

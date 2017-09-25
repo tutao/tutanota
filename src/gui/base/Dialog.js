@@ -17,6 +17,8 @@ import {worker} from "../../api/main/WorkerClient"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {progressIcon} from "./Icon"
+import {size, px} from "../size"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -71,8 +73,14 @@ export class Dialog {
 			},
 		]
 		this.view = (): VirtualElement => {
+			let mobileMargin = px(size.hpad)
 			return m(this._getDialogWrapperStyle(dialogType), [
 					m(this._getDialogStyle(dialogType), {
+						style: {
+							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
+							'margin-left': mobileMargin,
+							'margin-right': mobileMargin
+						},
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
 							if (dialogType === DialogType.EditLarge) {
