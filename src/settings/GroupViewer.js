@@ -11,6 +11,7 @@ import {isSameId, isSameTypeRef, GENERATED_MIN_ID} from "../api/common/EntityFun
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -24,7 +25,6 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -94,15 +94,13 @@ export class GroupViewer {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l", [
 					m(".h4.mt-l", (this._group.isLoaded()) ? getGroupTypeName(this._group.getLoaded().type) : lang.get("emptyString_msg")),
-					m(".wrapping-row", [
-						m("", [
-							m(created),
-							m(this._usedStorage),
-						]),
-						m("", [
-							m(this._name),
-							m(this._deactivated)
-						]),
+					m("", [
+						m(created),
+						m(this._usedStorage),
+					]),
+					m("", [
+						m(this._name),
+						m(this._deactivated)
 					]),
 					(!this.groupInfo.deleted) ? m(".h4.mt-l.mb-s", lang.get('groupMembers_label')) : null,
 					(!this.groupInfo.deleted) ? m(this._membersTable) : null,

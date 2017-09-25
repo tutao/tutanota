@@ -15,11 +15,11 @@ import {SessionTypeRef} from "../api/entities/sys/Session"
 import {neverNull} from "../api/common/utils/Utils"
 import {loadAll, erase} from "../api/main/Entity"
 import {formatDateTimeFromYesterdayOn} from "../misc/Formatter"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SessionState} from "../api/common/TutanotaConstants"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -45,10 +45,8 @@ export class LoginSettingsViewer {
 			return [
 				m("#user-settings.fill-absolute.scroll.plr-l", [
 					m(".h4.mt-l", lang.get('loginCredentials_label')),
-					m(".wrapping-row", [
-						m(mailAddress),
-						m(password)
-					]),
+					m(mailAddress),
+					m(password),
 					(logins.getUserController().isFreeAccount() || logins.getUserController().isPremiumAccount()) ? m(this._secondFactorsForm) : null,
 					m(".h4.mt-l", lang.get('activeSessions_label')),
 					m(this._activeSessionTable),

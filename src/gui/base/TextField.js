@@ -70,9 +70,10 @@ export class TextField {
 		this._keyHandler = null
 
 		this.view = (): VirtualElement => {
-			return m(".text-field.rel.overflow-hidden.text.pt", {
+			return m(".text-field.rel.overflow-hidden.pt", {
 				oncreate: (vnode) => this._domWrapper = vnode.dom,
-				onclick: (e) => this.focus()
+				onclick: (e) => this.focus(),
+				class: !this.disabled ? "text" : null
 			}, [
 				m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					class: this.active ? "content-accent-fg" : "",
@@ -92,7 +93,7 @@ export class TextField {
 						style: {
 							'min-height': px(size.button_height + 2), // 2 px border
 							'padding-bottom': this.active ? px(0) : px(1),
-							'border-bottom': this.disabled ? '1px solid transparent' : this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
+							'border-bottom': this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
 						},
 					}, [
 						this._injectionsLeft ? this._injectionsLeft() : null,

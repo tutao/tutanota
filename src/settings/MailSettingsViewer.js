@@ -6,6 +6,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {isSameTypeRef, isSameId, HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {TutanotaPropertiesTypeRef} from "../api/entities/tutanota/TutanotaProperties"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, InboxRuleType, PushServiceType} from "../api/common/TutanotaConstants"
 import {load, update, loadAll, erase} from "../api/main/Entity"
 import TableLine from "../gui/base/TableLine"
@@ -31,7 +32,6 @@ import {Icons} from "../gui/base/icons/Icons"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -110,18 +110,12 @@ export class MailSettingsViewer {
 			return [
 				m("#user-settings.fill-absolute.scroll.plr-l", [
 					m(".h4.mt-l", lang.get('emailSending_label')),
-					m(".wrapping-row", [
-						m("", [
-							m(this._defaultSender),
-							m(this._senderName),
-							m(this._signature)
-						]),
-						m("", [
-							m(this._defaultUnconfidential),
-							m(this._sendPlaintext),
-							m(this._noAutomaticContacts),
-						]),
-					]),
+					m(this._defaultSender),
+					m(this._senderName),
+					m(this._signature),
+					m(this._defaultUnconfidential),
+					m(this._sendPlaintext),
+					m(this._noAutomaticContacts),
 					(logins.getUserController().isAdmin()) ? m(this._aliases) : null,
 					m(".flex-space-between.items-center.mt-l.mb-s", [
 						m(".h4", lang.get('inboxRulesSettings_action')),

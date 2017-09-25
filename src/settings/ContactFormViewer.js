@@ -66,9 +66,7 @@ export class ContactFormViewer {
 						m(".h4", lang.get("emailProcessing_label")),
 						m(actions),
 					]),
-					m(".wrapping-row", [
-						m(mailGroupField),
-					]),
+					m(mailGroupField),
 					m(".mt-l", [
 						m(participantMailGroupsField),
 					]),

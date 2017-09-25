@@ -73,11 +73,11 @@ export class SettingsView {
 				logins.getUserController().isAdmin() ? m(".plr-l", m(adminFolderExpander)) : null,
 				logins.getUserController().isAdmin() ? m(adminFolderExpander.panel) : null
 			])
-		}, ColumnType.Foreground, 200, 300, () => lang.get("settings_label"))
+		}, ColumnType.Foreground, 200, 280, () => lang.get("settings_label"))
 
 		this._settingsColumn = new ViewColumn({
 			view: () => m(this._getCurrentViewer())
-		}, ColumnType.Background, 600, 800, () => lang.get(this._selectedFolder.nameTextId))
+		}, ColumnType.Background, 400, 600, () => lang.get(this._selectedFolder.nameTextId))
 
 		this._settingsDetailsColumn = new ViewColumn({
 			view: () => (this.detailsViewer) ? m(this.detailsViewer) : m("")

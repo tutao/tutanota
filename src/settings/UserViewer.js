@@ -15,6 +15,7 @@ import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
 import {GroupTypeRef} from "../api/entities/sys/Group"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, BookingItemFeatureType, GroupType} from "../api/common/TutanotaConstants"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
@@ -33,7 +34,6 @@ import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -131,18 +131,16 @@ export class UserViewer {
 			return [
 				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".h4.mt-l", lang.get('userSettings_label')),
-					m(".wrapping-row", [
-						m("", [
-							m(mailAddress),
-							m(created),
-							m(this._usedStorage),
-						]),
-						m("", [
-							m(this._senderName),
-							m(password),
-							m(this._admin),
-							m(this._deactivated)
-						]),
+					m("", [
+						m(mailAddress),
+						m(created),
+						m(this._usedStorage),
+					]),
+					m("", [
+						m(this._senderName),
+						m(password),
+						m(this._admin),
+						m(this._deactivated)
 					]),
 					(logins.getUserController().isPremiumAccount() || logins.getUserController().isFreeAccount()) ? m(this._secondFactorsForm) : null,
 					(this._groupsTable) ? m(".h4.mt-l.mb-s", lang.get('groups_label')) : null,
@@ -151,12 +149,7 @@ export class UserViewer {
 					(this._contactFormsTable) ? m(this._contactFormsTable) : null,
 					m(this._aliases),
 					logins.getUserController().isPremiumAccount() ? m(".h4.mt-l", lang.get('mailSettings_label')) : null,
-					logins.getUserController().isPremiumAccount() && !logins.isProdDisabled() ? m(".wrapping-row", [
-							m("", [
-								(this._whitelistProtection) ? m(this._whitelistProtection) : null,
-							]),
-							m("", [])
-						]) : null
+					logins.getUserController().isPremiumAccount() && !logins.isProdDisabled() && (this._whitelistProtection) ? m(this._whitelistProtection) : null,
 				]),
 			]
 		}
