@@ -41,26 +41,18 @@ export class ViewColumn {
 		this.offset = 0
 		this.isInForeground = false
 
-		let updateStyles = (vnode) => {
-			vnode.dom.style.width = this.width + 'px'
-			vnode.dom.style.left = this.offset + 'px'
-			if (this.columnType == ColumnType.Foreground) {
-				vnode.dom.style.transform = 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)'
-			}
-		}
-
 		this.view = (vnode: VirtualElement) => {
 			let zIndex = this.columnType == ColumnType.Foreground ? ".z3" : ".z1"
 			return m(".view-column.fill-absolute.backface_fix" + zIndex, {
-					oncreate: (vnode) => {
-						this._domColumn = vnode.dom
-						updateStyles(vnode)
-					},
-					onupdate: (vnode) => {
-						updateStyles(vnode)
+					oncreate: (vnode) => this._domColumn = vnode.dom,
+					style: {
+						width: this.width + 'px',
+						left: this.offset + 'px',
+						transform: this.columnType == ColumnType.Foreground ? 'translateX(' + this.getOffsetForeground(this.isInForeground) + 'px)' : null,
 					}
 				},
 				m(this.component))
+
 		}
 	}
 

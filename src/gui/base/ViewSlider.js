@@ -55,13 +55,12 @@ export class ViewSlider {
 		}
 
 		this.view = (): VirtualElement => {
-			//console.log("viewslider.view")
+			// console.log("viewslider.view")
 			return m(".view-columns.fill-absolute.backface_fix", {
-				oncreate: (vnode) => {
-					this._updateDomSlider(vnode.dom)
-				},
-				onupdate: (vnode) => {
-					this._updateDomSlider(vnode.dom)
+				oncreate: (vnode) => this._domSlider = vnode.dom,
+				style: {
+					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
+					width: this.getWidth() + 'px'
 				}
 			}, this.columns.map(column => m(column)).concat(this._createModalBackground()))
 		}
@@ -84,15 +83,6 @@ export class ViewSlider {
 			return []
 		}
 	}
-
-
-	_updateDomSlider(domSlider: HTMLElement) {
-		//console.log("transform: ", this.getOffset(this._visibleBackgroundColumns[0]), "width:", this.getWidth())
-		this._domSlider = domSlider
-		this._domSlider.style.transform = 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)'
-		this._domSlider.style.width = this.getWidth() + 'px'
-	}
-
 
 	_updateVisibleBackgroundColumns() {
 		this.focusedColumn.isInForeground = false
