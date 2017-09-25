@@ -98,7 +98,7 @@ export class TextField {
 						this._injectionsLeft ? this._injectionsLeft() : null,
 						m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 							this.type !== Type.Area ? this._getInputField() : this._getTextArea(),
-							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", this._injectionsRight()) : null
+							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-fixed", this._injectionsRight()) : null
 						])
 					]),
 				]),

@@ -238,7 +238,7 @@ styles.registerStyle('main', () => {
 
 		// flex box
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
-		'.flex-no-shrink': {flex: "0 0 auto"},
+		'.flex-fixed': {flex: "0 0 auto"},
 		'.flex-center': {display: 'flex', 'justify-content': 'center'},
 		'.flex-end': {display: 'flex', 'justify-content': 'flex-end'},
 		'.flex-start': {display: 'flex', 'justify-content': 'flex-start'},
@@ -250,7 +250,7 @@ styles.registerStyle('main', () => {
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
-		'.flex-fixed': {flex: "0 0"},
+		'.flex-no-shrink': {flex: "1 0 0"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},

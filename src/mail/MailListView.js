@@ -200,11 +200,11 @@ export class MailRow {
 		let elements = [
 			m(".top.flex-space-between", [
 				m("small.text-ellipsis", {oncreate: (vnode) => this._domSender = vnode.dom}),
-				m("small.text-ellipsis.list-accent-fg.flex-no-shrink", {oncreate: (vnode) => this._domDate = vnode.dom})
+				m("small.text-ellipsis.list-accent-fg.flex-fixed", {oncreate: (vnode) => this._domDate = vnode.dom})
 			]),
 			m(".bottom.flex-space-between", [
 				m(".text-ellipsis", {oncreate: (vnode) => this._domSubject = vnode.dom}),
-				m(".icons.flex-no-shrink", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
+				m(".icons.flex-fixed", {style: {"margin-right": "-3px"}}, [ // 3px to neutralize the svg icons internal border border
 					m(Icon, {
 						icon: Icons.Warning,
 						class: "svg-list-accent-fg",
