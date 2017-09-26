@@ -6,6 +6,7 @@ import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
 import {stringToNameAndMailAddress, formatStorageSize} from "../misc/Formatter"
+import type {ConversationTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
 	ApprovalState,
@@ -49,6 +50,7 @@ import {progressIcon} from "../gui/base/Icon"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
+import {size, px} from "../gui/size"
 
 
 assertMainOrNode()
@@ -730,8 +732,12 @@ export class ContactSuggestion {
 		this.selected = false
 
 		this.view = vnode => m(".pt-s.pb-s.click.content-hover", {
-			class: this.selected ? 'content-accent-fg' : '',
-			onclick: vnode.attrs.clickHandler
+			class: this.selected ? 'content-accent-fg row-selected' : '',
+			onclick: vnode.attrs.clickHandler,
+			style: {
+				'padding-left': this.selected ? px(size.hpad_large - 3) : px(size.hpad_large),
+				'border-left': this.selected ? "3px solid" : null,
+			}
 		}, [
 			m("small", this.name),
 			m(".name", this.mailAddress),

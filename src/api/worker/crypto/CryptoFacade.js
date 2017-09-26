@@ -9,7 +9,7 @@ import {
 	base64ToBase64Url
 } from "../../common/utils/Encoding"
 import {concat} from "../../common/utils/ArrayUtils"
-import {aes128Encrypt, aes128Decrypt, aes128RandomKey, IV_BYTE_LENGTH} from "./Aes"
+import {aes128Encrypt, aes128Decrypt, aes128RandomKey, IV_BYTE_LENGTH, ENABLE_MAC} from "./Aes"
 import {ProgrammingError} from "../../common/error/ProgrammingError"
 import {GroupType, PermissionType, BucketPermissionType} from "../../common/TutanotaConstants"
 import {loadAll, load, serviceRequestVoid} from "../EntityWorker"
@@ -43,7 +43,7 @@ assertWorkerOrNode()
 export function valueToDefault(type: ValueTypeEnum) {
 	if (type === ValueType.String) return ""
 	else if (type === ValueType.Number) return "0"
-	else if (type === ValueType.Bytes) return new Uint8Array()
+	else if (type === ValueType.Bytes) return new Uint8Array(0)
 	else if (type === ValueType.Date) return new Date()
 	else if (type === ValueType.Boolean) return false
 	else throw new ProgrammingError(`${type} is not a valid value type`)
@@ -56,11 +56,11 @@ export function decryptKey(encryptionKey: Aes128Key, key: Uint8Array): Aes128Key
 }
 
 export function encryptKey(encryptionKey: Aes128Key, key: Aes128Key): Uint8Array {
-	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false).slice(fixedIv.length)
+	return aes128Encrypt(encryptionKey, bitArrayToUint8Array(key), fixedIv, false, false).slice(fixedIv.length)
 }
 
 export function encryptRsaKey(encryptionKey: Aes128Key, privateKey: PrivateKey, iv: ?Uint8Array): Uint8Array {
-	return aes128Encrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv ? iv : random.generateRandomData(IV_BYTE_LENGTH), true)
+	return aes128Encrypt(encryptionKey, hexToUint8Array(privateKeyToHex(privateKey)), iv ? iv : random.generateRandomData(IV_BYTE_LENGTH), true, false)
 }
 
 export function decryptRsaKey(encryptionKey: Aes128Key, encryptedPrivateKey: Uint8Array): PrivateKey {
@@ -238,11 +238,11 @@ function _updateWithSymPermissionKey(typeModel: TypeModel, instance: Object, per
 
 export function setNewOwnerEncSessionKey(model: TypeModel, entity: Object): ?Aes128Key {
 	if (!entity._ownerGroup) {
-		throw new Error("no owner group set", entity)
+		throw new Error(`no owner group set  ${JSON.stringify(entity)}`)
 	}
 	if (model.encrypted) {
 		if (entity._ownerEncSessionKey) {
-			throw new Error("ownerEncSessionKey already set", entity)
+			throw new Error(`ownerEncSessionKey already set ${JSON.stringify(entity)}`)
 		}
 		let sessionKey = aes128RandomKey()
 		entity._ownerEncSessionKey = encryptKey(loginFacade.getGroupKey(entity._ownerGroup), sessionKey)
@@ -389,7 +389,7 @@ export function encryptValue(valueType: ModelValue, value: any, sk: ?Aes128Key):
 		if (valueType.type !== ValueType.Bytes) {
 			bytes = stringToUtf8Uint8Array(convertJsToDbType(valueType.type, value))
 		}
-		return uint8ArrayToBase64(aes128Encrypt((sk:any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true))
+		return uint8ArrayToBase64(aes128Encrypt((sk:any), bytes, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC))
 	} else {
 		return convertJsToDbType(valueType.type, value)
 	}
@@ -441,9 +441,9 @@ function convertJsToDbType(type: ValueType, value: any): Base64|string {
 }
 
 export function encryptBytes(sk: Aes128Key, value: Uint8Array): Uint8Array {
-	return aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true)
+	return aes128Encrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }
 
 export function encryptString(sk: Aes128Key, value: string): Uint8Array {
-	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true)
+	return aes128Encrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
 }

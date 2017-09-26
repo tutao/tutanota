@@ -5,6 +5,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {TextField} from "../gui/base/TextField"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {erase, load} from "../api/main/Entity"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {InputFieldType} from "../api/common/TutanotaConstants"
 import {ActionBar} from "../gui/base/ActionBar"
 import {Button} from "../gui/base/Button"
@@ -60,14 +61,12 @@ export class ContactFormViewer {
 
 		this.view = () => {
 			return [
-				m("#user-viewer.fill-absolute.scroll.plr-l", [
+				m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".flex-space-between.pt", [
 						m(".h4", lang.get("emailProcessing_label")),
 						m(actions),
 					]),
-					m(".wrapping-row", [
-						m(mailGroupField),
-					]),
+					m(mailGroupField),
 					m(".mt-l", [
 						m(participantMailGroupsField),
 					]),

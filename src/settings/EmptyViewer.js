@@ -2,6 +2,7 @@
 import m from "mithril"
 import {assertMainOrNode} from "../api/Env"
 import MessageBox from "../gui/base/MessageBox"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

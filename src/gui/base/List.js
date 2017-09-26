@@ -4,6 +4,7 @@ import {log, timer, Cat} from "../../misc/Log"
 import {px} from "../size"
 import {client} from "../../misc/ClientDetector"
 import {GENERATED_MAX_ID, firstBiggerThanSecond, getLetId} from "../../api/common/EntityFunctions"
+import type {OperationTypeEnum} from "../../api/common/TutanotaConstants"
 import {OperationType} from "../../api/common/TutanotaConstants"
 import {last, remove, addAll, arrayEquals} from "../../api/common/utils/ArrayUtils"
 import {neverNull} from "../../api/common/utils/Utils"
@@ -403,7 +404,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._reposition()
 			}
 		})
-		return this._loading
+		return neverNull(this._loading)
 	}
 
 
@@ -593,7 +594,7 @@ export class List<T, R:VirtualRow<T>> {
 			row.top = nextPosition
 			nextPosition = nextPosition + rowHeight
 			if (!row.domElement) {
-				throw new Error("undefined dom element for virtual dom element", this._virtualList.length, row.top)
+				throw new Error(`undefined dom element for virtual dom element ${this._virtualList.length}, ${row.top}`)
 			}
 			row.domElement.style.transform = "translateY(" + row.top + "px)"
 
@@ -642,10 +643,10 @@ export class List<T, R:VirtualRow<T>> {
 
 	initBackground() {
 		let styles = [document.getElementById("css-main")].map(function (style) {
-			return '<style>' + style.innerHTML + '</style>'
+			return '<style>' + neverNull(style).innerHTML + '</style>'
 		})
 		let height = this._virtualList.length * this._config.rowHeight
-		let namespace = (document.documentElement.namespaceURI:any)
+		let namespace = neverNull(neverNull(document.documentElement).namespaceURI)
 		let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + this._width + '" height="' + height + '">' +
 			'<foreignObject width="100%" height="100%"><div xmlns="' + namespace + '">' + this._domListContainer.innerHTML + '</div>' + styles.join('') +
 			'</foreignObject>' +
@@ -833,7 +834,7 @@ class SwipeHandler {
 		this.animating = Promise.resolve()
 		let eventListenerArgs = client.passive() ? {passive: true} : false
 		this.touchArea.addEventListener('touchstart', (e: TouchEvent) => this.start(e), eventListenerArgs)
-		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), false) // does invoke prevent default
+		this.touchArea.addEventListener('touchmove', (e: TouchEvent) => this.move(e), client.passive() ? {passive: false} : false) // does invoke prevent default
 		this.touchArea.addEventListener('touchend', (e: TouchEvent) => this.end(e), eventListenerArgs)
 		this.touchArea.addEventListener('touchcancel', (e: TouchEvent) => this.cancel(e), eventListenerArgs)
 	}
@@ -947,10 +948,10 @@ class SwipeHandler {
 				}
 				this.xoffset = 0
 			}
-			return Promise.resolve()
 		} finally {
 			this.virtualElement = null
 		}
+		return Promise.resolve()
 	}
 
 	getVirtualElement(): VirtualElement {

@@ -44,6 +44,10 @@ declare class DedicatedWorkerGlobalScope {
 	postMessage(message: Object):void;
 }
 
+type Bluebird$ConcurrencyOption = {
+	concurrency: number,
+};
+
 declare type $Promisable<T> = Promise<T> | T;
 
 declare class Promise<+R> {
@@ -53,8 +57,9 @@ declare class Promise<+R> {
 	then<U>(onFulfill?: (value: R) => Promise<U> | U, onReject?: (error: any) => Promise<U> | U): Promise<U>;
 
 	catch<U>(onReject?: (error: any) => ?Promise<U> | U): Promise<U>;
+	catch<U, ErrorT: Error>(err: Class<ErrorT>, onReject: (error: ErrorT) => ?Promise<U> | U): Promise<U>;
 
-	finally<U>(): Promise<U>;
+	finally<U>(onDone?: () => mixed): Promise<U>;
 
 	each<T, U>(iterator: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
@@ -73,7 +78,7 @@ declare class Promise<+R> {
 	static all<T, Elem: Promise<T>>(Promises: Array<Elem>): Promise<Array<T>>;
 	static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 	static fromCallback<T>(callback: Function): Promise<T>;
-	static map<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<U[]>;
+	static map<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U, options?: Bluebird$ConcurrencyOption): Promise<U[]>;
 	static each<T, U>(array: Promise<Array<T>> | Array<T>, mapper: (item: T, index: number, arrayLength: number) => Promise<U> | U): Promise<T[]>;
 
 	static join<T, A, B>(value1: $Promisable<A>, value2: $Promisable<B>, handler: (a: A, b: B) => $Promisable<T>): Promise<any>;

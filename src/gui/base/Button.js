@@ -11,6 +11,7 @@ import {assertMainOrNode} from "../../api/Env"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {Dialog} from "./Dialog"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -25,12 +26,14 @@ export const ButtonType = {
 	Bubble: 'bubble',
 	TextBubble: 'textBubble'
 }
+export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
 export const ButtonColors = {
 	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
 }
+export type ButtonColorEnum = $Values<typeof ButtonColors>;
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
@@ -40,10 +43,10 @@ export function getColors(buttonColors: ButtonColorEnum) {
 	switch (buttonColors) {
 		case ButtonColors.Header:
 			return {
-				button: theme.header_button,
-				button_selected: theme.header_button_selected,
-				icon: theme.header_button_icon,
-				icon_selected: theme.header_button_icon_selected,
+				button: styles.isDesktopLayout() ? theme.header_button : "transparent",
+				button_selected: styles.isDesktopLayout() ? theme.header_button_selected : "transparent",
+				icon: styles.isDesktopLayout() ? theme.header_button_icon : theme.content_accent,
+				icon_selected: styles.isDesktopLayout() ? theme.header_button_icon_selected : theme.content_accent,
 			}
 		case ButtonColors.Nav:
 			return {
@@ -150,6 +153,8 @@ export class Button {
 			return "flex-center items-center button-icon floating icon-large"
 		} else if (this._type === ButtonType.Bubble) {
 			return "pr-s"
+		} else if (this._colors == ButtonColors.Header && !styles.isDesktopLayout()) {
+			return "flex-end items-center button-icon icon-xl"
 		} else {
 			return "flex-center items-center button-icon"
 		}
@@ -157,7 +162,6 @@ export class Button {
 
 	getButtonClasses() {
 		let buttonClasses = ["bg-transparent"]
-
 		if (this._type == ButtonType.Floating) {
 			buttonClasses.push("fixed-bottom-right")
 			buttonClasses.push("large-button-height")
@@ -187,7 +191,7 @@ export class Button {
 		return wrapperClasses
 	}
 
-	_getLabelElement(): ?VirtualElement {
+	_getLabelElement() {
 		let classes = ["text-ellipsis"]
 		if (this._type == ButtonType.Dropdown) {
 			classes.push("pl-m")
@@ -209,8 +213,8 @@ export class Button {
 			color = theme.content_accent
 		} else if (this._type === ButtonType.Login) {
 			color = theme.content_button_icon
-		} else if (this._type === ButtonType.Bubble) {
-			color = theme.button_bubble_fg
+		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
+			color = theme.content_fg
 		} else {
 			color = this.isSelected() ? getColors(this._colors).button_selected : getColors(this._colors).button
 		}

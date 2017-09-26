@@ -17,6 +17,7 @@ import {GroupViewer} from "./GroupViewer"
 import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

@@ -1,6 +1,7 @@
 // @flow
 import {SysService} from "../entities/sys/Services"
 import {worker} from "./WorkerClient"
+import type {HttpMethodEnum} from "../common/EntityFunctions"
 import {
 	_setupEntity,
 	_updateEntity,
@@ -64,7 +65,7 @@ export function loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: ?Id, end: ?Id
 	})
 }
 
-const RANGE_ITEM_LIMIT = 1000
+export const RANGE_ITEM_LIMIT = 1000
 function _loadAll<T>(typeRef: TypeRef<T>, listId: Id, start: Id, end: ?Id): Promise<T[]> {
 	return loadRange(typeRef, listId, start, RANGE_ITEM_LIMIT, false).then(elements => {
 		if (elements.length == 0) return Promise.resolve(elements)

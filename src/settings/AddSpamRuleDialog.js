@@ -32,7 +32,7 @@ export function show() {
 	})
 
 	let typeField = new DropDownSelector("emailSenderRule_label", null, getSpamRuleTypeNameMapping(), getSpamRuleTypeNameMapping()[0].value)
-	let valueField = new TextField("emailSender_label", () => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg"))
+	let valueField = new TextField("emailSenderPlaceholder_label", () => lang.get(_getInputInvalidMessage(typeField.selectedValue(), valueField.value(), existingSpamRules, customDomains) || "emptyString_msg"))
 	let form = {
 		view: () => {
 			return [

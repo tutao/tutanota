@@ -1,3 +1,4 @@
+import type {GroupTypeEnum} from "../TutanotaConstants"
 // @flow
 import {GroupType} from "../TutanotaConstants"
 
@@ -58,7 +59,7 @@ export function clone<T>(instance: T): T {
  * @param moduleName The module to import
  * @returns resolves to the imported module
  */
-export function asyncImport(importer: string, moduleName: string) {
+export function asyncImport(importer: string, moduleName: string): Promise<*> {
 	return System.import(moduleName)
 		.then(module => {
 			if (System.loads) {

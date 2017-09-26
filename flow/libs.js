@@ -89,6 +89,7 @@ var PushNotification: any;
 interface Mithril {
 
 	(selector: string|Component): Vnode<any>;
+	(selector: string|Component, children?: Children): Vnode<any>;
 	(selector: string|Component, attributes?: Object, children?: Children): Vnode<any>;
 	<Attrs>(component: Class<MComponent<Attrs>>, attributes?: Attrs): Vnode<Attrs>;
 	<Attrs>(component: MComponent<Attrs>): Vnode<Attrs>;
@@ -111,17 +112,17 @@ interface Attributes {
 
 interface Lifecycle<Attrs> {
 	// The oninit hook is called before a vnode is touched by the virtual DOM engine.
-	oninit?:(vnode: Vnode<Attrs>)=> any;
+	+oninit?:(vnode: Vnode<Attrs>)=> any;
 	// The oncreate hook is called after a DOM element is created and attached to the document.
-	oncreate?: (vnode: VnodeDOM<Attrs>) => any;
+	+oncreate?: (vnode: VnodeDOM<Attrs>) => any;
 	// The onbeforeupdate hook is called before a vnode is diffed in a update.
-	onbeforeremove?: (vnode: VnodeDOM<Attrs>) => Promise<any> | void;
+	+onbeforeremove?: (vnode: VnodeDOM<Attrs>) => Promise<any> | void;
 	// The onupdate hook is called after a DOM element is updated, while attached to the document.
-	onremove?:(vnode: VnodeDOM<Attrs>) => any;
+	+onremove?:(vnode: VnodeDOM<Attrs>) => any;
 	// The onbeforeremove hook is called before a DOM element is detached from the document. If a Promise is returned, Mithril only detaches the DOM element after the promise completes.
-	onbeforeupdate?:(vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
+	+onbeforeupdate?:(vnode: Vnode<Attrs>, old: VnodeDOM<Attrs>) => boolean | void;
 	// The onremove hook is called before a DOM element is removed from the document.
-	onupdate?:(vnode: VnodeDOM<Attrs>)=> any;
+	+onupdate?:(vnode: VnodeDOM<Attrs>)=> any;
 }
 
 interface MComponent<Attrs> extends Lifecycle<Attrs> {
@@ -130,7 +131,7 @@ interface MComponent<Attrs> extends Lifecycle<Attrs> {
 }
 
 type Child = Vnode<any> | string | number | boolean | null;
-type ChildArray = Array<Child>;
+type ChildArray = Array<Children>;
 type Children = Child | ChildArray;
 
 interface Vnode<Attrs> extends Lifecycle<Attrs> {

@@ -2,7 +2,8 @@
 import {createReadCounterData} from "../../entities/monitor/ReadCounterData"
 import {serviceRequest, load, update, serviceRequestVoid} from "../EntityWorker"
 import {ReadCounterReturnTypeRef} from "../../entities/monitor/ReadCounterReturn"
-import {Const as Const, AccountType, BookingItemFeatureType, GroupType} from "../../common/TutanotaConstants"
+import type {AccountTypeEnum} from "../../common/TutanotaConstants"
+import {Const, AccountType, BookingItemFeatureType, GroupType} from "../../common/TutanotaConstants"
 import {CustomerTypeRef} from "../../entities/sys/Customer"
 import {CustomerInfoTypeRef} from "../../entities/sys/CustomerInfo"
 import {bookingFacade} from "./BookingFacade"
@@ -210,7 +211,7 @@ export class CustomerFacade {
 		})
 	}
 
-	createContactFormUserGroupData() {
+	createContactFormUserGroupData(): Promise<void> {
 		let userGroupKey = aes128RandomKey()
 		let userGroupInfoSessionKey = aes128RandomKey()
 		this.contactFormUserGroupData = groupManagementFacade.generateInternalGroupData(userGroupKey, userGroupInfoSessionKey, userGroupKey, userGroupKey).then(userGroupData => {

@@ -6,12 +6,13 @@ import {size} from "../size"
 import {flash} from "./Ripple"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
+import type {ButtonColorEnum} from "./Button"
 import {ButtonColors, getColors} from "./Button"
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
 export class NavButton {
-	icon: lazy<Vnode<IconAttrs>>;
+	icon: lazy<SVG>;
 	href: string|lazy<string>;
 	clickHandler: ?clickHandler;
 
@@ -48,10 +49,10 @@ export class NavButton {
 
 		this.view = (): VirtualElement => {
 			// allow nav button without label for registration button on mobile devices
-			return m("a.nav-button.noselect.flex-start.flex-fixed.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(), [
+			return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(), [
 				this.icon() ? m(Icon, {
 						icon: this.icon(),
-						class: 'flex-center items-center button-icon ' + (this.isSelected() ? "selected" : ""),
+						class: 'flex-center items-center button-icon' + (this.isSelected() ? " selected" : ""),
 						style: {
 							fill: (this.isSelected() || this._draggedOver) ? getColors(this._colors).icon_selected : getColors(this._colors).icon,
 							'background-color': (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button

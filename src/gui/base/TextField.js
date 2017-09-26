@@ -1,6 +1,5 @@
 // @flow
 import {size, px} from "../size"
-import {backface_fix, noselect} from "../mixins"
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
@@ -22,6 +21,7 @@ export const Type = {
 	Area: "area",
 	ExternalPassword: "externalpassword",
 }
+export type TextFieldTypeEnum = $Values<typeof Type>;
 
 const inputLineHeight = size.font_size_base + 8
 const inputMarginTop = size.font_size_small + size.hpad_small + 3
@@ -70,9 +70,10 @@ export class TextField {
 		this._keyHandler = null
 
 		this.view = (): VirtualElement => {
-			return m(".text-field.rel.overflow-hidden.text.pt", {
+			return m(".text-field.rel.overflow-hidden.pt", {
 				oncreate: (vnode) => this._domWrapper = vnode.dom,
-				onclick: (e) => this.focus(e)
+				onclick: (e) => this.focus(),
+				class: !this.disabled ? "text" : null
 			}, [
 				m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 					class: this.active ? "content-accent-fg" : "",
@@ -92,13 +93,13 @@ export class TextField {
 						style: {
 							'min-height': px(size.button_height + 2), // 2 px border
 							'padding-bottom': this.active ? px(0) : px(1),
-							'border-bottom': this.disabled ? '1px solid transparent' : this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
+							'border-bottom': this.active ? `2px solid ${theme.content_accent}` : `1px solid ${theme.content_border}`,
 						},
 					}, [
 						this._injectionsLeft ? this._injectionsLeft() : null,
 						m(".inputWrapper.flex-space-between.items-end", {}, [ // additional wrapper element for bubble input field. input field should always be in one line with right injections
 							this.type !== Type.Area ? this._getInputField() : this._getTextArea(),
-							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-no-shrink", this._injectionsRight()) : null
+							this._injectionsRight ? m(".mr-negative-s.flex-end.flex-fixed", this._injectionsRight()) : null
 						])
 					]),
 				]),
@@ -128,12 +129,17 @@ export class TextField {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
 				value: this.value(),
 				oncreate: (vnode) => this._domInput = vnode.dom,
-				onfocus: (e) => this.focus(e),
+				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					// keydown is used to cancel certain keypresses of the user (mainly needed for the BubbleTextField)
 					let key = {keyCode: e.which, ctrl: e.ctrlKey}
 					return this._keyHandler != null ? this._keyHandler(key) : true
+				},
+				onremove: e => {
+					// fix for mithril bug that occurs on login, if the cursor is positioned in the password field and enter is pressed to invoke the login action ("Failed to execute 'removeChild' on 'Node': The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?")
+					// TODO test if still needed with newer mithril releases
+					this._domInput.onblur = null
 				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
@@ -163,8 +169,9 @@ export class TextField {
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
 					this._domInput.value = this.value()
+					this._domInput.style.height = px(Math.max(this.value().split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
 				},
-				onfocus: (e) => this.focus(e),
+				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
 					let key = {keyCode: e.which, ctrl: e.ctrlKey, shift: e.shiftKey}

@@ -13,6 +13,7 @@ export const ColumnWidth = {
 	Small: 'column-width-small', // the column has a fixed small width
 	Largest: 'column-width-largest', // all Largest columns equally share the rest of the available width
 }
+export type ColumnWidthEnum = $Values<typeof ColumnWidth>;
 
 /**
  * Shows a table of TableLine entries. The last column of the table may show action buttons for each TableLine and/or an add button.
@@ -34,8 +35,8 @@ export class Table {
 		this._loading = true
 
 		this.view = (): VirtualElement => {
-			return m((showActionButtonColumn ? ".mr-negative-s" : ""), [
-				m("table.table.mr-negative-s", [
+			return m("", [
+				m("table.table", [
 					[this._createLine(columnHeadingTextIds.map(textId => lang.get(textId)), showActionButtonColumn, (this._loading) ? null : addButton, columnWidths, true)].concat(
 						this._createContentLines(showActionButtonColumn, columnWidths)
 					)
@@ -54,10 +55,16 @@ export class Table {
 
 	_createLine(texts: string[], showActionButtonColumn: boolean, actionButton: ?Button, columnWidths: ColumnWidthEnum[], bold: boolean): VirtualElement {
 		let cells = texts.map((text, index) => m("td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + ((bold) ? ".b" : ""), {
-			title: text // show the text as tooltip, so ellipsed lines can be shown
+			title: text, // show the text as tooltip, so ellipsed lines can be shown
 		}, text))
 		if (showActionButtonColumn) {
-			cells.push(m("td", {style: {width: px(size.button_height)}}, (actionButton) ? [m(actionButton)] : []))
+			cells.push(m("td", {
+				style: {
+					width: px(size.button_height),
+					position: 'relative',
+					'right': px(-size.hpad_button - 1)
+				}
+			}, (actionButton) ? [m(actionButton)] : []))
 		}
 		return m("tr", cells)
 	}

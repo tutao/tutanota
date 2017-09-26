@@ -55,13 +55,12 @@ export class ViewSlider {
 		}
 
 		this.view = (): VirtualElement => {
-			//console.log("viewslider.view")
+			// console.log("viewslider.view")
 			return m(".view-columns.fill-absolute.backface_fix", {
-				oncreate: (vnode) => {
-					this._updateDomSlider(vnode.dom)
-				},
-				onupdate: (vnode) => {
-					this._updateDomSlider(vnode.dom)
+				oncreate: (vnode) => this._domSlider = vnode.dom,
+				style: {
+					transform: 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)',
+					width: this.getWidth() + 'px'
 				}
 			}, this.columns.map(column => m(column)).concat(this._createModalBackground()))
 		}
@@ -84,15 +83,6 @@ export class ViewSlider {
 			return []
 		}
 	}
-
-
-	_updateDomSlider(domSlider: HTMLElement) {
-		//console.log("transform: ", this.getOffset(this._visibleBackgroundColumns[0]), "width:", this.getWidth())
-		this._domSlider = domSlider
-		this._domSlider.style.transform = 'translateX(' + this.getOffset(this._visibleBackgroundColumns[0]) + 'px)'
-		this._domSlider.style.width = this.getWidth() + 'px'
-	}
-
 
 	_updateVisibleBackgroundColumns() {
 		this.focusedColumn.isInForeground = false
@@ -204,7 +194,7 @@ export class ViewSlider {
 	 * Executes a slide animation for the background buttons.
 	 */
 	_slideBackgroundColumns(nextVisibleViewColumn: ViewColumn, oldOffset: number, newOffset: number): Promise<void> {
-		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset, {}), {
+		return animations.add(this._domSlider, transform(transform.type.translateX, oldOffset, newOffset), {
 			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {
@@ -213,7 +203,6 @@ export class ViewSlider {
 			//console.log("slide end")
 		})
 	}
-
 
 	/**
 	 * Executes a slide animation for the foreground button.
@@ -225,7 +214,7 @@ export class ViewSlider {
 		this._isModalBackgroundVisible = toForeground
 		m.redraw() // to animate the modal background in parallel to the sliding animation
 		//console.log("fade in start")
-		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset, {}), {
+		return animations.add(neverNull(foregroundColumn._domColumn), transform(transform.type.translateX, oldOffset, newOffset), {
 			delay: 200,
 			easingFunction: ease.inOut
 		}).finally(() => {

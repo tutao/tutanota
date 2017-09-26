@@ -17,6 +17,8 @@ import {worker} from "../../api/main/WorkerClient"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {progressIcon} from "./Icon"
+import {size, px} from "../size"
+import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -28,6 +30,7 @@ export const DialogType = {
 	EditMedium: "EditMedium",
 	EditLarge: "EditLarge"
 }
+export type DialogTypeEnum = $Values<typeof DialogType>;
 
 export class Dialog {
 	buttons: Button[];
@@ -70,8 +73,14 @@ export class Dialog {
 			},
 		]
 		this.view = (): VirtualElement => {
+			let mobileMargin = px(size.hpad)
 			return m(this._getDialogWrapperStyle(dialogType), [
 					m(this._getDialogStyle(dialogType), {
+						style: {
+							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
+							'margin-left': mobileMargin,
+							'margin-right': mobileMargin
+						},
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
 							if (dialogType === DialogType.EditLarge) {
@@ -157,7 +166,10 @@ export class Dialog {
 		let bgcolor = theme.content_bg
 		return Promise.all([
 			animations.add(this._domDialog.children, opacity(1, 0, true)),
-			animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0, ease.linear), {delay: DefaultAnimationTime / 2})
+			animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 1, 0), {
+				delay: DefaultAnimationTime / 2,
+				easing: ease.linear
+			})
 		]).then(() => {
 		})
 	}

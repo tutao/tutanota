@@ -75,7 +75,7 @@ export class ContactViewer {
 
 		this.view = () => {
 			return [
-				m("#contact-viewer.fill-absolute.scroll.plr-l", [
+				m("#contact-viewer.fill-absolute.scroll.plr-l.pb-floating", [
 					m(".flex-space-between.pt", [
 						m(".h2", this.contact.firstName + " " + contact.lastName),
 						m(actions),
@@ -105,15 +105,11 @@ export class ContactViewer {
 					this.addresses.length > 0 || this.socials.length > 0 ? m(".wrapping-row", [
 							m(".address.mt-l", this.addresses.length > 0 ? [
 									m(".h4", lang.get('address_label')),
-									m(".aggregateEditors", [
-										this.addresses.map(ma => m(ma)),
-									])
+									m(".aggregateEditors", this.addresses.map(ma => m(ma)))
 								] : null),
 							m(".social.mt-l", this.socials.length > 0 ? [
 									m(".h4", lang.get('social_label')),
-									m(".aggregateEditors", [
-										this.socials.map(ma => m(ma)),
-									])
+									m(".aggregateEditors", this.socials.map(ma => m(ma)))
 								] : null),
 						]) : null,
 

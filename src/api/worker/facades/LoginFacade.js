@@ -13,6 +13,7 @@ import {generateKeyFromPassphrase, generateRandomSalt} from "../crypto/Bcrypt"
 import {KeyLength} from "../crypto/CryptoConstants"
 import {createAuthVerifierAsBase64Url, createAuthVerifier, base64ToKey, keyToUint8Array} from "../crypto/CryptoUtils"
 import {decryptKey, encryptKey, encryptBytes, encryptString} from "../crypto/CryptoFacade"
+import type {GroupTypeEnum} from "../../common/TutanotaConstants"
 import {GroupType, OperationType, AccountType} from "../../common/TutanotaConstants"
 import {aes128Decrypt, aes128RandomKey} from "../crypto/Aes"
 import {random} from "../crypto/Randomizer"
@@ -167,7 +168,7 @@ export class LoginFacade {
 			if (externalUserSalt) {
 				passphraseKeyPromise = Promise.resolve(generateKeyFromPassphrase(passphrase, externalUserSalt, KeyLength.b128))
 			} else {
-				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.mailAddress, passphrase, externalUserSalt)
+				passphraseKeyPromise = this._loadUserPassphraseKey(credentials.mailAddress, passphrase)
 			}
 			return passphraseKeyPromise.then(userPassphraseKey => {
 				return this._initSession(sessionData.userId, credentials.accessToken, userPassphraseKey).then(() => {

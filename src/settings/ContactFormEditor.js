@@ -117,9 +117,7 @@ export class ContactFormEditor {
 			.addRight(new Button('save_action', () => this._save()).setType(ButtonType.Primary))
 		this.view = () => m("#contact-editor.pb", [
 			m(".h4.mt-l", lang.get("emailProcessing_label")),
-			m(".wrapping-row", [
-				m(this._mailGroupField),
-			]),
+			m(this._mailGroupField),
 			m(".mt-l", [
 				m(this._participantGroupInfosTable),
 				m(".small", lang.get("participantsInfo_msg"))

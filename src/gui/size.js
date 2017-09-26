@@ -2,6 +2,7 @@ import {assertMainOrNode} from "../api/Env"
 assertMainOrNode()
 
 export const size = {
+	icon_size_xl: 32,
 	icon_size_large: 24,
 	icon_size_medium: 16,
 
@@ -49,6 +50,9 @@ export const size = {
 
 	column_width_s_desktop: 135,
 	column_width_s_mobile: 70,
+	line_height: 1.428571429, // 20/14,
+	line_height_m: 1.6,
+	line_height_l: 1.8,
 }
 
 

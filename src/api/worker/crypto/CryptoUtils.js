@@ -30,7 +30,7 @@ export function unpad(bytes: Uint8Array): Uint8Array {
 	}
 	let length = bytes.byteLength - paddingLength
 	let result = new Uint8Array(length)
-	result.set(bytes.subarray(0, length)) // or is a subarray fine here instead of a copy?
+	result.set(bytes.subarray(0, length))
 	return result
 }
 

@@ -1,14 +1,16 @@
 // @flow
 import bCrypt from "./lib/bCrypt"
 import {random} from "./Randomizer"
-import {KeyLength} from "./CryptoConstants"
 import {hash} from "./Sha256"
 import {stringToUtf8Uint8Array} from "../../common/utils/Encoding"
 import {CryptoError} from "../../common/error/CryptoError"
 import {assertWorkerOrNode} from "../../Env"
 import {uint8ArrayToBitArray} from "./CryptoUtils"
+import type {KeyLengthEnum} from "./CryptoConstants"
+import {KeyLength} from "./CryptoConstants"
 
 assertWorkerOrNode()
+
 
 const logRounds = 8; // pbkdf2 number of iterations
 

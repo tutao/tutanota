@@ -198,13 +198,13 @@ function setupExceptionHandling() {
  * See http://stackoverflow.com/questions/10238084/ios-safari-how-to-disable-overscroll-but-allow-scrollable-divs-to-scroll-norma
  */
 function disableBodyTouchScrolling() {
-	document.addEventListener('touchmove', event => event.preventDefault(), false)
+	document.addEventListener('touchmove', event => event.preventDefault(), client.passive() ? {passive: false} : false)
 	document.body.addEventListener('touchmove', event => {
 		let scrollable = event.target.closest(".scroll")
 		if (scrollable && scrollable.scrollHeight > scrollable.offsetHeight) {
 			event.stopPropagation();
 		}
-	}, false)
+	}, client.passive() ? {passive: false} : false)
 
 	document.body.addEventListener('touchstart', event => {
 		let scrollable = event.target.closest(".scroll")
@@ -215,6 +215,6 @@ function disableBodyTouchScrolling() {
 				scrollable.scrollTop -= 1;
 			}
 		}
-	})
+	}, client.passive() ? {passive: true} : false)
 
 }

@@ -22,6 +22,7 @@ import {logins} from "../api/main/LoginController"
 import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

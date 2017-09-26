@@ -12,6 +12,7 @@ import {MailFolderViewModel} from "./MailFolderViewModel"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, GroupType, FeatureType} from "../api/common/TutanotaConstants"
 import {header} from "../gui/base/Header"
 import {isSameId, TypeRef, isSameTypeRef, HttpMethod} from "../api/common/EntityFunctions"
@@ -70,7 +71,7 @@ export class MailView {
 					return mc.mailboxExpander ? ([
 							m(".mr-negative-s.flex-space-between.plr-l", m(mc.mailboxExpander)),
 							m(neverNull(mc.mailboxExpander).panel)
-						]:Vnode<any>[]) : null
+						]) : null
 				}
 			))
 		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
@@ -241,15 +242,15 @@ export class MailView {
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
 			])).concat(
-				logins.isInternalUserLoggedIn() ? [m(".folder-row.flex-space-between.plr-l", [m("small.b.pt-s.align-self-center.ml-negative-xs", {style: {color: theme.navigation_light_fg}}, lang.get("yourFolders_action").toLocaleUpperCase()), m(neverNull(mailBoxController.folderAddButton))])] : []
+				logins.isInternalUserLoggedIn() ? [m(".folder-row.flex-space-between.plr-l", [m("small.b.pt-s.align-self-center.ml-negative-xs", {style: {color: theme.navigation_button}}, lang.get("yourFolders_action").toLocaleUpperCase()), m(neverNull(mailBoxController.folderAddButton))])] : []
 			).concat(mailBoxController.customFolderButtons.map(fb => m(".folder-row.flex-space-between.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb),
 				fb.isSelected() ? m(folderMoreButton, {
 						oncreate: vnode => animations.add(vnode.dom, opacity(0, 1, false)),
 						onbeforeremove: vnode => animations.add(vnode.dom, opacity(1, 0, false))
 					}) : null
-			]))), null)
-		}), false, {}, theme.navigation_light_fg)
+			]))))
+		}), false, {}, theme.navigation_button)
 		mailboxExpander.toggle()
 		return mailboxExpander
 	}

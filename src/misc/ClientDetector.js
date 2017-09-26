@@ -14,6 +14,7 @@ export const BrowserType = {
 	UBUNTU: "Ubuntu",
 	OTHER: "Other"
 }
+export type BrowserTypeEnum = $Values<typeof BrowserType>;
 
 export const DeviceType = {
 	IPHONE: "iPhone",
@@ -24,6 +25,7 @@ export const DeviceType = {
 	DESKTOP: "Desktop",
 	OTHER_MOBILE: "Other mobile"
 }
+export type DeviceTypeEnum = $Values<typeof DeviceType>;
 
 class ClientDetector {
 	userAgent: string;

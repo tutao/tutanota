@@ -9,16 +9,6 @@ import {colors} from "./AlternateColors"
 
 assertMainOrNode()
 
-function importLatoFont(file, style, weight) {
-	return {
-		'font-family': 'Lato',
-		src: `url("resources/fonts/lato-2.015/Lato/fonts/${file}.woff2") format("woff2")`, // we only use woff2 for desktops and native fonts for mobiles
-		'font-style': style,
-		'font-weight': weight,
-		'text-rendering': 'optimizeLegibility'
-	}
-}
-
 styles.registerStyle('main', () => {
 	return {
 		/*
@@ -28,14 +18,6 @@ styles.registerStyle('main', () => {
             pre, code, p, a, h1, h2, h3, h4, h5, h6, ul, ol, li, dl, dt, dd, textarea,
             input[type="email"], input[type="number"], input[type="password"],
             input[type="tel"], input[type="text"], input[type="url"], .border-box`]: {'box-sizing': 'border-box'},
-
-
-		'@font-face': client.isDesktopDevice() ? [
-				importLatoFont('Lato-Light', 'normal', 300),
-				importLatoFont('Lato-Regular', 'normal', 400),
-				importLatoFont('Lato-Italic', 'italic', 400),
-				importLatoFont('Lato-Bold', 'normal', 700),
-			] : '',
 
 
 		'a': {color: 'inherit'},
@@ -48,10 +30,9 @@ styles.registerStyle('main', () => {
 		'body, button, foreignObject': { // foreign object is just for svg rendering (see List.js)
 			overflow: 'hidden',
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
-			//'font-family': client.isMobileDevice() ? `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"` : "Lato, sans-serif",
-			'font-family': `-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+			'font-family': `-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
 			'font-size': px(size.font_size_base),
-			'line-height': 1.428571429, // 20/14
+			'line-height': size.line_height,
 			color: theme.content_fg,
 			'background-color': theme.content_bg,
 			'-webkit-text-size-adjust': 'none'
@@ -127,6 +108,7 @@ styles.registerStyle('main', () => {
 		'.pb-s': {'padding-bottom': px(size.vpad_small)},
 		'.pb-l': {'padding-bottom': px(size.vpad_large)},
 		'.pb-xl': {'padding-bottom': px(size.vpad_xl)},
+		'.pb-floating': {'padding-bottom': px(size.button_floating_size + size.hpad_large)}, // allow scrolling across the floating button
 		'.plr': {'padding-left': px(size.hpad), 'padding-right': px(size.hpad)},
 		'.pl': {'padding-left': px(size.hpad)},
 		'.pl-s': {'padding-left': px(size.hpad_small)},
@@ -147,6 +129,7 @@ styles.registerStyle('main', () => {
 
 		'.mr-negative-s': {'margin-right': px(-size.hpad_button)},
 		'.ml-negative-s': {'margin-left': px(-size.hpad_button)}, // negative margin to handle the default padding of a button
+		'.ml-negative-l': {'margin-left': px(-size.hpad_large)},
 		'.ml-negative-xs': {'margin-left': px(-3)},
 		'.ml-negative-bubble': {'margin-left': px(-7)},
 		'.mr-negative-m': {'margin-right': px(-(size.hpad_button + size.hpad_nav_button))}, // negative margin to handle the padding of a nav button
@@ -236,7 +219,7 @@ styles.registerStyle('main', () => {
 
 		// flex box
 		'.flex-space-between': {display: 'flex', 'justify-content': 'space-between'},
-		'.flex-no-shrink': {flex: "0 0 auto"},
+		'.flex-fixed': {flex: "0 0 auto"},
 		'.flex-center': {display: 'flex', 'justify-content': 'center'},
 		'.flex-end': {display: 'flex', 'justify-content': 'flex-end'},
 		'.flex-start': {display: 'flex', 'justify-content': 'flex-start'},
@@ -248,7 +231,7 @@ styles.registerStyle('main', () => {
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
-		'.flex-fixed': {flex: "0 0"},
+		'.flex-no-shrink': {flex: "1 0 0"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},
@@ -295,6 +278,14 @@ styles.registerStyle('main', () => {
 		'.icon-large > svg': {
 			height: px(size.icon_size_large),
 			width: px(size.icon_size_large)
+		},
+		'.icon-xl': {
+			height: px(size.icon_size_xl),
+			width: px(size.icon_size_xl)
+		},
+		'.icon-xl > svg': {
+			height: px(size.icon_size_xl),
+			width: px(size.icon_size_xl)
 		},
 		'.icon-progress > svg': {
 			'animation-name': 'rotate-icon',
@@ -357,18 +348,16 @@ styles.registerStyle('main', () => {
 
 		// fix for IE11: use position absolute to fill header parts and center child elements using flex box
 		'.header-left': {position: 'absolute', left: '0', top: 0, bottom: 0, width: '310px'},
-		'.header-middle': {display: 'none'},
 		'.header-right': {position: 'absolute', left: '310px', right: '0', top: 0, bottom: 0},
 		'.header-right > .nav-bar': {width: '100%'},
 
 
 		// dialogs
-		'.dialog': {'min-width': px(200), width: '95%'},
+		'.dialog': {'min-width': px(200), width: '100%'},
 		'.dialog-width-l': {'max-width': px(800)},
 		'.dialog-width-m': {'max-width': px(500)},
 		'.dialog-width-s': {'max-width': px(400)},
 		'.dialog-width-alert': {'max-width': px(350)},
-		'.dialog-align-top': {position: 'relative', 'margin-top': '60px'},
 		'.dialog-header': {
 			'border-bottom': `1px solid ${theme.content_border}`,
 			height: px(size.button_height + 1)
@@ -409,7 +398,6 @@ styles.registerStyle('main', () => {
 		'.pr-expander': {'padding-right': px(3)},
 		'.expander': {height: px(size.button_height), 'min-width': px(size.button_height)},
 
-
 		// mail view editor
 		'.mail-viewer-firstLine': {'pading-top': px(10)},
 		'.hide-outline': {outline: 'none'},
@@ -426,11 +414,18 @@ styles.registerStyle('main', () => {
 		'.MsoNormal': {margin: 0},
 
 		// list
-		'.list': {'background-repeat': 'repeat-y', overflow: 'hidden', 'list-style': 'none', margin: 0},
+		'.list': {
+			'background-repeat': 'repeat-y',
+			overflow: 'hidden',
+			'list-style': 'none',
+			margin: 0,
+			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
+		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
 			'background-color': theme.list_bg,
-			height: px(size.list_row_height), 'border-left': px(size.border_selection) + " solid transparent"
+			height: px(size.list_row_height),
+			'border-left': px(size.border_selection) + " solid transparent"
 		},
 		'.list-row > div': {'margin-left': px(-size.border_selection)},
 		'.odd-row': {
@@ -463,6 +458,7 @@ styles.registerStyle('main', () => {
 			'white-space': 'nowrap',
 			margin: 0, // for safari
 			'flex-shrink': 0,
+			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 
 		'.nav-button:hover': {
@@ -575,7 +571,7 @@ styles.registerStyle('main', () => {
 		},
 
 		// media query for mobile devices, should be one pixel less than style.isDesktopLayout
-		"@media (max-width: 719px)": {
+		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
 			'.main-view': {top: positionValue(size.navbar_height_mobile)},
 			'.header-nav': {height: px(size.navbar_height_mobile)},
 			'.logo-height': {height: px(size.header_logo_height_mobile)},

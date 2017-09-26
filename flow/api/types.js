@@ -1,4 +1,5 @@
 import {Request} from "../../src/api/common/WorkerProtocol"
+import {Type, AssociationType, Cardinality, ValueType} from "../../src/api/common/EntityConstants"
 // see https://bitwiseshiftleft.github.io/sjcl/doc/symbols/sjcl.bitArray.html
 
 // type that is used by sjcl for any encryption/decryption operation
@@ -124,15 +125,11 @@ type Callback = (err: ?Error, data: ?Object) => Object
 type Command = (msg: Request) => Promise<any>
 
 
-type TypeEnum = "ELEMENT_TYPE" | "LIST_ELEMENT_TYPE" | "DATA_TRANSFER_TYPE" | "AGGREGATED_TYPE"
-
-type AssociationTypeEnum = "ELEMENT_ASSOCIATION" | "LIST_ASSOCIATION" | "LIST_ELEMENT_ASSOCIATION" | "AGGREGATION"
-
-type CardinalityEnum = "ZeroOrOne" | "Any" | "One"
-
-type ValueTypeEnum = "String" | "Number" | "Bytes" | "Date" | "Boolean" | "GeneratedId" | "CustomId"
-
-type ConversationTypeEnum = '0' | '1' | '2'
+// EntityConstants
+type TypeEnum = $Keys<typeof Type>;
+type AssociationTypeEnum = $Keys<typeof AssociationType>;
+type CardinalityEnum = $Keys<typeof Cardinality>;
+type ValueTypeEnum = $Keys<typeof ValueType>;
 
 type TypeModel = {
 	id: number,

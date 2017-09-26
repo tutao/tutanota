@@ -25,6 +25,7 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 

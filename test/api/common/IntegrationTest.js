@@ -30,7 +30,7 @@ o.spec("integration test", function () {
 	let mailbox = null
 
 	o("login, read mails, update contact", function (done, timeout) {
-		timeout(2000)
+		timeout(10000)
 		env.staticUrl = 'http://localhost:9000'
 		loginFacade.createSession("map-free@tutanota.de", "map", "Linux node", false)
 			.then(() => Promise.all(
@@ -54,7 +54,7 @@ o.spec("integration test", function () {
 						contact.company = "WIW"
 						contact.autoTransmitPassword = "stop bugging me!"
 						contact.addresses = [address]
-						setup(contactList.contacts, contact).then(() => {
+						return setup(contactList.contacts, contact).then(() => {
 							return loadAll(ContactTypeRef, contactList.contacts).map((contact: Contact) => contact.firstName)
 								.then(firstNames => o(firstNames.indexOf("Max")).notEquals(-1))
 						})
