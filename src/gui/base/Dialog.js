@@ -32,6 +32,8 @@ export const DialogType = {
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
+let TABBABLE = "button, input, textarea, div[contenteditable='true']"
+
 export class Dialog {
 	buttons: Button[];
 	_domDialog: HTMLElement;
@@ -47,7 +49,8 @@ export class Dialog {
 				key: Keys.TAB,
 				shift: true,
 				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll("button, input, div[contenteditable='true']"))
+
+					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
 					let selected = tabbable.find(e => document.activeElement === e)
 					if (selected) {
 						tabbable[mod(tabbable.indexOf(selected) - 1, tabbable.length)].focus()
@@ -61,7 +64,7 @@ export class Dialog {
 				key: Keys.TAB,
 				shift: false,
 				exec: () => {
-					let tabbable = Array.from(this._domDialog.querySelectorAll("button, input, div[contenteditable='true']"))
+					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
 					let selected = tabbable.find(e => document.activeElement === e)
 					if (selected) {
 						tabbable[mod(tabbable.indexOf(selected) + 1, tabbable.length)].focus()
