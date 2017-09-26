@@ -254,6 +254,14 @@ export class EventBusClient {
 					this._lastEntityEventIds[groupId] = []
 				}
 				this._lastEntityEventIds[groupId].push(batchId)
+				// make sure the batch ids are in ascending order, so we use the highest id when downloading all missed events after a reconnect
+				this._lastEntityEventIds[groupId].sort((e1, e2) => {
+					if (e1 == e2) {
+						return 0
+					} else {
+						return firstBiggerThanSecond(e1, e2) ? 1 : -1
+					}
+				})
 				if (this._lastEntityEventIds[groupId].length > this._MAX_EVENT_IDS_QUEUE_LENGTH) {
 					this._lastEntityEventIds[groupId].shift()
 				}
