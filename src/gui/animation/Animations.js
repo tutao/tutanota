@@ -161,7 +161,6 @@ function buildTransformString(values: TransformValues, percent: number, easing: 
  *
  * See http://stackoverflow.com/a/14677373 for a more detailed explanation.
  */
-
 export function hexToRgb(hexColor: string): {r:number, g:number, b:number} {
 	hexColor = hexColor.substring(1)
 	let split = hexColor.match(/.{1,2}/g)

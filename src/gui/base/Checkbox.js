@@ -2,7 +2,7 @@
 import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
-import {flash} from "./Ripple"
+import {removeFlash, addFlash} from "./Flash"
 import {assertMainOrNode} from "../../api/Env"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
@@ -19,7 +19,6 @@ export class Checkbox {
 	checked: stream<boolean>;
 	focused: stream<boolean>;
 	_domInput: HTMLElement;
-	_domIcon: ?HTMLElement;
 	view: Function;
 
 	constructor(labelTextIdOrTextFunction: string|lazy<string>, helpLabel: lazy<String>) {
@@ -37,7 +36,10 @@ export class Checkbox {
 					}
 				},
 			}, [
-				m(".wrapper.flex.items-center", [
+				m(".wrapper.flex.items-center", {
+					oncreate: (vnode) => addFlash(vnode.dom),
+					onbeforeremove: (vnode) => removeFlash(vnode.dom),
+				}, [
 					// the real checkbox is transparent and only used to allow keyboard focusing and selection
 					m("input[type=checkbox]", {
 						oncreate: (vnode) => this._domInput = vnode.dom,
@@ -60,7 +62,6 @@ export class Checkbox {
 					m(Icon, {
 						icon: this.checked() ? BootIcons.CheckboxSelected : BootIcons.Checkbox,
 						class: this.focused() ? "svg-content-accent-fg" : "svg-content-fg",
-						oncreate: (vnode) => this._domIcon = vnode.dom,
 						onclick: (e) => this.toggle(e),
 					}),
 					m(".pl", {
@@ -74,9 +75,6 @@ export class Checkbox {
 
 	toggle(event: MouseEvent) {
 		this.checked(!this.checked())
-		if (this._domIcon) {
-			flash(this._domIcon)
-		}
 		event.stopPropagation()
 		if (this._domInput) {
 			this._domInput.focus()

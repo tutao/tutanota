@@ -17,12 +17,13 @@ export default class MessageBox {
 		this._visible = true
 
 		this.view = (): VirtualElement => {
-			return m(".fill-absolute.justify-center.justify-center.items-center", {
+			return m(".fill-absolute.justify-center.items-start", {
 				oncreate: (vnode) => this._messageNode = vnode.dom,
 				style: {display: (this._visible) ? 'flex' : 'none'}
 			}, [
 				m(".dialog-width-s.pt.pb.plr.mlr", {
-					class: bgClass
+					class: bgClass,
+					style: {'margin-top': "100px"}
 				}, (messageIdOrMessageFunction instanceof Function) ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
 			])
 		}

@@ -3,7 +3,7 @@ import m from "mithril"
 import {handleUncaughtError} from "../../misc/ErrorHandler"
 import {lang} from "../../misc/LanguageViewModel"
 import {size} from "../size"
-import {flash} from "./Ripple"
+import {removeFlash, addFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
 import type {ButtonColorEnum} from "./Button"
@@ -85,6 +85,7 @@ export class NavButton {
 					m.route.link(vnode)
 				}
 				this._domButton.onclick = (event: MouseEvent) => this.click(event)
+				addFlash(vnode.dom)
 			},
 			onupdate: (vnode: VirtualElement) => {
 				if (this.href instanceof Function) {
@@ -93,6 +94,9 @@ export class NavButton {
 					}
 					this._domButton.onclick = (event: MouseEvent) => this.click(event)
 				}
+			},
+			onbeforeremove: (vnode) => {
+				removeFlash(vnode.dom)
 			}
 		}
 		if (this._dropHandler) {
@@ -148,7 +152,6 @@ export class NavButton {
 		if (!this._isExternalUrl()) {
 			m.route.set(this._getUrl())
 			try {
-				flash(this._domButton)
 				if (this.clickHandler != null) {
 					this.clickHandler(event)
 				}

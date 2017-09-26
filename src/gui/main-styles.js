@@ -235,6 +235,7 @@ styles.registerStyle('main', () => {
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},
 		'.items-end': {'align-items': 'flex-end'},
+		'.items-start': {'align-items': 'flex-start'},
 		'.items-base': {'align-items': 'baseline'},
 		'.items-strech': {'align-items': 'strech'},
 		'.align-self-center': {'align-self': 'center'},
@@ -465,13 +466,13 @@ styles.registerStyle('main', () => {
 			'text-decoration': 'underline',
 			opacity: 0.7,
 		},
-		'.nav-button:focus': {
-			'text-decoration': 'underline',
-			opacity: 0.7,
-		},
-		'button:focus, button:hover': {
-			opacity: 0.7,
-		},
+		'.nav-button:focus': client.isDesktopDevice() ? {
+				'text-decoration': 'underline',
+				opacity: 0.7,
+			} : {},
+		'button:focus, button:hover': client.isDesktopDevice() ? {
+				opacity: 0.7,
+			} : {},
 
 
 		'.button-icon': {

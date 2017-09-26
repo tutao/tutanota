@@ -3,7 +3,7 @@ import {size} from "../size"
 import {noselect} from "../mixins"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
-import {flash} from "./Ripple"
+import {removeFlash, addFlash} from "./Flash"
 import {NavButton} from "./NavButton"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
@@ -103,7 +103,11 @@ export class Button {
 						} : {},
 					onclick: (event: MouseEvent) => this.click(event),
 					title: (this._type === ButtonType.Action || this._type == ButtonType.Bubble || this._type == ButtonType.Dropdown) || this._type == ButtonType.Login ? this.getLabel() : "",
-					oncreate: (vnode) => this._domButton = vnode.dom
+					oncreate: (vnode) => {
+						this._domButton = vnode.dom
+						addFlash(vnode.dom)
+					},
+					onbeforeremove: (vnode) => removeFlash(vnode.dom)
 				}, m("", {// additional wrapper for flex box styling as safari does not support flex box on buttons.
 					class: this.getWrapperClasses().join(' '),
 				}, [
@@ -276,9 +280,6 @@ export class Button {
 	}
 
 	click(event: MouseEvent) {
-		if (this._domButton) {
-			flash(this._domButton)
-		}
 		this.clickHandler(event)
 		// in IE the activeElement might not be defined and blur might not exist
 		if (document.activeElement && document.activeElement.blur instanceof Function) {

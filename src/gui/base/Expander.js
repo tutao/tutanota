@@ -3,17 +3,16 @@ import {px} from "../size"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
-import {flash} from "./Ripple"
 import {Icon} from "./Icon"
 import {Icons} from "./icons/Icons"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
+import {addFlash, removeFlash} from "./Flash"
 
 export class ExpanderButton {
 	panel: ExpanderPanel;
 	getLabel: lazy<string>;
 	_domIcon: ?HTMLElement;
-	_domElement: ?HTMLElement;
 	view: Function;
 
 	constructor(labelTextIdOrLabelFunction: string|lazy<string>, panel: ExpanderPanel, showWarning: boolean, style: Object = {}, color: string = theme.content_button) {
@@ -27,15 +26,11 @@ export class ExpanderButton {
 			m("button.expander.bg-transparent.pt-s.hover-ul.limit-width", {
 				style,
 				onclick: (event: MouseEvent) => {
-					if (this._domElement) {
-						flash(this._domElement)
-					}
 					this.toggle()
 					event.stopPropagation()
 				},
-				oncreate: vnode => {
-					this._domElement = vnode.dom
-				}
+				oncreate: vnode => addFlash(vnode.dom),
+				onbeforeremove: (vnode) => removeFlash(vnode.dom),
 			}, m(".flex.items-center", [ // TODO remove wrapper after Firefox 52 has been deployed widely https://bugzilla.mozilla.org/show_bug.cgi?id=984869
 				(showWarning) ? m(Icon, {
 						icon: Icons.Warning,
