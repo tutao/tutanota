@@ -96,6 +96,9 @@
 	<config-file parent="NSContactsUsageDescription" target="*-Info.plist">
         <string>Find recipient email address in contacts.</string>
     </config-file>
+	<config-file parent="NSPhotoLibraryAddUsageDescription" target="*-Info.plist">
+        <string>Add a picture from your library as attachment.</string>
+    </config-file>
 	<config-file parent="CFBundleURLTypes" target="*-Info.plist">
 		<array>
 			<dict>

@@ -462,13 +462,13 @@ gulp.task('translation', function (cb) {
 						var keys = JSON.parse(body);
 						iosTranslations += keys.cameraUsageDescription_msg ? ("NSCameraUsageDescription = \"" + keys.cameraUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.photoLibraryUsageDescription_msg ? ("NSPhotoLibraryUsageDescription = \"" + keys.photoLibraryUsageDescription_msg + "\";\n") : "";
+						iosTranslations += keys.photoLibraryUsageDescription_msg ? ("NSPhotoLibraryAddUsageDescription = \"" + keys.photoLibraryUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.microphoneUsageDescription_msg ? ("NSMicrophoneUsageDescription = \"" + keys.microphoneUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.contactsUsageDescription_msg ? ("NSContactsUsageDescription = \"" + keys.contactsUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.remindersUsageDescription_msg ? ("NSRemindersUsageDescription = \"" + keys.remindersUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.openCamera_action ? ("TutaoShowCameraAction = \"" + keys.openCamera_action + "\";\n") : "";
 						iosTranslations += keys.choosePhotos_action ? ("TutaoChoosePhotosAction = \"" + keys.choosePhotos_action + "\";\n") : "";
-
-
+						
 						fs.writeFileSync(iosLangDir + "/InfoPlist.strings", iosTranslations);
 						console.log(code);
 						callback();
