@@ -20,6 +20,7 @@
 #import <openssl/bn.h>
 #import <openssl/rand.h>
 #import "JFBCrypt.h"
+#import <CommonCrypto/CommonDigest.h>
 #include "TutaoAes128Facade.h"
 #include "TutaoEncodingConverter.h"
 #include "FileUtil.h"
@@ -394,8 +395,18 @@
 			[TutaoUtils sendErrorResult:error invokedCommand:command delegate:self.commandDelegate];
 			return;
 		}
-	
-		NSInputStream *encryptedFileStream = [[NSInputStream alloc] initWithFileAtPath:filePath];
+			
+		NSData *fileData = [[NSFileManager defaultManager] contentsAtPath:filePath];
+		BOOL useMac = [fileData length]  % 2 == 1;
+		
+		if(useMac){
+			NSData *hash  = [Crypto sha256:key];
+			key = [hash subdataWithRange:NSMakeRange(0, 16)];
+			fileData = [NSData dataWithBytesNoCopy:(void * _Nonnull)(fileData.bytes + 1) length:fileData.length - 33 freeWhenDone:NO];
+		}
+		
+		NSInputStream *encryptedFileStream = [[NSInputStream alloc] initWithData:fileData];
+		
 		NSString *plainTextFilePath = [decryptedFolder stringByAppendingPathComponent:[filePath lastPathComponent]];
 		NSOutputStream *plainTextFileStream = [[NSOutputStream alloc] initToFileAtPath:plainTextFilePath append:NO];
 	
@@ -426,6 +437,16 @@
 	}
 	return [[NSData alloc]initWithBytes:buffer length:TUTAO_IV_BYTE_SIZE];
 }
+
+
++ (NSData *)sha256:(NSData *)data {
+    unsigned char hash[CC_SHA256_DIGEST_LENGTH];
+    if (CC_SHA256([data bytes], [data length], hash) ) {
+        return [NSData dataWithBytes:hash length:CC_SHA256_DIGEST_LENGTH];
+    }
+	return nil;
+}
+
 
 @end
 

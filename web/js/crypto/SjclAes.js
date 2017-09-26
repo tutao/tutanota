@@ -165,7 +165,7 @@ tutao.crypto.SjclAes.prototype._decrypt = function (key, base64, randomIv, usePa
 	var encrypted = sjcl.codec.base64.toBits(base64);
 	if (sjcl.bitArray.bitLength(encrypted) % 16 != 0) {
 		var hashedKey = tutao.locator.shaCrypter.hash(tutao.util.EncodingConverter.keyToUint8Array(key));
-		key = tutao.util.EncodingConverter.uint8ArrayToKey(hashedKey.slice(0, 16))
+		key = tutao.util.EncodingConverter.uint8ArrayToKey(new Uint8Array(hashedKey.buffer.slice(0, 16)))
 		encrypted = sjcl.bitArray.bitSlice(encrypted, 8, (sjcl.bitArray.bitLength(encrypted) - (32 * 8)))
 	}
 	if (randomIv) {
