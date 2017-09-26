@@ -32,9 +32,10 @@ export function aes256RandomKey(): Aes256Key {
  * @param bytes The plain text.
  * @param iv The initialization vector.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
+ * @param useMac Not used because gcm always contains a mac. Just exists for interface compatibility with AES 128
  * @return The encrypted text as words (sjcl internal structure)..
  */
-export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true): Uint8Array {
+export function aes256Encrypt(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 	if (usePadding) {
 		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.
@@ -174,9 +175,10 @@ function getSubKeys(key: Aes128Key, mac: boolean): {mKey:?Aes128Key, cKey:Aes128
  * @param bytes The plain text.
  * @param iv The initialization vector.
  * @param usePadding If true, padding is used, otherwise no padding is used and the encrypted data must have the key size.
+ * @param useMac Not used because gcm always contains a mac. Just exists for interface compatibility with AES 128
  * @return The encrypted text as words (sjcl internal structure)..
  */
-export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true): Promise<Uint8Array> {
+export function aes256EncryptFile(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Promise<Uint8Array> {
 	verifyKeySize(key, KEY_LENGTH_BITS_AES_256)
 	if (usePadding) {
 		bytes = pad(bytes) // TODO (bdeterding) consider implementing padding for bit array.

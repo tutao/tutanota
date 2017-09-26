@@ -177,7 +177,7 @@ o.spec("aes", function () {
 		let key = [151050668, 1341212767, 316219065, 2150939763]
 		let iv = new Uint8Array([233, 159, 225, 105, 170, 223, 70, 218, 139, 107, 71, 91, 179, 231, 239, 102])
 		let encrypted = aes128Encrypt(key, stringToUtf8Uint8Array("hello"), iv, true, false)
-		encrypted = concat(new Uint8Array([1], encrypted))
+		encrypted = concat(new Uint8Array([1]), encrypted)
 		try {
 			aes128Decrypt(key, encrypted, true)
 		} catch (e) {
