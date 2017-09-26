@@ -92,11 +92,12 @@ class KeyManager {
 		window.document.addEventListener("keydown", e => {
 			let keyCode = e.which
 			let keysToShortcuts = (this._modalShortcuts.length > 1) ? this._keyToModalShortcut : this._keyToShortcut
-			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, e.ctrlKey, e.shiftKey, e.metaKey)]
+			let shortcut = keysToShortcuts[this._createKeyIdentifier(keyCode, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)]
 			if (shortcut != null && (shortcut.enabled == null || shortcut.enabled())) {
 				if (shortcut.exec({
 						keyCode,
 						ctrl: e.ctrlKey,
+						alt: e.altKey,
 						shift: e.shiftKey,
 						meta: e.metaKey
 					}) !== true) {
@@ -111,15 +112,15 @@ class KeyManager {
 		return ((shortcut.meta) ? Keys.META.name + " + " : "") + ((shortcut.ctrl) ? Keys.CTRL.name + " + " : "") + ((shortcut.shift) ? Keys.SHIFT.name + " + " : "") + shortcut.key.name
 	}
 
-	_createKeyIdentifier(keycode: number, ctrl: ?boolean, shift: ?boolean, meta: ?boolean): string {
-		return keycode + (ctrl ? "C" : "") + (shift ? "S" : "") + (meta ? "M" : "")
+	_createKeyIdentifier(keycode: number, ctrl: ?boolean, alt: ?boolean, shift: ?boolean, meta: ?boolean): string {
+		return keycode + (ctrl ? "C" : "") + (alt ? "A" : "") + (shift ? "S" : "") + (meta ? "M" : "")
 	}
 
 	registerShortcuts(shortcuts: Shortcut[]) {
 		Keys.META.code = (client.browser == BrowserType.FIREFOX ? 224 : 91)
 		addAll(this._shortcuts, shortcuts)
 		for (let s of shortcuts) {
-			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.shift)
+			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
 			this._keyToShortcut[id] = s
 		}
 	}
@@ -127,7 +128,7 @@ class KeyManager {
 	unregisterShortcuts(shortcuts: Shortcut[]) {
 		removeAll(this._shortcuts, shortcuts)
 		for (let s of shortcuts) {
-			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.shift)
+			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
 			delete this._keyToShortcut[id]
 		}
 	}
@@ -135,7 +136,7 @@ class KeyManager {
 	registerModalShortcuts(shortcuts: Shortcut[]) {
 		addAll(this._modalShortcuts, shortcuts)
 		for (let s of shortcuts) {
-			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.shift)
+			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
 			this._keyToModalShortcut[id] = s
 		}
 	}
@@ -143,7 +144,7 @@ class KeyManager {
 	unregisterModalShortcuts(shortcuts: Shortcut[]) {
 		removeAll(this._modalShortcuts, shortcuts)
 		for (let s of shortcuts) {
-			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.shift)
+			let id = this._createKeyIdentifier(s.key.code, s.ctrl, s.alt, s.shift, s.meta)
 			delete this._keyToModalShortcut[id]
 		}
 	}

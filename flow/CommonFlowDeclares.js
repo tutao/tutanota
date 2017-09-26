@@ -23,6 +23,7 @@ type Key = {code: number, name: string};
 declare interface Shortcut {
 	key:Key;
 	ctrl?:boolean; // undefined == false
+	alt?:boolean; // undefined == false
 	shift?:boolean; // undefined == false
 	meta?:boolean; // undefined == false
 	enabled?: lazy<boolean>;
