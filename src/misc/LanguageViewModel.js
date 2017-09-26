@@ -26,11 +26,24 @@ export const languages: Language[] = [
 	{code: 'ru', textId: 'languageRussian_label'},
 	{code: 'es', textId: 'languageSpanish_label'},
 	{code: 'tr', textId: 'languageTurkish_label'},
-	//{ code: 'bg_bg', textId: 'languageBulgarian_label'},
 	{code: 'fi', textId: 'languageFinnish_label'},
 	{code: 'lt_lt', textId: 'languageLithuanian_label'},
 	{code: 'mk', textId: 'languageMacedonian_label'},
-	{code: 'sr', textId: 'languageSerbian_label'}
+	{code: 'sr', textId: 'languageSerbian_label'},
+	{code: 'bg_bg', textId: 'languageBulgarian_label'},
+	{code: 'cs_cz', textId: 'languageCzech_label'},
+	{code: 'da_dk', textId: 'languageDanish_label'},
+	{code: 'et_ee', textId: 'languageEstonian_label'},
+	{code: 'fil_ph', textId: 'languageFilipino_label'},
+	{code: 'hu', textId: 'languageHungarian_label'},
+	{code: 'id', textId: 'languageIndonesian_label'},
+	{code: 'no', textId: 'languageNorwegian_label'},
+	{code: 'sk_sk', textId: 'languageSlovak_label'},
+	{code: 'sv', textId: 'languageSwedish_label'},
+	{code: 'ta_in', textId: 'languageTamil_label'},
+	{code: 'uk_ua', textId: 'languageUkrainian_label'},
+	{code: 'vi', textId: 'languageVietnamese_label'},
+	{code: 'ca_es', textId: 'languageCatalan_label'}
 ]
 
 /**

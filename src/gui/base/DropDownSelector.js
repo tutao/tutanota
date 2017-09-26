@@ -3,7 +3,6 @@ import m from "mithril"
 import {assertMainOrNode} from "../../api/Env"
 import {createDropDownButton, Button, ButtonType} from "./Button"
 import {TextField} from "./TextField"
-import {neverNull} from "../../api/common/utils/Utils"
 import stream from "mithril/stream/stream.js"
 import {BootIcons} from "./icons/BootIcons"
 
@@ -21,7 +20,17 @@ export class DropDownSelector<T> {
 		this._items = items
 		this._field = new TextField(labelIdOrLabelTextFunction, helpLabel)
 			.setDisabled()
-		this._field.value = this.selectedValue.map(value => value != null ? neverNull(items.find(item => item.value == this.selectedValue())).name : null)
+		this._field.value = this.selectedValue.map(value => {
+			if (value != null) {
+				let selectedItem = items.find(item => item.value == this.selectedValue())
+				if (selectedItem) {
+					return selectedItem.name
+				} else {
+					console.log(`Dropdown ${this._field.label instanceof Function ? this._field.label() : this._field.label} couldn't find element for value: ${value}`)
+				}
+			}
+			return null
+		})
 		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => BootIcons.Edit, () => {
 				return items.map(item => new Button(() => item.name, () => {
 					if (this.selectedValue() != item.value) {
