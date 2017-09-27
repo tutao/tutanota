@@ -88,7 +88,8 @@ function getLightTheme() {
 	const grey_dark = '#d5d5d5'
 	const grey = '#909090'
 	const grey_darker = '#707070'
-	const grey_darkest = '#4A4A4A'
+	//const grey_darkest = '#4A4A4A'
+	const grey_darkest = '#303030'
 
 	const red = '#840010'
 
