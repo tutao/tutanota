@@ -7,7 +7,6 @@ tutao.tutanota.ctrl.lang.ko.keys = {
   "adminEmailSettings_action": "이메일 ",
   "afterRegistration_msg": "계정이 생성되었습니다. 로그인하고 즐기세요!",
   "captchaEnter_msg": "시간을 시간과 분의 형식으로 표현해 주세요.",
-  "changeNotificationMailLanguage_msg": "알림 이메일 언어:",
   "community_label": "공동체",
   "company_placeholder": "회사",
   "contactImage_alt": "사진",
@@ -48,6 +47,7 @@ tutao.tutanota.ctrl.lang.ko.keys = {
   "login_action": "로그인",
   "logout_alt": "로그아웃",
   "mailNameInfo_msg": "메일 수신자에게 표시되는 이름입니다. User management에서 변경 가능합니다.",
+  "mailSendFailureSubject_msg": "이메일이 발송되지 않았습니다",
   "meNominative_label": "나",
   "monthNames_label": [
     "1월",
@@ -65,6 +65,7 @@ tutao.tutanota.ctrl.lang.ko.keys = {
   ],
   "newMails_msg": "새로운 Tutanota 메일 도착.",
   "notePassword_msg": "비밀번호를 반드시 기억하시고 사용자에게 제공하시기 바랍니다.",
+  "notificationMailLanguage_label": "알림 이메일 언어:",
   "notificationMailSignature_label": "서명",
   "oldBrowser_msg": "이런! 죄송합니다. 업데이트 전의 브라우저로 접속하셨네요. 다음 브라우저 중 하나의 최신버전으로 업그레이드해주세요.",
   "onlyPrivateComputer_msg": "개인용 기기를 사용할 때에만 이 옵션을 선택하세요.",
@@ -97,8 +98,7 @@ tutao.tutanota.ctrl.lang.ko.keys = {
   "trashedMails_alt": "지운 메일",
   "trashedMail_alt": "지워진 이메일",
   "twitter_label": "트위터",
-  "unsecureMailSendFailureSubject_msg": "이메일이 발송되지 않았습니다",
-  "unsubscribePremium_label": "프리미엄 구독 해지",
+  "unsubscribePremium_label": "Premium 해지",
   "userInfo_action": "정보",
   "welcomeMailBody1_msg": "Tutanota에 가입해 주심에 감사드리며, 암호화된 메일함을 가지게 된 것을 축하합니다! 오직 당신만이 당신의 비밀번호로 이메일과 연락처를 읽을 수 있습니다. 비밀번호를 기억하세요 - 재설정이 불가능합니다.",
   "welcomeMailSubject_msg": "집에 있는 기분을 느끼세요: 당신의 데이터는 비공개로 남습니다."

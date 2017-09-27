@@ -33,6 +33,7 @@ tutao.tutanota.ctrl.lang.hi_in.keys = {
   "login_action": "लॉगिन",
   "logout_alt": "लॉगआउट",
   "mailAddressNeutral_msg": "कृपया ई-मेल पता इंटर करें।",
+  "mailSendFailureSubject_msg": "ईमेल नहीं पहुँचाया जा सका",
   "meAccusative_label": "मुझे",
   "meNominative_label": "मैं",
   "mobileNumberNotValid_msg": "अवैध प्रारूप।",
@@ -66,6 +67,5 @@ tutao.tutanota.ctrl.lang.hi_in.keys = {
   "to_label": "को",
   "trashedMail_alt": "हटाए गए ईमेल",
   "twitter_label": "ट्विटर",
-  "unsecureMailSendFailureSubject_msg": "ईमेल नहीं पहुँचाया जा सका",
   "xing_label": "क्रॉसिंग"
 };
