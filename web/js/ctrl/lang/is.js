@@ -3,6 +3,7 @@ tutao.tutanota.ctrl.lang.is.writing_direction = "ltr";
 tutao.tutanota.ctrl.lang.is.id = "is";
 tutao.tutanota.ctrl.lang.is.keys = {
   "activate_action": "Virkja",
+  "changeNotificationMailLanguage_msg": "Tungumál tilkynningarpósts",
   "company_placeholder": "Fyrirtæki",
   "contactImage_alt": "Mynd",
   "defaultExternalDelivery_label": "Sjálfgefin afhending",
@@ -15,7 +16,6 @@ tutao.tutanota.ctrl.lang.is.keys = {
   "linkedin_label": "Linkedin",
   "move_action": "Flytja",
   "newMails_msg": "Nýr Tutanota tölvupóstur móttekinn",
-  "notificationMailLanguage_label": "Tungumál tilkynningarpósts",
   "notificationMailSignature_label": "Undirskrift",
   "other_label": "Annað",
   "presharedPasswordAndStrength_msg": "Styrkur lykilorðs",
