@@ -74,7 +74,20 @@
 			//_popOverPresentationController.delegate = weakSelf;
 		}
 		[_attachmentTypeMenu addOptionWithTitle:[TutaoUtils translate:@"TutaoChoosePhotosAction" default:@"Photos"] image:_photoLibImage order:UIDocumentMenuOrderFirst handler:^void(){
-			[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
+			// ask for permission because of changed behaviour in iOS 11
+			if(PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusNotDetermined){
+				[PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+					if (status == PHAuthorizationStatusAuthorized) {
+						[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
+					} else {
+						[weakSelf sendResult:nil];
+					}
+				}];
+			} else if(PHPhotoLibrary.authorizationStatus == PHAuthorizationStatusAuthorized){
+				[weakSelf showImagePicker]; // capture the weak reference to avoid reference cycle
+			} else{
+				[weakSelf showPermissionDeniedDialog];
+			}
 		}];
 	}
 
@@ -104,6 +117,7 @@
 	}
 	[_cdvPlugin.viewController presentViewController:_imagePickerController animated:YES completion:nil];
 }
+
 -(void) openCamera{
 	_imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
 	_imagePickerController.mediaTypes = [UIImagePickerController availableMediaTypesForSourceType: UIImagePickerControllerSourceTypeCamera];
@@ -278,6 +292,25 @@
 	resultHandler(nil, error);
 	resultHandler = nil;
 };
+
+-(void) showPermissionDeniedDialog{
+		//User don't give us permission. Showing alert with redirection to settings
+		NSString *permissionTitle = [TutaoUtils translate:@"TutaoNoPermissionTitle" default:@"No permission"];
+		NSString *permissionInfo =  [TutaoUtils translate:@"TutaoChangePermissionMsg" default:@"To grant access you have to modify the permissions for this device"];
+		NSString *settingsActionLabel = [TutaoUtils translate:@"TutaoSettingsAction" default:@"Settings"];
+		NSString *cancelActionLabel = [TutaoUtils translate:@"TutaoCancelAction" default:@"Cancel"];
+
+		UIAlertController * alertController = [UIAlertController alertControllerWithTitle:permissionTitle message:permissionInfo preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction *cancelAction = [UIAlertAction actionWithTitle: cancelActionLabel style:UIAlertActionStyleCancel handler:nil];
+		[alertController addAction:cancelAction];
+		UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:settingsActionLabel style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+			[[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+		}];
+		[alertController addAction:settingsAction];
+		[[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertController animated:YES completion:nil];
+		[self sendResult:nil];
+}
+
 
 
 @end

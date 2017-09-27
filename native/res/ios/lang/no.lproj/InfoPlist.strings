@@ -4,3 +4,5 @@ NSContactsUsageDescription = "Finn mottaker e-mail adresse i kontakter.";
 NSRemindersUsageDescription = "Viser melding når det kommer ny e-mail";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Bilder";
+TutaoCancelAction = "Avbryt";
+TutaoSettingsAction = "Innstillinger";

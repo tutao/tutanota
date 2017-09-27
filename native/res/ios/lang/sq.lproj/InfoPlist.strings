@@ -6,3 +6,5 @@ NSContactsUsageDescription = "Gjej në kontaktet adresën elektronike të pranue
 NSRemindersUsageDescription = "Shfaq njoftim kur vijnë mesazhe të reja. ";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Fotografitë";
+TutaoCancelAction = "Tërhiqu";
+TutaoSettingsAction = "Ujdisjet";

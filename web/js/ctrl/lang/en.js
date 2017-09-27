@@ -709,5 +709,9 @@ tutao.tutanota.ctrl.lang.en.keys = {
 	"xing_label": "XING",
 	"yearly_label": "Yearly",
 	"yesterday_label": "yesterday",
-	"loginSecondFactorError_msg": "You have enabled second factor authentication, so login in this old client is not supported any more."
+	"loginSecondFactorError_msg": "You have enabled second factor authentication, so login in this old client is not supported any more.",
+	"noPermission_title":"No Permission",
+	"changePermissions_msg":"To grant access you have to modify the permissions for this device",
+	
+	
 };

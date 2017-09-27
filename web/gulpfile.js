@@ -468,6 +468,10 @@ gulp.task('translation', function (cb) {
 						iosTranslations += keys.remindersUsageDescription_msg ? ("NSRemindersUsageDescription = \"" + keys.remindersUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.openCamera_action ? ("TutaoShowCameraAction = \"" + keys.openCamera_action + "\";\n") : "";
 						iosTranslations += keys.choosePhotos_action ? ("TutaoChoosePhotosAction = \"" + keys.choosePhotos_action + "\";\n") : "";
+						iosTranslations += keys.noPermission_title ? ("TutaoNoPermissionTitle = \"" + keys.noPermission_title + "\";\n") : "";
+						iosTranslations += keys.changePermissions_msg ? ("TutaoChangePermissionMsg = \"" + keys.changePermissions_msg + "\";\n") : "";
+						iosTranslations += keys.cancel_action ? ("TutaoCancelAction = \"" + keys.cancel_action + "\";\n") : "";
+						iosTranslations += keys.settings_label ? ("TutaoSettingsAction = \"" + keys.settings_label + "\";\n") : "";
 						
 						fs.writeFileSync(iosLangDir + "/InfoPlist.strings", iosTranslations);
 						console.log(code);

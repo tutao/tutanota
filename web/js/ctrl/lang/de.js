@@ -709,5 +709,7 @@ tutao.tutanota.ctrl.lang.de.keys = {
 	"xing_label": "XING",
 	"yearly_label": "Jährlich",
 	"yesterday_label": "gestern",
-	"loginSecondFactorError_msg": "Du hast die Zwei-Faktor-Authentifizierung aktiviert, daher ist der Login in diesem alten Client nicht mehr möglich."
+	"loginSecondFactorError_msg": "Du hast die Zwei-Faktor-Authentifizierung aktiviert, daher ist der Login in diesem alten Client nicht mehr möglich.",
+	"noPermission_title": "Keine Berechtigung",
+	"changePermissions_msg" : "Um die Berechtigung zu erteilen müssen die Einstellungen für dieses Gerät geändert werden.",
 };

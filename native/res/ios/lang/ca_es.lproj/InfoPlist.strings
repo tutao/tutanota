@@ -6,3 +6,5 @@ NSContactsUsageDescription = "Troba l'adreça de correu electrònic del destinat
 NSRemindersUsageDescription = "Mostra una notificació quan arribi un nou correu electrònic.";
 TutaoShowCameraAction = "Càmera";
 TutaoChoosePhotosAction = "Fotografies";
+TutaoCancelAction = "Cancel·la";
+TutaoSettingsAction = "Configuració";

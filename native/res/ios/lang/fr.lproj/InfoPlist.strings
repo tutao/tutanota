@@ -6,3 +6,5 @@ NSContactsUsageDescription = "Trouver l'adresse email du destinataire dans les c
 NSRemindersUsageDescription = "Montrer les notification quand de nouveaux mails arrivent.";
 TutaoShowCameraAction = "Appareil photo";
 TutaoChoosePhotosAction = "Photos";
+TutaoCancelAction = "Annuler";
+TutaoSettingsAction = "Paramètres";

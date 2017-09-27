@@ -6,3 +6,5 @@ NSContactsUsageDescription = "Címzett keresése a névjegyek között.";
 NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";
 TutaoShowCameraAction = "Fényképezőgép";
 TutaoChoosePhotosAction = "Fényképek";
+TutaoCancelAction = "Mégse";
+TutaoSettingsAction = "Beállítások";

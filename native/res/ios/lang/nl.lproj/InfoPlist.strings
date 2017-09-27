@@ -6,3 +6,5 @@ NSContactsUsageDescription = "Zoek emailadres van de ontvanger in contacten.";
 NSRemindersUsageDescription = "Laat meldingen zien als er nieuwe email binnenkomt.";
 TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Foto's";
+TutaoCancelAction = "Annuleer";
+TutaoSettingsAction = "Instellingen";
