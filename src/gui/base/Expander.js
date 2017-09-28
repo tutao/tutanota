@@ -1,5 +1,4 @@
 // @flow
-import {px} from "../size"
 import m from "mithril"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, transform, height, opacity} from "../../../src/gui/animation/Animations"
@@ -74,10 +73,10 @@ export class ExpanderPanel {
 			this.expanded ? m("div", {
 					oncreate: vnode => {
 						this._domPanel = vnode.dom
+						vnode.dom.style.height = 0
 						this._animate(true)
 					},
 					onbeforeremove: vnode => this._animate(false),
-					style: {height: this.expanded ? '' : px(0)}
 				}, m(this.child)) : null
 		])
 	}
