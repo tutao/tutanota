@@ -49,7 +49,7 @@ export const state = (deletedModule && deletedModule.module) ? deletedModule.mod
 
 let initialized = lang.init(en).then(() => {
 	if (!client.isSupported()) {
-		m.render(document.body, m(root, m(new InfoView(() => "404", () => [
+		m.render(document.body, m(root, m(new InfoView(() => "Tutanota", () => [
 			m("p", lang.get("unsupportedBrowser_msg")),
 			m("p", m("a[target=_blank][href=http://www.mozilla.org/de/firefox]", "Firefox (Desktop)")),
 			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),

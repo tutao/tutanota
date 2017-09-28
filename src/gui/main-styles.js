@@ -35,7 +35,7 @@ styles.registerStyle('main', () => {
 			'line-height': size.line_height,
 			color: theme.content_fg,
 			'background-color': theme.content_bg,
-			'-webkit-text-size-adjust': 'none'
+			'-webkit-text-size-adjust': 'none' // fix for safari browser
 
 		},
 
