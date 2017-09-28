@@ -80,9 +80,10 @@ export class EventBusClient {
 			wrapper.authentication = authenticationData
 			encryptAndMapToLiteral(WebsocketWrapperTypeModel, wrapper, null).then(entityForSending => {
 				const sendInitialMsg = () => {
-					if ((this._socket:any).readyState === 1) {
-						(this._socket:any).send(JSON.stringify(entityForSending));
-					} else {
+					const socket = (this._socket:any)
+					if (socket.readyState === 1) {
+						socket.send(JSON.stringify(entityForSending));
+					} else if (socket.readyState === 0) {
 						setTimeout(sendInitialMsg, 5)
 					}
 				}
@@ -100,7 +101,7 @@ export class EventBusClient {
 	}
 
 	/**
-	 * Sends a close event to the server and finally closes the connection. Makes sure that there will be no reconnect.
+	 * Sends a close event to the server and finally closes the connection.
 	 */
 	close(reconnect: boolean = false) {
 		console.log("ws close: ", new Date(), "reconnect: ", reconnect);

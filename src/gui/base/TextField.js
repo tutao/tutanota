@@ -103,7 +103,7 @@ export class TextField {
 						])
 					]),
 				]),
-				this.helpLabel ? m("small.noselect.click", {
+				this.helpLabel ? m("div.small.noselect.click", {
 						onclick: () => {
 							if (this._domInput) this._domInput.focus()
 						}
