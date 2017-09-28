@@ -6,12 +6,15 @@ import {client} from "../../misc/ClientDetector"
 assertMainOrNode()
 
 const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in element -> target opacity value
+const PREVENT = (e) => e.preventDefault()
 
 const eventListenerArgs = client.passive() ? {passive: true} : false
 document.addEventListener("mouseup", () => flashedIn.forEach((computedOpacity: number, target: HTMLElement) => flashOutElement(target, computedOpacity)), eventListenerArgs)
+
 export function addFlash(target: any) {
 	if (client.isDesktopDevice()) {
 		target.addEventListener("mousedown", flashIn, eventListenerArgs)
+		target.addEventListener("dragstart", PREVENT, client.passive() ? {passive: false} : false)
 	} else {
 		target.addEventListener("touchstart", flashIn, eventListenerArgs)
 		target.addEventListener("touchend", flashOut, eventListenerArgs)
@@ -22,6 +25,7 @@ export function addFlash(target: any) {
 export function removeFlash(target: any) {
 	if (client.isDesktopDevice()) {
 		target.removeEventListener("mousedown", flashIn, eventListenerArgs)
+		target.removeEventListener("dragstart", PREVENT)
 	} else {
 		target.removeEventListener("touchstart", flashIn, eventListenerArgs)
 		target.removeEventListener("touchend", flashOut, eventListenerArgs)
