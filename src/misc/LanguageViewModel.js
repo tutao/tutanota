@@ -2,6 +2,7 @@
 import {startsWith} from "../api/common/utils/StringUtils"
 import {assertMainOrNode} from "../api/Env"
 import {asyncImport} from "../api/common/utils/Utils"
+import {client} from "./ClientDetector"
 
 assertMainOrNode()
 
@@ -107,33 +108,35 @@ class LanguageViewModel {
 	 */
 	setLanguageTag(tag: string) {
 		this.languageTag = tag
-		this.formats = {
-			simpleDate: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
-			dateWithMonth: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'short', year: 'numeric'}),
-			dateWithWeekday: new (Intl.DateTimeFormat:any)(tag, {weekday: 'short', day: 'numeric', month: 'short'}),
-			dateWithWeekdayAndYear: new (Intl.DateTimeFormat:any)(tag, {
-				weekday: 'short',
-				day: 'numeric',
-				month: 'short',
-				year: 'numeric'
-			}),
-			time: new (Intl.DateTimeFormat:any)(tag, {hour: 'numeric', minute: 'numeric'}),
-			dateTime: new (Intl.DateTimeFormat:any)(tag, {
-				day: 'numeric',
-				month: 'short',
-				year: 'numeric',
-				hour: 'numeric',
-				minute: 'numeric'
-			}),
-			priceWithCurrency: new (Intl.NumberFormat:any)(tag, {
-				style: 'currency',
-				currency: 'EUR',
-				minimumFractionDigits: 2
-			}),
-			priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
-				style: 'decimal',
-				minimumFractionDigits: 2
-			})
+		if (client.dateFormat()) {
+			this.formats = {
+				simpleDate: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'numeric', year: 'numeric'}),
+				dateWithMonth: new (Intl.DateTimeFormat:any)(tag, {day: 'numeric', month: 'short', year: 'numeric'}),
+				dateWithWeekday: new (Intl.DateTimeFormat:any)(tag, {weekday: 'short', day: 'numeric', month: 'short'}),
+				dateWithWeekdayAndYear: new (Intl.DateTimeFormat:any)(tag, {
+					weekday: 'short',
+					day: 'numeric',
+					month: 'short',
+					year: 'numeric'
+				}),
+				time: new (Intl.DateTimeFormat:any)(tag, {hour: 'numeric', minute: 'numeric'}),
+				dateTime: new (Intl.DateTimeFormat:any)(tag, {
+					day: 'numeric',
+					month: 'short',
+					year: 'numeric',
+					hour: 'numeric',
+					minute: 'numeric'
+				}),
+				priceWithCurrency: new (Intl.NumberFormat:any)(tag, {
+					style: 'currency',
+					currency: 'EUR',
+					minimumFractionDigits: 2
+				}),
+				priceWithoutCurrency: new (Intl.NumberFormat:any)(tag, {
+					style: 'decimal',
+					minimumFractionDigits: 2
+				})
+			}
 		}
 	}
 
