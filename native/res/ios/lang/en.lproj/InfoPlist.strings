@@ -7,6 +7,6 @@ NSRemindersUsageDescription = "Shows notification when new email arrives.";
 TutaoShowCameraAction = "Camera";
 TutaoChoosePhotosAction = "Photos";
 TutaoNoPermissionTitle = "No Permission";
-TutaoChangePermissionMsg = "To grant access you have to modify the permissions for this device";
+TutaoChangePermissionMsg = "To grant access you have to modify the permissions for this device.";
 TutaoCancelAction = "Cancel";
 TutaoSettingsAction = "Settings";
