@@ -388,10 +388,7 @@ styles.registerStyle('main', () => {
 		'.folders': {'margin-bottom': px(12)},
 		'.folder-row': {
 			'border-left': px(size.border_selection) + ' solid transparent',
-			'margin-bottom': px(4),
 			'margin-right': px(-size.hpad_button)
-			//'padding-left': px(size.hpad_large - size.hpad_button - size.border_selection),
-			//'padding-right': px(size.hpad_large - size.hpad_button)
 		},
 		'.row-selected': {'border-color': `${theme.list_accent_fg} !important`, color: `${theme.list_accent_fg}`},
 		'.folder-row > a': {'flex-grow': 1, 'margin-left': px(-size.hpad_button - size.border_selection)},

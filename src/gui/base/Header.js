@@ -1,11 +1,10 @@
 // @flow
 import m from "mithril"
 import {NavBar} from "./NavBar"
-import {NavButton} from "./NavButton"
+import {NavButton, NavButtonColors} from "./NavButton"
 import stream from "mithril/stream/stream.js"
 import {styles} from "../styles"
 import {neverNull, asyncImport} from "../../api/common/utils/Utils"
-import {Button, ButtonType, ButtonColors} from "./Button"
 import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
@@ -41,16 +40,16 @@ class Header {
 			.addButton(new NavButton('contacts_label', () => Icons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
 			.addButton(new NavButton('upgradePremium_label', () => Icons.Premium, () => premiumUrl, premiumUrl)
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()))
+				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
 			.addButton(new NavButton('invite_alt', () => Icons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn())
-				.setClickHandler(() => this._invite()))
+				.setClickHandler(() => this._invite()), 0, true)
 			.addButton(new NavButton('community_label', () => Icons.Heart, 'https://tutanota.com/community')
-				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => Icons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
 			.addButton(new NavButton('logout_label', () => Icons.Logout, LogoutUrl)
-				.setIsVisibleHandler(() => logins.isUserLoggedIn()))
+				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
 		this.buttonBar = this.defaultButtonBar
 
@@ -134,17 +133,11 @@ class Header {
 	_getLeftElements() {
 		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
 			let viewSlider = neverNull(this._viewSlider)
-			if (styles.isDesktopLayout()) {
-				let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => Icons.Back, () => m.route.get(), "header-button-bg")
-					.setColors(ButtonColors.Header)
-				navButtonBack.setClickHandler(() => viewSlider.focusPreviousColumn())
-				return [m(navButtonBack)]
-			} else {
-				let actionButtonBack = new Button(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => viewSlider.focusPreviousColumn(), () => Icons.Back)
-					.setColors(ButtonColors.Header)
-				actionButtonBack.setType(ButtonType.Action)
-				return [m(actionButtonBack)]
-			}
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => Icons.Back, () => m.route.get())
+				.setColors(NavButtonColors.Header)
+				.setClickHandler(() => viewSlider.focusPreviousColumn())
+				.hideLabel()
+			return [m(navButtonBack)]
 		} else {
 			if (styles.isDesktopLayout()) {
 				return [m(".logo.logo-height.pl-button", m.trust(theme.logo))]

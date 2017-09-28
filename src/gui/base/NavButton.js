@@ -6,8 +6,8 @@ import {size} from "../size"
 import {removeFlash, addFlash} from "./Flash"
 import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
-import type {ButtonColorEnum} from "./Button"
-import {ButtonColors, getColors} from "./Button"
+import {theme} from "../theme"
+import {styles} from "../styles"
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
@@ -25,15 +25,17 @@ export class NavButton {
 	_draggedOver: boolean;
 	_dropHandler: ?dropHandler;
 	_dropCounter: number; // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
-	_colors: ButtonColorEnum;
+	_colors: NavButtonColorEnum;
+	_hideLabel: boolean;
 
 
 	constructor(label: string|lazy<string>, icon: lazy<SVG>, href: string|Function, isSelectedPrefix: ?string) {
+		this._hideLabel = false
 		this.icon = icon
 		this.href = href
 		this.clickHandler = null
 		this._isSelectedPrefix = isSelectedPrefix
-		this._colors = ButtonColors.Content
+		this._colors = NavButtonColors.Header
 		this.isVisible = TRUE_CLOSURE
 		this._draggedOver = false
 		this.isSelected = () => {
@@ -52,14 +54,27 @@ export class NavButton {
 			return m("a.nav-button.noselect.flex-start.flex-no-shrink.items-center.click.plr-button.no-text-decoration.button-height", this.createButtonAttributes(), [
 				this.icon() ? m(Icon, {
 						icon: this.icon(),
-						class: 'flex-center items-center button-icon' + (this.isSelected() ? " selected" : ""),
+						class: this._getIconClass(),
 						style: {
-							fill: (this.isSelected() || this._draggedOver) ? getColors(this._colors).icon_selected : getColors(this._colors).icon,
-							'background-color': (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button
+							fill: (this.isSelected() || this._draggedOver) ? getColors(this._colors).button_selected : getColors(this._colors).button,
+							"margin-top": (this._hideLabel) ? "0px" : "-2px"
 						}
 					}) : null,
-				this.getLabel().length > 0 ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel()) : null
+				(!this._hideLabel) ? m("span.label.click.text-ellipsis.pl-m.b", this.getLabel()) : null
 			])
+		}
+	}
+
+	hideLabel(): NavButton {
+		this._hideLabel = true
+		return this
+	}
+
+	_getIconClass() {
+		if (this._colors == NavButtonColors.Header && !styles.isDesktopLayout()) {
+			return "flex-end items-center icon-xl" + (this.isSelected() ? " selected" : "")
+		} else {
+			return "flex-center items-center icon-large" + (this.isSelected() ? " selected" : "")
 		}
 	}
 
@@ -128,7 +143,7 @@ export class NavButton {
 		return attr
 	}
 
-	setColors(colors: ButtonColorEnum): NavButton {
+	setColors(colors: NavButtonColorEnum): NavButton {
 		this._colors = colors
 		return this
 	}
@@ -168,5 +183,33 @@ export class NavButton {
 
 	getHeight(): number {
 		return size.button_height
+	}
+}
+
+export const NavButtonColors = {
+	Header: 'header',
+	Nav: 'nav',
+	Content: 'content',
+}
+type NavButtonColorEnum = $Values<typeof NavButtonColors>;
+
+function getColors(buttonColors: NavButtonColorEnum) {
+	switch (buttonColors) {
+		case NavButtonColors.Header:
+			return {
+				button: styles.isDesktopLayout() ? theme.header_button : theme.content_accent,
+				button_selected: styles.isDesktopLayout() ? theme.header_button_selected : theme.content_accent,
+			}
+		case NavButtonColors.Nav:
+			return {
+				button: theme.navigation_button,
+				button_selected: theme.navigation_button_selected,
+			}
+		default:
+			// for nav buttons in the more dropdown menu
+			return {
+				button: theme.content_button,
+				button_selected: theme.content_button_selected,
+			}
 	}
 }

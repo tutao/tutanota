@@ -11,7 +11,6 @@ import {assertMainOrNode} from "../../api/Env"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {Dialog} from "./Dialog"
-import {styles} from "../styles"
 
 assertMainOrNode()
 
@@ -29,7 +28,6 @@ export const ButtonType = {
 export type ButtonTypeEnum = $Values<typeof ButtonType>;
 
 export const ButtonColors = {
-	Header: 'header',
 	Nav: 'nav',
 	Content: 'content',
 }
@@ -39,15 +37,8 @@ const TRUE_CLOSURE = (): lazy<boolean> => true
 
 const FALSE_CLOSURE = (): lazy<boolean> => false
 
-export function getColors(buttonColors: ButtonColorEnum) {
+function getColors(buttonColors: ButtonColorEnum) {
 	switch (buttonColors) {
-		case ButtonColors.Header:
-			return {
-				button: styles.isDesktopLayout() ? theme.header_button : "transparent",
-				button_selected: styles.isDesktopLayout() ? theme.header_button_selected : "transparent",
-				icon: styles.isDesktopLayout() ? theme.header_button_icon : theme.content_accent,
-				icon_selected: styles.isDesktopLayout() ? theme.header_button_icon_selected : theme.content_accent,
-			}
 		case ButtonColors.Nav:
 			return {
 				button: theme.navigation_button,
@@ -55,13 +46,15 @@ export function getColors(buttonColors: ButtonColorEnum) {
 				icon: theme.navigation_button_icon,
 				icon_selected: theme.navigation_button_icon_selected,
 			}
-		default:
+		case ButtonColors.Content:
 			return {
 				button: theme.content_button,
 				button_selected: theme.content_button_selected,
 				icon: theme.content_button_icon,
 				icon_selected: theme.content_button_icon_selected,
 			}
+		default:
+			throw new Error("Illegal action button color: " + buttonColors)
 	}
 }
 
@@ -157,8 +150,6 @@ export class Button {
 			return "flex-center items-center button-icon floating icon-large"
 		} else if (this._type === ButtonType.Bubble) {
 			return "pr-s"
-		} else if (this._colors == ButtonColors.Header && !styles.isDesktopLayout()) {
-			return "flex-end items-center button-icon icon-xl"
 		} else {
 			return "flex-center items-center button-icon"
 		}
@@ -335,5 +326,6 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 				})
 			}
 		}:clickHandler))
+		.hideLabel()
 	return mainButton
 }

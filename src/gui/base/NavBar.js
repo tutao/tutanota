@@ -1,16 +1,17 @@
 // @flow
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
-import {NavButton} from "./NavButton"
-import {Button, createDropDownButton, ButtonColors} from "./Button"
+import {NavButton, NavButtonColors} from "./NavButton"
+import {createDropDownNavButton} from "./Button"
 import {assertMainOrNode} from "../../api/Env"
 import {Icons} from "./icons/Icons"
 import {size} from "../size"
+import {theme} from "../theme"
 import {styles} from "../styles"
 
 assertMainOrNode()
 
-type ButtonWrapper = {id: number, priority: number; button: NavButton | Button, width:number}
+type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number}
 
 type SortedButtons = {visible: ButtonWrapper[], hidden: ButtonWrapper[]}
 
@@ -45,13 +46,24 @@ export class NavBar {
 		this.more = {
 			id: Number.MAX_VALUE,
 			priority: MAX_PRIO,
-			button: createDropDownButton("more_label", () => styles.isDesktopLayout() ? Icons.MoreVertical : Icons.MoreVerticalMobile, () => {
+			button: createDropDownNavButton("more_label", () => Icons.MoreVertical, () => {
 				let buttons = this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
 				return buttons
 			}),
-			width: size.button_height
+			prefixComponent: styles.isDesktopLayout() ? {
+					view: () => m("div", {
+						style: {
+							width: "2px",
+							height: "24px",
+							'margin-left': "2px",
+							'margin-top': "10px",
+							"background-color": theme.navigation_border,
+						}
+					})
+				} : undefined,
+			width: size.button_height + styles.isDesktopLayout() ? 4 : 0 // spacer width is 4px
 		}
-		this.more.button.setColors(ButtonColors.Header)
+		this.more.button.setColors(NavButtonColors.Header)
 
 		this.maxWidth = 0;
 		this.resizeListener = (width, height) => {
@@ -69,13 +81,13 @@ export class NavBar {
 			let buttons = this.getVisibleButtons()
 			return m("nav.nav-bar.flex-end", {
 				oncreate: (vnode) => this._setDomNavBar(vnode.dom)
-			}, buttons.visible.map((wrapper: ButtonWrapper) => m(".plr-nav-button", {
+			}, buttons.visible.map((wrapper: ButtonWrapper) => [wrapper.prefixComponent ? m(wrapper.prefixComponent) : null, m(".plr-nav-button", {
 				key: wrapper.id,
 				oncreate: vnode => {
 					wrapper.width = vnode.dom.getBoundingClientRect().width
 				},
 				style: wrapper.width == 0 ? {visibility: 'hidden'} : {}
-			}, m(wrapper.button))))
+			}, m(wrapper.button))]))
 		}
 	}
 
@@ -133,10 +145,15 @@ export class NavBar {
 			visible,
 			hidden
 		}
+		if (hidden.length > 0) {
+			visible.push(this.more)
+		}
 		if (remainingSpace < this.getButtonsWidth(visible)) {
 			buttons.visible = []
 			visible.sort((a: ButtonWrapper, b: ButtonWrapper) => b.priority - a.priority)
-			visible.unshift(this.more)
+			if (visible.indexOf(this.more) == -1) {
+				visible.unshift(this.more)
+			}
 			while (remainingSpace - visible[0].width >= 0) {
 				remainingSpace -= visible[0].width
 				let move = visible.splice(0, 1)[0]
@@ -145,8 +162,12 @@ export class NavBar {
 			buttons.hidden = hidden.concat(visible).sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
-		buttons.hidden.forEach(b => b.button.setColors(ButtonColors.Content))
-		buttons.visible.forEach(b => b.button.setColors(ButtonColors.Header))
+		buttons.hidden.forEach(b => b.button.setColors(NavButtonColors.Content))
+		buttons.visible.forEach(b => {
+			if (b.button.setColors instanceof Function) {
+				b.button.setColors(NavButtonColors.Header)
+			}
+		})
 		return buttons
 	}
 
