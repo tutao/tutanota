@@ -56,10 +56,10 @@ function DownloadFile(file_path)
     var full_path = path.join(__dirname, file_path);
     var file_ext = path.extname(file_path);
     //Create Dir if does not exist
-    var file_dir = full_path.substring(0, full_path.lastIndexOf("/") + 1);
+    var file_dir = path.dirname(full_path);
     if (file_dir != "" && !fs.existsSync(file_dir))
     {
-            fs.mkdirSync(file_dir);
+        fs.mkdirSync(file_dir);
     }
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function(){
@@ -79,6 +79,7 @@ function DownloadFile(file_path)
 //Compares the 2 lists
 function CompareFiles()
 {
+    $(".message_log").html("<span>Comparing files...</span>");
     var update_required = false;
     for (var i = 0; i < new_files_list.length; i++)
     {                

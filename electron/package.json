@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "build_linux": "electron-packager . --overwrite --platform=linux --arch=x64 --icon=graphics/linux.png --prune=true --out=release-builds",
-    "build_win": "electron-packager . --overwrite --platform=win32 --arch=ia32 --icon=graphics/win.ico --prune=true --out=release-builds",
+    "build_win": "electron-packager . --overwrite --platform=win32 --arch=x64 --icon=graphics/win.ico --prune=true --out=release-builds",
     "build_mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=graphics/mac.icns --prune=true --out=release-builds"
   },
   "author": "Zeeshan Abid",
