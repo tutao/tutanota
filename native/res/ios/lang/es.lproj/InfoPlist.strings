@@ -1,0 +1,4 @@
+TutaoNoPermissionTitle = "Sin permiso";
+TutaoChangePermissionMsg = "Para permitir el acceso tiene que modificar los permisos de este dispositivo.";
+TutaoCancelAction = "Cancelar";
+TutaoSettingsAction = "Configuración";

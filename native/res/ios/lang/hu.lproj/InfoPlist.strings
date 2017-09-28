@@ -1,7 +1,10 @@
 NSCameraUsageDescription = "Videó vagy fénykép készítése csatolmányként való hozzáadáshoz.";
 NSPhotoLibraryUsageDescription = "Fénykép hozzáadása csatolmányként.";
+NSPhotoLibraryAddUsageDescription = "Fénykép hozzáadása csatolmányként.";
 NSMicrophoneUsageDescription = "Videó csatolmányként való felhasználásakor.";
 NSContactsUsageDescription = "Címzett keresése a névjegyek között.";
-NSRemindersUsageDescription = "Értesítés megjelenítése új email éérkezésekor.";
+NSRemindersUsageDescription = "Értesítés megjelenítése új e-mail érkezésekor.";
 TutaoShowCameraAction = "Fényképezőgép";
 TutaoChoosePhotosAction = "Fényképek";
+TutaoCancelAction = "Mégse";
+TutaoSettingsAction = "Beállítások";

@@ -1,0 +1,4 @@
+NSCameraUsageDescription = "Chụp hình hoặc quay phim để đính kèm vào thư.";
+TutaoChoosePhotosAction = "Hình";
+TutaoCancelAction = "Huỷ";
+TutaoSettingsAction = "Cài đặt";

@@ -1,9 +1,26 @@
 package de.tutao.plugin;
 
-import static de.tutao.plugin.Utils.bytesToBase64;
+import android.content.Context;
+import android.net.Uri;
+import android.os.Build;
+import android.util.Log;
+import de.tutao.crypto.TruncatedInputStream;
+import de.tutao.crypto.TutaoCipherInputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +32,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -25,30 +43,12 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.PluginResult;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
-import android.net.Uri;
-import android.os.Build;
-import android.util.Log;
-import de.tutao.crypto.TutaoCipherInputStream;
+import static de.tutao.plugin.Utils.bytesToBase64;
 
 public class Crypto extends CordovaPlugin {
+
 	public static final String TEMP_DIR_ENCRYPTED = "temp/encrypted";
 	public static final String TEMP_DIR_DECRYPTED = "temp/decrypted";
 	private static final String PROVIDER = "BC";
@@ -65,6 +65,7 @@ public class Crypto extends CordovaPlugin {
 	private SecureRandom randomizer;
 
 	private static final Integer ANDROID_6_SDK_VERSION = 23;
+
 	static {
 		// see: http://android-developers.blogspot.de/2013/08/some-securerandom-thoughts.html
 		PRNGFixes.apply();
@@ -86,12 +87,8 @@ public class Crypto extends CordovaPlugin {
 				rsaDecrypt(callbackContext, args.getJSONObject(0), de.tutao.plugin.Utils.base64ToBytes(args.getString(1)));
 			} else if (action.equals("random")) {
 				this.random(callbackContext, args.getInt(0));
-			} else if (action.equals("aesEncrypt")) {
-				aesEncrypt(de.tutao.plugin.Utils.base64ToBytes(args.getString(0)), de.tutao.plugin.Utils.base64ToBytes(args.getString(1)), callbackContext);
 			} else if (action.equals("aesEncryptFile")) {
 				aesEncryptFile(de.tutao.plugin.Utils.base64ToBytes(args.getString(0)), args.getString(1), callbackContext);
-			} else if (action.equals("aesDecrypt")) {
-				aesDecrypt(de.tutao.plugin.Utils.base64ToBytes(args.getString(0)), de.tutao.plugin.Utils.base64ToBytes(args.getString(1)), callbackContext);
 			} else if (action.equals("aesDecryptFile")) {
 				aesDecryptFile(de.tutao.plugin.Utils.base64ToBytes(args.getString(0)), args.getString(1), callbackContext);
 			} else {
@@ -181,11 +178,9 @@ public class Crypto extends CordovaPlugin {
 
 	/**
 	 * Encrypts an aes key with RSA to a byte array.
-	 * 
-	 * @param publicKey
-	 *            The key to use for the encryption.
-	 * @param key
-	 *            The key to encrypt
+	 *
+	 * @param publicKey The key to use for the encryption.
+	 * @param key       The key to encrypt
 	 * @return The encrypted key
 	 * @throws JSONException
 	 * @throws NoSuchPaddingException
@@ -206,11 +201,9 @@ public class Crypto extends CordovaPlugin {
 
 	/**
 	 * Decrypts a byte array with RSA to an AES key.
-	 * 
-	 * @param privateKey
-	 *            The key to use for the decryption.
-	 * @param encryptedKey
-	 *            The data to decrypt
+	 *
+	 * @param privateKey   The key to use for the decryption.
+	 * @param encryptedKey The data to decrypt
 	 * @return The decrypted key
 	 * @throws JSONException
 	 * @throws InvalidKeySpecException
@@ -234,9 +227,8 @@ public class Crypto extends CordovaPlugin {
 
 	/**
 	 * Converts the given byte array to a key.
-	 * 
-	 * @param bytes
-	 *            The bytes representation of the key.
+	 *
+	 * @param bytes The bytes representation of the key.
 	 * @return The key.
 	 */
 	public static SecretKeySpec bytesToKey(byte[] key) {
@@ -244,23 +236,6 @@ public class Crypto extends CordovaPlugin {
 			throw new RuntimeException("invalid key length");
 		}
 		return new SecretKeySpec(key, "AES");
-	}
-
-	private void aesEncrypt(final byte[] key, final byte[] plainText, final CallbackContext callbackContext) {
-		Utils.run(cordova, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					aesEncrypt(key, new ByteArrayInputStream(plainText), out);
-
-					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, bytesToBase64(out.toByteArray())));
-				} catch (Exception e) {
-					Log.e(TAG, "Could not aes encrypt data", e);
-					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
-				}
-			}
-		});
 	}
 
 	private void aesEncryptFile(final byte[] key, final String fileUrl, final CallbackContext callbackContext) {
@@ -307,38 +282,32 @@ public class Crypto extends CordovaPlugin {
 		}
 	}
 
-	private void aesDecrypt(final byte[] key, final byte[] cipherText, final CallbackContext callbackContext) {
-		Utils.run(cordova, new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					aesDecrypt(key, new ByteArrayInputStream(cipherText), out);
-
-					callbackContext.sendPluginResult(new PluginResult(
-							PluginResult.Status.OK, bytesToBase64(out.toByteArray())));
-				} catch (Exception e) {
-					Log.e(TAG, "Could not aes decrypt data", e);
-					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, Utils.getStack(e)));
-				}
-			}
-		});
-	}
-
 	private void aesDecryptFile(final byte[] key, final String fileUrl, final CallbackContext callbackContext) {
 		Utils.run(cordova, new Runnable() {
 			@Override
 			public void run() {
 				try {
 					File inputFile = Utils.uriToFile(webView.getContext(), fileUrl);
+					boolean macIncluded = inputFile.length() % 2 == 1;
+
+					byte[] cKey = key;
+					if (macIncluded) {
+						MessageDigest digest = MessageDigest.getInstance("SHA-256");
+						cKey = Arrays.copyOfRange(digest.digest(key), 0, 16);
+					}
+
 					Context context = webView.getContext();
 					File decryptedDir = new File(Utils.getDir(context), TEMP_DIR_DECRYPTED);
 					decryptedDir.mkdirs();
 					File outputFile = new File(decryptedDir, inputFile.getName());
 
 					InputStream in = context.getContentResolver().openInputStream(Uri.parse(fileUrl));
+					if (macIncluded) {
+						in = new TruncatedInputStream(in, 1, inputFile.length() - 32);
+					}
+
 					OutputStream out = new FileOutputStream(outputFile);
-					aesDecrypt(key, in, out);
+					aesDecrypt(cKey, in, out);
 
 					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, Utils.fileToUri(outputFile)));
 				} catch (Exception e) {

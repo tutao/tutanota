@@ -44,11 +44,15 @@ inkscape -z -e ios/icon-83.5@2x.png -w 167 -h 167 $ICON
 
 #inkscape -z -e ios/icon-57-2x.png -w 114 -h 114 $ICON
 
+inkscape -z -e ios/icon-20.png -w 20 -h 20 $ICON
+inkscape -z -e ios/icon-20@2x.png -w 40 -h 40 $ICON
+inkscape -z -e ios/icon-20@3x.png -w 60 -h 60 $ICON
+
+# Removing transparent background for itunesconnect image
+inkscape -b ffffff00  -z -e ios/icon-1024.png -w 1024 -h 1024 $ICON
+
 mkdir amazon
 inkscape -z -e amazon/icon-114-114.png -w 114 -h 114 $ICON
 inkscape -z -e amazon/icon-512-512.png -w 512 -h 512 $ICON
-
-# Removing transparent background for itunesconnect image
-#inkscape -b ffffff00 -z -e ios/icon-1024.png -w 1024 -h 1024 $ICON
 
 

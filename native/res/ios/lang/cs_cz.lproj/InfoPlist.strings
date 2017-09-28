@@ -1,0 +1,4 @@
+NSPhotoLibraryUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
+NSPhotoLibraryAddUsageDescription = "Přidat obrázek z knihovny jako přílohu.";
+TutaoCancelAction = "Zrušit";
+TutaoSettingsAction = "Nastavení";

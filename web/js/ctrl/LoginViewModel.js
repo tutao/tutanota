@@ -143,6 +143,9 @@ tutao.tutanota.ctrl.LoginViewModel.prototype._login = function (mailAddress, pas
 		return self.postLoginActions().then(function () {
 			return true;
 		});
+	}).caught(tutao.PreconditionFailedError, function () {
+		self.loginStatus({type: "invalid", text: "loginSecondFactorError_msg"});
+		return false;
 	}).caught(tutao.AccessBlockedError, function () {
 		self.loginStatus({type: "invalid", text: "loginFailedOften_msg"});
 		return false;

@@ -153,7 +153,7 @@ gulp.task('concat', function () {
 
 
 // Keep in sync with tutanota-admin gulpfile.
-var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js", "js/crypto/AesInterface.js", "js/crypto/SjclAes128CbcAsync.js", "js/crypto/SjclAes256GcmAsync.js"];
+var WORKER_LIBS = ["lib/worker/*.js", "js/crypto/SecureRandom.js", "js/crypto/Oaep.js", "js/crypto/Pss.js", "js/crypto/Utils.js", "js/util/EncodingConverter.js", "js/crypto/AesInterface.js", "js/crypto/SjclAes128CbcAsync.js", "js/crypto/SjclAes256GcmAsync.js", "js/crypto/SjclSha256.js"];
 
 gulp.task('minifyWorker', function () {
 	gulp.src(WORKER_LIBS)
@@ -254,7 +254,6 @@ gulp.task('minifyPayment', function () {
 gulp.task('distPayment', function (cb) {
 	return runSequence(['copyPayment', 'minifyPayment', 'processPaymentHtml'], cb)
 });
-
 
 
 gulp.task('test.html', function () {
@@ -463,13 +462,17 @@ gulp.task('translation', function (cb) {
 						var keys = JSON.parse(body);
 						iosTranslations += keys.cameraUsageDescription_msg ? ("NSCameraUsageDescription = \"" + keys.cameraUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.photoLibraryUsageDescription_msg ? ("NSPhotoLibraryUsageDescription = \"" + keys.photoLibraryUsageDescription_msg + "\";\n") : "";
+						iosTranslations += keys.photoLibraryUsageDescription_msg ? ("NSPhotoLibraryAddUsageDescription = \"" + keys.photoLibraryUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.microphoneUsageDescription_msg ? ("NSMicrophoneUsageDescription = \"" + keys.microphoneUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.contactsUsageDescription_msg ? ("NSContactsUsageDescription = \"" + keys.contactsUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.remindersUsageDescription_msg ? ("NSRemindersUsageDescription = \"" + keys.remindersUsageDescription_msg + "\";\n") : "";
 						iosTranslations += keys.openCamera_action ? ("TutaoShowCameraAction = \"" + keys.openCamera_action + "\";\n") : "";
 						iosTranslations += keys.choosePhotos_action ? ("TutaoChoosePhotosAction = \"" + keys.choosePhotos_action + "\";\n") : "";
-
-
+						iosTranslations += keys.noPermission_title ? ("TutaoNoPermissionTitle = \"" + keys.noPermission_title + "\";\n") : "";
+						iosTranslations += keys.changePermissions_msg ? ("TutaoChangePermissionMsg = \"" + keys.changePermissions_msg + "\";\n") : "";
+						iosTranslations += keys.cancel_action ? ("TutaoCancelAction = \"" + keys.cancel_action + "\";\n") : "";
+						iosTranslations += keys.settings_label ? ("TutaoSettingsAction = \"" + keys.settings_label + "\";\n") : "";
+						
 						fs.writeFileSync(iosLangDir + "/InfoPlist.strings", iosTranslations);
 						console.log(code);
 						callback();

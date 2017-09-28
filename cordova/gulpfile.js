@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
 
-var appVersion = "2.14.4";
+var appVersion = "2.14.7";
 
 gulp.task('default', shell.task([
     // we need to remove and add the native plugin, because changes are not copied from the plugins to the platform folder during build. re-create the link from the plugins native folder to the native project afterwards
