@@ -49,6 +49,7 @@ styles.registerStyle('main', () => {
 		'.i': {'font-style': 'italic'},
 		'.click': {
 			cursor: 'pointer',
+			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 		'.text': {
 			cursor: 'text'
@@ -140,7 +141,6 @@ styles.registerStyle('main', () => {
 		'.text-break': {overflow: 'hidden', 'word-wrap': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
 		'.text-pre': {'white-space': 'pre'},
-		'.pointer': {cursor: 'pointer'},
 		'.z1': {'z-index': '1'},
 		'.z2': {'z-index': '2'},
 		'.z3': {'z-index': '3'},
@@ -417,7 +417,6 @@ styles.registerStyle('main', () => {
 			overflow: 'hidden',
 			'list-style': 'none',
 			margin: 0,
-			'-webkit-tap-highlight-color': 'rgba(255, 255, 255, 0)',
 		},
 		'.list-row': {
 			position: 'absolute', left: 0, right: 0,
