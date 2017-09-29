@@ -13,6 +13,7 @@ import TableLine from "../gui/base/TableLine"
 import {lang} from "../misc/LanguageViewModel"
 import {U2fClient, U2fError} from "../misc/U2fClient"
 import {TextField} from "../gui/base/TextField"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SecondFactorType} from "../api/common/TutanotaConstants"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import stream from "mithril/stream/stream.js"
@@ -25,7 +26,6 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -42,7 +42,7 @@ export class EditSecondFactorsForm {
 			return [
 				m(".h4.mt-l", lang.get('secondFactorAuthentication_label')),
 				m(this._2FATable),
-				m("span.small.text-break", lang.get("moreInfo_msg") + " "),
+				m("span.small", lang.get("moreInfo_msg") + " "),
 				m("span.small.text-break", [m(`a[href=${this._get2FAInfoLink()}][target=_blank]`, this._get2FAInfoLink())]),
 			]
 		}

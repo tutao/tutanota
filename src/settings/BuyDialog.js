@@ -49,7 +49,7 @@ export function show(featureType: NumberString, count: number, freeAmount: numbe
 							let dialog = new Dialog(DialogType.EditSmall, {
 								view: (): Children => [
 									m(".dialog-header.plr-l", m(actionBar)),
-									m(".dialog-contentButtonsTop.plr-l.pb.text-break", m("", [
+									m(".dialog-contentButtonsTop.plr-l.pb", m("", [
 										m(orderField),
 										buyField ? m(buyField) : null,
 										m(priceField),

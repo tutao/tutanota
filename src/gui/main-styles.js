@@ -138,7 +138,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
-		'.text-break': {overflow: 'hidden', 'word-wrap': 'break-word'},
+		'.text-break': {overflow: 'hidden', 'word-break': 'break-all'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
 		'.text-pre': {'white-space': 'pre'},
 		'.z1': {'z-index': '1'},
@@ -231,6 +231,7 @@ styles.registerStyle('main', () => {
 		'.flex-third-middle': {flex: '2 1 auto'},
 		'.flex-half': {flex: '0 0 50%'}, // splits a flex layout into two same width columns
 		'.flex-grow-shrink-auto': {flex: "1 1 auto"}, // allow element to grow and shrink using the elements width as default size.
+		'.flex-grow-shrink-150': {flex: "1 1 150px"},
 		'.flex-no-shrink': {flex: "1 0 0"},
 		'.flex-wrap': {'flex-wrap': 'wrap'}, // elements may move into the next line
 		'.items-center': {'align-items': 'center'},

@@ -207,14 +207,13 @@ export class MailViewer {
 							]),
 							m(detailsExpander.panel),
 							m(".subject-actions.flex-space-between.flex-wrap.mt-xs", [
-								m(".left", [
-									m(".subject", this.mail.subject),
+								m(".left.flex-grow-shrink-150", [
+									m(".subject.text-break", this.mail.subject),
 									m(".flex.items-center.content-accent-fg.svg-content-accent-fg" + (this.mail.confidential ? ".ml-negative-xs" : ""), [
 										this.mail.confidential ? m(Icon, {icon: Icons.Lock}) : null,
 										m("small.date.mt-xs", formatDateWithWeekday(this.mail.receivedDate) + " • " + formatTime(this.mail.receivedDate))
 									]),
 								]),
-								m(".middle"),
 								m(actions)
 							]),
 							m(".flex-start.flex-wrap.ml-negative-bubble", (!this._loadingAttachments) ? this._attachmentButtons.map(b => m(b)) : [m(".flex-v-center.pl-button", progressIcon()), m(".small.flex-v-center.plr.button-height", lang.get("loading_msg"))]),
