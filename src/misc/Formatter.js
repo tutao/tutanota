@@ -58,11 +58,21 @@ export function formatSortableDateTime(date: Date): string {
 }
 
 export function parseDate(dateString: string) {
-	if (["hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr"].find(t => lang.languageTag.indexOf(t) === 0) != null) {
+	if (lang.languageTag === 'bg-bg') {
+		dateString = dateString.replace(" г.", "") // special bulgarian format, do not replace (special unicode char)
+	}
+	dateString = dateString.replace(/ /g, "")
+	if (["hr", "nl", "de", "el", "fr", "it", "pl", "pt", "ro", "ru", "es", "tr", "fi", "sr", "bg-bg", "cs-cz", "da-dk", "et-ee", "id", "sk-sk", "ta-in", "uk-ua", "vi", "ca-es"].find(t => lang.languageTag.indexOf(t) === 0) != null) {
 		// switch month and date for allowing Date.parse to parse the date
 		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
 		if (parts.length === 3) {
 			dateString = `${parts[2]}-${parts[1]}-${parts[0]}`
+		}
+	}
+	if ("fil-ph" === lang.languageTag) {
+		let parts = dateString.split(/[.\/-]/g).filter(part => part.trim().length > 0)
+		if (parts.length === 3) {
+			dateString = `${parts[0]}-${parts[2]}-${parts[1]}`
 		}
 	}
 	let parsed = Date.parse(dateString)

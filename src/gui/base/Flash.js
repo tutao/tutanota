@@ -9,7 +9,7 @@ const flashedIn: Map<HTMLElement, number> = new Map() // currently flashed in el
 const PREVENT = (e) => e.preventDefault()
 
 const eventListenerArgs = client.passive() ? {passive: true} : false
-document.addEventListener("mouseup", () => flashedIn.forEach((computedOpacity: number, target: HTMLElement) => flashOutElement(target, computedOpacity)), eventListenerArgs)
+window.document.addEventListener("mouseup", () => flashedIn.forEach((computedOpacity: number, target: HTMLElement) => flashOutElement(target, computedOpacity)), eventListenerArgs)
 
 export function addFlash(target: any) {
 	if (client.isDesktopDevice()) {
