@@ -12,11 +12,15 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
   } else {
     this.__format = "0";
     this._clientVersion = null;
+    this._eventBatchId = null;
+    this._eventBatchOwner = null;
+    this._modelVersions = null;
     this._msgId = null;
     this._type = null;
     this._authentication = null;
     this._chat = null;
     this._entityUpdate = null;
+    this._eventBatch = [];
     this._exception = null;
   }
   this._entityHelper = new tutao.entity.EntityHelper(this);
@@ -30,11 +34,18 @@ tutao.entity.sys.WebsocketWrapper = function(data) {
 tutao.entity.sys.WebsocketWrapper.prototype.updateData = function(data) {
   this.__format = data._format;
   this._clientVersion = data.clientVersion;
+  this._eventBatchId = data.eventBatchId;
+  this._eventBatchOwner = data.eventBatchOwner;
+  this._modelVersions = data.modelVersions;
   this._msgId = data.msgId;
   this._type = data.type;
   this._authentication = (data.authentication) ? new tutao.entity.sys.Authentication(this, data.authentication) : null;
   this._chat = (data.chat) ? new tutao.entity.sys.Chat(this, data.chat) : null;
   this._entityUpdate = (data.entityUpdate) ? new tutao.entity.sys.EntityUpdate(this, data.entityUpdate) : null;
+  this._eventBatch = [];
+  for (var i=0; i < data.eventBatch.length; i++) {
+    this._eventBatch.push(new tutao.entity.sys.EntityUpdate(this, data.eventBatch[i]));
+  }
   this._exception = (data.exception) ? new tutao.entity.sys.Exception(this, data.exception) : null;
 };
 
@@ -42,7 +53,7 @@ tutao.entity.sys.WebsocketWrapper.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '19';
+tutao.entity.sys.WebsocketWrapper.MODEL_VERSION = '20';
 
 /**
  * The encrypted flag.
@@ -58,11 +69,15 @@ tutao.entity.sys.WebsocketWrapper.prototype.toJsonData = function() {
   return {
     _format: this.__format, 
     clientVersion: this._clientVersion, 
+    eventBatchId: this._eventBatchId, 
+    eventBatchOwner: this._eventBatchOwner, 
+    modelVersions: this._modelVersions, 
     msgId: this._msgId, 
     type: this._type, 
     authentication: tutao.entity.EntityHelper.aggregatesToJsonData(this._authentication), 
     chat: tutao.entity.EntityHelper.aggregatesToJsonData(this._chat), 
     entityUpdate: tutao.entity.EntityHelper.aggregatesToJsonData(this._entityUpdate), 
+    eventBatch: tutao.entity.EntityHelper.aggregatesToJsonData(this._eventBatch), 
     exception: tutao.entity.EntityHelper.aggregatesToJsonData(this._exception)
   };
 };
@@ -99,6 +114,57 @@ tutao.entity.sys.WebsocketWrapper.prototype.setClientVersion = function(clientVe
  */
 tutao.entity.sys.WebsocketWrapper.prototype.getClientVersion = function() {
   return this._clientVersion;
+};
+
+/**
+ * Sets the eventBatchId of this WebsocketWrapper.
+ * @param {string} eventBatchId The eventBatchId of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.setEventBatchId = function(eventBatchId) {
+  this._eventBatchId = eventBatchId;
+  return this;
+};
+
+/**
+ * Provides the eventBatchId of this WebsocketWrapper.
+ * @return {string} The eventBatchId of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getEventBatchId = function() {
+  return this._eventBatchId;
+};
+
+/**
+ * Sets the eventBatchOwner of this WebsocketWrapper.
+ * @param {string} eventBatchOwner The eventBatchOwner of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.setEventBatchOwner = function(eventBatchOwner) {
+  this._eventBatchOwner = eventBatchOwner;
+  return this;
+};
+
+/**
+ * Provides the eventBatchOwner of this WebsocketWrapper.
+ * @return {string} The eventBatchOwner of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getEventBatchOwner = function() {
+  return this._eventBatchOwner;
+};
+
+/**
+ * Sets the modelVersions of this WebsocketWrapper.
+ * @param {string} modelVersions The modelVersions of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.setModelVersions = function(modelVersions) {
+  this._modelVersions = modelVersions;
+  return this;
+};
+
+/**
+ * Provides the modelVersions of this WebsocketWrapper.
+ * @return {string} The modelVersions of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getModelVersions = function() {
+  return this._modelVersions;
 };
 
 /**
@@ -184,6 +250,14 @@ tutao.entity.sys.WebsocketWrapper.prototype.setEntityUpdate = function(entityUpd
  */
 tutao.entity.sys.WebsocketWrapper.prototype.getEntityUpdate = function() {
   return this._entityUpdate;
+};
+
+/**
+ * Provides the eventBatch of this WebsocketWrapper.
+ * @return {Array.<tutao.entity.sys.EntityUpdate>} The eventBatch of this WebsocketWrapper.
+ */
+tutao.entity.sys.WebsocketWrapper.prototype.getEventBatch = function() {
+  return this._eventBatch;
 };
 
 /**

@@ -46,7 +46,7 @@ tutao.entity.sys.BucketPermission.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.BucketPermission.MODEL_VERSION = '19';
+tutao.entity.sys.BucketPermission.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -266,7 +266,7 @@ tutao.entity.sys.BucketPermission.prototype.loadGroup = function() {
  * @return {Promise.<tutao.entity.sys.BucketPermission>} Resolves to the BucketPermission or an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.load = function(id) {
-  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, id[1], id[0], {"v" : "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
+  return tutao.locator.entityRestClient.getElement(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, id[1], id[0], {"v" : "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entity) {
     return entity;
   });
 };
@@ -277,7 +277,7 @@ tutao.entity.sys.BucketPermission.load = function(id) {
  * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>} Resolves to an array of BucketPermission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.loadMultiple = function(ids) {
-  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, ids, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
+  return tutao.locator.entityRestClient.getElements(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, ids, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {
     return entities;
   });
 };
@@ -288,7 +288,7 @@ tutao.entity.sys.BucketPermission.loadMultiple = function(ids) {
  */
 tutao.entity.sys.BucketPermission.prototype.update = function() {
   var self = this;
-  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.BucketPermission.PATH, this, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
+  return tutao.locator.entityRestClient.putElement(tutao.entity.sys.BucketPermission.PATH, this, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function() {
     self._entityHelper.notifyObservers(false);
   });
 };
@@ -302,7 +302,7 @@ tutao.entity.sys.BucketPermission.prototype.update = function() {
  * @return {Promise.<Array.<tutao.entity.sys.BucketPermission>>} Resolves to an array of BucketPermission or rejects with an exception if the loading failed.
  */
 tutao.entity.sys.BucketPermission.loadRange = function(listId, start, count, reverse) {
-  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, listId, start, count, reverse, {"v": "19"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
+  return tutao.locator.entityRestClient.getElementRange(tutao.entity.sys.BucketPermission, tutao.entity.sys.BucketPermission.PATH, listId, start, count, reverse, {"v": "20"}, tutao.entity.EntityHelper.createAuthHeaders()).then(function(entities) {;
     return entities;
   });
 };

@@ -32,7 +32,7 @@ tutao.entity.sys.PremiumFeatureData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.PremiumFeatureData.MODEL_VERSION = '19';
+tutao.entity.sys.PremiumFeatureData.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -119,7 +119,7 @@ tutao.entity.sys.PremiumFeatureData.prototype.setup = function(parameters, heade
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "19";
+  parameters["v"] = "20";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.postService(tutao.entity.sys.PremiumFeatureData.PATH, this, parameters, headers, tutao.entity.sys.PremiumFeatureReturn);
 };
