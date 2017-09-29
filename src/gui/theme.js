@@ -22,9 +22,7 @@ export type Theme = {
 	header_bg: string,
 	header_box_shadow_bg: string,
 	header_button: string,
-	header_button_icon: string,
 	header_button_selected: string,
-	header_button_icon_selected: string,
 
 	list_bg: string,
 	list_alternate_bg: string,
@@ -113,9 +111,7 @@ function getLightTheme() {
 		header_bg: light,
 		header_box_shadow_bg: grey_dark,
 		header_button: grey_darker,
-		header_button_icon: light,
 		header_button_selected: red,
-		header_button_icon_selected: light,
 
 		list_bg: grey_lightest,
 		list_alternate_bg: light,
@@ -169,9 +165,7 @@ function getDarkTheme(): Theme {
 		header_bg: dark,
 		header_box_shadow_bg: dark_darkest,
 		header_button: light,
-		header_button_icon: dark_lighter,
 		header_button_selected: cyan,
-		header_button_icon_selected: lightest,
 
 		list_bg: dark,
 		list_alternate_bg: dark_lighter,

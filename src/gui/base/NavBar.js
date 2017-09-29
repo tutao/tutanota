@@ -163,11 +163,7 @@ export class NavBar {
 			buttons.visible.sort((a: ButtonWrapper, b: ButtonWrapper) => a.id - b.id)
 		}
 		buttons.hidden.forEach(b => b.button.setColors(NavButtonColors.Content))
-		buttons.visible.forEach(b => {
-			if (b.button.setColors instanceof Function) {
-				b.button.setColors(NavButtonColors.Header)
-			}
-		})
+		buttons.visible.forEach(b => b.button.setColors(NavButtonColors.Header))
 		return buttons
 	}
 
