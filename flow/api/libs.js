@@ -73,6 +73,8 @@ declare class Promise<+R> {
 
 	reduce<T>(mapper: (accumulator: any, item: T, index: number, arrayLength: number) => any, initialValue: any): Promise<any>;
 
+	spread<T>(...args: Array<T>): Promise<*>;
+
 	static resolve<T>(object?: Promise<T> | T): Promise<T>;
 	static reject<T>(error?: any): Promise<T>;
 	static all<T, Elem: Promise<T>>(Promises: Array<Elem>): Promise<Array<T>>;

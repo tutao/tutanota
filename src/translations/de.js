@@ -841,7 +841,7 @@ module.exports = {
 		"tooManyMails_msg": "Die maximale Anzahl erlaubter E-Mails wurde überschritten. Bitte versuche es später erneut.",
 		"totpAuthenticator_label": "Authenticator (TOTP)",
 		"totpCode_label": "Authenticator Code",
-		"totpCurrentCode_label": "Aktueller code: {code}",
+		"totpCurrentCode_label": "Aktueller Code: {code}",
 		"totpSecret_label": "Geheimnis",
 		"to_label": "An",
 		"trashedMails_alt": "Gelöschte E-Mails",
