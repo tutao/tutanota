@@ -17,7 +17,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the web directory: `cd tutanota/web`
-3. Checkout latest release (currently 2.14.4): `git checkout tutanota-release-2.14.4`
+3. Checkout latest release (currently 2.15.0): `git checkout tutanota-release-2.15.0`
 4. Install gulp globally: `npm install -g gulp`
 5. Install dependencies: `npm install`
 6. Build Tutanota: `gulp dist`
@@ -37,7 +37,7 @@ Build steps:
 
 1. Clone the repository: `git clone https://github.com/tutao/tutanota.git`
 2. Switch into the tutanota directory: `cd tutanota`
-3. Checkout latest android release (currently 2.14.1): `git checkout tutanota-android-release-2.14.1`
+3. Checkout latest android release (currently 2.15.0): `git checkout tutanota-android-release-2.15.0`
 4. Install cordova globally: `npm install -g cordova`
 5. Install gulp globally: `npm install -g gulp`
 6. Install dependencies: `npm install`
