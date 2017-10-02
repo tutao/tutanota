@@ -186,6 +186,8 @@ export class WorkerImpl {
 				return loginFacade.tryReconnectEventBus()
 			}
 		})
+
+		Promise.onPossiblyUnhandledRejection(e => this.sendError(e));
 	}
 
 	getTotpVerifier(): Promise<TotpVerifier> {
