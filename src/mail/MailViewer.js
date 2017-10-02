@@ -273,6 +273,7 @@ export class MailViewer {
 			} else {
 				this._bodyLineHeight = size.line_height
 			}
+			m.redraw()
 		}
 	}
 
