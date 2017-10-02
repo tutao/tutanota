@@ -138,7 +138,7 @@ styles.registerStyle('main', () => {
 
 		// common setting
 		'.text-ellipsis': {overflow: 'hidden', 'text-overflow': 'ellipsis', 'min-width': 0, 'white-space': 'nowrap'},
-		'.text-break': {overflow: 'hidden', 'word-break': 'break-all'},
+		'.text-break': {overflow: 'hidden', 'word-break': 'break-word'},
 		'.text-prewrap': {'white-space': 'pre-wrap'},
 		'.text-pre': {'white-space': 'pre'},
 		'.z1': {'z-index': '1'},
