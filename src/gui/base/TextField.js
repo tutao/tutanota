@@ -148,8 +148,9 @@ export class TextField {
 					this.value(this._domInput.value) // update the input on each change
 				},
 				style: {
-					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
-					lineHeight: px(inputLineHeight),
+					"min-width": px(20), // fix for edge browser. buttons are cut off in small windows otherwise
+					"line-height": px(inputLineHeight),
+					"min-height": px(inputLineHeight),
 				}
 			})
 		}
