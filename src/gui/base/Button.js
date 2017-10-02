@@ -209,7 +209,7 @@ export class Button {
 		} else if (this._type === ButtonType.Login) {
 			color = theme.content_button_icon
 		} else if (this._type === ButtonType.Bubble || this._type === ButtonType.TextBubble) {
-			color = theme.content_fg
+			color = this.isSelected() ? getColors(this._colors).button_selected : theme.content_fg
 		} else {
 			color = this.isSelected() ? getColors(this._colors).button_selected : getColors(this._colors).button
 		}
