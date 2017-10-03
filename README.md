@@ -32,6 +32,8 @@ Build steps:
 
 ## Building and running your own Tutanota Electron App
 
+Tutanota electron application uses a build of electron web client to run the application. Therefore it automatically downloads the latest tutanota web client from `https://github.com/zeeshan595/tutanota/tree/tutanota-latest-electron-build`. If you wish to use your own custom client, then change `md5sum_url` and `update_url` in `updator.js`, located under electron folder.
+
 Pre-requisites:
 * An up-to-date version of git is installed
 * An up-to-date version of node js is installed

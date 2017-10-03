@@ -1,6 +1,9 @@
 var path = require('path');
 var fs = require('fs');
 
+var md5sum_url = "https://raw.githubusercontent.com/zeeshan595/tutanota/tutanota-latest-electron-build/md5sum.json";
+var update_url = "https://raw.githubusercontent.com/zeeshan595/tutanota/tutanota-latest-electron-build/";
+
 var new_files_list = [];
 var old_files_list = [];
 var files_updated = 0;
@@ -71,7 +74,7 @@ function DownloadFile(file_path)
             });
         }
     }
-    xhr.open('GET', 'https://raw.githubusercontent.com/zeeshan595/tutanota/tutanota-latest-electron-build/' + file_path);
+    xhr.open('GET', update_url + file_path);
     xhr.responseType = 'blob';
     xhr.send();
 }
@@ -109,7 +112,7 @@ function CompareFiles()
 $(".message_log").html("<span>Checking for updates...</span>");
 $.ajax({
     dataType: "json",
-    url: "https://raw.githubusercontent.com/zeeshan595/tutanota/tutanota-latest-electron-build/md5sum.json",
+    url: md5sum_url,
     success: function(data){
         new_files_list = data['md5sum'];
         $.ajax({
