@@ -2,6 +2,7 @@
 .classpath
 .project
 build/
+release-builds/
 bin/
 node_modules/
 */.idea/
