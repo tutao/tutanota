@@ -32,7 +32,7 @@ tutao.entity.sys.MembershipRemoveData.prototype.updateData = function(data) {
  * The version of the model this type belongs to.
  * @const
  */
-tutao.entity.sys.MembershipRemoveData.MODEL_VERSION = '19';
+tutao.entity.sys.MembershipRemoveData.MODEL_VERSION = '20';
 
 /**
  * The url path to the resource.
@@ -135,7 +135,7 @@ tutao.entity.sys.MembershipRemoveData.prototype.erase = function(parameters, hea
   if (!headers) {
     headers = tutao.entity.EntityHelper.createAuthHeaders();
   }
-  parameters["v"] = "19";
+  parameters["v"] = "20";
   this._entityHelper.notifyObservers(false);
   return tutao.locator.entityRestClient.deleteService(tutao.entity.sys.MembershipRemoveData.PATH, this, parameters, headers, null);
 };

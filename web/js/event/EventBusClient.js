@@ -66,13 +66,16 @@ tutao.event.EventBusClient.prototype.connect = function (reconnect) {
 			.setType("authentication")
 			.setMsgId("0")
 			// ClientVersion = <SystemModelVersion>.<TutanotaModelVersion>
-			.setClientVersion(tutao.entity.sys.WebsocketWrapper.MODEL_VERSION + "." + tutao.entity.tutanota.Mail.MODEL_VERSION);
+			.setClientVersion(tutao.env.versionNumber)
+			.setModelVersions(tutao.entity.sys.WebsocketWrapper.MODEL_VERSION + "." + tutao.entity.tutanota.Mail.MODEL_VERSION);
 		var authentication = new tutao.entity.sys.Authentication(wrapper)
 			.setUserId(tutao.locator.userController.getUserId())
 			.setAuthVerifier(tutao.locator.userController.getAuthVerifier())
 			.setExternalAuthToken(tutao.locator.userController.getAuthToken());
 		wrapper.setAuthentication(authentication);
-		self._socket.send(JSON.stringify(wrapper.toJsonData()));
+		var json = wrapper.toJsonData()
+		json.authentication.accessToken = null
+		self._socket.send(JSON.stringify(json));
 		if (reconnect) {
 			self.notifyReconnected();
 		}
