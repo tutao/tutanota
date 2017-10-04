@@ -47,7 +47,7 @@ import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -66,6 +66,7 @@ export class MailViewer {
 	_contentBlocked: boolean;
 	_domBody: HTMLElement;
 	_bodyLineHeight: string;
+	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
 
@@ -77,6 +78,7 @@ export class MailViewer {
 		this._htmlBody = ""
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
+		this._errorOccurred = false
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -172,7 +174,13 @@ export class MailViewer {
 			this._htmlBody = urlify(sanitizeResult.text)
 			this._contentBlocked = sanitizeResult.externalContent.length > 0;
 			m.redraw()
-		}).catch(NotFoundError, e => console.log("could load mail body as it has been moved/deleted already", e))
+		}).catch(NotFoundError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as it has been moved/deleted already", e)
+		}).catch(NotAuthorizedError, e => {
+			this._errorOccurred = true
+			console.log("could load mail body as the permission is missing", e)
+		})
 		// load the conversation entry here because we expect it to be loaded immediately when responding to this email
 		load(ConversationEntryTypeRef, mail.conversationEntry)
 			.catch(NotFoundError, e => console.log("could load conversation entry as it has been moved/deleted already", e))
@@ -227,14 +235,14 @@ export class MailViewer {
 							},
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
-						}, this._mailBody == null ? m(".progress-panel.flex-v-center.items-center", {
+						}, (this._mailBody == null && !this._errorOccurred) ? m(".progress-panel.flex-v-center.items-center", {
 								style: {
 									height: '200px'
 								}
 							}, [
 								progressIcon(),
 								m("small", lang.get("loading_msg"))
-							]) : ((this.mail._errors || this._mailBody._errors) ? m(errorMessageBox) : m.trust(this._htmlBody)))
+							]) : ((this._errorOccurred || this.mail._errors || neverNull(this._mailBody)._errors) ? m(errorMessageBox) : m.trust(this._htmlBody)))
 					]
 				)
 			]
