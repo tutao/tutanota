@@ -604,6 +604,9 @@ u2f.getPortSingleton_ = function (callback) {
  * @private
  */
 u2f.responseHandler_ = function (message) {
+	if (!message.data) {
+		return
+	}
 	var response = message.data;
 	var reqId = response['requestId'];
 	if (!reqId || !u2f.callbackMap_[reqId]) {

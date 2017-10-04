@@ -15,7 +15,7 @@ import u2f from "./u2f-api"
 
 assertMainOrNode()
 
-const TIMEOUT = 20
+const TIMEOUT = 180
 
 /**
  * Abstraction of the U2F high level API.

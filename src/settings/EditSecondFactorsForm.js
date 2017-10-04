@@ -114,7 +114,6 @@ export class EditSecondFactorsForm {
 
 			let totpSvg
 			this._getOtpAuthUrl(totpKeys.readableKey).then(optAuthUrl => {
-				console.log(optAuthUrl)
 				let grcodeGenerator = new QRCode({
 					height: 150,
 					width: 150,
