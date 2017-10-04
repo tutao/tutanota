@@ -462,7 +462,7 @@ export class List<T, R:VirtualRow<T>> {
 				this._domList.style.height = this._calculateListHeight()
 				this._reposition()
 				this.ready = true
-				if (client.isMobileDevice()) {
+				if (client.isTouchSupported()) {
 					this._swipeHandler = new SwipeHandler(this._domListContainer, this)
 					this.initBackground()
 				}
@@ -826,7 +826,6 @@ class SwipeHandler {
 	animating: Promise<any>;
 
 	constructor(touchArea: HTMLElement, list: List<*, *>) {
-		if (!this.isSupported()) return
 		this.startPos = {x: 0, y: 0}
 		this.list = list
 		this.xoffset = 0
@@ -884,7 +883,7 @@ class SwipeHandler {
 		}
 	}
 
-	finish(id: Id, swipeActionPromise: Promise<any>) {
+	finish(id: Id, swipeActionPromise: Promise<any>): Promise<void> {
 		if (this.xoffset !== 0) {
 			let ve = neverNull(this.virtualElement)
 			let listTargetPosition = (this.xoffset < 0) ? -(this.list._width) : (this.list._width)
@@ -935,7 +934,7 @@ class SwipeHandler {
 	}
 
 
-	reset() {
+	reset(): Promise<any> {
 		try {
 			if (this.xoffset !== 0) {
 				let ve = this.virtualElement
@@ -973,10 +972,6 @@ class SwipeHandler {
 
 	cancel(e: TouchEvent) {
 		this.reset()
-	}
-
-	isSupported() {
-		return 'ontouchstart' in window
 	}
 
 	updateWidth() {

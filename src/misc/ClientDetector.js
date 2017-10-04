@@ -300,6 +300,10 @@ class ClientDetector {
 		}
 	}
 
+	isTouchSupported() {
+		return 'ontouchstart' in window
+	}
+
 
 	cssPropertyValueSupported(prop: string, value: string) {
 		let d = (document.createElement('div'):any)
