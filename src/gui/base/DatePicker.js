@@ -31,7 +31,7 @@ export class DatePicker {
 
 		this.invalidDate = false
 		this.input = new TextField(labelTextIdOrTextFunction, () => {
-			if (this.invalidBirthday) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
+			if (this.invalidDate) return lang.get("invalidDateFormat_msg", {"{1}": formatDate(new Date())})
 			else if (this._date != null) return formatDateWithMonth(this._date)
 		})
 		this._date = null
