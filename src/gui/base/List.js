@@ -59,6 +59,7 @@ export class List<T, R:VirtualRow<T>> {
 	view: Function;
 	onbeforeupdate: Function;
 	onremove: Function;
+	_scrollListener: Function;
 
 	_selectedEntities: T[]; // the selected entities must be sorted the same way the loaded entities are sorted
 	_lastMultiSelectWasKeyUp: boolean; // true if the last key multi selection action was selecting the previous entity, false if it was selecting the next entity
@@ -87,7 +88,17 @@ export class List<T, R:VirtualRow<T>> {
 			})
 		}
 
+		this._scrollListener = (e) => {
+			this.currentPosition = this._domListContainer.scrollTop
+			if (this.lastPosition !== this.currentPosition) {
+				window.requestAnimationFrame(() => this._scroll())
+			}
+		}
+
 		let reset = () => {
+			if (this._domListContainer) {
+				this._domListContainer.removeEventListener('scroll', this._scrollListener)
+			}
 			this._domInitialized = createPromise()
 
 			this.ready = false
@@ -448,12 +459,7 @@ export class List<T, R:VirtualRow<T>> {
 		this._domListContainer = domElement
 
 		this._width = this._domListContainer.clientWidth
-		this._domListContainer.addEventListener('scroll', (e) => {
-			this.currentPosition = this._domListContainer.scrollTop
-			if (this.lastPosition !== this.currentPosition) {
-				window.requestAnimationFrame(() => this._scroll())
-			}
-		}, client.passive() ? {passive: true} : false)
+		this._domListContainer.addEventListener('scroll', this._scrollListener, client.passive() ? {passive: true} : false)
 		this._createVirtualElements()
 		window.requestAnimationFrame(() => {
 			m.redraw()
@@ -485,6 +491,9 @@ export class List<T, R:VirtualRow<T>> {
 	}
 
 	_scroll() {
+		// make sure no scrolling is done if the virtualList was already cleared when unloading this list. on Safari this would lead to an error.
+		if (this._virtualList.length == 0) return
+
 		let up = this.currentPosition < this.lastPosition ? true : false
 		let scrollDiff = up ? this.lastPosition - this.currentPosition : this.currentPosition - this.lastPosition
 
