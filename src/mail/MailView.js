@@ -100,7 +100,7 @@ export class MailView {
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
 		this.newAction = new Button('newMail_action', () => this._newMail(), () => BootIcons.Edit)
-			.setType(ButtonType.Floating).setIsVisibleHandler(() => logins.isInternalUserLoggedIn())
+			.setType(ButtonType.Floating).setIsVisibleHandler(() => this.selectedMailbox != null && logins.isInternalUserLoggedIn())
 
 		this.view = (): VirtualElement => {
 			return m("#mail.main-view", [
@@ -154,7 +154,7 @@ export class MailView {
 			{
 				key: Keys.N,
 				exec: () => (this._newMail():any),
-				enabled: () => logins.isInternalUserLoggedIn(),
+				enabled: () => this.selectedMailbox != null && logins.isInternalUserLoggedIn(),
 				help: "newMail_action"
 			},
 			{
