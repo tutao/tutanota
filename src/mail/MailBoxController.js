@@ -48,7 +48,7 @@ export class MailBoxController {
 		let promises = []
 		promises.push(load(MailboxGroupRootTypeRef, this.mailGroupMembership.group).then(mailGroupRoot => load(MailBoxTypeRef, mailGroupRoot.mailbox).then(mbox => {
 			this._mailbox = mbox
-			return this._loadFolders(neverNull(mbox.systemFolders).folders)
+			return this._loadFolders(neverNull(mbox.systemFolders).folders, true)
 		})))
 		promises.push(load(GroupInfoTypeRef, this.mailGroupMembership.groupInfo).then(mailGroupInfo => this.mailGroupInfo = mailGroupInfo))
 		promises.push(load(GroupTypeRef, this.mailGroupMembership.group).then(mailGroup => this._mailGroup = mailGroup))
@@ -68,10 +68,12 @@ export class MailBoxController {
 		return this._mailGroup && neverNull(this._mailGroup).user != null
 	}
 
-	_loadFolders(folderListId: Id): Promise<void> {
+	_loadFolders(folderListId: Id, loadSubFolders: boolean): Promise<void> {
 		return loadAll(MailFolderTypeRef, folderListId).map(folder => {
 			this._folders.push(new MailFolderViewModel(folder))
-			return this._loadFolders(folder.subFolders)
+			if (loadSubFolders) {
+				return this._loadFolders(folder.subFolders, false)
+			}
 		}).return()
 	}
 
