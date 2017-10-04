@@ -11,6 +11,7 @@ import {
 import type {HttpMethodEnum} from "../../common/EntityFunctions"
 import {resolveTypeReference, TypeRef, HttpMethod} from "../../common/EntityFunctions"
 import {assertWorkerOrNode} from "../../Env"
+import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError"
 
 assertWorkerOrNode()
 
@@ -59,10 +60,16 @@ export class EntityRestClient {
 				return restClient.request(path, method, queryParams, headers, null, MediaType.Json).then(json => {
 					let data = JSON.parse((json:string))
 					if (data instanceof Array) {
-						return Promise.all(data.map(instance => resolveSessionKey(model, instance).then(sk => decryptAndMapToInstance(model, instance, sk))))
+						return Promise.all(data.map(instance => resolveSessionKey(model, instance).catch(SessionKeyNotFoundError, e => {
+							console.log("could not resolve session key", e)
+							return null // will result in _errors being set on the instance
+						}).then(sk => decryptAndMapToInstance(model, instance, sk))))
 					} else {
 						return applyMigrations(typeRef, data).then(data => {
-							return resolveSessionKey(model, data).then(sk => {
+							return resolveSessionKey(model, data).catch(SessionKeyNotFoundError, e => {
+								console.log("could not resolve session key", e)
+								return null // will result in _errors being set on the instance
+							}).then(sk => {
 								return decryptAndMapToInstance(model, data, sk)
 							})
 						})

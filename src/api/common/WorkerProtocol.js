@@ -34,6 +34,7 @@ import {CryptoError} from "./error/CryptoError"
 import {PermissionError} from "./error/PermissionError"
 import {OutOfSyncError} from "./error/OutOfSyncError"
 import {SecondFactorPendingError} from "./error/SecondFactorPendingError"
+import {SessionKeyNotFoundError} from "./error/SessionKeyNotFoundError"
 
 export class Request {
 	type: WorkerRequestType | MainRequestType | NativeRequestType | JsRequestType;
@@ -190,6 +191,7 @@ const ErrorNameToType = {
 	ResourceError,
 	InsufficientStorageError,
 	CryptoError,
+	SessionKeyNotFoundError,
 	ProgrammingError,
 	RecipientsNotFoundError,
 	OutOfSyncError,

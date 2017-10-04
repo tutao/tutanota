@@ -32,7 +32,8 @@ import {createUpdatePermissionKeyData} from "../../entities/sys/UpdatePermission
 import {SysService} from "../../entities/sys/Services"
 import EC from "../../common/EntityConstants"
 import {uint8ArrayToBitArray, bitArrayToUint8Array} from "./CryptoUtils"
-import {NotFoundError} from "../../common/error/RestError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import {NotFoundError} from "../../common/error/RestError"
+import {SessionKeyNotFoundError} from "../../common/error/SessionKeyNotFoundError" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -74,7 +75,7 @@ export function applyMigrations<T>(typeRef: TypeRef<T>, data: Object): Promise<O
 		let customerGroupKey = loginFacade.getGroupKey(customerGroupMembership.group)
 		return loadAll(PermissionTypeRef, data._id[0]).then((listPermissions: Permission[]) => {
 			let customerGroupPermission = listPermissions.find(p => p.group === customerGroupMembership.group)
-			if (!customerGroupPermission) throw new Error("Permission not found, could not apply OwnerGroup migration")
+			if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
 			let listKey = decryptKey(customerGroupKey, (customerGroupPermission:any).symEncSessionKey)
 			let groupInfoSk = decryptKey(listKey, base64ToUint8Array(data._listEncSessionKey))
 			data._ownerGroup = customerGroupMembership.getGroup()
@@ -151,13 +152,13 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 			}
 			p = (listPermissions.find(p => p.type === PermissionType.Public || p.type === PermissionType.External):any)
 			if (p == null) {
-				throw new Error("could not find permission")
+				throw new SessionKeyNotFoundError("could not find permission")
 			}
 			let permission = neverNull(p)
 			return loaders.loadBucketPermissions((permission.bucket:any).bucketPermissions).then((bucketPermissions: BucketPermission[]) => {
 				let bp = bucketPermissions.find(bp => (bp.type === BucketPermissionType.Public || bp.type === BucketPermissionType.External) && permission._ownerGroup === bp._ownerGroup) // find the bucket permission with the same group as the permission and public type
 				if (bp == null) {
-					throw new Error("no corresponding bucket permission found");
+					throw new SessionKeyNotFoundError("no corresponding bucket permission found");
 				}
 				let bucketPermission = bp;
 				if (bp.type === BucketPermissionType.External) {
@@ -167,7 +168,7 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 					} else if (bp.symEncBucketKey) {
 						bucketKey = decryptKey(loginFacade.getUserGroupKey(), neverNull(bp.symEncBucketKey))
 					} else {
-						throw new Error(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+						throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 					}
 					return decryptKey(bucketKey, neverNull(permission.bucketEncSessionKey))
 				} else {
@@ -176,14 +177,14 @@ export function resolveSessionKey(typeModel: TypeModel, instance: Object, sessio
 						let privKey = decryptRsaKey(loginFacade.getGroupKey(group._id), keypair.symEncPrivKey)
 						let pubEncBucketKey = bucketPermission.pubEncBucketKey
 						if (pubEncBucketKey == null) {
-							throw new Error(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+							throw new SessionKeyNotFoundError(`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 						}
 						return rsaDecrypt(privKey, pubEncBucketKey).then(decryptedBytes => {
 							let bucketKey = uint8ArrayToBitArray(decryptedBytes)
 
 							let bucketEncSessionKey = permission.bucketEncSessionKey;
 							if (bucketEncSessionKey == null) {
-								throw new Error(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
+								throw new SessionKeyNotFoundError(`BucketEncSessionKey is not defined for Permission ${permission._id.toString()} (Instance: ${JSON.stringify(instance)})`)
 							}
 							let sk = decryptKey(bucketKey, bucketEncSessionKey)
 
