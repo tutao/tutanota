@@ -57,7 +57,12 @@ class DeviceConfig {
 	}
 
 	_store() {
-		localStorage.setItem(LocalStorageKey, JSON.stringify(this))
+		try {
+			localStorage.setItem(LocalStorageKey, JSON.stringify(this))
+		} catch (e) {
+			// may occur in Safari < 11 in incognito mode because it throws a QuotaExceededError
+			console.log("could not store config", e)
+		}
 	}
 
 	getAll(): Credentials[] {
