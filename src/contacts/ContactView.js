@@ -62,7 +62,7 @@ export class ContactView {
 		this.view = (): VirtualElement => {
 			return m("#contact.main-view", [
 				m(this.viewSlider),
-				m(this.newAction)
+				this._contactList ? m(this.newAction) : null
 			])
 		}
 
@@ -91,6 +91,7 @@ export class ContactView {
 			{
 				key: Keys.N,
 				exec: () => (this.createNewContact():any),
+				enabled: () => this._contactList,
 				help: "newContact_action"
 			},
 		]
