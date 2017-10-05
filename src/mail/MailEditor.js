@@ -469,10 +469,14 @@ export class MailEditor {
 
 		let promise = null
 		const body = this._tempBody ? this._tempBody : this.editor.squire.getHTML()
+		const createMailDraft = () => worker.createMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId, attachments, this._isConfidential(), this._replyTos)
 		if (this.draft != null) {
-			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft:any))
+			promise = worker.updateMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, attachments, this._isConfidential(), (this.draft:any)).catch(NotFoundError, e => {
+				console.log("draft has been deleted, creating new one")
+				return createMailDraft()
+			})
 		} else {
-			promise = worker.createMailDraft(this.subject.value(), body, this._senderField.selectedValue(), senderName, to, cc, bcc, this.conversationType, this.previousMessageId, attachments, this._isConfidential(), this._replyTos)
+			promise = createMailDraft()
 		}
 		promise = promise.then(newOrUpdatedDraft => {
 			// keep the current confidential button state. initFromDraft updates it to confidential if there are no external recipients
