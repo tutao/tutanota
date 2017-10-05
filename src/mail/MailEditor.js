@@ -5,7 +5,7 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang, languages} from "../misc/LanguageViewModel"
-import {stringToNameAndMailAddress, formatStorageSize} from "../misc/Formatter"
+import {stringToNameAndMailAddress, formatStorageSize, isMailAddress} from "../misc/Formatter"
 import type {ConversationTypeEnum, OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {
 	ConversationType,
@@ -761,13 +761,13 @@ class MailBubbleHandler {
 			let name = `${contact.firstName} ${contact.lastName}`.trim()
 			let mailAddresses = []
 			if (name.toLowerCase().indexOf(query) !== -1) {
-				mailAddresses = contact.mailAddresses.filter(ma => ma.address.trim().length > 0)
+				mailAddresses = contact.mailAddresses.filter(ma => isMailAddress(ma.address.trim(), false))
 			} else {
 				mailAddresses = contact.mailAddresses.filter(ma => {
-					return ma.address.trim().length > 0 && ma.address.toLowerCase().indexOf(query) !== -1
+					return isMailAddress(ma.address.trim(), false) && ma.address.toLowerCase().indexOf(query) !== -1
 				})
 			}
-			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address, contact))
+			return mailAddresses.map(ma => new ContactSuggestion(name, ma.address.trim(), contact))
 		}).reduce((a, b) => a.concat(b), []))
 			.then(suggestions => {
 				if (env.mode == Mode.App) {
