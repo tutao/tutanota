@@ -15,6 +15,7 @@ import {animations, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
 import {DefaultAnimationTime, opacity} from "../animation/Animations"
 import {windowFacade} from "../../misc/WindowFacade"
+import {BadRequestError} from "../../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -701,6 +702,8 @@ export class List<T, R:VirtualRow<T>> {
 						return scrollTarget
 					})
 				})
+			}).catch(BadRequestError, e => {
+				console.log("invalid element id", listElementId, e)
 			})
 		}
 	}
