@@ -415,7 +415,7 @@ export class MailView {
 				.then(() => {
 					let deleteMailFolderData = createDeleteMailFolderData()
 					deleteMailFolderData.folders.push(this.selectedFolder.folder._id)
-					return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy":any)) //TODO make DeleteMailFolderData unencrypted in next model version
+					return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy":any)).catch(NotFoundError, e => console.log("mail folder already deleted")) //TODO make DeleteMailFolderData unencrypted in next model version
 				})
 		}
 	}
