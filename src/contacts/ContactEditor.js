@@ -6,7 +6,7 @@ import {Button, ButtonType, createDropDownButton} from "../gui/base/Button"
 import {TextField, Type} from "../gui/base/TextField"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "../misc/LanguageViewModel"
-import {formatDate, parseDate} from "../misc/Formatter"
+import {formatDate, parseDate, isMailAddress} from "../misc/Formatter"
 import {
 	getContactAddressTypeLabel,
 	ContactMailAddressTypeToLabel,
@@ -342,7 +342,12 @@ class ContactAggregateEditor {
 			TypeToLabelMap = ContactSocialTypeToLabel
 		}
 
-		this.textfield = new TextField(label)
+		this.textfield = new TextField(label, () => {
+			if (isSameTypeRef(aggregate._type, ContactMailAddressTypeRef) && this.textfield.value().trim().length > 0 && !isMailAddress(this.textfield.value().trim(), false)) {
+				return lang.get("invalidInputFormat_msg")
+			}
+			return lang.get("emptyString_msg")
+		})
 			.setValue(value)
 			.onUpdate(onUpdate)
 		if (isSameTypeRef(aggregate._type, ContactAddressTypeRef)) {
