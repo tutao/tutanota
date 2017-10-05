@@ -26,6 +26,7 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -68,7 +69,7 @@ export class EditSecondFactorsForm {
 					let removeButton = new Button("remove_action", () => {
 						Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
 							if (confirmed) {
-								Dialog.progress("pleaseWait_msg", erase(f))
+								Dialog.progress("pleaseWait_msg", erase(f).catch(NotFoundError, e => console.log("could not delete second factor (has already been deleted)", e)))
 							}
 						})
 					}, () => Icons.Cancel)
