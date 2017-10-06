@@ -55,7 +55,7 @@ let initialized = lang.init(en).then(() => {
 			m("p", m("a[target=_blank][href=http://www.google.com/chrome]", "Chrome (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.opera.com/de/mobile/operabrowser]", "Opera (Desktop, Android)")),
 			m("p", m("a[target=_blank][href=http://www.apple.com/de/safari]", "Safari (Desktop, iOS)")),
-			m("p", m("a[target=_blank][href=http://windows.microsoft.com/de-DE/internet-explorer/download-ie]", "Microsoft Edge (Desktop)")),
+			m("p", m("a[target=_blank][href=https://support.microsoft.com/en-us/products/microsoft-edge]", "Microsoft Edge (Desktop)")),
 		]))))
 		return;
 	}

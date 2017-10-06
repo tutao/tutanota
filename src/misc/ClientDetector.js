@@ -69,7 +69,8 @@ class ClientDetector {
 		return this.isAccepted() &&
 			this.blob() &&
 			this.history() &&
-			this.randomNumbers()
+			this.randomNumbers() &&
+			this.notIE()
 	}
 
 	isMobileDevice(): boolean {
@@ -315,6 +316,10 @@ class ClientDetector {
 		return client.browser + " " + client.device
 	}
 
+
+	notIE() {
+		return this.browser != BrowserType.IE
+	}
 }
 
 export const client: ClientDetector = new ClientDetector()

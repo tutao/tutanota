@@ -36,7 +36,7 @@ import {CreateSessionReturnTypeRef} from "../../entities/sys/CreateSessionReturn
 import {SessionTypeRef, _TypeModel as SessionModelType} from "../../entities/sys/Session"
 import {typeRefToPath} from "../rest/EntityRestClient"
 import {restClient, MediaType} from "../rest/RestClient"
-import {NotAuthenticatedError, ConnectionError} from "../../common/error/RestError"
+import {NotAuthenticatedError} from "../../common/error/RestError"
 import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuthGetData"
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {workerImpl} from "../WorkerImpl"
@@ -79,9 +79,7 @@ export class LoginFacade {
 				accessKey = aes128RandomKey()
 				sessionData.accessKey = keyToUint8Array(accessKey)
 			}
-			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).catch(ConnectionError, e => {
-				this._handleIE11ConnectionError(e)
-			}).then(createSessionReturn => {
+			return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).then(createSessionReturn => {
 				let p = Promise.resolve()
 				if (createSessionReturn.challenges.length > 0) {
 					let sessionId = [this._getSessionListId(createSessionReturn.accessToken), this._getSessionElementId(createSessionReturn.accessToken)]
@@ -104,15 +102,6 @@ export class LoginFacade {
 				})
 			})
 		})
-	}
-
-	_handleIE11ConnectionError(e: ConnectionError) {
-		// IE11 shows not connected error when not authenticated is received at login (xmlhttprequest.onerror is called although network view shows 401 response code)
-		if (typeof navigator == "object" && navigator.userAgent && navigator.userAgent.indexOf("Trident/7.0") != -1) {
-			throw new NotAuthenticatedError("not connected error at login in IE -> NotAuthenticatedError")
-		} else {
-			throw e
-		}
 	}
 
 	_waitUntilSecondFactorApproved(accessToken: Base64Url): Promise<void> {
@@ -145,9 +134,7 @@ export class LoginFacade {
 			accessKey = aes128RandomKey()
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
-		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).catch(ConnectionError, e => {
-			this._handleIE11ConnectionError(e)
-		}).then(createSessionReturn => {
+		return serviceRequest(SysService.SessionService, HttpMethod.POST, sessionData, CreateSessionReturnTypeRef).then(createSessionReturn => {
 			return this._initSession(createSessionReturn.user, createSessionReturn.accessToken, userPassphraseKey).then(() => {
 				return {
 					user: neverNull(this._user),
@@ -186,8 +173,6 @@ export class LoginFacade {
 					}
 				})
 			})
-		}).catch(ConnectionError, e => {
-			this._handleIE11ConnectionError(e)
 		})
 	}
 
@@ -271,9 +256,7 @@ export class LoginFacade {
 			'accessToken': accessToken,
 			"v": SessionModelType.version
 		}
-		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json).catch(ConnectionError, e => {
-			this._handleIE11ConnectionError(e)
-		}).catch(NotAuthenticatedError, () => {
+		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json).catch(NotAuthenticatedError, () => {
 			console.log("authentication failed => session is already deleted")
 		})
 	}
