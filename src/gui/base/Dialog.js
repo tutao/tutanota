@@ -32,7 +32,8 @@ export const DialogType = {
 }
 export type DialogTypeEnum = $Values<typeof DialogType>;
 
-let TABBABLE = "button, input, textarea, div[contenteditable='true']"
+export const TABBABLE = "button, input, textarea, div[contenteditable='true']"
+export const INPUT = "input, textarea, div[contenteditable='true']"
 
 export class Dialog {
 	buttons: Button[];
@@ -49,7 +50,6 @@ export class Dialog {
 				key: Keys.TAB,
 				shift: true,
 				exec: () => {
-
 					let tabbable = Array.from(this._domDialog.querySelectorAll(TABBABLE))
 					let selected = tabbable.find(e => document.activeElement === e)
 					if (selected) {
@@ -86,17 +86,31 @@ export class Dialog {
 						},
 						oncreate: vnode => {
 							this._domDialog = vnode.dom
+							let animation = null
 							if (dialogType === DialogType.EditLarge) {
 								vnode.dom.style.transform = `translateY(${window.innerHeight}px)`
-								animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
+								animation = animations.add(this._domDialog, transform(transform.type.translateY, window.innerHeight, 0))
 							} else {
 								let bgcolor = theme.content_bg
 								let children = Array.from(this._domDialog.children)
 								children.forEach(child => child.style.opacity = '0')
 								this._domDialog.style.backgroundColor = `rgba(0,0,0,0)`
-								animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1))
-								animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
+								animation = Promise.all([
+									animations.add(this._domDialog, alpha(alpha.type.backgroundColor, bgcolor, 0, 1)),
+									animations.add(children, opacity(0, 1, true), {delay: DefaultAnimationTime / 2})
+								])
 							}
+
+							// select first input field
+							animation.then(() => {
+								setTimeout(() => {
+									if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+									let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
+									if (inputs.length > 0) {
+										inputs[0].focus()
+									}
+								}, DefaultAnimationTime)
+							})
 						},
 					}, m(childComponent))
 				]
@@ -427,9 +441,9 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: string, labelId: string, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: string, label: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
-			let textField = new TextField(labelId, () => {
+			let textField = new TextField(label, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
 			})
 			textField.value(value)
