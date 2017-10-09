@@ -38,7 +38,7 @@ export class Dropdown {
 		}
 
 		this.view = (): VirtualElement => {
-			return m(".dropdown-panel.border-radius.backface_fix", {
+			return m(".dropdown-panel.border-radius.backface_fix.scroll", {
 					oncreate: (vnode) => this.show(vnode.dom),
 				}, m(".dropdown-content.plr-l", {
 					oncreate: (vnode) => {
@@ -148,6 +148,7 @@ export class Dropdown {
 			], {easing: ease.out}).then(() => {
 				if (this.maxHeight < buttonsHeight) {
 					if (this._domDropdown) {
+						// do not show the scrollbar during the animation.
 						this._domDropdown.style.overflowY = client.overflowAuto
 					}
 				}
