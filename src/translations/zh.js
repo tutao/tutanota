@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2017-09-09T17:17:26Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "很不幸，您的Tutanota帐户已停用，请联系管理员。",
@@ -39,7 +39,6 @@ module.exports = {
 		"addSpamRule_action": "添加垃圾邮件规则",
 		"addStatisticsField_action": "添加统计字段",
 		"addUsers_action": "添加用户",
-		"addUserToGroup_label": "将用户添加到组中",
 		"add_action": "添加",
 		"adminAccountInfo_action": "信息",
 		"adminCustomDomainInfo_msg": "请提前确保您的MX和SPF记录在DNS中配置正确。",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2017-09-09T17:08:19Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Tyvärr är ditt Tutanota konto avaktiverad. Vänligen kontakta administratören.",
@@ -22,7 +22,6 @@ module.exports = {
 		"address_label": "Adress",
 		"addRule_action": "Lägg till regel",
 		"addUsers_action": "Lägg till användare",
-		"addUserToGroup_label": "Ange användare till grupp",
 		"add_action": "Lägg till",
 		"adminAccountInfo_action": "Info",
 		"adminCustomDomainInfo_msg": "Kontrollera i förväg att dina MX och SPF-poster är rätt inställd i din DNS.",

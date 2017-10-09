@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-02-06T09:56:56Z",
-	"updated_at": "2017-09-09T17:18:12Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Fatkeqësisht, llogaria jote në Tutanotë është shkallmu. Të lutem, kontaktoje përgjegjësin.",

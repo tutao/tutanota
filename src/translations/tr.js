@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2017-09-09T17:20:54Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ne yazık ki Tutanota hesabınız devre dışı bırakıldı. Lütfen yöneticinize başvurunuz.",
@@ -37,7 +37,6 @@ module.exports = {
 		"addSpamRule_action": "İstenmeyen eposta kuralı ekle",
 		"addStatisticsField_action": "İstatistik alanı ekle",
 		"addUsers_action": "Kullanıcı ekle",
-		"addUserToGroup_label": "Kullanıcıyı guruba ekle",
 		"add_action": "Ekle",
 		"adminAccountInfo_action": "Bilgi",
 		"adminCustomDomainInfo_msg": "Öncelikli olarak lütfen MX ve SPF kayıtlarınızın DNS ayarlarınıza doğru bir şekilde girildiğinden emin olun.",

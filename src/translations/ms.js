@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2016-01-19T13:09:20Z",
-	"updated_at": "2017-09-09T17:39:20Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Malangnya, akaun Tutanota anda dinyahaktifkan. Sila hubungi pentadbir anda.",
@@ -39,7 +39,6 @@ module.exports = {
 		"addSpamRule_action": "Tambah peraturan spam",
 		"addStatisticsField_action": "Tambah ruang statistik",
 		"addUsers_action": "Tambah pengguna",
-		"addUserToGroup_label": "Tambah pengguna ke kumpulan",
 		"add_action": "Tambah",
 		"adminAccountInfo_action": "Maklumat",
 		"adminCustomDomainInfo_msg": "Sila pastikan terlebih dahulu bahawa rekod MX dan SPF anda ditetapkan dengan betul dalam DNS anda.",

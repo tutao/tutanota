@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2016-03-14T17:40:42Z",
-	"updated_at": "2017-09-09T17:19:53Z",
+	"updated_at": "2017-10-04T14:07:21Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kwa bahati mbaya, akaunti yako ya Tutanota kimezimwa. Tafadhali wasiliana na msimamizi wako.",
@@ -35,7 +35,6 @@ module.exports = {
 		"addSpamRule_action": "Ongeza kanuni ya taka",
 		"addStatisticsField_action": "Ongeza uga wa takwimu",
 		"addUsers_action": "Ongeza watumiaji",
-		"addUserToGroup_label": "Ongeza mtumiaji kwa kikundi",
 		"add_action": "Ongeza",
 		"adminAccountInfo_action": "Taarifa",
 		"adminCustomDomainInfo_msg": "Tafadhali hakikisha mapema kwamba rekodi yako MX na SPF ni kuanzisha usahihi katika DNS yako.",

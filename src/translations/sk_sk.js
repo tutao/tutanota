@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "other"],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Bohužiaľ, tvoj Tutanota účet bol deaktivovaný. Kontaktuj tvojho administrátora.",

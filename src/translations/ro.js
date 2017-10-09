@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "other"],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2017-06-23T08:24:32Z",
+	"updated_at": "2017-10-04T14:07:20Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Din pacate, contul dv. Tutanota a fost dezactivat. Va rugam sa va contactati administratorul.",
