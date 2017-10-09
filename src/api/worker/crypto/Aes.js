@@ -10,7 +10,7 @@ import {hash} from "./Sha256"
 
 assertWorkerOrNode()
 
-export const ENABLE_MAC = false
+export const ENABLE_MAC = true
 
 export const IV_BYTE_LENGTH = 16
 const TAG_BYTE_LENGTH = 16
