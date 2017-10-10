@@ -29,7 +29,7 @@ import {ExpanderPanel, ExpanderButton} from "../gui/base/Expander"
 import {PasswordIndicator} from "../gui/base/PasswordIndicator"
 import {getPasswordStrength} from "../misc/PasswordUtils"
 import {neverNull} from "../api/common/utils/Utils"
-import {createRecipientInfo, resolveRecipientInfo, getDisplayText, createNewContact} from "./MailUtils"
+import {createRecipientInfo, resolveRecipientInfo, getDisplayText, createNewContact, parseMailtoUrl} from "./MailUtils"
 import {fileController} from "../file/FileController"
 import {remove, contains, replace} from "../api/common/utils/ArrayUtils"
 import {FileTypeRef} from "../api/entities/tutanota/File"
@@ -315,6 +315,20 @@ export class MailEditor {
 	initWithTemplate(subject: string, bodyText: string, confidential: boolean): Promise<void> {
 		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), [], [], [], [], subject, bodyText, [])
+		return Promise.resolve()
+	}
+
+	initWithMailtoUrl(mailtoUrl: string, confidential: boolean): Promise<void> {
+		let result = parseMailtoUrl(mailtoUrl)
+
+		let bodyText = result.body
+		let signature = this._mailboxController.getEmailSignature()
+		if (logins.getUserController().isInternalUser() && signature) {
+			bodyText = bodyText + signature
+		}
+
+		bodyText = htmlSanitizer.sanitize(bodyText, false).text
+		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), result.to, result.cc, result.bcc, [], result.subject, bodyText, [])
 		return Promise.resolve()
 	}
 

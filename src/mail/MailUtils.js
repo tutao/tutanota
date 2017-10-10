@@ -1,6 +1,6 @@
 // @flow
 import {isTutanotaMailAddress, recipientInfoType} from "../api/common/RecipientInfo"
-import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName} from "../misc/Formatter"
+import {fullNameToFirstAndLastName, mailAddressToFirstAndLastName, stringToNameAndMailAddress} from "../misc/Formatter"
 import {createContact} from "../api/entities/tutanota/Contact"
 import {createContactMailAddress} from "../api/entities/tutanota/ContactMailAddress"
 import {ContactAddressType, GroupType, MailState} from "../api/common/TutanotaConstants"
@@ -17,6 +17,7 @@ import {contains} from "../api/common/utils/ArrayUtils"
 import {logins} from "../api/main/LoginController"
 import {htmlSanitizer} from "../misc/HtmlSanitizer"
 import {lang} from "../misc/LanguageViewModel"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
 assertMainOrNode()
 
@@ -103,4 +104,57 @@ export function getDefaultSenderFromUser(): string {
 
 export function getDefaultSignature() {
 	return "<br><br>" + htmlSanitizer.sanitize(lang.get("defaultEmailSignature_msg", {"{1}": "https://tutanota.com"}), true).text;
+}
+
+
+export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAddress[], bcc:MailAddress[], subject:string, body:string} {
+	let url = new URL(mailtoUrl)
+	let toRecipients = []
+	let ccRecipients = []
+	let bccRecipients = []
+	let addresses = url.pathname.split(",")
+	let subject = ""
+	let body = ""
+
+	let createMailAddressFromString = (address: string): ?MailAddress => {
+		let nameAndMailAddress = stringToNameAndMailAddress(address)
+		if (nameAndMailAddress) {
+			let mailAddress = createMailAddress()
+			mailAddress.name = nameAndMailAddress.name
+			mailAddress.address = nameAndMailAddress.mailAddress
+			return mailAddress
+		} else {
+			return null
+		}
+	}
+
+	addresses.forEach((address) => {
+		address ? toRecipients.push(neverNull(createMailAddressFromString(address))) : null
+	})
+
+	if (url.searchParams) { // not supported in Edge
+		for (let pair of url.searchParams.entries()) {
+			let paramName = pair[0]
+			let paramValue = pair[1]
+			if (paramName == "subject") {
+				subject = paramValue
+			} else if (paramName == "body") {
+				body = paramValue.replace("\n", "<br>")
+			} else if (paramName == "cc") {
+				paramValue.split(",").forEach((ccAddress) => ccAddress ? ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))) : null)
+			} else if (paramName == "bcc") {
+				paramValue.split(",").forEach((bccAddress) => bccAddress ? bccRecipients.push(neverNull(createMailAddressFromString(bccAddress))) : null)
+			} else if (paramName == "to") {
+				paramValue.split(",").forEach((toAddress) => toAddress ? toRecipients.push(neverNull(createMailAddressFromString(toAddress))) : null)
+			}
+		}
+	}
+
+	return {
+		to: toRecipients,
+		cc: ccRecipients,
+		bcc: bccRecipients,
+		subject: subject,
+		body: body
+	}
 }

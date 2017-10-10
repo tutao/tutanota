@@ -9,6 +9,7 @@ import "./gui/base/ListTest"
 import "./common/EntropyCollectorTest"
 import "./common/HtmlSanitizerTest"
 import "./mail/InboxRuleHandlerTest"
+import "./mail/MailUtilsTest"
 import "./misc/U2fClientTest"
 import o from "ospec/ospec.js"
 

@@ -237,6 +237,7 @@ export class MailViewer {
 								this._domBody = vnode.dom
 								this._updateLineHeight()
 							},
+							onclick: (event: Event) => this._handleMailto(event),
 							onsubmit: (event: Event) => this._confirmSubmit(event),
 							style: {'line-height': this._bodyLineHeight}
 						}, (this._mailBody == null && !this._errorOccurred) ? m(".progress-panel.flex-v-center.items-center", {
@@ -468,6 +469,17 @@ export class MailViewer {
 		}
 	}
 
+	_handleMailto(event: Event) {
+		let anchorElement = (event.target:any).closest("a")
+		if (anchorElement && startsWith(anchorElement.href, "mailto:")) {
+			let mailEditor = new MailEditor(neverNull(this.mailView.selectedMailbox))
+			event.preventDefault()
+			return mailEditor.initWithMailtoUrl(anchorElement.href, !logins.getUserController().props.defaultUnconfidential).then(() => {
+				mailEditor.show()
+			})
+		}
+	}
+
 	scrollUp(): void {
 		if (this._domMailViewer) {
 			this._domMailViewer.scrollTop -= 200;
@@ -479,4 +491,6 @@ export class MailViewer {
 			this._domMailViewer.scrollTop += 200;
 		}
 	}
+
+
 }
