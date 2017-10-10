@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-10-16T08:29:45Z",
-	"updated_at": "2017-10-04T14:07:20Z",
+	"updated_at": "2017-10-10T09:48:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountSettings_label": "Rekening",

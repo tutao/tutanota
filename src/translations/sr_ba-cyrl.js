@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "few", "many", "other"],
 	"created_at": "2015-08-05T13:59:19Z",
-	"updated_at": "2017-10-04T14:07:20Z",
+	"updated_at": "2017-10-10T09:48:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Нажалост ваш Тутанота налог је деактивиран. Молимо контактирајте вашег администратора.",

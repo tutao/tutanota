@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2017-10-05T10:01:59Z",
+	"updated_at": "2017-10-10T09:48:10Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Per desgràcia, el teu compte Tutanota ha estat desactivat. Posa't en contacte amb l'administrador.",
@@ -39,6 +39,7 @@ module.exports = {
 		"addSpamRule_action": "Afegir regla de correu brossa",
 		"addStatisticsField_action": "Afegir camp d'estadístiques",
 		"addUsers_action": "Afegeix usuaris",
+		"addUserToGroup_label": "Afegiu usuari",
 		"add_action": "Afegeix",
 		"adminAccountInfo_action": "Info",
 		"adminCustomDomainInfo_msg": "Si us plau, assegureu-vos per endavant que els registres MX i SPF estan configurats correctament al DNS.",

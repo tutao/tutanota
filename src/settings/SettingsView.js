@@ -63,8 +63,8 @@ export class SettingsView {
 
 		this._selectedFolder = this._userFolders[0]
 
-		let userFolderExpander = this._createFolderExpander("User settings", this._userFolders)
-		let adminFolderExpander = this._createFolderExpander("Admin settings", this._adminFolders)
+		let userFolderExpander = this._createFolderExpander("userSettings_label", this._userFolders)
+		let adminFolderExpander = this._createFolderExpander("adminSettings_label", this._adminFolders)
 
 		this._settingsFoldersColumn = new ViewColumn({
 			view: () => m(".folder-column.scroll.overflow-x-hidden", [
@@ -103,7 +103,7 @@ export class SettingsView {
 		worker.getEntityEventController().addListener((typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum) => this.entityEventReceived(typeRef, listId, elementId, operation))
 	}
 
-	_createFolderExpander(name: string, folders: SettingsFolder[]): ExpanderButton {
+	_createFolderExpander(textId: string, folders: SettingsFolder[]): ExpanderButton {
 		let buttons = folders.map(folder => {
 			let button = new NavButton(folder.nameTextId, folder.icon, () => folder.url, folder.url)
 				.setColors(ButtonColors.Nav)
@@ -112,7 +112,7 @@ export class SettingsView {
 			})
 			return button
 		})
-		let expander = new ExpanderButton(() => name, new ExpanderPanel({
+		let expander = new ExpanderButton(textId, new ExpanderPanel({
 			view: () => m(".folders", buttons.map(fb => m(".folder-row.flex-start.plr-l" + (fb.isSelected() ? ".row-selected" : ""), [
 				m(fb)
 			])))
