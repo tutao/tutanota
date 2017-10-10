@@ -507,12 +507,7 @@ export class List<T, R:VirtualRow<T>> {
 		let topElement = this._virtualList[0]
 		let bottomElement = this._virtualList[this._virtualList.length - 1]
 
-		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight) - this._visibleElementsHeight * 2
-		if (lastBunchVisible && (this._loading:any).isFulfilled() && !this._loadedCompletely) {
-			this._loadMore().then(() => {
-				this._domList.style.height = this._calculateListHeight()
-			})
-		}
+		this._loadMoreIfNecessary()
 
 		let status = {
 			bufferUp: Math.floor((this.currentPosition - topElement.top) / rowHeight),
@@ -577,6 +572,15 @@ export class List<T, R:VirtualRow<T>> {
 					bottomElement = this._virtualList[this._virtualList.length - 1]
 				}
 			}
+		}
+	}
+
+	_loadMoreIfNecessary() {
+		let lastBunchVisible = this.currentPosition > (this._loadedEntities.length * this._config.rowHeight) - this._visibleElementsHeight * 2
+		if (lastBunchVisible && (this._loading:any).isFulfilled() && !this._loadedCompletely) {
+			this._loadMore().then(() => {
+				this._domList.style.height = this._calculateListHeight()
+			})
 		}
 	}
 
@@ -823,6 +827,8 @@ export class List<T, R:VirtualRow<T>> {
 				if (selectionChanged) {
 					this._config.elementSelected(this.getSelectedEntities(), false, true, !nextElementSelected)
 				}
+				// trigger loading new elements before the scrollbar disappears and no reload can be triggered any more by scrolling
+				this._loadMoreIfNecessary()
 			}
 		})
 	}
