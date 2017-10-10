@@ -30,8 +30,14 @@ assertMainOrNode()
 let unknownErrorDialogActive = false
 let notConnectedDialogActive = false
 let loginDialogActive = false
+let isLoggingOut = false
 
 export function handleUncaughtError(e: Error) {
+	if (isLoggingOut) {
+		// ignore all errors while logging out
+		return
+	}
+
 	if (e instanceof ConnectionError) {
 		if (!notConnectedDialogActive) {
 			notConnectedDialogActive = true
@@ -190,4 +196,9 @@ export function showNotAvailableForFreeDialog() {
 			}
 		})
 	}
+}
+
+export function loggingOut() {
+	isLoggingOut = true
+	Dialog.progress("loggingOut_msg", Promise.fromCallback(cb => null))
 }

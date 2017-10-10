@@ -19,3 +19,9 @@ export function handleUncaughtError(e: Error) {
 		module.handleUncaughtError(e)
 	})
 }
+
+export function logginOut() {
+	asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/misc/ErrorHandlerImpl.js`).then(module => {
+		module.loggingOut()
+	})
+}

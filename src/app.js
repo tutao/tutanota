@@ -4,7 +4,7 @@ import stream from "mithril/stream/stream.js"
 import en from "./translations/en"
 import {lang} from "./misc/LanguageViewModel"
 import {root} from "./RootView"
-import {handleUncaughtError} from "./misc/ErrorHandler"
+import {handleUncaughtError, logginOut} from "./misc/ErrorHandler"
 import {modal} from "./gui/base/Modal"
 import {styles} from "./gui/styles"
 import "./gui/main-styles"
@@ -67,6 +67,7 @@ let initialized = lang.init(en).then(() => {
 				if (requireLogin && !logins.isUserLoggedIn()) {
 					forceLogin(args, requestedPath)
 				} else if (!requireLogin && logins.isUserLoggedIn()) {
+					logginOut()
 					return workerPromise.then(worker => {
 						return worker.logout().then(function () {
 							window.location.reload();

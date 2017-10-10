@@ -74,7 +74,7 @@ export class List<T, R:VirtualRow<T>> {
 		this._loadedEntities = []
 		function createPromise() {
 			let wrapper = {}
-			wrapper.promise = new Promise.fromCallback(cb => {
+			wrapper.promise = Promise.fromCallback(cb => {
 				wrapper.resolve = cb
 			})
 			return wrapper
