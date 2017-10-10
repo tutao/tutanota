@@ -21,6 +21,8 @@ export const Keys = {
 	ESC: {code: 27, name: "ESC"},
 	UP: {code: 38, name: "↑"},
 	DOWN: {code: 40, name: "↓"},
+	PAGE_UP: {code: 33, name: "Page ↑"},
+	PAGE_DOWN: {code: 34, name: "Page ↓"},
 	DELETE: {code: 46, name: "DEL"},
 	ONE: {code: 49, name: "1"},
 	TWO: {code: 50, name: "2"},

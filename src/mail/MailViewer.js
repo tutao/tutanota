@@ -65,6 +65,7 @@ export class MailViewer {
 	_attachmentButtons: Button[];
 	_contentBlocked: boolean;
 	_domBody: HTMLElement;
+	_domMailViewer: ?HTMLElement;
 	_bodyLineHeight: string;
 	_errorOccurred: boolean;
 	oncreate: Function;
@@ -79,6 +80,7 @@ export class MailViewer {
 		this._contentBlocked = false
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
+		this._domMailViewer = null
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -207,7 +209,9 @@ export class MailViewer {
 		let errorMessageBox = new MessageBox("corrupted_msg")
 		this.view = () => {
 			return [
-				m("#mail-viewer.fill-absolute.scroll.plr-l.pb-floating", [
+				m("#mail-viewer.fill-absolute.scroll.plr-l.pb-floating", {
+						oncreate: (vnode) => this._domMailViewer = vnode.dom
+					}, [
 						m(".header", [
 							m(".sender-details.flex-space-between.mr-negative-s.button-min-height", [ // the natural height may vary in browsers (Firefox), so set it to button height here to make it similar to the MultiMailViewer
 								m("small.flex.items-end.text-break", (detailsExpander.panel.expanded) ? lang.get("from_label") : getSenderOrRecipientHeading(this.mail, false)),
@@ -461,6 +465,18 @@ export class MailViewer {
 			return foundAddress.address
 		} else {
 			return neverNull(this.mailView.selectedMailbox).getDefaultSender()
+		}
+	}
+
+	scrollUp(): void {
+		if (this._domMailViewer) {
+			this._domMailViewer.scrollTop -= 200;
+		}
+	}
+
+	scrollDown(): void {
+		if (this._domMailViewer) {
+			this._domMailViewer.scrollTop += 200;
 		}
 	}
 }

@@ -130,6 +130,20 @@ export class MailView {
 	_setupShortcuts() {
 		let shortcuts = [
 			{
+				key: Keys.PAGE_UP,
+				exec: () => {
+					if (this.mailViewer) this.mailViewer.scrollUp()
+				},
+				help: "scrollMailUp_action"
+			},
+			{
+				key: Keys.PAGE_DOWN,
+				exec: () => {
+					if (this.mailViewer) this.mailViewer.scrollDown()
+				},
+				help: "scrollMailDown_action"
+			},
+			{
 				key: Keys.UP,
 				exec: () => this.mailList.list.selectPrevious(false),
 				help: "selectPrevious_action"
