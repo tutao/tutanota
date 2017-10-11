@@ -2,7 +2,8 @@
 import DOMPurify from "dompurify"
 import {Icons} from "../gui/base/icons/Icons"
 
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + Icons.Warning
+// the svg data string must contain ' instead of " to avoid display errors in Edge
+export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON = 'data:image/svg+xml;utf8,' + Icons.Warning.replace(/\"/g, "'")
 
 
 class HtmlSanitizer {
@@ -107,7 +108,7 @@ class HtmlSanitizer {
 			value = value.replace(/^url\("*/, "");
 			value = value.replace(/"*\)$/, "");
 			this._externalContent.push(value)
-			let newImage = "url('" + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + "')"
+			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
 		}
 	}

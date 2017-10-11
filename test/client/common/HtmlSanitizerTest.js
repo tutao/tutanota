@@ -84,12 +84,16 @@ o.spec("HtmlSanitizerTest", browser(function () {
 	})
 
 	o("detect background images", function () {
-		o(PREVENT_EXTERNAL_IMAGE_LOADING_ICON).equals('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 64L48 448h416L256 64zm-11.8 144h24v65.7l-6 70.3h-12l-6-70.3V208zM256 400c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16z"/></svg>')
+		o(PREVENT_EXTERNAL_IMAGE_LOADING_ICON).equals("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path d='M256 64L48 448h416L256 64zm-11.8 144h24v65.7l-6 70.3h-12l-6-70.3V208zM256 400c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16z'/></svg>")
 		let result = htmlSanitizer.sanitize('<p style="background-image: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>', true);
 		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image");
 		o(result.text.includes("data:image/svg+xml;utf8,")).equals(true);
 
 		result = htmlSanitizer.sanitize('<p style="background: url(&quot;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&quot;)"></p>', true);
+		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image");
+		o(result.text.includes("data:image/svg+xml;utf8,")).equals(true);
+
+		result = htmlSanitizer.sanitize('<p style="background: url(&#39;https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image&#39;)"></p>', true);
 		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/1134f6cba766bf0b/background_image");
 		o(result.text.includes("data:image/svg+xml;utf8,")).equals(true);
 
@@ -172,7 +176,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 		let result = htmlSanitizer.sanitize('<html><img src="https://localhost/1.png"><img src="https://localhost/2.png"><img src="https://localhost/3.png"><img src="https://localhost/4.png"><img src="https://localhost/5.png"><img src="https://localhost/6.png"><img src="https://localhost/7.png"><img src="https://localhost/8.png"><img src="https://localhost/9"><a href="http://localhost/index.html"></a> </html>', true)
 		o(result.externalContent.length).equals(9);
 		// do not replace links
-		o(result.text.includes('<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">')).equals(true)
+		o(result.text.includes('<a target="_blank" rel="noopener noreferrer" href="http://localhost/index.html">') || result.text.includes('<a href="http://localhost/index.html" target="_blank" rel="noopener noreferrer">')).equals(true)
 	})
 
 	o("audio tag", function () {
