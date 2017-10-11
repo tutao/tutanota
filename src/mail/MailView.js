@@ -7,7 +7,7 @@ import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/bas
 import {NavButton} from "../gui/base/NavButton"
 import {MailBoxController} from "./MailBoxController"
 import {TutanotaService} from "../api/entities/tutanota/Services"
-import {update, serviceRequestVoid, loadAll, load} from "../api/main/Entity"
+import {update, serviceRequestVoid, load} from "../api/main/Entity"
 import {MailFolderViewModel} from "./MailFolderViewModel"
 import {MailViewer} from "./MailViewer"
 import {Dialog} from "../gui/base/Dialog"
@@ -38,7 +38,7 @@ import {UserTypeRef} from "../api/entities/sys/User"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
-import {NotFoundError} from "../api/common/error/RestError"
+import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -195,7 +195,7 @@ export class MailView {
 			{
 				key: Keys.DELETE,
 				exec: () => {
-					this.deleteSelected()
+					this.deleteSelectedMails()
 					return
 				},
 				help: "deleteEmails_action"
@@ -243,7 +243,7 @@ export class MailView {
 		let purgeAllButton = new Button('delete_action', () => {
 			Dialog.confirm(() => lang.get("confirmDeleteFinallySystemFolder_msg", {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
 				if (confirmed) {
-					this.deleteAll()
+					this._finallyDeleteAllMailsInSelectedFolder()
 				}
 			})
 		}, () => Icons.TrashEmpty).setColors(ButtonColors.Nav)
@@ -390,13 +390,9 @@ export class MailView {
 				})
 			}, () => BootIcons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
-				let message = "confirmDeleteCustomFolder_msg"
-				if (this.selectedFolder.isFinallyDeleteAllowed()) {
-					message = "confirmDeleteFinallyCustomFolder_msg"
-				}
-				Dialog.confirm(() => lang.get(message, {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
+				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg", {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
 					if (confirmed) {
-						this.deleteMailFolder(mailbox)
+						this._finallyDeleteCustomMailFolder()
 					}
 				})
 			}, () => Icons.Trash).setType(ButtonType.Dropdown)
@@ -421,17 +417,13 @@ export class MailView {
 		}
 	}
 
-	deleteMailFolder(mailBox: MailBoxController) {
-		if (this.selectedFolder.isFinallyDeleteAllowed()) {
-			this.deleteAll()
-		} else {
-			this.moveAll(mailBox.getTrashFolder())
-				.then(() => {
-					let deleteMailFolderData = createDeleteMailFolderData()
-					deleteMailFolderData.folders.push(this.selectedFolder.folder._id)
-					return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy":any)).catch(NotFoundError, e => console.log("mail folder already deleted")) //TODO make DeleteMailFolderData unencrypted in next model version
-				})
-		}
+	_finallyDeleteCustomMailFolder() {
+		//TODO make DeleteMailFolderData unencrypted in next model version
+		let deleteMailFolderData = createDeleteMailFolderData()
+		deleteMailFolderData.folders.push(this.selectedFolder.folder._id)
+		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy":any))
+			.catch(NotFoundError, e => console.log("mail folder already deleted"))
+			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}
 
 	logout() {
@@ -468,17 +460,17 @@ export class MailView {
 		}
 	}
 
-	deleteSelected(): Promise<void> {
-		return this.deleteMails(this.mailList.list.getSelectedEntities())
+	deleteSelectedMails(): Promise<void> {
+		return this.deleteMailsFromSelectedFolder(this.mailList.list.getSelectedEntities())
 	}
 
-	deleteMails(mails: Mail[]): Promise<void> {
-
+	deleteMailsFromSelectedFolder(mails: Mail[]): Promise<void> {
 		if (mails.length > 0) {
 			if (this.selectedFolder.isFinallyDeleteAllowed()) {
 				let deleteMailData = createDeleteMailData()
 				deleteMailData.mails.push(...mails.map(m => m._id))
 				return serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData)
+					.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 			} else {
 				return this.moveMails(neverNull(this.selectedMailbox).getTrashFolder(), mails)
 			}
@@ -486,10 +478,11 @@ export class MailView {
 		return Promise.resolve()
 	}
 
-	deleteAll() {
+	_finallyDeleteAllMailsInSelectedFolder() {
 		let deleteMailData = createDeleteMailData()
 		deleteMailData.folder = this.selectedFolder.folder._id
 		return Dialog.progress("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
+			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}
 
 	moveMails(target: MailFolderViewModel, mails: Mail[]): Promise<void> {
@@ -501,20 +494,9 @@ export class MailView {
 			moveMailData.targetFolder = target.folder._id
 			moveMailData.mails.push(...mails.map(m => m._id))
 			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
+				.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 		}
 		return Promise.resolve()
-	}
-
-	moveAll(target: MailFolderViewModel) {
-		return loadAll(MailTypeRef, this.selectedFolder.folder.mails).then(mails => {
-			if (mails.length === 0) {
-				return Promise.resolve()
-			}
-			let moveMailData = createMoveMailData()
-			moveMailData.targetFolder = target.folder._id
-			moveMailData.mails.push(...mails.map(m => m._id))
-			return serviceRequestVoid(TutanotaService.MoveMailService, HttpMethod.POST, moveMailData)
-		})
 	}
 
 	entityEventReceived<T>(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum): void {

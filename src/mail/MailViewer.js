@@ -157,7 +157,7 @@ export class MailViewer {
 				})
 			}))
 		}
-		actions.add(new Button('delete_action', () => this.mailView.deleteSelected(), () => Icons.Trash))
+		actions.add(new Button('delete_action', () => this.mailView.deleteSelectedMails(), () => Icons.Trash))
 		if (mail.state !== MailState.DRAFT) {
 			actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 				let moreButtons = []

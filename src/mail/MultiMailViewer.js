@@ -30,7 +30,7 @@ export class MultiMailViewer {
 					.setType(ButtonType.Dropdown)
 			})
 		}))
-		actions.add(new Button('delete_action', () => mailView.deleteSelected(), () => Icons.Trash))
+		actions.add(new Button('delete_action', () => mailView.deleteSelectedMails(), () => Icons.Trash))
 		actions.add(createDropDownButton('more_label', () => Icons.More, () => {
 			let moreButtons = []
 			moreButtons.push(new Button("markUnread_action", () => this._markAll(mailView.mailList.list.getSelectedEntities(), true), () => Icons.NoEye).setType(ButtonType.Dropdown))

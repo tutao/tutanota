@@ -65,7 +65,7 @@ export class MailListView {
 			swipe: ({
 				renderLeftSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", this.targetInbox() ? lang.get('received_action') : lang.get('archive_action'))],
 				renderRightSpacer: () => [m(Icon, {icon: Icons.Folder}), m(".pl-s", lang.get('delete_action'))], // TODO finalDelete_action if the mail is deleted from trash
-				swipeLeft: (listElement: Mail) => this.mailView.deleteMails([listElement]),
+				swipeLeft: (listElement: Mail) => this.mailView.deleteMailsFromSelectedFolder([listElement]),
 				swipeRight: (listElement: Mail) => {
 					if (this.targetInbox()) {
 						return this.mailView.moveMails(neverNull(this.mailView.selectedMailbox).getInboxFolder(), [listElement])
