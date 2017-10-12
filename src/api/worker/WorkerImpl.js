@@ -208,7 +208,6 @@ export class WorkerImpl {
 			return random.addEntropy(entropy)
 		} finally {
 			this._newEntropy = this._newEntropy + entropy.reduce((sum, value) => value.entropy + sum, 0)
-			console.log("Entropy", this._newEntropy)
 			let now = new Date().getTime()
 			if (this._newEntropy > 5000 && (now - this._lastEntropyUpdate) > 1000 * 60 * 5) {
 				this._lastEntropyUpdate = now

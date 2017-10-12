@@ -43,11 +43,9 @@ export class Dropdown {
 				}, m(".dropdown-content.plr-l", {
 					oncreate: (vnode) => {
 						this.setContentHeight(vnode.dom)
-						window.requestAnimationFrame(() => {
-							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
-						})
+						if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
 					},
-					style: {width: px(this._width)}
+					style: {width: px(this._width)} // a fixed with for the content of this dropdown is needed to avoid that the elements in the dropdown move during animation
 				},
 				this.children.filter(b => isVisible(b)).map(button => (typeof button == "string") ? m(".flex-v-center.center.button-height.b.text-break.doNotClose", button) : m(button)))
 			)

@@ -101,15 +101,13 @@ export class Dialog {
 								])
 							}
 
-							// select first input field
+							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
+							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
 							animation.then(() => {
-								setTimeout(() => {
-									if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
-									let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
-									if (inputs.length > 0) {
-										inputs[0].focus()
-									}
-								}, DefaultAnimationTime)
+								let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
+								if (inputs.length > 0) {
+									inputs[0].focus()
+								}
 							})
 						},
 					}, m(childComponent))
@@ -441,9 +439,9 @@ export class Dialog {
 	 * @param inputValidator Called when "Ok" is clicked receiving the entered text. Must return null if the text is valid or an error messageId if the text is invalid, so an error message is shown.
 	 * @returns A promise resolving to the entered text. The returned promise is only resolved if "ok" is clicked.
 	 */
-	static showTextInputDialog(titleId: string, label: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
+	static showTextInputDialog(titleId: string, labelIdOrLabelFunction: string|lazy<string>, infoMsgId: ?string, value: string, inputValidator: ?stringValidator): Promise<string> {
 		return Promise.fromCallback(cb => {
-			let textField = new TextField(label, () => {
+			let textField = new TextField(labelIdOrLabelFunction, () => {
 				return (infoMsgId) ? lang.get(infoMsgId) : ""
 			})
 			textField.value(value)
