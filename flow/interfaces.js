@@ -69,7 +69,7 @@ interface IUserController {
 	getMailGroupMemberships(): GroupMembership[];
 	getUserMailGroupMembership(): GroupMembership;
 	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void;
-	deleteSession():void;
+	deleteSession(sync: boolean):Promise<void>;
 }
 
 interface ILoginViewController {

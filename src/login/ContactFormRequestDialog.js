@@ -268,7 +268,7 @@ export class ContactFormRequestDialog {
 								return worker.sendMailDraft(draft, recipientInfos, lang.code)
 							})
 						}).finally(e => {
-							worker.logout()
+							return worker.logout(false)
 						}))
 					}).then(() => {
 						return {userEmailAddress, password}
@@ -281,7 +281,7 @@ export class ContactFormRequestDialog {
 						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {
 							deviceConfig.set(neverNull(credentials))
 						}).then(e => {
-							worker.logout()
+							return worker.logout(false)
 						})
 					}, {
 						view: () => {

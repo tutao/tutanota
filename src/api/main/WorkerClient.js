@@ -149,9 +149,11 @@ export class WorkerClient {
 		}))
 	}
 
-	logout(): Promise<void> {
-		logins.deleteSession()
-		return this._postRequest(new Request('reset', arguments))
+	logout(sync: boolean): Promise<void> {
+		return Promise.all([
+			logins.deleteSession(sync),
+			this._postRequest(new Request('reset', arguments))
+		]).return()
 	}
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {

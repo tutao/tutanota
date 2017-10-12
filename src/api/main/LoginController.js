@@ -48,12 +48,14 @@ class LoginController {
 		}
 	}
 
-	deleteSession() {
+	deleteSession(sync: boolean): Promise<void> {
 		if (this._userController) {
-			this._userController.deleteSession()
-			this.setUserController(null)
+			return this._userController.deleteSession(sync).then(() => {
+				this.setUserController(null)
+			})
 		} else {
 			console.log("No session to delete")
+			return Promise.resolve()
 		}
 	}
 

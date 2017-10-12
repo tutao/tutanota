@@ -69,7 +69,7 @@ let initialized = lang.init(en).then(() => {
 				} else if (!requireLogin && logins.isUserLoggedIn()) {
 					logginOut()
 					return workerPromise.then(worker => {
-						return worker.logout().then(function () {
+						return worker.logout(false).then(function () {
 							window.location.reload();
 						})
 					})

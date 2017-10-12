@@ -96,27 +96,33 @@ export class UserController {
 		}
 	}
 
-	deleteSession() {
-		if (this.persistentSession) return
+	deleteSession(sync: boolean): Promise<void> {
+		if (this.persistentSession) return Promise.resolve()
 		let path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
 
-		var xhr = new XMLHttpRequest()
-		xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliablity when invoke in onunload
-		xhr.setRequestHeader('accessToken', this.accessToken)
-		xhr.setRequestHeader('v', SessionModelType.version)
-		xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
-			if (xhr.status === 200) {
-				console.log("deleted session")
-			} else if (xhr.status == 401) {
-				console.log("authentication failed => session is already deleted")
-			} else {
-				console.error("could not delete session " + xhr.status)
+		return Promise.fromCallback((resolve, reject) => {
+			var xhr = new XMLHttpRequest()
+			xhr.open("DELETE", getHttpOrigin() + path, !sync) // sync requests increase reliablity when invoke in onunload
+			xhr.setRequestHeader('accessToken', this.accessToken)
+			xhr.setRequestHeader('v', SessionModelType.version)
+			xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
+				if (xhr.status === 200) {
+					console.log("deleted session")
+					resolve()
+				} else if (xhr.status == 401) {
+					console.log("authentication failed => session is already deleted")
+					resolve()
+				} else {
+					console.error("could not delete session " + xhr.status)
+					reject("could not delete session " + xhr.status)
+				}
 			}
-		}
-		xhr.onerror = function () {
-			console.error("failed to request delete session")
-		}
-		xhr.send()
+			xhr.onerror = function () {
+				console.error("failed to request delete session")
+				reject("failed to request delete session")
+			}
+			xhr.send()
+		})
 	}
 
 }

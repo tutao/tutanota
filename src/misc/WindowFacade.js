@@ -82,7 +82,7 @@ class WindowFacade {
 	}
 
 	_close() {
-		worker.logout() // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+		worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
 	}
 
 
