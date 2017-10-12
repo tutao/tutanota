@@ -608,21 +608,28 @@ styles.registerStyle('main', () => {
 			".header-nav": {display: 'none'},
 			".main-view": {
 				top: 0,
+				position: "static !important"
+			},
+			".fill-absolute": {
+				position: "static !important"
 			},
 			".view-columns": {
 				width: "100% !important",
-				transform: "initial !important"
+				transform: "initial !important",
 			},
 			".view-column:nth-child(1), .view-column:nth-child(2)": {
 				display: 'none'
 			},
 			".view-column": {
-				left: "0  !important",
-				width: "100% !important"
+				width: "100% !important",
 			},
-			"button": {
+			"#mail-viewer": {
+				overflow: "visible"
+			},
+			"button:not(.print)": {
 				display: 'none'
 			},
+
 		}
 	}
 })

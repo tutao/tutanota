@@ -89,7 +89,7 @@ export class Button {
 
 		this.view = (): ?VirtualElement => {
 
-			return m("button.limit-width.noselect", {
+			return m("button.limit-width.noselect" + ((this._type == ButtonType.Bubble) ? ".print" : ""), {
 					class: this.getButtonClasses().join(' '),
 					style: this._type === ButtonType.Login ? {
 							'background-color': theme.content_accent,
