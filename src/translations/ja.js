@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2017-10-04T14:07:20Z",
+	"updated_at": "2017-10-11T07:51:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "申し訳ありません、アカウントが停止されています。管理者に問い合わせてください。",

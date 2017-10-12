@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2017-10-10T09:48:09Z",
+	"updated_at": "2017-10-11T07:51:34Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "للأسف، تم إلغاء تفعيل حسابك على توتانوتا. يرجى الاتصال بالمسؤول.",

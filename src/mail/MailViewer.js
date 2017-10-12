@@ -15,6 +15,7 @@ import {
 } from "../misc/Formatter"
 import {windowFacade} from "../misc/WindowFacade"
 import {ActionBar} from "../gui/base/ActionBar"
+import {ease} from "../gui/animation/Easing"
 import {MailBodyTypeRef} from "../api/entities/tutanota/MailBody"
 import {MailState, ConversationType, InboxRuleType, FeatureType} from "../api/common/TutanotaConstants"
 import {MailEditor} from "./MailEditor"
@@ -48,6 +49,7 @@ import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMail
 import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
+import {animations, scroll} from "../gui/animation/Animations"
 
 assertMainOrNode()
 
@@ -70,6 +72,7 @@ export class MailViewer {
 	_errorOccurred: boolean;
 	oncreate: Function;
 	onbeforeremove: Function;
+	_scrollAnimation: Promise<void>;
 
 	constructor(mail: Mail, mailView: MailView) {
 		this.mail = mail
@@ -81,6 +84,7 @@ export class MailViewer {
 		this._bodyLineHeight = size.line_height
 		this._errorOccurred = false
 		this._domMailViewer = null
+		this._scrollAnimation = Promise.resolve()
 
 		const resizeListener = () => this._updateLineHeight()
 		windowFacade.addResizeListener(resizeListener)
@@ -482,13 +486,42 @@ export class MailViewer {
 
 	scrollUp(): void {
 		if (this._domMailViewer) {
-			this._domMailViewer.scrollTop -= 200;
+			const dom = this._domMailViewer
+			let current = dom.scrollTop
+			if (this._scrollAnimation.isFulfilled()) {
+				this._scrollAnimation = animations.add(dom, scroll(current, Math.max(0, current - 200)), {easing: ease.inOut})
+			}
 		}
 	}
 
 	scrollDown(): void {
 		if (this._domMailViewer) {
-			this._domMailViewer.scrollTop += 200;
+			const dom = this._domMailViewer
+			let current = dom.scrollTop
+			if (this._scrollAnimation.isFulfilled()) {
+				this._scrollAnimation = animations.add(dom, scroll(current, Math.min(dom.scrollHeight - dom.offsetHeight, current + 200)), {easing: ease.inOut})
+			}
+		}
+	}
+
+	scrollToTop(): void {
+		if (this._domMailViewer) {
+			const dom = this._domMailViewer
+			let current = dom.scrollTop
+			if (this._scrollAnimation.isFulfilled()) {
+				this._scrollAnimation = animations.add(dom, scroll(current, 0), {easing: ease.inOut})
+			}
+		}
+	}
+
+	scrollToBottom(): void {
+		if (this._domMailViewer) {
+			const dom = this._domMailViewer
+			let current = dom.scrollTop
+			if (this._scrollAnimation.isFulfilled()) {
+				let end = dom.scrollHeight - dom.offsetHeight
+				this._scrollAnimation = animations.add(dom, scroll(current, end), {easing: ease.inOut})
+			}
 		}
 	}
 

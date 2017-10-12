@@ -134,14 +134,28 @@ export class MailView {
 				exec: () => {
 					if (this.mailViewer) this.mailViewer.scrollUp()
 				},
-				help: "scrollMailUp_action"
+				help: "scrollUp_action"
 			},
 			{
 				key: Keys.PAGE_DOWN,
 				exec: () => {
 					if (this.mailViewer) this.mailViewer.scrollDown()
 				},
-				help: "scrollMailDown_action"
+				help: "scrollDown_action"
+			},
+			{
+				key: Keys.HOME,
+				exec: () => {
+					if (this.mailViewer) this.mailViewer.scrollToTop()
+				},
+				help: "scrollToTop_action"
+			},
+			{
+				key: Keys.END,
+				exec: () => {
+					if (this.mailViewer) this.mailViewer.scrollToBottom()
+				},
+				help: "scrollToBottom_action"
 			},
 			{
 				key: Keys.UP,

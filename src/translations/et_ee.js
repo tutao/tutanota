@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-10-11T07:51:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Kahjuks Teie Tutanota konto on deaktiveeritud. Palun võtke oma administraatoriga ühendust.",

@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-10-10T09:48:49Z",
+	"updated_at": "2017-10-12T12:28:43Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -151,7 +151,6 @@ module.exports = {
 		"confirmDeleteCustomFolder_msg": "Do you really want to delete the folder '{1}' and all of its emails?",
 		"confirmDeleteFinallyCustomFolder_msg": "Do you really want to finally delete the folder '{1}' and all of its emails? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		"confirmDeleteFinallySystemFolder_msg": "Do you really want to finally delete all emails from the system folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
-		"operationStillActive_msg": "This operation can currently not be executed because another operation on this folder is still running. Please try again later.",
 		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?",
 		"confirmDeleteSystemFolder_msg": "Do you really want to delete all folders and emails from the system folder '{1}'?",
 		"confirmDeleteTrash_msg": "Do you really want to finally delete all emails from this folder?",
@@ -606,6 +605,7 @@ module.exports = {
 		"onlyPrivateComputer_msg": "Only choose this option if you are using a private device.",
 		"openCamera_action": "Camera",
 		"openSocial_alt": "Open this social account",
+		"operationStillActive_msg": "This operation can currently not be executed because another operation on this folder is still running. Please try again later.",
 		"optionalValues_label": "Voluntary information",
 		"orderAliasesConfirm_msg": "You can choose a larger alias package to register more aliases.",
 		"order_action": "Order",
@@ -745,6 +745,10 @@ module.exports = {
 		"save_action": "Save",
 		"save_msg": "Saving data ...",
 		"savingFailed_msg": "The message has been sent successfully but could not be stored into your sent messages folder.",
+		"scrollDown_action": "Scroll down",
+		"scrollToBottom_action": "Scroll to bottom",
+		"scrollToTop_action": "Scroll to top",
+		"scrollUp_action": "Scroll up",
 		"secondFactorAuthentication_label": "Second factor authentication",
 		"secondFactorConfirmLogin_label": "Confirm login",
 		"secondFactorConfirmLogin_msg": "Would you like to allow the login from the client \"{clientIdentifier}\" with the IP address {ipAddress}?",
@@ -906,8 +910,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"scrollMailDown_action": "Scroll email down",
-		"scrollMailUp_action": "Scroll email up",
+		"yourMessage_label": "Your message"
 	}
 }

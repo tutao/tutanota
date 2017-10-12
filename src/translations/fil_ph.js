@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-04-30T10:38:11Z",
-	"updated_at": "2017-06-23T08:26:16Z",
+	"updated_at": "2017-10-11T07:51:35Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Sa kasamaang-palad, ang iyong Tutanota account ay nawalang bisa. Pakipaalam sa iyong administrator.",

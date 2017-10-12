@@ -133,6 +133,15 @@ transform.type = {
 	rotateZ: 'rotateZ', // rotates an element
 }
 
+export function scroll(begin: number, end: number): DomMutation {
+	return {
+		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
+			let position = calculateValue(percent, begin, end, easing)
+			target.scrollTop = position
+		}
+	}
+}
+
 const TransformUnits = {
 	[transform.type.translateX]: 'px',
 	[transform.type.translateY]: 'px',

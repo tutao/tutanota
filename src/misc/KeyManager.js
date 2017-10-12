@@ -23,6 +23,8 @@ export const Keys = {
 	DOWN: {code: 40, name: "↓"},
 	PAGE_UP: {code: 33, name: "Page ↑"},
 	PAGE_DOWN: {code: 34, name: "Page ↓"},
+	HOME: {code: 36, name: "Home"},
+	END: {code: 35, name: "End"},
 	DELETE: {code: 46, name: "DEL"},
 	ONE: {code: 49, name: "1"},
 	TWO: {code: 50, name: "2"},
