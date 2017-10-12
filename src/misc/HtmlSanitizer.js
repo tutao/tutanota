@@ -90,6 +90,7 @@ class HtmlSanitizer {
 			this._externalContent.push(imageSrcAttr.value)
 			imageSrcAttr.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON;
 			htmlNode.attributes.setNamedItem(imageSrcAttr);
+			htmlNode.style["max-width"] = "100px"
 		}
 	}
 
@@ -110,6 +111,7 @@ class HtmlSanitizer {
 			this._externalContent.push(value)
 			let newImage = 'url("' + PREVENT_EXTERNAL_IMAGE_LOADING_ICON + '")'
 			htmlNode.style[styleAttributeName] = newImage;
+			htmlNode.style["max-width"] = "100px"
 		}
 	}
 
