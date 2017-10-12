@@ -50,7 +50,7 @@ type WorkerRequestType = 'setup'
 	| 'signup'
 	| 'createSession'
 	| 'createExternalSession'
-	| 'logout'
+	| 'reset'
 	| 'resumeSession'
 	| 'testEcho'
 	| 'testError'
@@ -99,7 +99,7 @@ type WorkerRequestType = 'setup'
 type MainRequestType ='execNative'
 	| 'entityEvent'
 	| 'error'
-	|'progress'
+	| 'progress'
 type NativeRequestType =  'init'
 	| 'generateRsaKey'
 	| 'rsaEncrypt'
@@ -173,7 +173,7 @@ declare var env: EnvType
 
 type Credentials = {
 	mailAddress:string,
-	encryptedPassword:Base64,
+	encryptedPassword: ?Base64, // only set for persistent sessions
 	accessToken: Base64Url,
 }
 

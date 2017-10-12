@@ -59,7 +59,7 @@ interface IUserController {
 	user: User;
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
-	sessionElementId: Id;
+	sessionId: IdTuple;
 	isAdmin():boolean;
 	isFreeAccount(): boolean;
 	isPremiumAccount(): boolean;
@@ -69,6 +69,7 @@ interface IUserController {
 	getMailGroupMemberships(): GroupMembership[];
 	getUserMailGroupMembership(): GroupMembership;
 	entityEventReceived(typeRef: TypeRef<any>, listId: ?string, elementId: string, operation: OperationTypeEnum):void;
+	deleteSession():void;
 }
 
 interface ILoginViewController {

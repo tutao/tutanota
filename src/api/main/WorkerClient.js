@@ -127,38 +127,36 @@ export class WorkerClient {
 		return this.initialized.then(() => this._postRequest(new Request('createContactFormUser', arguments)))
 	}
 
-	createWorkerSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionElementId: Id, credentials: ?Credentials}> {
+	createWorkerSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean): Promise<{user:User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}> {
 		return this.initialized.then(() => this._postRequest(new Request('createSession', arguments)))
 	}
 
-	createSession(username: string, password: string, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
-		return this.createWorkerSession(username, password, clientIdentifier, returnCredentials).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+	createSession(username: string, password: string, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
+		return this.createWorkerSession(username, password, clientIdentifier, persistentSession).then(loginData => {
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		})
 	}
 
-	_initUserController(user: User, userGroupInfo: GroupInfo, sessionElementId: Id) {
+	_initUserController(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, accessToken: Base64Url, persistentSession: boolean): Promise<void> {
 		return loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group).then(props => {
-			logins.setUserController(new UserController(user, userGroupInfo, sessionElementId, props))
+			logins.setUserController(new UserController(user, userGroupInfo, sessionId, props, accessToken, persistentSession))
 		})
 	}
 
-	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, returnCredentials: boolean): Promise<?Credentials> {
+	createExternalSession(userId: Id, password: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean): Promise<Credentials> {
 		return this.initialized.then(() => this._postRequest(new Request('createExternalSession', arguments)).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId).then(() => loginData.credentials)
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, loginData.credentials.accessToken, persistentSession).then(() => loginData.credentials)
 		}))
 	}
 
 	logout(): Promise<void> {
-		return this._postRequest(new Request('logout', arguments))
-			.finally(() => {
-				logins.setUserController(null)
-			})
+		logins.deleteSession()
+		return this._postRequest(new Request('reset', arguments))
 	}
 
 	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<void> {
 		return this._postRequest(new Request('resumeSession', arguments)).then(loginData => {
-			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionElementId)
+			return this._initUserController(loginData.user, loginData.userGroupInfo, loginData.sessionId, credentials.accessToken, true)
 		})
 	}
 

@@ -68,7 +68,7 @@ export class LoginSettingsViewer {
 			sessions.sort((s1, s2) => s2.lastAccessTime.getTime() - s1.lastAccessTime.getTime())
 			this._activeSessionTable.updateEntries(sessions.filter(session => session.state == SessionState.SESSION_STATE_ACTIVE).map(session => {
 				let closeSessionButton = null
-				let thisSession = logins.getUserController().sessionElementId == session._id[1]
+				let thisSession = logins.getUserController().sessionId[1] == session._id[1]
 				if (!thisSession) {
 					closeSessionButton = new Button("closeSession_action", () => {
 						erase(session)

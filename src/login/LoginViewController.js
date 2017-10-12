@@ -50,16 +50,17 @@ export class LoginViewController {
 			this.view.helpText = lang.get('loginFailed_msg')
 		} else {
 			this.view.helpText = lang.get('login_msg')
-			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), this.view.savePassword.checked())
+			let persistentSession = this.view.savePassword.checked()
+			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
 				.then(newCredentials => {
 					let storedCredentials = deviceConfig.get(mailAddress)
-					if (newCredentials) {
+					if (persistentSession) {
 						deviceConfig.set(newCredentials)
 					}
 					if (storedCredentials) {
 						return worker.deleteSession(storedCredentials.accessToken)
 							.then(() => {
-								if (!newCredentials) {
+								if (!persistentSession) {
 									deviceConfig.delete(mailAddress)
 								}
 							})

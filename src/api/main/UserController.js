@@ -7,8 +7,9 @@ import {CustomerTypeRef} from "../entities/sys/Customer"
 import {UserTypeRef} from "../entities/sys/User"
 import {isSameTypeRef, isSameId} from "../common/EntityFunctions"
 import {GroupInfoTypeRef} from "../entities/sys/GroupInfo"
-import {assertMainOrNode} from "../Env"
+import {assertMainOrNode, getHttpOrigin} from "../Env"
 import {TutanotaPropertiesTypeRef} from "../entities/tutanota/TutanotaProperties"
+import {_TypeModel as SessionModelType} from "../entities/sys/Session"
 
 assertMainOrNode()
 
@@ -16,13 +17,17 @@ export class UserController {
 	user: User;
 	userGroupInfo: GroupInfo;
 	props: TutanotaProperties;
-	sessionElementId: Id;
+	sessionId: IdTuple;
+	accessToken: Base64Url;
+	persistentSession: boolean;
 
-	constructor(user: User, userGroupInfo: GroupInfo, sessionElementId: Id, props: TutanotaProperties) {
+	constructor(user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, props: TutanotaProperties, accessToken: Base64Url, persistentSession: boolean) {
 		this.user = user
 		this.userGroupInfo = userGroupInfo
 		this.props = props
-		this.sessionElementId = sessionElementId
+		this.sessionId = sessionId
+		this.accessToken = accessToken
+		this.persistentSession = persistentSession
 	}
 
 	/**
@@ -90,4 +95,28 @@ export class UserController {
 			})
 		}
 	}
+
+	deleteSession() {
+		if (this.persistentSession) return
+		let path = '/rest/sys/session/' + this.sessionId[0] + "/" + this.sessionId[1]
+
+		var xhr = new XMLHttpRequest()
+		xhr.open("DELETE", getHttpOrigin() + path, false) // sync requests increase reliablity when invoke in onunload
+		xhr.setRequestHeader('accessToken', this.accessToken)
+		xhr.setRequestHeader('v', SessionModelType.version)
+		xhr.onload = function () { // XMLHttpRequestProgressEvent, but not needed
+			if (xhr.status === 200) {
+				console.log("deleted session")
+			} else if (xhr.status == 401) {
+				console.log("authentication failed => session is already deleted")
+			} else {
+				console.error("could not delete session " + xhr.status)
+			}
+		}
+		xhr.onerror = function () {
+			console.error("failed to request delete session")
+		}
+		xhr.send()
+	}
+
 }

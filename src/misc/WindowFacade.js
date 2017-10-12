@@ -2,16 +2,19 @@
 import m from "mithril"
 import {Mode, assertMainOrNode} from "../api/Env"
 import {lang} from "./LanguageViewModel"
+import {worker} from "../api/main/WorkerClient"
 
 assertMainOrNode()
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?number;
+	windowCloseConfirmation: boolean;
 
 	constructor() {
 		this._windowSizeListeners = []
 		this.resizeTimeout = null
+		this.windowCloseConfirmation = false
 		this.init()
 	}
 
@@ -51,6 +54,8 @@ class WindowFacade {
 				}, 66)
 			}
 		}
+		window.addEventListener("beforeunload", e => this._checkWindowClose(e))
+		window.addEventListener("unload", e => this._close())
 	}
 
 	_resize() {
@@ -65,17 +70,19 @@ class WindowFacade {
 	}
 
 	checkWindowClosing(enable: boolean) {
-		if (enable) {
-			window.addEventListener("beforeunload", this._checkWindowClose)
-		} else {
-			window.removeEventListener("beforeunload", this._checkWindowClose)
-		}
+		this.windowCloseConfirmation = enable
 	}
 
 	_checkWindowClose(e: any) { // BeforeUnloadEvent
-		let m = lang.get("closeWindowConfirmation_msg")
-		e.returnValue = m
-		return m
+		if (this.windowCloseConfirmation) {
+			let m = lang.get("closeWindowConfirmation_msg")
+			e.returnValue = m
+			return m
+		}
+	}
+
+	_close() {
+		worker.logout() // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
 	}
 
 

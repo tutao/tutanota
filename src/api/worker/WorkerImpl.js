@@ -26,11 +26,15 @@ assertWorkerOrNode()
 export class WorkerImpl {
 
 	_queue: Queue;
+	_newEntropy: number;
+	_lastEntropyUpdate: number;
 
 	constructor(self: ?DedicatedWorkerGlobalScope) {
 		const workerScope = self
 		this._queue = new Queue(workerScope)
 		nativeApp.setWorkerQueue(this._queue)
+		this._newEntropy = -1
+		this._lastEntropyUpdate = new Date().getTime()
 
 		this._queue.setCommands({
 			testEcho: (message: any) => Promise.resolve({msg: ">>> " + message.args[0].msg}),
@@ -58,8 +62,8 @@ export class WorkerImpl {
 			createExternalSession: (message: Request) => {
 				return loginFacade.createExternalSession.apply(loginFacade, message.args)
 			},
-			logout: (message: Request) => {
-				return loginFacade.logout().then(() => resetEntityRestCache())
+			reset: (message: Request) => {
+				return loginFacade.reset().then(() => resetEntityRestCache())
 			},
 			resumeSession: (message: Request) => {
 				return loginFacade.resumeSession.apply(loginFacade, message.args)
@@ -179,8 +183,8 @@ export class WorkerImpl {
 			generateTotpCode: (message: Request) => {
 				return this.getTotpVerifier().then(totp => totp.generateTotp.apply(totp, message.args))
 			},
-			entropy(message: Request) {
-				return random.addEntropy.apply(random, message.args)
+			entropy: (message: Request) => {
+				return this.addEntropy(message.args[0])
 			},
 			tryReconnectEventBus(message: Request) {
 				return loginFacade.tryReconnectEventBus()
@@ -194,8 +198,24 @@ export class WorkerImpl {
 		return Promise.resolve(new TotpVerifier())
 	}
 
+	/**
+	 * Adds entropy to the randomizer. Updated the stored entropy for a user when enough entropy has been collected.
+	 * @param entropy
+	 * @returns {Promise.<void>}
+	 */
 	addEntropy(entropy: {source: EntropySrcEnum, entropy: number, data: number}[]): Promise<void> {
-		return random.addEntropy(entropy)
+		try {
+			return random.addEntropy(entropy)
+		} finally {
+			this._newEntropy = this._newEntropy + entropy.reduce((sum, value) => value.entropy + sum, 0)
+			console.log("Entropy", this._newEntropy)
+			let now = new Date().getTime()
+			if (this._newEntropy > 5000 && (now - this._lastEntropyUpdate) > 1000 * 60 * 5) {
+				this._lastEntropyUpdate = now
+				this._newEntropy = 0
+				loginFacade.storeEntropy()
+			}
+		}
 	}
 
 	entityEventReceived(data: EntityUpdate): Promise<void> {

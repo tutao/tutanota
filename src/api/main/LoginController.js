@@ -47,6 +47,16 @@ class LoginController {
 			return Promise.resolve()
 		}
 	}
+
+	deleteSession() {
+		if (this._userController) {
+			this._userController.deleteSession()
+			this.setUserController(null)
+		} else {
+			console.log("No session to delete")
+		}
+	}
+
 }
 
 export const logins = new LoginController()
