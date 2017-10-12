@@ -51,6 +51,7 @@ import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {size, px} from "../gui/size"
+import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 
 
 assertMainOrNode()
@@ -312,9 +313,16 @@ export class MailEditor {
 		})
 	}
 
-	initWithTemplate(subject: string, bodyText: string, confidential: boolean): Promise<void> {
+	initWithTemplate(recipientMailAddress: ?string, subject: string, bodyText: string, confidential: boolean): Promise<void> {
+		let recipients = []
+		if (recipientMailAddress) {
+			let recipient = createMailAddress()
+			recipient.address = recipientMailAddress
+			recipient.name = ""
+			recipients.push(recipient)
+		}
 		bodyText = htmlSanitizer.sanitize(bodyText, false).text
-		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), [], [], [], [], subject, bodyText, [])
+		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), recipients, [], [], [], subject, bodyText, [])
 		return Promise.resolve()
 	}
 

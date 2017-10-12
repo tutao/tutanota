@@ -12,6 +12,8 @@ import {theme} from "../theme"
 import {Icons} from "./icons/Icons"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px} from "../size"
+import {MailEditor} from "../../mail/MailEditor"
+import {Mode} from "../../api/Env"
 
 const LogoutUrl = '/login?noAutoLogin=true'
 
@@ -48,6 +50,9 @@ class Header {
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()), 0, true)
 			.addButton(new NavButton('settings_label', () => Icons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
+			.addButton(new NavButton('supportMenu_label', () => Icons.Help, () => m.route.get())
+				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
+				.setClickHandler(() => this._writeSupportMail()), 0, true)
 			.addButton(new NavButton('logout_label', () => Icons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
@@ -102,21 +107,37 @@ class Header {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(this._shortcuts)
 	}
 
-	_invite = function () {
-		Promise.join(asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
-			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailBoxController.js`), (mailEditorModule, mailBoxControllerModule) => {
-				new mailBoxControllerModule.MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
-					let editor = new mailEditorModule.MailEditor(mc)
-					let username = logins.getUserController().userGroupInfo.name;
-					let body = lang.get("invitationMailBody_msg", {
-						'{registrationLink}': "https://app.tutanota.com/#register",
-						'{username}': username,
-						'{githubLink}': "https://github.com/tutao/tutanota"
-					})
-					editor.initWithTemplate(lang.get("invitationMailSubject_msg"), body, false).then(() => {
-						editor.show()
-					})
+	_invite() {
+		this._createMailEditor().then(editor => {
+			let username = logins.getUserController().userGroupInfo.name;
+			let body = lang.get("invitationMailBody_msg", {
+				'{registrationLink}': "https://app.tutanota.com/#register",
+				'{username}': username,
+				'{githubLink}': "https://github.com/tutao/tutanota"
+			})
+			editor.initWithTemplate(null, lang.get("invitationMailSubject_msg"), body, false).then(() => {
+				editor.show()
+			})
+		})
+	}
 
+	_writeSupportMail() {
+		this._createMailEditor().then(editor => {
+			let signature = "<br><br>--"
+			signature += "<br>Client: " + (env.mode == Mode.App ? (env.platformId != null ? env.platformId : "") + " app" : "Browser")
+			signature += "<br>Tutanota version: " + env.versionNumber
+			signature += "<br>User agent:<br>" + navigator.userAgent
+			editor.initWithTemplate("premium@tutao.de", "", signature, true).then(() => {
+				editor.show()
+			})
+		})
+	}
+
+	_createMailEditor(): Promise<MailEditor> {
+		return Promise.join(asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailEditor.js`),
+			asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/mail/MailBoxController.js`), (mailEditorModule, mailBoxControllerModule) => {
+				return new mailBoxControllerModule.MailBoxController(logins.getUserController().getUserMailGroupMembership()).loadMailBox().then(mc => {
+					return new mailEditorModule.MailEditor(mc)
 				})
 			})
 	}
