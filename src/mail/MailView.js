@@ -78,7 +78,7 @@ export class MailView {
 
 
 		this.listColumn = new ViewColumn({
-			view: () => m("list-column", [
+			view: () => m(".list-column", [
 				this.mailList ? m(this.mailList) : null,
 			])
 		}, ColumnType.Background, 300, 500, () => {

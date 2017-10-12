@@ -35,7 +35,7 @@ export class ContactView {
 
 	constructor() {
 		this.listColumn = new ViewColumn({
-			view: () => m("list-column", [
+			view: () => m(".list-column", [
 				this._contactList ? m(this._contactList) : null,
 			])
 		}, ColumnType.Background, 300, 500, () => lang.get("contacts_label"))

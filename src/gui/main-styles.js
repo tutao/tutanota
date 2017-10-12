@@ -602,6 +602,27 @@ styles.registerStyle('main', () => {
 			},
 
 			'.custom-logo': {width: px(40)}
+		},
+
+		"@media print": {
+			".header-nav": {display: 'none'},
+			".main-view": {
+				top: 0,
+			},
+			".view-columns": {
+				width: "100% !important",
+				transform: "initial !important"
+			},
+			".view-column:nth-child(1), .view-column:nth-child(2)": {
+				display: 'none'
+			},
+			".view-column": {
+				left: "0  !important",
+				width: "100% !important"
+			},
+			"button": {
+				display: 'none'
+			},
 		}
 	}
 })
