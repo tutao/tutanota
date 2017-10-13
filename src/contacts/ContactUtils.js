@@ -7,6 +7,7 @@ import type {
 } from "../api/common/TutanotaConstants"
 import {ContactPhoneNumberType, ContactAddressType, ContactSocialType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
+import {sortCompareByReverseId} from "../gui/base/List"
 
 assertMainOrNode()
 
@@ -60,5 +61,11 @@ export function getContactSocialTypeLabel(type: ContactSocialTypeEnum, custom: s
 }
 
 export function compareContacts(contact1: Contact, contact2: Contact) {
-	return (contact1.firstName + " " + contact2.lastName).trim().localeCompare(contact2.firstName + " " + contact2.lastName);
+	let result = (contact1.firstName + " " + contact2.lastName).trim().localeCompare(contact2.firstName + " " + contact2.lastName)
+	if (result == 0) {
+		// see Multiselect with shift and up arrow not working properly #152 at github
+		return sortCompareByReverseId(contact1, contact2)
+	} else {
+		return result
+	}
 }
