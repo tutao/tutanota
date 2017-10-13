@@ -81,6 +81,7 @@ export class Dialog {
 			let mobileMargin = px(size.hpad)
 			return m(this._getDialogWrapperStyle(dialogType), [
 					m(this._getDialogStyle(dialogType), {
+						onclick: (e: MouseEvent) => e.stopPropagation(), // do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
 						style: {
 							'margin-top': styles.isDesktopLayout() ? '60px' : mobileMargin,
 							'margin-left': mobileMargin,
@@ -104,7 +105,9 @@ export class Dialog {
 							}
 
 							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
-							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+							window.requestAnimationFrame(() => {
+								if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
+							})
 							animation.then(() => {
 								this._focusOnLoadFunction()
 							})
@@ -200,6 +203,9 @@ export class Dialog {
 			})
 		]).then(() => {
 		})
+	}
+
+	backgroundClick(e: MouseEvent) {
 	}
 
 	static progress<T>(messageIdOrMessageFunction: string|lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {

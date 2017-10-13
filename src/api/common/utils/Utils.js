@@ -1,5 +1,5 @@
-import type {GroupTypeEnum} from "../TutanotaConstants"
 // @flow
+import type {GroupTypeEnum} from "../TutanotaConstants"
 import {GroupType} from "../TutanotaConstants"
 
 export function defer() {

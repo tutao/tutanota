@@ -1,6 +1,5 @@
 // @flow
 import m from "mithril"
-import stream from "mithril/stream/stream.js"
 import {animations, alpha} from "./../animation/Animations"
 import {theme} from "../theme"
 import {assertMainOrNode} from "../../api/Env"
@@ -12,7 +11,6 @@ assertMainOrNode()
 class Modal {
 	components: {key: number, component: ModalComponent}[];
 	_domModal: HTMLElement;
-	onclick: stream<MouseEvent>;
 	view: Function;
 	visible: boolean;
 	currentKey: number;
@@ -21,13 +19,12 @@ class Modal {
 		this.currentKey = 0
 		this.components = []
 		this.visible = false
-		this.onclick = stream("")
 
 		this.view = (): VirtualElement => {
 
 			return m("#modal.fill-absolute", {
 				oncreate: (vnode) => this._domModal = vnode.dom,
-				onclick: (e: MouseEvent) => this.onclick(e),
+				onclick: (e: MouseEvent) => this.components.forEach(c => c.component.backgroundClick(e)),
 				style: {
 					'z-index': 99,
 					display: this.visible ? "" : 'none' // display: null not working for IE11
@@ -73,6 +70,10 @@ class Modal {
 
 	remove(component: ModalComponent) {
 		let componentIndex = this.components.findIndex(wrapper => wrapper.component == component)
+		if (componentIndex === -1) {
+			console.log("can't remove non existing component from modal")
+			return
+		}
 		let componentIsLastComponent = (componentIndex == this.components.length - 1)
 		if (componentIsLastComponent) {
 			keyManager.unregisterModalShortcuts(component.shortcuts())

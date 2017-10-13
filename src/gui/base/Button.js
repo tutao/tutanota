@@ -64,7 +64,7 @@ function getColors(buttonColors: ButtonColorEnum) {
 export class Button {
 	_type: ButtonTypeEnum;
 	clickHandler: clickHandler;
-	bubble: boolean;
+	propagateClickEvents: boolean;
 	icon: ?lazy<Vnode<IconAttrs>>;
 	isVisible: lazy<boolean>;
 	isSelected: lazy<boolean>;
@@ -84,7 +84,7 @@ export class Button {
 
 		this.isVisible = TRUE_CLOSURE
 		this.isSelected = FALSE_CLOSURE
-		this.bubble = true
+		this.propagateClickEvents = true
 		this.getLabel = labelTextIdOrTextFunction instanceof Function ? labelTextIdOrTextFunction : lang.get.bind(lang, labelTextIdOrTextFunction)
 
 		this.view = (): ?VirtualElement => {
@@ -257,7 +257,7 @@ export class Button {
 	}
 
 	disableBubbling() {
-		this.bubble = false
+		this.propagateClickEvents = false
 		return this
 	}
 
@@ -276,7 +276,7 @@ export class Button {
 		if (document.activeElement && document.activeElement.blur instanceof Function) {
 			document.activeElement.blur()
 		}
-		if (!this.bubble) {
+		if (!this.propagateClickEvents) {
 			event.stopPropagation()
 		}
 	}
@@ -298,12 +298,7 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
 				dropdown.setOrigin(buttonRect)
 				modal.display(dropdown)
-				let valueStream = modal.onclick.map(e => {
-					if (valueStream && !mainButton._domButton.contains(e.target) && dropdown.closeOnClickAllowed(e.target)) {
-						valueStream.end(true)
-						modal.remove(dropdown)
-					}
-				})
+
 			}
 		})
 	}:clickHandler), icon)
@@ -318,12 +313,6 @@ export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<s
 				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
 				dropdown.setOrigin(buttonRect)
 				modal.display(dropdown)
-				let valueStream = modal.onclick.map(e => {
-					if (valueStream && !mainButton._domButton.contains(e.target) && dropdown.closeOnClickAllowed(e.target)) {
-						valueStream.end(true)
-						modal.remove(dropdown)
-					}
-				})
 			}
 		}:clickHandler))
 		.hideLabel()

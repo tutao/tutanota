@@ -129,6 +129,7 @@ declare interface ModalComponent {
 	close():void;
 	shortcuts():Shortcut[];
 	view(): Vnode<any>;
+	backgroundClick(e: MouseEvent):void;
 }
 
 type LogCategory = {[key: string] : string}
@@ -181,3 +182,12 @@ type Status = {
 }
 
 type ButtonColors = {button: string, button_selected: string, icon: string, icon_selected: string}
+
+declare class Notification {
+	static permission:string;
+	static requestPermission(callback: Function):void;
+	constructor(application: string, options?: Object):void;
+	onshow:any;
+	onclick:any;
+	close:Function;
+}
