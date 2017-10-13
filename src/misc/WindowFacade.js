@@ -54,8 +54,10 @@ class WindowFacade {
 				}, 66)
 			}
 		}
-		window.addEventListener("beforeunload", e => this._checkWindowClose(e))
-		window.addEventListener("unload", e => this._close())
+		if (window.addEventListener) {
+			window.addEventListener("beforeunload", e => this._checkWindowClose(e))
+			window.addEventListener("unload", e => this._close())
+		}
 	}
 
 	_resize() {
