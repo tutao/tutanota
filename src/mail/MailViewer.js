@@ -461,10 +461,10 @@ export class MailViewer {
 	_getSenderOfResponseMail(): string {
 		let myMailAddresses = neverNull(this.mailView.selectedMailbox).getEnabledMailAddresses()
 		let addressesInMail = []
-		addressesInMail.push(this.mail.sender)
 		addAll(addressesInMail, this.mail.toRecipients)
 		addAll(addressesInMail, this.mail.ccRecipients)
 		addAll(addressesInMail, this.mail.bccRecipients)
+		addressesInMail.push(this.mail.sender)
 		let foundAddress = addressesInMail.find(address => contains(myMailAddresses, address.address))
 		if (foundAddress) {
 			return foundAddress.address
