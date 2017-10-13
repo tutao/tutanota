@@ -41,10 +41,12 @@ export class Dialog {
 	_shortcuts: Shortcut[];
 	view: Function;
 	visible: boolean;
+	_focusOnLoadFunction: Function;
 
 	constructor(dialogType: DialogTypeEnum, childComponent: MComponent<any>) {
 		this.buttons = []
 		this.visible = false
+		this._focusOnLoadFunction = this._defaultFocusOnLoad
 		this._shortcuts = [
 			{
 				key: Keys.TAB,
@@ -104,16 +106,27 @@ export class Dialog {
 							// select first input field. blur first to avoid that users can enter text in the previously focused element while the animation is running
 							if (document.activeElement && typeof document.activeElement.blur == "function") document.activeElement.blur()
 							animation.then(() => {
-								let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
-								if (inputs.length > 0) {
-									inputs[0].focus()
-								}
+								this._focusOnLoadFunction()
 							})
 						},
 					}, m(childComponent))
 				]
 			)
 		}
+	}
+
+	_defaultFocusOnLoad() {
+		let inputs = Array.from(this._domDialog.querySelectorAll(INPUT))
+		if (inputs.length > 0) {
+			inputs[0].focus()
+		}
+	}
+
+	/**
+	 * By default the focus is set on the first text field after this dialog is fully visible. This behavor can be overwritten by calling this function.
+	 */
+	setFocusOnLoadFunction(callback: Function): void {
+		this._focusOnLoadFunction = callback
 	}
 
 	_getDialogWrapperStyle(dialogType: DialogTypeEnum) {

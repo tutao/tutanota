@@ -101,7 +101,6 @@ export class MailEditor {
 		this.draft = null
 		this._mailboxController = mailboxController
 
-
 		let props = logins.getUserController().props
 
 		this._senderField = new DropDownSelector("sender_label", null, this._mailboxController.getEnabledMailAddresses().map(mailAddress => {
@@ -249,6 +248,12 @@ export class MailEditor {
 			})
 	}
 
+	_focusBodyOnLoad() {
+		this.editor.initialized.promise.then(() => {
+			this.editor.squire.focus()
+		})
+	}
+
 	_conversationTypeToTitleTextId(): string {
 		switch (this.conversationType) {
 			case ConversationType.NEW:
@@ -303,6 +308,9 @@ export class MailEditor {
 				bodyText = signature + bodyText
 			}
 		}
+		if (conversationType == ConversationType.REPLY) {
+			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
+		}
 		let previousMessageId: ?string = null
 		return load(ConversationEntryTypeRef, previousMail.conversationEntry).then(ce => {
 			previousMessageId = ce.messageId
@@ -320,6 +328,9 @@ export class MailEditor {
 			recipient.address = recipientMailAddress
 			recipient.name = ""
 			recipients.push(recipient)
+		}
+		if (recipientMailAddress) {
+			this.dialog.setFocusOnLoadFunction(() => this._focusBodyOnLoad())
 		}
 		bodyText = htmlSanitizer.sanitize(bodyText, false).text
 		this._setMailData(null, confidential, ConversationType.NEW, null, this._senderField.selectedValue(), recipients, [], [], [], subject, bodyText, [])
