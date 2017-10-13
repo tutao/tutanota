@@ -561,6 +561,7 @@ module.exports = {
 		"name_label": "Name",
 		"nbrOfInboxRules_msg": "You have defined {1} inbox rule(s).",
 		"nbrOfMailsSelected_msg": "{1} emails selected.",
+		"nbrOfContactsSelected_msg": "{1} contacts selected.",
 		"net_label": "net",
 		"newContact_action": "New contact",
 		"newMailsReceivedSubject_msg": "New email received.",
@@ -910,6 +911,13 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"importVCardError_msg": "Can not read vCard file.",
+		"importVCardSuccess_msg": "{1} contact(s) successfully imported!",
+		"vCardDateOfImportInComment_msg": "Imported from vCard on {date}",
+		"deleteContacts_msg": "Are you sure you want to delete the selected contact(s)?",
+		"deleteContacts_action": "Delete the selected contact(s)",
+		"all_contacts_label": "All contacts",
+		"importVCard_action": "Import vCard 3.0",
 	}
 }

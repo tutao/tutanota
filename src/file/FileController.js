@@ -28,7 +28,10 @@ export class FileController {
 		).return()
 	}
 
-	showFileChooser(multiple: boolean): Promise<Array<DataFile>> {
+	/**
+	 * @param allowedExtensions Array of extensions strings without "."
+	 */
+	showFileChooser(multiple: boolean, allowedExtensions: ?string[]): Promise<Array<DataFile>> {
 		// if (tutao.tutanota.util.ClientDetector.getDeviceType() == tutao.tutanota.util.ClientDetector.DEVICE_TYPE_WINDOWS_PHONE) {
 		// 	return tutao.tutanota.gui.alert(tutao.lang("addAttachmentNotPossibleIe_msg")).then(function() {
 		// 		return []
@@ -50,6 +53,9 @@ export class FileController {
 			newFileInput.setAttribute("multiple", "multiple")
 		}
 		newFileInput.setAttribute("id", "hiddenFileChooser")
+		if (allowedExtensions) {
+			newFileInput.setAttribute("accept", allowedExtensions.map(e => "." + e).join(","))
+		}
 		newFileInput.style.display = "none"
 
 		let promise = Promise.fromCallback(cb => {

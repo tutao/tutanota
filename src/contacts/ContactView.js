@@ -5,26 +5,36 @@ import {ViewColumn, ColumnType} from "../gui/base/ViewColumn"
 import {worker} from "../api/main/WorkerClient"
 import {ContactViewer} from "./ContactViewer"
 import {header} from "../gui/base/Header"
-import {Button, ButtonType} from "../gui/base/Button"
+import {Button, ButtonType, createDropDownButton, ButtonColors} from "../gui/base/Button"
 import {ContactEditor} from "./ContactEditor"
 import {ContactTypeRef} from "../api/entities/tutanota/Contact"
 import {ContactListView} from "./ContactListView"
 import {TypeRef, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {lang} from "../misc/LanguageViewModel"
-import {neverNull} from "../api/common/utils/Utils"
-import {load} from "../api/main/Entity"
+import {neverNull, getGroupInfoDisplayName} from "../api/common/utils/Utils"
+import {load, setup, erase} from "../api/main/Entity"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
-import {OperationType} from "../api/common/TutanotaConstants"
+import {OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {assertMainOrNode} from "../api/Env"
-import MessageBox from "../gui/base/MessageBox"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {Icons} from "../gui/base/icons/Icons"
+import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
+import {Dialog} from "../gui/base/Dialog"
+import {fileController} from "../file/FileController"
+import {logins} from "../api/main/LoginController"
+import {vCardFileToVCards, vCardListToContacts} from "./VCardImporter"
+import {NotFoundError} from "../api/common/error/RestError"
+import {MultiContactViewer} from "./MultiContactViewer"
+import {NavButton} from "../gui/base/NavButton"
+import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {theme} from "../gui/theme"
 
 assertMainOrNode()
 
 export class ContactView {
 	listColumn: ViewColumn;
 	contactColumn: ViewColumn;
+	folderColumn: ViewColumn;
 	contactViewer: ?ContactViewer;
 	viewSlider: ViewSlider;
 	_contactList: ContactListView;
@@ -34,6 +44,15 @@ export class ContactView {
 	onbeforeremove: Function;
 
 	constructor() {
+		let expander = this.createContactFoldersExpander()
+
+		this.folderColumn = new ViewColumn({
+			view: () => m(".folder-column.scroll.overflow-x-hidden", [
+				m(".mr-negative-s.flex-space-between.plr-l", m(expander)),
+				m(expander.panel)
+			])
+		}, ColumnType.Foreground, 200, 300, () => lang.get("folderTitle_label"))
+
 		this.listColumn = new ViewColumn({
 			view: () => m(".list-column", [
 				this._contactList ? m(this._contactList) : null,
@@ -42,9 +61,9 @@ export class ContactView {
 
 		this.contactViewer = null
 
-		let emptyMessageBox = new MessageBox("noContact_msg")
+		let multiContactViewer = new MultiContactViewer(this)
 		this.contactColumn = new ViewColumn({
-			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(emptyMessageBox))
+			view: () => m(".contact", this.contactViewer != null ? m(this.contactViewer) : m(multiContactViewer))
 		}, ColumnType.Background, 600, 2400, () => {
 			let selectedEntities = this._contactList.list.getSelectedEntities();
 			if (selectedEntities.length > 0) {
@@ -55,7 +74,7 @@ export class ContactView {
 			}
 		})
 
-		this.viewSlider = new ViewSlider([this.listColumn, this.contactColumn], "ContactView")
+		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.contactColumn], "ContactView")
 		this.newAction = new Button('newContact_action', () => this.createNewContact(), () => Icons.Add)
 			.setType(ButtonType.Floating)
 
@@ -84,9 +103,26 @@ export class ContactView {
 				help: "selectPrevious_action"
 			},
 			{
+				key: Keys.UP,
+				shift: true,
+				exec: () => this._contactList.list.selectPrevious(true),
+				help: "addPrevious_action"
+			},
+			{
 				key: Keys.DOWN,
 				exec: () => this._contactList.list.selectNext(false),
 				help: "selectNext_action"
+			},
+			{
+				key: Keys.DOWN,
+				shift: true,
+				exec: () => this._contactList.list.selectNext(true),
+				help: "addNext_action"
+			},
+			{
+				key: Keys.DELETE,
+				exec: () => this._deleteSelected(),
+				help: "deleteContacts_action"
 			},
 			{
 				key: Keys.N,
@@ -100,6 +136,51 @@ export class ContactView {
 		this.onbeforeremove = () => keyManager.unregisterShortcuts(shortcuts)
 	}
 
+	createContactFoldersExpander(): ExpanderButton {
+		let folderMoreButton = this.createFolderMoreButton()
+		let folderButton = new NavButton('all_contacts_label', () => Icons.Contacts, () => m.route.get())
+		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
+				view: () => m(".folders", [m(".folder-row.flex-space-between.plr-l.row-selected", [
+					m(folderButton),
+					m(folderMoreButton)
+				])])
+			}), false, {}, theme.navigation_button
+		)
+		contactExpander.toggle()
+		return contactExpander
+	}
+
+	createFolderMoreButton() {
+		return createDropDownButton("more_label", () => Icons.More, () => [
+			new Button('importVCard_action', () => {
+
+				fileController.showFileChooser(false, ["vcf"]).then((contactFile) => {
+					try {
+						let vCardFileData = utf8Uint8ArrayToString(contactFile[0].data)
+						let vCards = vCardFileToVCards(vCardFileData)
+						if (vCards) {
+							let contactList = vCardListToContacts(vCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
+							return worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+								let promises = []
+								contactList.forEach((contact) => {
+									promises.push(setup(contactListId, contact))
+								})
+								return Promise.all(promises).then(() => {
+									return Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": promises.length}))
+								})
+							})
+						} else {
+							Dialog.error("importVCardError_msg")
+						}
+					} catch (e) {
+						console.log(e)
+						Dialog.error("importVCardError_msg")
+					}
+				})
+			}, () => Icons.ContactImport).setType(ButtonType.Dropdown),
+
+		], 250).setColors(ButtonColors.Nav)
+	}
 
 	/**
 	 * Notifies the current view about changes of the url within its scope.
@@ -132,6 +213,18 @@ export class ContactView {
 	_setUrl(url: string) {
 		header.contactsUrl = url
 		m.route.set(url)
+	}
+
+	_deleteSelected(): void {
+		Dialog.confirm("deleteContacts_msg").then(confirmed => {
+			if (confirmed) {
+				this._contactList.list.getSelectedEntities().forEach(contact => {
+					erase(contact).catch(NotFoundError, e => {
+						// ignore because the delete key shortcut may be executed again while the contact is already deleted
+					})
+				})
+			}
+		})
 	}
 
 	elementSelected(contacts: Contact[], elementClicked: boolean, selectionChanged: boolean, multiSelectOperation: boolean): void {

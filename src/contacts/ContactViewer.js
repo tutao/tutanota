@@ -3,7 +3,6 @@ import m from "mithril"
 import {lang} from "../misc/LanguageViewModel"
 import {Button} from "../gui/base/Button"
 import {ContactView} from "./ContactView"
-import {formatDateWithMonth} from "../misc/Formatter"
 import {ContactEditor} from "./ContactEditor"
 import {getContactAddressTypeLabel, getContactPhoneNumberTypeLabel, getContactSocialTypeLabel} from "./ContactUtils"
 import {ActionBar} from "../gui/base/ActionBar"
@@ -14,6 +13,8 @@ import {keyManager, Keys} from "../misc/KeyManager"
 import {Dialog} from "../gui/base/Dialog"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
+import {formatDateWithMonth} from "../misc/Formatter"
+import {NotFoundError} from "../api/common/error/RestError"
 
 assertMainOrNode()
 
@@ -132,11 +133,6 @@ export class ContactViewer {
 				exec: () => this.edit(),
 				help: "editContact_label"
 			},
-			{
-				key: Keys.DELETE,
-				exec: () => this.delete(),
-				help: "delete_action"
-			},
 		]
 
 		this.oncreate = () => keyManager.registerShortcuts(shortcuts)
@@ -146,7 +142,9 @@ export class ContactViewer {
 	delete() {
 		Dialog.confirm("deleteContact_msg").then((confirmed) => {
 			if (confirmed) {
-				erase(this.contact)
+				erase(this.contact).catch(NotFoundError, e => {
+					// ignore because the delete key shortcut may be executed again while the contact is already deleted
+				})
 			}
 		})
 	}
