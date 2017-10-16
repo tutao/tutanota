@@ -36,6 +36,7 @@ export class TextField {
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
 	active: boolean;
+	webkitAutofill: boolean;
 	disabled: boolean;
 	_injectionsLeft: ?Function; // only used by the BubbleTextField to display bubbles
 	_injectionsRight: ?Function;
@@ -53,6 +54,7 @@ export class TextField {
 	constructor(labelIdOrLabelTextFunction: string|lazy<string>, helpLabel: ?lazy<string>) {
 		this.label = labelIdOrLabelTextFunction
 		this.active = false
+		this.webkitAutofill = false
 		this.disabled = false
 		this.helpLabel = helpLabel
 		this.value = stream("")
@@ -128,7 +130,19 @@ export class TextField {
 			return m("input.input" + (this._alignRight ? ".right" : ""), {
 				type: (this.type == Type.ExternalPassword) ? (this.isActive() ? Type.Text : Type.Password) : this.type,
 				value: this.value(),
-				oncreate: (vnode) => this._domInput = vnode.dom,
+				oncreate: (vnode) => {
+					this._domInput = vnode.dom
+					if (this.type == Type.Password) {
+						vnode.dom.addEventListener('animationstart', e => {
+							if (e.animationName === "onAutoFillStart") {
+								this.animate(true)
+								this.webkitAutofill = true
+							} else if (e.animationName === "onAutoFillCancel") {
+								this.webkitAutofill = false
+							}
+						})
+					}
+				},
 				onfocus: (e) => this.focus(),
 				onblur: e => this.blur(e),
 				onkeydown: e => {
@@ -142,8 +156,8 @@ export class TextField {
 					this._domInput.onblur = null
 				},
 				oninput: e => {
-					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
-						this.animate(true) // animate in case of browser autocompletion
+					if (this.isEmpty() && this._domInput.value !== "" && !this.active && !this.webkitAutofill) {
+						this.animate(true) // animate in case of browser autocompletion (non-webkit)
 					}
 					this.value(this._domInput.value) // update the input on each change
 				},

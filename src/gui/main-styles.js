@@ -82,6 +82,7 @@ styles.registerStyle('main', () => {
 		//view: position_absolute(0, 0, 0, 0),
 
 		// margins
+		'.m-0': {margin: 0},
 		'.mt': {'margin-top': px(size.vpad)},
 		'.mt-xs': {'margin-top': px(size.vpad_xs)},
 		'.mt-s': {'margin-top': px(size.vpad_small)},
@@ -100,6 +101,7 @@ styles.registerStyle('main', () => {
 		// paddings
 		'.pt-responsive': {'padding-top': px(size.hpad_large * 3)},
 		'.pt': {'padding-top': px(size.vpad)},
+		'.pt-0': {'padding-top': 0},
 		'.pt-s': {'padding-top': px(size.vpad_small)},
 		'.pt-l': {'padding-top': px(size.vpad_large)},
 		'.pt-xl': {'padding-top': px(size.vpad_xl)},
@@ -629,6 +631,14 @@ styles.registerStyle('main', () => {
 				display: 'none'
 			},
 
-		}
+		},
+
+		// detect webkit autofills; see TextField and https://medium.com/@brunn/detecting-autofilled-fields-in-javascript-aed598d25da7
+		"@keyframes onAutoFillStart": {from: {/**/}, to: {/**/}},
+		"@keyframes onAutoFillCancel": {from: {/**/}, to: {/**/}},
+		// use the animations as hooks for JS to capture 'animationstart' events
+		"input[type=password]:-webkit-autofill": {"animation-name": "onAutoFillStart",},
+		"input[type=password]:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
+
 	}
 })
