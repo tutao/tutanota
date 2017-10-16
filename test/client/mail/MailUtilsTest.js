@@ -70,7 +70,7 @@ o.spec("MailUtils", browser(function () {
 		o(result.cc.length).equals(1)
 		o(result.cc[0].address).equals("someone_else@example.com")
 		o(result.subject).equals("This is the subject")
-		o(result.body).equals("This is the body<br>Kind regards someone")
+		o(result.body).equals("This is the body\r<br>Kind regards someone")
 	})
 
 	o(" parserMailtoUrl with multiple recipients", function () {

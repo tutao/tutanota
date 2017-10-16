@@ -105,7 +105,7 @@ o.spec("HtmlSanitizerTest", browser(function () {
 	o("detect images", function () {
 		let result = htmlSanitizer.sanitize('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', true)
 		o(result.externalContent[0]).equals("https://emailprivacytester.com/cb/510828b5a8f43ab5")
-		o(result.text.includes('<img src="data:image/svg+xml;utf8,')).equals(true);
+		o(result.text.includes('src="data:image/svg+xml;utf8,')).equals(true);
 	})
 
 	o("detect figure", function () {

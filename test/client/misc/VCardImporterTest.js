@@ -166,7 +166,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.birthday = new Date("09/09/2016")
-		b.comment = "Hello World\nHier ist ein Umbruch\n\n" + importNote + date.toDateString()
+		b.comment = "Hello World\nHier ist ein Umbruch\n\n" + importNote + date.toDateString() + "."
 		b.company = ""
 		b.title = ""
 
@@ -190,7 +190,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public\\"
 		b.birthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString()
+		b.comment = importNote + date.toDateString() + "."
 		b.company = ""
 		b.title = ""
 
@@ -216,7 +216,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 		b.firstName = "John; Quinlan"
 		b.lastName = "Public\\"
 		b.birthday = new Date("09/09/2016")
-		b.comment = importNote + date.toDateString()
+		b.comment = importNote + date.toDateString() + "."
 		b.company = ""
 		b.title = ""
 
@@ -255,7 +255,7 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`
 			number: 'HOME01923825434',
 			type: '1'
 		}
-		b.comment = importNote + date.toDateString()
+		b.comment = importNote + date.toDateString() + "."
 		o(JSON.stringify(contacts[0])).deepEquals(JSON.stringify(b))
 	})
 })
