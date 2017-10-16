@@ -1,15 +1,14 @@
 // @flow
 import m from "mithril"
 import {windowFacade} from "../../misc/WindowFacade"
-import {NavButton, NavButtonColors} from "./NavButton"
-import {createDropDownNavButton} from "./Button"
-import {assertMainOrNode} from "../../api/Env"
-import {Icons} from "./icons/Icons"
+import {NavButton, NavButtonColors, createDropDownNavButton} from "./NavButton"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {size} from "../size"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import {BootIcons} from "./icons/BootIcons"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 type ButtonWrapper = {id: number, priority: number; button: NavButton, prefixComponent?: Component, width:number}
 
@@ -46,7 +45,7 @@ export class NavBar {
 		this.more = {
 			id: Number.MAX_VALUE,
 			priority: MAX_PRIO,
-			button: createDropDownNavButton("more_label", () => Icons.MoreVertical, () => {
+			button: createDropDownNavButton("more_label", () => BootIcons.MoreVertical, () => {
 				let buttons = this.getVisibleButtons().hidden.map(wrapper => wrapper.button)
 				return buttons
 			}),

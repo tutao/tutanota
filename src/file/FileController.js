@@ -5,13 +5,14 @@ import {createDataFile} from "../api/common/DataFile"
 import {assertMainOrNode} from "../api/Env"
 import {fileApp} from "../native/FileApp"
 import {neverNull} from "../api/common/utils/Utils"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
 export class FileController {
 
 	downloadAndOpen(tutanotaFile: TutanotaFile): Promise<void> {
-		return Dialog.progress("pleaseWait_msg",
+		return showProgressDialog("pleaseWait_msg",
 			worker.downloadFileContent(tutanotaFile).then(file => {
 				return this.open(file)
 			})
@@ -19,7 +20,7 @@ export class FileController {
 	}
 
 	downloadAndOpenAll(tutanotaFiles: TutanotaFile[]): Promise<void> {
-		return Dialog.progress("pleaseWait_msg",
+		return showProgressDialog("pleaseWait_msg",
 			Promise.map(tutanotaFiles, (tutanotaFile) => {
 				return worker.downloadFileContent(tutanotaFile)
 			}).each((file, index) => {

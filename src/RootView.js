@@ -2,9 +2,9 @@
 import m from "mithril"
 import {header} from "./gui/base/Header"
 import {modal} from "./gui/base/Modal"
-import {assertMainOrNode} from "./api/Env"
+import {assertMainOrNodeBoot} from "./api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 class RootView {
 	view: Function;

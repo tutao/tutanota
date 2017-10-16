@@ -10,7 +10,7 @@ import {fileController} from "../file/FileController"
 import {utf8Uint8ArrayToString} from "../api/common/utils/Encoding"
 import {InvalidDataError} from "../api/common/error/RestError"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
-import {BootIcons} from "../gui/base/icons/BootIcons"
+import {Icons} from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -41,7 +41,7 @@ export function show(customerInfo: CustomerInfo): void {
 			certificateChainField.setValue(certChainFile.name)
 			m.redraw()
 		})
-	}, () => BootIcons.Edit)
+	}, () => Icons.Edit)
 	certificateChainField._injectionsRight = () => [m(chooseCertificateChainButton)]
 
 	let privKeyFile: ?DataFile = null
@@ -52,7 +52,7 @@ export function show(customerInfo: CustomerInfo): void {
 			privateKeyField.setValue(privKeyFile.name)
 			m.redraw()
 		})
-	}, () => BootIcons.Edit)
+	}, () => Icons.Edit)
 	privateKeyField._injectionsRight = () => [m(choosePrivateKeyButton)]
 
 	let form = {

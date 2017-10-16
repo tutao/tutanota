@@ -12,8 +12,6 @@ import {assertMainOrNode} from "../../api/Env"
 import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
 import {neverNull} from "../../api/common/utils/Utils"
-import {PasswordIndicator} from "./PasswordIndicator"
-import {worker} from "../../api/main/WorkerClient"
 import {DropDownSelector} from "./DropDownSelector"
 import {theme} from "../theme"
 import {progressIcon} from "./Icon"
@@ -207,43 +205,6 @@ export class Dialog {
 
 	backgroundClick(e: MouseEvent) {
 	}
-
-	static progress<T>(messageIdOrMessageFunction: string|lazy<string>, action: Promise<T>, showProgress: ?boolean): Promise<T> {
-		let progress = 0
-		let progressIndicator = (showProgress === true) ? new PasswordIndicator(() => progress) : null
-		let progressDialog = new Dialog(DialogType.Progress, {
-			view: () => m("", [
-				m(".flex-center", !showProgress ? progressIcon() : (progressIndicator ? m(progressIndicator) : null)),
-				m("p", messageIdOrMessageFunction instanceof Function ? messageIdOrMessageFunction() : lang.get(messageIdOrMessageFunction))
-			])
-		})
-		let updater: progressUpdater = newProgress => {
-			progress = newProgress
-			m.redraw()
-		}
-		worker.registerProgressUpdater(updater)
-		progressDialog.show()
-		let start = new Date().getTime()
-
-		return Promise.fromCallback(cb => {
-			action.then(result => {
-				let diff = new Date().getTime() - start
-				setTimeout(() => {
-					worker.unregisterProgressUpdater(updater)
-					progressDialog.close()
-					setTimeout(() => cb(null, result), DefaultAnimationTime)
-				}, Math.max(1000 - diff, 0))
-			}).catch(e => {
-				let diff = new Date().getTime() - start
-				setTimeout(() => {
-					worker.unregisterProgressUpdater(updater)
-					progressDialog.close()
-					setTimeout(() => cb(e, null), DefaultAnimationTime)
-				}, Math.max(1000 - diff, 0))
-			})
-		})
-	}
-
 
 	static pending(messageIdOrMessageFunction: string|lazy<string>, image: ?string): Dialog {
 		let dialog = new Dialog(DialogType.Progress, {

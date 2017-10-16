@@ -7,12 +7,12 @@ import {removeFlash, addFlash} from "./Flash"
 import {NavButton} from "./NavButton"
 import {Dropdown} from "./Dropdown"
 import {modal} from "./Modal"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
-import {Dialog} from "./Dialog"
+import {asyncImport} from "../../api/common/utils/Utils"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const ButtonType = {
 	Action: 'action',
@@ -290,7 +290,9 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 	let mainButton = new Button(labelTextIdOrTextFunction, (() => {
 		let buttonPromise = lazyButtons()
 		if (!buttonPromise.isFulfilled()) {
-			buttonPromise = Dialog.progress("loading_msg", buttonPromise)
+			buttonPromise = asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/gui/base/ProgressDialog.js`).then(module => {
+				return module.showProgressDialog("loading_msg", buttonPromise)
+			})
 		}
 		buttonPromise.then(buttons => {
 			let dropdown = new Dropdown(() => buttons, width)
@@ -305,16 +307,3 @@ export function createAsyncDropDownButton(labelTextIdOrTextFunction: string|lazy
 	return mainButton
 }
 
-export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string|NavButton|Button>>, width: number = 200): NavButton {
-	let dropdown = new Dropdown(lazyButtons, width)
-	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
-		.setClickHandler((() => {
-			if (mainButton._domButton) {
-				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
-				dropdown.setOrigin(buttonRect)
-				modal.display(dropdown)
-			}
-		}:clickHandler))
-		.hideLabel()
-	return mainButton
-}

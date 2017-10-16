@@ -8,6 +8,7 @@ import TableLine from "../gui/base/TableLine"
 import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import * as AddSpamRuleDialog from "./AddSpamRuleDialog"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {SpamRuleType, OperationType, GroupType} from "../api/common/TutanotaConstants"
 import {neverNull, getGroupInfoDisplayName, getUserGroupMemberships} from "../api/common/utils/Utils"
 import {CustomerServerPropertiesTypeRef} from "../api/entities/sys/CustomerServerProperties"
@@ -38,7 +39,7 @@ import {stringToUtf8Uint8Array, timestampToGeneratedId} from "../api/common/util
 import {createFile} from "../api/entities/tutanota/File"
 import {fileController} from "../file/FileController"
 import {DatePicker} from "../gui/base/DatePicker"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -221,7 +222,7 @@ export class GlobalSettingsViewer {
 					let actionButton = createDropDownButton("action_label", () => Icons.More, () => {
 						let buttons = []
 						buttons.push(new Button("setCatchAllMailbox_action", () => {
-							Dialog.progress("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+							showProgressDialog("pleaseWait_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 								return loadEnabledTeamMailGroups(customer).then(teamMailGroups => loadEnabledUserMailGroups(customer).then(userMailGroups => {
 									let allMailGroups = teamMailGroups.concat(userMailGroups)
 									let options = [
@@ -289,7 +290,7 @@ export class GlobalSettingsViewer {
 		if ((from == null || to == null) || from.getTime() > to.getTime()) {
 			Dialog.error("dateInvalidRange_msg")
 		} else {
-			Dialog.progress("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
+			showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer))
 				.then(customer => load(CustomerContactFormGroupRootTypeRef, customer.customerGroup))
 				.then(root => loadAll(StatisticLogEntryTypeRef, root.statisticsLog, timestampToGeneratedId(neverNull(from).getTime()), timestampToGeneratedId(neverNull(to).getTime() + DAY_IN_MILLIS)))
 				.then(logEntries => {

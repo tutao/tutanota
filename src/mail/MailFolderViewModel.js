@@ -2,7 +2,6 @@
 import {lang} from "../misc/LanguageViewModel"
 import {assertMainOrNode} from "../api/Env"
 import {Icons} from "../gui/base/icons/Icons"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -48,7 +47,7 @@ export class MailFolderViewModel {
 			case '5':
 				return () => Icons.Spam
 			case '6':
-				return () => BootIcons.Edit
+				return () => Icons.Edit
 			default:
 				return () => Icons.Folder
 		}

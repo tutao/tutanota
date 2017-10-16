@@ -16,13 +16,14 @@ import {GroupTypeRef} from "../api/entities/sys/Group"
 import {GroupMemberTypeRef} from "../api/entities/sys/GroupMember"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {logins} from "../api/main/LoginController"
 import * as AddUserDialog from "./AddUserDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -194,7 +195,7 @@ export class UserRow {
 				m("small.mail-address", {oncreate: (vnode) => this._domAddress = vnode.dom}),
 				m(".icons.flex", [
 					m(Icon, {
-						icon: Icons.Settings,
+						icon: BootIcons.Settings,
 						oncreate: (vnode) => this._domAdminIcon = vnode.dom,
 						class: "svg-list-accent-fg",
 						title: lang.get("administrator_label"),

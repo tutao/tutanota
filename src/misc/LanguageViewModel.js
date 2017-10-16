@@ -1,10 +1,10 @@
 // @flow
 import {startsWith} from "../api/common/utils/StringUtils"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {asyncImport} from "../api/common/utils/Utils"
 import {client} from "./ClientDetector"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export type Language = {code: string, textId: string}
 

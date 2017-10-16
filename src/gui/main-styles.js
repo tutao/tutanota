@@ -3,11 +3,10 @@ import {styles} from "./styles"
 import {size, px} from "./size"
 import {client} from "../misc/ClientDetector"
 import {position_absolute, positionValue, flex, noselect} from "./mixins"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {theme} from "./theme.js"
-import {colors} from "./AlternateColors"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 styles.registerStyle('main', () => {
 	return {
@@ -185,7 +184,7 @@ styles.registerStyle('main', () => {
 		'.swipe-spacer path': {
 			fill: '#ffffff',
 		},
-		'.blue': {'background-color': colors.alt_5},
+		'.blue': {'background-color': "#2196F3"},
 
 		'.hover-ul:hover': {'text-decoration': 'underline'},
 

@@ -27,11 +27,11 @@ import {pushServiceApp} from "../native/PushServiceApp"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {logins} from "../api/main/LoginController"
 import {getDefaultSenderFromUser} from "../mail/MailUtils"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {getCleanedMailAddress} from "../misc/Formatter"
 import {worker} from "../api/main/WorkerClient"
 import {showNotAvailableForFreeDialog} from "../misc/ErrorHandlerImpl"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -56,7 +56,7 @@ export class MailSettingsViewer {
 				logins.getUserController().userGroupInfo.name = newName
 				update(logins.getUserController().userGroupInfo)
 			})
-		}, () => BootIcons.Edit)
+		}, () => Icons.Edit)
 
 		this._senderName._injectionsRight = () => logins.getUserController().isAdmin() ? [m(editSenderNameButton)] : []
 
@@ -92,7 +92,7 @@ export class MailSettingsViewer {
 		})
 
 		this._signature = new TextField("userEmailSignature_label").setValue(EditSignatureDialog.getSignatureType(logins.getUserController().props).name).setDisabled()
-		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(), () => BootIcons.Edit)
+		let changeSignatureButton = new Button("edit_action", () => EditSignatureDialog.show(), () => Icons.Edit)
 		this._signature._injectionsRight = () => [m(changeSignatureButton)]
 
 		this._aliases = new EditAliasesForm(logins.getUserController().userGroupInfo)
@@ -211,7 +211,7 @@ export class MailSettingsViewer {
 					pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
 					pushIdentifier._area = "0" // legacy
 					let p = worker.entityRequest(PushIdentifierTypeRef, HttpMethodEnum.POST, neverNull(logins.getUserController().user.pushIdentifierList).list, null, pushIdentifier);
-					Dialog.progress("pleaseWait_msg", p)
+					showProgressDialog("pleaseWait_msg", p)
 				}
 			})
 		}

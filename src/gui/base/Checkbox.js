@@ -3,11 +3,11 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {removeFlash, addFlash} from "./Flash"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {Icon} from "./Icon"
 import {BootIcons} from "./icons/BootIcons"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const FALSE_CLOSURE = () => {
 	return false

@@ -25,6 +25,7 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {client} from "../misc/ClientDetector"
 import {secondFactorHandler} from "./SecondFactorHandler"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -36,7 +37,7 @@ export class LoginViewController {
 	}
 
 	_autologin(credentials: Credentials): void {
-		Dialog.progress("login_msg", worker.initialized.then(() => {
+		showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials), () => {
 				this.view._showLoginForm(credentials.mailAddress)
 			})
@@ -66,7 +67,7 @@ export class LoginViewController {
 							})
 					}
 				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			this._handleSession(Dialog.progress("login_msg", createSessionPromise), () => {
+			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
 			})
 		}
 	}

@@ -1,5 +1,5 @@
-import {assertMainOrNode} from "../api/Env"
-assertMainOrNode()
+import {assertMainOrNodeBoot} from "../api/Env"
+assertMainOrNodeBoot()
 
 export const size = {
 	icon_size_xl: 32,

@@ -1,5 +1,8 @@
 import m from "mithril"
 import {px} from "../size"
+import {assertMainOrNodeBoot} from "../../api/Env"
+
+assertMainOrNodeBoot()
 
 export class InfoView {
 	title: lazy<string>;

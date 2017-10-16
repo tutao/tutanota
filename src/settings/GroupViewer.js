@@ -25,6 +25,7 @@ import {logins} from "../api/main/LoginController"
 import {UserTypeRef} from "../api/entities/sys/User"
 import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -66,7 +67,7 @@ export class GroupViewer {
 				groupInfo.name = newName
 				update(groupInfo)
 			})
-		}, () => BootIcons.Edit)
+		}, () => Icons.Edit)
 		this._name._injectionsRight = () => [m(editNameButton)]
 
 		let mailAddress = new TextField("mailAddress_label").setValue(groupInfo.mailAddress).setDisabled()
@@ -81,7 +82,7 @@ export class GroupViewer {
 				if (deactivate && this._members.getLoaded().length > 0) {
 					Dialog.error("groupNotEmpty_msg")
 				} else {
-					Dialog.progress("pleaseWait_msg", this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate)))
+					showProgressDialog("pleaseWait_msg", this._group.getAsync().then(group => worker.deactivateGroup(group, !deactivate)))
 				}
 			})
 		})
@@ -131,7 +132,7 @@ export class GroupViewer {
 						view: () => m(d)
 					}, null).then(ok => {
 						if (ok) {
-							Dialog.progress("pleaseWait_msg", load(GroupTypeRef, d.selectedValue().group).then(userGroup => {
+							showProgressDialog("pleaseWait_msg", load(GroupTypeRef, d.selectedValue().group).then(userGroup => {
 								return load(UserTypeRef, neverNull(userGroup.user)).then(user => {
 									worker.addUserToGroup(user, this.groupInfo.group)
 								})
@@ -147,7 +148,7 @@ export class GroupViewer {
 		this._members.reset()
 		this._members.getAsync().map(userGroupInfo => {
 			let removeButton = new Button("remove_action", () => {
-				Dialog.progress("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
+				showProgressDialog("pleaseWait_msg", load(GroupTypeRef, userGroupInfo.group).then(userGroup => worker.removeUserFromGroup(neverNull(userGroup.user), this.groupInfo.group)))
 			}, () => Icons.Cancel)
 			return new TableLine([userGroupInfo.name, neverNull(userGroupInfo.mailAddress)], removeButton)
 		}).then(tableLines => {

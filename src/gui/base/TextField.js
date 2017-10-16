@@ -5,10 +5,10 @@ import stream from "mithril/stream/stream.js"
 import {lang} from "../../misc/LanguageViewModel"
 import {animations, fontSize, transform} from "./../animation/Animations"
 import {ease} from "../animation/Easing"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {theme} from "../theme"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const FALSE_CLOSURE = () => {
 	return false

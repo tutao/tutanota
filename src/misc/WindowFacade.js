@@ -1,21 +1,27 @@
 // @flow
 import m from "mithril"
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNodeBoot} from "../api/Env"
 import {lang} from "./LanguageViewModel"
-import {worker} from "../api/main/WorkerClient"
+import type {WorkerClient} from "../api/main/WorkerClient"
+import {asyncImport} from "../api/common/utils/Utils"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 class WindowFacade {
 	_windowSizeListeners: windowSizeListener[];
 	resizeTimeout: ?number;
 	windowCloseConfirmation: boolean;
+	_worker: WorkerClient;
 
 	constructor() {
 		this._windowSizeListeners = []
 		this.resizeTimeout = null
 		this.windowCloseConfirmation = false
 		this.init()
+		asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/main/WorkerClient.js`).then(module => {
+			// load async to reduce size of boot bundle
+			this._worker = module.worker
+		})
 	}
 
 	/**
@@ -84,7 +90,7 @@ class WindowFacade {
 	}
 
 	_close() {
-		worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+		this._worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
 	}
 
 

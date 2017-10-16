@@ -2,11 +2,11 @@
 import m from "mithril"
 import {animations, alpha} from "./../animation/Animations"
 import {theme} from "../theme"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 import {keyManager} from "../../misc/KeyManager"
 import {module as replaced} from "@hot"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 class Modal {
 	components: {key: number, component: ModalComponent}[];

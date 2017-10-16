@@ -7,7 +7,8 @@ import {
 	stringToUtf8Uint8Array,
 	base64ToUint8Array
 } from "./utils/Encoding"
-import EC from "./EntityConstants" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
+import EC from "./EntityConstants"
+import {asyncImport} from "./utils/Utils" // importing with {} from CJS modules is not supported for dist-builds currently (must be a systemjs builder bug)
 const Type = EC.Type
 const ValueType = EC.ValueType
 const Cardinality = EC.Cardinality
@@ -55,7 +56,7 @@ export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): b
 }
 
 export function resolveTypeReference(typeRef: TypeRef<any>): Promise<TypeModel> {
-	return System.import(`${env.rootPathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
+	return asyncImport(typeof module != "undefined" ? module.id : __moduleName, `${env.rootPathPrefix}src/api/entities/${typeRef.app}/${typeRef.type}.js`).then(module => {
 		return module._TypeModel
 	})
 }

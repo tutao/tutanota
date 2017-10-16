@@ -1,7 +1,9 @@
 //@flow
 import {neverNull} from "../common/utils/Utils"
-import {getHttpOrigin} from "../Env"
+import {getHttpOrigin, assertMainOrNodeBoot} from "../Env"
 import type {FeatureTypeEnum} from "../common/TutanotaConstants"
+
+assertMainOrNodeBoot()
 
 class LoginController {
 	_userController: ?IUserController; // decoupled to interface in order to reduce size of boot bundle

@@ -10,6 +10,7 @@ import {logins} from "../api/main/LoginController"
 import {lang} from "../misc/LanguageViewModel"
 import {Dialog} from "../gui/base/Dialog"
 import * as SetCustomDomainCertificateDialog from "./SetDomainCertificateDialog"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType} from "../api/common/TutanotaConstants"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {TextField} from "../gui/base/TextField"
@@ -24,9 +25,7 @@ import {uint8ArrayToBase64} from "../api/common/utils/Encoding"
 import {contains} from "../api/common/utils/ArrayUtils"
 import {formatDateTime} from "../misc/Formatter"
 import {progressIcon} from "../gui/base/Icon"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -107,7 +106,7 @@ export class BrandingSettingsViewer {
 					} else {
 						SetCustomDomainCertificateDialog.show(customerInfo)
 					}
-				}, () => BootIcons.Edit)
+				}, () => Icons.Edit)
 				this._brandingDomainField._injectionsRight = () => [(deactivateAction) ? m(deactivateAction) : null, m(editAction)]
 
 
@@ -143,7 +142,7 @@ export class BrandingSettingsViewer {
 								m.redraw()
 							}
 						})
-					}, () => BootIcons.Edit)
+					}, () => Icons.Edit)
 
 					this._customLogoField._injectionsRight = () => [(deleteCustomLogo) ? m(deleteCustomLogo) : null, m(chooseLogoButton)]
 				}
@@ -169,7 +168,7 @@ export class BrandingSettingsViewer {
 						}, () => Icons.Cancel)
 					}
 
-					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => BootIcons.Edit)
+					let editCustomColorButton = new Button("edit_action", () => EditCustomColorsDialog.show(neverNull(brandingTheme), neverNull(customJsonTheme),), () => Icons.Edit)
 
 					this._customColorsField._injectionsRight = () => [(deactivateColorTheme) ? m(deactivateColorTheme) : null, m(editCustomColorButton)]
 				}

@@ -9,13 +9,15 @@ import {keyManager, Keys} from "../../misc/KeyManager"
 import {lang} from "../../misc/LanguageViewModel"
 import {logins} from "../../api/main/LoginController"
 import {theme} from "../theme"
-import {Icons} from "./icons/Icons"
 import {FeatureType} from "../../api/common/TutanotaConstants"
 import {px} from "../size"
-import {MailEditor} from "../../mail/MailEditor"
-import {Mode} from "../../api/Env"
+import type {MailEditor} from "../../mail/MailEditor"
+import {Mode, assertMainOrNodeBoot} from "../../api/Env"
+import {BootIcons} from "./icons/BootIcons"
 
 const LogoutUrl = '/login?noAutoLogin=true'
+
+assertMainOrNodeBoot()
 
 class Header {
 	buttonBar: NavBar;
@@ -37,23 +39,23 @@ class Header {
 		let premiumUrl = '/settings/premium'
 
 		this.defaultButtonBar = new NavBar()
-			.addButton(new NavButton('emails_label', () => Icons.Mail, () => this.mailsUrl, this.mailsUrl)
+			.addButton(new NavButton('emails_label', () => BootIcons.Mail, () => this.mailsUrl, this.mailsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
-			.addButton(new NavButton('contacts_label', () => Icons.Contacts, () => this.contactsUrl, this.contactsUrl)
+			.addButton(new NavButton('contacts_label', () => BootIcons.Contacts, () => this.contactsUrl, this.contactsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn() && !logins.isEnabled(FeatureType.DisableContacts)))
-			.addButton(new NavButton('upgradePremium_label', () => Icons.Premium, () => premiumUrl, premiumUrl)
+			.addButton(new NavButton('upgradePremium_label', () => BootIcons.Premium, () => premiumUrl, premiumUrl)
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isFreeAccount()), 0, true)
-			.addButton(new NavButton('invite_alt', () => Icons.Share, () => m.route.get())
+			.addButton(new NavButton('invite_alt', () => BootIcons.Share, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn())
 				.setClickHandler(() => this._invite()), 0, true)
-			.addButton(new NavButton('community_label', () => Icons.Heart, 'https://tutanota.com/community')
+			.addButton(new NavButton('community_label', () => BootIcons.Heart, 'https://tutanota.com/community')
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn()), 0, true)
-			.addButton(new NavButton('settings_label', () => Icons.Settings, () => this.settingsUrl, this.settingsUrl)
+			.addButton(new NavButton('settings_label', () => BootIcons.Settings, () => this.settingsUrl, this.settingsUrl)
 				.setIsVisibleHandler(() => logins.isInternalUserLoggedIn()))
-			.addButton(new NavButton('supportMenu_label', () => Icons.Help, () => m.route.get())
+			.addButton(new NavButton('supportMenu_label', () => BootIcons.Help, () => m.route.get())
 				.setIsVisibleHandler(() => logins.isAdminUserLoggedIn() && logins.getUserController().isPremiumAccount())
 				.setClickHandler(() => this._writeSupportMail()), 0, true)
-			.addButton(new NavButton('logout_label', () => Icons.Logout, LogoutUrl)
+			.addButton(new NavButton('logout_label', () => BootIcons.Logout, LogoutUrl)
 				.setIsVisibleHandler(() => logins.isUserLoggedIn()), 0, true)
 
 		this.buttonBar = this.defaultButtonBar
@@ -154,7 +156,7 @@ class Header {
 	_getLeftElements() {
 		if (this._viewSlider && this._viewSlider.isFocusPreviousPossible()) {
 			let viewSlider = neverNull(this._viewSlider)
-			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => Icons.Back, () => m.route.get())
+			let navButtonBack = new NavButton(() => neverNull(viewSlider.getPreviousColumn()).getTitle(), () => BootIcons.Back, () => m.route.get())
 				.setColors(NavButtonColors.Header)
 				.setClickHandler(() => viewSlider.focusPreviousColumn())
 				.hideLabel()

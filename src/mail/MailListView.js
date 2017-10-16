@@ -16,7 +16,6 @@ import {size} from "../gui/size"
 import {neverNull} from "../api/common/utils/Utils"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -225,7 +224,7 @@ export class MailRow {
 						oncreate: (vnode) => this._domForwardIcon = vnode.dom,
 					}),
 					m(Icon, {
-						icon: BootIcons.Attachment,
+						icon: Icons.Attachment,
 						class: "svg-list-accent-fg",
 						style: {display: 'none'},
 						oncreate: (vnode) => this._domAttachmentIcon = vnode.dom,

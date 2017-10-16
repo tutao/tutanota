@@ -1,12 +1,12 @@
 // @flow
 import {log, timer, Cat} from "../misc/Log"
 import {size} from "./size"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {windowFacade} from "../misc/WindowFacade"
 import {theme, themeId} from "./theme"
 import {neverNull} from "../api/common/utils/Utils"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 /**
  * Writes all styles to a single dom <style>-tag

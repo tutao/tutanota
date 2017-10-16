@@ -9,6 +9,9 @@ import {Button} from "./Button"
 import {Keys} from "../../misc/KeyManager"
 import {mod} from "../../misc/MathUtils"
 import {client} from "../../misc/ClientDetector"
+import {assertMainOrNodeBoot} from "../../api/Env"
+
+assertMainOrNodeBoot()
 
 export class Dropdown {
 	children: Array<string|NavButton|Button>;

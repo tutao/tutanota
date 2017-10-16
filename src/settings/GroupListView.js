@@ -18,6 +18,7 @@ import * as AddGroupDialog from "./AddGroupDialog"
 import {Icon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -179,7 +180,7 @@ export class GroupRow {
 						style: {display: 'none'}
 					}),
 					m(Icon, {
-						icon: Icons.Mail,
+						icon: BootIcons.Mail,
 						oncreate: (vnode) => this._domMailIcon = vnode.dom,
 						class: "svg-list-accent-fg",
 						style: {display: 'none'}

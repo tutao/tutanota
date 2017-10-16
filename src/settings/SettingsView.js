@@ -26,6 +26,7 @@ import {BrandingSettingsViewer} from "./BrandingSettingsViewer"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -44,8 +45,8 @@ export class SettingsView {
 
 	constructor() {
 		this._userFolders = [
-			new SettingsFolder("login_label", () => Icons.Contacts, "login", () => new LoginSettingsViewer()),
-			new SettingsFolder("email_label", () => Icons.Mail, "mail", () => new MailSettingsViewer()),
+			new SettingsFolder("login_label", () => BootIcons.Contacts, "login", () => new LoginSettingsViewer()),
+			new SettingsFolder("email_label", () => BootIcons.Mail, "mail", () => new MailSettingsViewer()),
 		]
 		this._adminFolders = []
 
@@ -54,12 +55,12 @@ export class SettingsView {
 		if (!logins.isProdDisabled()) {
 			this._adminFolders.push(new SettingsFolder("groups_label", () => Icons.People, "groups", () => new GroupListView(this)))
 		}
-		this._adminFolders.push(new SettingsFolder("globalSettings_label", () => Icons.Settings, "global", () => new GlobalSettingsViewer()))
+		this._adminFolders.push(new SettingsFolder("globalSettings_label", () => BootIcons.Settings, "global", () => new GlobalSettingsViewer()))
 		if (!logins.isProdDisabled()) {
 			this._adminFolders.push(new SettingsFolder("brandingSettings_label", () => Icons.Wand, "branding", () => new BrandingSettingsViewer()))
 			this._adminFolders.push(new SettingsFolder("contactForms_label", () => Icons.Chat, "contactforms", () => new ContactFormListView(this)))
 		}
-		this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => Icons.Premium, "premium", () => new EmptyViewer()))
+		this._adminFolders.push(new SettingsFolder("upgradePremium_label", () => BootIcons.Premium, "premium", () => new EmptyViewer()))
 
 		this._selectedFolder = this._userFolders[0]
 

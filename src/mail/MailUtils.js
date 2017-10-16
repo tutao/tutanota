@@ -139,7 +139,7 @@ export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAdd
 			if (paramName == "subject") {
 				subject = paramValue
 			} else if (paramName == "body") {
-				body = paramValue.replace("\n", "<br>")
+				body = paramValue.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>")
 			} else if (paramName == "cc") {
 				paramValue.split(",").forEach((ccAddress) => ccAddress ? ccRecipients.push(neverNull(createMailAddressFromString(ccAddress))) : null)
 			} else if (paramName == "bcc") {

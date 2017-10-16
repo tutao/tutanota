@@ -1,7 +1,7 @@
 // @flow
 import type {EntropySrcEnum} from "../common/TutanotaConstants"
 import {EntropySrc} from "../common/TutanotaConstants"
-import {WorkerClient} from "./WorkerClient"
+import type {WorkerClient} from "./WorkerClient"
 import {assertMainOrNode} from "../Env"
 
 assertMainOrNode()

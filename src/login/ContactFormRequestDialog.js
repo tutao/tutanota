@@ -15,7 +15,6 @@ import {windowFacade} from "../misc/WindowFacade"
 import {Keys} from "../misc/KeyManager"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {worker} from "../api/main/WorkerClient"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {progressIcon} from "../gui/base/Icon"
 import {createRecipientInfo, resolveRecipientInfo} from "../mail/MailUtils"
 import {deviceConfig} from "../misc/DeviceConfig"
@@ -27,6 +26,8 @@ import {HttpMethod as HttpMethodEnum} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
 import {PasswordForm} from "../settings/PasswordForm"
 import {HtmlEditor} from "../gui/base/HtmlEditor"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
+import {Icons} from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -56,7 +57,7 @@ export class ContactFormRequestDialog {
 		this._attachmentButtons = []
 		this._loadingAttachments = false
 		this._subject = new TextField("subject_label", () => this.getConfidentialStateMessage())
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => BootIcons.Attachment)
+		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
 		this._subject._injectionsRight = () => {
 			return [m(this._attachFilesButton)]
 		}
@@ -210,7 +211,7 @@ export class ContactFormRequestDialog {
 				m.redraw()
 			}, null).setType(ButtonType.Secondary))
 
-			return createDropDownButton(() => file.name, () => BootIcons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
 	}
 
@@ -275,7 +276,7 @@ export class ContactFormRequestDialog {
 					})
 				})
 
-				return Dialog.progress("sending_msg", sendRequest).then(result => {
+				return showProgressDialog("sending_msg", sendRequest).then(result => {
 					let requestId = new TextField("mailAddress_label").setValue(result.userEmailAddress).setDisabled()
 					return Dialog.save(() => lang.get("loginCredentials_label"), () => {
 						return worker.createSession(result.userEmailAddress, result.password, client.getIdentifier(), true).then(credentials => {

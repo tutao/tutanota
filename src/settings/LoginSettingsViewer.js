@@ -7,7 +7,6 @@ import {Button} from "../gui/base/Button"
 import {PasswordForm} from "./PasswordForm"
 import {isSameTypeRef} from "../api/common/EntityFunctions"
 import {logins} from "../api/main/LoginController"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Table, ColumnWidth} from "../gui/base/Table"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
@@ -32,7 +31,7 @@ export class LoginSettingsViewer {
 	constructor() {
 		let mailAddress = new TextField("mailAddress_label").setValue(logins.getUserController().userGroupInfo.mailAddress).setDisabled()
 		let password = new TextField("password_label").setValue("***").setDisabled()
-		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => BootIcons.Edit)
+		let changePasswordButton = new Button("changePassword_label", () => PasswordForm.showChangeOwnPasswordDialog(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._activeSessionTable = new Table(["client_label", "lastAccess_label", "IpAddress_label"], [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small], true)

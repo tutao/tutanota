@@ -6,6 +6,7 @@ import {Dialog, DialogType} from "../gui/base/Dialog"
 import {SysService} from "../api/entities/sys/Services"
 import {HttpMethod, isSameTypeRef, isSameId} from "../api/common/EntityFunctions"
 import {createSecondFactorAuthData} from "../api/entities/sys/SecondFactorAuthData"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {OperationType, SessionState, SecondFactorType} from "../api/common/TutanotaConstants"
 import {worker} from "../api/main/WorkerClient"
 import {lang} from "../misc/LanguageViewModel"
@@ -13,11 +14,9 @@ import {neverNull} from "../api/common/utils/Utils"
 import {U2fClient, U2fWrongDeviceError, U2fError} from "../misc/U2fClient"
 import {assertMainOrNode} from "../api/Env"
 import {NotAuthenticatedError, BadRequestError, AccessBlockedError} from "../api/common/error/RestError"
-import {SecondFactorImage} from "../gui/base/icons/Icons"
+import {SecondFactorImage, Icons} from "../gui/base/icons/Icons"
 import {TextField} from "../gui/base/TextField"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Button} from "../gui/base/Button"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -118,7 +117,7 @@ export class SecondFactorHandler {
 					.catch(NotAuthenticatedError, e => Dialog.error("loginFailed_msg"))
 					.catch(BadRequestError, e => Dialog.error("loginFailed_msg"))
 					.catch(AccessBlockedError, e => Dialog.error("loginFailedOften_msg"))
-			}, () => BootIcons.Login)
+			}, () => Icons.Login)
 			otpCode._injectionsRight = () => m(otpLoginButton)
 			otpCode._keyHandler = key => {
 				switch (key.keyCode) {

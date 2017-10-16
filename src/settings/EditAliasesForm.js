@@ -8,6 +8,7 @@ import TableLine from "../gui/base/TableLine"
 import {isTutanotaMailAddress} from "../api/common/RecipientInfo"
 import {LimitReachedError, InvalidDataError} from "../api/common/error/RestError"
 import {worker} from "../api/main/WorkerClient"
+import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
 import {AccountType, TUTANOTA_MAIL_ADDRESS_DOMAINS, OperationType} from "../api/common/TutanotaConstants"
 import {LazyLoaded} from "../api/common/utils/LazyLoaded"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
@@ -24,8 +25,7 @@ import {Button, createDropDownButton, ButtonType} from "../gui/base/Button"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {logins} from "../api/main/LoginController"
 import {Icons} from "../gui/base/icons/Icons"
-import {BootIcons} from "../gui/base/icons/BootIcons"
-import type {OperationTypeEnum} from "../api/common/TutanotaConstants"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -101,7 +101,7 @@ export class EditAliasesForm {
 						}).catch(LimitReachedError, () => {
 							Dialog.error("adminMaxNbrOfAliasesReached_msg")
 						})
-						Dialog.progress("pleaseWait_msg", p)
+						showProgressDialog("pleaseWait_msg", p)
 					}
 				})
 			})
@@ -128,7 +128,7 @@ export class EditAliasesForm {
 	_updateAliases(userGroupInfo: GroupInfo) {
 		this._userGroupInfo = userGroupInfo
 		this._aliasesTable.updateEntries(userGroupInfo.mailAddressAliases.map(alias => {
-			let actionButton = createDropDownButton("edit_action", () => BootIcons.Edit, () => {
+			let actionButton = createDropDownButton("edit_action", () => Icons.Edit, () => {
 				return [
 					new Button("activate_action", () => {
 						if (!alias.enabled) {
@@ -159,7 +159,7 @@ export class EditAliasesForm {
 				let p = worker.setMailAliasStatus(this._userGroupInfo.group, alias.mailAddress, restore).catch(LimitReachedError, e => {
 					Dialog.error("adminMaxNbrOfAliasesReached_msg")
 				})
-				Dialog.progress("pleaseWait_msg", p)
+				showProgressDialog("pleaseWait_msg", p)
 			}
 		})
 	}

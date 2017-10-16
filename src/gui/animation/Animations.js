@@ -1,9 +1,9 @@
 // @flow
 import {client} from "../../misc/ClientDetector"
 import {ease} from "./Easing"
-import {assertMainOrNode} from "../../api/Env"
+import {assertMainOrNodeBoot} from "../../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const DefaultAnimationTime = 200 // ms
 

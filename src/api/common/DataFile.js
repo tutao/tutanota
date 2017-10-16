@@ -30,6 +30,6 @@ export function getCleanedMimeType(mimeType: ?string): string {
 	if (!mimeType || mimeType.trim() == "") {
 		return "application/octet-stream"
 	} else {
-		return mimeType.replace("\"", "").replace("'", "");
+		return mimeType.replace(/"/g, "").replace(/'/g, "");
 	}
 }

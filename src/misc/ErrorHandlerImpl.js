@@ -24,6 +24,7 @@ import {OutOfSyncError} from "../api/common/error/OutOfSyncError"
 import stream from "mithril/stream/stream.js"
 import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 import {secondFactorHandler} from "../login/SecondFactorHandler"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -72,7 +73,7 @@ export function handleUncaughtError(e: Error) {
 			let pwInput = new TextField("password_label", errorMessage)
 				.setType(Type.Password)
 			let dialog = Dialog.smallActionDialog(lang.get("login_label"), pwInput, () => {
-				Dialog.progress("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false).then(() => {
+				showProgressDialog("pleaseWait_msg", worker.createSession(neverNull(logins.getUserController().userGroupInfo.mailAddress), pwInput.value(), client.getIdentifier(), false).then(() => {
 					dialog.close()
 					loginDialogActive = false
 				}).catch(AccessBlockedError, e => {
@@ -200,5 +201,5 @@ export function showNotAvailableForFreeDialog() {
 
 export function loggingOut() {
 	isLoggingOut = true
-	Dialog.progress("loggingOut_msg", Promise.fromCallback(cb => null))
+	showProgressDialog("loggingOut_msg", Promise.fromCallback(cb => null))
 }

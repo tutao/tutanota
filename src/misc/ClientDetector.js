@@ -1,6 +1,6 @@
-import {Mode, assertMainOrNode} from "../api/Env"
+import {Mode, assertMainOrNodeBoot} from "../api/Env"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const BrowserType = {
 	CHROME: "Chrome",

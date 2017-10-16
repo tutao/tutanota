@@ -22,6 +22,7 @@ import {PasswordForm} from "../settings/PasswordForm"
 import {themeId} from "../gui/theme"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -126,7 +127,7 @@ export class RegisterView {
 			}
 		}).then(authToken => {
 			if (authToken) {
-				return Dialog.progress("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, lang.code), true).then(() => {
+				return showProgressDialog("createAccountRunning_msg", worker.signup(AccountType.FREE, authToken, mailAddress, pw, lang.code), true).then(() => {
 					m.route.set("/login?loginWith=" + mailAddress)
 				})
 			}
@@ -134,7 +135,7 @@ export class RegisterView {
 	}
 
 	_requestCaptcha(): Promise<RegistrationCaptchaServiceReturn> {
-		return Dialog.progress("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef))
+		return showProgressDialog("loading_msg", serviceRequest(SysService.RegistrationCaptchaService, HttpMethod.GET, null, RegistrationCaptchaServiceReturnTypeRef))
 	}
 
 	/**
@@ -177,7 +178,7 @@ class CaptchaDialog {
 				let data = createRegistrationCaptchaServiceData()
 				data.token = this.captchaReturn.token
 				data.response = captchaTime
-				Dialog.progress("loading_msg", serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data))
+				showProgressDialog("loading_msg", serviceRequestVoid(SysService.RegistrationCaptchaService, HttpMethod.POST, data))
 					.then(() => {
 						this.dialog.close()
 						this.callback(null, this.captchaReturn)

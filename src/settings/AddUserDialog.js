@@ -15,6 +15,7 @@ import {addAll} from "../api/common/utils/ArrayUtils"
 import {neverNull} from "../api/common/utils/Utils"
 import * as BuyDialog from "./BuyDialog"
 import {worker} from "../api/main/WorkerClient"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -37,7 +38,7 @@ export function show(): Promise<void> {
 				return BuyDialog.show(BookingItemFeatureType.Users, 1, 0).then(accepted => {
 					if (accepted) {
 						let p = worker.createUser(nameField.value(), mailAddressForm.getCleanMailAddress(), passwordForm.getNewPassword(), 0, 1)
-						return Dialog.progress(() => lang.get("createActionStatus_msg", {
+						return showProgressDialog(() => lang.get("createActionStatus_msg", {
 							"{index}": 0,
 							"{count}": 1
 						}), p, true)

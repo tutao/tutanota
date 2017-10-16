@@ -28,6 +28,7 @@ import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/Cust
 import {NotFoundError} from "../api/common/error/RestError"
 import {MailboxGroupRootTypeRef} from "../api/entities/tutanota/MailboxGroupRoot"
 import {UserTypeRef} from "../api/entities/sys/User"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -233,7 +234,7 @@ export class ContactFormEditor {
  * @param newContactFormIdReceiver. Is called receiving the contact id as soon as the new contact was saved.
  */
 export function show(c: ?ContactForm, createNew: boolean, brandingDomain: string, newContactFormIdReceiver: Function) {
-	Dialog.progress("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
+	showProgressDialog("loading_msg", load(CustomerTypeRef, neverNull(logins.getUserController().user.customer)).then(customer => {
 		// collect all enabled user mail groups together with the users name and the users mail address
 		return loadAll(GroupInfoTypeRef, customer.userGroups).filter(g => !g.deleted).then(userGroupInfos => {
 			// get and separate all enabled shared mail groups and shared team groups

@@ -8,6 +8,12 @@ import {neverNull} from "../../api/common/utils/Utils"
 import {Icon} from "./Icon"
 import {theme} from "../theme"
 import {styles} from "../styles"
+import {assertMainOrNodeBoot} from "../../api/Env"
+import {Dropdown} from "./Dropdown"
+import {modal} from "./Modal"
+import type {Button} from "./Button"
+
+assertMainOrNodeBoot()
 
 const TRUE_CLOSURE = (): lazy<boolean> => true
 
@@ -212,4 +218,18 @@ function getColors(buttonColors: NavButtonColorEnum) {
 				button_selected: theme.content_button_selected,
 			}
 	}
+}
+
+export function createDropDownNavButton(labelTextIdOrTextFunction: string|lazy<string>, icon: ?lazy<SVG>, lazyButtons: lazy<Array<string|NavButton|Button>>, width: number = 200): NavButton {
+	let dropdown = new Dropdown(lazyButtons, width)
+	let mainButton = new NavButton(labelTextIdOrTextFunction, icon, () => m.route.get())
+		.setClickHandler((() => {
+			if (mainButton._domButton) {
+				let buttonRect: ClientRect = mainButton._domButton.getBoundingClientRect()
+				dropdown.setOrigin(buttonRect)
+				modal.display(dropdown)
+			}
+		}:clickHandler))
+		.hideLabel()
+	return mainButton
 }

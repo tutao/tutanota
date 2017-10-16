@@ -3,7 +3,6 @@ import m from "mithril"
 import {TextField, Type} from "../gui/base/TextField"
 import {Checkbox} from "../gui/base/Checkbox"
 import {Button, ButtonType} from "../gui/base/Button"
-import {Dialog} from "../gui/base/Dialog"
 import {worker} from "../api/main/WorkerClient"
 import {deviceConfig} from "../misc/DeviceConfig"
 import {
@@ -22,6 +21,7 @@ import {lang} from "../misc/LanguageViewModel"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {client} from "../misc/ClientDetector"
 import {windowFacade} from "../misc/WindowFacade"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 export class ExternalLoginView {
 
@@ -102,7 +102,7 @@ export class ExternalLoginView {
 	}
 
 	_autologin(credentials: Credentials): void {
-		Dialog.progress("login_msg", worker.initialized.then(() => {
+		showProgressDialog("login_msg", worker.initialized.then(() => {
 			return this._handleSession(worker.resumeSession(credentials, this._salt), () => {
 				this._showLoginForm(credentials.mailAddress)
 			})
@@ -145,7 +145,7 @@ export class ExternalLoginView {
 							})
 					}
 				})
-			this._handleSession(Dialog.progress("login_msg", createSessionPromise), () => {
+			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
 			})
 		}
 	}

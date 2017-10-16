@@ -2,6 +2,9 @@
 import {Logo} from "./base/icons/Logo"
 import {deviceConfig} from "../misc/DeviceConfig"
 import stream from "mithril/stream/stream.js"
+import {assertMainOrNodeBoot} from "../api/Env"
+
+assertMainOrNodeBoot()
 
 export type Theme = {
 	logo: string,

@@ -1,10 +1,10 @@
 // @flow
 import m from "mithril"
-import {assertMainOrNode} from "../../api/Env"
 import {createDropDownButton, Button, ButtonType} from "./Button"
 import {TextField} from "./TextField"
 import stream from "mithril/stream/stream.js"
-import {BootIcons} from "./icons/BootIcons"
+import {assertMainOrNode} from "../../api/Env"
+import {Icons} from "./icons/Icons"
 
 assertMainOrNode()
 
@@ -31,7 +31,7 @@ export class DropDownSelector<T> {
 			}
 			return null
 		})
-		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => BootIcons.Edit, () => {
+		let itemChooser = createDropDownButton(labelIdOrLabelTextFunction, () => Icons.Edit, () => {
 				return items.map(item => new Button(() => item.name, () => {
 					if (this.selectedValue() != item.value) {
 						if (this._changeHandler) {

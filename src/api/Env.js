@@ -48,7 +48,18 @@ export function isWorker(): boolean {
 	return worker
 }
 
+let boot = !isWorker()
+
 export function assertMainOrNode() {
+	if (!isMainOrNode()) {
+		throw new Error("this code must not run in the worker thread")
+	}
+	if (boot) {
+		throw new Error("this main code must not be loaded at boot time")
+	}
+}
+
+export function assertMainOrNodeBoot() {
 	if (!isMainOrNode()) {
 		throw new Error("this code must not run in the worker thread")
 	}
@@ -58,4 +69,8 @@ export function assertWorkerOrNode() {
 	if (!isWorkerOrNode()) {
 		throw new Error("this code must not run in the gui thread")
 	}
+}
+
+export function bootFinished() {
+	boot = false
 }

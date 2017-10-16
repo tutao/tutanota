@@ -45,8 +45,8 @@ export function vCardEscapingSplit(details: string): string[] {
 }
 export function vCardReescapingArray(details: string[]): string[] {
 	return details.map(a => {
-		a = a.replace("--bslashbslash++", "\\")
-		a = a.replace("--semiColonsemiColon++", ";")
+		a = a.replace(/\-\-bslashbslash\+\+/g, "\\")
+		a = a.replace(/\-\-semiColonsemiColon\+\+/g, ";")
 		a = a.replace(/\\n/g, "\n")
 		a = a.replace(/\\,/g, ",")
 		return a

@@ -66,4 +66,6 @@ global.node = function (func: Function) {
 	return func
 }
 
+require("../../src/api/Env").bootFinished()
+
 require('./Suite.js')

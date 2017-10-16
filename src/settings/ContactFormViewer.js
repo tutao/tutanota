@@ -12,7 +12,6 @@ import {Button} from "../gui/base/Button"
 import * as ContactFormEditor from "./ContactFormEditor"
 import {createContactForm} from "../api/entities/tutanota/ContactForm"
 import {loadGroupInfos} from "./LoadingUtils"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import TableLine from "../gui/base/TableLine"
 import {Dialog} from "../gui/base/Dialog"
@@ -31,7 +30,7 @@ export class ContactFormViewer {
 		this._newContactFormIdReceiver = newContactFormIdReceiver
 
 		let actions = new ActionBar()
-			.add(new Button('edit_action', () => ContactFormEditor.show(this.contactForm, false, brandingDomain, this._newContactFormIdReceiver), () => BootIcons.Edit))
+			.add(new Button('edit_action', () => ContactFormEditor.show(this.contactForm, false, brandingDomain, this._newContactFormIdReceiver), () => Icons.Edit))
 			.add(new Button('copy_action', () => this._copy(brandingDomain), () => Icons.Copy))
 			.add(new Button('delete_action', () => this._delete(), () => Icons.Trash))
 

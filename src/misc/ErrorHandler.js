@@ -1,9 +1,9 @@
 // @flow
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {asyncImport} from "../api/common/utils/Utils"
 import {SecondFactorPendingError} from "../api/common/error/SecondFactorPendingError"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export function handleUncaughtError(e: Error) {
 	if (e instanceof SecondFactorPendingError) {

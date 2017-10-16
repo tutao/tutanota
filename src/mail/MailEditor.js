@@ -47,11 +47,11 @@ import {PermissionError} from "../api/common/error/PermissionError"
 import {logins} from "../api/main/LoginController"
 import {MailBoxController} from "./MailBoxController"
 import {progressIcon} from "../gui/base/Icon"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {size, px} from "../gui/size"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 
 assertMainOrNode()
@@ -121,7 +121,7 @@ export class MailEditor {
 		let nonConfidentialButton = new Button("nonConfidential_action", () => this._confidentialButtonState = true, () => Icons.Unlock)
 			.disableBubbling()
 
-		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => BootIcons.Attachment)
+		this._attachFilesButton = new Button('attachFiles_action', () => this._showFileChooserForAttachments(), () => Icons.Attachment)
 
 		this.subject._injectionsRight = () => {
 			if (this._allRecipients().find(r => r.type === recipientInfoType.external)) {
@@ -484,7 +484,7 @@ export class MailEditor {
 				m.redraw()
 			}, null).setType(ButtonType.Secondary))
 
-			return createDropDownButton(() => file.name, () => BootIcons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+			return createDropDownButton(() => file.name, () => Icons.Attachment, () => lazyButtons).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 		})
 	}
 
@@ -493,7 +493,7 @@ export class MailEditor {
 	 * @param saveAttachments True if also the attachments shall be saved, false otherwise.
 	 * @returns {Promise} When finished.
 	 */
-	saveDraft(saveAttachments: boolean, showProgressDialog: boolean): Promise<void> {
+	saveDraft(saveAttachments: boolean, showProgress: boolean): Promise<void> {
 		let attachments = (saveAttachments) ? this._attachments : null
 		let senderName = this._mailboxController.getSenderName()
 		let to = this.toRecipients.bubbles.map(bubble => bubble.entity)
@@ -518,8 +518,8 @@ export class MailEditor {
 				this._confidentialButtonState = originalState
 			})
 		})
-		if (showProgressDialog) {
-			return Dialog.progress("save_msg", promise)
+		if (showProgress) {
+			return showProgressDialog("save_msg", promise)
 		} else {
 			return promise
 		}
@@ -605,7 +605,7 @@ export class MailEditor {
 								})
 						})
 
-					return Dialog.progress(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
+					return showProgressDialog(this._confidentialButtonState ? "sending_msg" : "sendingUnencrypted_msg", send)
 				}
 			})
 

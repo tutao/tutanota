@@ -28,12 +28,12 @@ import {Table, ColumnWidth} from "../gui/base/Table"
 import TableLine from "../gui/base/TableLine"
 import {getGroupTypeName} from "./GroupViewer"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {EditSecondFactorsForm} from "./EditSecondFactorsForm"
 import {ContactFormTypeRef} from "../api/entities/tutanota/ContactForm"
 import {remove} from "../api/common/utils/ArrayUtils"
 import {CustomerContactFormGroupRootTypeRef} from "../api/entities/tutanota/CustomerContactFormGroupRoot"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -68,7 +68,7 @@ export class UserViewer {
 				userGroupInfo.name = newName
 				update(userGroupInfo)
 			})
-		}, () => BootIcons.Edit)
+		}, () => Icons.Edit)
 		this._senderName._injectionsRight = () => [m(editSenderNameButton)]
 
 		let mailAddress = new TextField("mailAddress_label").setValue(userGroupInfo.mailAddress).setDisabled()
@@ -84,7 +84,7 @@ export class UserViewer {
 			} else if (this._isItMe()) {
 				Dialog.error("removeOwnAdminFlagInfo_msg")
 			} else {
-				Dialog.progress("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
+				showProgressDialog("pleaseWait_msg", this._user.getAsync().then(user => worker.changeAdminFlag(user, makeAdmin)))
 			}
 		})
 
@@ -100,7 +100,7 @@ export class UserViewer {
 		})
 
 		let password = new TextField("password_label").setValue("***").setDisabled()
-		let changePasswordButton = new Button("changePassword_label", () => this._changePassword(), () => BootIcons.Edit)
+		let changePasswordButton = new Button("changePassword_label", () => this._changePassword(), () => Icons.Edit)
 		password._injectionsRight = () => [m(changePasswordButton)]
 
 		this._secondFactorsForm = new EditSecondFactorsForm(this._user);
@@ -205,7 +205,7 @@ export class UserViewer {
 					Promise.map(this._getTeamMemberships(user, customer), m => {
 						return load(GroupInfoTypeRef, m.groupInfo).then(groupInfo => {
 							let removeButton = new Button("remove_action", () => {
-								Dialog.progress("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
+								showProgressDialog("pleaseWait_msg", worker.removeUserFromGroup(user._id, groupInfo.group))
 							}, () => Icons.Cancel)
 							return new TableLine([getGroupInfoDisplayName(groupInfo), getGroupTypeName(neverNull(m.groupType))], removeButton)
 						})
@@ -234,7 +234,7 @@ export class UserViewer {
 						if (match) {
 							remove(cf.participantGroupInfos, match)
 						}
-						Dialog.progress("pleaseWait_msg", update(cf))
+						showProgressDialog("pleaseWait_msg", update(cf))
 					}, () => Icons.Cancel)
 					return new TableLine([cf.path], removeButton)
 				}).then(tableLines => {
@@ -259,7 +259,7 @@ export class UserViewer {
 					view: () => m(d)
 				}, null).then(ok => {
 					if (ok) {
-						Dialog.progress("pleaseWait_msg", worker.addUserToGroup(user, d.selectedValue().group))
+						showProgressDialog("pleaseWait_msg", worker.addUserToGroup(user, d.selectedValue().group))
 					}
 				})
 			}
@@ -283,7 +283,7 @@ export class UserViewer {
 								if (cf.participantGroupInfos.indexOf(user.userGroup.groupInfo)) {
 									cf.participantGroupInfos.push(user.userGroup.groupInfo)
 								}
-								Dialog.progress("pleaseWait_msg", update(cf))
+								showProgressDialog("pleaseWait_msg", update(cf))
 							}
 						})
 					})
@@ -315,7 +315,7 @@ export class UserViewer {
 	}
 
 	_deleteUser(restore: boolean): Promise<void> {
-		return Dialog.progress("pleaseWait_msg", load(GroupTypeRef, this.userGroupInfo.group).then(group => {
+		return showProgressDialog("pleaseWait_msg", load(GroupTypeRef, this.userGroupInfo.group).then(group => {
 			let availablePromise = (restore) ? worker.isMailAddressAvailable(neverNull(this.userGroupInfo.mailAddress)) : Promise.resolve(true)
 			return availablePromise.then(available => {
 				if (available) {

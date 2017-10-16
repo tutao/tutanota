@@ -2,7 +2,9 @@
 import m from "mithril"
 import {BootIcons} from "./icons/BootIcons"
 import {theme} from "../theme"
+import {assertMainOrNodeBoot} from "../../api/Env"
 
+assertMainOrNodeBoot()
 
 class _Icon {
 	view(vnode: Vnode<IconAttrs>): Children | null| void {

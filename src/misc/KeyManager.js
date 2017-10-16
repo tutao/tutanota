@@ -1,6 +1,6 @@
 //@flow
 import m from "mithril"
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {Button, ButtonType} from "../gui/base/Button"
 import {neverNull, asyncImport} from "../api/common/utils/Utils"
 import {addAll, removeAll} from "../api/common/utils/ArrayUtils"
@@ -9,7 +9,7 @@ import {client, BrowserType} from "./ClientDetector"
 import {DialogHeaderBar} from "../gui/base/DialogHeaderBar"
 import {lang} from "./LanguageViewModel"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 export const Keys = {
 	NONE: {code: -1, name: ""},

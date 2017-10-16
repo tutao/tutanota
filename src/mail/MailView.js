@@ -35,10 +35,10 @@ import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {opacity, animations} from "../gui/animation/Animations"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {UserTypeRef} from "../api/entities/sys/User"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {theme} from "../gui/theme"
 import {NotFoundError, PreconditionFailedError} from "../api/common/error/RestError"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -99,7 +99,7 @@ export class MailView {
 		})
 
 		this.viewSlider = new ViewSlider([this.folderColumn, this.listColumn, this.mailColumn], "MailView")
-		this.newAction = new Button('newMail_action', () => this._newMail(), () => BootIcons.Edit)
+		this.newAction = new Button('newMail_action', () => this._newMail(), () => Icons.Edit)
 			.setType(ButtonType.Floating)
 
 		this.view = (): VirtualElement => {
@@ -402,7 +402,7 @@ export class MailView {
 					this.selectedFolder.folder.name = newName
 					return update(this.selectedFolder.folder)
 				})
-			}, () => BootIcons.Edit).setType(ButtonType.Dropdown),
+			}, () => Icons.Edit).setType(ButtonType.Dropdown),
 			new Button('delete_action', () => {
 				Dialog.confirm(() => lang.get("confirmDeleteFinallyCustomFolder_msg", {"{1}": this.selectedFolder.getDisplayName()})).then(confirmed => {
 					if (confirmed) {
@@ -495,7 +495,7 @@ export class MailView {
 	_finallyDeleteAllMailsInSelectedFolder() {
 		let deleteMailData = createDeleteMailData()
 		deleteMailData.folder = this.selectedFolder.folder._id
-		return Dialog.progress("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
+		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
 			.catch(PreconditionFailedError, e => Dialog.error("operationStillActive_msg"))
 	}
 

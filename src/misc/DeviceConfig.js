@@ -1,8 +1,8 @@
 // @flow
-import {assertMainOrNode} from "../api/Env"
+import {assertMainOrNodeBoot} from "../api/Env"
 import {themeId} from "../gui/theme"
 
-assertMainOrNode()
+assertMainOrNodeBoot()
 
 const ConfigVersion = 2
 const LocalStorageKey = 'tutanotaConfig'

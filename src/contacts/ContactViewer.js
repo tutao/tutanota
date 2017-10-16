@@ -11,7 +11,6 @@ import {erase} from "../api/main/Entity"
 import {assertMainOrNode} from "../api/Env"
 import {keyManager, Keys} from "../misc/KeyManager"
 import {Dialog} from "../gui/base/Dialog"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {Icons} from "../gui/base/icons/Icons"
 import {formatDateWithMonth} from "../misc/Formatter"
 import {NotFoundError} from "../api/common/error/RestError"
@@ -48,7 +47,7 @@ export class ContactViewer {
 		this.contactView = contactView
 
 		let actions = new ActionBar()
-			.add(new Button('edit_action', () => this.edit(), () => BootIcons.Edit))
+			.add(new Button('edit_action', () => this.edit(), () => Icons.Edit))
 			.add(new Button('delete_action', () => this.delete(), () => Icons.Trash))
 
 		this.mailAddresses = this.contact.mailAddresses.map(element => {

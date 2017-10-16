@@ -28,6 +28,7 @@ import {MultiContactViewer} from "./MultiContactViewer"
 import {NavButton} from "../gui/base/NavButton"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -138,7 +139,7 @@ export class ContactView {
 
 	createContactFoldersExpander(): ExpanderButton {
 		let folderMoreButton = this.createFolderMoreButton()
-		let folderButton = new NavButton('all_contacts_label', () => Icons.Contacts, () => m.route.get())
+		let folderButton = new NavButton('all_contacts_label', () => BootIcons.Contacts, () => m.route.get())
 		let contactExpander = new ExpanderButton(() => getGroupInfoDisplayName(logins.getUserController().userGroupInfo), new ExpanderPanel({
 				view: () => m(".folders", [m(".folder-row.flex-space-between.plr-l.row-selected", [
 					m(folderButton),

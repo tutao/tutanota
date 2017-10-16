@@ -10,6 +10,7 @@ import {worker} from "../api/main/WorkerClient"
 import {DropDownSelector} from "../gui/base/DropDownSelector"
 import {getGroupTypeName} from "./GroupViewer"
 import * as AddUserDialog from "./AddUserDialog"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -43,9 +44,9 @@ export function show(): Promise<void> {
 		}).then(okClicked => {
 			if (okClicked) {
 				if (typeField.selectedValue() == GroupType.Mail) {
-					return Dialog.progress("pleaseWait_msg", worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress()))
+					return showProgressDialog("pleaseWait_msg", worker.createMailGroup(nameField.value(), mailAddressForm.getCleanMailAddress()))
 				} else {
-					return Dialog.progress("pleaseWait_msg", worker.createTeamGroup(nameField.value()))
+					return showProgressDialog("pleaseWait_msg", worker.createTeamGroup(nameField.value()))
 				}
 			}
 		})

@@ -27,6 +27,7 @@ import {worker} from "../api/main/WorkerClient"
 import QRCode from "qrcode"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {NotFoundError} from "../api/common/error/RestError"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -69,7 +70,7 @@ export class EditSecondFactorsForm {
 					let removeButton = new Button("remove_action", () => {
 						Dialog.confirm("confirmDeleteSecondFactor_msg").then(confirmed => {
 							if (confirmed) {
-								Dialog.progress("pleaseWait_msg", erase(f).catch(NotFoundError, e => console.log("could not delete second factor (has already been deleted)", e)))
+								showProgressDialog("pleaseWait_msg", erase(f).catch(NotFoundError, e => console.log("could not delete second factor (has already been deleted)", e)))
 							}
 						})
 					}, () => Icons.Cancel)
@@ -100,7 +101,7 @@ export class EditSecondFactorsForm {
 		let totpPromise = worker.generateTotpSecret()
 		let u2fSupportPromise = u2f.isSupported()
 		let userPromise = this._user.getAsync()
-		Dialog.progress("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise])).spread((totpKeys, u2fSupport, user) => {
+		showProgressDialog("pleaseWait_msg", Promise.all([totpPromise, u2fSupportPromise, userPromise])).spread((totpKeys, u2fSupport, user) => {
 			let type = new DropDownSelector("type_label", null, Object.keys(SecondFactorTypeToNameTextId).filter(k => (k == SecondFactorType.u2f && !u2fSupport) ? false : true).map(key => {
 				return {name: lang.get(SecondFactorTypeToNameTextId[key]), value: key}
 			}), u2fSupport ? SecondFactorType.u2f : SecondFactorType.totp, 300)
@@ -153,7 +154,7 @@ export class EditSecondFactorsForm {
 				} else if (type.selectedValue() === SecondFactorType.totp) {
 					sf.otpSecret = totpKeys.key
 				}
-				Dialog.progress("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
+				showProgressDialog("pleaseWait_msg", setup(neverNull(user.auth).secondFactors, sf)).then(() => dialog.close())
 
 			}, true, "save_action")
 

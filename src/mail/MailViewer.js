@@ -42,7 +42,6 @@ import {urlify} from "../misc/Urlifier"
 import {logins} from "../api/main/LoginController"
 import {Icon, progressIcon} from "../gui/base/Icon"
 import {Icons} from "../gui/base/icons/Icons"
-import {BootIcons} from "../gui/base/icons/BootIcons"
 import {GroupInfoTypeRef} from "../api/entities/sys/GroupInfo"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
 import {createEncryptedMailAddress} from "../api/entities/tutanota/EncryptedMailAddress"
@@ -50,6 +49,7 @@ import {loadGroupInfos} from "../settings/LoadingUtils"
 import {CustomerTypeRef} from "../api/entities/sys/Customer"
 import {NotFoundError, NotAuthorizedError} from "../api/common/error/RestError"
 import {animations, scroll} from "../gui/animation/Animations"
+import {BootIcons} from "../gui/base/icons/BootIcons"
 
 assertMainOrNode()
 
@@ -115,7 +115,7 @@ export class MailViewer {
 
 		let actions = new ActionBar()
 		if (mail.state === MailState.DRAFT) {
-			actions.add(new Button('edit_action', () => this._editDraft(), () => BootIcons.Edit))
+			actions.add(new Button('edit_action', () => this._editDraft(), () => Icons.Edit))
 		} else {
 			let loadExternalContentButton = new Button('contentBlocked_msg', () => {
 				if (this._mailBody) {
@@ -149,7 +149,7 @@ export class MailViewer {
 						return userOrMailGroupInfo.group != neverNull(mailbox.mailGroupInfo).group
 					}
 				}).map(userOrMailGroupInfo => {
-					return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => Icons.Contacts)
+					return new Button(() => getDisplayText(userOrMailGroupInfo.name, neverNull(userOrMailGroupInfo.mailAddress), true), () => this._assignMail(userOrMailGroupInfo), () => BootIcons.Contacts)
 						.setType(ButtonType.Dropdown)
 				})
 				actions.add(createAsyncDropDownButton('forward_action', () => Icons.Forward, () => mailRecipients, 250))
@@ -200,7 +200,7 @@ export class MailViewer {
 			}).then(files => {
 				this._attachments = files
 				this._attachmentButtons = files.map(file => {
-					return new Button(() => file.name, () => fileController.downloadAndOpen(file), () => BootIcons.Attachment).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
+					return new Button(() => file.name, () => fileController.downloadAndOpen(file), () => Icons.Attachment).setType(ButtonType.Bubble).setStaticRightText("(" + formatStorageSize(Number(file.size)) + ")")
 				})
 				if (this._attachmentButtons.length >= 3) {
 					this._attachmentButtons.push(new Button("saveAll_action", () => fileController.downloadAndOpenAll(this._attachments), null).setType(ButtonType.Secondary))
