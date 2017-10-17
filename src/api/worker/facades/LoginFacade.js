@@ -40,7 +40,7 @@ import {createSecondFactorAuthGetData} from "../../entities/sys/SecondFactorAuth
 import {SecondFactorAuthGetReturnTypeRef} from "../../entities/sys/SecondFactorAuthGetReturn"
 import {workerImpl} from "../WorkerImpl"
 import {SecondFactorPendingError} from "../../common/error/SecondFactorPendingError"
-import {NotAuthenticatedError} from "../../common/error/RestError"
+import {NotAuthenticatedError, NotFoundError} from "../../common/error/RestError"
 
 assertWorkerOrNode()
 
@@ -244,9 +244,12 @@ export class LoginFacade {
 			'accessToken': neverNull(accessToken),
 			"v": SessionModelType.version
 		}
-		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json).catch(NotAuthenticatedError, () => {
-			console.log("authentication failed => session is already deleted")
-		})
+		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json)
+			.catch(NotAuthenticatedError, () => {
+				console.log("authentication failed => session is already closed")
+			}).catch(NotFoundError, () => {
+				console.log("authentication failed => session instance is already deleted")
+			})
 	}
 
 	_getSessionElementId(accessToken: Base64Url): Id {
