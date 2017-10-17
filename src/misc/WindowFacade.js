@@ -61,8 +61,8 @@ class WindowFacade {
 			}
 		}
 		if (window.addEventListener) {
-			window.addEventListener("beforeunload", e => this._checkWindowClose(e))
-			window.addEventListener("unload", e => this._close())
+			window.addEventListener("beforeunload", e => this._beforeUnload(e))
+			window.addEventListener("unload", e => this._onUnload())
 		}
 	}
 
@@ -81,16 +81,20 @@ class WindowFacade {
 		this.windowCloseConfirmation = enable
 	}
 
-	_checkWindowClose(e: any) { // BeforeUnloadEvent
+	_beforeUnload(e: any) { // BeforeUnloadEvent
 		if (this.windowCloseConfirmation) {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m
 			return m
+		} else {
+			this._worker.logout(true)
 		}
 	}
 
-	_close() {
-		this._worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+	_onUnload() {
+		if (!this.windowCloseConfirmation) {
+			this._worker.logout(true) // TODO investigate sendBeacon API as soon as it is widely supported (https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+		}
 	}
 
 
