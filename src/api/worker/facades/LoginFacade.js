@@ -241,7 +241,7 @@ export class LoginFacade {
 	deleteSession(accessToken: Base64Url): Promise<void> {
 		let path = typeRefToPath(SessionTypeRef) + '/' + this._getSessionListId(accessToken) + "/" + this._getSessionElementId(accessToken)
 		let headers = {
-			'accessToken': neverNull(this._accessToken),
+			'accessToken': neverNull(accessToken),
 			"v": SessionModelType.version
 		}
 		return restClient.request(path, HttpMethod.DELETE, {}, headers, null, MediaType.Json).catch(NotAuthenticatedError, () => {
