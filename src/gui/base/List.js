@@ -362,6 +362,14 @@ export class List<T, R:VirtualRow<T>> {
 		}
 	}
 
+	selectNone() {
+		if (this._selectedEntities.length > 0) {
+			this._selectedEntities = []
+			this._reposition()
+			this._config.elementSelected([], false, true, false)
+		}
+	}
+
 	isEntitySelected(id: Id) {
 		return this._selectedEntities.find(entity => getLetId(entity)[1] == id) != null
 	}

@@ -433,6 +433,8 @@ export class MailView {
 
 	_finallyDeleteCustomMailFolder() {
 		//TODO make DeleteMailFolderData unencrypted in next model version
+		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
+		this.mailList.list.selectNone()
 		let deleteMailFolderData = createDeleteMailFolderData()
 		deleteMailFolderData.folders.push(this.selectedFolder.folder._id)
 		return serviceRequestVoid(TutanotaService.MailFolderService, HttpMethod.DELETE, deleteMailFolderData, null, ("dummy":any))
@@ -493,6 +495,8 @@ export class MailView {
 	}
 
 	_finallyDeleteAllMailsInSelectedFolder() {
+		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
+		this.mailList.list.selectNone()
 		let deleteMailData = createDeleteMailData()
 		deleteMailData.folder = this.selectedFolder.folder._id
 		return showProgressDialog("progressDeleting_msg", serviceRequestVoid(TutanotaService.MailService, HttpMethod.DELETE, deleteMailData))
