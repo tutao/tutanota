@@ -29,6 +29,7 @@ import {NavButton} from "../gui/base/NavButton"
 import {ExpanderButton, ExpanderPanel} from "../gui/base/Expander"
 import {theme} from "../gui/theme"
 import {BootIcons} from "../gui/base/icons/BootIcons"
+import {showProgressDialog} from "../gui/base/ProgressDialog"
 
 assertMainOrNode()
 
@@ -161,14 +162,16 @@ export class ContactView {
 						let vCards = vCardFileToVCards(vCardFileData)
 						if (vCards) {
 							let contactList = vCardListToContacts(vCards, neverNull(logins.getUserController().user.memberships.find(m => m.groupType === GroupType.Contact)).group)
-							return worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
+							return showProgressDialog("pleaseWait_msg", worker.getContactController().lazyContactListId.getAsync().then(contactListId => {
 								let promises = []
 								contactList.forEach((contact) => {
 									promises.push(setup(contactListId, contact))
 								})
 								return Promise.all(promises).then(() => {
-									return Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": promises.length}))
+									return promises.length
 								})
+							})).then(numberOfContacts => {
+								return Dialog.error(() => lang.get("importVCardSuccess_msg", {"{1}": numberOfContacts}))
 							})
 						} else {
 							Dialog.error("importVCardError_msg")
