@@ -134,7 +134,7 @@ export function parseMailtoUrl(mailtoUrl: string): {to:MailAddress[], cc:MailAdd
 
 	if (url.searchParams) { // not supported in Edge
 		for (let pair of url.searchParams.entries()) {
-			let paramName = pair[0]
+			let paramName = pair[0].toLowerCase()
 			let paramValue = pair[1]
 			if (paramName == "subject") {
 				subject = paramValue

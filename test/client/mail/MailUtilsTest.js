@@ -64,13 +64,13 @@ o.spec("MailUtils", browser(function () {
 	})
 
 	o(" parserMailtoUrl with subject and body", function () {
-		let result = parseMailtoUrl("mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body%0D%0AKind regards%20someone")
+		let result = parseMailtoUrl("mailto:someone@example.com?subject=This%20is%20the%20subject&cc=someone_else@example.com&body=This%20is%20the%20body%0AKind regards%20someone")
 		o(result.to.length).equals(1)
 		o(result.to[0].address).equals("someone@example.com")
 		o(result.cc.length).equals(1)
 		o(result.cc[0].address).equals("someone_else@example.com")
 		o(result.subject).equals("This is the subject")
-		o(result.body).equals("This is the body\r<br>Kind regards someone")
+		o(result.body).equals("This is the body<br>Kind regards someone")
 	})
 
 	o(" parserMailtoUrl with multiple recipients", function () {
@@ -87,5 +87,17 @@ o.spec("MailUtils", browser(function () {
 		o(result.bcc[1].address).equals("carol2@example.com")
 		o(result.body).equals("hello")
 	})
+	o(" parserMailtoUrl to lower case", function () {
+		let result = parseMailtoUrl("	mailto:matthias@test.de?CC=matthias@test.de&BCC=matthias@test.de&Subject=Blah&Body=What%3F%20Everything%20encoded%20in%20mailto%3F")
+		o(result.to.length).equals(1)
+		o(result.to[0].address).equals("matthias@test.de")
+		o(result.cc.length).equals(1)
+		o(result.cc[0].address).equals("matthias@test.de")
+		o(result.bcc.length).equals(1)
+		o(result.bcc[0].address).equals("matthias@test.de")
+		o(result.subject).equals("Blah")
+		o(result.body).equals("What? Everything encoded in mailto?")
+	})
+
 
 }))
