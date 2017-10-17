@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2017-10-13T13:57:45Z",
+	"updated_at": "2017-10-17T14:43:49Z",
 	"source_locale": {"id": "fcd7471b347c8e517663e194dcddf237", "name": "en", "code": "en"},
 	"keys": {
 		"accountDeactivated_msg": "Ihr Tutanota-Account wurde leider deaktiviert. Bitte wende dich an deinen Administrator.",
@@ -122,6 +122,7 @@ module.exports = {
 		"chooseNumber_msg": "Bitte klicke auf einen der \"Sende SMS\"-Buttons, um das Tutanota-Passwort zu erhalten.",
 		"choosePhotos_action": "Fotos",
 		"choose_label": "Bitte auswählen ...",
+		"chromeAutofillBug_msg": "Leider bist Du von einem Bug in dem Autofill-Feature Deines Browsers betroffen. Dein Passwort wurde nicht an die Tutanota-App übertragen. Bitte drücke F5 oder gib dein Passwort ein und klicke erneut auf Login.",
 		"claim_label": "Tutanota - einfach. sicher. mailen.",
 		"clickNumber_msg": "Bitte klicke auf den \"Sende SMS\"-Button, um das Tutanota-Passwort zu erhalten.",
 		"client_label": "Client",
@@ -405,7 +406,7 @@ module.exports = {
 		"invalidPageLoad_msg": "Es ist ein Fehler beim Öffnen der Seite aufgetreten.",
 		"invalidPasswordChannel_msg": "Bitte gib eine gültige Mobilfunknummer oder ein ausreichend starkes Passwort für den folgenden Empfänger an: ",
 		"invalidPassword_msg": "Das Passwort ist leider ungültig.",
-		"invalidRecipients_msg": "Bitte korrigiere die ungültigen E-Mail-Adressen der Empfänger.",
+		"invalidRecipients_msg": "Bitte korrigiere die ungültige(n) E-Mail-Adresse(n) der Empfänger.",
 		"invalidSwVersion_msg": "Das Tutanota-Addin muss aktualisiert werden. Bei einem Neustart von Outlook wird die neue Version automatisch heruntergeladen und installiert.",
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invitationMailBody_msg": "Hallo!<br><br>Hier ist meine neue E-Mail-Adresse. Tutanota ist der E-Mail-Service der Zukunft: Tutanota bietet eine vollständig verschlüsselte und werbefreie Mailbox, die unsere Privatsphäre maximal schützt. Mit automatisch eingebauter Verschlüsselung können wir so sicher E-Mails austauschen, als wären es versiegelte Briefe. Endlich gehören unsere Daten nur uns, niemand sonst kann mitlesen.<br><br>Melde dich einfach hier an:<br>{registrationLink}<br><br>Viele Grüße<br>{username}<br><br>PS: Tutanota ist kostenlos mit 1 GB Speicher inklusive. Außerdem ist es Open Source: {githubLink}",
@@ -501,7 +502,7 @@ module.exports = {
 		"loggingOut_msg": "Du wirst abgemeldet ...",
 		"loginAction_msg": "Nach dem Login können sichere Nachrichten versendet und empfangen werden.",
 		"loginAnyway_action": "Lasst mich auf eigene Gefahr rein",
-		"loginCredentials_label": "Zugansdaten",
+		"loginCredentials_label": "Zugangsdaten",
 		"loginFailedOften_msg": "Es sind zu viele Login-Versuche fehlgeschlagen. Du kannst dich spätestens nach einer Stunde wieder einloggen.",
 		"loginFailed_msg": "Ungültige Zugangsdaten. Bitte versuche es erneut.",
 		"loginNameInfoAdmin_msg": "Optional: Der Name des Benutzers.",
@@ -918,7 +919,6 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht",
-		"chromeAutofillBug_msg": "Leider bist Du von einem Bug in dem Autofill-Feature Deines Browsers betroffen. Dein Passwort wurde nicht an die Tutanota-App übertragen. Bitte drücke F5 oder aktualisiere Dein Passwort und klicke erneut auf Login."
+		"yourMessage_label": "Deine Nachricht"
 	}
 }

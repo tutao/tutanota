@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "two", "few", "many", "other"],
 	"created_at": "2017-03-13T12:51:20Z",
-	"updated_at": "2017-10-11T07:51:35Z",
+	"updated_at": "2017-10-17T09:23:32Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Ցավոք, ձեր հաշիվը Tutanota ֊ում ապակտիվացել է։ Խնդրում ենք կապնվել ձեր ադմինի հետ։",

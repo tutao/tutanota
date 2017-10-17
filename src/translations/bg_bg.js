@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2017-10-10T09:48:09Z",
+	"updated_at": "2017-10-17T09:23:31Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "За съжаление, Вашият Тутанота профил бе деактивиран. Моля свържете се с Вашият администратор.",

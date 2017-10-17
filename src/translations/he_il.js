@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": true,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2017-10-10T09:48:10Z",
+	"updated_at": "2017-10-17T09:23:32Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "למרבה הצער, חשבון הטוטנוטה שלך נחסם. אנא פנה למנהל המערכת שלך.",

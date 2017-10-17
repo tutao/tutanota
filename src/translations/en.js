@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "one", "other"],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2017-10-13T13:57:17Z",
+	"updated_at": "2017-10-17T14:32:38Z",
 	"source_locale": null,
 	"keys": {
 		"accountDeactivated_msg": "Unfortunately, your Tutanota account was deactivated. Please contact your administrator.",
@@ -122,6 +122,7 @@ module.exports = {
 		"chooseNumber_msg": "Please click on one of the \"Send text message\" buttons below to receive your Tutanota password.",
 		"choosePhotos_action": "Photos",
 		"choose_label": "Choose ...",
+		"chromeAutofillBug_msg": "You have been hit by a bug of the autofill feature of your browser. Your password has not been submitted to the Tutanota app. Please press F5 or enter your password and click on login again.",
 		"claim_label": "Tutanota - mail. done. right.",
 		"clickNumber_msg": "Please click on the \"Send text message\" button below to receive your Tutanota password.",
 		"client_label": "Client",
@@ -405,7 +406,7 @@ module.exports = {
 		"invalidPageLoad_msg": "Error while opening website.",
 		"invalidPasswordChannel_msg": "Please enter a valid mobile phone number or a strong password for the following recipient: ",
 		"invalidPassword_msg": "Invalid password. Please check it again.",
-		"invalidRecipients_msg": "Please correct the invalid email addresses in the recipient fields.",
+		"invalidRecipients_msg": "Please correct the invalid email address(es) in the recipient fields.",
 		"invalidSwVersion_msg": "Your Tutanota addin has to be updated. When you restart Outlook, the new version will automatically be downloaded and installed.",
 		"invalidVatIdNumber_msg": "The value added tax identification number (VAT-ID) is invalid.",
 		"invitationMailBody_msg": "Hello!<br><br>This is my new email address. Tutanota realizes the future of email already today: Tutanota offers a fully encrypted, ad-free mailbox to protect our right to privacy. With automatic encryption we can share emails as securely as sending sealed letters. Finally our data belongs only to us, no-one else can access it.<br><br>Join Tutanota now:<br>{registrationLink}<br><br><br>Best regards,<br>{username}<br><br>PS: Tutanota is free of charge with 1 GB of free storage included. In addition, it is open source: {githubLink}",
@@ -918,7 +919,6 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message",
-		"chromeAutofillBug_msg": "You have been hit by a bug of the autofill feature of your browser. Your password has not been submitted to the Tutanota app. Please press F5 or update your password and submit the form again."
+		"yourMessage_label": "Your message"
 	}
 }

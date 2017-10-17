@@ -7,7 +7,7 @@ module.exports = {
 	"rtl": false,
 	"plural_forms": ["zero", "other"],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2017-06-23T08:22:44Z",
+	"updated_at": "2017-10-17T09:23:31Z",
 	"source_locale": null,
 	"keys": {
 		"accountSwitchTooManyActiveUsers_msg": "계정 종류를 변경하기 전에 다른 추가 사용자들을 모두 제거하세요.",
