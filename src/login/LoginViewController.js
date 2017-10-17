@@ -47,28 +47,32 @@ export class LoginViewController {
 	_formLogin(): void {
 		let mailAddress = this.view.mailAddress.value()
 		let pw = this.view.password.value()
-		if (mailAddress == "" || pw == "") {
-			this.view.helpText = lang.get('loginFailed_msg')
+		if (this.view.password.webkitAutofill && pw.length === 0) {
+			Dialog.error("chromeAutofillBug_msg")
 		} else {
-			this.view.helpText = lang.get('login_msg')
-			let persistentSession = this.view.savePassword.checked()
-			let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
-				.then(newCredentials => {
-					let storedCredentials = deviceConfig.get(mailAddress)
-					if (persistentSession) {
-						deviceConfig.set(newCredentials)
-					}
-					if (storedCredentials) {
-						return worker.deleteSession(storedCredentials.accessToken)
-							.then(() => {
-								if (!persistentSession) {
-									deviceConfig.delete(mailAddress)
-								}
-							})
-					}
-				}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
-			this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
-			})
+			if (mailAddress == "" || pw == "") {
+				this.view.helpText = lang.get('loginFailed_msg')
+			} else {
+				this.view.helpText = lang.get('login_msg')
+				let persistentSession = this.view.savePassword.checked()
+				let createSessionPromise = worker.createSession(mailAddress, pw, client.getIdentifier(), persistentSession)
+					.then(newCredentials => {
+						let storedCredentials = deviceConfig.get(mailAddress)
+						if (persistentSession) {
+							deviceConfig.set(newCredentials)
+						}
+						if (storedCredentials) {
+							return worker.deleteSession(storedCredentials.accessToken)
+								.then(() => {
+									if (!persistentSession) {
+										deviceConfig.delete(mailAddress)
+									}
+								})
+						}
+					}).finally(() => secondFactorHandler.closeWaitingForSecondFactorDialog())
+				this._handleSession(showProgressDialog("login_msg", createSessionPromise), () => {
+				})
+			}
 		}
 	}
 

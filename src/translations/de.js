@@ -918,6 +918,7 @@ module.exports = {
 		"yesterday_label": "gestern",
 		"yes_label": "Ja",
 		"yourFolders_action": "DEINE ORDNER",
-		"yourMessage_label": "Deine Nachricht"
+		"yourMessage_label": "Deine Nachricht",
+		"chromeAutofillBug_msg": "Leider bist Du von einem Bug in dem Autofill-Feature Deines Browsers betroffen. Dein Passwort wurde nicht an die Tutanota-App übertragen. Bitte drücke F5 oder aktualisiere Dein Passwort und klicke erneut auf Login."
 	}
 }

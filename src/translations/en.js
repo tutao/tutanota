@@ -918,6 +918,7 @@ module.exports = {
 		"yesterday_label": "yesterday",
 		"yes_label": "Yes",
 		"yourFolders_action": "YOUR FOLDERS",
-		"yourMessage_label": "Your message"
+		"yourMessage_label": "Your message",
+		"chromeAutofillBug_msg": "You have been hit by a bug of the autofill feature of your browser. Your password has not been submitted to the Tutanota app. Please press F5 or update your password and submit the form again."
 	}
 }
