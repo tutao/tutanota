@@ -35,6 +35,7 @@ export class TextField {
 	value: stream<string>;
 	type: TextFieldTypeEnum;
 	baseLabelPosition: number;
+	_baseLabel: boolean;
 	active: boolean;
 	webkitAutofill: boolean;
 	disabled: boolean;
@@ -67,6 +68,7 @@ export class TextField {
 		})
 		this.type = Type.Text
 		this.baseLabelPosition = size.text_field_label_top
+		this._baseLabel = true
 		this.onblur = stream()
 		this.skipNextBlur = false
 		this._keyHandler = null
@@ -81,7 +83,7 @@ export class TextField {
 					class: this.active ? "content-accent-fg" : "",
 					oncreate: (vnode) => {
 						this._domLabel = vnode.dom
-						if (this.isEmpty() && !this.disabled) { // if the text field is disabled do not show the label in base position.
+						if (this._baseLabel) { // if the text field is disabled do not show the label in base position.
 							this._domLabel.style.fontSize = px(size.font_size_base)
 							this._domLabel.style.transform = 'translateY(' + this.baseLabelPosition + "px)"
 						} else {
@@ -132,13 +134,14 @@ export class TextField {
 				value: this.value(),
 				oncreate: (vnode) => {
 					this._domInput = vnode.dom
-					if (this.type == Type.Password) {
+					if (this.type != Type.Area) {
 						vnode.dom.addEventListener('animationstart', e => {
 							if (e.animationName === "onAutoFillStart") {
-								this.animate(true)
 								this.webkitAutofill = true
+								this.animate()
 							} else if (e.animationName === "onAutoFillCancel") {
 								this.webkitAutofill = false
+								this.animate()
 							}
 						})
 					}
@@ -157,7 +160,7 @@ export class TextField {
 				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active && !this.webkitAutofill) {
-						this.animate(true) // animate in case of browser autocompletion (non-webkit)
+						this.animate() // animate in case of browser autocompletion (non-webkit)
 					}
 					this.value(this._domInput.value) // update the input on each change
 				},
@@ -194,7 +197,7 @@ export class TextField {
 				},
 				oninput: e => {
 					if (this.isEmpty() && this._domInput.value !== "" && !this.active) {
-						this.animate(true) // animate in case of browser autocompletion
+						this.animate() // animate in case of browser autocompletion
 					}
 					this._domInput.style.height = '0px'
 					this._domInput.style.height = px(this._domInput.scrollHeight)
@@ -216,6 +219,11 @@ export class TextField {
 
 	setValue(value: ?string): TextField {
 		this.value(value ? value : "")
+		if (value) {
+			this._baseLabel = false
+		} else if (!this.disabled) {
+			this._baseLabel = true
+		}
 		return this
 	}
 
@@ -226,6 +234,7 @@ export class TextField {
 
 	setDisabled(): TextField {
 		this.disabled = true
+		this._baseLabel = false
 		return this
 	}
 
@@ -239,9 +248,7 @@ export class TextField {
 			this.active = true
 			this._domInput.focus()
 			this._domWrapper.classList.add("active")
-			if (this.isEmpty()) {
-				this.animate(true)
-			}
+			this.animate()
 		}
 	}
 
@@ -250,26 +257,33 @@ export class TextField {
 			this._domInput.focus()
 		} else {
 			this._domWrapper.classList.remove("active")
-			if (this.isEmpty()) {
-				this.animate(false)
-			}
+			this.animate()
 			this.active = false
 			this.onblur(e)
 		}
 		this.skipNextBlur = false
 	}
 
-	animate(fadeIn: boolean) {
-		let fontSizes = [size.font_size_base, size.font_size_small]
-		let top = [this.baseLabelPosition, 0]
-		if (!fadeIn) {
-			fontSizes.reverse()
-			top.reverse()
-		}
-		return animations.add(this._domLabel, [
-			fontSize(fontSizes[0], fontSizes[1]),
-			transform(transform.type.translateY, top[0], top[1])
-		], {easing: ease.out})
+	animate() {
+		window.requestAnimationFrame(() => {
+			if (this._baseLabel && ((!this.isEmpty() && !this.disabled) || this.webkitAutofill || this.active)) {
+				let fontSizes = [size.font_size_base, size.font_size_small]
+				let top = [this.baseLabelPosition, 0]
+				this._baseLabel = false
+				return animations.add(this._domLabel, [
+					fontSize(fontSizes[0], fontSizes[1]),
+					transform(transform.type.translateY, top[0], top[1])
+				], {easing: ease.out})
+			} else if (!this._baseLabel && (this.isEmpty() && !this.disabled && !this.webkitAutofill && !this.active)) {
+				let fontSizes = [size.font_size_small, size.font_size_base]
+				let top = [0, this.baseLabelPosition]
+				this._baseLabel = true
+				return animations.add(this._domLabel, [
+					fontSize(fontSizes[0], fontSizes[1]),
+					transform(transform.type.translateY, top[0], top[1])
+				], {easing: ease.out})
+			}
+		})
 	}
 
 	isActive(): boolean {

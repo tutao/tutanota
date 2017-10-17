@@ -79,7 +79,7 @@ export class DatePicker {
 
 	setDate(date: Date) {
 		this._date = date
-		if (this.input.isEmpty() && this.input._domInput) this.input.animate(true)
+		if (this.input.isEmpty() && this.input._domInput) this.input.animate()
 		this.input.value(date != null ? formatDate(date) : "")
 	}
 

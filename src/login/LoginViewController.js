@@ -49,6 +49,11 @@ export class LoginViewController {
 		let pw = this.view.password.value()
 		if (this.view.password.webkitAutofill && pw.length === 0) {
 			Dialog.error("chromeAutofillBug_msg")
+			this.view.password.value(" ")
+			window.requestAnimationFrame(() => {
+				this.view.password.value("")
+				m.redraw()
+			})
 		} else {
 			if (mailAddress == "" || pw == "") {
 				this.view.helpText = lang.get('loginFailed_msg')

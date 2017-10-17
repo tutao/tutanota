@@ -637,8 +637,8 @@ styles.registerStyle('main', () => {
 		"@keyframes onAutoFillStart": {from: {/**/}, to: {/**/}},
 		"@keyframes onAutoFillCancel": {from: {/**/}, to: {/**/}},
 		// use the animations as hooks for JS to capture 'animationstart' events
-		"input[type=password]:-webkit-autofill": {"animation-name": "onAutoFillStart",},
-		"input[type=password]:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
+		"input:-webkit-autofill": {"animation-name": "onAutoFillStart",},
+		"input:not(:-webkit-autofill)": {"animation-name": "onAutoFillCancel"},
 
 	}
 })
