@@ -332,7 +332,7 @@ export class Dialog {
 						m(".h2.pb", title),
 						m(".flex-direction-change.items-center", [
 							m(".pb", message),
-							m("img[src=/graphics/hab.png].dialog-img.pb")
+							m("img[src=/images/hab.png].dialog-img.pb")
 						]),
 						m("a[href=" + link + "][target=_blank]", link)
 					]),
