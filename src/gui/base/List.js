@@ -81,12 +81,14 @@ export class List<T, R:VirtualRow<T>> {
 		}
 
 		const updateWidth = () => {
-			window.requestAnimationFrame(() => {
-				this._width = this._domListContainer.clientWidth
-				if (this._swipeHandler) {
-					this._swipeHandler.updateWidth()
-				}
-			})
+			if (this._domListContainer) {
+				window.requestAnimationFrame(() => {
+					this._width = this._domListContainer.clientWidth
+					if (this._swipeHandler) {
+						this._swipeHandler.updateWidth()
+					}
+				})
+			}
 		}
 
 		this._scrollListener = (e) => {
