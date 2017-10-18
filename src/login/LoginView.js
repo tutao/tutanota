@@ -40,6 +40,9 @@ export class LoginView {
 		this.password = new TextField("password_label")
 			.setType(Type.Password)
 		this.savePassword = new Checkbox("storePassword_action", () => lang.get("onlyPrivateComputer_msg"))
+		if (!client.localStorage()) {
+			this.savePassword.setDisabled("functionNotSupported_msg")
+		}
 
 		this.appButtons = [
 			new Button('appInfoAndroidImageAlt_alt', () => this.openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota"), () => BootIcons.Android)

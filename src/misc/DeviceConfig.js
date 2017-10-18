@@ -1,6 +1,7 @@
 // @flow
 import {assertMainOrNodeBoot} from "../api/Env"
 import {themeId} from "../gui/theme"
+import {client} from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -25,7 +26,7 @@ class DeviceConfig {
 
 	_load(): void {
 		this._credentials = []
-		let loadedConfigString = localStorage.getItem(LocalStorageKey)
+		let loadedConfigString = client.localStorage() ? localStorage.getItem(LocalStorageKey) : null
 		let loadedConfig = loadedConfigString != null ? JSON.parse(loadedConfigString) : null
 		this._theme = (loadedConfig && loadedConfig._theme) ? loadedConfig._theme : 'light'
 		if (loadedConfig && loadedConfig._version === ConfigVersion) {

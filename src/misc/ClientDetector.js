@@ -126,6 +126,9 @@ class ClientDetector {
 		}
 	}
 
+	localStorage(): boolean {
+		return localStorage ? true : false
+	}
 
 	/**
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
